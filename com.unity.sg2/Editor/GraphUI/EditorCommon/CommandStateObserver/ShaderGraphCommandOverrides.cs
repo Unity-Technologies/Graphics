@@ -158,8 +158,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var selectionHelper = new GlobalSelectionCommandHelper(selectionState);
                 using (var undoStateUpdater = undoState.UpdateScope)
                 {
-                    var undoableStates = selectionHelper.UndoableSelectionStates.Append(graphModelState);
-                    undoStateUpdater.SaveStates(undoableStates);
+                    undoStateUpdater.SaveStates(selectionHelper.SelectionStates);
+                    undoStateUpdater.SaveState(graphModelState);
                 }
 
                 var graphModel = graphModelState.GraphModel;
