@@ -154,7 +154,7 @@ public class CustomPass : ScriptableRenderPass
                                     ref RenderingData renderingData)
     {
         CommandBuffer cmd = CommandBufferPool.Get();
-        ScriptableRenderer.SetRenderTarget(cmd, m_DestinationColor, m_DestinationDepth,
+        CoreUtils.SetRenderTarget(cmd, m_DestinationColor, m_DestinationDepth,
                                               clearFlag, clearColor);
         context.ExecuteCommandBuffer(cmd);
         CommandBufferPool.Release(cmd);
