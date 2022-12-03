@@ -7,19 +7,6 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    enum ShaderGraphType
-    {
-        AssetGraph,
-        SubGraph
-    }
-
-    struct AssetContextObject
-    {
-        ShaderGraphType m_ShaderGraphType;
-        ITargetProvider m_TargetProvider;
-        GraphTemplate m_GraphTemplate;
-    }
-
     [Serializable]
     internal class SerializableGraphHandler
     {
@@ -78,8 +65,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         LegacyTargetType m_TargetType;
 
         public LegacyTargetType TargetType => m_TargetType;
-
-        ShaderGraphType m_ShaderGraphType;
 
         string m_AssetPath;
 
