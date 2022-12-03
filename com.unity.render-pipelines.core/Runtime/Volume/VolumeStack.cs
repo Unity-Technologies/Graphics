@@ -12,24 +12,41 @@ namespace UnityEngine.Rendering
     public sealed class VolumeStack : IDisposable
     {
         // Holds the state of _all_ component types you can possibly add on volumes
-        internal Dictionary<Type, VolumeComponent> components;
+        internal readonly Dictionary<Type, VolumeComponent> components = new();
+
+        // Holds the default value for every volume parameter for faster per-frame stack reset.
+        internal (VolumeParameter parameter, VolumeParameter defaultValue)[] defaultParameters;
+
+        internal bool requiresReset = true;
 
         internal VolumeStack()
         {
         }
 
-        internal void Reload(Type[] baseTypes)
+        internal void Reload(List<VolumeComponent> componentDefaultStates)
         {
-            if (components == null)
-                components = new Dictionary<Type, VolumeComponent>();
-            else
-                components.Clear();
+            components.Clear();
+            requiresReset = true;
 
-            foreach (var type in baseTypes)
+            List<(VolumeParameter parameter, VolumeParameter defaultValue)> defaultParametersList = new();
+            foreach (var defaultVolumeComponent in componentDefaultStates)
             {
-                var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
-                components.Add(type, inst);
+                var type = defaultVolumeComponent.GetType();
+                var component = (VolumeComponent)ScriptableObject.CreateInstance(type);
+                components.Add(type, component);
+
+                int count = component.parameters.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    defaultParametersList.Add(new()
+                    {
+                        parameter = component.parameters[i],
+                        defaultValue = defaultVolumeComponent.parameters[i]
+                    });
+                }
             }
+
+            defaultParameters = defaultParametersList.ToArray();
         }
 
         /// <summary>

@@ -16,21 +16,23 @@ struct StripData
 };
 
 #if HAS_STRIPS
-const StripData GetStripDataFromStripIndex(uint stripIndex, uint capacity)
+const StripData GetStripDataFromStripIndex(uint stripIndex, uint instanceIndex)
 {
     StripData stripData = (StripData)0;
     stripData.stripIndex = stripIndex;
-    stripData.capacity = capacity;
-    stripData.firstIndex = STRIP_DATA(STRIP_FIRST_INDEX,stripData.stripIndex);
-    stripData.nextIndex = STRIP_DATA(STRIP_NEXT_INDEX,stripData.stripIndex);
-    stripData.prevNextIndex = STRIP_DATA(STRIP_PREV_NEXT_INDEX, stripData.stripIndex);
+    stripData.capacity = PARTICLE_PER_STRIP_COUNT;
+
+    uint bufferIndex = (instanceIndex * STRIP_COUNT) + stripIndex;
+    stripData.firstIndex = STRIP_DATA(STRIP_FIRST_INDEX, bufferIndex);
+    stripData.nextIndex = STRIP_DATA(STRIP_NEXT_INDEX, bufferIndex);
+    stripData.prevNextIndex = STRIP_DATA(STRIP_PREV_NEXT_INDEX, bufferIndex);
     return stripData;
 }
 
-const StripData GetStripDataFromParticleIndex(uint particleIndex, uint capacity)
+const StripData GetStripDataFromParticleIndex(uint particleIndex, uint instanceIndex)
 {
-    uint stripIndex = particleIndex / capacity;
-    return GetStripDataFromStripIndex(stripIndex, capacity);
+    uint stripIndex = particleIndex / PARTICLE_PER_STRIP_COUNT;
+    return GetStripDataFromStripIndex(stripIndex, instanceIndex);
 }
 
 uint GetParticleIndex(uint relativeIndex, const StripData data)

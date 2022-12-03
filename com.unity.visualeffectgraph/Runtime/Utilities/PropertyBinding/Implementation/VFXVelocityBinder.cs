@@ -4,11 +4,11 @@ namespace UnityEngine.VFX.Utility
 {
     [AddComponentMenu("VFX/Property Binders/Velocity Binder")]
     [VFXBinder("Transform/Velocity")]
-    class VFXVelocityBinder : VFXBinderBase
+    class VFXVelocityBinder : VFXSpaceableBinder
     {
         public string Property { get { return (string)m_Property; } set { m_Property = value; } }
 
-        [VFXPropertyBinding("UnityEngine.Vector3"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
+        [VFXPropertyBinding("UnityEngine.Vector3"), SerializeField]
         public ExposedProperty m_Property = "Velocity";
         public Transform Target = null;
 
@@ -37,16 +37,17 @@ namespace UnityEngine.VFX.Utility
 #endif
             time = Time.time;
 
+            var currentPosition = ApplySpacePosition(component, m_Property, Target.position);
             if (m_PreviousTime != invalidPreviousTime)
             {
-                var delta = Target.transform.position - m_PreviousPosition;
+                var delta = currentPosition - m_PreviousPosition;
                 var deltaTime = time - m_PreviousTime;
                 if (Vector3.SqrMagnitude(delta) > Mathf.Epsilon && deltaTime > Mathf.Epsilon)
                     velocity = delta / deltaTime;
             }
 
             component.SetVector3((int)m_Property, velocity);
-            m_PreviousPosition = Target.transform.position;
+            m_PreviousPosition = currentPosition;
             m_PreviousTime = time;
         }
 

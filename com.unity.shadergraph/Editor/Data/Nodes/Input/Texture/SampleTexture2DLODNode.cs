@@ -105,28 +105,15 @@ namespace UnityEditor.ShaderGraph
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
-
             var lodSlot = GetSlotValue(LODInputId, generationMode);
-
             var id = GetSlotValue(TextureInputId, generationMode);
-
-            // GLES2 does not always support LOD sampling
-            sb.AppendLine("#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)");
-            {
-                sb.AppendLine("  $precision4 {0} = $precision4(0.0f, 0.0f, 0.0f, 1.0f);", GetVariableNameForSlot(OutputSlotRGBAId));
-            }
-            sb.AppendLine("#else");
-            {
-                var result = string.Format("  $precision4 {0} = SAMPLE_TEXTURE2D_LOD({1}.tex, {2}.samplerstate, {1}.GetTransformedUV({3}), {4});"
-                    , GetVariableNameForSlot(OutputSlotRGBAId)
-                    , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id
-                    , uvName
-                    , lodSlot);
-
-                sb.AppendLine(result);
-            }
-            sb.AppendLine("#endif");
+            var result = string.Format("  $precision4 {0} = SAMPLE_TEXTURE2D_LOD({1}.tex, {2}.samplerstate, {1}.GetTransformedUV({3}), {4});"
+                , GetVariableNameForSlot(OutputSlotRGBAId)
+                , id
+                , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id
+                , uvName
+                , lodSlot);
+            sb.AppendLine(result);
 
             if (textureType == TextureType.Normal)
             {

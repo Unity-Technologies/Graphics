@@ -161,6 +161,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public static CompareFunction GetTransparentZTest(this Material material)
             => material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetInt(kZTestTransparent) : CompareFunction.LessEqual;
 
+        public static bool GetAddPrecomputedVelocity(this Material material)
+            => material.HasProperty(kAddPrecomputedVelocity) ? material.GetInt(kAddPrecomputedVelocity) == 1 : false;
+
         public static void ResetMaterialCustomRenderQueue(this Material material)
         {
             // using GetOpaqueEquivalent / GetTransparentEquivalent allow to handle the case when we switch surfaceType
@@ -180,6 +183,12 @@ namespace UnityEditor.Rendering.HighDefinition
             float sortingPriority = material.HasProperty(kTransparentSortPriority) ? material.GetFloat(kTransparentSortPriority) : 0.0f;
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
             bool decalEnable = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+
+            #if UNITY_EDITOR
+            // Since we are gonna override the renderQueue value, we revert it before to avoid keeping an out of date property override
+            // Render queue value should not be accessed between the next two lines
+            HDMaterial.RevertRenderQueueOverride(material);
+            #endif
             material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest, decalEnable);
         }
 
@@ -243,6 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SG_Decal,
             SG_Eye,
             SG_Water,
+            SG_FogVolume,
             Count_All,
             Count_ShaderGraph = Count_All - Count_Standard,
             SG_External = -1, // material packaged outside of HDRP
@@ -383,9 +393,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 material.SetColor(kEmissiveColor, material.GetColor(kEmissiveColorHDR));
         }
 
-        /// <summary>Returns wether the material uses separate color and intensity values on Lit, Unlit and Decal shaders.</summary>
+        /// <summary>Compares a material's color and intensity values to determine if they are different. Works with Lit, Unlit and Decal shaders.</summary>
         /// <param name="material">The material to change.</param>
-        /// <returns>True if the material uses separate color and intensity values.</returns>
+        /// <returns>True if the material uses different color and intensity values.</returns>
         public static bool GetUseEmissiveIntensity(Material material)
         {
             return material.GetFloat(kUseEmissiveIntensity) > 0.0f;
@@ -472,10 +482,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Get the Diffusion profile on a Shader Graph material.</summary>
         /// <param name="material">The material to access.</param>
+        /// <param name="referenceName">The reference name of the Diffusion Profile property in the Shader Graph.</param>
         /// <returns>The Diffusion Profile Asset.</returns>
-        public static DiffusionProfileSettings GetDiffusionProfileShaderGraph(Material material)
+        public static DiffusionProfileSettings GetDiffusionProfileShaderGraph(Material material, string referenceName)
         {
-            return GetDiffusionProfileAsset(material, HDShaderIDs._DiffusionProfileAsset);
+            return GetDiffusionProfileAsset(material, Shader.PropertyToID(referenceName + "_Asset"));
         }
 
         internal static DiffusionProfileSettings GetDiffusionProfileAsset(Material material, int assetPropertyId)
@@ -483,6 +494,42 @@ namespace UnityEngine.Rendering.HighDefinition
             string guid = HDUtils.ConvertVector4ToGUID(material.GetVector(assetPropertyId));
             return UnityEditor.AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
         }
+
+        internal static IEnumerable<int> GetShaderDiffusionProfileProperties(Shader shader)
+        {
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset") != -1)
+                yield return HDShaderIDs._DiffusionProfileAsset;
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset0") != -1)
+                yield return Shader.PropertyToID("_DiffusionProfileAsset0");
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset1") != -1)
+                yield return Shader.PropertyToID("_DiffusionProfileAsset1");
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset2") != -1)
+                yield return Shader.PropertyToID("_DiffusionProfileAsset2");
+            if (shader.FindPropertyIndex("_DiffusionProfileAsset3") != -1)
+                yield return Shader.PropertyToID("_DiffusionProfileAsset3");
+
+            int propertyCount = UnityEditor.ShaderUtil.GetPropertyCount(shader);
+            for (int propIdx = 0; propIdx < propertyCount; ++propIdx)
+            {
+                var attributes = shader.GetPropertyAttributes(propIdx);
+                foreach (var attribute in attributes)
+                {
+                    if (attribute == "DiffusionProfile")
+                    {
+                        propIdx++;
+                        var type = UnityEditor.ShaderUtil.GetPropertyType(shader, propIdx);
+                        if (type == UnityEditor.ShaderUtil.ShaderPropertyType.Vector)
+                            yield return shader.GetPropertyNameId(propIdx);
+                        break;
+                    }
+                }
+            }
+        }
+
+        static System.Reflection.MethodInfo s_RevertRenderQueue = typeof(Material).GetMethod("RevertPropertyOverride_Serialized",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        internal static void RevertRenderQueueOverride(Material material) => s_RevertRenderQueue.Invoke(material, new object[] { 1 << 4 });
 #endif
 
         // this will work on ALL shadergraph-built shaders, in memory or asset based

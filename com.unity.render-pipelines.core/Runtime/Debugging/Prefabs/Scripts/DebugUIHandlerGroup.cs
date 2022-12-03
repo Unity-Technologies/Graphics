@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.UI
             m_Field = CastWidget<DebugUI.Container>();
             m_Container = GetComponent<DebugUIHandlerContainer>();
 
-            if (string.IsNullOrEmpty(m_Field.displayName))
+            if (m_Field.hideDisplayName)
                 header.gameObject.SetActive(false);
             else
                 nameLabel.text = m_Field.displayName;

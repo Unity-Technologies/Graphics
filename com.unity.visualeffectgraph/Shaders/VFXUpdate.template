@@ -1,8 +1,17 @@
 #pragma kernel CSMain
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
+${VFXPragmaOnlyRenderers}
+${VFXPragmaRequire}
+
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
+
+#define IndirectOutputType uint
+
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
+
+#ifdef VFX_IS_RAYTRACED
+#pragma multi_compile _ VFX_COMPUTE_AABBS
+#endif
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
 
@@ -10,6 +19,7 @@ RWByteAddressBuffer attributeBuffer;
 
 #if USE_DEAD_LIST
 RWStructuredBuffer<uint> deadListOut;
+RWStructuredBuffer<uint> deadListCount;
 #endif
 
 #if VFX_HAS_INDIRECT_DRAW
@@ -24,28 +34,44 @@ RWStructuredBuffer<uint> stripDataBuffer;
 StructuredBuffer<uint> attachedStripDataBuffer;
 #endif
 
-CBUFFER_START(updateParams)
-    uint nbMax;
-	uint dispatchWidth;
-	uint systemSeed;
+CBUFFER_START(updateParamsConst)
+    uint dispatchWidth;
+    ${VFXInstancingConstants}
+    float3 cameraXRSettings;
 CBUFFER_END
 
 ${VFXPerPassInclude}
 
+#if VFX_HAS_INDIRECT_DRAW
+${VFXDeclareAppendOutputIndirectBuffer}
+#endif
+
 ${VFXGeneratedBlockFunction}
+
+
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
-	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
-	uint index = id;
+	uint id = GetThreadId(groupId, groupThreadId, dispatchWidth);
+
+	uint index = GetThreadId(groupId, 0, dispatchWidth);
+	${VFXInitInstancing}
+	index += groupThreadId.x;
+
+	ContextData contextData = instancingContextData[instanceActiveIndex];
+	uint systemSeed = contextData.systemSeed;
+	uint nbMax = contextData.maxParticleCount;
+
 #if VFX_COMPUTE_BOUNDS
 	uint tid = groupThreadId.x;
 #endif
 
-	if (id < nbMax)
+	if (index < nbMax)
 	{
+        ${VFXLoadGraphValues}
+
         VFXAttributes attributes = (VFXAttributes)0;
 		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
@@ -56,8 +82,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
 			${VFXLoadAttributes:{(?!(alive|stripAlive))(\b\w)}}
 
 #if HAS_STRIPS
-            const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+            const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
             InitStripAttributes(index, attributes, stripData);
+            uint stripDataIndex = stripData.stripIndex + instanceIndex * STRIP_COUNT;
 #endif
 
 #if VFX_UPDATE_SKIP_ZERO_DELTA_TIME
@@ -72,21 +99,22 @@ void CSMain(uint3 groupId          : SV_GroupID,
 			{
 				${VFXStoreAttributes:{(?!(alive))(\b\w)}}
 #if VFX_HAS_INDIRECT_DRAW
-                uint indirectIndex = indirectBuffer.IncrementCounter();
-				indirectBuffer[indirectIndex] = index;
+                AppendOutputBuffer(indirectBuffer, index, instanceActiveIndex);
 #endif
 
 #if HAS_STRIPS
 				uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
-				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripData.stripIndex), relativeIndexInStrip);
-				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripData.stripIndex), relativeIndexInStrip);
+				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripDataIndex), relativeIndexInStrip);
+				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripDataIndex), relativeIndexInStrip);
 #endif
 			}
 			else
 			{
 				${VFXStoreAttributes:{alive|eventCount}}
 #if USE_DEAD_LIST && !VFX_USE_STRIPALIVE_CURRENT
-				uint deadIndex = deadListOut.IncrementCounter();
+	            uint deadIndex;
+		        InterlockedAdd(deadListCount[instanceIndex], 1, deadIndex);
+				deadIndex += instanceIndex * RAW_CAPACITY;
 				deadListOut[deadIndex] = index;
 #endif
 			}
@@ -96,7 +124,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
         {
             if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle
             {
-                uint deadIndex = deadListOut.IncrementCounter();
+	            uint deadIndex;
+		        InterlockedAdd(deadListCount[instanceIndex], 1, deadIndex);
+				deadIndex += instanceIndex * RAW_CAPACITY;
 				deadListOut[deadIndex] = index;
                 attributes.stripAlive = false;
                 ${VFXStoreAttributes:{stripAlive}}
@@ -106,7 +136,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #else
 		${VFXLoadAttributes}
 #if HAS_STRIPS
-        const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+        const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
         InitStripAttributes(index, attributes, stripData);
 #endif
 
@@ -119,22 +149,29 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		}
 		${VFXStoreAttributes}
 #if VFX_HAS_INDIRECT_DRAW
-        uint indirectIndex = indirectBuffer.IncrementCounter();
-		indirectBuffer[indirectIndex] = index;
+        AppendOutputBuffer(indirectBuffer, index, instanceActiveIndex);
 #endif
 #endif
-#if VFX_COMPUTE_BOUNDS
-		${VFXLoadSize}
-#if VFX_WORLD_SPACE
-        ${VFXLoadParameter:{worldToLocal}}
-#else
-        float4x4 worldToLocal = (float4x4)0;
-#endif
+#if VFX_COMPUTE_BOUNDS || VFX_COMPUTE_AABBS
+    {
+    #if VFX_COMPUTE_BOUNDS
+        ${VFXLoadSize}
+        #if VFX_WORLD_SPACE
+            ${VFXLoadParameter:{worldToLocal}}
+        #else
+            float4x4 worldToLocal = (float4x4)0;
+        #endif
 		InitReduction(attributes, size3, tid, worldToLocal);
+    #endif
+    }
+    #if VFX_COMPUTE_AABBS
+            ${VFXLoadSizeRT}
+            int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
+            FillAabbBuffer(attributes, size3, index, instanceIndex, rayTracingDecimationFactor);
+    #endif
 #endif
-
 	}
 	#if VFX_COMPUTE_BOUNDS
-	PerformBoundsReduction(id, tid);
+	PerformBoundsReduction(index, tid, instanceIndex, nbMax);
 	#endif
 }

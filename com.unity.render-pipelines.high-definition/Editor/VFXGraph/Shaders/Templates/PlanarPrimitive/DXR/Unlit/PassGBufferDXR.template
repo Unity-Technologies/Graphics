@@ -1,0 +1,85 @@
+
+        Pass
+        {
+            Name "GBufferDXR"
+            Tags{ "LightMode" = "GBufferDXR" }
+
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma raytracing surface_shader
+            #pragma skip_variants INSTANCING_ON
+
+            // Global includes
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
+            // Define the shader pass
+            #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
+
+            // Need to override the macros for ray tracing
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            // Shader variables
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+
+            // VFX includes
+            ${VFXIncludeRP("VFXLitVaryings.template")}
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/RayTracingInputStructure.template")}
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/CommonOutput.template")}
+
+            ${VFXPerPassInclude}
+
+            // Needs to be included after the VFX includes
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/IntersectionFunctions.template")}
+
+            // Lighting and material includes
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RayTracingProcedural.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+
+            // Graph functions
+            ${VFXGeneratedBlockFunction}
+
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/EvaluateMaterialData.template")}
+
+            [shader("closesthit")]
+            void ClosestHit(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+            {
+                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
+                // Compute the distance of the ray
+                rayIntersectionGbuffer.t = RayTCurrent();
+
+                // Read the material data
+                float4 color = 0.0;
+                float velocity = 0.0;
+                EvaluateUnlitMaterialData(attributeData, color, velocity);
+
+                // First we pack the data into the standard bsdf data
+                StandardBSDFData standardLitData;
+                ZERO_INITIALIZE(StandardBSDFData, standardLitData);
+
+                // Output is not to be lit
+                // The inverse current exposure multiplier needs to only be applied to the color as it need to be brought to the current exposure value, the emissive
+                // color is already in the right exposure space.
+                standardLitData.emissiveAndBaked = color * GetInverseCurrentExposureMultiplier();
+                standardLitData.isUnlit = 1;
+
+                // Be cause this will not be lit, we need to apply atmospheric scattering right away
+                ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), RayTCurrent(), standardLitData.emissiveAndBaked, true);
+
+                // Then export it to the gbuffer
+                EncodeIntoStandardGBuffer(standardLitData, rayIntersectionGbuffer.gbuffer0, rayIntersectionGbuffer.gbuffer1, rayIntersectionGbuffer.gbuffer2, rayIntersectionGbuffer.gbuffer3);
+                rayIntersectionGbuffer.t = RAY_TRACING_DISTANCE_FLAG_UNLIT;
+            }
+
+            // Inject the intersection shader
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/IntersectionShader.template")}
+            ENDHLSL
+        }

@@ -14,7 +14,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma multi_compile_local_fragment _ USE_FLOWMAP
 
     #pragma multi_compile_fragment _ DEBUG_DISPLAY
-    #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+    #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+    #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
 
     #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
@@ -255,10 +256,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
-        // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-        uint renderingLayers = GetMeshRenderingLightLayer();
         float3 shadow3;
-        ShadowLoopMin(shadowContext, posInput, float3(0.0, 1.0, 0.0), _ShadowFilter, renderingLayers, shadow3);
+        ShadowLoopMin(shadowContext, posInput, float3(0.0, 1.0, 0.0), _ShadowFilter, RENDERING_LAYERS_MASK, shadow3);
         shadow = dot(shadow3, float3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
 
         float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint, 0.0);

@@ -14,6 +14,7 @@ struct GPUProbeVolumeOBB
     float3 Z;
     int minControllerSubdivLevel;
     int maxControllerSubdivLevel;
+    int fillEmptySpaces;
     int maxSubdivLevelInsideVolume;
 };
 

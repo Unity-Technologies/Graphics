@@ -12,6 +12,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
     $SurfaceDescription.Metallic:                   surfaceData.metallic =                  surfaceDescription.Metallic;
     $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
+    $SurfaceDescription.TransmissionMask:           surfaceData.transmissionMask =          surfaceDescription.TransmissionMask;
     $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
     $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
     $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
@@ -80,11 +81,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
     #endif
 
-    #ifdef _DOUBLESIDED_ON
-        float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-    #else
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-    #endif
+    float3 doubleSidedConstants = GetDoubleSidedConstants();
 
     // normal delivered to master node
     $SurfaceDescription.NormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.NormalOS, surfaceData.normalWS, doubleSidedConstants);

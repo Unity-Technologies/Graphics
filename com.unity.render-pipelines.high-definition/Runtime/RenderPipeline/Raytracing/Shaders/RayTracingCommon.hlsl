@@ -3,6 +3,14 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 
+#if SHADER_API_GAMECORE_XBOXSERIES
+// On GameCore we currently don't support recursive raytracing modes, so stripping TraceRay from hit group shaders will enforces this and allow better shader optimization
+// SHADER_STAGE_RAYTRACING is defined only for shaders imported from raytrace files ( note: SHADER_STAGE_RAY_TRACING is defined for all raytracing shaders including hitgroups )
+#if !SHADER_STAGE_RAYTRACING
+#define TraceRay(d2p_accelStruct,d2p_rayFlags,d2p_instanceMask,d2p_contribution,d2p_multiplier,d2p_missShader,d2p_ray,d2p_payload) ;//TraceRay()_removed_in_function_shader
+#endif
+#endif
+
 // This array converts an index to the local coordinate shift of the half resolution texture
 static const uint2 HalfResIndexToCoordinateShift[4] = { uint2(0,0), uint2(1, 0), uint2(0, 1), uint2(1, 1) };
 
@@ -76,4 +84,17 @@ bool RayTracingGBufferIsLit(float rayDistance)
 {
     return rayDistance > 0.0;
 }
+
+float3 RayTracingHSVClamp(float3 color, float clampValue)
+{
+    // Convert to HSV space
+    float3 hsvColor = RgbToHsv(color);
+
+    // Expose and clamp the final color
+    hsvColor.z = clamp(hsvColor.z, 0.0, clampValue);
+
+    // Convert back to HSV space
+    return HsvToRgb(hsvColor);
+}
+
 #endif // RAY_TRACING_COMMON_HLSL

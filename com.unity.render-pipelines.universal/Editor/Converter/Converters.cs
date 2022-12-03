@@ -11,7 +11,14 @@ namespace UnityEditor.Rendering.Universal
     /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
     public enum ConverterFilter
     {
+        /// <summary>
+        /// Use this to include converters matching the filter.
+        /// </summary>
         Inclusive,
+
+        /// <summary>
+        /// Use this to exclude converters matching the filter.
+        /// </summary>
         Exclusive
     }
 
@@ -21,8 +28,19 @@ namespace UnityEditor.Rendering.Universal
     /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId)"/>.)
     public enum ConverterContainerId
     {
+        /// <summary>
+        /// Use this for Built-in to URP converter.
+        /// </summary>
         BuiltInToURP,
+
+        /// <summary>
+        /// Use this for Built-in to 2D (URP) converter.
+        /// </summary>
         BuiltInToURP2D,
+
+        /// <summary>
+        /// Use this to upgrade 2D (URP) assets.
+        /// </summary>
         UpgradeURP2DAssets,
     }
 
@@ -32,14 +50,40 @@ namespace UnityEditor.Rendering.Universal
     /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
     public enum ConverterId
     {
+        /// <summary>
+        /// Use this for the material converters.
+        /// </summary>
         Material,
+
+        /// <summary>
+        /// Use this for the render settings converters.
+        /// </summary>
         RenderSettings,
+
+        /// <summary>
+        /// Use this for the animation clip converters.
+        /// </summary>
         AnimationClip,
+
+        /// <summary>
+        /// Use this for readonly material converters.
+        /// </summary>
         ReadonlyMaterial,
+
+        /// <summary>
+        /// Use this for post processing V2 converters.
+        /// </summary>
         PPv2,
+
+        /// <summary>
+        /// Use this for parametric to freeform light converters.
+        /// </summary>
         ParametricToFreeformLight,
     }
 
+    /// <summary>
+    /// Class for the converter framework.
+    /// </summary>
     public static class Converters
     {
         static Type GetContainerType(ConverterContainerId containerName)

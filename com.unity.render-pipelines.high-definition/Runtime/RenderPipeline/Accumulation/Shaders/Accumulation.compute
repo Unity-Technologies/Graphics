@@ -31,8 +31,11 @@ void AddConvergenceCue(uint2 pixelCoord, uint sampleCount, inout float3 color)
     uint width = _ScreenSize.x;
     uint height = _ScreenSize.y;
 
-    // Change color only in a region corresponding to a progress bar, on the bottom 1% of the screen
-    if (pixelCoord.y < 4 && (float)pixelCoord.x / width <= (float)sampleCount / _AccumulationNumSamples)
+    // Define progress bar height as 0.5% of the resolution (and at least 4 pixels high)
+    uint barHeight = max(4, ceil(height * 0.005));
+
+    // Change color only in a region corresponding to a progress bar, at the bottom of the screen
+    if (pixelCoord.y < barHeight && (float)pixelCoord.x / width <= (float)sampleCount / _AccumulationNumSamples)
     {
         float lum = Luminance(color);
 

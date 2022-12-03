@@ -18,7 +18,9 @@ using VFXManager = UnityEngine.VFX.VFXManager;
 class VFXManagerEditor : Editor
 {
     SerializedProperty[] m_TimeProperties;
+    SerializedProperty[] m_CapacityProperties;
     SerializedProperty[] m_ShaderProperties;
+    SerializedProperty[] m_InstancingProperties;
     SerializedProperty m_RuntimeResourcesProperty;
 
     void OnEnable()
@@ -27,7 +29,12 @@ class VFXManagerEditor : Editor
         {
             serializedObject.FindProperty("m_FixedTimeStep"),
             serializedObject.FindProperty("m_MaxDeltaTime"),
-            serializedObject.FindProperty("m_MaxScrubTime")
+            serializedObject.FindProperty("m_MaxScrubTime"),
+        };
+
+        m_CapacityProperties = new SerializedProperty[]
+        {
+            serializedObject.FindProperty("m_MaxCapacity")
         };
 
         m_ShaderProperties = new SerializedProperty[]
@@ -37,6 +44,12 @@ class VFXManagerEditor : Editor
             serializedObject.FindProperty("m_SortShader"),
             serializedObject.FindProperty("m_StripUpdateShader"),
         };
+
+        m_InstancingProperties = new SerializedProperty[]
+        {
+            serializedObject.FindProperty("m_BatchEmptyLifetime")
+        };
+
 
         m_RuntimeResourcesProperty = serializedObject.FindProperty("m_RuntimeResources");
 
@@ -64,17 +77,31 @@ class VFXManagerEditor : Editor
         }
 
         GUILayout.Space(15);
-
+        foreach (var property in m_CapacityProperties)
+        {
+            if (property != null)
+                EditorGUILayout.PropertyField(property);
+        }
+        GUILayout.Space(15);
         foreach (var property in m_ShaderProperties)
         {
             if (property != null)
                 EditorGUILayout.PropertyField(property);
         }
 
+        GUILayout.Space(15);
         if (m_RuntimeResourcesProperty != null)
         {
             EditorGUILayout.PropertyField(m_RuntimeResourcesProperty);
         }
+
+        GUILayout.Space(15);
+        foreach (var property in m_InstancingProperties)
+        {
+            if (property != null)
+                EditorGUILayout.PropertyField(property);
+        }
+
         serializedObject.ApplyModifiedProperties();
     }
 

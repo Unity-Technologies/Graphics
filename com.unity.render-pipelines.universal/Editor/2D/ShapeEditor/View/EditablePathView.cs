@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal.Path2D
         private GUIAction m_MoveRightTangentAction;
         private IDrawer m_Drawer;
 
-        public EditablePathView() : this(new Drawer()) { }
+        public EditablePathView() : this(new Drawer()) {}
 
         public EditablePathView(IDrawer drawer)
         {

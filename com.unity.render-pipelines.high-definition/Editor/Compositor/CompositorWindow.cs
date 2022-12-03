@@ -85,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             bool enableCompositor = false;
             if (compositor)
             {
-                enableCompositor = compositor.enabled;
+                enableCompositor = compositor.enableInternal;
             }
 
             bool enableCompositorCached = enableCompositor;
@@ -116,18 +116,18 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
                 Undo.RegisterCreatedObjectUndo(go, "Create Compositor");
             }
-            else if (compositor && (compositor.enabled != enableCompositor))
+            else if (compositor && (compositor.enableInternal != enableCompositor))
             {
                 string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
                 Undo.RecordObject(compositor, message);
-                compositor.enabled = enableCompositor;
+                compositor.enableInternal = enableCompositor;
             }
             else if (!compositor)
             {
                 return;
             }
 
-            if (compositor && !compositor.enabled)
+            if (compositor && !compositor.enableInternal)
             {
                 if (GUILayout.Button(new GUIContent(Styles.removeCompositor)))
                 {
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
 
             m_ScrollPosition = GUILayout.BeginScrollView(m_ScrollPosition);
-            using (new EditorGUI.DisabledScope(!compositor.enabled))
+            using (new EditorGUI.DisabledScope(!compositor.enableInternal))
             {
                 if (m_Editor)
                 {

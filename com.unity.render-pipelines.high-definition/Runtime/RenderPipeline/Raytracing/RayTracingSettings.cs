@@ -58,8 +58,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds the general settings for ray traced effects.
     /// </summary>
-    [HDRPHelpURLAttribute("Ray-Tracing-Settings")]
-    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Ray Tracing Settings (Preview)", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Ray Tracing/Ray Tracing Settings (Preview)")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Ray-Tracing-Settings")]
     public sealed class RayTracingSettings : VolumeComponent
     {
         /// <summary>
@@ -69,9 +70,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter rayBias = new ClampedFloatParameter(0.001f, 0.0f, 0.1f);
 
         /// <summary>
-        /// Enables the override of the shadow culling. This increases the validity area of shadow maps outside of the frustum.
+        /// Controls the Ray Bias value used when the distance between the pixel and the camera is close to the far plane. Between the near and far plane the Ray Bias and Distant Ray Bias are interpolated linearly. This does not affect Path Tracing or Recursive Rendering. This value can be increased to mitigate Ray Tracing z-fighting issues at a distance.
         /// </summary>
-        [Tooltip("Enables the override of the shadow culling. This increases the validity area of shadow maps outside of the frustum.")]
+        [Tooltip("Controls the Ray Bias value used when the distance between the pixel and the camera is close to the far plane. Between the near and far plane the Ray Bias and Distant Ray Bias are interpolated linearly. This does not affect Path Tracing or Recursive Rendering. This value can be increased to mitigate Ray Tracing z-fighting issues at a distance.")]
+        public ClampedFloatParameter distantRayBias = new ClampedFloatParameter(0.001f, 0.0f, 0.1f);
+
+        /// <summary>
+        /// When enabled, the culling region for punctual and area lights shadow maps is increased from frustum culling to extended culling. For Directional lights, cascades are not extended, but additional objects may appear in the cascades.
+        /// </summary>
+        [Tooltip("When enabled, the culling region for punctual and area lights shadow maps is increased from frustum culling to extended culling. For Directional lights, cascades are not extended, but additional objects may appear in the cascades.")]
         [FormerlySerializedAs("extendCulling")]
         public BoolParameter extendShadowCulling = new BoolParameter(false);
 
@@ -96,19 +103,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls how the ray tracing acceleration structure is build.
         /// </summary>
+        [Tooltip("Controls how the ray tracing acceleration structure is build.")]
         [AdditionalProperty]
         public RTASBuildModeParameter buildMode = new RTASBuildModeParameter(RTASBuildMode.Automatic);
 
         /// <summary>
         /// Controls how the maximum distance for the ray tracing culling is defined.
         /// </summary>
+        [Tooltip("Controls how the maximum distance for the ray tracing culling is defined.")]
         [AdditionalProperty]
         public RTASCullingModeParameter cullingMode = new RTASCullingModeParameter(RTASCullingMode.ExtendedFrustum);
 
         /// <summary>
-        /// Controls the manual culling distance.
+        /// Specifies the radius of the sphere used to cull objects out of the ray tracing acceleration structure when the culling mode is set to Sphere.
         /// </summary>
-        [Tooltip("Controls the manual culling distance.")]
+        [Tooltip("Specifies the radius of the sphere used to cull objects out of the ray tracing acceleration structure when the culling mode is set to Sphere.")]
         public MinFloatParameter cullingDistance = new MinFloatParameter(1000.0f, 0.01f);
 
         /// <summary>

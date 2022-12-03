@@ -84,15 +84,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // User does not want to close the window.
                 // We can't stop the close from this code path though..
                 // All we can do is open a new window and transfer our data to the new one to avoid losing it
+                var shaderGraphEditorWindow = ShowGraphInExistingOrNewWindow<ShaderGraphEditorWindow>(Asset);
 
-                var shaderGraphEditorWindow = CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
-                if(shaderGraphEditorWindow == null)
-                {
-                    return;
-                }
-                shaderGraphEditorWindow.Show();
-                shaderGraphEditorWindow.Focus();
-                shaderGraphEditorWindow.SetCurrentSelection(Asset, OpenMode.OpenAndFocus);
                 // Set this flag in order to let anything that would clear the dirty state know that graph is still dirty
                 shaderGraphEditorWindow.m_WasWindowCloseCancelledInDirtyState = true;
             }
@@ -196,7 +189,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override BaseGraphTool CreateGraphTool()
         {
-            m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>(WindowID);
+            m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>();
             return m_GraphTool;
         }
 

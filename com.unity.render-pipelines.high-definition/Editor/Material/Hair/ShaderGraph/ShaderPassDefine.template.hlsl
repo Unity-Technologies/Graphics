@@ -10,3 +10,4 @@ $ScatteringAdvanced:                #define _USE_ADVANCED_MULTIPLE_SCATTERING 1
 $UseRoughenedAzimuthalScattering:   #define _USE_ROUGHENED_AZIMUTHAL_SCATTERING 1
 $AbsorptionFromColor:               #define _ABSORPTION_FROM_COLOR 1
 $AbsorptionFromMelanin:             #define _ABSORPTION_FROM_MELANIN 1
+$UseSplineVisibilityForScattering:  #define _USE_SPLINE_VISIBILITY_FOR_MULTIPLE_SCATTERING 1

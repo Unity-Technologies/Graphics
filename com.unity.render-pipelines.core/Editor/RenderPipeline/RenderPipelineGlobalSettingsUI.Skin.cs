@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering
             /// <summary>
             /// Global label width
             /// </summary>
-            public const int labelWidth = 220;
+            public const int labelWidth = 250;
 
             /// <summary>
             /// Shader Stripping
@@ -29,6 +29,11 @@ namespace UnityEditor.Rendering
             /// Export Shader Variants
             /// </summary>
             public static readonly GUIContent exportShaderVariantsLabel = EditorGUIUtility.TrTextContent("Export Shader Variants", "Controls whether to output shader variant information to a file.");
+
+            /// <summary>
+            /// Stripping Of Rendering Debugger Shader Variants is enabled
+            /// </summary>
+            public static readonly GUIContent stripRuntimeDebugShadersLabel = EditorGUIUtility.TrTextContent("Strip Runtime Debug Shaders", "When enabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but disables some features of Rendering Debugger in Player builds.");
         }
     }
 }

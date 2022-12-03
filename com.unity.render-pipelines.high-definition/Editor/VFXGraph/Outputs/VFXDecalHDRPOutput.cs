@@ -7,6 +7,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.VFX.HDRP
 {
+    [VFXInfo]
     class VFXDecalHDRPOutput : VFXAbstractParticleHDRPOutput
     {
         public override string name
@@ -107,7 +108,7 @@ namespace UnityEditor.VFX.HDRP
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip("Specifies the layer mask of the decal.")]
-        private DecalLayerEnum decalLayer = DecalLayerEnum.DecalLayerDefault;
+        private RenderingLayerMask decalLayer = RenderingLayerMask.DecalLayerDefault;
 
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
 
@@ -121,7 +122,7 @@ namespace UnityEditor.VFX.HDRP
         public class AngleFadeProperty
         {
             [Tooltip("Use the min-max slider to control the fade out range of the decal based on the angle between the Decal backward direction and the vertex normal of the receiving surface." +
-                " Works only if Decal Layers is enabled both in the HDRP Asset and in the HDRP Settings."), MinMax(0.0f, 180.0f)]
+                " Works only if Decal Layers is enabled both in the HDRP Asset and in the HDRP Global Settings."), MinMax(0.0f, 180.0f)]
             public Vector2 angleFade = new Vector2(0.0f, 180.0f);
         }
 
@@ -196,13 +197,14 @@ namespace UnityEditor.VFX.HDRP
 
         VFXExpression AngleFadeSimplification(VFXExpression angleFadeExp)
         {
+            // See DecalSystem.cs
             angleFadeExp = angleFadeExp / VFXValue.Constant(new Vector2(180.0f, 180.0f));
             var angleStart = new VFXExpressionExtractComponent(angleFadeExp, 0);
             var angleEnd = new VFXExpressionExtractComponent(angleFadeExp, 1);
             var range = new VFXExpressionMax(VFXValue.Constant(0.0001f), angleEnd - angleStart);
             var simplifiedAngleFade = new VFXExpressionCombine(
-                VFXValue.Constant(1.0f) - (VFXValue.Constant(0.25f) - angleStart) / range,
-                VFXValue.Constant(-0.25f) / range);
+                VFXValue.Constant(0.222222222f) / range,
+                (angleEnd - VFXValue.Constant(0.5f)) / range);
             return simplifiedAngleFade;
         }
 
@@ -267,7 +269,7 @@ namespace UnityEditor.VFX.HDRP
                     yield return "AFFECT_AMBIENT_OCCLUSION";
                 if (affectSmoothness)
                     yield return "AFFECT_SMOOTHNESS";
-                if (useEmissive || useEmissiveMap)
+                if (useEmissiveColor || useEmissiveMap)
                     yield return "NEEDS_FORWARD_EMISSIVE_PASS";
             }
         }
@@ -341,20 +343,20 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (!supportDecals)
             {
                 manager.RegisterError("DecalsDisabled", VFXErrorType.Warning,
-                    $"Decals will not be rendered because the 'Decals' is disabled in your HDRP Settings. Enable 'Decals' in your HDRP Asset and your HDRP Settings to make this output work.");
+                    $"Decals will not be rendered because the 'Decals' is disabled in your HDRP Asset. Enable 'Decals' in your HDRP Asset to make this output work.");
             }
 
             if (!enableDecalLayers)
             {
                 manager.RegisterError("DecalLayersDisabled", VFXErrorType.Warning,
                     $"The Angle Fade parameter won't have any effect, because the 'Decal Layers' setting is disabled." +
-                    $" Enable 'Decal Layers' in your HDRP Asset and in the HDRP Settings if you want to control the Angle Fade." +
+                    $" Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade." +
                     $" There is a performance cost of enabling this option.");
             }
 

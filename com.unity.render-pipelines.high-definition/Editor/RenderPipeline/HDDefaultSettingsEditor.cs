@@ -1,5 +1,7 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
+using UnityEngine.Rendering;
+using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -11,9 +13,45 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal bool largeLabelWidth = true;
 
+        static Editor s_CachedDefaultVolumeProfileEditor;
+        static Editor s_CachedLookDevVolumeProfileEditor;
+        static int s_CurrentVolumeProfileInstanceID;
+
+        static Type s_VolumeProfileEditorType = Type.GetType("UnityEditor.Rendering.VolumeProfileEditor");
+
+        internal Editor GetDefaultVolumeProfileEditor(VolumeProfile asset)
+        {
+            // The state of the profile can change without the asset reference changing so in this case we need to reset the editor.
+            if (s_CurrentVolumeProfileInstanceID != asset.GetInstanceID() && s_CachedDefaultVolumeProfileEditor != null)
+            {
+                s_CurrentVolumeProfileInstanceID = asset.GetInstanceID();
+                UnityEngine.Object.DestroyImmediate(s_CachedDefaultVolumeProfileEditor);
+                s_CachedDefaultVolumeProfileEditor = null;
+            }
+
+            Editor.CreateCachedEditor(asset, s_VolumeProfileEditorType, ref s_CachedDefaultVolumeProfileEditor);
+
+            return s_CachedDefaultVolumeProfileEditor;
+        }
+
+        internal Editor GetLookDevDefaultVolumeProfileEditor(VolumeProfile lookDevAsset)
+        {
+            Editor.CreateCachedEditor(lookDevAsset, s_VolumeProfileEditorType, ref s_CachedLookDevVolumeProfileEditor);
+            return s_CachedLookDevVolumeProfileEditor;
+        }
+
         void OnEnable()
         {
             m_SerializedHDRenderPipelineGlobalSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
+        }
+
+        private void OnDisable()
+        {
+            if (s_CachedDefaultVolumeProfileEditor != null)
+                UnityEngine.Object.DestroyImmediate(s_CachedDefaultVolumeProfileEditor);
+
+            if (s_CachedLookDevVolumeProfileEditor != null)
+                UnityEngine.Object.DestroyImmediate(s_CachedLookDevVolumeProfileEditor);
         }
 
         public override void OnInspectorGUI()

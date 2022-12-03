@@ -36,6 +36,11 @@
             "name": "com.unity.render-pipelines.universal",
             "expression": "1.0.0",
             "define": "VFX_HAS_UNIVERSAL"
+        },
+        {
+          "name": "com.unity.testing.visualeffectgraph",
+          "expression": "1.0.0",
+          "define": "VFX_HAS_UNIT_TEST"
         }
     ],
     "noEngineReferences": false

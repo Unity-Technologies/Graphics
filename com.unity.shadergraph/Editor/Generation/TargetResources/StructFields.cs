@@ -61,6 +61,11 @@ namespace UnityEditor.ShaderGraph
                 "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
             public static FieldDescriptor vertexID = new FieldDescriptor(Varyings.name, "vertexID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
                 "CUSTOM_VERTEX_ID", subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor stereoTargetEyeIndexAsRTArrayIdx = new FieldDescriptor(Varyings.name, "stereoTargetEyeIndexAsRTArrayIdx", "", ShaderValueType.Uint,
+                 "SV_RenderTargetArrayIndex", "(defined(UNITY_STEREO_INSTANCING_ENABLED))", StructFieldOptions.Generated);
+            public static FieldDescriptor stereoTargetEyeIndexAsBlendIdx0 = new FieldDescriptor(Varyings.name, "stereoTargetEyeIndexAsBlendIdx0", "", ShaderValueType.Uint,
+                "BLENDINDICES0", "(defined(UNITY_STEREO_MULTIVIEW_ENABLED)) || (defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))");
+
 
             // VFX
             public static FieldDescriptor worldToElement0 = new FieldDescriptor(Varyings.name, "worldToElement0", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");

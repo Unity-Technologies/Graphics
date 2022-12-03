@@ -24,8 +24,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Bloom effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Bloom", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Bloom")]
+    [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Post-Processing-Bloom")]
     public sealed class Bloom : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
@@ -44,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the extent of the veiling effect.
         /// </summary>
-        [Tooltip("Set the radius of the bloom effect")]
+        [Tooltip("Set the radius of the bloom effect.")]
         public ClampedFloatParameter scatter = new ClampedFloatParameter(0.7f, 0f, 1f);
 
         /// <summary>

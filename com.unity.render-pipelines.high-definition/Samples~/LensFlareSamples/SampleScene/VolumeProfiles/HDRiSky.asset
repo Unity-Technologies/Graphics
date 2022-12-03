@@ -22,6 +22,12 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 0
+  windOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  windSpeed:
+    m_OverrideState: 0
+    m_Value: 0
   fogType:
     m_OverrideState: 1
     m_Value: 0
@@ -327,24 +333,29 @@ MonoBehaviour:
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: ebb1a0c4861d8b040b5350025689a35f, type: 3}
-  enableDistortion:
+  distortionMode:
     m_OverrideState: 0
     m_Value: 0
-  procedural:
-    m_OverrideState: 0
-    m_Value: 1
   flowmap:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   upperHemisphereOnly:
     m_OverrideState: 0
     m_Value: 1
-  scrollDirection:
-    m_OverrideState: 0
-    m_Value: 0
+  scrollOrientation:
+    m_OverrideState: 1
+    m_Value:
+      mode: 0
+      customValue: 45
+      additiveValue: 0
+      multiplyValue: 0
   scrollSpeed:
     m_OverrideState: 0
-    m_Value: 2
+    m_Value:
+      mode: 1
+      customValue: 100
+      additiveValue: 0
+      multiplyValue: 1
   enableBackplate:
     m_OverrideState: 0
     m_Value: 0
@@ -384,3 +395,16 @@ MonoBehaviour:
   rectLightShadow:
     m_OverrideState: 0
     m_Value: 0
+  m_SkyVersion: 1
+  enableDistortion:
+    m_OverrideState: 0
+    m_Value: 0
+  procedural:
+    m_OverrideState: 0
+    m_Value: 1
+  scrollDirection:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteScrollSpeed:
+    m_OverrideState: 0
+    m_Value: 2

@@ -3,21 +3,50 @@
 
 // Include the IndirectDiffuseMode enum
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflection.cs.hlsl"
+
+// Ambient Probe is preconvolved with clamped cosinus
+// In case we use a diffuse power, we have to edit the coefficients to change the convolution
+// This is currently not used because visual difference is really minor
+void ReconvolveAmbientProbeWithPower(float diffusePower, inout float4 SHCoefficients[7])
+{
+    if (diffusePower == 0.0f)
+        return;
+
+    // convolution coefs
+    float w = diffusePower + 1;
+    float kModifiedLambertian0 = 1.0f;
+    float kModifiedLambertian1 = (w + 1.0f) / (w + 2.0f);
+    float kModifiedLambertian2 = w / (w + 3.0f);
+
+    // ambient probe is pre-convolved by clamped cosine - we have to undo pre-convolution and
+    // convolve again with coefs for modified lambertian
+    float wrapScaling0 = kModifiedLambertian0 / kClampedCosine0;
+    float wrapScaling1 = kModifiedLambertian1 / kClampedCosine1;
+    float wrapScaling2 = kModifiedLambertian2 / kClampedCosine2;
+
+    // handle coeficient packing - see AmbientProbeConvolution.compute : PackSHFromScratchBuffer
+    float3 ambient6 = float3(SHCoefficients[3].z, SHCoefficients[4].z, SHCoefficients[5].z) / 3.0f;
+    float3 ambient0 = float3(SHCoefficients[0].a, SHCoefficients[1].a, SHCoefficients[2].a) + ambient6;
+
+    SHCoefficients[0].xyz *= wrapScaling1;
+    SHCoefficients[1].xyz *= wrapScaling1;
+    SHCoefficients[2].xyz *= wrapScaling1;
+    SHCoefficients[3]     *= wrapScaling2;
+    SHCoefficients[4]     *= wrapScaling2;
+    SHCoefficients[5]     *= wrapScaling2;
+    SHCoefficients[6]     *= wrapScaling2;
+
+    SHCoefficients[0].a = ambient0.r * wrapScaling0 - ambient6.r * wrapScaling2;
+    SHCoefficients[1].a = ambient0.g * wrapScaling0 - ambient6.g * wrapScaling2;
+    SHCoefficients[2].a = ambient0.b * wrapScaling0 - ambient6.b * wrapScaling2;
+}
 
 // We need to define this before including ProbeVolume.hlsl as that file expects this function to be defined.
 // AmbientProbe Data is fetch directly from a compute buffer to remain on GPU and is preconvolved with clamped cosinus
 real3 EvaluateAmbientProbe(real3 normalWS)
 {
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = _AmbientProbeData[0];
-    SHCoefficients[1] = _AmbientProbeData[1];
-    SHCoefficients[2] = _AmbientProbeData[2];
-    SHCoefficients[3] = _AmbientProbeData[3];
-    SHCoefficients[4] = _AmbientProbeData[4];
-    SHCoefficients[5] = _AmbientProbeData[5];
-    SHCoefficients[6] = _AmbientProbeData[6];
-
-    return SampleSH9(SHCoefficients, normalWS);
+    return SampleSH9(_AmbientProbeData, normalWS);
 }
 
 real3 EvaluateLightProbe(real3 normalWS)
@@ -140,13 +169,18 @@ void SampleBakedGI(
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
 
-    // Check if we have SSGI/RTGI/Mixed enabled in which case we don't want to read Lightmaps/Lightprobe at all.
-    // This behavior only apply to opaque Materials as Transparent one don't receive SSGI/RTGI/Mixed lighting.
+    // If we have SSGI/RTGI enabled in which case we don't want to read Lightmaps/Lightprobe at all.
+    // If we have Mixed RTR or GI enabled, we need to have the lightmap exported in the case of the gbuffer as they will be consumed and will be used if the pixel is ray marched.
+    // This behavior only applies to opaque Materials as Transparent one don't receive SSGI/RTGI/Mixed lighting.
     // The check need to be here to work with both regular shader and shader graph
     // Note: With Probe volume the code is skip in the lightloop if any of those effects is enabled
     // We prevent to read GI only if we are not raytrace pass that are used to fill the RTGI/Mixed buffer need to be executed normaly
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER)
-    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
+    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
+        #if (SHADERPASS == SHADERPASS_GBUFER)
+            && _IndirectDiffuseMode != INDIRECTDIFFUSEMODE_MIXED && _ReflectionsMode != REFLECTIONSMODE_MIXED
+        #endif
+        )
         return;
 #endif
 
@@ -156,6 +190,13 @@ void SampleBakedGI(
     EvaluateLightmap(positionRWS, normalWS, backNormalWS, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLighting);
 #elif !(defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)) // With APV if we aren't a lightmap we do nothing. We will default to Ambient Probe in lightloop code if APV is disabled
     EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
+
+    // We only want to apply the ray tracing ambient probe dimmer on the ambient probe
+    // and legacy light probes (and obviously only in the ray tracing shaders).
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        bakeDiffuseLighting *= _RayTracingAmbientProbeDimmer;
+        backBakeDiffuseLighting *= _RayTracingAmbientProbeDimmer;
+    #endif
 #endif
 }
 

@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 string waterNDC = GetSlotValue(kDistordedWaterNDCInputSlotId, generationMode);
                 string positionAWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.Position)}";
 
-                sb.AppendLine("$precision {3} = EvaluateSimulationCaustics({0}, {1}, {2});",
+                sb.AppendLine("$precision {3} = EvaluateSimulationCaustics({0}, abs(dot({1} - {0}, _WaterUpDirection.xyz)), {2});",
                     refractedPosWS,
                     positionAWS,
                     waterNDC,

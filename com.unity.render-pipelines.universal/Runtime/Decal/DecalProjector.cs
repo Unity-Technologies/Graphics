@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Decal Projector component.
     /// </summary>
+    [CoreRPHelpURL("renderer-feature-decal", "com.unity.render-pipelines.universal")]
     [ExecuteAlways]
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
@@ -27,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
         internal static event DecalProjectorAction onDecalAdd;
         internal static event DecalProjectorAction onDecalRemove;
         internal static event DecalProjectorAction onDecalPropertyChange;
+        internal static event Action onAllDecalPropertyChange;
         internal static event DecalProjectorAction onDecalMaterialChange;
         internal static Material defaultMaterial { get; set; }
         internal static bool isSupported => onDecalAdd != null;
@@ -160,6 +162,17 @@ namespace UnityEngine.Rendering.Universal
                 m_UVBias = value;
                 OnValidate();
             }
+        }
+
+        [SerializeField]
+        uint m_DecalLayerMask = 1;
+        /// <summary>
+        /// The layer of the decal.
+        /// </summary>
+        public uint renderingLayerMask
+        {
+            get => m_DecalLayerMask;
+            set => m_DecalLayerMask = value;
         }
 
         [SerializeField]
@@ -308,6 +321,10 @@ namespace UnityEngine.Rendering.Universal
                 onDecalPropertyChange?.Invoke(this);
         }
 
+        /// <summary>
+        /// Checks if material is valid for rendering decals.
+        /// </summary>
+        /// <returns>True if material is valid.</returns>
         public bool IsValid()
         {
             if (material == null)
@@ -326,6 +343,11 @@ namespace UnityEngine.Rendering.Universal
                 return true;
 
             return false;
+        }
+
+        internal static void UpdateAllDecalProperties()
+        {
+            onAllDecalPropertyChange?.Invoke();
         }
     }
 }

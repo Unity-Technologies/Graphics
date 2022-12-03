@@ -31,6 +31,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
 
+            AlphaToMask On
+
             HLSLPROGRAM
 
             #pragma vertex SpeedTree7Vert
@@ -40,13 +42,13 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile _ _FORWARD_PLUS
 
             #pragma multi_compile_fog
 
@@ -102,7 +104,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7VertDepth
             #pragma fragment SpeedTree7FragDepth
 
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing
@@ -131,8 +133,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
+            #pragma target 4.5
 
-            #pragma exclude_renderers gles
+            // Deferred Rendering Path does not support the OpenGL-based graphics API:
+            // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
+            #pragma exclude_renderers gles3 glcore
+
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
@@ -140,11 +146,11 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-            #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
@@ -175,7 +181,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7VertDepth
             #pragma fragment SpeedTree7FragDepth
 
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing
@@ -202,7 +208,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7VertDepthNormal
             #pragma fragment SpeedTree7FragDepthNormal
 
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing
@@ -221,5 +227,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
     }
 
     Dependency "BillboardShader" = "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "SpeedTreeMaterialInspector"
 }

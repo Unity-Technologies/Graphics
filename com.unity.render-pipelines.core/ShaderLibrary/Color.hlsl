@@ -1,7 +1,7 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -492,7 +492,6 @@ real4 FastTonemapInvert(real4 c)
     return real4(FastTonemapInvert(c.rgb), c.a);
 }
 
-#ifndef SHADER_API_GLES
 // 3D LUT grading
 // scaleOffset = (1 / lut_size, lut_size - 1)
 real3 ApplyLut3D(TEXTURE3D_PARAM(tex, samplerTex), float3 uvw, float2 scaleOffset)
@@ -500,7 +499,6 @@ real3 ApplyLut3D(TEXTURE3D_PARAM(tex, samplerTex), float3 uvw, float2 scaleOffse
     uvw.xyz = uvw.xyz * scaleOffset.yyy * scaleOffset.xxx + scaleOffset.xxx * 0.5;
     return SAMPLE_TEXTURE3D_LOD(tex, samplerTex, uvw, 0.0).rgb;
 }
-#endif
 
 // 2D LUT grading
 // scaleOffset = (1 / lut_width, 1 / lut_height, lut_height - 1)
@@ -621,6 +619,20 @@ real3 CustomTonemap(real3 x, real3 curve, real4 toeSegmentA, real2 toeSegmentB, 
     return ret;
 }
 
+// Coming from STP, to replace when STP lands.
+#define SAT 8.0f
+real3 InvertibleTonemap(real3 x)
+{
+    real y = rcp(real(SAT) + Max3(x.r, x.g, x.b));
+    return saturate(x * real(y));
+}
+
+real3 InvertibleTonemapInverse(real3 x)
+{
+    float y = rcp(max(real(1.0 / 32768.0), saturate(real(1.0 / SAT) - Max3(x.r, x.g, x.b) * real(1.0 / SAT))));
+    return x * y;
+}
+
 // Filmic tonemapping (ACES fitting, unless TONEMAPPING_USE_FULL_ACES is set to 1)
 // Input is ACES2065-1 (AP0 w/ linear encoding)
 #ifndef TONEMAPPING_USE_FULL_ACES
@@ -663,25 +675,24 @@ float3 AcesTonemap(float3 aces)
     //acescg = mul(RRT_SAT_MAT, acescg);
     acescg = lerp(dot(acescg, AP1_RGB2Y).xxx, acescg, RRT_SAT_FACTOR.xxx);
 
-    // Luminance fitting of *RRT.a1.0.3 + ODT.Academy.RGBmonitor_100nits_dim.a1.0.3*.
-    // https://github.com/colour-science/colour-unity/blob/master/Assets/Colour/Notebooks/CIECAM02_Unity.ipynb
-    // RMSE: 0.0012846272106
-#if defined(SHADER_API_SWITCH) // Fix floating point overflow on extremely large values.
-    const float a = 2.785085 * 0.01;
-    const float b = 0.107772 * 0.01;
-    const float c = 2.936045 * 0.01;
-    const float d = 0.887122 * 0.01;
-    const float e = 0.806889 * 0.01;
-    float3 x = acescg;
-    float3 rgbPost = ((a * x + b)) / ((c * x + d) + e/(x + FLT_MIN));
+    // Apply RRT and ODT
+    // https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl
+    const float a = 0.0245786f;
+    const float b = 0.000090537f;
+    const float c = 0.983729f;
+    const float d = 0.4329510f;
+    const float e = 0.238081f;
+
+#if defined(SHADER_API_SWITCH)
+    // To reduce the likelyhood of extremely large values, we avoid using the x^2 term and therefore
+    // divide numerator and denominator by it. This will lead to the constant factors of the
+    // quadratic in the numerator and denominator to be divided by x; we add a tiny epsilon to avoid divide by 0.
+    float3 rcpAcesCG = rcp(acescg + FLT_MIN);
+    float3 rgbPost = (acescg + a - b * rcpAcesCG) /
+        (acescg * c + d + e * rcpAcesCG);
 #else
-    const float a = 2.785085;
-    const float b = 0.107772;
-    const float c = 2.936045;
-    const float d = 0.887122;
-    const float e = 0.806889;
-    float3 x = acescg;
-    float3 rgbPost = (x * (a * x + b)) / (x * (c * x + d) + e);
+    float3 rgbPost = (acescg * (acescg + a) - b) /
+        (acescg * (c * acescg + d) + e);
 #endif
 
     // Scale luminance to linear code value
@@ -725,7 +736,7 @@ half3 DecodeRGBM(half4 rgbm)
     return rgbm.xyz * rgbm.w * kRGBMRange;
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

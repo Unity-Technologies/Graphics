@@ -99,6 +99,16 @@
 #define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap3
 #endif
 
+#if defined(_TRANSMISSION_MASK_MAP0)
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap0
+#elif defined(_TRANSMISSION_MASK_MAP1)
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap1
+#elif defined(_TRANSMISSION_MASK_MAP2)
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap2
+#elif defined(_TRANSMISSION_MASK_MAP3)
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap3
+#endif
+
 #if defined(_THICKNESSMAP0)
 #define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap0
 #elif defined(_THICKNESSMAP1)
@@ -128,6 +138,9 @@
 #ifdef _SUBSURFACE_MASK_MAP0
 #define _SUBSURFACE_MASK_MAP_IDX
 #endif
+#ifdef _TRANSMISSION_MASK_MAP0
+#define _TRANSMISSION_MASK_MAP_IDX
+#endif
 #ifdef _THICKNESSMAP0
 #define _THICKNESSMAP_IDX
 #endif
@@ -144,6 +157,7 @@
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
+#undef _TRANSMISSION_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -162,6 +176,9 @@
 #ifdef _SUBSURFACE_MASK_MAP1
 #define _SUBSURFACE_MASK_MAP_IDX
 #endif
+#ifdef _TRANSMISSION_MASK_MAP1
+#define _TRANSMISSION_MASK_MAP_IDX
+#endif
 #ifdef _THICKNESSMAP1
 #define _THICKNESSMAP_IDX
 #endif
@@ -178,6 +195,7 @@
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
+#undef _TRANSMISSION_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -196,6 +214,9 @@
 #ifdef _SUBSURFACE_MASK_MAP2
 #define _SUBSURFACE_MASK_MAP_IDX
 #endif
+#ifdef _TRANSMISSION_MASK_MAP2
+#define _TRANSMISSION_MASK_MAP_IDX
+#endif
 #ifdef _THICKNESSMAP2
 #define _THICKNESSMAP_IDX
 #endif
@@ -212,6 +233,7 @@
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
+#undef _TRANSMISSION_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -230,6 +252,9 @@
 #ifdef _SUBSURFACE_MASK_MAP3
 #define _SUBSURFACE_MASK_MAP_IDX
 #endif
+#ifdef _TRANSMISSION_MASK_MAP3
+#define _TRANSMISSION_MASK_MAP_IDX
+#endif
 #ifdef _THICKNESSMAP3
 #define _THICKNESSMAP_IDX
 #endif
@@ -246,6 +271,7 @@
 #undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
+#undef _TRANSMISSION_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
@@ -299,21 +325,23 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
 // Or the last found in case of equality.
 uint BlendLayeredDiffusionProfile(uint x0, uint x1, uint x2, uint x3, float weight[4])
 {
-    uint diffusionProfileHash = x0;
-    float currentMax = weight[0];
-
-    diffusionProfileHash = currentMax < weight[1] ? x1 : diffusionProfileHash;
-    currentMax = max(currentMax, weight[1]);
-
+    // Not the simplest logic but it's to workaround what looks like a compiler bug on metal
+    float maxw = max(weight[0], weight[1]);
 #if _LAYER_COUNT >= 3
-    diffusionProfileHash = currentMax < weight[2] ? x2 : diffusionProfileHash;
-    currentMax = max(currentMax, weight[2]);
+    maxw = max(maxw, weight[2]);
 #endif
 #if _LAYER_COUNT >= 4
-    diffusionProfileHash = currentMax < weight[3] ? x3 : diffusionProfileHash;
+    maxw = max(maxw, weight[3]);
 #endif
 
-    return diffusionProfileHash;
+    return x0 * (maxw == weight[0]) + x1 * (maxw == weight[1])
+#if _LAYER_COUNT >= 3
+        + x2 * (maxw == weight[2])
+#endif
+#if _LAYER_COUNT >= 4
+        + x3 * (maxw == weight[3])
+#endif
+    ;
 }
 
 #define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0).name, MERGE_NAME(surfaceData, 1).name, MERGE_NAME(surfaceData, 2).name, MERGE_NAME(surfaceData, 3).name, mask);
@@ -678,11 +706,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 #endif
 
-#ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-#else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-#endif
+    float3 doubleSidedConstants = GetDoubleSidedConstants();
 
     ApplyDoubleSidedFlipOrMirror(input, doubleSidedConstants); // Apply double sided flip on the vertex normal
 
@@ -748,6 +772,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
     surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = SURFACEDATA_BLEND_SCALAR(surfaceData, subsurfaceMask, weights);
+    surfaceData.transmissionMask = SURFACEDATA_BLEND_SCALAR(surfaceData, transmissionMask, weights);
     surfaceData.thickness = SURFACEDATA_BLEND_SCALAR(surfaceData, thickness, weights);
     surfaceData.diffusionProfileHash = SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, diffusionProfileHash, weights); // We don't need the hash as we only use it to compute the diffusion profile index
 

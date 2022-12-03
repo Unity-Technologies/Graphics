@@ -7,7 +7,7 @@ The **Shadows Midtones Highlights** effect separately controls the shadows, midt
 **Shadows Midtones Highlights** uses the [Volume](Volumes.md) framework, so to enable and modify the shadows, midtones, or highlights of the render, you must add a **Shadows Midtones Highlights** override to a [Volume](Volumes.md) in your Scene. To add **Shadows Midtones Highlights** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Shadows Midtones Highlights**. HDRP now applies **Shadows Midtones Highlights** to any Camera this Volume affects.
+2. In the Inspector, go to **Add Override** > **Post-processing** and select **Shadows Midtones Highlights**. HDRP now applies **Shadows Midtones Highlights** to any Camera this Volume affects.
 
 [!include[](snippets/volume-override-api.md)]
 
@@ -17,9 +17,9 @@ The **Shadows Midtones Highlights** effect separately controls the shadows, midt
 
 | **Property**   | **Description**                                              |
 | -------------- | ------------------------------------------------------------ |
-| **Shadows**    | Use this to control the shadows.Use the trackball to select the color HDRP should shift the hue of the shadows to.Use the slider to offset the color lightness of the trackball color. |
-| **Midtones**   | Use this to control the midtones.Use the trackball to select the color HDRP should shift the hue of the midtones to.Use the slider to offset the color lightness of the trackball color. |
-| **Highlights** | Use this to control the highlights.Use the trackball to select the color HDRP should shift the hue of the highlights to.Use the slider to offset the color lightness of the trackball color. |
+| **Shadows**    | Use this to control the shadows. Use the trackball to select the color HDRP should shift the hue of the shadows to. Use the slider to offset the color lightness of the trackball color. |
+| **Midtones**   | Use this to control the midtones. Use the trackball to select the color HDRP should shift the hue of the midtones to. Use the slider to offset the color lightness of the trackball color. |
+| **Highlights** | Use this to control the highlights. Use the trackball to select the color HDRP should shift the hue of the highlights to. Use the slider to offset the color lightness of the trackball color. |
 
 ### Graph view
 

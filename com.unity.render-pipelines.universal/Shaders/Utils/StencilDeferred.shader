@@ -31,6 +31,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
     struct Attributes
     {
@@ -157,11 +158,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
 
-        #ifdef _LIGHT_LAYERS
         uint lightLayerMask =_LightLayerMask;
-        #else
-        uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
-        #endif
 
         #if defined(_DIRECTIONAL)
             #if defined(_DEFERRED_MAIN_LIGHT)
@@ -241,6 +238,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+
+#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+        float2 undistorted_screen_uv = screen_uv;
+        screen_uv = input.positionCS.xy * _ScreenSize.zw;
+#endif
+
         #if _RENDER_PASS_ENABLED
         float d        = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
         half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(GBUFFER0, input.positionCS.xy);
@@ -260,13 +263,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 shadowMask = 1.0;
         #endif
 
-        #ifdef _LIGHT_LAYERS
-        float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
-        uint meshRenderingLayers = uint(renderingLayers.r * 255.5);
-        #else
-        uint meshRenderingLayers = DEFAULT_LIGHT_LAYERS;
-        #endif
-
         half surfaceDataOcclusion = gbuffer1.a;
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
 
@@ -279,6 +275,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             return half4(color, alpha); // Cannot discard because stencil must be updated.
         #endif
 
+        #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+        input.positionCS.xy = undistorted_screen_uv * _ScreenSize.xy;
+        #endif
+
         #if defined(USING_STEREO_MATRICES)
         int eyeIndex = unity_StereoEyeIndex;
         #else
@@ -289,8 +289,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         Light unityLight = GetStencilLight(posWS.xyz, screen_uv, shadowMask, materialFlags);
 
+        #ifdef _LIGHT_LAYERS
+        float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
+        uint meshRenderingLayers = DecodeMeshRenderingLayer(renderingLayers.r);
         [branch] if (!IsMatchingLightLayer(unityLight.layerMask, meshRenderingLayers))
             return half4(color, alpha); // Cannot discard because stencil must be updated.
+        #endif
 
         #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
             AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
@@ -389,7 +393,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_vertex _ _SPOT
@@ -424,7 +428,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_fragment _DEFERRED_STENCIL
@@ -440,6 +444,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -471,7 +478,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_fragment _DEFERRED_STENCIL
@@ -487,6 +494,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -517,7 +527,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_fragment _DEFERRED_STENCIL
@@ -536,6 +546,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -566,7 +579,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_fragment _DEFERRED_STENCIL
@@ -585,6 +598,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            // Foveated rendering currently not supported in dxc on metal
+            #pragma never_use_dxc metal
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -605,7 +621,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile _FOG
@@ -643,7 +659,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile _CLEAR_STENCIL_PARTIAL
@@ -668,7 +684,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
+            #pragma exclude_renderers gles3 glcore
             #pragma target 4.5
 
             #pragma multi_compile_vertex _SSAO_ONLY

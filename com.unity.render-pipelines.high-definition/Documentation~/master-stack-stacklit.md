@@ -1,6 +1,6 @@
 # StackLit
 
-The StackLit Master Stack can render materials that are more complex than the [Lit Master Stack](master-stack-lit.md). It includes all the features available in the Lit shader and, in some cases, provides more advanced or higher quality versions. For example, it uses a more advanced form of specular occlusion and also calculates anisotropic reflections for area lights in the same way the Lit shader does for other light types. It also takes into account light interactions between two vertically stacked physical layers, along with a more complex looking general base layer.
+The StackLit Master Stack can render materials that are more complex than the [Lit Master Stack](master-stack-lit.md). It includes all the features available in the Lit shader and, sometimes, provides more advanced or higher quality versions. For example, it uses a more advanced form of specular occlusion and also calculates anisotropic reflections for area lights in the same way the Lit shader does for other light types. It also takes into account light interactions between two vertically stacked physical layers, along with a more complex looking general base layer.
 
 ![](Images/HDRPFeatures-StackLitShader.png)
 
@@ -13,8 +13,7 @@ To create a StackLit material in Shader Graph, you can either:
     2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button, and select **HDRP**.
     3. In the **Material** drop-down, select **StackLit**.
 
-* Create a new Shader Graph.
-    1. Go to **Assets > Create >Shader Graph > HDRP** and click **StackLit Shader Graph**.
+* Create a new Shader Graph. Go to **Assets** > **Create** > **Shader Graph** > **HDRP** and select **StackLit Shader Graph**.
 
 ## Contexts
 
@@ -121,6 +120,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/specular-color.md)]
 [!include[](snippets/shader-graph-blocks/specular-occlusion.md)]
 [!include[](snippets/shader-graph-blocks/subsurface-mask.md)]
+[!include[](snippets/shader-graph-blocks/transmission-mask.md)]
 [!include[](snippets/shader-graph-blocks/tangent-object-space.md)]
 [!include[](snippets/shader-graph-blocks/tangent-world-space.md)]
 [!include[](snippets/shader-graph-blocks/thickness.md)]
@@ -170,7 +170,9 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/dual-specular-lobe-parametrization.md)]
 [!include[](snippets/shader-properties/surface-options/cap-haziness-for-non-metallic.md)]
 [!include[](snippets/shader-properties/surface-options/iridescence.md)]
+[!include[](snippets/shader-properties/surface-options/subsurface-scattering.md)]
 [!include[](snippets/shader-properties/surface-options/transmission.md)]
+[!include[](snippets/shader-properties/surface-options/use-profile-ior.md)]
 [!include[](snippets/shader-properties/surface-options/specular-occlusion-mode-stacklit.md)]
 [!include[](snippets/shader-properties/surface-options/anisotropy-for-area-lights.md)]
 [!include[](snippets/shader-properties/surface-options/base-layer-uses-refracted-angles.md)]

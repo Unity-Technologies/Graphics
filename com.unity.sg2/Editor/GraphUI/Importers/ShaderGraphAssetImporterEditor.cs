@@ -84,32 +84,8 @@ namespace UnityEditor.ShaderGraph
 
         static bool ShowWindow(ShaderGraphAsset asset)
         {
-            ShaderGraphEditorWindow shaderGraphEditorWindow = null;
-
-            // Prevents the same graph asset from being opened in two separate editor windows
-            var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));
-            foreach (var existingEditorWindow in existingEditorWindows)
-            {
-                if (ReferenceEquals(existingEditorWindow.GraphTool.ToolState.CurrentGraph.GetGraphAsset(), asset))
-                {
-                    shaderGraphEditorWindow = existingEditorWindow;
-                    break;
-                }
-            }
-
-            if(shaderGraphEditorWindow == null)
-            {
-                shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
-                if (shaderGraphEditorWindow == null)
-                {
-                    return false;
-                }
-            }
-
-            shaderGraphEditorWindow.Show();
-            shaderGraphEditorWindow.Focus();
-            shaderGraphEditorWindow.SetCurrentSelection(asset, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-            return true;
+            var window = GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<ShaderGraphEditorWindow>(asset);
+            return window != null;
         }
     }
 }

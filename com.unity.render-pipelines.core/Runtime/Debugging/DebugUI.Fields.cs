@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering
                 Assert.IsNotNull(setter);
                 var v = ValidateValue(value);
 
-                if (!v.Equals(getter()))
+                if (v == null || !v.Equals(getter()))
                 {
                     setter(v);
                     onValueChanged?.Invoke(this, v);
@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public class BoolField : Field<bool> { }
         /// <summary>
-        /// Boolean field with history.
+        /// An array of checkboxes that Unity displays in a horizontal row.
         /// </summary>
         public class HistoryBoolField : BoolField
         {
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Integer field.
+        /// A slider for an integer.
         /// </summary>
         public class IntField : Field<int>
         {
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Unsigned integer field.
+        /// A slider for a positive integer.
         /// </summary>
         public class UIntField : Field<uint>
         {
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Float field.
+        /// A slider for a float.
         /// </summary>
         public class FloatField : Field<float>
         {
@@ -242,53 +242,69 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static class EnumUtility
-        {
-            internal static GUIContent[] MakeEnumNames(Type enumType)
-            {
-                return enumType.GetFields(BindingFlags.Public | BindingFlags.Static).Select(fieldInfo =>
-                {
-                    var description = fieldInfo.GetCustomAttributes(typeof(InspectorNameAttribute), false);
-
-                    if (description.Length > 0)
-                    {
-                        return new GUIContent(((InspectorNameAttribute)description.First()).displayName);
-                    }
-
-                    // Space-delimit PascalCase (https://stackoverflow.com/questions/155303/net-how-can-you-split-a-caps-delimited-string-into-an-array)
-                    var niceName = Regex.Replace(fieldInfo.Name, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
-                    return new GUIContent(niceName);
-                }).ToArray();
-            }
-
-            internal static int[] MakeEnumValues(Type enumType)
-            {
-                // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
-                //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
-
-                var values = Enum.GetValues(enumType);
-                var enumValues = new int[values.Length];
-                for (int i = 0; i < values.Length; i++)
-                    enumValues[i] = (int)values.GetValue(i);
-
-                return enumValues;
-            }
-        }
-
         /// <summary>
-        /// Enumerator field.
+        /// Generic <see cref="EnumField"/> that stores enumNames and enumValues
         /// </summary>
-        public class EnumField : Field<int>
+        /// <typeparam name="T">The inner type of the field</typeparam>
+        public abstract class EnumField<T> : Field<T>
         {
             /// <summary>
             /// List of names of the enumerator entries.
             /// </summary>
             public GUIContent[] enumNames;
+
+            private int[] m_EnumValues;
+
             /// <summary>
             /// List of values of the enumerator entries.
             /// </summary>
-            public int[] enumValues;
+            public int[] enumValues
+            {
+                get => m_EnumValues;
+                set
+                {
+                    if (value?.Distinct().Count() != value?.Count())
+                        Debug.LogWarning($"{displayName} - The values of the enum are duplicated, this might lead to a errors displaying the enum");
+                    m_EnumValues = value;
+                }
+            }
 
+
+            // Space-delimit PascalCase (https://stackoverflow.com/questions/155303/net-how-can-you-split-a-caps-delimited-string-into-an-array)
+            static Regex s_NicifyRegEx = new("([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", RegexOptions.Compiled);
+
+            /// <summary>
+            /// Automatically fills the enum names with a given <see cref="Type"/>
+            /// </summary>
+            /// <param name="enumType">The enum type</param>
+            protected void AutoFillFromType(Type enumType)
+            {
+                if (enumType == null || !enumType.IsEnum)
+                    throw new ArgumentException($"{nameof(enumType)} must not be null and it must be an Enum type");
+
+                using (ListPool<GUIContent>.Get(out var tmpNames))
+                using (ListPool<int>.Get(out var tmpValues))
+                {
+                    var enumEntries = enumType.GetFields(BindingFlags.Public | BindingFlags.Static)
+                        .Where(fieldInfo => !fieldInfo.IsDefined(typeof(ObsoleteAttribute)) && !fieldInfo.IsDefined(typeof(HideInInspector)));
+                    foreach (var fieldInfo in enumEntries)
+                    {
+                        var description = fieldInfo.GetCustomAttribute<InspectorNameAttribute>();
+                        var displayName = new GUIContent(description == null ? s_NicifyRegEx.Replace(fieldInfo.Name, "$1 ") : description.displayName);
+                        tmpNames.Add(displayName);
+                        tmpValues.Add((int)Enum.Parse(enumType, fieldInfo.Name));
+                    }
+                    enumNames = tmpNames.ToArray();
+                    enumValues = tmpValues.ToArray();
+                }
+            }
+        }
+
+        /// <summary>
+        /// A dropdown that contains the values from an enum.
+        /// </summary>
+        public class EnumField : EnumField<int>
+        {
             internal int[] quickSeparators;
 
             private int[] m_Indexes;
@@ -319,8 +335,7 @@ namespace UnityEngine.Rendering
             {
                 set
                 {
-                    enumNames = EnumUtility.MakeEnumNames(value);
-                    enumValues = EnumUtility.MakeEnumValues(value);
+                    AutoFillFromType(value);
                     InitQuickSeparators();
                 }
             }
@@ -373,7 +388,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Object PopupField
+        /// A dropdown that contains a list of Unity objects.
         /// </summary>
         public class ObjectPopupField : Field<Object>
         {
@@ -413,17 +428,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Bitfield enumeration field.
         /// </summary>
-        public class BitField : Field<Enum>
+        public class BitField : EnumField<Enum>
         {
-            /// <summary>
-            /// List of names of the enumerator entries.
-            /// </summary>
-            public GUIContent[] enumNames { get; private set; }
-            /// <summary>
-            /// List of values of the enumerator entries.
-            /// </summary>
-            public int[] enumValues { get; private set; }
-
             Type m_EnumType;
 
             /// <summary>
@@ -435,8 +441,7 @@ namespace UnityEngine.Rendering
                 set
                 {
                     m_EnumType = value;
-                    enumNames = EnumUtility.MakeEnumNames(value);
-                    enumValues = EnumUtility.MakeEnumValues(value);
+                    AutoFillFromType(value);
                 }
             }
         }
@@ -555,7 +560,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Object field.
+        /// A field for selecting a Unity object.
         /// </summary>
         public class ObjectField : Field<Object>
         {
@@ -566,7 +571,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Object list field.
+        /// A list of fields for selecting Unity objects.
         /// </summary>
         public class ObjectListField : Field<Object[]>
         {
@@ -577,7 +582,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Simple message box widget, providing a couple of different styles.
+        /// A read-only message box with an icon.
         /// </summary>
         public class MessageBox : Widget
         {

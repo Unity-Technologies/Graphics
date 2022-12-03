@@ -217,7 +217,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionShapeSphere(SerializedInfluenceVolume serialized, Editor owner, bool drawOffset, bool drawNormal)
         {
             EditorGUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.sphereRadius, radiusContent);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (serialized.sphereRadius.floatValue < serialized.sphereBlendDistance.floatValue)
+                    serialized.sphereBlendDistance.floatValue = serialized.sphereRadius.floatValue;
+            }
             HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.InfluenceShape, owner, GUILayout.Width(28f), GUILayout.MinHeight(22f));
             EditorGUILayout.EndHorizontal();
 

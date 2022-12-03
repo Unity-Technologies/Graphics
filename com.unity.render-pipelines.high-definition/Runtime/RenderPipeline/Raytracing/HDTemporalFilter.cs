@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int texWidth;
             public int texHeight;
             public int viewCount;
+            public Vector4 historySizeAndScale;
 
             // Denoising parameters
             public float historyValidity;
@@ -128,9 +129,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     passData.motionVectorBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
 
-                // History buffers
-                passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
-                passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
+                // Grab and import the history buffers
+                var historyDepth = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
+                var historyNormal = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
+                passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(historyDepth));
+                passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(historyNormal));
+                passData.historySizeAndScale = (historyDepth != null && historyNormal != null) ? HDRenderPipeline.EvaluateRayTracingHistorySizeAndScale(hdCamera, historyDepth) : Vector4.one;
 
                 // Output buffers
                 passData.validationBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, name = "ValidationTexture" }));
@@ -165,6 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._HistoryValidity, data.historyValidity);
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, data.pixelSpreadTangent);
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._ObjectMotionStencilBit, (int)StencilUsage.ObjectMotionVector);
+                        ctx.cmd.SetComputeVectorParam(data.temporalFilterCS, HDShaderIDs._HistorySizeAndScale, data.historySizeAndScale);
 
                         // Bind the output buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.validateHistoryKernel, HDShaderIDs._ValidationBufferRW, data.validationBuffer);
@@ -346,7 +351,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle velocityBuffer;
 
             // History buffers
-            public TextureHandle historyBuffer;
+            public TextureHandle inputHistoryBuffer;
+            public TextureHandle outputHistoryBuffer;
             public TextureHandle validationHistoryBuffer;
             public TextureHandle distanceHistorySignal;
 
@@ -408,7 +414,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.validationBuffer = builder.ReadTexture(historyValidationBuffer);
 
                 // History buffers
-                passData.historyBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(historyBuffer));
+                passData.outputHistoryBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(historyBuffer));
+                passData.inputHistoryBuffer = passData.outputHistoryBuffer;
                 passData.validationHistoryBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(validationHistoryBuffer));
                 passData.distanceHistorySignal = distanceBased ? builder.ReadWriteTexture(renderGraph.ImportTexture(distanceHistorySignal)) : renderGraph.defaultResources.blackTextureXR;
 
@@ -438,7 +445,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Now that we have validated our history, let's accumulate
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DenoiseInputTexture, data.noisyBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._HistoryBuffer, data.historyBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._HistoryBuffer, data.inputHistoryBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._HistoryValidityBuffer, data.validationHistoryBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorBuffer);
@@ -462,7 +469,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, data.sliceIndex);
                         ctx.cmd.SetComputeVectorParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistoryMask, data.channelMask);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._DenoiseInputTexture, data.outputBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._DenoiseInputArrayTexture, data.historyBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._DenoiseInputArrayTexture, data.inputHistoryBuffer );
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._ValidityInputArrayTexture, data.validationHistoryBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._IntermediateDenoiseOutputTextureRW, data.intermediateSignalOutput);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._IntermediateValidityOutputTextureRW, data.intermediateValidityOutput);
@@ -472,7 +479,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, data.sliceIndex);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._IntermediateDenoiseOutputTexture, data.intermediateSignalOutput);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._IntermediateValidityOutputTexture, data.intermediateValidityOutput);
-                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._DenoiseOutputArrayTextureRW, data.historyBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._DenoiseOutputArrayTextureRW, data.outputHistoryBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._ValidityOutputTextureRW, data.validationHistoryBuffer);
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.outputHistoryKernel, numTilesX, numTilesY, data.viewCount);
 
@@ -508,7 +515,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Output the combination to the history buffer
                             ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, data.sliceIndex);
                             ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._IntermediateDenoiseOutputTexture, data.intermediateSignalOutput);
-                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._DenoiseOutputArrayTextureRW, data.intermediateSignalOutput);
+                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._DenoiseOutputArrayTextureRW, data.distanceHistorySignal);
                             ctx.cmd.DispatchCompute(data.temporalFilterCS, data.outputHistoryKernel, numTilesX, numTilesY, data.viewCount);
                         }
                     });

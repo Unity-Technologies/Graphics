@@ -42,19 +42,16 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kLowFrequencyHeightInputSlotId = 6;
         const string kLowFrequencyHeightInputSlotName = "LowFrequencyHeight";
 
-        const int kSSSMaskInputSlotId = 7;
-        const string kSSSMaskInputSlotName = "SSSMask";
-
-        const int kHorizontalDisplacementInputSlotId = 8;
+        const int kHorizontalDisplacementInputSlotId = 7;
         const string kHorizontalDisplacementInputSlotName = "HorizontalDisplacement";
 
-        const int kScatteringColorOutputSlotId = 9;
+        const int kScatteringColorOutputSlotId = 8;
         const string kScatteringColorOutputSlotName = "ScatteringColor";
 
-        const int kRefractionColorOutputSlotId = 10;
+        const int kRefractionColorOutputSlotId = 9;
         const string kRefractionColorOutputSlotName = "RefractionColor";
 
-        const int kTipThicknessOutputSlotId = 11;
+        const int kTipThicknessOutputSlotId = 10;
         const string kTipThicknessOutputSlotName = "TipThickness";
 
         public override bool hasPreview { get { return false; } }
@@ -69,7 +66,6 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new Vector3MaterialSlot(kViewWSInputSlotId, kViewWSInputSlotName, kViewWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kScatteringFoamInputSlotId, kScatteringFoamInputSlotName, kScatteringFoamInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightInputSlotId, kLowFrequencyHeightInputSlotName, kLowFrequencyHeightInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(kSSSMaskInputSlotId, kSSSMaskInputSlotName, kSSSMaskInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kHorizontalDisplacementInputSlotId, kHorizontalDisplacementInputSlotName, kHorizontalDisplacementInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
 
             // Output
@@ -87,7 +83,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 kViewWSInputSlotId,
                 kScatteringFoamInputSlotId,
                 kLowFrequencyHeightInputSlotId,
-                kSSSMaskInputSlotId,
                 kHorizontalDisplacementInputSlotId,
 
                 // Output
@@ -106,13 +101,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("ZERO_INITIALIZE(ScatteringData, scatteringData);");
 
                 // Evaluate the data
-                sb.AppendLine("EvaluateScatteringData({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, scatteringData);",
+                sb.AppendLine("EvaluateScatteringData({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, scatteringData);",
                     GetSlotValue(kPositionWSInputSlotId, generationMode),
                     GetSlotValue(kNormalWSInputSlotId, generationMode),
                     GetSlotValue(kLowFrequencyNormalWSInputSlotId, generationMode),
                     GetSlotValue(kScreenPositionInputSlotId, generationMode),
                     GetSlotValue(kViewWSInputSlotId, generationMode),
-                    GetSlotValue(kSSSMaskInputSlotId, generationMode),
                     GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode),
                     GetSlotValue(kHorizontalDisplacementInputSlotId, generationMode),
                     GetSlotValue(kScatteringFoamInputSlotId, generationMode));
@@ -128,11 +122,11 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 // Output zeros
-                sb.AppendLine("$precision3 {0} = 0.0",
+                sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kScatteringColorOutputSlotId));
-                sb.AppendLine("$precision3 {0} = 0.0",
+                sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kRefractionColorOutputSlotId));
-                sb.AppendLine("$precision {0} = 1.0f;",
+                sb.AppendLine("$precision {0} = 1.0;",
                     GetVariableNameForSlot(kTipThicknessOutputSlotId));
             }
         }

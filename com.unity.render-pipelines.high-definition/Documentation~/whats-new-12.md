@@ -59,9 +59,11 @@ From HDRP 12.0, HDRP includes a new [Light Anchor](light-anchor.md) component. Y
 
 ![](Images/LightAnchor0.png)
 
+### Light List
 
+HDRP version 2021.2 includes a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount`. You can use this setting to set the maximum number of lights per tile on the GPU. To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package]().
 
-## New upsampling methods
+### New upsampling methods
 
 HDRP includes the following upsample methods you can use to male lower resolution images appear sharper:
 
@@ -71,7 +73,7 @@ HDRP includes the following upsample methods you can use to male lower resolutio
 
 For more information about upscaling methods in HDRP, see [Dynamic Resolution](Dynamic-Resolution.md).
 
-### Temporal Anti-Aliasing Upsampling
+#### Temporal Anti-Aliasing Upsampling
 
 HDRP 12.0 introduces the **Temporal Anti-Aliasing (TAA) Upscale** filter in the Dynamic resolution system.
 
@@ -83,7 +85,7 @@ For more information, see [Dynamic Resolution](Dynamic-Resolution.md)
 
 ![A:TAA Upscale. B: Catmull-Rom.](Images/DynamicRes_SidebySide_AB.png)
 
-### NVIDIA’s Deep Learning Super Sampling
+#### NVIDIA’s Deep Learning Super Sampling
 
 HDRP 12.0 includes production-ready integration and support for **NVIDIA’s Deep Learning Super Sampling (DLSS)** v2.2.
 
@@ -95,7 +97,7 @@ HDRP 12.0 includes production-ready integration and support for **NVIDIA’s Dee
 
 For more information, see the [HDRP Guide on DLSS](deep-learning-super-sampling-in-hdrp.md).
 
-### AMD’s FidelityFX Super Resolution
+#### AMD’s FidelityFX Super Resolution
 
 HDRP 12.0 includes production-ready integration and support of **AMD’s FidelityFX Super Resolution**. This upscale filter uses a spatial super-resolution method that balances quality and performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).
 
@@ -115,7 +117,7 @@ To enable **AMD’s FidelityFX Super Resolution**.:
 
 
 
-## Mip Bias Support
+### Mip Bias Support
 
 This HDRP version introduces a new setting called **Use Mip Bias.** This setting improves the detail of any upscaling filters you use in your scene.
 
@@ -127,6 +129,12 @@ To enable **Use Mip Bias**:
 - Enable the **Use Mip Bias** checkbox.
 
 ![](Images/UseMipBias.png)
+
+### ClearFlag
+
+HDRP 2021.2 includes the new `ClearFlag.Stencil` function. Use this to clear all flags from a stencil.
+
+From HDRP 2021.2, `ClearFlag.Depth` does not clear stencils.
 
 ### Probe Volumes Global Illumination (Experimental)
 
@@ -140,6 +148,10 @@ This is an experimental release which is intended to gather feedback. This means
 In its current state, use the Probe Volume system as a replacement for the per-object Light Probe system, not as a replacement for lightmaps. This feature works best in a scene that uses large, static GameObjects.
 
 ## Updated
+
+### HDRP Global Settings
+
+In HDRP 12.x the **Runtime Debug Display** toggle is now in the HDRP Global Settings Asset instead of the HDRP Asset. This toggle uses the currently active HDRP Asset as the source.
 
 ### Area Lights
 
@@ -175,6 +187,14 @@ From HDRP 12.0, The AOV API includes the following improvements:
 - You can now override the render buffer format that HDRP uses internally when you render **AOVs**. To do this, call `aovRequest.SetOverrideRenderFormat(true);`.
 - This version of HDRP provides a world space position output buffer (see `DebugFullScreen.WorldSpacePosition`).
 - The `MaterialSharedProperty.Specular` output now includes information for Materials that use the metallic workflow. To do this, the metallic parameter is now fresnel 0.
+
+### RendererList API
+
+From 2021.2, HDRP includes an updated `RendererList` API in the `UnityEngine.Rendering.RendererUtils` namespace. This API performs fewer operations than the previous version of the `RendererList` API when it submits the `RendererList` for drawing. Use this new version to query if the list of visible objects is empty.
+
+You can use the previous version of the API in the `UnityEngine.Experimental.Rendering` namespace for compatibility purposes but it is now deprecated.
+
+When you enable the **Dynamic Render Pass Culling** option in the HDRP Global Settings, HDRP uses the `RendererList` API to skip certain drawing passes based on the type of GameObjects that are currently visible. For example, if HDRP doesn’t draw any  GameObjects with distortion, HDRP skips the Render Graph passes that draw the distortion effect and their dependencies, like color pyramid generation.
 
 ### Additional Properties
 
@@ -218,6 +238,10 @@ HDRP 12.0 includes changes to some top level menus. This is to make the top leve
   * **Density Volume** is now at **GameObject > Rendering > Local Volumetric Fog**
   * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
 
+### Decals
+
+When you create a custom decal shader in HDRP 12.x, the accumulated normal value stored in the depth buffer represents the surface gradient instead of the tangent space normal. You can find an example of this implementation in `DecalUtilities.hlsl`.
+
 ### Decal normal blending
 
 ![](Images/HDRPFeatures-SurfGrad.png)
@@ -257,32 +281,45 @@ HDRP 12.0 includes a new physically-based Marschner hair shader. You can use thi
 
 ### New shader for Custom Render Textures
 
-This HDRP version includes a new shader that is formatted for [Custom Render Textures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) in **Assets > Create > Shader > Custom Render Texture**. To use this shader, create a new Material and assign it to the Custom Render Texture's **Material** field.
+This HDRP version includes a new shader that's formatted for [Custom Render Textures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) in **Assets > Create > Shader > Custom Render Texture**. To use this shader, create a new Material and assign it to the Custom Render Texture's **Material** field.
 
-## Dynamic Render Pass Culling
+### Tessellation
+
+HDRP 12.x improves motion vector support for tessellation in the following ways:
+
+* Updates the struct `VaryingsPassToDS`, so that it only manages the `previousPositionRWS` variable.
+* Adds the `MotionVectorTessellation()` function. For more information, see the `MotionVectorVertexShaderCommon.hlsl` file.
+* Evaluates the `tessellationFactor` in the vertex shader and passes it to the hull shader as an interpolator. For more information, see the `VaryingMesh.hlsl` and `VertMesh.hlsl` files.
+* Moves the `GetTessellationFactors()` function from `LitDataMeshModification.hlsl` to TessellationShare.hlsl. It calls a new function, `GetTessellationFactor()`, that's in the `LitDataMeshModification.hlsl` file.
+
+### Dynamic Render Pass Culling
 
 HDRP 12.0 can dynamically cull rendering passes that don’t contribute to the output frame based on the viewpoint of the active Camera. For example, if there are no GameObjects that use low resolution transparency in the current viewpoint, HDRP can skip the composition pass for GameObjects that use low resolution transparency.
 
 To enable this feature, go to **Edit > Project Settings > HDRP Global HDRP Settings** and enable **Dynamic Render Pass Culling**.
 
-## Built-in Object ID Custom Pass
+### Built-in Object ID Custom Pass
 
 HDRP 12.0 includes a built-in custom pass that you can use to generate Object IDs and display them as colors. To use this new custom pass, create a Custom Pass volume and select the new **ObjectIDCustomPass**from the list of available custom passes.
 
-## Specular Occlusion
+### Specular Occlusion
 
 HDRP 12.0 includes a more precise method to calculate specular occlusion based on Ambient Occlusion (AO) and Bent normals. This replaces the old method for all materials and shader graphs.
 
 ![](Images/SpecularOcclusion.png)
 
-## Screen Space Global Illumination
+### Ambient Occlusion and Specular Occlusion
+
+In HDRP 12.x, the  algorithm that calculates how ambient occlusion and specular occlusion contributes to direct lighting doesn’t use the multi-bounce contribution (GTAOMultiBounce). This gives a more accurate direct lighting result.
+
+### Screen Space Global Illumination
 
 HDRP 12.0 improves the quality of the [Screen Space Global Illumination (SSGI)](Override-Screen-Space-GI.md) in the following ways:
 
 - Added a new fallback mechanic when the ray marching fails to return an intersection point based on reflection probes and the sky probe.
 - Improved the denoiser HDRP uses to filter the SSGI signal.
 - Improved the performance of SSRI evaluation at half-resolution, and the performance of the denoiser.
-- Emissive properties work correctly by default and do not require SSGI flags.
+- Emissive properties work correctly by default and don't require SSGI flags.
 
 SSGI off:
 
@@ -292,7 +329,7 @@ SSGI on:
 
 ![](Images/SSGIon.png)
 
-## Ray Traced Global Illumination
+### Ray Traced Global Illumination
 
 HDRP 12.0 includes the following new volume parameters for [Ray Traced Global Illumination (RTGI)](Ray-Traced-Global-Illumination.md):
 
@@ -305,7 +342,7 @@ This HDRP version also improves the quality of the RTGI denoiser.Emissive proper
 
 This version includes a new RTGI **Tracing** option called **Mixed.** Select this option to make RTGI use a combination of ray tracing and ray marching to calculate global illumination. **Mixed** tracing only works with RTGI when you set the RTGI  **Mode** to  **Performance**. For more information, see [tracing modes](tracing-modes.md).
 
-## Ray Traced Reflections
+### Ray Traced Reflections
 
 HDRP 12.0 includes the following new volume parameters for [Ray Traced Reflections](Ray-Traced-Reflections.md) :
 
@@ -318,22 +355,22 @@ This version includes a new Ray Traced Reflections **Mode** option called **Mixe
 
 This version includes a new Ray Traced Reflections **Tracing** option called **Mixed**. Select this option to make Ray Traced Reflections use a combination of ray tracing and ray marching to calculate global illumination. **Mixed** tracing for Ray Traced Reflections is only compatible with [Lit shaders](Lit-Shader.md) that use [deferred rendering](Forward-And-Deferred-Rendering.md). For more information, see [tracing modes](tracing-modes.md).
 
-## Recursive rendering
+### Recursive rendering
 
-HDRP 12.0 includes the following new volume parameters for [Recursive Rendering](Ray-Tracing-Recursive-Rendering.md) :
+HDRP 12.0 includes the following new volume parameters for [Recursive Rendering](Ray-Tracing-Recursive-Rendering.md):
 
 - **Ray Miss**
 - **Last Bounce**
 
 These new parameters control the fallback method HDRP uses when Recursive Rendering interacts with the reflection probe, and the sky.
 
-## Conservative Depth Offset
+### Conservative Depth Offset
 
 HDRP version 12.0 adds a new **Depth Offset** property called **Conservative** to all [Master stacks in HDRP](master-stack-hdrp.md)**.** This option makes all depth offsets positive to  take advantage of the early depth test mechanic.
 
 The **Conservative** option only appears when you enable a Material’s **Surface options** > **Depth Offset** property.
 
-## Custom Pass Improvements
+### Custom Pass Improvements
 
 This version includes the following improvements to [custom passes](Custom-Pass.md) in HDRP:
 
@@ -345,7 +382,7 @@ This version includes the following improvements to [custom passes](Custom-Pass.
 - Added new nodes to ShaderGraph called **Custom Color Buffer** and **Custom Depth Buffer**. You can use these nodes to sample the custom color and depth buffers of custom passes.
 - Added a new injection point called **AfterPostProcessBlurs** that HDRP executes after the **Depth of Field** and **Motion Blur** injection points.
 
-## Custom Post Process
+### Custom Post Process
 
 From HDRP 12.0 the custom post processes use the [CommandBuffer.Blit](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.Blit.html) function.
 
@@ -353,7 +390,7 @@ You can also use the new `_CameraMotionVectorsTexture` property to access the mo
 
 To learn more about Custom Post Processes in HDRP, see the [Custom Post Process](Custom-Post-Process.md).
 
-## Decal Performance Improvements
+### Decal Performance Improvements
 
 This version of HDRP introduces performance improvements for Decal Projectors:
 
@@ -365,7 +402,7 @@ This version of HDRP introduces performance improvements for Decal Projectors:
 <a name="Fixed-Dynamic-Resolution-Scaling"></a>
 
 
-## CPU Light Loop Performance Improvements
+### CPU Light Loop Performance Improvements
 
 This version of HDRP introduces performance improvements for the CPU culling light loop. The new CPU light loop optimizations include:
 - Introduction of the new object HDLightEntityCollection - a master singleton object that keeps render side state of light objects.
@@ -374,6 +411,12 @@ This version of HDRP introduces performance improvements for the CPU culling lig
 - Introduction new sorting functions introduced in the core package.
 
 For a more detailed information please check the [Lightloop-Burstification](Lightloop-Burstification.md) documentation entry.
+
+## Removed
+
+### Receive SSGI flags
+
+From HDRP 12.x, Materials don’t include the **Receive SSGI** flags property. This is because all Emissive materials are now compatible with Screen Space Global Illumination.
 
 ## Fixed
 
@@ -384,5 +427,9 @@ This version of HDRP introduces multiple fixes to **Dynamic Resolution Scaling**
 - The rendering artifact that caused black edges to appear on screen when in hardware mode no longer occurs.
 - The rendering artifacts that appeared when using the Lanczos filter in software mode no longer occur.
 - Fixed an issue that caused corrupted scaling on Dx12 hardware mode when a planar reflection probe or a secondary Camera is present.
+
+### Light list
+
+HDRP 12.x splits the ` g_vLightListGlobal` variable  into `g_vLightListTile` and `g_vLightListCluster`. This fix corrects unexpected behavior on console platforms.
 
 For a full list of changes and updates in version 12 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/changelog/CHANGELOG.html).

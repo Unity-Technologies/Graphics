@@ -48,6 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // De-noising parameters
             public int maxKernelSize;
             public float historyValidity;
+            public Vector4 historySizeAndScale;
             // Current inverse resolution of the history buffer
             public Vector2 historyBufferSize;
             // Resolution at which the effect is rendered (Half the _Screensize if half res)
@@ -89,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // De-noising parameters
                 passData.historyValidity = historyValidity;
+                passData.historySizeAndScale = HDRenderPipeline.EvaluateRayTracingHistorySizeAndScale(hdCamera, historyBuffer);
                 passData.maxKernelSize = fullResolution ? maxKernelSize : maxKernelSize / 2;
                 passData.historyBufferSize = new Vector2(1.0f / (float)hdCamera.historyRTHandleProperties.currentRenderTargetSize.x, 1.0f / (float)hdCamera.historyRTHandleProperties.currentRenderTargetSize.y);
                 passData.currentEffectResolution = new Vector4(passData.texWidth, passData.texHeight, 1.0f / (float)passData.texWidth, 1.0f / (float)passData.texHeight);
@@ -130,6 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ctx.cmd.SetComputeFloatParam(data.reflectionDenoiserCS, HDShaderIDs._PixelSpreadAngleTangent, data.pixelSpreadTangent);
                     ctx.cmd.SetComputeVectorParam(data.reflectionDenoiserCS, HDShaderIDs._HistoryBufferSize, data.historyBufferSize);
                     ctx.cmd.SetComputeVectorParam(data.reflectionDenoiserCS, HDShaderIDs._CurrentEffectResolution, data.currentEffectResolution);
+                    ctx.cmd.SetComputeVectorParam(data.reflectionDenoiserCS, HDShaderIDs._HistorySizeAndScale, data.historySizeAndScale);
                     ctx.cmd.SetComputeIntParam(data.reflectionDenoiserCS, HDShaderIDs._AffectSmoothSurfaces, data.affectSmoothSurfaces);
                     ctx.cmd.SetComputeIntParam(data.reflectionDenoiserCS, HDShaderIDs._SingleReflectionBounce, data.singleReflectionBounce);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.temporalAccumulationKernel, HDShaderIDs._DenoiseInputTexture, data.noisyToOutputSignal);

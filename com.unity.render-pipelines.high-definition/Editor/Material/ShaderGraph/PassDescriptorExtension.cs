@@ -18,6 +18,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static bool IsLightingOrMaterial(this PassDescriptor pass)
         {
+            if (pass.lightMode == null)
+                return false;
+
             return pass.IsForward()
                 || pass.lightMode == HDShaderPassNames.s_GBufferStr
                 // DXR passes without visibility, prepass or path tracing
@@ -28,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return pass.lightMode == HDShaderPassNames.s_ForwardOnlyStr
                 || pass.lightMode == HDShaderPassNames.s_ForwardStr
+                || pass.lightMode == HDShaderPassNames.s_LineRenderingOffscreenShading
                 || pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr;
         }
 
@@ -38,6 +42,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static bool IsRaytracing(this PassDescriptor pass)
         {
+            if (pass.pragmas == null)
+                return false;
+
             foreach (var pragma in pass.pragmas)
             {
                 if (pragma.value == "#pragma raytracing surface_shader")

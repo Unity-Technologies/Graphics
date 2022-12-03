@@ -11,6 +11,31 @@ namespace UnityEditor.ShaderGraph
     {
         public static class GraphValidation
         {
+            static Dictionary<Type, FieldInfo> s_ActiveSubTarget = new();
+            static readonly PropertyInfo s_JsonData = typeof(Serialization.JsonData<SubTarget>).GetProperty("value");
+
+            static SubTarget GetActiveSubTarget(Target target)
+            {
+                // All targets have an active subtarget but it's not accessible from ShaderGraph
+                // so we use reflection to access it
+
+                var type = target.GetType();
+                if (!s_ActiveSubTarget.TryGetValue(type, out var activeSubTarget))
+                {
+                    activeSubTarget = type.GetField("m_ActiveSubTarget", BindingFlags.Instance | BindingFlags.NonPublic);
+                    s_ActiveSubTarget.Add(type, activeSubTarget);
+                }
+                if (activeSubTarget != null)
+                {
+                    var jsonData = activeSubTarget.GetValue(target);
+                    if (jsonData != null)
+                    {
+                        return s_JsonData.GetValue(jsonData) as SubTarget;
+                    }
+                }
+                return null;
+            }
+
             public static void ValidateNode(AbstractMaterialNode node)
             {
                 Type t = node.GetType();
@@ -19,6 +44,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     bool disallowedByAnyTargets = false;
                     bool disallowedByAllTargets = true;
+                    bool disallowedByAnySubTarget = false;
                     IEnumerable<Target> targets = node.owner.activeTargets;
                     if (node.owner.isSubGraph)
                     {
@@ -39,8 +65,16 @@ namespace UnityEditor.ShaderGraph
                         {
                             disallowedByAllTargets = false;
                         }
+
+                        var subtarget = GetActiveSubTarget(target);
+                        if (subtarget != null && !subtarget.IsNodeAllowedBySubTarget(t))
+                        {
+                            disallowedByAnySubTarget = true;
+                            node.isValid = false;
+                            node.owner.AddValidationError(node.objectId, $"{node.name} Node is not allowed by {subtarget.displayName} implementation", Rendering.ShaderCompilerMessageSeverity.Error);
+                        }
                     }
-                    if (!disallowedByAnyTargets)
+                    if (!disallowedByAnyTargets && !disallowedByAnySubTarget)
                     {
                         node.isValid = true;
                     }

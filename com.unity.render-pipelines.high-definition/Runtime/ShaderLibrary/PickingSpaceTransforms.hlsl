@@ -10,7 +10,24 @@
 #undef SHADEROPTIONS_CAMERA_RELATIVE_RENDERING
 
 // Define the correct matrices
-#if !defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(HAVE_VFX_MODIFICATION)
+#if defined(DOTS_INSTANCING_ON)
+
+#undef unity_ObjectToWorld
+#undef unity_MatrixPreviousM
+
+#undef UNITY_MATRIX_M
+#define UNITY_MATRIX_M UNITY_DOTS_MATRIX_M
+
+#undef UNITY_MATRIX_I_M
+#define UNITY_MATRIX_I_M Inverse(UNITY_DOTS_MATRIX_M)
+
+#undef UNITY_PREV_MATRIX_M
+#define UNITY_PREV_MATRIX_M UNITY_DOTS_PREV_MATRIX_M
+
+#undef UNITY_PREV_MATRIX_I_M
+#define UNITY_PREV_MATRIX_I_M Inverse(UNITY_DOTS_PREV_MATRIX_M)
+
+#elif !defined(HAVE_VFX_MODIFICATION)
 
 #undef unity_ObjectToWorld
 #undef unity_MatrixPreviousM

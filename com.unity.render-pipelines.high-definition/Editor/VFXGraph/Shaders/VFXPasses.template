@@ -44,9 +44,9 @@ ${VFXPassShadowDefine}
 ${VFXPassDepthDefine}
 #endif
 ${VFXIncludeRP("VFXLit.template")}
-			
+
 ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
-	
+
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
@@ -92,21 +92,30 @@ void frag(ps_input i
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
 	${VFXComputeNormalWS}
-	
+
 	#ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
         float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
     #else
-	
+
 	float alpha = VFXGetFragmentColor(i).a;
-	
+
 	#if HDRP_USE_BASE_COLOR_MAP_ALPHA
 		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
 	#endif
+    #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+        #ifndef VFX_VARYING_NORMAL
+			const VFXUVData uvData = GetUVData(i);
+		#endif
+        alpha *= SampleTexture(VFX_SAMPLER(positiveAxesLightmap),uvData).a;
+         #if VFX_SIX_WAY_USE_ALPHA_REMAP
+            alpha = SampleCurve(i.VFX_VARYING_ALPHA_REMAP, alpha);
+         #endif
+    #endif
     #endif
 	VFXClipFragmentColor(alpha,i);
-	
+
 	#ifdef WRITE_NORMAL_BUFFER
         #ifndef VFX_SHADERGRAPH
             VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);

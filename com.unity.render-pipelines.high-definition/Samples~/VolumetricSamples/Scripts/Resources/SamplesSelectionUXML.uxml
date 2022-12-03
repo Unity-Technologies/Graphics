@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Label tabindex="-1" text="Samples Selection" display-tooltip-when-elided="true" view-data-key="Headline" binding-path="headline" name="headline" style="-unity-font-style: bold; color: rgb(184, 226, 229); -unity-text-align: middle-left; font-size: 20px; white-space: nowrap; height: auto; width: auto; margin-bottom: 20px; margin-top: 20px; justify-content: center; align-self: center;" />
+    <ui:VisualElement name="intro" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: column; flex-wrap: wrap; padding-top: 0; padding-bottom: 10px; padding-left: 20px; padding-right: 20px; height: auto; align-self: stretch; justify-content: center; align-items: stretch;" />
+    <ui:DropdownField index="-1" choices="System.Collections.Generic.List`1[System.String]" name="SampleDropDown" tooltip="Select the Sample to Instantiate" label="Sample List" style="opacity: 1; display: flex; visibility: visible; overflow: hidden; height: auto; width: 50%; justify-content: center; align-items: center; flex-direction: column; align-self: center; -unity-text-align: upper-center;" />
+    <ui:VisualElement name="sampleInfosContainer" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); min-width: auto; min-height: auto; height: auto; padding-left: 40px; padding-bottom: 0; padding-top: 0; padding-right: 40px; justify-content: flex-start;" />
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); align-items: center; justify-content: space-around; height: auto; min-height: auto; align-self: stretch; flex-direction: row-reverse; padding-bottom: 20px;">
+        <ui:Button text="Select Sample" display-tooltip-when-elided="true" name="SelectSampleBtn" style="width: 50%; align-self: center;" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -3,6 +3,7 @@ Shader "Hidden/DebugVTBlit"
     HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
 
             struct Attributes
         {
@@ -38,7 +39,8 @@ Shader "Hidden/DebugVTBlit"
 
         float4 frag(Varyings i) : SV_Target
         {
-            float4 col = 255.0f * SAMPLE_TEXTURE2D_X(_BlitTexture, s_point_clamp_sampler, i.uv);
+            float4 sampleValue = SAMPLE_TEXTURE2D_X(_BlitTexture, s_point_clamp_sampler, i.uv);
+            float4 col = UnpackVTFeedbackWithAlpha(float4(sampleValue.rgb,1.0)) * 255.0;
             return ComputeDebugColor(col);
         }
 

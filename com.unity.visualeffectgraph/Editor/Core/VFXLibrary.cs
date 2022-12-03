@@ -2,14 +2,15 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Rendering;
-using Object = System.Object;
-using System.Reflection;
 using UnityEngine.Profiling;
 
 using Debug = UnityEngine.Debug;
+using Object = System.Object;
 
 namespace UnityEditor.VFX
 {
@@ -93,7 +94,7 @@ namespace UnityEditor.VFX
     {
         protected VFXModelDescriptor(VFXModel template, Variant variants = null)
         {
-            m_Variants = variants?.settings ?? new KeyValuePair<string, object>[0];
+            m_Variants = variants?.settings ?? Array.Empty<KeyValuePair<string, object>>();
             //Don't notify model here for performance reason, we are assuming the name shouldn't relies on something in Invalidate of VFXModel
             ApplyVariant(template, false);
 
@@ -116,6 +117,16 @@ namespace UnityEditor.VFX
 
         protected void ApplyVariant(VFXModel m, bool notify)
         {
+            if (!notify
+                && m_Variants.Length > 0
+                && m is IVFXSlotContainer slotContainer)
+            {
+                //If we don't notify change in library, then, we should clear slot.
+                //See ProviderFilter in VFXDataAnchor, this code relies on slot count to detect if ResyncSlot should be called
+                //If variant is empty, keep the initial slot, it saves the later ResyncSlot in VFXDataAnchor
+                slotContainer.ClearSlots();
+            }
+
             m.SetSettingValues(m_Variants, notify);
         }
 
@@ -139,6 +150,7 @@ namespace UnityEditor.VFX
         {
             var instance = (T)ScriptableObject.CreateInstance(modelType);
             ApplyVariant(instance, true);
+
             return instance;
         }
 
@@ -314,6 +326,7 @@ namespace UnityEditor.VFX
         private static List<VFXModelDescriptor<T>> LoadModels<T>() where T : VFXModel
         {
             var modelTypes = FindConcreteSubclasses(typeof(T), typeof(VFXInfoAttribute));
+
             var modelDescs = new List<VFXModelDescriptor<T>>();
             var error = new StringBuilder();
 
@@ -367,7 +380,7 @@ namespace UnityEditor.VFX
             public string name;
         }
 
-        public static IEnumerable<VFXFieldType> GetFieldFromType(Type type, bool enumeratePrivate = true)
+        public static IEnumerable<VFXFieldType> GetFieldFromType(Type type)
         {
             var bindingsFlag = BindingFlags.Public | BindingFlags.Instance;
             foreach (var field in type.GetFields(bindingsFlag))
@@ -400,8 +413,7 @@ namespace UnityEditor.VFX
                 return result;
 
             alreadyProcessedType.Add(type, false);
-            var attribute = type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
-            if (attribute == null)
+            if (type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() is not VFXTypeAttribute attribute)
             {
                 errors.AppendFormat("The type {0} doesn't use the expected [VFXType] attribute.\n", type);
                 return false;
@@ -433,8 +445,7 @@ namespace UnityEditor.VFX
                 return false;
             }
 
-            alreadyProcessedType.Remove(type);
-            alreadyProcessedType.Add(type, true);
+            alreadyProcessedType[type] = true;
             return true;
         }
 
@@ -448,16 +459,11 @@ namespace UnityEditor.VFX
         {
             var vfxTypes = FindConcreteSubclasses(null, typeof(VFXTypeAttribute));
             var errors = new StringBuilder();
-            var validTypes = new List<Type>();
-            foreach (var type in vfxTypes)
-            {
-                if (ValidateVFXType(type, errors))
-                    validTypes.Add(type);
-            }
+            var validTypes = vfxTypes.Where(x => ValidateVFXType(x, errors)).ToArray();
 
             if (errors.Length != 0)
                 Debug.LogErrorFormat("Error while processing VFXType\n{0}", errors.ToString());
-            return validTypes.ToArray();
+            return validTypes;
         }
 
         private static Dictionary<Type, VFXModelDescriptor<VFXSlot>> LoadSlots()
@@ -501,7 +507,6 @@ namespace UnityEditor.VFX
 
         public static IEnumerable<Type> FindConcreteSubclasses(Type objectType = null, Type attributeType = null)
         {
-            List<Type> types = new List<Type>();
             foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 Type[] assemblyTypes = null;
@@ -513,14 +518,20 @@ namespace UnityEditor.VFX
                 {
                     if (VFXViewPreference.advancedLogs)
                         Debug.Log("Cannot access assembly: " + domainAssembly);
-                    assemblyTypes = null;
+                    continue;
                 }
-                if (assemblyTypes != null)
-                    foreach (var assemblyType in assemblyTypes)
-                        if ((objectType == null || assemblyType.IsSubclassOf(objectType)) && !assemblyType.IsAbstract)
-                            types.Add(assemblyType);
+
+                foreach (var assemblyType in assemblyTypes.Where(x => IsCompatible(x, objectType, attributeType)))
+                {
+                    yield return assemblyType;
+                }
             }
-            return types.Where(type => attributeType == null || type.GetCustomAttributes(attributeType, false).Length == 1);
+        }
+
+        private static bool IsCompatible(Type typeToTest, Type objectType, Type attributeType)
+        {
+            return !typeToTest.IsAbstract && (objectType == null || typeToTest.IsSubclassOf(objectType))
+                && (attributeType == null || typeToTest.GetCustomAttributes(attributeType, false).Length == 1);
         }
 
         [NonSerialized]

@@ -1,4 +1,6 @@
 using UnityEngine.Rendering;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -10,6 +12,9 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_IsInitialized = false;
 
         internal string typeName;
+
+        // Keep track of all the instances alive of the custom post process component so we can release them when needed
+        internal static HashSet<CustomPostProcessVolumeComponent> instances = new HashSet<CustomPostProcessVolumeComponent>();
 
         /// <summary>
         /// Injection point of the custom post process in HDRP.
@@ -55,6 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Cleanup();
 
             m_IsInitialized = false;
+            instances.Remove(this);
         }
 
         internal void SetupIfNeeded()
@@ -64,7 +70,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 Setup();
                 m_IsInitialized = true;
                 typeName = GetType().Name;
+                instances.Add(this);
             }
+        }
+
+        // If the HDRP asset is destroyed or changed, we reset the post process resources
+        internal static void CleanupAllCustomPostProcesses()
+        {
+            foreach (var instance in instances.ToList()) // Copy to remove elements safely
+                instance.CleanupInternal();
         }
     }
 }

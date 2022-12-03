@@ -6,7 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Initial,
             UseZProjectionAxisAndScaleIndependance,
-            FixPivotPosition
+            FixPivotPosition,
+            GenericRenderingLayers,
         }
 
         static readonly MigrationDescription<Version, DecalProjector> k_Migration = MigrationDescription.New(
@@ -70,6 +71,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     DecalSystem.instance.RemoveDecal(decal.m_Handle);
 
                 decal.m_Handle = DecalSystem.instance.AddDecal(decal);
+            }),
+            MigrationStep.New(Version.GenericRenderingLayers, (DecalProjector decal) =>
+            {
+                // Decal and light layers are now shared on 16 bits instead of using 8 separate bits
+                // Decal use the last 8 bits so they need to be shifted
+                // If a decal projector was created before decal layer feature, just keep default value
+                if (decal.m_DecalLayerMask != RenderingLayerMask.DecalLayerDefault)
+                    decal.m_DecalLayerMask = (RenderingLayerMask)((int)decal.m_DecalLayerMask << 8);
             })
         );
 

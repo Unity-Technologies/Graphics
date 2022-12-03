@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
-
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
@@ -103,10 +102,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
             // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
 
-            if (pass.IsDepthOrMV())
-            {
-                pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
-            }
+            if (pass.lightMode == HDShaderPassNames.s_MotionVectorsStr)
+                pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBufferMotionVector);
+            else if (pass.IsDepthOrMV())
+                pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBufferDepthOnly);
 
             if (pass.IsLightingOrMaterial())
             {
@@ -126,6 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (pass.IsForward())
             {
                 pass.keywords.Add(CoreKeywordDescriptors.Shadow);
+                pass.keywords.Add(CoreKeywordDescriptors.AreaShadow);
                 pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow);
 
                 if (pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr)
@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CollectShaderProperties(collector, generationMode);
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData, requireSplitLighting);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData, requireSplitLighting, true);
         }
 
         public override void ProcessPreviewMaterial(Material material)

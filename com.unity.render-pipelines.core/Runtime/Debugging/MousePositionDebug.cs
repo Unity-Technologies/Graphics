@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering
             if (sceneView)
             {
                 // In play mode, m_mousePosition the one in the scene view
-                Vector2 mousePixelCoord = m_mousePosition;
+                Vector2 mousePixelCoord = EditorGUIUtility.PointsToPixels(m_mousePosition);
                 mousePixelCoord.y = (ScreenHeight - 1.0f) - mousePixelCoord.y;
                 return mousePixelCoord;
             }
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering
         public Vector2 GetMouseClickPosition(float ScreenHeight)
         {
 #if UNITY_EDITOR
-            Vector2 mousePixelCoord = m_MouseClickPosition;
+            Vector2 mousePixelCoord = EditorGUIUtility.PointsToPixels(m_MouseClickPosition);
             mousePixelCoord.y = (ScreenHeight - 1.0f) - mousePixelCoord.y;
             return mousePixelCoord;
 #else

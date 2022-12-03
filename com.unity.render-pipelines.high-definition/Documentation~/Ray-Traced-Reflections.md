@@ -12,6 +12,8 @@ Ray-traced reflections
 
 For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
+To troubleshoot this effect, HDRP provides a Reflection [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
+
 ## Using Ray-Traced Reflections
 
 This feature replaces the [Screen Space Reflection](Override-Screen-Space-Reflection.md) Volume override, so the initial setup is similar. To setup ray traced reflections:

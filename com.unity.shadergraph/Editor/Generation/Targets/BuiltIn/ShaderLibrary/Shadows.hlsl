@@ -21,15 +21,9 @@
     #endif
 #endif
 
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-#define SHADOWMASK_NAME unity_ShadowMasks
-#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMasks
-#define SHADOWMASK_SAMPLE_EXTRA_ARGS , unity_LightmapIndex.x
-#else
 #define SHADOWMASK_NAME unity_ShadowMask
 #define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
 #define SHADOWMASK_SAMPLE_EXTRA_ARGS
-#endif
 
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, uv SHADOWMASK_SAMPLE_EXTRA_ARGS);
@@ -92,7 +86,7 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 #else
 
 
-#if defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
+#if defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
 // Point lights can use 6 shadow slices, but on some mobile GPUs performance decrease drastically with uniform blocks bigger than 8kb. This number ensures size of buffer AdditionalLightShadows stays reasonable.
 // It also avoids shader compilation errors on SHADER_API_GLES30 devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
 // Keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in AdditionalLightsShadowCasterPass.cs

@@ -57,7 +57,7 @@ To display the current active item independently of the debug window:
 
 ## Decals panel
 
-The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.md) in your project.
+The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.md) affecting transparent objects in your project.
 
 | **Debug Option**  | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
@@ -160,6 +160,26 @@ The **Material** panel has tools that you can use to visualize different Materia
     <tr>
       <td rowspan="1"><strong>Material</strong></td>
       <td colspan="2">Use the drop-down to select a Material property to visualize on every GameObject on screen using a specific Shader. The properties available depend on the HDRP Material type you select in the drop-down.</td>
+    </tr>
+    <tr>
+      <td rowspan="5"><strong>Rendering Layer Mask</strong></td>
+      <td colspan="2">These parameters only appear when you set the Material Debug Option to Rendering Layers.</td>
+    </tr>
+    <tr>
+      <td><strong>Filter with Light Layers from Selected Light</strong></td>
+      <td>Enable the checkbox to visualize GameObjects that the selected light affects.</td>
+    </tr>
+    <tr>
+      <td><strong>Use Light&#39;s Shadow Layer Mask</strong></td>
+      <td>Enable the checkbox to visualize GameObjects that cast shadows for the selected light.</td>
+    </tr>
+    <tr>
+      <td><strong>Filter Layers</strong></td>
+      <td>Use the drop-down to filter layers that you want to display. GameObjects that have a matching layer appear in a specific color. Use **Layers Color** to define this color.</td>
+    </tr>
+    <tr>
+      <td><strong>Layers Color</strong></td>
+      <td>Use the color pickers to select the display color of each rendering layer.</td>
     </tr>
     <tr>
       <td rowspan="1"><strong>Engine</strong></td>
@@ -338,26 +358,6 @@ The **Lighting** panel has tools that you can use to visualize various component
 <td><strong>Hierarchy Debug Mode</strong></td>
 <td colspan="2">Use the drop-down to select a light type to display the direct lighting for or a Reflection Probe type to display the indirect lighting for.</td>
 </tr>
-<tr>
-<td rowspan="5"><strong>Light Layers Visualization</strong></td>
-<td colspan="2">Enable the checkbox to visualize light layers of objects in your Scene.</td>
-</tr>
-<tr>
-<td><strong>Use Selected Light</strong></td>
-<td>Enable the checkbox to visualize objects affected by the selected light.</td>
-</tr>
-<tr>
-<td><strong>Switch to Light&#39;s Shadow Layers</strong></td>
-<td>Enable the checkbox to visualize objects casting shadows for the selected light.</td>
-</tr>
-<tr>
-<td><strong>Filter Layers</strong></td>
-<td>Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color.</td>
-</tr>
-<tr>
-<td><strong>Layers Color</strong></td>
-<td>Use the color pickers to select the display color of each light layer.</td>
-</tr>
 </tbody></table>
 
 <table>
@@ -425,7 +425,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 <tbody>
 <tr>
 <td><strong>Fullscreen Debug Mode</strong></td>
-<td colspan="2">Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Contact-Shadows.html">Contact Shadows</a>, the depth pyramid, and indirect diffuse lighting.</td>
+<td colspan="2">Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Contact-Shadows.html">Contact Shadows</a>, the depth pyramid, and indirect diffuse lighting.<br>You can also use some of those Lighting Fullscreen Debug Modes to debug <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Ray-Tracing-Debug.html">Ray-Traced effects</a>.</td>
 </tr>
 <tr>
 <td rowspan="4"><strong>Tile/Cluster Debug</strong></td>
@@ -653,6 +653,16 @@ The **Color Picker** works with whichever debug mode HDRP displays at the time. 
 </tbody>
 </table>
 
+The **Color monitors** are a set of industry-standard monitors to help artists control the overall look and exposure of a scene.
+
+| **Debug Option** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Waveform**     | Displays the full range of luma (brightness) information in the Camera’s output. The horizontal axis of the graph corresponds to the render (from left to right) and the vertical axis indicates the brightness value.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **Exposure**     | Determines the exposure multiplier HDRP applies to the waveform values.<br/><br/>This property only appears when you enable the **Waveform** checkbox.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **Parade mode**  | Splits the image into red, green and blue separately. You can use this to visualise the RGB balance of the Camera's image. This helps you to see large offsets in one particular channel, or to determine if GameObjects are true black or true white. A true black, white, or grey GameObject has equal values across all channels.<br/><br/>This property only appears when you enable the **Waveform** checkbox.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Vectorscope**  | The Vectorscope monitor measures the overall range of hue and saturation within the Camera’s image in real-time. To display the data, it uses a scatter graph relative to the center of the Vectorscope.<br/><br/>The Vectorscope measures hue values between yellow, red, magenta, blue, cyan and green. The center of the Vectorscope represents absolute zero saturation and the edges represent the highest level of saturation. To determine the hues in your scene and their saturation, look at the distribution of the Vectorscope’s scatter graph.<br/>To identify whether there is a color imbalance in the image, look at how close the middle of the Vectorscope graph is to the absolute center. If the Vectorscope graph is off-center, this indicates that there is a color cast (tint) in the image. |
+| **Exposure**     | Determines the exposure multiplier HDRP applies to the vectorscope values.<br/><br/>This property only appears when you enable the **Vectorscope** checkbox.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **Size**         | The size ratio of the color monitors.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 | **Debug Option**  | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |

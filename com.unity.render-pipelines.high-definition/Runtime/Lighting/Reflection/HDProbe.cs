@@ -57,7 +57,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if the cubemap face bit is set, false otherwise.</returns>
         public static bool HasCubeFace(this ProbeRenderSteps steps, CubemapFace face)
         {
-            return steps.HasFlag(ProbeRenderStepsExt.FromCubeFace(face));
+            var flags = FromCubeFace(face);
+            return flags == 0 || (steps & flags) == flags; // Don't use Enum.HasFlag because it generates GCAlloc.
         }
 
         /// <summary>
@@ -223,9 +224,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeRenderSteps m_RemainingRenderSteps = ProbeRenderSteps.None;
         bool m_HasPendingRenderRequest = false;
         uint m_RealtimeRenderCount = 0;
+        int m_LastStepFrameCount = -1;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
-        int m_SHRequestID = -1;
 #endif
 
         [SerializeField] bool m_HasValidSHForNormalization;
@@ -277,6 +278,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // pick one bit or all remaining bits
                 ProbeRenderSteps nextSteps = timeSlicing ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
+
+                // limit work to once per frame if necessary
+                bool limitToOncePerFrame = (realtimeMode == ProbeSettings.RealtimeMode.EveryFrame || timeSlicing);
+                if (!nextSteps.IsNone() && limitToOncePerFrame)
+                {
+                    int frameCount = Time.frameCount;
+                    if (m_LastStepFrameCount == frameCount)
+                        nextSteps = ProbeRenderSteps.None;
+                    else
+                        m_LastStepFrameCount = frameCount;
+                }
+
                 m_RemainingRenderSteps &= ~nextSteps;
                 return nextSteps;
             }
@@ -291,6 +304,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void IncrementRealtimeRenderCount()
         {
             m_RealtimeRenderCount += 1;
+
+            texture.IncrementUpdateCount();
         }
 
         internal void RepeatRenderSteps(ProbeRenderSteps renderSteps)
@@ -306,7 +321,6 @@ namespace UnityEngine.Rendering.HighDefinition
             textureHash += (uint)texture.imageContentsHash.GetHashCode();
 #endif
             return textureHash;
-
         }
 
         internal bool requiresRealtimeUpdate
@@ -553,7 +567,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool timeSlicing { get => m_ProbeSettings.timeSlicing; set => m_ProbeSettings.timeSlicing = value; }
         /// <summary>
-        /// Resolution of the probe.
+        /// Resolution of the planar probe.
         /// </summary>
         public PlanarReflectionAtlasResolution resolution
         {
@@ -564,13 +578,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 return hdrp != null ? m_ProbeSettings.resolutionScalable.Value(hdrp.asset.currentPlatformRenderPipelineSettings.planarReflectionResolution) : m_ProbeSettings.resolution;
             }
         }
+        /// <summary>
+        /// Resolution of the cube probe.
+        /// </summary>
+        public CubeReflectionResolution cubeResolution
+        {
+            get
+            {
+                var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                return hdrp != null ? m_ProbeSettings.cubeResolution.Value(hdrp.asset.currentPlatformRenderPipelineSettings.cubeReflectionResolution) : ProbeSettings.k_DefaultCubeResolution;
+            }
+        }
 
         // Lighting
         /// <summary>Light layer to use by this probe.</summary>
-        public LightLayerEnum lightLayers
+        public RenderingLayerMask lightLayers
         { get => m_ProbeSettings.lighting.lightLayer; set => m_ProbeSettings.lighting.lightLayer = value; }
         /// <summary>This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1</summary>
-        public uint lightLayersAsUInt => lightLayers < 0 ? (uint)LightLayerEnum.Everything : (uint)lightLayers;
+        public uint lightLayersAsUInt => lightLayers < 0 ? (uint)RenderingLayerMask.Everything : (uint)lightLayers;
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier
         { get => m_ProbeSettings.lighting.multiplier; set => m_ProbeSettings.lighting.multiplier = value; }
@@ -596,7 +621,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Use the influence volume as the proxy volume if this is true.
         /// </summary>
-        public bool useInfluenceVolumeAsProxyVolume => m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume;
+        public bool useInfluenceVolumeAsProxyVolume
+        {
+            get
+            {
+                return m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume;
+            }
+
+            internal set
+            {
+                m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume = value;
+            }
+        }
+
         /// <summary>Is the projection at infinite? Value could be changed by Proxy mode.</summary>
         public bool isProjectionInfinite
             => m_ProxyVolume != null && m_ProxyVolume.proxyVolume.shape == ProxyShape.Infinite
@@ -720,7 +757,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void TryUpdateLuminanceSHL2ForNormalization()
         {
 #if UNITY_EDITOR
-            m_HasValidSHForNormalization = AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization, out m_SHValidForCapturePosition);
+            m_HasValidSHForNormalization = AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(GetInstanceID(), out m_SHForNormalization, out m_SHValidForCapturePosition);
             if (m_HasValidSHForNormalization)
                 m_SHValidForSourcePosition = transform.position;
 #endif
@@ -740,8 +777,8 @@ namespace UnityEngine.Rendering.HighDefinition
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 6, Vector3.zero);
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 7, Vector3.zero);
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 8, Vector3.zero);
-            if (m_SHRequestID >= 0)
-                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
+
+            AdditionalGIBakeRequestsManager.instance.DequeueRequest(GetInstanceID());
 
             QueueSHBaking();
         }
@@ -816,20 +853,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (Application.isPlaying)
                 return;
 
-            var asset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            var globalSettings = HDRenderPipelineGlobalSettings.instance;
-            if (globalSettings == null || asset == null || !asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            var asset = HDRenderPipeline.currentAsset;
+            if (asset == null || !asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
                 return;
 
             Vector3 capturePositionWS = ComputeCapturePositionWS();
-            if (m_SHRequestID < 0)
-            {
-                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(capturePositionWS);
-            }
-            else
-            {
-                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, capturePositionWS);
-            }
+            // If already enqueued this will just change the position, otherwise it'll enqueue the request.
+            AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(GetInstanceID(), capturePositionWS);
 
             ValidateSHNormalizationSourcePosition(transform.position);
             ValidateSHNormalizationCapturePosition(capturePositionWS);
@@ -885,11 +915,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void DequeueSHRequest()
         {
 #if UNITY_EDITOR
-            if (m_SHRequestID >= 0)
-            {
-                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
-            }
-            m_SHRequestID = -1;
+            AdditionalGIBakeRequestsManager.instance.DequeueRequest(GetInstanceID());
 #endif
         }
 

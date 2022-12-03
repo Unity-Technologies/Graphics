@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // If requested by the render pipeline settings, or if we are in a release build
                 // don't compile the DXR debug pass
                 bool isDebugDXR = snippet.passName == "DebugDXR";
-                if (isDebugDXR && (!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay))
+                if (isDebugDXR && m_StripDebugVariants)
                     return true;
             }
 

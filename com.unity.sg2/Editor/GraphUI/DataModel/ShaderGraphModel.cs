@@ -261,8 +261,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                             functionDictionary,
                                             portInfoList.ToArray(),
                                             nodeUIInfo.FunctionSelectorLabel);
-
-                    m_NodeUIData.Add(registryKey, nodeUIData);
+                    if(!m_NodeUIData.TryAdd(registryKey, nodeUIData))
+                        Debug.LogWarning("Tried to add duplicate to Node UI Data with value: " + registryKey);
                 }
             }
         }
@@ -308,7 +308,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return edgeModel;
         }
 
-        public override IReadOnlyCollection<GraphElementModel> DeleteWires(IReadOnlyCollection<WireModel> edgeModels)
+        public override void DeleteWires(IReadOnlyCollection<WireModel> edgeModels)
         {
             // Remove CLDS edges as well
             foreach (var edge in edgeModels)
@@ -316,13 +316,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (edge.FromPort is GraphDataPortModel sourcePort && edge.ToPort is GraphDataPortModel destPort)
                     Disconnect(sourcePort, destPort);
             }
-
-            return base.DeleteWires(edgeModels);
+            base.DeleteWires(edgeModels);
         }
 
-        public override GraphChangeDescription DeleteVariableDeclarations(IReadOnlyCollection<VariableDeclarationModel> variableModels, bool deleteUsages = true)
+        public override void DeleteVariableDeclarations(IReadOnlyCollection<VariableDeclarationModel> variableModels, bool deleteUsages = true)
         {
-            var changedNodes = new Dictionary<GraphElementModel, IReadOnlyList<ChangeHint>>();
+            // var changedNodes = new Dictionary<GraphElementModel, IReadOnlyList<ChangeHint>>();
 
             // Remove any ports that correspond to this property on the property context
             // as it causes issues with future port compability tests if the junk isnt cleared
@@ -334,16 +333,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     GraphHandler.ReconcretizeNode(contextNodeModel.graphDataName);
                     contextNodeModel.DefineNode();
 
-                    changedNodes.Add(contextNodeModel, new[] { ChangeHint.Unspecified });
+                    // changedNodes.Add(contextNodeModel, new[] { ChangeHint.Unspecified });
                 }
             }
 
             // The referable entry this variable was backed by is removed in ShaderGraphCommandOverrides.HandleDeleteBlackboardItems()
             // In future we want to bring it here
 
-            var changeDescription = base.DeleteVariableDeclarations(variableModels, deleteUsages);
-            changeDescription.Union(null, changedNodes, null);
-            return changeDescription;
+            // var changeDescription = base.DeleteVariableDeclarations(variableModels, deleteUsages);
+            // changeDescription.Union(null, changedNodes, null);
+            // return changeDescription;
         }
 
         PortModel HandleRedirectNodesCreation(PortModel toPort, PortModel fromPort, out List<PortModel> resolvedDestinations)
@@ -546,7 +545,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (pastedNodeModel is IGraphElementContainer container)
             {
                 foreach (var element in container.GraphElementModels)
-                    RecursivelyRegisterAndAssignNewGuid(element);
+                    RegisterElement(element);
             }
 
             return pastedNodeModel;

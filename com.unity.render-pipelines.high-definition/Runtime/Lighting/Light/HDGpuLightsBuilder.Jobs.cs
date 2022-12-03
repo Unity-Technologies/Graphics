@@ -142,8 +142,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             private static uint GetLightLayer(bool lightLayersEnabled, in HDLightRenderData lightRenderData)
             {
-                int lightLayerMaskValue = (int)lightRenderData.lightLayer;
-                uint lightLayerValue = lightLayerMaskValue < 0 ? (uint)LightLayerEnum.Everything : (uint)lightLayerMaskValue;
+                int lightLayerMaskValue = (int)lightRenderData.renderingLayerMask;
+                uint lightLayerValue = lightLayerMaskValue < 0 ? (uint)RenderingLayerMask.Everything : lightRenderData.renderingLayerMask;
                 return lightLayersEnabled ? lightLayerValue : uint.MaxValue;
             }
 
@@ -370,6 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         light, lightData, lightDimensions, lightsPerViewContainer.worldToView, outputIndex + lightsPerViewContainer.boundsOffset);
                 }
 
+                // Light volumes has been calculated, now we can update positionRWS to be relative camera
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;
 
@@ -403,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Then Culling side
                 var range = lightDimensions.z;
                 var lightToWorld = light.localToWorldMatrix;
-                Vector3 positionWS = lightData.positionRWS;
+                Vector3 positionWS = lightData.positionRWS; // Currently not including camera relative transform
                 Vector3 positionVS = worldToView.MultiplyPoint(positionWS);
 
                 Vector3 xAxisVS = worldToView.MultiplyVector(lightToWorld.GetColumn(0));

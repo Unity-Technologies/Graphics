@@ -108,24 +108,24 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
     }
 
-    class SetSwizzleMaskCommand : UndoableCommand
+    abstract class SetNodeFieldCommand<T> : UndoableCommand
     {
         readonly GraphDataNodeModel m_GraphDataNodeModel;
         readonly string m_FieldName;
-        readonly string m_Mask;
+        readonly T m_Value;
 
-        public SetSwizzleMaskCommand(GraphDataNodeModel graphDataNodeModel, string fieldName, string mask)
+        public SetNodeFieldCommand(GraphDataNodeModel graphDataNodeModel, string fieldName, T value)
         {
             m_GraphDataNodeModel = graphDataNodeModel;
             m_FieldName = fieldName;
-            m_Mask = mask;
+            m_Value = value;
         }
 
         public static void DefaultCommandHandler(
             UndoStateComponent undoState,
             GraphModelStateComponent graphViewState,
             PreviewUpdateDispatcher previewUpdateDispatcher,
-            SetSwizzleMaskCommand command)
+            SetNodeFieldCommand<T> command)
         {
             using (var undoUpdater = undoState.UpdateScope)
             {
@@ -133,13 +133,31 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             if (!command.m_GraphDataNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
-            var field = nodeHandler.GetField<string>(command.m_FieldName);
-            field.SetData(command.m_Mask);
+            var field = nodeHandler.GetField<T>(command.m_FieldName);
+            field.SetData(command.m_Value);
 
             previewUpdateDispatcher.OnListenerConnectionChanged(command.m_GraphDataNodeModel.graphDataName);
 
             using var graphUpdater = graphViewState.UpdateScope;
             graphUpdater.MarkChanged(command.m_GraphDataNodeModel);
         }
+    }
+
+    class SetSwizzleMaskCommand : SetNodeFieldCommand<string>
+    {
+        public SetSwizzleMaskCommand(GraphDataNodeModel graphDataNodeModel, string fieldName, string value)
+            : base(graphDataNodeModel, fieldName, value) { }
+    }
+
+    class SetCoordinateSpaceCommand : SetNodeFieldCommand<CoordinateSpace>
+    {
+        public SetCoordinateSpaceCommand(GraphDataNodeModel graphDataNodeModel, string fieldName, CoordinateSpace value)
+            : base(graphDataNodeModel, fieldName, value) { }
+    }
+
+    class SetConversionTypeCommand : SetNodeFieldCommand<GraphDelta.ConversionType>
+    {
+        public SetConversionTypeCommand(GraphDataNodeModel graphDataNodeModel, string fieldName, GraphDelta.ConversionType value)
+            : base(graphDataNodeModel, fieldName, value) { }
     }
 }

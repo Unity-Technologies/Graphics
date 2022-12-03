@@ -7,7 +7,7 @@ The **Lens Distortion** effect distorts the final rendered picture to simulate t
 **Lens Distortion** uses the [Volume](Volumes.md) framework, so to enable and modify **Lens Distortion** properties, you must add a **Lens Distortion** override to a [Volume](Volumes.md) in your Scene. To add **Lens Distortion** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Lens Distortion**. HDRP now applies **Lens Distortion** to any Camera this Volume affects.
+2. In the Inspector, go to **Add Override** > **Post-processing** and select **Lens Distortion**. HDRP now applies **Lens Distortion** to any Camera this Volume affects.
 
 [!include[](snippets/volume-override-api.md)]
 

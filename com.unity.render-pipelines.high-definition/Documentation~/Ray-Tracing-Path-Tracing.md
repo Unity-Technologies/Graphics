@@ -16,6 +16,8 @@ Clean image with **Maximum Samples** set to 256
 
 The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports Lit, LayeredLit, Stacklit, AxF, and Unlit materials, and area, point, directional, and environment lights.
 
+To troubleshoot this effect, HDRP provides a Path Tracing [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
+
 ## Setting up path tracing
 
 Path tracing shares the general requirements and setup as other ray tracing effects, so for information on hardware requirements and set up, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). You must carry out this setup before you can add path tracing to your Scene.
@@ -26,7 +28,7 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, select Add Override > Ray Tracing > Path Tracing.
-3. In the Inspector for the Path Tracing Volume Override, check the Enable option. If you don't see the Enable option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
+3. In the Inspector for the Path Tracing Volume Override, set **State** to **Enabled**. If you don't see **State**, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
 4. If the image doesn't converge over time, select the drop-down next to the effect toggle and enable Always Refresh.
 
 
@@ -36,17 +38,14 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 | Property                    | Description                                                  |
 | --------------------------- | ------------------------------------------------------------ |
+| **State**                   | When set to **Enabled**, HDRP uses path tracing. |
+| **LayerMask**               | Specifies the layers that path tracing includes. |
 | **Maximum Samples**         | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
 | **Minimum Depth**           | Set the minimum number of light bounces in each path.        |
 | **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
 | **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
 | **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It's active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
-| **Denoising** | Enable this feature to denoise the output of the the path tracer. This feature is only available if the **Unity Denoising Package** is installed in your project. There are three available options in HDRP:<br />
-- **None**: Disables denoising (this is the default option).<br />
-- **Intel Open Image Denoise** : Performs denoising using the Intel Open Image Denoise library.<br />
-- **NVIDIA OptiX** : Performs denoising using NVIDIA OptiX.<br /><br />You can also enable two additional settings:<br />
-- **Use AOVs** (Arbitrary Output Variables): Enable this option to increase detail retention after denoising.<br />
-- **Temporal**: Enable this option to improve temporal consistency for denoised frame sequences. |
+| **Denoising** | Denoises the output of the the path tracer. This setting is only available when you install the **Unity Denoising** Package. **Denoising** has the following options:<br />&#8226; **None**: Does not denoise (this is the default option).<br />&#8226; **Intel Open Image Denoise** : Uses the Intel Open Image Denoise library to denoise the frame.<br />&#8226; **NVIDIA OptiX** : Uses NVIDIA OptiX to denoise the frame.<br /><br />You can also enable the following additional settings:<br />&#8226; **Use AOVs** (Arbitrary Output Variables): Increases the amount of detail kept in the frame after HDRP denoises it.<br />&#8226; **Temporal**: Improves the temporal consistency of denoised frame sequences. |
 
 ![](Images/RayTracingPathTracing4.png)
 
@@ -84,15 +83,15 @@ GameObjects with path tracing enabled.
 
 ## Path tracing and double-sided materials
 
-When you use path tracing, the **Double-Sided** property (menu: **Inspector** > **Surface Options** > **Double-Sided**) allows transparent materials to accumulate correctly. If the you disable **Double-sided** property, rays which exit the GameObject will not behave correctly.
+When you use path tracing, the **Double-Sided** property (menu: **Inspector** > **Surface Options** > **Double-Sided**) allows transparent materials to accumulate correctly. If you disable **Double-sided** property, rays which exit the GameObject will not behave correctly.
 
 The following images display the same GameObjects with a single-sided Material and a double-sided material:
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_Single Sided.png)
+![Surface_Options](Images/HDRP_PathtracingBoxes_SingleSided.png)
 
 GameObjects with a single-sided Material and path tracing enabled
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_Double Sided.png)
+![Surface_Options](Images/HDRP_PathtracingBoxes_DoubleSided.png)
 
 GameObjects with a double-sided Material and path tracing enabled
 
@@ -141,17 +140,28 @@ A single-sided surface with Transmission disabled.
 
 A double-sided surface with Transmission enabled.
 
-### Hair
+<a name="hair"></a>
 
-Path tracing can easily compute the complex multiple scattering events that occur within a head of hair, crucial for producing the volumetric look of lighter colored hair.
+## Hair
 
-The [Hair Master Stack](master-stack-hair.md) allows the choice between an **Approximate** and **Physical** material mode and parameterization. Currently, it's required for a Hair Material to be configured with the **Physical** mode to participate in path tracing. The reason for this is due to the physically-based parameterization of the model (and the model itself) which produces far more accurate results in a path traced setting. Moreover, the **Approximate** material mode is a non energy-conserving model, better suited for performant rasterization after careful artist tuning.
+Path tracing gives human hair a volumetric look. To do this, path tracing calculates the multiple scattering events that happen in a full head of hair. It is particularly effective for lighter hair tones.
 
-Representing hair strand geometry is traditionally done via ray-aligned "ribbons", or tubes. Currently, the acceleration structure isn't equipped to handle ray-aligned ribbons, so hair must be represented with tube geometry to achieve a good result.
+You can only use path tracing with hair you create with the [Hair Master Stack](master-stack-hair.md). The Hair Master Stack provides two hair Material Types. Path tracing works with the **Physical** Type.
 
-The path traced **Physical** hair mode shares the exact same meaning for its parameters as its rasterized counterpart. However, the underlying model for path tracing differs: it performs a much more rigorous evaluation of the scattering within the fiber, while the rasterized version is only an approximated version of this result. Additionally, path tracing a volume of densely packed hair fibers allows you to compute the complex multiple scattering "for free", whereas in rasterizing we again must approximate this.
+**Tip:** The second Material Type, **Approximate**, does not work with path tracing. You can learn more about it in [The Approximate Material Type](master-stack-hair.md#hair-approximate).
 
-You can read more about the parameterization details of the **Physical** hair mode [here](master-stack-hair.md).
+If you create hair using ribbons, it won’t work with path tracing in Unity. For path tracing to work with hair, you must use cards or tube geometry. For more information, see [Geometry type](master-stack-hair.md\#hair-geometry).
+
+##  Path tracing and automatic histogram exposure
+Path tracing creates noise that changes the minimum and maximum values that HDRP uses for automatic, histogram-based [exposure](Override-Exposure.md). You can visualize this when you use the [RGB Histogram](Render-Pipeline-Debug-Window.md#LightingPanel) to debug the exposure in your scene.
+
+This is especially visible in the first few un-converged frames that have the highest level of noise. However, this does not affect the exposure of the final converged frame.
+
+If there is any noise that affects the exposure in the final converged frame, adjust the following properties in the [Automatic Histogram](Override-Exposure.md#AutomaticHistogram) override to set the exposure to your desired range:
+
+* **Limit Min**
+
+* **Limit Max**
 
 ## Limitations
 
@@ -169,13 +179,14 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
   - Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
   - Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
   - Decals.
+  - Local Volumetric Fog.
   - Tessellation.
   - Tube and Disc-shaped Area Lights.
   - Translucent Opaque Materials.
   - Several of HDRP's Materials. This includes Eye, Hair, and Decal.
   - Per-pixel displacement (parallax occlusion mapping, height map, depth offset).
   - MSAA.
-  - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
+  - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
   - [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
 
 ### Unsupported shader graph nodes for path tracing
