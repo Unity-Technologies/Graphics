@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     }
 
     [Serializable]
-    internal class SerializableGraphHandler : ISerializationCallbackReceiver
+    internal class SerializableGraphHandler
     {
         [SerializeField]
         string json = "";
@@ -38,9 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_graph.ReconcretizeAll();
         }
 
-        public GraphHandler Graph => m_graph;
-
-        public void OnBeforeSerialize()
+        public void SaveGraph()
         {
             // Cloning node models (i.e. GTFs model of cloning a scriptable object,
             // triggers a serialize on the cloned node before it has a graph handler reference
@@ -49,7 +47,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             json = m_graph.ToSerializedFormat();
         }
 
-        public void OnAfterDeserialize() { }
+        public GraphHandler Graph => m_graph;
 
         public void OnEnable(bool reconcretize = true)
         {
@@ -156,6 +154,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override void Save()
         {
             m_AssetPath = m_AssetPath == string.Empty ? FilePath : m_AssetPath;
+            graphHandlerBox.SaveGraph();
             var json = EditorJsonUtility.ToJson(this, true);
             File.WriteAllText(m_AssetPath, json);
             AssetDatabase.ImportAsset(m_AssetPath);
