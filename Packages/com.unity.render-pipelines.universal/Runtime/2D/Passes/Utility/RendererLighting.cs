@@ -191,6 +191,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
+        private static bool ShouldRenderLight(Light2D light, int blendStyleIndex, int layerToRender)
+        {
+            return light != null &&
+                    light.lightType != Light2D.LightType.Global &&
+                    light.blendStyleIndex == blendStyleIndex &&
+                    light.IsLitLayer(layerToRender);
+        }
+
         private static void RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             var maxShadowLightCount = ShadowRendering.maxTextureCount * 4;
@@ -219,7 +227,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     int curLightIndex = lightIndex + batchedLights;
                     var light = lights[curLightIndex];
-                    if (CanCastShadows(light, layerToRender))
+                    if (ShouldRenderLight(light, blendStyleIndex, layerToRender) && CanCastShadows(light, layerToRender))
                     {
                         doesLightAtIndexHaveShadows[curLightIndex] = false;
                         if (ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowIntensity))
@@ -245,10 +253,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var light = lights[(int)(lightIndex + lightIndexOffset)];
 
-                    if (light != null &&
-                        light.lightType != Light2D.LightType.Global &&
-                        light.blendStyleIndex == blendStyleIndex &&
-                        light.IsLitLayer(layerToRender))
+                    if (ShouldRenderLight(light, blendStyleIndex, layerToRender))
                     {
                         // Render light
                         var lightMaterial = pass.rendererData.GetLightMaterial(light, false);
