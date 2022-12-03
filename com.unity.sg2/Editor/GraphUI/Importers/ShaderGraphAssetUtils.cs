@@ -59,13 +59,14 @@ namespace UnityEditor.ShaderGraph
             // Deserialize the json box
             string path = ctx.assetPath;
             string json = File.ReadAllText(path, Encoding.UTF8);
-            var asset = ShaderGraphTemplate.CreateInMemoryGraphFromTemplate(new ShaderGraphTemplate(true, LegacyTargetType.Blank));
+            var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
             EditorJsonUtility.FromJsonOverwrite(json, asset);
-
+            asset = ShaderGraphTemplate.CreateInMemoryGraphFromTemplate(new ShaderGraphTemplate(asset.IsSubgraph, asset.TargetType));
             // Although name gets set during asset's OnEnable, it can get clobbered during deserialize
             asset.Name = Path.GetFileNameWithoutExtension(path);
             var sgModel = asset.ShaderGraphModel;
             sgModel.OnEnable();
+            sgModel.Init(asset.IsSubgraph);
             var graphHandler = asset.CLDSModel;
 
             // TODO: SGModel should know what it's entry point is for creating a shader.

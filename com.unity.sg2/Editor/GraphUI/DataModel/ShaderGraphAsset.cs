@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
         }
 
-        public void InitializeNewAsset(LegacyTargetType legacyTargetType)
+        public void Initialize(LegacyTargetType legacyTargetType)
         {
             m_TargetType = legacyTargetType;
             var defaultRegistry = ShaderGraphRegistry.Instance.Registry;
@@ -150,8 +150,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override GraphAsset Import()
         {
-            m_AssetPath = m_AssetPath == string.Empty ? FilePath : m_AssetPath;
-            AssetDatabase.ImportAsset(m_AssetPath);
             return this;
         }
 

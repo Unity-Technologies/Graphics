@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.InitBasicGraph(graphModel);
 
             if (graphModel.Asset is ShaderGraphAsset shaderGraphAsset)
-                shaderGraphAsset.InitializeNewAsset(m_TargetType);
+                shaderGraphAsset.Initialize(m_TargetType);
 
             if (graphModel is ShaderGraphModel shaderGraphModel)
                 shaderGraphModel.InitModelForNewAsset(m_IsSubgraph, m_TargetType);
