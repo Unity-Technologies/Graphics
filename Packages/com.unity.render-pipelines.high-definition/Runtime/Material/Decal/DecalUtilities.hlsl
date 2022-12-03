@@ -234,7 +234,13 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     // Note that the above is valid only if wave intriniscs are supported.
     uint v_decalListOffset = 0;
     uint v_decalIdx = decalStart;
+#if NEED_TO_CHECK_HELPER_LANE
+    // On some platform helper lanes don't behave as we'd expect, therefore we prevent them from entering the loop altogether.
+    bool isHelperLane = WaveIsHelperLane();
+    while (!isHelperLane && v_decalListOffset < decalCount)
+#else
     while (v_decalListOffset < decalCount)
+#endif
     {
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         v_decalIdx = FetchIndex(decalStart, v_decalListOffset);
