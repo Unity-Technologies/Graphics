@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering
         internal static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
                 Drawer_VolumeContent,
-                Drawer_BakeToolBar
+                Drawer_RebakeWarning // This needs to be last to avoid popping in the UI
             )
         );
 
@@ -22,14 +22,12 @@ namespace UnityEditor.Rendering
 
             GIContributors.ContributorFilter? filter = null;
 
-            EditorGUI.BeginDisabledGroup(pv.globalVolume);
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to all Scenes", "Fits the Probe Volume's boundary to all open Scenes"), EditorStyles.miniButton))
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to All Scenes", "Fit this Probe Volume to cover all loaded Scenes. "), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.All;
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene", "Fits the Probe Volume's boundary to the Scene it belongs to."), EditorStyles.miniButton))
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene", "Fit this Probe Volume to the renderers in the same Scene."), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.Scene;
             if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection", "Fits the Probe Volume's boundary to the selected GameObjects. Lock the Probe Volume's Inspector to allow for the selection of other GameObjects."), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.Selection;
-            EditorGUI.EndDisabledGroup();
 
             if (filter.HasValue)
             {
@@ -103,21 +101,16 @@ namespace UnityEditor.Rendering
 
             bool hasProfile = (ProbeReferenceVolume.instance.sceneData?.GetProfileForScene(pv.gameObject.scene) != null);
 
-            if (pv.mightNeedRebaking)
-            {
-                var helpBoxRect = GUILayoutUtility.GetRect(new GUIContent(Styles.s_ProbeVolumeChangedMessage, EditorGUIUtility.IconContent("Warning@2x").image), EditorStyles.helpBox);
-                EditorGUI.HelpBox(helpBoxRect, Styles.s_ProbeVolumeChangedMessage, MessageType.Warning);
-            }
-
-            EditorGUILayout.PropertyField(serialized.globalVolume, Styles.s_GlobalVolume);
-            if (!serialized.globalVolume.boolValue)
+            EditorGUILayout.PropertyField(serialized.mode);
+            if (serialized.mode.intValue == (int)ProbeVolume.Mode.Local)
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
                 if (EditorGUI.EndChangeCheck())
                     serialized.size.vector3Value = Vector3.Max(serialized.size.vector3Value, Vector3.zero);
+
+                Drawer_BakeToolBar(serialized, owner);
             }
-            EditorGUILayout.PropertyField(serialized.fillEmptySpaces);
 
             if (!hasProfile)
             {
@@ -126,7 +119,7 @@ namespace UnityEditor.Rendering
 
             bool isFreezingPlacement = ProbeGIBaking.isFreezingPlacement;
 
-            EditorGUILayout.GetControlRect(true);
+            EditorGUILayout.Space();
             EditorGUI.BeginDisabledGroup(!hasProfile);
 
             if (isFreezingPlacement)
@@ -180,7 +173,19 @@ namespace UnityEditor.Rendering
                 EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serialized.fillEmptySpaces);
+        }
+
+        static void Drawer_RebakeWarning(SerializedProbeVolume serialized, Editor owner)
+        {
+            ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
+
+            if (pv.mightNeedRebaking)
+            {
+                EditorGUILayout.Space();
+                var helpBoxRect = GUILayoutUtility.GetRect(new GUIContent(Styles.s_ProbeVolumeChangedMessage, EditorGUIUtility.IconContent("Warning@2x").image), EditorStyles.helpBox);
+                EditorGUI.HelpBox(helpBoxRect, Styles.s_ProbeVolumeChangedMessage, MessageType.Warning);
+            }
         }
     }
 }

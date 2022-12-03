@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             if (sceneData != null)
-                UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
+                UnityEditor.SceneManagement.EditorSceneManager.sceneSaving += sceneData.OnSceneSaving;
             AdditionalGIBakeRequestsManager.instance.Init();
 #endif
             m_EnabledBySRP = true;
@@ -687,6 +687,8 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             AdditionalGIBakeRequestsManager.instance.Cleanup();
+            if (sceneData != null)
+                UnityEditor.SceneManagement.EditorSceneManager.sceneSaving -= sceneData.OnSceneSaving;
 #endif
 
             if (!m_IsInitialized)
