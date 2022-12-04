@@ -528,7 +528,7 @@ namespace UnityEditor.VFX.Test
             Assert.True(window.graphView.HasFocus());
         }
 
-        [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-16190")]
+        [UnityTest]
         public IEnumerator Check_VFXNodeProvider_Listing_SkinnedMeshSampling_From_SkinnedMeshRenderer()
         {
             var vfxController = StartEditTestAsset();
@@ -736,7 +736,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
         }
 
-        [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-14696")]
+        [UnityTest]
         [Description("When a subgraph is entered in-place a back button is available and allow to reload original graph in that same tab")]
         public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back()
         {
