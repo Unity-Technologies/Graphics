@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.Universal
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         internal const int k_DepthBufferBits = 32;
         #endif
-        
+
         const int k_FinalBlitPassQueueOffset = 1;
         const int k_AfterFinalBlitPassQueueOffset = k_FinalBlitPassQueueOffset + 1;
 
@@ -187,9 +187,6 @@ namespace UnityEngine.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
-            bool savedIsOrthographic = renderingData.cameraData.camera.orthographic;
-            float savedOrthographicSize = renderingData.cameraData.camera.orthographicSize;
-
             if (DebugHandler != null)
             {
 #if UNITY_EDITOR
@@ -226,9 +223,6 @@ namespace UnityEngine.Rendering.Universal
                         cameraTargetDescriptor.width = ppc.offscreenRTSize.x;
                         cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
                     }
-
-                    renderingData.cameraData.camera.orthographic = true;
-                    renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
 
                     colorTextureFilterMode = FilterMode.Point;
                     ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture || ppc.requiresUpscalePass;
@@ -269,7 +263,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DrawOffscreenUIPass.Setup(cameraTargetDescriptor, depthTargetHandle);
                 EnqueuePass(m_DrawOffscreenUIPass);
             }
-            
+
             // TODO: Investigate how to make FXAA work with HDR output.
             bool isFXAAEnabled = cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !outputToHDR;
 
@@ -304,7 +298,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None)
             {
-                m_PixelPerfectBackgroundPass.Setup(savedIsOrthographic, savedOrthographicSize);
                 EnqueuePass(m_PixelPerfectBackgroundPass);
 
                 // Queue PixelPerfect UpscalePass. Only used when using the Stretch Fill option
