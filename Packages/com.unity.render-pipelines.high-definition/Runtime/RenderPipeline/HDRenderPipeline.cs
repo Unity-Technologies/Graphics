@@ -106,6 +106,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrReprojectionKernel = -1;
         int m_SsrAccumulateKernel = -1;
 
+        ComputeShader m_ClearBuffer2DCS { get { return defaultResources.shaders.clearBuffer2D; } }
+        int m_ClearBuffer2DKernel = -1;
+
         Material m_ApplyDistortionMaterial;
 
         Material m_ClearStencilBufferMaterial;
@@ -349,6 +352,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
             m_SsrAccumulateKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulate");
+
+            m_ClearBuffer2DKernel = m_ClearBuffer2DCS.FindKernel("ClearBuffer2DMain");
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
