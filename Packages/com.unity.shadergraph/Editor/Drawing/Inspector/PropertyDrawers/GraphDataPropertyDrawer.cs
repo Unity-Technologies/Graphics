@@ -55,13 +55,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 false,      // disallow reordering (active list is sorted)
                 target => target.value.displayName);
 
-            targetList.GetAddMenuOptions = () => graphData.GetPotentialTargetDisplayNames();
+            var validTargets = graphData.GetValidTargets();
+            targetList.GetAddMenuOptions = () => validTargets.Select(o => o.displayName).ToList();
 
             targetList.OnAddMenuItemCallback +=
                 (list, addMenuOptionIndex, addMenuOption) =>
             {
                 RegisterActionToUndo("Add Target");
-                graphData.SetTargetActive(addMenuOptionIndex);
+                var target = validTargets.ElementAt(addMenuOptionIndex);
+                graphData.SetTargetActive(target);
                 m_postChangeTargetSettingsCallback();
             };
 
@@ -112,10 +114,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
 #if VFX_GRAPH_10_0_0_OR_NEWER
             // Inform the user that VFXTarget is deprecated, if they are using one.
-            var activeTargetSRP = graphData.m_ActiveTargets.Where(t => !(t.value is VFXTarget));
-            if (graphData.m_ActiveTargets.Any(t => t.value is VFXTarget) //Use Old VFXTarget
-                && activeTargetSRP.Any()
-                && activeTargetSRP.All(o => o.value.CanSupportVFX()))
+            if (graphData.m_ActiveTargets.Any(t => t.value is VFXTarget)) //Use Old VFXTarget
             {
                 var vfxWarning = new HelpBoxRow(MessageType.Info);
 

@@ -442,19 +442,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
 
 #if HAS_VFX_GRAPH
-            if (VFXViewPreference.generateOutputContextWithShaderGraph)
+            // VFX Support
+            if (!(m_ActiveSubTarget.value is UniversalSubTarget))
+                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+            else
             {
-                // VFX Support
-                if (!(m_ActiveSubTarget.value is UniversalSubTarget))
-                    context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
-                else
+                m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
                 {
-                    m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
-                    context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
-                    {
-                        m_SupportVFX = m_SupportVFXToggle.value;
-                    });
-                }
+                    m_SupportVFX = m_SupportVFXToggle.value;
+                });
             }
 #endif
         }

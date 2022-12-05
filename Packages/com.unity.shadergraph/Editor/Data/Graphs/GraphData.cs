@@ -466,14 +466,15 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public List<string> GetPotentialTargetDisplayNames()
+        public IEnumerable<Target> GetValidTargets()
         {
-            List<string> displayNames = new List<string>(m_AllPotentialTargets.Count);
-            for (int validIndex = 0; validIndex < m_AllPotentialTargets.Count; validIndex++)
+            foreach (var potentialTarget in m_AllPotentialTargets)
             {
-                displayNames.Add(m_AllPotentialTargets[validIndex].GetDisplayName());
+                var target = potentialTarget.GetTarget();
+                if (target is IMayObsolete targetObsolete && targetObsolete.IsObsolete())
+                    continue;
+                yield return potentialTarget.GetTarget();
             }
-            return displayNames;
         }
 
         public void SetTargetActive(Target target, bool skipSortAndUpdate = false)

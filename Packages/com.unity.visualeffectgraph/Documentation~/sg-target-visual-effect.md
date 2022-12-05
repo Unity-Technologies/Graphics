@@ -1,3 +1,5 @@
+<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;">This feature is considered deprecated from version 23.1. Instead, use the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest?subfolder=/manual/sg-working-with.html">Support VFX Graph</a> toggle.</div>
+
 # Visual Effect Target
 
 The Visual Effect Shader Graph [Target](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/Graph-Target.html) enables you to create custom lit and unlit Shader Graphs to use in visual effects.

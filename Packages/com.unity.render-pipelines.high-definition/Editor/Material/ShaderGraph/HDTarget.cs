@@ -220,21 +220,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
 
-            if (VFXViewPreference.generateOutputContextWithShaderGraph)
+            // VFX Support
+            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+            else
             {
-                // VFX Support
-                if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
-                    context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
-                else
+                m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                const string k_VFXToggleTooltip = "When enabled, this shader can be assigned to a compatible Visual Effect Graph output.";
+                context.AddProperty("Support VFX Graph", k_VFXToggleTooltip, 0, m_SupportVFXToggle, (evt) =>
                 {
-                    m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
-                    const string k_VFXToggleTooltip = "When enabled, this shader can be assigned to a compatible Visual Effect Graph output.";
-                    context.AddProperty("Support VFX Graph", k_VFXToggleTooltip, 0, m_SupportVFXToggle, (evt) =>
-                    {
-                        m_SupportVFX = m_SupportVFXToggle.value;
-                        onChange();
-                    });
-                }
+                    m_SupportVFX = m_SupportVFXToggle.value;
+                    onChange();
+                });
             }
 
             m_SupportLineRenderingToggle = new Toggle("") { value = m_SupportLineRendering };
