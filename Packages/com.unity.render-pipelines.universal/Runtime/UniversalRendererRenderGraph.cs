@@ -522,6 +522,7 @@ namespace UnityEngine.Rendering.Universal
                                          && (cameraData.requiresDepthTexture || cameraHasPostProcessingWithDepth || renderPassInputs.requiresDepthTexture)
                                          && m_CreateDepthTexture; // we create both intermediate textures if this is true, so instead of repeating the checks we reuse this
             bool requiresColorCopyPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
+            requiresColorCopyPass &= !cameraData.isPreviewCamera;
             bool requiredColorGradingLutPass = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
 
             bool isDeferred = this.renderingModeActual == RenderingMode.Deferred;

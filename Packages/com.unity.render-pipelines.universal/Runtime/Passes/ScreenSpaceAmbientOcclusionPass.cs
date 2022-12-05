@@ -400,7 +400,9 @@ namespace UnityEngine.Rendering.Universal
                 // Set up the builder
                 builder.SetRenderFunc((SetupPassData data, RenderGraphContext rgContext) =>
                 {
-                    PostProcessUtils.SetSourceSize(rgContext.cmd, data.cameraColor);
+                    if (data.cameraColor.IsValid())
+                        PostProcessUtils.SetSourceSize(rgContext.cmd, data.cameraColor);
+                    
                     SetupKeywordsAndParameters(ref data, ref data.renderingData);
 
                     // We only want URP shaders to sample SSAO if After Opaque is disabled...
