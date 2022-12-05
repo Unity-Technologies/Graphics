@@ -20,9 +20,9 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 new ParameterDescriptor("In", TYPE.Vec3, GraphType.Usage.In),
                 new ParameterDescriptor("Out", TYPE.Vec3, GraphType.Usage.Out),
-                new ParameterDescriptor("Red", TYPE.Vec3, GraphType.Usage.Local, new float[] { 1.0f, 0.0f, 0.0f }),
-                new ParameterDescriptor("Green", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.0f, 1.0f, 0.0f }),
-                new ParameterDescriptor("Blue", TYPE.Vec3, GraphType.Usage.Local, new float[] { 0.0f, 0.0f, 1.0f }),
+                new ParameterDescriptor("Red", TYPE.Vec3, GraphType.Usage.Static, new float[] { 1.0f, 0.0f, 0.0f }),
+                new ParameterDescriptor("Green", TYPE.Vec3, GraphType.Usage.Static, new float[] { 0.0f, 1.0f, 0.0f }),
+                new ParameterDescriptor("Blue", TYPE.Vec3, GraphType.Usage.Static, new float[] { 0.0f, 0.0f, 1.0f }),
             }
         );
 
