@@ -53,7 +53,7 @@ In this release a significant amount of missing public API descriptions were add
 
 ### New Soft Shadows Quality property
 
-URP Asset now contains a **Quality** property under the **Soft Shadows** property, which lets you select the quality level of soft shadow processing. By default, all Lights use the quality setting from the URP Asset, and you can override that setting per Light using the **Soft Shadows Quality** property. 
+URP Asset now contains a **Quality** property under the **Soft Shadows** property, which lets you select the quality level of soft shadow processing. By default, all Lights use the quality setting from the URP Asset, and you can override that setting per Light using the **Soft Shadows Quality** property.
 
 The **Quality** property in the URP Asset:
 

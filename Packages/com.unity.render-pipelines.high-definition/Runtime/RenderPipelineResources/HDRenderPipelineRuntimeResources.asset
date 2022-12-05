@@ -408,7 +408,7 @@ MonoBehaviour:
       type: 3}
     worleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2, type: 3}
     perlinNoise32RGB: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915, type: 3}
-    foamMask: {fileID: 2800000, guid: ae763e4ca71ce024299cf8502eb46d0d, type: 3}
+    foamMask: {fileID: 2800000, guid: ca1d72d84c34dba4390eab4c86e62f62, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}

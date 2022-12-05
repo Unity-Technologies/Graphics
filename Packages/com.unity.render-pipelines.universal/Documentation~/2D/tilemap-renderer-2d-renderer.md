@@ -1,4 +1,4 @@
-# Using the Tilemap Renderer with URP 2D 
+# Using the Tilemap Renderer with URP 2D
 
 Setup and required settings when using the Tilemap Renderer component with URP 2D.
 

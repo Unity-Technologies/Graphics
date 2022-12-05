@@ -147,13 +147,13 @@ void TraceReflectionProbes(PositionInputs posInput, float3 normalWS, float3 rayD
     uint v_envLightListOffset = 0;
     uint v_envLightIdx = envLightStart;
 #if NEED_TO_CHECK_HELPER_LANE
-	// On some platform helper lanes don't behave as we'd expect, therefore we prevent them from entering the loop altogether.
-	bool isHelperLane = WaveIsHelperLane();
-	while (!isHelperLane && v_envLightListOffset < envLightCount)
+    // On some platform helper lanes don't behave as we'd expect, therefore we prevent them from entering the loop altogether.
+    bool isHelperLane = WaveIsHelperLane();
+    while (!isHelperLane && v_envLightListOffset < envLightCount)
 #else
-	while (v_envLightListOffset < envLightCount)
+    while (v_envLightListOffset < envLightCount)
 #endif
-	{
+    {
         v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
         uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
         if (s_envLightIdx == -1)

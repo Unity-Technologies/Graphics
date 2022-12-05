@@ -67,7 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (generationMode == GenerationMode.ForReals)
             {
                 // Evaluate the data
-                sb.AppendLine("$precision3 {4} = EvaluateScatteringColor({0}, {1}, {2}, {3});",
+                sb.AppendLine("$precision3 {5} = EvaluateScatteringColor(IN.{0}.xzy, {1}, {2}, {3}, {4});",
+                    ShaderGeneratorNames.GetUVName(UVChannel.UV0),
                     GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode),
                     GetSlotValue(kHorizontalDisplacementInputSlotId, generationMode),
                     GetSlotValue(kAbsorptionTintInputSlotId, generationMode),

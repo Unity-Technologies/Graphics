@@ -555,16 +555,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderFullScreenDebug(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, CullingResults cull, HDCamera hdCamera)
         {
-            TextureHandle fullscreenDebugOutput = TextureHandle.nullHandle;
-            BufferHandle fullscreenDebugBuffer = BufferHandle.nullHandle;
-
             using (var builder = renderGraph.AddRenderPass<FullScreenDebugPassData>("FullScreen Debug", out var passData))
             {
-                fullscreenDebugOutput = builder.UseColorBuffer(colorBuffer, 0);
+                builder.UseColorBuffer(colorBuffer, 0);
                 builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
 
+                m_DebugFullScreenComputeBuffer = renderGraph.CreateBuffer(new BufferDesc(hdCamera.actualWidth * hdCamera.actualHeight * hdCamera.viewCount, sizeof(uint)));
+
                 passData.frameSettings = hdCamera.frameSettings;
-                passData.debugBuffer = builder.WriteBuffer(renderGraph.CreateBuffer(new BufferDesc(hdCamera.actualWidth * hdCamera.actualHeight * hdCamera.viewCount, sizeof(uint))));
+                passData.debugBuffer = builder.WriteBuffer(m_DebugFullScreenComputeBuffer);
                 passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_FullScreenDebugPassNames, renderQueueRange: RenderQueueRange.all)));
                 passData.clearBufferCS = m_ClearFullScreenBufferCS;
                 passData.clearBufferCSKernel = m_ClearFullScreenBufferKernel;
@@ -585,12 +584,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.rendererList);
                         ctx.cmd.ClearRandomWriteTargets();
                     });
-
-                fullscreenDebugBuffer = passData.debugBuffer;
             }
 
-            m_DebugFullScreenComputeBuffer = fullscreenDebugBuffer;
-            PushFullScreenDebugTexture(renderGraph, ResolveMSAAColor(renderGraph, hdCamera, fullscreenDebugOutput));
+            // This is not useful in theory but its just to register there is a fullscreen debug active
+            PushFullScreenDebugTexture(renderGraph, ResolveMSAAColor(renderGraph, hdCamera, colorBuffer));
         }
 
         class ResolveFullScreenDebugPassData
@@ -635,7 +632,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     (ResolveFullScreenDebugPassData data, RenderGraphContext ctx) =>
                     {
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                        GraphicsBuffer fullscreenBuffer = data.fullscreenBuffer;
                         ComputeVolumetricFogSliceCountAndScreenFraction(data.hdCamera.volumeStack.GetComponent<Fog>(), out var volumetricSliceCount, out _);
 
                         BindGlobalThicknessBuffers(data.thickness, data.thicknessReindex, ctx.cmd);
@@ -661,13 +657,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetFloat(HDShaderIDs._ComputeThicknessScale, data.debugDisplaySettings.data.computeThicknessScale);
                         mpb.SetInt(HDShaderIDs._VolumetricCloudsDebugMode, (int)data.debugDisplaySettings.data.volumetricCloudDebug);
 
-                        if (fullscreenBuffer != null)
-                            ctx.cmd.SetRandomWriteTarget(1, fullscreenBuffer);
-
+                        ctx.cmd.SetRandomWriteTarget(1, data.fullscreenBuffer);
                         HDUtils.DrawFullScreen(ctx.cmd, data.debugFullScreenMaterial, data.output, mpb, 0);
-
-                        if (fullscreenBuffer != null)
-                            ctx.cmd.ClearRandomWriteTargets();
+                        ctx.cmd.ClearRandomWriteTargets();
                     });
 
                 return passData.output;
@@ -1158,7 +1150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "HDR_xyMapping" }));
 
                 ColorPrimaries colorPrimaries = ColorPrimaries.Rec709;
-                if (HDROutputIsActive())
+                if (HDROutputActiveForCameraType(hdCamera.camera.cameraType))
                 {
                     colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
                 }
@@ -1208,7 +1200,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.debugHDRMaterial = m_DebugHDROutput;
                 passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
-                if (HDROutputIsActive())
+                if (HDROutputActiveForCameraType(hdCamera.camera.cameraType))
                     GetHDROutputParameters(hdCamera.volumeStack.GetComponent<Tonemapping>(), out passData.hdrOutputParams, out passData.hdrOutputParams2);
                 else
                     passData.hdrOutputParams.z = 1.0f;

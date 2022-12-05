@@ -1030,7 +1030,7 @@ namespace UnityEngine.Rendering.Universal
             };
             SceneViewDrawMode.SetupDrawMode();
 #endif
-            
+
             SupportedRenderingFeatures.active.supportsHDR = pipelineAsset.supportsHDR;
         }
 

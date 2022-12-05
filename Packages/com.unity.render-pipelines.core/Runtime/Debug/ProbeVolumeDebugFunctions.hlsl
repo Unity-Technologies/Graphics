@@ -9,6 +9,9 @@
         UNITY_SETUP_INSTANCE_ID(v);
         UNITY_TRANSFER_INSTANCE_ID(v, o);
 
+        o.vertex = 0;
+        o.normal = 0;
+
         if (!ShouldCull(o))
         {
             if (_DebugProbeVolumeSampling) // Only sampled probes (8 of them) should be shown, the other should be culled
@@ -153,6 +156,9 @@
 
         UNITY_SETUP_INSTANCE_ID(v);
         UNITY_TRANSFER_INSTANCE_ID(v, o);
+
+        o.vertex = 0;
+        o.normal = 0;
 
         float3 offset = UNITY_ACCESS_INSTANCED_PROP(Props, _Offset).xyz;
         float offsetLenSqr = dot(offset, offset);

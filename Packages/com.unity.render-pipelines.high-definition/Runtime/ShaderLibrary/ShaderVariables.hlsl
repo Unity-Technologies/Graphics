@@ -637,8 +637,8 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
 #define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams()
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
-#define unity_RendererBounds_Min	LoadDOTSInstancedData_RendererBounds_Min()
-#define unity_RendererBounds_Max	LoadDOTSInstancedData_RendererBounds_Max()
+#define unity_RendererBounds_Min    LoadDOTSInstancedData_RendererBounds_Min()
+#define unity_RendererBounds_Max    LoadDOTSInstancedData_RendererBounds_Max()
 
 // Not supported by BatchRendererGroup or Hybrid Renderer. Just define them as constants.
 // ------------------------------------------------------------------------------

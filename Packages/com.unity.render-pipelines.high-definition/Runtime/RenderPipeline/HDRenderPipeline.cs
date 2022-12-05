@@ -229,6 +229,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
+        static bool HDROutputActiveForCameraType(CameraType cameraType)
+        {
+            return HDROutputIsActive() && cameraType == CameraType.Game;
+        }
+
         static bool HDROutputIsActive()
         {
             // TODO: Until we can test it, disable on Mac.
@@ -237,8 +242,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void SetHDRState(HDCamera camera)
         {
+            if (camera.camera.cameraType == CameraType.Reflection) return; // Do nothing for reflection probes, they don't output to backbuffers.
 #if UNITY_EDITOR
             bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
+#else
+            bool hdrInPlayerSettings = true;
+#endif
+
             if (hdrInPlayerSettings && HDROutputSettings.main.available)
             {
                 if (camera.camera.cameraType != CameraType.Game)
@@ -246,7 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     HDROutputSettings.main.RequestHDRModeChange(true);
             }
-#endif
             // Make sure HDR auto tonemap is off
             if (HDROutputSettings.main.active)
             {
@@ -2768,7 +2777,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariablesGlobalComputeThickness(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeThickness) && HDUtils.hdrpSettings.supportComputeThickness)
+            if (IsComputeThicknessNeeded(hdCamera))
             {
                 cb._EnableComputeThickness = 1;
             }

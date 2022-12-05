@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering
         {
             /// <summary>Keyword for converting to the correct output color space. </summary>
             public static readonly ShaderKeyword HDRColorSpaceConversion = new ShaderKeyword("HDR_COLORSPACE_CONVERSION");
-            
+
             /// <summary>Keyword for the Rec.709 color space (Rec.709 color primaries, D65 white point).</summary>
             public static readonly ShaderKeyword HDRColorSpaceRec709 = new ShaderKeyword("HDR_COLORSPACE_REC709");
 
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering
                 case ColorPrimaries.Rec709:
                     keyword = ShaderKeywords.HDRColorSpaceRec709.name;
                     return true;
-                        
+
                 case ColorPrimaries.Rec2020:
                     keyword = ShaderKeywords.HDRColorSpaceRec2020.name;
                     return true;
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering
         {
             if (operations == Operation.None)
                 return;
-                        
+
             string colorSpaceKeyword;
             bool hasValidColorSpace = GetColorSpaceKeyword(gamut, out colorSpaceKeyword);
             if (!hasValidColorSpace)
@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering
                 }
             }
         }
-        
+
         /// <summary>
         /// Configures the compute shader keywords to use HDR output parameters.
         /// </summary>

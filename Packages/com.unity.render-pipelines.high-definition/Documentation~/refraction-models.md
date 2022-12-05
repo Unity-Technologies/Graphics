@@ -34,7 +34,7 @@ Use the planar reflection model in the following cases:
 - The surfaces of the object are mostly parallel, for example an ice cube.
 - The object is hollow, which means the solid walls have parallel surfaces. For example, hollow glass.
 
-You should also use the planar refraction model for a hollow sphere, for example a bubble. 
+You should also use the planar refraction model for a hollow sphere, for example a bubble.
 
 If you use this model, HDRP does the following [during the refraction process](refraction-concept.md#how-refraction-works-in-hdrp) for each surface pixel:
 
@@ -63,4 +63,3 @@ Objects with increasing thickness, showing how the light is increasingly deforme
 The thin refraction model is the same as the planar refraction model, but HDRP fixes the **Refraction Thickness** at 5mm. You can't override the thickness value.
 
 You should use the thin refraction model with thin objects if you use the [Path Tracing Volume Override](Ray-Tracing-Path-Tracing.md), because it should give better performance.
-

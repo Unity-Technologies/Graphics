@@ -41,7 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
 
                 HDEditorUtils.QualitySettingsHelpBox("Enable 'High Quality Line Rendering' in your HDRP Asset to render lines with high quality anti-aliasing and transparency in your HDRP project.",
-                    MessageType.Info, HDRenderPipelineUI.Expandable.HighQualityLineRendering, "m_RenderPipelineSettings.supportHighQualityLineRendering");
+                    MessageType.Info,
+                    HDRenderPipelineUI.ExpandableGroup.Rendering,
+                    HDRenderPipelineUI.ExpandableRendering.HighQualityLineRendering, "m_RenderPipelineSettings.supportHighQualityLineRendering");
 
                 return;
             }

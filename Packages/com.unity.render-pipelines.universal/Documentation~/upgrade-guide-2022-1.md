@@ -60,9 +60,9 @@ The public interfaces `ScriptableRenderer.cameraColorTarget` and `ScriptableRend
 `RTHandle` targets do not use the `CommandBuffer.GetTemporaryRT` method and persist for more frames than the `RenderTargetIdentifier` structs. You cannot allocate `RTHandle` targets with the properties `GraphicsFormat` and `DepthBufferBits` set to any value except for 0. The `cameraDepthTarget` properties  must be separate from the `cameraColorTarget` properties.
 
 The following helper functions let you create and use temporary render target with the `RTHandle` system in a similar way as with the `GetTemporaryRT` method previously:
-     
+
 * `RenderingUtils.ReAllocateIfNeeded`
-     
+
 * `ShadowUtils.ShadowRTReAllocateIfNeeded`
 
 If the render target does not change within the lifetime of the application, use the `RTHandles.Alloc` method to allocate an `RTHandle` target. This method is efficient since the code does not have to check if a render target should be allocated on each frame.
@@ -105,7 +105,7 @@ public class CustomPass : ScriptableRenderPass
                                     ref RenderingData renderingData)
     {
         CommandBuffer cmd = CommandBufferPool.Get();
-        // Set the same target for color and depth        
+        // Set the same target for color and depth
         ScriptableRenderer.SetRenderTarget(cmd, m_Destination, m_Destination, clearFlag,
                                               clearColor);
         context.ExecuteCommandBuffer(cmd);

@@ -15,7 +15,7 @@ Shader "Hidden/Universal/HDRDebugView"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
     #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-    
+
     TEXTURE2D_X(_DebugScreenTexture);
     TEXTURE2D_X(_OverlayUITexture);
     TEXTURE2D_X(_SourceTexture);
@@ -217,7 +217,7 @@ Shader "Hidden/Universal/HDRDebugView"
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment Frag
-                
+
                 half4 Frag(Varyings input) : SV_Target
                 {
                     float4 outCol = 0;

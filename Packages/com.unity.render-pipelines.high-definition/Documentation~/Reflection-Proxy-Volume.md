@@ -1,6 +1,6 @@
 # Proxy Volume
 
-A Proxy Volume is a 3D shape on which HDRP projects a 2D color buffer or cubemap texture that contains a rendered scene. 
+A Proxy Volume is a 3D shape on which HDRP projects a 2D color buffer or cubemap texture that contains a rendered scene.
 
 In the Unity Editor, this component is called a Reflection Proxy Volume, but HDRP uses the component to calculate more accurate effects in both reflection and refraction.
 
@@ -25,9 +25,9 @@ If you disable **Use Influence Volume As Proxy Volume** in a probe's **Projectio
 
 You can reuse the same Proxy Volume with other Reflection Probes, as long as the shapes match. This is useful if you use multiple Reflection Probes in a single room, because you can reuse one room-shaped Proxy Volume for all the probes.
 
-## How reflection and refraction use a Proxy Volume 
+## How reflection and refraction use a Proxy Volume
 
-HDRP projects the color buffer or the cubemap texture from a Reflection Probe or a Planar Probe onto a Proxy Volume. HDRP then uses the Proxy Volume to more accurately calculate the depth of the point a reflected or refracted vector hits. 
+HDRP projects the color buffer or the cubemap texture from a Reflection Probe or a Planar Probe onto a Proxy Volume. HDRP then uses the Proxy Volume to more accurately calculate the depth of the point a reflected or refracted vector hits.
 
 HDRP determines this based on a [reflection and refraction hierarchy](reflection-refraction-hierarchy.md).
 
@@ -48,4 +48,3 @@ See the following:
 You can use the Scene view Gizmo to visually modify the size of the **Box** and **Sphere** shapes. Click and drag the handles to move the boundaries of the Proxy Volume.
 
 ![](Images/ReflectionProxyVolume2-gizmo.png)<br/>
-

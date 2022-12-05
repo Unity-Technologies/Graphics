@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Whether to render on an offscreen render texture or on the current active render target
         bool m_RenderOffscreen;
-        
+
         public RTHandle colorTarget { get => m_ColorTarget; }
 
         /// <summary>

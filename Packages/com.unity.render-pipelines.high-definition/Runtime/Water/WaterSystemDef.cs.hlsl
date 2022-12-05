@@ -195,9 +195,8 @@ CBUFFER_START(ShaderVariablesWater)
     float4 _PatchDirectionDampener;
     float4 _PatchAmplitudeMultiplier;
     float4 _PatchCurrentSpeed;
-    float4 _PatchFadeStart;
-    float4 _PatchFadeDistance;
-    float4 _PatchFadeValue;
+    float4 _PatchFadeA;
+    float4 _PatchFadeB;
     float2 _GroupOrientation;
     int _PaddingW0;
     int _WaterFoamRegionResolution;

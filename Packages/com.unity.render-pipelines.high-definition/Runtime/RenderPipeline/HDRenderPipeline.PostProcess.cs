@@ -173,6 +173,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool m_NonRenderGraphResourcesAvailable;
 
+        CameraType m_CurrCameraType;
+
         // Max guard band size is assumed to be 8 pixels
         const int k_RTGuardBandSize = 4;
 
@@ -379,6 +381,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DebugExposureCompensation = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
+            m_CurrCameraType = camera.camera.cameraType;
+
             CheckRenderTexturesValidity();
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
@@ -414,7 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                    m_Curves.GetHashCode() * 23 +
                    m_TonemappingFS.GetHashCode() * 23 +
                    m_ColorGradingFS.GetHashCode() * 23 +
-                   HDROutputIsActive().GetHashCode()
+                   HDROutputActiveForCameraType(m_CurrCameraType).GetHashCode()
 #if UNITY_EDITOR
                    * 23
                    + m_GlobalSettings.colorGradingSpace.GetHashCode() * 23 +
@@ -3522,12 +3526,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     int width = Mathf.Max(1, passData.viewport.x / ratio);
                     int height = Mathf.Max(1, passData.viewport.y / ratio);
 
-                    passData.streakTmpTexture = builder.CreateTransientTexture(new TextureDesc(width, height, IsDynamicResUpscaleTargetEnabled(), true)
-                    { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, clearBuffer = true, name = "Lens Flare Screen Space Streak Tmp" });
+                    // We don't allocate transient texture if streaksIntensity is zero.
+                    if (m_LensFlareScreenSpace.IsStreaksActive())
+                    {
+                        passData.streakTmpTexture = builder.CreateTransientTexture(new TextureDesc(width, height, IsDynamicResUpscaleTargetEnabled(), true)
+                        { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, clearBuffer = true, name = "Lens Flare Screen Space Streak Tmp" });
 
-                    passData.streakTmpTexture2 = builder.CreateTransientTexture(new TextureDesc(width, height, IsDynamicResUpscaleTargetEnabled(), true)
-                    { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, clearBuffer = true, name = "Lens Flare Screen Space Streak Tmp2" });
-
+                        passData.streakTmpTexture2 = builder.CreateTransientTexture(new TextureDesc(width, height, IsDynamicResUpscaleTargetEnabled(), true)
+                        { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, clearBuffer = true, name = "Lens Flare Screen Space Streak Tmp2" });
+                    }
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(hdCamera, renderGraph, "Lens Flare Screen Space Destination");
                     passData.destination = builder.WriteTexture(dest);
 
@@ -4356,7 +4363,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             passData.tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
             bool tonemappingIsActive = m_Tonemapping.IsActive() && m_TonemappingFS;
-            if (HDROutputIsActive() && m_TonemappingFS)
+            if (HDROutputActiveForCameraType(m_CurrCameraType) && m_TonemappingFS)
             {
                 passData.tonemappingMode = m_Tonemapping.GetHDRTonemappingMode();
                 tonemappingIsActive = m_TonemappingFS && passData.tonemappingMode != TonemappingMode.None;
@@ -4383,7 +4390,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.builderCS.EnableKeyword("TONEMAPPING_NONE");
             }
 
-            if (HDROutputIsActive() && m_TonemappingFS)
+            if (HDROutputActiveForCameraType(m_CurrCameraType) && m_TonemappingFS)
             {
                 HDROutputUtils.ConfigureHDROutput(passData.builderCS, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorConversion);
                 GetHDROutputParameters(m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
@@ -4961,7 +4968,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.uberPostCS.EnableKeyword("GAMMA2_OUTPUT");
                 }
 
-                if (HDROutputIsActive())
+                if (HDROutputActiveForCameraType(m_CurrCameraType))
                 {
                     HDROutputUtils.ConfigureHDROutput(passData.uberPostCS, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorConversion);
                 }
@@ -5071,7 +5078,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.fxaaCS.shaderKeywords = null;
                     if (PostProcessEnableAlpha(hdCamera))
                         passData.fxaaCS.EnableKeyword("ENABLE_ALPHA");
-                    if (HDROutputIsActive())
+                    if (HDROutputActiveForCameraType(m_CurrCameraType))
                         passData.fxaaCS.EnableKeyword("FUTURE_HDR_OUTPUT");
 
                     builder.SetRenderFunc(
@@ -5169,7 +5176,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.casCS.shaderKeywords = null;
                     passData.initKernel = passData.casCS.FindKernel("KInitialize");
                     passData.mainKernel = passData.casCS.FindKernel("KMain");
-                    if (HDROutputIsActive())
+                    if (HDROutputActiveForCameraType(m_CurrCameraType))
                     {
                         passData.casCS.EnableKeyword("FUTURE_HDR_OUTPUT");
                     }
@@ -5240,7 +5247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (PostProcessEnableAlpha(hdCamera))
                         passData.easuCS.EnableKeyword("ENABLE_ALPHA");
 
-                    if (HDROutputIsActive())
+                    if (HDROutputActiveForCameraType(m_CurrCameraType))
                         passData.easuCS.EnableKeyword("FUTURE_HDR_OUTPUT");
 
                     passData.mainKernel = passData.easuCS.FindKernel("KMain");
@@ -5307,6 +5314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float filmGrainResponse;
 
             public bool ditheringEnabled;
+            public bool hdrOutputIsActive;
 
             public Vector4 hdroutParameters;
             public Vector4 hdroutParameters2;
@@ -5351,8 +5359,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.filmGrainIntensity = m_FilmGrain.intensity.value;
                 passData.filmGrainResponse = m_FilmGrain.response.value;
 
+                passData.hdrOutputIsActive = HDROutputActiveForCameraType(m_CurrCameraType);
+
                 // Dithering
-                passData.ditheringEnabled = hdCamera.dithering && m_DitheringFS && !HDROutputIsActive();
+                passData.ditheringEnabled = hdCamera.dithering && m_DitheringFS && !passData.hdrOutputIsActive;
 
                 passData.source = builder.ReadTexture(source);
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
@@ -5362,7 +5372,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cubemapFace = cubemapFace;
                 passData.postProcessIsFinalPass = postProcessIsFinalPass;
 
-                if (HDROutputIsActive())
+
+                if (passData.hdrOutputIsActive)
                 {
                     GetHDROutputParameters(m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
                 }
@@ -5478,7 +5489,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
 
-                        bool hdrOutputActive = HDROutputIsActive();
+                        bool hdrOutputActive = data.hdrOutputIsActive;
                         bool outputsToHDRBuffer = hdrOutputActive && data.postProcessIsFinalPass;
                         if (outputsToHDRBuffer)
                         {
@@ -5518,7 +5529,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             finalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
                             finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, data.afterPostProcessTexture);
                         }
-                        else if (!HDROutputIsActive() && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
+                        else if (!data.hdrOutputIsActive && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
                         {
                             finalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
                             finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, data.afterPostProcessTexture);

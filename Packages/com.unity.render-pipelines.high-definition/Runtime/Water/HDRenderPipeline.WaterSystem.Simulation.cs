@@ -135,14 +135,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // The current speed
         internal Vector4 patchCurrentSpeed;
 
-        // The fade start for each band
-        internal Vector4 patchFadeStart;
+        // The first fade factor for each band
+        internal Vector4 patchFadeA;
 
-        // The fade distance for each band
-        internal Vector4 patchFadeDistance;
-
-        // The fade value for each band
-        internal Vector4 patchFadeValue;
+        // The second fade factor for each band
+        internal Vector4 patchFadeB;
 
         // Matrix to convert from the water space to world space
         internal float4x4 waterToWorldMatrix;
@@ -320,9 +317,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reset the rendering data
             rendering.patchAmplitudeMultiplier = Vector4.zero;
             rendering.patchCurrentSpeed = Vector4.zero;
-            rendering.patchFadeStart = Vector4.zero;
-            rendering.patchFadeDistance = Vector4.zero;
-            rendering.patchFadeValue = Vector4.zero;
+            rendering.patchFadeA = Vector4.zero;
+            rendering.patchFadeB = Vector4.one;
 
             // Reset the resolution data
             simulationResolution = 0;

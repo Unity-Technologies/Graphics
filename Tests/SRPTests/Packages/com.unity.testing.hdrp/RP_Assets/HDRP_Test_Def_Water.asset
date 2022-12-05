@@ -36,7 +36,14 @@ MonoBehaviour:
     supportWaterExclusion: 1
     supportWaterDeformation: 1
     deformationAtlasSize: 512
+    supportWaterFoam: 1
+    foamAtlasSize: 512
     waterCPUSimulation: 1
+    supportComputeThickness: 0
+    computeThicknessResolution: 1
+    computeThicknessLayerMask:
+      serializedVersion: 2
+      m_Bits: 0
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -57,6 +64,7 @@ MonoBehaviour:
     supportDecalLayers: 1
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
+    supportHighQualityLineRendering: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeAOVAPI: 0
@@ -64,9 +72,11 @@ MonoBehaviour:
     supportTerrainHole: 1
     lightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
-    probeVolumeBlendingMemoryBudget: 128
     supportProbeVolumeStreaming: 0
     probeVolumeSHBands: 1
+    supportProbeVolumeScenarios: 0
+    supportProbeVolumeScenarioBlending: 1
+    probeVolumeBlendingMemoryBudget: 128
     supportRayTracing: 0
     supportVFXRayTracing: 0
     supportedRayTracingMode: 3

@@ -1607,11 +1607,6 @@ static private void ScaleViewportAndBlit(CommandBuffer cmd, RTHandle sourceTextu
                 currentSource = PaniniTarget;
             }
 
-            if(useLensFlare)
-            {
-                RenderLensFlareDatadriven(renderGraph, in currentSource, ref renderingData);
-            }
-
             // Uberpost
             {
                 // Reset uber keywords
@@ -1623,12 +1618,19 @@ static private void ScaleViewportAndBlit(CommandBuffer cmd, RTHandle sourceTextu
                 if (bloomActive || useLensFlareScreenSpace)
                 {
                     RenderBloomTexture(renderGraph, currentSource, out var BloomTexture, ref renderingData);
+
+                    if (useLensFlareScreenSpace)
+                    {
+                        int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
+                        RenderLensFlareScreenSpace(renderGraph, in currentSource, ref renderingData, _BloomMipUp[maxBloomMip]);
+                    }
+
                     UberPostSetupBloomPass(renderGraph, in BloomTexture, m_Materials.uber);
                 }
 
-                if (useLensFlareScreenSpace)
+                if (useLensFlare)
                 {
-                    RenderLensFlareScreenSpace(renderGraph, in currentSource, ref renderingData, _BloomMipUp[m_LensFlareScreenSpace.bloomMip.value]);
+                    RenderLensFlareDatadriven(renderGraph, in currentSource, ref renderingData);
                 }
 
                 // TODO RENDERGRAPH: Once we started removing the non-RG code pass in URP, we should move functions below to renderfunc so that material setup happens at

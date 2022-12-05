@@ -391,9 +391,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _PatchDirectionDampener;
         public Vector4 _PatchAmplitudeMultiplier;
         public Vector4 _PatchCurrentSpeed;
-        public Vector4 _PatchFadeStart;
-        public Vector4 _PatchFadeDistance;
-        public Vector4 _PatchFadeValue;
+        public Vector4 _PatchFadeA;
+        public Vector4 _PatchFadeB;
 
         // Per group data
         public float2 _GroupOrientation;

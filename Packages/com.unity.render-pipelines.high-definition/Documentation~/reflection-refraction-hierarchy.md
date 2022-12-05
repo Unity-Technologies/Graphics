@@ -13,7 +13,7 @@ The color buffer HDRP uses is the first color pyramid that contains only opaque 
 
 ## Hierarchy if you use ray-traced reflections
 
-If you use [ray-traced reflections](Ray-Traced-Reflections.md), HDRP casts rays from the camera to get information about Materials and lights that are visible in reflections. HDRP then uses the information to calculate the final lighting by combining diffuse color and specular color.      
+If you use [ray-traced reflections](Ray-Traced-Reflections.md), HDRP casts rays from the camera to get information about Materials and lights that are visible in reflections. HDRP then uses the information to calculate the final lighting by combining diffuse color and specular color.
 
 HDRP uses only the [specular color hierarchy](#specular) if the following happens:
 

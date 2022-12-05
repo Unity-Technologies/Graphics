@@ -1,7 +1,7 @@
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -106,20 +106,38 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent FadeStart = EditorGUIUtility.TrTextContent("Fade Start");
             internal static readonly GUIContent FadeEnd = EditorGUIUtility.TrTextContent("Fade End");
 
+            internal static readonly GUIContent OverrideProbeSpacing = EditorGUIUtility.TrTextContent("Override Spacing");
+            internal static readonly GUIContent OverrideRendererFilters = EditorGUIUtility.TrTextContent("Override Filter");
+            internal static readonly GUIContent FillEmptySpaces = EditorGUIUtility.TrTextContent("Fill Empty Spaces");
+
             public static readonly GUIContent[] globalModes = { new GUIContent("Global"), new GUIContent("Local") };
         }
 
+        RenderPipelineSettings.LightProbeSystem currentLightProbeMode;
         public override LightingExplorerTab[] GetContentTabs()
         {
+            currentLightProbeMode = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightProbeSystem;
             return new[]
             {
                 new LightingExplorerTab("Lights", GetHDLights, GetHDLightColumns, true),
                 new LightingExplorerTab("Volumes", GetVolumes, GetVolumeColumns, true),
                 new LightingExplorerTab("Reflection Probes", GetHDReflectionProbes, GetHDReflectionProbeColumns, true),
                 new LightingExplorerTab("Planar Reflection Probes", GetPlanarReflections, GetPlanarReflectionColumns, true),
-                new LightingExplorerTab("Light Probes", GetLightProbes, GetLightProbeColumns, true),
+                new LightingExplorerTab("Light Probes", GetHDLightProbes, GetHDLightProbeColumns, true),
                 new LightingExplorerTab("Emissive Materials", GetEmissives, GetEmissivesColumns, false)
             };
+        }
+
+        void RefreshTabsForLightProbeModeIfNeeded()
+        {
+            if (currentLightProbeMode == HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightProbeSystem)
+                return;
+
+            var type = System.Type.GetType("UnityEditor.LightingExplorerWindow,UnityEditor");
+            var explorer = EditorWindow.GetWindow(type);
+            var tabs = type.GetField("m_TableTabs", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+
+            tabs.SetValue(explorer, GetContentTabs());
         }
 
         protected virtual UnityEngine.Object[] GetHDLights()
@@ -184,6 +202,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     : new VolumeData(volume.isGlobal, volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile);
             }
             return volumes;
+        }
+
+        protected virtual UnityEngine.Object[] GetHDLightProbes()
+        {
+            RefreshTabsForLightProbeModeIfNeeded();
+            if (!HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+                return base.GetLightProbes();
+            return GetObjectsForLightingExplorer<ProbeVolume>().ToArray();
         }
 
         protected virtual LightingExplorerTableColumn[] GetHDLightColumns()
@@ -783,7 +809,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         int lightlayersMask = (int)lightData.lightlayersMask;
 
                         EditorGUI.BeginChangeCheck();
-                        lightlayersMask = HDEditorUtils.DrawRenderingLayerMask(r, lightlayersMask);
+                        lightlayersMask = HDEditorUtils.DrawRenderingLayerMask(r, lightlayersMask, null, false);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(lightData, "Changed light layer");
@@ -1135,6 +1161,38 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.Enabled, "m_Enabled", 60),                      // 0: Enabled
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),                                   // 1: Name
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Weight, "m_ProbeSettings.lighting.weight", 60),    // 2: Weight
+            };
+        }
+
+        protected virtual LightingExplorerTableColumn[] GetHDLightProbeColumns()
+        {
+            if (!HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+                return base.GetLightProbeColumns();
+
+            return new[]
+            {
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.Enabled, "m_Enabled", 60),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.VolumeMode, "mode", 75,
+                    (r, prop, dep) => {
+                        if (prop == null) return;
+                        ProbeVolume pv = prop.serializedObject.targetObject as ProbeVolume;
+
+                        EditorGUI.BeginChangeCheck();
+                        int newMode = EditorGUI.Popup(r, (int)pv.mode, System.Enum.GetNames(typeof(ProbeVolume.Mode)));
+                        if (EditorGUI.EndChangeCheck())
+                            prop.intValue = newMode;
+                    },
+                    (lprop, rprop) => {
+                        ProbeVolume pv1 = lprop.serializedObject.targetObject as ProbeVolume;
+                        ProbeVolume pv2 = rprop.serializedObject.targetObject as ProbeVolume;
+
+                        return pv1.mode.CompareTo(pv2.mode);
+                    }
+                ),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.OverrideProbeSpacing, "overridesSubdivLevels", 140),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.OverrideRendererFilters, "overrideRendererFilters", 140),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.FillEmptySpaces, "fillEmptySpaces", 140),
             };
         }
 

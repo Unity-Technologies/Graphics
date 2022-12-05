@@ -4,7 +4,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
         #pragma multi_compile_local _ _TONEMAP_ACES _TONEMAP_NEUTRAL
         #pragma multi_compile_local_fragment _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020
         #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION
-    
+
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
@@ -53,7 +53,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             float x = SAMPLE_TEXTURE2D(curve, sampler_LinearClamp, float2(t, 0.0)).x;
             return saturate(x);
         }
-        
+
         float3 RotateToColorGradeOutputSpace(float3 gradedColor)
         {
             #ifdef _TONEMAP_ACES

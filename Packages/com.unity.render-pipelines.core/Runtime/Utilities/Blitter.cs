@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetTexture(BlitShaderIDs._BlitTexture, source);
             DrawTriangle(cmd, material, pass);
         }
-        
+
         /// <summary>
         /// Blit a RTHandle texture
         /// </summary>
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering
             cmd.SetRenderTarget(destination, loadAction, storeAction);
             DrawTriangle(cmd, material, pass);
         }
-        
+
         /// <summary>
         /// Blit a Texture with a given Material. Unity uses the reference name `_BlitTexture` to bind the input texture. Set the destination parameter before using this method.
         /// </summary>

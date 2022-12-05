@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
 
             //HDR DebugView - should always be the last stack of the camera
             ExecuteHDRDebugViewFinalPass(data, m_PassthroughRT, xyTarget);
-         
+
         }
 
         private void ExecuteCIExyPrepass(PassData data, RTHandle sourceTexture, RTHandle xyTarget)
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
             m_PassData.cameraData = renderingData.cameraData;
 
             var sourceTexture = renderingData.cameraData.renderer.cameraColorTargetHandle;
-            
+
             var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
             // Create RTHandle alias to use RTHandle apis
             if (m_CameraTargetHandle != cameraTarget)
@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CameraTargetHandle?.Release();
                 m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
             }
-            
+
             m_PassData.material.enabledKeywords = null;
             GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref m_PassData.cameraData, true);
 

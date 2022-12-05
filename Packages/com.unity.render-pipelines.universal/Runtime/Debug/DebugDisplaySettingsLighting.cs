@@ -19,9 +19,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public DebugLightingFeatureFlags lightingFeatureFlags { get; set; }
 
-		/// <summary>
-		/// Current HDR debug mode.
-		/// </summary>
+        /// <summary>
+        /// Current HDR debug mode.
+        /// </summary>
         public HDRDebugMode hdrDebugMode { get; set; }
 
         static internal class Strings

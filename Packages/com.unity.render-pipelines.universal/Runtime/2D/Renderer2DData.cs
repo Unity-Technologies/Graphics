@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField, Reload("Shaders/Utils/CoreBlit.shader")]
         Shader m_CoreBlitShader = null;
-        
+
         [SerializeField, Reload("Shaders/Utils/BlitHDROverlay.shader")]
         Shader m_BlitHDROverlay;
 

@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
             const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
             if(Time.frameCount % warningThrottleFrames == 0)
                 Debug.LogWarning(warning);
-            
+
             return warning;
         }
 

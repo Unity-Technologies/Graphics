@@ -1,44 +1,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class LinkDirectionalToCustomNightSky : MonoBehaviour
 {
     public Material SkyMat;
-    Light SceneDirectionalLight;
-    public bool findDirectional = false;
-
-    private void OnEnable()
-    {
-        findDirLight();
-    }
+    Vector3 Dir;
+    public bool update = true;
 
     void Update()
     {
-        if (SceneDirectionalLight != null)
+        if (update)
         {
-            SkyMat.SetVector("_Moonlight_Forward_Direction", SceneDirectionalLight.gameObject.transform.forward);
-        }
-
-        if (findDirectional)
-        {
-            findDirLight();
-            if(SceneDirectionalLight != null){print("Directional Light for Custom Night Sky is "+SceneDirectionalLight.name);}
-            findDirectional = false;
-        }
-    }
-
-    void findDirLight()
-    {
-        foreach (Light light in GameObject.FindObjectsByType<Light>(FindObjectsSortMode.InstanceID))
+            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdrp != null && hdrp.GetMainLight() != null)
             {
-                if(light.type == LightType.Directional)
-                {
-                    SceneDirectionalLight = light;
-                }
+                 Dir = hdrp.GetMainLight().gameObject.transform.forward;
+                 SkyMat.SetVector("_Moonlight_Forward_Direction", Dir);
             }
+
+        }
     }
+
 
 }

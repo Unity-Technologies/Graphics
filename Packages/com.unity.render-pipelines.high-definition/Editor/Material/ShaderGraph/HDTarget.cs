@@ -1167,20 +1167,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static KeywordDescriptor WriteDecalBufferDepthOnly = new KeywordDescriptor()
-        {
-            displayName = "Write Decal Buffer (Depth Only)",
-            referenceName = "WRITE",
-            type = KeywordType.Enum,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            entries = new KeywordEntry[]
-            {
-                new KeywordEntry() { displayName = "Decal Buffer", referenceName = "DECAL_BUFFER" },
-                new KeywordEntry() { displayName = "Rendering Layer", referenceName = "RENDERING_LAYER" },
-            },
-            stages = KeywordShaderStage.Fragment,
-        };
+        // ShaderGraph doesn't support unnamed keyword _ for enums so we have to hack it using a PragmaDescriptor
+        public static PragmaDescriptor WriteDecalBufferDepthOnlyAsPragma = new PragmaDescriptor() { value = "multi_compile_fragment _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER" };
 
         public static KeywordDescriptor WriteDecalBufferMotionVector = new KeywordDescriptor()
         {

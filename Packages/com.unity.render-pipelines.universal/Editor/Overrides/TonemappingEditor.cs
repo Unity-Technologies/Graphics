@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.LabelField("HDR Output");
                 int hdrTonemapMode = m_Mode.value.intValue;
-                
+
                 if (hdrTonemapMode == (int)TonemappingMode.Neutral)
                 {
                     PropertyField(m_NeutralHDRRangeReductionMode);

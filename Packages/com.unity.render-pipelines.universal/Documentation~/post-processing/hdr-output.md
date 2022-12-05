@@ -12,7 +12,7 @@ To activate HDR output, follow these steps.
 2. Navigate to **Quality** > **HDR** and enable the checkbox to enable **HDR**.
 3. Next, navigate to **Edit** > **Project Settings** > **Player** > **Other Settings** and enable **Allow HDR Display Output**.
 
-However, if you switch to a URP Asset that does not have HDR enabled, you have to re-enable HDR Output. 
+However, if you switch to a URP Asset that does not have HDR enabled, you have to re-enable HDR Output.
 
 **Note**: If HDR Output is active, the grading mode falls back to HDR, even if there is a different Color Grading Mode active in the URP Asset.
 

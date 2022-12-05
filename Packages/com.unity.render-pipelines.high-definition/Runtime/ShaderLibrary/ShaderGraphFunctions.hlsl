@@ -46,7 +46,8 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
 {
 #if defined(__BUILTINGIUTILITIES_HLSL__)
     float3 positionRWS = GetCameraRelativePositionWS(positionWS);
-    return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
+    bool needToIncludeAPV = true;
+    return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap, needToIncludeAPV);
 #else
     return 0;
 #endif

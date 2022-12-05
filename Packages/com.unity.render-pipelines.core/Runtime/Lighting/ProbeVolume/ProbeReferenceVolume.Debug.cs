@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering
     }
 
 
-    class ProbeVolumeDebug
+    class ProbeVolumeDebug : IDebugData
     {
         public bool drawProbes;
         public bool drawBricks;
@@ -83,6 +83,38 @@ namespace UnityEngine.Rendering
         public bool displayCellStreamingScore;
         public bool displayIndexFragmentation;
         public int otherStateIndex = 0;
+
+        public ProbeVolumeDebug()
+        {
+            Init();
+        }
+
+        void Init()
+        {
+            drawProbes = false;
+            drawBricks = false;
+            drawCells = false;
+            realtimeSubdivision = false;
+            subdivisionCellUpdatePerFrame = 4;
+            subdivisionDelayInSeconds = 1;
+            probeShading = DebugProbeShadingMode.SH;
+            probeSize = 0.3f;
+            subdivisionViewCullingDistance = 500.0f;
+            probeCullingDistance = 200.0f;
+            maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
+            minSubdivToVisualize = 0;
+            exposureCompensation = 0.0f;
+            drawProbeSamplingDebug = false;
+            probeSamplingDebugSize = 0.3f;
+            drawVirtualOffsetPush = false;
+            offsetSize = 0.025f;
+            freezeStreaming = false;
+            displayCellStreamingScore = false;
+            displayIndexFragmentation = false;
+            otherStateIndex = 0;
+        }
+
+        public Action GetReset() => () => Init();
     }
 
 
@@ -137,8 +169,17 @@ namespace UnityEngine.Rendering
         /// <summary>Colors that can be used for debug visualization of the brick structure subdivision.</summary>
         public Color[] subdivisionDebugColors { get; } = new Color[ProbeBrickIndex.kMaxSubdivisionLevels];
 
-        DebugUI.Widget[] m_DebugItems;
         Mesh m_DebugMesh;
+        Mesh debugMesh {
+            get
+            {
+                if (m_DebugMesh == null)
+                    m_DebugMesh = DebugShapes.instance.BuildCustomSphereMesh(0.5f, 9, 8); // (longSubdiv + 1) * latSubdiv + 2 = 82
+                return m_DebugMesh;
+            }
+        }
+
+        DebugUI.Widget[] m_DebugItems;
         Material m_DebugMaterial;
 
         // Sample position debug
@@ -182,7 +223,6 @@ namespace UnityEngine.Rendering
         {
             if (parameters.supportsRuntimeDebug)
             {
-                m_DebugMesh = DebugShapes.instance.BuildCustomSphereMesh(0.5f, 9, 8); // (longSubdiv + 1) * latSubdiv + 2 = 82
                 m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
                 m_DebugMaterial.enableInstancing = true;
 
@@ -472,6 +512,9 @@ namespace UnityEngine.Rendering
                 var panel = DebugManager.instance.GetPanel(k_DebugPanelName, true);
                 panel.children.Add(m_DebugItems);
             }
+
+            DebugManager debugManager = DebugManager.instance;
+            debugManager.RegisterData(probeVolumeDebug);
         }
 
         void UnregisterDebug(bool destroyPanel)
@@ -619,7 +662,7 @@ namespace UnityEngine.Rendering
                     {
                         var probeBuffer = debug.probeBuffers[i];
                         m_DebugMaterial.SetInt("_DebugProbeVolumeSampling", 0);
-                        Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
+                        Graphics.DrawMeshInstanced(debugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
 
                     if (probeVolumeDebug.drawProbeSamplingDebug)

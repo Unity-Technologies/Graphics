@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Swell Bands
         static public readonly GUIContent k_SwellBand0Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Dimmer", "Controls the attenuation of amplitude on the first frequency band of the swell.");
         static public readonly GUIContent k_SwellBand1Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Dimmer", "Controls the attenuation of amplitude on the second frequency band of the swell.");
-        static public readonly GUIContent k_SwellFadeToggle = EditorGUIUtility.TrTextContent("Fade", "When enabled, HDRP starts fading the contribution of this frequency band over a given range. This helps reduce the aliasing artifacts at a distance.");
+        static public readonly GUIContent k_SwellFadeToggle = EditorGUIUtility.TrTextContent("Fade", "When enabled, HDRP starts fading the contribution of this frequency band over a given range. This helps reduce the aliasing artifacts at a distance.\nAutomatic mode computes the fading range based on the Repetition Size parameter.");
         static public readonly GUIContent k_SwellMaxAmplitude = EditorGUIUtility.TrTextContent("Max Amplitude", "Displays the current maximum amplitude of this frequency band.");
 
         // Agitation
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Fade parameters
         static public readonly GUIContent k_SwellRangeToggle = EditorGUIUtility.TrTextContent("Range", "Sets the distance in meters at which HDRP starts fading the contribution of this frequency band.");
-        static public readonly GUIContent k_SwellFadeStart = EditorGUIUtility.TrTextContent("Start", "Sets the distance in meters at which HDRP starts fading the contribution of this frequency band.");
+        static public readonly GUIContent k_SwellFadeStart = EditorGUIUtility.TrTextContent("Start", "Sets the distance in meters at which HDRP starts fading the contribution of this frequency band.\nAutomatic mode computes the fading range based on the Repetition Size parameter.");
         static public readonly GUIContent k_SwellFadeDistance = EditorGUIUtility.TrTextContent("Distance", "Sets the length in meters during which HDRP fades out the contribution of this frequency band.");
 
         // Ripples
@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Fade
         static public readonly GUIContent k_RipplesFadeToggle = EditorGUIUtility.TrTextContent("Fade", "When enabled, HDRP starts fading the contribution of this frequency band over a given range. This helps reduce the aliasing artifacts at a distance.");
         static public readonly GUIContent k_RipplesFadeRange = EditorGUIUtility.TrTextContent("Range", "Sets the distance in meters at which HDRP starts fading the contribution of this frequency band.");
-        static public readonly GUIContent k_RipplesFadeStart = EditorGUIUtility.TrTextContent("Start", "Sets the distance in meters at which HDRP starts fading the contribution of this frequency band.");
+        static public readonly GUIContent k_RipplesFadeStart = EditorGUIUtility.TrTextContent("Start", "Sets the distance in meters at which HDRP starts fading the contribution of this frequency band.\nAutomatic mode computes the fading range based on the Repetition Size parameter.");
         static public readonly GUIContent k_RipplesFadeDistance = EditorGUIUtility.TrTextContent("Distance", "Sets the length in meters during which HDRP fades out the contribution of this frequency band.");
 
         // Material

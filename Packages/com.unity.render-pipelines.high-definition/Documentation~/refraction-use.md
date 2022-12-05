@@ -26,7 +26,7 @@ To make refraction more accurate or visible, do the following:
 3. [Set color tint and light absorption](#set-absorption).
 4. [Set the smoothness of the material](#set-smoothness), to control blurriness.
 5. [Add a Reflection Probe](#add-probe), so you see accurate scene colors through the transparent pixels.
-6. [Use an appropriate Proxy Volume shape](#use-proxy-volume). 
+6. [Use an appropriate Proxy Volume shape](#use-proxy-volume).
 
 For information on other properties that control refraction, see [Surface Type](Surface-Type.md).
 
@@ -76,7 +76,7 @@ You can control the color of the refraction effect, and the visibility relative 
 
 Set the transmission color to control the color tint of the refraction effect. For example for a blue marble, set **Transmission Color** to blue, because the marble transmits blue light but absorbs other colors.
 
-Set the absorption distance to control when the refraction effect becomes fully colorized by the **Transmission Color**. Beyond the absorption distance, the object looks darker until it eventually absorbs all the light. 
+Set the absorption distance to control when the refraction effect becomes fully colorized by the **Transmission Color**. Beyond the absorption distance, the object looks darker until it eventually absorbs all the light.
 
 To make sure absorption distance works, use a **Transmission Color** where the red, green and blue values are below 1.
 
@@ -106,7 +106,7 @@ Materials with decreasing smoothness from left to right.
 
 To create more accurate reflections, place the object inside the **Influence Volume** of a [Reflection Probe](Reflection-Probe.md).
 
-When a vector leaves the object, it intersects with a point somewhere in the scene. 
+When a vector leaves the object, it intersects with a point somewhere in the scene.
 
 By default, HDRP uses screen space refraction. This means that HDRP samples the color buffer to find the color at the intersection point. That color becomes the color you see as you look through the transparent pixel on the object.
 

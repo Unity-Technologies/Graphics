@@ -579,7 +579,7 @@ float4 LoadDOTSInstancedData_LODFade()
 }
 
 
-void	SetupDOTSRendererBounds(float4x4 objectToWorld)
+void    SetupDOTSRendererBounds(float4x4 objectToWorld)
 {
     float3 vCenter = mul(objectToWorld, float4(LoadDOTSInstancedData_MeshLocalBoundCenter(), 1.0f)).xyz;
     float3 vInputExt = LoadDOTSInstancedData_MeshLocalBoundExtent();

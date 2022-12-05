@@ -612,7 +612,7 @@ namespace UnityEngine.Rendering.Universal
                 if (RenderSettings.skybox != null || (cameraData.camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
                     m_DrawSkyboxPass.Render(renderGraph, activeColorTexture, activeDepthTexture, ref renderingData);
             }
-            
+
             m_CopyDepthMode = renderPassInputs.requiresDepthTextureEarliestEvent < RenderPassEvent.AfterRenderingTransparents ? CopyDepthMode.AfterOpaques : m_CopyDepthMode;
             if (requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
             {

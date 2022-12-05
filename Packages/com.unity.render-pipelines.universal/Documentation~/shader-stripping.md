@@ -50,7 +50,7 @@ Avoid including URP Assets in your build that use different [rendering paths](ur
 | Render Pass | Disable **Native Render** in all Renderers that URP Assets use. | `_RENDER_PASS_ENABLED` | Forward and Deferred |
 | Shadows from additional lights | In the URP Asset, in the **Additional Lights** section, disable **Cast Shadows**. | `_ADDITIONAL_LIGHT_SHADOWS` | Forward and Deferred |
 | Shadows from the main light | In the URP Asset, in the **Main Light** section, disable **Cast Shadows**. The keywords Unity removes might depend on your settings. | `_MAIN_LIGHT_SHADOWS`, `_MAIN_LIGHT_SHADOWS_CASCADE`, `_MAIN_LIGHT_SHADOWS_SCREEN` | Forward and Deferred |
-| Soft shadows | In the URP Asset, in the **Shadows** section, disable **Soft shadows**. | `_SHADOWS_SOFT` | Forward and Deferred | 
+| Soft shadows | In the URP Asset, in the **Shadows** section, disable **Soft shadows**. | `_SHADOWS_SOFT` | Forward and Deferred |
 
 ## Strip post-processing shader variants
 

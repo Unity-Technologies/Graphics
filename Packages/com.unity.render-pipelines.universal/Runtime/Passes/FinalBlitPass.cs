@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     Vector4 hdrOutputLuminanceParams;
                     UniversalRenderPipeline.GetHDROutputLuminanceParameters(tonemapping, out hdrOutputLuminanceParams);
-                    
+
                     HDROutputUtils.Operation hdrOperation = HDROutputUtils.Operation.None;
                     // If the HDRDebugView is on, we don't want the encoding
                     if (debugHandler == null || !debugHandler.HDRDebugViewIsActive(ref cameraData))
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cameraData.xr.enabled)
                 loadAction = RenderBufferLoadAction.Load;
 #endif
-            
+
             RenderingUtils.FinalBlit(cmd, ref cameraData, source, cameraTarget, loadAction, RenderBufferStoreAction.Store, blitMaterial, source.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
         }
 

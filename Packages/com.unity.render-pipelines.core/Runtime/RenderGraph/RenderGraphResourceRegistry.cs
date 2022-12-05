@@ -112,13 +112,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             var texResource = GetTextureResource(handle.handle);
             var resource = texResource.graphicsResource;
-            if (resource == null)
-            {
-                if (handle.fallBackResource != TextureHandle.nullHandle.handle)
-                    return GetTextureResource(handle.fallBackResource).graphicsResource;
-                else if (!texResource.imported)
-                    throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
-            }
+            if (resource == null && !texResource.imported)
+                throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
 
             return resource;
         }
@@ -402,7 +397,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return GetResourceCount(RenderGraphResourceType.Texture);
         }
 
-        TextureResource GetTextureResource(in ResourceHandle handle)
+        internal TextureResource GetTextureResource(in ResourceHandle handle)
         {
             return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle] as TextureResource;
         }
@@ -410,12 +405,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle)
         {
             return (m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle] as TextureResource).desc;
-        }
-
-        internal void ForceTextureClear(in ResourceHandle handle, Color clearColor)
-        {
-            GetTextureResource(handle).desc.clearBuffer = true;
-            GetTextureResource(handle).desc.clearColor = clearColor;
         }
 
         internal RendererListHandle CreateRendererList(in CoreRendererListDesc desc)

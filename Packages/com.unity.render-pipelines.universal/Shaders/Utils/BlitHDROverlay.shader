@@ -18,7 +18,7 @@ Shader "Hidden/Universal/BlitHDROverlay"
         TEXTURE2D_X(_OverlayUITexture);
 
         float4 _HDROutputLuminanceParams;
-        
+
         #define MinNits    _HDROutputLuminanceParams.x
         #define MaxNits    _HDROutputLuminanceParams.y
         #define PaperWhite _HDROutputLuminanceParams.z
@@ -69,7 +69,7 @@ Shader "Hidden/Universal/BlitHDROverlay"
                 #pragma fragment FragBilinearHDR
 
                 float4 FragBilinearHDR(Varyings input) : SV_Target
-                {                                                           
+                {
                     float4 color = FragBilinear(input);
                     float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
                     return SceneComposition(color, uiSample);

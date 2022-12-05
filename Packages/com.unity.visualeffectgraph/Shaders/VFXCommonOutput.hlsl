@@ -296,4 +296,3 @@ float4x4 VFXGetPreviousElementToVFX(uint elementToVFXBaseIndex)
 #endif
     return previousElementToVFX;
 }
-

@@ -2,7 +2,7 @@
 
 ## Description
 
-The HD Sample Buffer Node samples a buffer directly from the Camera. 
+The HD Sample Buffer Node samples a buffer directly from the Camera.
 
 ## Render pipeline compatibility
 

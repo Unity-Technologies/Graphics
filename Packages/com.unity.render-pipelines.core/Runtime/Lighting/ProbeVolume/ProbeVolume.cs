@@ -8,12 +8,24 @@ namespace UnityEngine.Rendering
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Light/Probe Volume")]
-    public class ProbeVolume : MonoBehaviour
+    public partial class ProbeVolume : MonoBehaviour
     {
+        /// <summary>Indicates which renderers should be considerer for the Probe Volume bounds when baking</summary>
+        public enum Mode
+        {
+            /// <summary>Encapsulate all renderers in the baking set.</summary>
+            Global,
+            /// <summary>Encapsulate all renderers in the scene.</summary>
+            Scene,
+            /// <summary>Encapsulate all renderers in the bounding box.</summary>
+            Local
+        }
+
         /// <summary>
         /// If is a global bolume
         /// </summary>
-        public bool globalVolume = false;
+        [Tooltip("When set to Global this Probe Volume considers all renderers with Contribute Global Illumination enabled. Local only considers renderers in the scene.\nThis list updates every time the Scene is saved or the lighting is baked.")]
+        public Mode mode = Mode.Scene;
 
         /// <summary>
         /// The size
@@ -102,7 +114,7 @@ namespace UnityEngine.Rendering
             return bounds;
         }
 
-        internal void UpdateGlobalVolume()
+        internal void UpdateGlobalVolume(GIContributors.ContributorFilter filter)
         {
             var scene = gameObject.scene;
 
@@ -115,7 +127,7 @@ namespace UnityEngine.Rendering
                     minBrickSize = profile.minBrickSize;
             }
 
-            var bounds = ComputeBounds(GIContributors.ContributorFilter.All, scene);
+            var bounds = ComputeBounds(filter, scene);
             transform.position = bounds.center;
             size = Vector3.Max(bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize), Vector3.zero);
         }
@@ -150,6 +162,7 @@ namespace UnityEngine.Rendering
                     hash = hash * 23 + minRendererVolumeSize.GetHashCode();
                     hash = hash * 23 + objectLayerMask.value.GetHashCode();
                 }
+                hash = hash * 23 + fillEmptySpaces.GetHashCode();
             }
 
             return hash;

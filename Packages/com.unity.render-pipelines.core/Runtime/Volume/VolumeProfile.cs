@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering
         {
             if (components == null)
                return;
-               
+
             for (int i = 0; i < components.Count; i++)
             {
                 if (components[i] != null)

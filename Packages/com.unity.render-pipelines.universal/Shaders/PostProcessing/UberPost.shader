@@ -260,7 +260,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 color = max(color, 0);
             }
             #endif
-            
+
             #ifdef HDR_ENCODING
             {
                 float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);

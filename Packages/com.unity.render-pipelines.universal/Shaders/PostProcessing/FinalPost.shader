@@ -11,7 +11,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local_fragment _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020
         #pragma multi_compile_local_fragment _ HDR_ENCODING_LINEAR HDR_ENCODING_PQ
         #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION
-        
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"

@@ -505,30 +505,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Lens Flare
-            if (useLensFlare)
-            {
-                bool usePanini;
-                float paniniDistance;
-                float paniniCropToFit;
-                if (m_PaniniProjection.IsActive())
-                {
-                    usePanini = true;
-                    paniniDistance = m_PaniniProjection.distance.value;
-                    paniniCropToFit = m_PaniniProjection.cropToFit.value;
-                }
-                else
-                {
-                    usePanini = false;
-                    paniniDistance = 1.0f;
-                    paniniCropToFit = 1.0f;
-                }
-
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
-                {
-                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
-                }
-            }
 
             // Combined post-processing stack
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.UberPostProcess)))
@@ -552,7 +528,34 @@ namespace UnityEngine.Rendering.Universal
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
                     {
-                        DoLensFlareScreenSpace(cameraData.camera, cmd, GetSource(), m_BloomMipUp[m_LensFlareScreenSpace.bloomMip.value]);
+                        // We clamp the bloomMip value to avoid picking a mip that doesn't exist, since in URP you can set the number of maxIteration of the bloomPass.
+                        int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
+                        DoLensFlareScreenSpace(cameraData.camera, cmd, GetSource(), m_BloomMipUp[maxBloomMip]);
+                    }
+                }
+
+                 // Lens Flare
+                if (useLensFlare)
+                {
+                    bool usePanini;
+                    float paniniDistance;
+                    float paniniCropToFit;
+                    if (m_PaniniProjection.IsActive())
+                    {
+                        usePanini = true;
+                        paniniDistance = m_PaniniProjection.distance.value;
+                        paniniCropToFit = m_PaniniProjection.cropToFit.value;
+                    }
+                    else
+                    {
+                        usePanini = false;
+                        paniniDistance = 1.0f;
+                        paniniCropToFit = 1.0f;
+                    }
+
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+                    {
+                        DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
                     }
                 }
 
@@ -949,8 +952,11 @@ namespace UnityEngine.Rendering.Universal
             int height = Mathf.Max(1, (int)m_Descriptor.height / ratio);
             var desc = GetCompatibleDescriptor(width, height, m_DefaultHDRFormat);
 
-            RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture");
-            RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture2, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture2");
+            if (m_LensFlareScreenSpace.IsStreaksActive())
+            {
+                RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture");
+                RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture2, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture2");
+            }
 
             LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
                 m_Materials.lensFlareScreenSpace,
@@ -1432,7 +1438,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
-            
+
             bool requireHDROutput = RequireHDROutput(ref cameraData);
             if (requireHDROutput)
             {
@@ -1444,7 +1450,7 @@ namespace UnityEngine.Rendering.Universal
 
                 SetupHDROutput(material, hdrOperations);
             }
-            
+
             DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass && !resolveToDebugScreen);
@@ -1455,7 +1461,7 @@ namespace UnityEngine.Rendering.Universal
             RTHandle sourceTex = m_Source;
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
-            
+
             // TODO: Investigate how to make FXAA work with HDR output.
             bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) && !cameraData.isHDROutputActive;
 
@@ -1594,7 +1600,7 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.Rcas);
                 FSRUtils.SetRcasConstantsLinear(cmd, cameraData.taaSettings.contrastAdaptiveSharpening);
             }
-            
+
             var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
 
             if (resolveToDebugScreen)

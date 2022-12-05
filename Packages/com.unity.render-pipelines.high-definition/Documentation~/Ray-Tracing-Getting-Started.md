@@ -280,11 +280,11 @@ HDRP ray tracing in Unity isn't compatible with the following features:
 - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
 - [Orthographic projection](HDRP-Camera.md). If you enable orthographic projection mode, you might experience rendering problems with transparent materials, volumetrics, and planar reflections.
 - Ray Traced and Screen Space effects. These don't appear recursively in [Ray Traced Reflections](Ray-Traced-Reflections.md), [Ray Traced Global Illumination](Ray-Traced-Global-Illumination.md) or [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md). This means, for example, you can't see [Screen Space Global Illumination](Override-Screen-Space-GI.md) in [ray-traced reflections](Ray-Traced-Reflections.md).
-- Fully accurate shadow culling. You might see missing shadows in ray-traced effects. You can use **Extend Shadow Culling** to improve accuracy. See [Ray Tracing Settings](Ray-Tracing-Settings.md) for more information. 
+- Fully accurate shadow culling. You might see missing shadows in ray-traced effects. You can use **Extend Shadow Culling** to improve accuracy. See [Ray Tracing Settings](Ray-Tracing-Settings.md) for more information.
 
 #### Reflection Probes
 
-Although ray-traced rendering results include data from [Reflection Probes](Reflection-Probe.md), Reflection Probes do not capture geometry that HDRP renders with ray tracing. 
+Although ray-traced rendering results include data from [Reflection Probes](Reflection-Probe.md), Reflection Probes do not capture geometry that HDRP renders with ray tracing.
 
 ### Unsupported shader graph nodes for ray tracing
 

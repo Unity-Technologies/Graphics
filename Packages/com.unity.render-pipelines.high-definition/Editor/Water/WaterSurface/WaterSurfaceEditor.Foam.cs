@@ -58,14 +58,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportWater");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWater");
                 return;
             }
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWaterFoam ?? false)
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support foam for Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportWaterFoam");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWaterFoam");
                 return;
             }
 
