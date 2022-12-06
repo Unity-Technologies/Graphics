@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (nodeName == "ChannelMixer")
             {
                 PartList.InsertPartAfter(portContainerPartName,
-                    new TabbedContainerPart("sg-channel-mixer-container",
+                    new ChannelMixerPart("sg-channel-mixer-container",
                         GraphElementModel,
                         this,
                         ussClassName));
