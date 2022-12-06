@@ -64,8 +64,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             // TODO: There should probably be a better way to assign "special" node parts like this.
-            // Possibly using the UI data classes once the refactor branch is merged.
-            var nodeName = nodeReader.GetRegistryKey().Name;
+            var nodeName = graphDataNodeModel.registryKey.Name;
             if (nodeName == "Swizzle")
             {
                 PartList.InsertPartAfter(portContainerPartName, new SwizzleMaskPart("sg-swizzle-mask", GraphElementModel, this, ussClassName));

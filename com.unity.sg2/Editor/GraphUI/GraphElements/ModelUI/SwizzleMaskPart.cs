@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_MaskField.isDelayed = true;
             m_MaskField.RegisterValueChangedCallback(e =>
             {
-                if (m_Model is not GraphDataNodeModel sgNodeModel) return;
+                if (m_Model is not SGNodeModel sgNodeModel) return;
                 m_OwnerElement.RootView.Dispatch(new SetSwizzleMaskCommand(sgNodeModel, SwizzleNode.kMask, e.newValue ?? string.Empty));
             });
 
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void UpdatePartFromModel()
         {
-            if (m_Model is not GraphDataNodeModel sgNodeModel) return;
+            if (m_Model is not SGNodeModel sgNodeModel) return;
             if (!sgNodeModel.TryGetNodeHandler(out var handler)) return;
 
             // This is a field instead of a port because there's no real string anywhere at runtime -- it affects

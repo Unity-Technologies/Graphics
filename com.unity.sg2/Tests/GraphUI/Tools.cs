@@ -34,11 +34,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             int Mod(int a, int n) => (a % n + n) % n;
 
-            if (window.GraphView.GraphModel is ShaderGraphModel shaderGraphModel)
+            if (window.GraphView.GraphModel is SGGraphModel SGGraphModel)
             {
-                var shaderGraphStencil = shaderGraphModel.Stencil as ShaderGraphStencil;
+                var shaderGraphStencil = SGGraphModel.Stencil as ShaderGraphStencil;
                 var searcherDatabaseProvider = new ShaderGraphSearcherDatabaseProvider(shaderGraphStencil);
-                var searcherDatabases = searcherDatabaseProvider.GetGraphElementsDatabases(shaderGraphModel);
+                var searcherDatabases = searcherDatabaseProvider.GetGraphElementsDatabases(SGGraphModel);
                 foreach (var database in searcherDatabases.Skip(1))
                 {
                     var allNodes = database.Search("");
