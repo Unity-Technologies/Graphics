@@ -1,5 +1,6 @@
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -16,14 +17,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public TabbedContainerPart(string name, Model model, ModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName) { }
 
-        private VisualElement MakeSliderPage(string portName)
+        VisualElement MakeSliderPage(string portName)
         {
             var v = new VisualElement();
             if (m_Model is not GraphDataNodeModel graphDataNodeModel) return v;
 
-            var rSlider = new Slider("R", k_SliderMin, k_SliderMax) {showInputField = true};
-            var gSlider = new Slider("G", k_SliderMin, k_SliderMax) {showInputField = true};
-            var bSlider = new Slider("B", k_SliderMin, k_SliderMax) {showInputField = true};
+            var rSlider = new Slider("R", k_SliderMin, k_SliderMax) {name = "slider-r", showInputField = true};
+            var gSlider = new Slider("G", k_SliderMin, k_SliderMax) {name = "slider-g", showInputField = true};
+            var bSlider = new Slider("B", k_SliderMin, k_SliderMax) {name = "slider-b", showInputField = true};
 
             rSlider.RegisterValueChangedCallback(c =>
             {
@@ -47,6 +48,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return v;
         }
 
+        static void UpdatePageValues(VisualElement page, Vector3 values)
+        {
+            page.Q<Slider>("slider-r")?.SetValueWithoutNotify(values.x);
+            page.Q<Slider>("slider-g")?.SetValueWithoutNotify(values.y);
+            page.Q<Slider>("slider-b")?.SetValueWithoutNotify(values.z);
+        }
+
         protected override void BuildPartUI(VisualElement parent)
         {
             m_Root = new VisualElement();
@@ -65,6 +73,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             parent.Add(m_Root);
         }
 
-        protected override void UpdatePartFromModel() { }
+        protected override void UpdatePartFromModel()
+        {
+            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (!graphDataNodeModel.TryGetNodeHandler(out var handler)) return;
+
+            var rVec = GraphTypeHelpers.GetAsVec3(handler.GetPort("Red").GetTypeField());
+            var gVec = GraphTypeHelpers.GetAsVec3(handler.GetPort("Green").GetTypeField());
+            var bVec = GraphTypeHelpers.GetAsVec3(handler.GetPort("Blue").GetTypeField());
+
+            UpdatePageValues(m_PageR, rVec);
+            UpdatePageValues(m_PageG, gVec);
+            UpdatePageValues(m_PageB, bVec);
+        }
     }
 }
