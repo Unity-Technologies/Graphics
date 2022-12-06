@@ -6,18 +6,20 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma editor_sync_compilation
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
+        #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
         #pragma multi_compile_local_fragment _ FXAA
         #pragma multi_compile_local_fragment _ GRAIN
         #pragma multi_compile_local_fragment _ DITHER
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
-        #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
+        #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB FUTURE_HDR_OUTPUT
 
         #pragma multi_compile_local_fragment _ CATMULL_ROM_4 RCAS BYPASS
         #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
@@ -135,15 +137,17 @@ Shader "Hidden/HDRP/FinalPass"
             #endif //FXAA
 
             // Saturate is only needed for dither or grain to work. Otherwise we don't saturate because output might be HDR
-            #if defined(GRAIN) || defined(DITHER)
+            #if (defined(GRAIN) || defined(DITHER)) && !defined(FUTURE_HDR_OUTPUT)
             outColor = saturate(outColor);
             #endif
 
-
             #if GRAIN
             {
+#ifdef FUTURE_HDR_OUTPUT
+                    outColor.xyz = InvertibleTonemap(outColor.xyz);
+#endif
                 // Grain in range [0;1] with neutral at 0.5
-                float grain = SAMPLE_TEXTURE2D(_GrainTexture, s_linear_repeat_sampler, (positionNDC * _GrainTextureParams.xy) + _GrainTextureParams.zw).w;
+                float grain = SAMPLE_TEXTURE2D(_GrainTexture, s_linear_repeat_sampler, (SCREEN_COORD_APPLY_SCALEBIAS(positionNDC) * _GrainTextureParams.xy) + _GrainTextureParams.zw).w;
 
                 // Remap [-1;1]
                 grain = (grain - 0.5) * 2.0;
@@ -151,7 +155,9 @@ Shader "Hidden/HDRP/FinalPass"
                 // Noisiness response curve based on scene luminance
                 float lum = 1.0 - sqrt(Luminance(outColor));
                 lum = lerp(1.0, lum, _GrainParams.y);
-
+#ifdef FUTURE_HDR_OUTPUT
+                outColor.xyz = InvertibleTonemapInverse(outColor.xyz);
+#endif
                 outColor.xyz += outColor.xyz * grain * _GrainParams.x * lum;
             }
             #endif

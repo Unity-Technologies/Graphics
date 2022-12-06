@@ -443,6 +443,12 @@ namespace UnityEditor.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(DecalProjector decalProjector, GizmoType gizmoType)
         {
+            float lod = Gizmos.CalculateLOD(decalProjector.transform.position, decalProjector.size.magnitude * 0.25f);
+
+            // skip drawing anything if it will be too small or behind the camera on screen
+            if (lod < 0.1f)
+                return;
+
             UpdateColorsInHandlesIfRequired();
 
             const float k_DotLength = 5f;
@@ -458,37 +464,45 @@ namespace UnityEditor.Rendering.HighDefinition
                 boxHandle.size = scaledSize;
                 bool isVolumeEditMode = editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV;
                 bool isPivotEditMode = editMode == k_EditUVAndPivot;
-                boxHandle.DrawHull(isVolumeEditMode);
-
-                Vector3 pivot = Vector3.zero;
-                Vector3 projectedPivot = new Vector3(0, 0, scaledPivot.z - .5f * scaledSize.z);
-
-                if (isPivotEditMode)
+                if (lod > 0.5f)
                 {
-                    Handles.DrawDottedLines(new[] { projectedPivot, pivot }, k_DotLength);
+                    boxHandle.DrawHull(isVolumeEditMode);
                 }
                 else
+                    Handles.DrawWireCube(scaledPivot, scaledSize); // simplify the drawing if too small on screen
+
+                if (lod == 1.0f) // only draw when big enough on screen to be useable
                 {
-                    float arrowSize = scaledSize.z * 0.25f;
-                    Handles.ArrowHandleCap(0, projectedPivot, Quaternion.identity, arrowSize, EventType.Repaint);
-                }
+                    Vector3 pivot = Vector3.zero;
+                    Vector3 projectedPivot = new Vector3(0, 0, scaledPivot.z - .5f * scaledSize.z);
 
-                //draw UV and bolder edges
-                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * new Vector3(scaledPivot.x, scaledPivot.y, scaledPivot.z - .5f * scaledSize.z), decalProjector.transform.rotation, Vector3.one)))
-                {
-                    Vector2 UVSize = new Vector2(
-                        (decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit) ? 0f : scaledSize.x / decalProjector.uvScale.x,
-                        (decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit) ? 0f : scaledSize.y / decalProjector.uvScale.y
-                    );
-                    Vector2 UVCenter = UVSize * .5f - new Vector2(decalProjector.uvBias.x * UVSize.x, decalProjector.uvBias.y * UVSize.y) - (Vector2)scaledSize * .5f;
+                    if (isPivotEditMode)
+                    {
+                        Handles.DrawDottedLines(new[] { projectedPivot, pivot }, k_DotLength);
+                    }
+                    else
+                    {
+                        float arrowSize = scaledSize.z * 0.25f;
+                        Handles.ArrowHandleCap(0, projectedPivot, Quaternion.identity, arrowSize, EventType.Repaint);
+                    }
 
-                    uvHandles.center = UVCenter;
-                    uvHandles.size = UVSize;
-                    uvHandles.DrawRect(dottedLine: true, screenSpaceSize: k_DotLength);
+                    //draw UV and bolder edges
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * new Vector3(scaledPivot.x, scaledPivot.y, scaledPivot.z - .5f * scaledSize.z), decalProjector.transform.rotation, Vector3.one)))
+                    {
+                        Vector2 UVSize = new Vector2(
+                            (decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit) ? 0f : scaledSize.x / decalProjector.uvScale.x,
+                            (decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit) ? 0f : scaledSize.y / decalProjector.uvScale.y
+                        );
+                        Vector2 UVCenter = UVSize * .5f - new Vector2(decalProjector.uvBias.x * UVSize.x, decalProjector.uvBias.y * UVSize.y) - (Vector2)scaledSize * .5f;
 
-                    uvHandles.center = default;
-                    uvHandles.size = scaledSize;
-                    uvHandles.DrawRect(dottedLine: false, thickness: 3f);
+                        uvHandles.center = UVCenter;
+                        uvHandles.size = UVSize;
+                        uvHandles.DrawRect(dottedLine: true, screenSpaceSize: k_DotLength);
+
+                        uvHandles.center = default;
+                        uvHandles.size = scaledSize;
+                        uvHandles.DrawRect(dottedLine: false, thickness: 3f);
+                    }
                 }
             }
         }
@@ -564,6 +578,38 @@ namespace UnityEditor.Rendering.HighDefinition
             // strange: we need to force it throu serialization to update multiple differente value state (value are right but still detected as different)
             if (m_SizeValues[axe].hasMultipleDifferentValues)
                 m_SizeValues[axe].floatValue = newSize;
+        }
+
+        internal void MinMaxSliderWithFields(GUIContent label, ref float minValue, ref float maxValue, float minLimit, float maxLimit)
+        {
+            var rect = EditorGUILayout.GetControlRect();
+            rect = EditorGUI.PrefixLabel(rect, label);
+
+            const float fieldWidth = 40, padding = 4;
+            if (rect.width < 3 * fieldWidth + 2 * padding)
+            {
+                EditorGUI.MinMaxSlider(rect, ref minValue, ref maxValue, minLimit, maxLimit);
+            }
+            else
+            {
+                var tmpRect = new Rect(rect);
+                tmpRect.width = fieldWidth;
+
+                EditorGUI.BeginChangeCheck();
+                float value = EditorGUI.FloatField(tmpRect, minValue);
+                if (EditorGUI.EndChangeCheck())
+                    minValue = Mathf.Max(value, minLimit);
+
+                tmpRect.x = rect.xMax - fieldWidth;
+                EditorGUI.BeginChangeCheck();
+                value = EditorGUI.FloatField(tmpRect, maxValue);
+                if (EditorGUI.EndChangeCheck())
+                    maxValue = Mathf.Min(value, maxLimit);
+
+                tmpRect.xMin = rect.xMin + (fieldWidth + padding);
+                tmpRect.xMax = rect.xMax - (fieldWidth + padding);
+                EditorGUI.MinMaxSlider(tmpRect, ref minValue, ref maxValue, minLimit, maxLimit);
+            }
         }
 
         public override void OnInspectorGUI()
@@ -653,7 +699,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     float angleFadeMinValue = m_StartAngleFadeProperty.floatValue;
                     float angleFadeMaxValue = m_EndAngleFadeProperty.floatValue;
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(k_AngleFadeContent, ref angleFadeMinValue, ref angleFadeMaxValue, 0.0f, 180.0f);
+                    MinMaxSliderWithFields(k_AngleFadeContent, ref angleFadeMinValue, ref angleFadeMaxValue, 0.0f, 180.0f);
                     if (EditorGUI.EndChangeCheck())
                     {
                         m_StartAngleFadeProperty.floatValue = angleFadeMinValue;

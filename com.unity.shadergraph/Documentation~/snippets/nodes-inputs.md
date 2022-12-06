@@ -2,4 +2,4 @@
 title: nodes-inputs
 ---
 
-The node has the following input ports:
+node has the following input ports:

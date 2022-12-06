@@ -1,7 +1,7 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -231,9 +231,6 @@ real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 // HDR packing
 //-----------------------------------------------------------------------------
 
-// HDR Packing not defined in GLES2
-#if !defined(SHADER_API_GLES)
-
 // Ref: http://realtimecollisiondetection.net/blog/?p=15
 real4 PackToLogLuv(real3 vRGB)
 {
@@ -286,8 +283,6 @@ float3 UnpackFromR11G11B10f(uint rgb)
     float b = f16tof32((rgb << 5) & 0x7FE0);
     return float3(r, g, b);
 }
-
-#endif // SHADER_API_GLES
 
 //-----------------------------------------------------------------------------
 // Color packing
@@ -348,9 +343,6 @@ real4 UnpackQuat(real4 packedQuat)
 
     return quat;
 }
-
-// Integer and Float packing not defined in GLES2
-#if !defined(SHADER_API_GLES)
 
 //-----------------------------------------------------------------------------
 // Integer packing
@@ -574,8 +566,6 @@ float2 Unpack888ToFloat2(float3 x)
     return Unpack888UIntToFloat2(i);
 }
 
-#endif // SHADER_API_GLES
-
 // Pack 2 float values from the [0, 1] range, to an 8 bits float from the [0, 1] range
 float PackFloat2To8(float2 f)
 {
@@ -599,7 +589,7 @@ float2 Unpack8ToFloat2(float f)
     return float2(x, y);
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

@@ -1,4 +1,4 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingPayload.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingBSDF.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl"
@@ -21,13 +21,13 @@ float GetSpecularCoeffSum(MaterialData mtlData)
 }
 #endif
 
-void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathPayload payload, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
-    bsdfData.roughness.x = max(pathIntersection.maxRoughness, bsdfData.roughness.x);
-    bsdfData.roughness.y = max(pathIntersection.maxRoughness, bsdfData.roughness.y);
+    bsdfData.roughness.x = max(payload.maxRoughness, bsdfData.roughness.x);
+    bsdfData.roughness.y = max(payload.maxRoughness, bsdfData.roughness.y);
 #ifdef _AXF_BRDF_TYPE_CAR_PAINT
-    bsdfData.roughness.z = max(pathIntersection.maxRoughness, bsdfData.roughness.z);
+    bsdfData.roughness.z = max(payload.maxRoughness, bsdfData.roughness.z);
 #endif
 
     // One of the killer features of AxF, optional specular Fresnel...
@@ -47,13 +47,13 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 #endif
 }
 
-bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
+bool CreateMaterialData(PathPayload payload, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
     mtlData.V = -WorldRayDirection();
     mtlData.Nv = ComputeConsistentShadingNormal(mtlData.V, bsdfData.geomNormalWS, bsdfData.normalWS);
     mtlData.bsdfData = bsdfData;
-    ProcessBSDFData(pathIntersection, builtinData, mtlData, mtlData.bsdfData);
+    ProcessBSDFData(payload, builtinData, mtlData, mtlData.bsdfData);
 
     mtlData.bsdfWeight = 0.0;
 
@@ -74,7 +74,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         mtlData.bsdfWeight[1] = HasClearcoat() ? Fcoat * Luminance(mtlData.bsdfData.clearcoatColor) : 0.0;
         float clearcoatTransmission = HasClearcoat() ? 1.0 - Fcoat : 1.0;
         mtlData.bsdfWeight[2] = clearcoatTransmission * lerp(Fspec, 0.5, GetScalarRoughness(mtlData.bsdfData.roughness)) * specularCoeff;
-        mtlData.bsdfWeight[0] = clearcoatTransmission * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
+        mtlData.bsdfWeight[0] = clearcoatTransmission * Luminance(mtlData.bsdfData.diffuseColor) * max(mtlData.bsdfData.ambientOcclusion, 0.001);
     }
 
     // Normalize the weights
@@ -109,13 +109,14 @@ float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool i
     return adjustedPathRoughness;
 }
 
-float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow, float3 value)
+float3 GetMaterialAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow)
 {
-    return value;
+    // No absorption here
+    return 1.0;
 }
 
-void GetAOVData(MaterialData mtlData, out AOVData aovData)
+void GetAOVData(BSDFData bsdfData, out AOVData aovData)
 {
-    aovData.albedo = mtlData.bsdfData.diffuseColor;
-    aovData.normal = mtlData.bsdfData.normalWS;
+    aovData.albedo = bsdfData.diffuseColor;
+    aovData.normal = bsdfData.normalWS;
 }

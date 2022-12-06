@@ -1,8 +1,9 @@
 #ifndef __CLOUDLAYER_COMMON_H__
 #define __CLOUDLAYER_COMMON_H__
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
 
@@ -17,7 +18,10 @@ SAMPLER(sampler_FlowmapB);
 
 float4 _FlowmapParam[2];
 float4 _Params1[2];
+float4 _Params2; // zw ununsed
 float3 _SunDirection;
+
+StructuredBuffer<float4> _AmbientProbeBuffer;
 
 #define _ScrollDirection(l) _FlowmapParam[l].xy
 #define _ScrollFactor(l)    _FlowmapParam[l].z
@@ -26,7 +30,7 @@ float3 _SunDirection;
 
 #define _SunLightColor(l)   _Params1[l].xyz
 #define _Altitude(l)        _Params1[l].w
-
+#define _AmbientDimmer(l)   _Params2[l]
 
 struct CloudLayerData
 {
@@ -142,7 +146,8 @@ float4 GetCloudLayerColor(float3 dir, int index)
     else
         cloud = SampleCloudMap(dir, index);
 
-    return float4(cloud.x * lightColor, cloud.y) * _Opacity;
+    float3 ambient = SampleSH9(_AmbientProbeBuffer, float3(0, -1, 0)) * _AmbientDimmer(index);
+    return float4(cloud.x * lightColor + ambient * cloud.y, cloud.y) * _Opacity;
 }
 
 float4 RenderClouds(float3 dir)

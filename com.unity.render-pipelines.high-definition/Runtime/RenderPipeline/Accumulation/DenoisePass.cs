@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+// Enable the denoising code path only on windows
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
 using UnityEngine.Rendering.Denoising;
 #endif
 
@@ -36,7 +37,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderDenoisePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle outputTexture)
         {
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+            // Early exit if there is no denoising
+            if (m_PathTracingSettings.denoising.value == HDDenoiserType.None)
+            {
+                return;
+            }
+
             using (var builder = renderGraph.AddRenderPass<RenderDenoisePassData>("Denoise Pass", out var passData))
             {
                 passData.blitAndExposeCS = m_Asset.renderPipelineResources.shaders.blitAndExposeCS;
@@ -44,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.subFrameManager = m_SubFrameManager;
                 // Note: for now we enable AOVs when temporal is enabled, because this seems to work better with Optix.
                 passData.useAOV = m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value;
-                passData.temporal = m_PathTracingSettings.temporal.value && hdCamera.camera.cameraType == CameraType.Game;
+                passData.temporal = m_PathTracingSettings.temporal.value && hdCamera.camera.cameraType == CameraType.Game && m_SubFrameManager.isRecording;
                 passData.async = m_PathTracingSettings.asyncDenoising.value && hdCamera.camera.cameraType == CameraType.SceneView;
 
                 // copy camera params
@@ -82,6 +89,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 (RenderDenoisePassData data, RenderGraphContext ctx) =>
                 {
                     CameraData camData = data.subFrameManager.GetCameraData(data.camID);
+
+                    // If we don't have any pending async denoise and we don't do temporal denoising, dispose any existing denoiser state
+                    if (camData.denoiser.type != DenoiserType.None && m_PathTracingSettings.temporal.value != true && camData.activeDenoiseRequest == false)
+                    {
+                        camData.denoiser.DisposeDenoiser();
+                        m_SubFrameManager.SetCameraData(data.camID, camData);
+                    }
 
                     camData.denoiser.Init((DenoiserType)m_PathTracingSettings.denoising.value, data.width, data.height);
 

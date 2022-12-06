@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// This attribute allows you to add commands to the <strong>Add Override</strong> popup menu
     /// on Volumes.
+    /// To filter VolumeComponentMenu based on current Render Pipeline, add SupportedOnRenderPipeline attribute to the class alongside with this attribute.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class VolumeComponentMenu : Attribute
@@ -100,7 +101,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public sealed class Indent : PropertyAttribute
         {
-            /// <summary> Relative indent amount registered in this atribute </summary>
+            /// <summary> Relative indent amount registered in this attribute </summary>
             public readonly int relativeAmount;
 
             /// <summary> Constructor </summary>

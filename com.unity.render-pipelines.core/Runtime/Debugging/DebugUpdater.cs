@@ -11,6 +11,7 @@ using UnityEngine.EventSystems;
 
 namespace UnityEngine.Rendering
 {
+    [CoreRPHelpURL("Rendering-Debugger")]
     class DebugUpdater : MonoBehaviour
     {
         static DebugUpdater s_Instance = null;
@@ -79,7 +80,7 @@ namespace UnityEngine.Rendering
 
         void EnsureExactlyOneEventSystem()
         {
-            var eventSystems = FindObjectsOfType<EventSystem>();
+            var eventSystems = FindObjectsByType<EventSystem>(FindObjectsSortMode.None);
             var debugEventSystem = GetComponent<EventSystem>();
 
             if (eventSystems.Length > 1 && debugEventSystem != null)

@@ -7,7 +7,30 @@ namespace UnityEngine.Rendering
     {
         private static LensFlareCommonSRP m_Instance = null;
         private static readonly object m_Padlock = new object();
-        private static System.Collections.Generic.List<LensFlareComponentSRP> m_Data = new System.Collections.Generic.List<LensFlareComponentSRP>();
+        /// <summary>
+        /// Class describing internal information stored to describe a shown LensFlare
+        /// </summary>
+        internal class LensFlareCompInfo
+        {
+            /// <summary>
+            /// Index used to compute Occlusion in a fixed order
+            /// </summary>
+            internal int index;
+
+            /// <summary>
+            /// Component used
+            /// </summary>
+            internal LensFlareComponentSRP comp;
+
+            internal LensFlareCompInfo(int idx, LensFlareComponentSRP cmp)
+            {
+                index = idx;
+                comp = cmp;
+            }
+        }
+
+        private static System.Collections.Generic.List<LensFlareCompInfo> m_Data = new System.Collections.Generic.List<LensFlareCompInfo>();
+        private static System.Collections.Generic.List<int> m_AvailableIndicies = new System.Collections.Generic.List<int>();
 
         /// <summary>
         /// Max lens-flares-with-occlusion supported
@@ -49,6 +72,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         static public void Initialize()
         {
+            frameIdx = 0;
             if (occlusionRT == null && mergeNeeded > 0)
                 occlusionRT = RTHandles.Alloc(width: maxLensFlareWithOcclusion, height: maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded, colorFormat: Experimental.Rendering.GraphicsFormat.R16_SFloat, enableRandomWrite: true, dimension: TextureXR.dimension);
         }
@@ -86,16 +110,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private System.Collections.Generic.List<LensFlareComponentSRP> Data { get { return LensFlareCommonSRP.m_Data; } }
-
-        /// <summary>
-        /// Return the pool of Lens Flare added
-        /// </summary>
-        /// <returns>The Lens Flare Pool</returns>
-        public System.Collections.Generic.List<LensFlareComponentSRP> GetData()
-        {
-            return Data;
-        }
+        private System.Collections.Generic.List<LensFlareCompInfo> Data { get { return LensFlareCommonSRP.m_Data; } }
 
         /// <summary>
         /// Check if we have at least one Lens Flare added on the pool
@@ -106,6 +121,18 @@ namespace UnityEngine.Rendering
             return Data.Count == 0;
         }
 
+        int GetNextAvailableIndex()
+        {
+            if (m_AvailableIndicies.Count == 0)
+                return m_Data.Count;
+            else
+            {
+                int nextIndex = m_AvailableIndicies[m_AvailableIndicies.Count - 1];
+                m_AvailableIndicies.RemoveAt(m_AvailableIndicies.Count - 1);
+                return nextIndex;
+            }
+        }
+
         /// <summary>
         /// Add a new lens flare component on the pool.
         /// </summary>
@@ -114,11 +141,31 @@ namespace UnityEngine.Rendering
         {
             Debug.Assert(Instance == this, "LensFlareCommonSRP can have only one instance");
 
-            if (!m_Data.Contains(newData))
+            if (!m_Data.Exists(x => x.comp == newData))
             {
-                m_Data.Add(newData);
+                m_Data.Add(new LensFlareCompInfo(GetNextAvailableIndex(), newData));
             }
         }
+
+        /// <summary>
+        /// Remove a lens flare data which exist in the pool.
+        /// </summary>
+        /// <param name="data">The data which exist in the pool</param>
+        public void RemoveData(LensFlareComponentSRP data)
+        {
+            Debug.Assert(Instance == this, "LensFlareCommonSRP can have only one instance");
+
+            LensFlareCompInfo info = m_Data.Find(x => x.comp == data);
+            if (info != null)
+            {
+                int newIndex = info.index;
+                m_Data.Remove(info);
+                m_AvailableIndicies.Add(newIndex);
+                if (m_Data.Count == 0)
+                    m_AvailableIndicies.Clear();
+            }
+        }
+
 
         /// <summary>
         /// Attenuation by Light Shape for Point Light
@@ -366,6 +413,90 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Check if at least one LensFlareComponentSRP request CloudLayer opacity
+        /// </summary>
+        /// <param name="cam">Camera</param>
+        /// <returns>true if a cloudLayerOpacity is requested</returns>
+        static public bool IsCloudLayerOpacityNeeded(Camera cam)
+        {
+            if (Instance.IsEmpty() || occlusionRT == null)
+                return false;
+
+#if UNITY_EDITOR
+            if (cam.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == cam && !sv.sceneViewState.flaresEnabled)
+                    {
+                        return false;
+                    }
+                }
+            }
+#endif
+
+            foreach (LensFlareCompInfo info in Instance.Data)
+            {
+                if (info == null || info.comp == null)
+                    continue;
+
+                LensFlareComponentSRP comp = info.comp;
+                LensFlareDataSRP data = comp.lensFlareData;
+
+                if (!comp.enabled ||
+                    !comp.gameObject.activeSelf ||
+                    !comp.gameObject.activeInHierarchy ||
+                    data == null ||
+                    data.elements == null ||
+                    data.elements.Length == 0 ||
+                    !comp.useOcclusion ||
+                    (comp.useOcclusion && comp.sampleCount == 0) ||
+                    comp.intensity <= 0.0f)
+                    continue;
+
+                if (comp.useBackgroundCloudOcclusion)
+                    return true;
+            }
+
+            return false;
+        }
+
+        static void SetOcclusionPermutation(Rendering.CommandBuffer cmd,
+            bool useBackgroundCloudOcclusion, bool volumetricCloudOcclusion, bool hasCloudLayer,
+            int _FlareCloudOpacity, int _FlareSunOcclusionTex,
+            Texture cloudOpacityTexture, Texture sunOcclusionTexture)
+        {
+            if (useBackgroundCloudOcclusion && hasCloudLayer)
+            {
+                cmd.EnableShaderKeyword("FLARE_CLOUD_OPACITY");
+                cmd.SetGlobalTexture(_FlareCloudOpacity, cloudOpacityTexture);
+            }
+            else
+            {
+                cmd.DisableShaderKeyword("FLARE_CLOUD_OPACITY");
+            }
+
+            if (sunOcclusionTexture != null)
+            {
+                if (volumetricCloudOcclusion)
+                {
+                    cmd.EnableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                    cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                }
+            }
+            else
+            {
+                cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+            }
+        }
+
+        /// <summary>
         /// Effective Job of drawing the set of Lens Flare registered
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
@@ -381,10 +512,15 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
+        /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
+        /// <param name="_FlareSunOcclusionTex">ShaderID for the _FlareSunOcclusionTex</param>
         /// <param name="_FlareData0">ShaderID for the FlareData0</param>
         /// <param name="_FlareData1">ShaderID for the FlareData1</param>
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
@@ -396,8 +532,8 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
-            bool taaEnabled,
-            int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
+            int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             Vector2 vScreenRatio;
 
@@ -430,18 +566,18 @@ namespace UnityEngine.Rendering
             }
 
             float dx = 1.0f / ((float)maxLensFlareWithOcclusion);
-            float dy = 1.0f / ((float)(maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded));
+            float dy = 1.0f / ((float)(maxLensFlareWithOcclusionTemporalSample + mergeNeeded));
             float halfx = 0.5f / ((float)maxLensFlareWithOcclusion);
-            float halfy = 0.5f / ((float)(maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded));
+            float halfy = 0.5f / ((float)(maxLensFlareWithOcclusionTemporalSample + mergeNeeded));
 
             int taaValue = taaEnabled ? 1 : 0;
 
-            int occlusionIndex = 0;
-            foreach (LensFlareComponentSRP comp in lensFlares.GetData())
+            foreach (LensFlareCompInfo info in m_Data)
             {
-                if (comp == null)
+                if (info == null || info.comp == null)
                     continue;
 
+                LensFlareComponentSRP comp = info.comp;
                 LensFlareDataSRP data = comp.lensFlareData;
 
                 if (!comp.enabled ||
@@ -450,9 +586,9 @@ namespace UnityEngine.Rendering
                     data == null ||
                     data.elements == null ||
                     data.elements.Length == 0 ||
+                    comp.intensity <= 0.0f ||
                     !comp.useOcclusion ||
-                    (comp.useOcclusion && comp.sampleCount == 0) ||
-                    comp.intensity <= 0.0f)
+                    (comp.useOcclusion && comp.sampleCount == 0))
                     continue;
 
                 Light light = comp.GetComponent<Light>();
@@ -489,6 +625,12 @@ namespace UnityEngine.Rendering
                 }
 
                 Vector3 diffToObject = positionWS - cameraPositionWS;
+                // Check if the light is forward, can be an issue with,
+                // the math associated to Panini projection
+                if (Vector3.Dot(cam.transform.forward, diffToObject) < 0.0f)
+                {
+                    continue;
+                }
                 float distToObject = diffToObject.magnitude;
                 float coefDistSample = distToObject / comp.maxAttenuationDistance;
                 float coefScaleSample = distToObject / comp.maxAttenuationScale;
@@ -505,20 +647,24 @@ namespace UnityEngine.Rendering
 
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
+                SetOcclusionPermutation(cmd,
+                    comp.useBackgroundCloudOcclusion, comp.volumetricCloudOcclusion, hasCloudLayer,
+                    _FlareCloudOpacity, _FlareSunOcclusionTex,
+                    cloudOpacityTexture, sunOcclusionTexture);
                 cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
 
-                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 2.0f * viewportPos.y - 1.0f);
+                if (SystemInfo.graphicsUVStartsAtTop)
+                    screenPos.y = -screenPos.y;
 
                 Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
                 float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
                 float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
-                float currentIntensity = comp.intensity * radialsScaleRadius * distanceAttenuation;
+                float compIntensity = comp.intensity * radialsScaleRadius * distanceAttenuation;
 
-                if (currentIntensity <= 0.0f)
+                if (compIntensity <= 0.0f)
                     continue;
-
-                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4(((float)(occlusionIndex)) * dx + halfx, halfy, 0, frameIdx + 1));
 
                 float globalCos0 = Mathf.Cos(0.0f);
                 float globalSin0 = Mathf.Sin(0.0f);
@@ -535,10 +681,17 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalVector(_FlareData0, flareData0);
                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, 0.0f, 0.0f));
 
-                cmd.SetViewport(new Rect() { x = occlusionIndex, y = (frameIdx + 1 * mergeNeeded) * taaValue, width = 1, height = 1 });
+                Rect rect = new Rect() { x = info.index, y = (frameIdx + mergeNeeded) * taaValue, width = 1, height = 1 };
+                cmd.SetViewport(rect);
 
                 UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, 4);
-                ++occlusionIndex;
+            }
+
+            // Clear the remaining buffer
+            {
+                cmd.SetRenderTarget(occlusionRT);
+                cmd.SetViewport(new Rect() { x = m_Data.Count, y = 0, width = (maxLensFlareWithOcclusion - m_Data.Count), height = (maxLensFlareWithOcclusionTemporalSample + mergeNeeded) });
+                cmd.ClearRenderTarget(false, true, Color.black);
             }
 
             ++frameIdx;
@@ -560,10 +713,17 @@ namespace UnityEngine.Rendering
         /// <param name="cameraPositionWS">Camera World Space position</param>
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
+        /// <param name="_FlareOcclusionRemapTex">ShaderID for the OcclusionRemap</param>
+        /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
+        /// <param name="_FlareSunOcclusionTex">ShaderID for the _FlareSunOcclusionTex</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
         /// <param name="_FlareData0">ShaderID for the FlareData0</param>
@@ -578,9 +738,12 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
             Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
-            int _FlareOcclusionTex, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
+            int _FlareOcclusionRemapTex, int _FlareOcclusionTex, int _FlareOcclusionIndex,
+            int _FlareCloudOpacity, int _FlareSunOcclusionTex,
+            int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
             bool debugView)
         {
             Vector2 vScreenRatio;
@@ -615,12 +778,12 @@ namespace UnityEngine.Rendering
             }
 #endif
 
-            int occlusionIndex = 0;
-            foreach (LensFlareComponentSRP comp in lensFlares.GetData())
+            foreach (LensFlareCompInfo info in m_Data)
             {
-                if (comp == null)
+                if (info == null || info.comp == null)
                     continue;
 
+                LensFlareComponentSRP comp = info.comp;
                 LensFlareDataSRP data = comp.lensFlareData;
 
                 if (!comp.enabled ||
@@ -686,6 +849,18 @@ namespace UnityEngine.Rendering
                         globalColorModulation *= GetLensFlareLightAttenuation(light, cam, -diffToObject.normalized);
                 }
 
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 2.0f * viewportPos.y - 1.0f);
+                if (SystemInfo.graphicsUVStartsAtTop)
+                    screenPos.y = -screenPos.y;
+                Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
+                float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
+                float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
+
+                float compIntensity = comp.intensity * radialsScaleRadius * distanceAttenuation;
+
+                if (compIntensity <= 0.0f)
+                    continue;
+
                 globalColorModulation *= distanceAttenuation;
 
                 Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
@@ -697,22 +872,41 @@ namespace UnityEngine.Rendering
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
-                if (comp.useOcclusion)
+                if (comp.useOcclusion && taaEnabled)
                 {
-                    cmd.EnableShaderKeyword("FLARE_OCCLUSION");
+                    // HDRP Only, have a prepass to resolve occlusion with TAA
+                    if (occlusionRT != null)
+                    {
+                        cmd.EnableShaderKeyword("FLARE_OCCLUSION");
+                        cmd.DisableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
+                    }
+                    // URP compute occlusion on VertexShader
+                    else
+                    {
+                        cmd.DisableShaderKeyword("FLARE_OCCLUSION");
+                        cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
+                    }
+                }
+                else if (comp.useOcclusion && !taaEnabled)
+                {
+                    cmd.DisableShaderKeyword("FLARE_OCCLUSION");
+                    cmd.EnableShaderKeyword("FLARE_MEASURE_OCCLUSION");
+                    SetOcclusionPermutation(cmd,
+                        comp.useBackgroundCloudOcclusion, comp.volumetricCloudOcclusion, hasCloudLayer,
+                        _FlareCloudOpacity, _FlareSunOcclusionTex,
+                        cloudOpacityTexture, sunOcclusionTexture);
                 }
                 else
                 {
                     cmd.DisableShaderKeyword("FLARE_OCCLUSION");
+                    cmd.DisableShaderKeyword("FLARE_MEASURE_OCCLUSION");
                 }
 
-                if (occlusionRT != null)
+                if (taaEnabled && occlusionRT != null)
                     cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
 
-                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)occlusionIndex / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion + 0.5f / (float)LensFlareCommonSRP.maxLensFlareWithOcclusion, 0.5f, 0, 0));
-
-                if (comp.useOcclusion && comp.sampleCount > 0)
-                    ++occlusionIndex;
+                cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)info.index, 0.0f, 0.0f, 0.0f));
+                cmd.SetGlobalTexture(_FlareOcclusionRemapTex, comp.occlusionRemapCurve.GetTexture());
 
                 foreach (LensFlareDataElementSRP element in data.elements)
                 {
@@ -734,12 +928,8 @@ namespace UnityEngine.Rendering
                     }
 
                     Color curColor = colorModulation;
-                    Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
-                    Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
-                    float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
-                    float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
-                    float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
+                    float currentIntensity = element.localIntensity * compIntensity;
 
                     if (currentIntensity <= 0.0f)
                         continue;
@@ -1006,17 +1196,149 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Remove a lens flare data which exist in the pool.
+        /// Effective Job of drawing Lens Flare Screen Space.
         /// </summary>
-        /// <param name="data">The data which exist in the pool</param>
-        public void RemoveData(LensFlareComponentSRP data)
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="bloomTexture">bloom texture used as data for the effect</param>
+        /// <param name="spectralLut">spectralLut used for chromatic aberration effect</param>
+        /// <param name="streakTextureTmp">Texture used for the multiple pass streaks effect</param>
+        /// <param name="streakTextureTmp2">Texture used for the multiple pass streaks effect</param>
+        /// <param name="parameters1">user parameter1 for the effect</param>
+        /// <param name="parameters2">user parameter2 for the effect</param>
+        /// <param name="parameters3">user parameter3 for the effect</param>
+        /// <param name="parameters3">user parameter4 for the effect</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="_BloomTexture">ShaderID for the BloomTexture</param>
+        /// <param name="_LensFlareScreenSpaceSpectralLut">ShaderID for the LensFlareScreenSpaceSpectralLut texture</param>
+        /// <param name="_LensFlareScreenSpaceStreakTex">ShaderID for the LensFlareScreenSpaceFlares streak temp texture</param>
+        /// <param name="_LensFlareScreenSpaceParams1">ShaderID for the LensFlareScreenSpaceParams1</param>
+        /// <param name="_LensFlareScreenSpaceParams2">ShaderID for the LensFlareScreenSpaceParams2</param>
+        /// <param name="_LensFlareScreenSpaceParams3">ShaderID for the LensFlareScreenSpaceParams3</param>
+        /// <param name="_LensFlareScreenSpaceParams4">ShaderID for the LensFlareScreenSpaceParams4</param>
+        /// <param name="debugView">Information if we are in debug mode or not</param>
+        static public void DoLensFlareScreenSpaceCommon(
+            Material lensFlareShader,
+            Camera cam,
+            float actualWidth,
+            float actualHeight,
+            Color tintColor,
+            Texture bloomTexture,
+            Texture spectralLut,
+            Texture streakTextureTmp,
+            Texture streakTextureTmp2,
+            Vector4 parameters1,
+            Vector4 parameters2,
+            Vector4 parameters3,
+            Vector4 parameters4,
+            Vector4 parameters5,
+            Rendering.CommandBuffer cmd,
+            Rendering.RenderTargetIdentifier colorBuffer,
+            int _BloomTexture,
+            int _LensFlareScreenSpaceSpectralLut,
+            int _LensFlareScreenSpaceStreakTex,
+            int _LensFlareScreenSpaceMipLevel,
+            int _LensFlareScreenSpaceTintColor,
+            int _LensFlareScreenSpaceParams1,
+            int _LensFlareScreenSpaceParams2,
+            int _LensFlareScreenSpaceParams3,
+            int _LensFlareScreenSpaceParams4,
+            int _LensFlareScreenSpaceParams5,
+            bool debugView)
         {
-            Debug.Assert(Instance == this, "LensFlareCommonSRP can have only one instance");
+            Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
 
-            if (m_Data.Contains(data))
+            cmd.SetViewport(new Rect() { width = actualWidth, height = actualHeight });
+            if (debugView)
             {
-                m_Data.Remove(data);
+                // Background pitch black to see only the flares
+                cmd.ClearRenderTarget(false, true, Color.black);
             }
+
+#if UNITY_EDITOR
+            if (cam.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "Flare" checkbox is checked for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == cam && !sv.sceneViewState.flaresEnabled)
+                    {
+                        return;
+                    }
+                }
+            }
+#endif
+
+            // Multiple scaleX by aspect ratio so that default 1:1 scale for warped flare stays circular (as in data driven lens flare)
+            parameters5.y *= actualWidth / actualHeight;
+            // This is to make sure the streak length is the same in all resolutions
+            parameters4.y *= actualWidth * 0.0005f;
+
+            int prefilterPass = 0;
+            int downSamplePass = 1;
+            int upSamplePass = 2;
+            int compositionPass = 3;
+
+            // Setting the input textures
+            cmd.SetGlobalTexture(_BloomTexture, bloomTexture);
+            cmd.SetGlobalTexture(_LensFlareScreenSpaceSpectralLut, spectralLut);
+
+            // Setting parameters of the effects
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams1, parameters1);
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams2, parameters2);
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams3, parameters3);
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams4, parameters4);
+            cmd.SetGlobalVector(_LensFlareScreenSpaceParams5, parameters5);
+            cmd.SetGlobalColor(_LensFlareScreenSpaceTintColor, tintColor);
+
+            // We only do the first 3 pass if StreakIntensity (parameters4.x) is set to something above 0 to save costs
+            if (parameters4.x > 0)
+            {
+                // Prefilter
+                Rendering.CoreUtils.SetRenderTarget(cmd, streakTextureTmp);
+                UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, prefilterPass);
+
+                int maxLevel = Mathf.FloorToInt(Mathf.Log(Mathf.Max(actualHeight, actualWidth), 2.0f));
+                int maxLevelDownsample = maxLevel;
+                int maxLevelUpsample = 2;
+                int startIndex = 0;
+                bool even = false;
+
+                // Downsample
+                for (int i = 0; i < maxLevelDownsample; i++)
+                {
+                    even = (i % 2 == 0);
+                    cmd.SetGlobalInt(_LensFlareScreenSpaceMipLevel, i);
+                    cmd.SetGlobalTexture(_LensFlareScreenSpaceStreakTex, even ? streakTextureTmp : streakTextureTmp2);
+                    Rendering.CoreUtils.SetRenderTarget(cmd, even ? streakTextureTmp2 : streakTextureTmp);
+
+                    UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, downSamplePass);
+                }
+
+                //Since we do a ping pong between streakTextureTmp & streakTextureTmp2, we need to know which texture is the last;
+                if (even)
+                    startIndex = 1;
+
+                //Upsample
+                for (int i = startIndex; i < (startIndex + maxLevelUpsample); i++)
+                {
+                    even = (i % 2 == 0);
+                    cmd.SetGlobalInt(_LensFlareScreenSpaceMipLevel, (i - startIndex));
+                    cmd.SetGlobalTexture(_LensFlareScreenSpaceStreakTex, even ? streakTextureTmp : streakTextureTmp2);
+                    Rendering.CoreUtils.SetRenderTarget(cmd, even ? streakTextureTmp2 : streakTextureTmp);
+
+                    UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, upSamplePass);
+                }
+
+                cmd.SetGlobalTexture(_LensFlareScreenSpaceStreakTex, even ? streakTextureTmp2 : streakTextureTmp);
+            }
+
+            //Final Composition (Flares + Streaks)
+            Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
+            UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, compositionPass);
         }
 
         #region Panini Projection

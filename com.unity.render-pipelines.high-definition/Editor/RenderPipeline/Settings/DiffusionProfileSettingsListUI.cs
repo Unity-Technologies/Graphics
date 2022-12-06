@@ -54,9 +54,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_DiffusionProfileList.drawElementCallback = (rect, index, active, focused) =>
             {
+                rect.y += 2;
                 rect.height = EditorGUIUtility.singleLineHeight;
                 drawElement?.Invoke(parameter.GetArrayElementAtIndex(index), rect, index);
             };
+
+            m_DiffusionProfileList.onCanAddCallback = l => l.count < DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1;
 
             m_DiffusionProfileList.onAddCallback = (l) =>
             {

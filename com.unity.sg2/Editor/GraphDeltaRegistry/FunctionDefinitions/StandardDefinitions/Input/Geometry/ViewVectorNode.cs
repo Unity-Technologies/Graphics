@@ -11,20 +11,6 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             functions: new FunctionDescriptor[] {
                 new(
-                    "World",
-@"  Out = CameraPosWS - GetAbsolutePositionWS(PositionWS);
-    if(!IsPerspectiveProjection())
-    {
-        Out = GetViewForwardDir() * dot(Out, GetViewForwardDir());
-    }",
-                    new ParameterDescriptor[]
-                    {
-                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
-                        new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
-                        new ParameterDescriptor("CameraPosWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_CameraPosition)
-                    }
-                ),
-                new(
                     "Object",
 @"  Out = CameraPosWS - GetAbsolutePositionWS(PositionWS);
     if(!IsPerspectiveProjection())
@@ -55,6 +41,20 @@ namespace UnityEditor.ShaderGraph.Defs
                     {
                         new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
                         new ParameterDescriptor("PositionVS", TYPE.Vec3, Usage.Local, REF.ViewSpace_Position)
+                    }
+                ),
+                new(
+                    "World",
+@"  Out = CameraPosWS - GetAbsolutePositionWS(PositionWS);
+    if(!IsPerspectiveProjection())
+    {
+        Out = GetViewForwardDir() * dot(Out, GetViewForwardDir());
+    }",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out),
+                        new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
+                        new ParameterDescriptor("CameraPosWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_CameraPosition)
                     }
                 ),
                 new(
@@ -91,9 +91,9 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "View Vector",
             selectableFunctions: new()
             {
-                { "World", "World" },
                 { "Object", "Object" },
                 { "View", "View" },
+                { "World", "World" },
                 { "Tangent", "Tangent" }
             },
             functionSelectorLabel: "Space",

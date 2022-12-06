@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -113,6 +114,61 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_LightTypeCounters.IsCreated)
                 m_LightTypeCounters.Dispose();
+
+            if (m_VisibleLightsAndIndicesBuffer.IsCreated)
+            {
+                m_VisibleLightsAndIndicesBuffer.Dispose();
+                m_VisibleLightsAndIndicesBuffer = default;
+            }
+
+            if (m_SplitVisibleLightsAndIndicesBuffer.IsCreated)
+            {
+                m_SplitVisibleLightsAndIndicesBuffer.Dispose();
+                m_SplitVisibleLightsAndIndicesBuffer = default;
+            }
+
+            if (m_CachedPointUpdateInfos.IsCreated)
+            {
+                m_CachedPointUpdateInfos.Dispose();
+                m_CachedSpotUpdateInfos.Dispose();
+                m_CachedAreaRectangleUpdateInfos.Dispose();
+                m_CachedDirectionalUpdateInfos.Dispose();
+                m_DynamicPointUpdateInfos.Dispose();
+                m_DynamicSpotUpdateInfos.Dispose();
+                m_DynamicAreaRectangleUpdateInfos.Dispose();
+                m_DynamicDirectionalUpdateInfos.Dispose();
+            }
+
+            if (m_CachedDirectionalAnglesArray.IsCreated)
+            {
+                m_CachedDirectionalAnglesArray.Dispose();
+            }
+
+            if (m_CachedCubeMapFaces.IsCreated)
+            {
+                m_CachedCubeMapFaces.Dispose();
+                m_CachedCubeMapFaces = default;
+            }
+
+            if (m_IsValidIndexScratchpadArray.IsCreated)
+            {
+                m_IsValidIndexScratchpadArray.Dispose();
+                m_IsValidIndexScratchpadArray = default;
+            }
+
+            if (m_ShadowIndicesScratchpadArray.IsCreated)
+            {
+                m_ShadowIndicesScratchpadArray.Dispose();
+                m_ShadowIndicesScratchpadArray = default;
+            }
+
+#if UNITY_EDITOR
+            if (m_ShadowRequestCountsScratchpad.IsCreated)
+            {
+                m_ShadowRequestCountsScratchpad.Dispose();
+                m_ShadowRequestCountsScratchpad = default;
+            }
+#endif
         }
         #endregion
 
@@ -163,6 +219,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private int m_BoundsEyeDataOffset = 0;
 
+        private NativeList<ShadowIndicesAndVisibleLightData> m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
+        private NativeList<ShadowIndicesAndVisibleLightData> m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
+        private NativeBitArray m_IsValidIndexScratchpadArray = new NativeBitArray(256, Allocator.Persistent);
+        private NativeArray<int> m_ShadowIndicesScratchpadArray;
+#if UNITY_EDITOR
+        NativeArray<int> m_ShadowRequestCountsScratchpad;
+#endif
+
+        private NativeArray<Matrix4x4> m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
+
+        private NativeList<ShadowRequestIntermediateUpdateData> m_CachedPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        private NativeList<ShadowRequestIntermediateUpdateData> m_CachedSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        private NativeList<ShadowRequestIntermediateUpdateData> m_CachedAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        private NativeList<ShadowRequestIntermediateUpdateData> m_CachedDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        private NativeList<ShadowRequestIntermediateUpdateData> m_DynamicPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        private NativeList<ShadowRequestIntermediateUpdateData> m_DynamicSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        private NativeList<ShadowRequestIntermediateUpdateData> m_DynamicAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        private NativeList<ShadowRequestIntermediateUpdateData> m_DynamicDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+        private NativeReference<Unity.Mathematics.float3> m_CachedDirectionalAnglesArray = new NativeReference<float3>(Allocator.Persistent);
+
         private void AllocateLightData(int lightCount, int directionalLightCount)
         {
             int requestedLightCount = Math.Max(1, lightCount);
@@ -180,6 +256,84 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DirectionalLights.ResizeArray(m_DirectionalLightCapacity);
             }
             m_DirectionalLightCount = directionalLightCount;
+        }
+
+        private void EnsureScratchpadCapacity(int lightCount)
+        {
+            if (!m_CachedCubeMapFaces.IsCreated)
+            {
+                m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
+            }
+
+#if UNITY_EDITOR
+            if (m_ShadowRequestCountsScratchpad.IsCreated && m_ShadowRequestCountsScratchpad.Length < lightCount)
+            {
+                m_ShadowRequestCountsScratchpad.Dispose();
+                m_ShadowRequestCountsScratchpad = default;
+            }
+
+            if (!m_ShadowRequestCountsScratchpad.IsCreated)
+            {
+                m_ShadowRequestCountsScratchpad = new NativeArray<int>(lightCount, Allocator.Persistent);
+            }
+#endif
+
+            if (m_ShadowIndicesScratchpadArray.IsCreated && m_ShadowIndicesScratchpadArray.Length < lightCount)
+            {
+                m_ShadowIndicesScratchpadArray.Dispose();
+                m_ShadowIndicesScratchpadArray = default;
+            }
+
+            if (!m_ShadowIndicesScratchpadArray.IsCreated)
+            {
+                m_ShadowIndicesScratchpadArray = new NativeArray<int>(lightCount, Allocator.Persistent);
+            }
+
+            if (m_ShadowIndicesScratchpadArray.IsCreated && m_ShadowIndicesScratchpadArray.Length < lightCount)
+            {
+                m_ShadowIndicesScratchpadArray.Dispose();
+                m_ShadowIndicesScratchpadArray = default;
+            }
+
+            if (!m_ShadowIndicesScratchpadArray.IsCreated)
+            {
+                m_ShadowIndicesScratchpadArray = new NativeArray<int>(lightCount, Allocator.Persistent);
+            }
+
+            if (m_IsValidIndexScratchpadArray.IsCreated && m_IsValidIndexScratchpadArray.Length < lightCount)
+            {
+                m_IsValidIndexScratchpadArray.Dispose();
+                m_IsValidIndexScratchpadArray = default;
+            }
+
+            if (!m_IsValidIndexScratchpadArray.IsCreated)
+            {
+                m_IsValidIndexScratchpadArray = new NativeBitArray(lightCount, Allocator.Persistent);
+            }
+
+            if (!m_VisibleLightsAndIndicesBuffer.IsCreated)
+            {
+                m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
+                m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
+                m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
+            }
+
+            if (!m_CachedPointUpdateInfos.IsCreated)
+            {
+                m_CachedPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                m_CachedSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                m_CachedAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                m_CachedDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                m_DynamicPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                m_DynamicSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                m_DynamicAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+                m_DynamicDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
+            }
+
+            if (!m_CachedDirectionalAnglesArray.IsCreated)
+            {
+                m_CachedDirectionalAnglesArray = new NativeReference<float3>(Allocator.Persistent);
+            }
         }
 
         #endregion

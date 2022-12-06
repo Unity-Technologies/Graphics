@@ -28,6 +28,13 @@ float3 EvalBurleyDiffusionProfile(float r, float3 S)
     return (S * rcp(8 * PI)) * expSum; // S / (8 * Pi) * (Exp[-S * r / 3] + Exp[-S * r])
 }
 
+float EvalBurleyDiffusionProfileCdf(float r, float S)
+{
+    float exp_13 = exp2(((LOG2_E * (-1.0 / 3.0)) * r) * S); // Exp[-S * r / 3]
+
+    return 1 - 0.25 * exp_13 * exp_13 * exp_13 - 0.75 * exp_13;
+}
+
 // https://zero-radiance.github.io/post/sampling-diffusion/
 // Performs sampling of a Normalized Burley diffusion profile in polar coordinates.
 // 'u' is the random number (the value of the CDF): [0, 1).
@@ -55,4 +62,12 @@ void SampleBurleyDiffusionProfile(float u, float rcpS, out float r, out float rc
 
     r      = x * rcpS;
     rcpPdf = (8 * PI * rcpS) * rcpExp; // (8 * Pi) / s / (Exp[-s * r / 3] + Exp[-s * r])
+}
+
+void SampleBurleyDiffusionProfileApprox(float u, float rcpS, out float r)
+{
+    u = 1 - u; // Convert CDF to CCDF
+
+    float x = ((2 - 2.5715) * u - 2) * log(1 - u);
+    r = x * rcpS;
 }

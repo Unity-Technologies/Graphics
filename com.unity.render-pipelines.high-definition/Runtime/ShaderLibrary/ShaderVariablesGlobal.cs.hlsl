@@ -7,13 +7,7 @@
 //
 // UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal:  static fields
 //
-#define RENDERING_LIGHT_LAYERS_MASK (255)
-#define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
-#define RENDERING_DECAL_LAYERS_MASK (65280)
-#define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
-#define DEFAULT_RENDERING_LAYER_MASK (257)
-#define DEFAULT_DECAL_LAYERS (255)
-#define MAX_ENV2DLIGHT (32)
+#define RENDERING_LAYERS_MASK (65535)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal
 // PackingRules = Exact
@@ -37,6 +31,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _RTHandleScaleHistory;
     float4 _RTHandlePostProcessScale;
     float4 _RTHandlePostProcessScaleHistory;
+    float4 _DynamicResolutionFullscreenScale;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
     float4 unity_OrthoParams;
@@ -68,7 +63,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _VolumetricFilteringEnabled;
     float2 _HeightFogExponents;
     int _FogDirectionalOnly;
-    float _Pad1;
+    float _FogGIDimmer;
     float4 _VBufferViewportSize;
     float4 _VBufferLightingViewportScale;
     float4 _VBufferLightingViewportLimit;
@@ -83,9 +78,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _AreaShadowAtlasSize;
     float4 _CachedShadowAtlasSize;
     float4 _CachedAreaShadowAtlasSize;
-    float4x4 _Env2DCaptureVP[32];
-    float4 _Env2DCaptureForward[32];
-    float4 _Env2DAtlasScaleOffset[32];
+    int _SpecularFade;
+    uint _EnableRenderingLayers;
+    int _ReflectionsMode;
+    int _UnusedPadding2;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;
@@ -113,7 +109,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _SlopeScaleDepthBias;
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
-    float4 _PlanarAtlasData;
+    float4 _ReflectionAtlasCubeData;
+    float4 _ReflectionAtlasPlanarData;
     uint _NumTileFtplX;
     uint _NumTileFtplY;
     float g_fClustScale;
@@ -129,6 +126,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _ShapeParamsAndMaxScatterDists[16];
     float4 _TransmissionTintsAndFresnel0[16];
     float4 _WorldScalesAndFilterRadiiAndThicknessRemaps[16];
+    float4 _DualLobeAndDiffusePower[16];
     uint4 _DiffusionProfileHashTable[16];
     uint _EnableSubsurfaceScattering;
     uint _TexturingModeFlags;
@@ -150,6 +148,12 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
     float _DeExposureMultiplier;
+    float4 _ScreenSizeOverride;
+    float4 _ScreenCoordScaleBias;
+    uint _EnableComputeThickness;
+    uint _Pad1;
+    uint _Pad2;
+    uint _Pad3;
 CBUFFER_END
 
 

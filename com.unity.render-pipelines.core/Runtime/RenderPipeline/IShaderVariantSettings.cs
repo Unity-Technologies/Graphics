@@ -6,10 +6,15 @@ namespace UnityEngine.Rendering
     public enum ShaderVariantLogLevel
     {
         /// <summary>Disable all log for Shader Variant</summary>
+        [Tooltip("No shader variants are logged")]
         Disabled,
+
         /// <summary>Only logs SRP Shaders when logging Shader Variant</summary>
+        [Tooltip("Only shaders that are compatible with SRPs (e.g., URP, HDRP) are logged")]
         OnlySRPShaders,
+
         /// <summary>Logs all Shader Variant</summary>
+        [Tooltip("All shader variants are logged")]
         AllShaders,
     }
 
@@ -27,5 +32,10 @@ namespace UnityEngine.Rendering
         /// Specifies if the stripping of the shaders variants needs to be exported
         /// </summary>
         bool exportShaderVariants { get; set; }
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        bool stripDebugVariants { get => false; set {} }
     }
 }

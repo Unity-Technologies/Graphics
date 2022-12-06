@@ -49,7 +49,7 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     // No distortion Support
     albedo = MixParticleColor(albedo, half4(particleColor), colorAddSubDiff);
 
-    AlphaDiscard(albedo.a, _Cutoff);
+    albedo.a = AlphaDiscard(albedo.a, _Cutoff);
 
 #if defined(_SOFTPARTICLES_ON)
         ALBEDO_MUL *= SoftParticles(SOFT_PARTICLE_NEAR_FADE, SOFT_PARTICLE_INV_FADE_DISTANCE, projectedPosition);
@@ -73,7 +73,7 @@ half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams
     // No distortion Support
     albedo = MixParticleColor(albedo, half4(params.vertexColor), colorAddSubDiff);
 
-    AlphaDiscard(albedo.a, _Cutoff);
+    albedo.a = AlphaDiscard(albedo.a, _Cutoff);
 
 #if defined(_SOFTPARTICLES_ON)
         ALBEDO_MUL *= SoftParticles(SOFT_PARTICLE_NEAR_FADE, SOFT_PARTICLE_INV_FADE_DISTANCE, params);

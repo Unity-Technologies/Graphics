@@ -9,18 +9,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // We need to set the history as invalid if the directional light has rotated
             float historyValidity = 1.0f;
-            if (additionalLightData.previousTransform.rotation != additionalLightData.transform.localToWorldMatrix.rotation
+            if (hdCamera.shadowHistoryUsage[dirShadowIndex].transform != additionalLightData.transform.localToWorldMatrix
                 || !hdCamera.ValidShadowHistory(additionalLightData, dirShadowIndex, GPULightType.Directional))
                 historyValidity = 0.0f;
 
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
-                historyValidity = 0.0f;
-            else
-#endif
             // We need to check if something invalidated the history buffers
-            historyValidity *= EvaluateHistoryValidity(hdCamera);
-
+            historyValidity *= hdCamera.ActiveRayTracingAccumulation() ? EvaluateHistoryValidity(hdCamera) : 0.0f;
             return historyValidity;
         }
 
@@ -190,6 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Input Buffer
                             ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.directionalShadowSample, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
+                            ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.directionalShadowSample, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
                             ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.directionalShadowSample, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
                             // Output buffer

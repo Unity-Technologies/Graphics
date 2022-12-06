@@ -67,6 +67,10 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "the Sampler State and its corresponding settings to use for the sample"
                 ),
                 new ParameterUIDescriptor(
+                    name: "Offset",
+                    tooltip: "the pixel offset to apply to the sample's UV coordinates"
+                ),
+                new ParameterUIDescriptor(
                     name: "RGBA",
                     tooltip: "the red channels of the 4 neighboring pixels from the specified sample position"
                 ),
@@ -85,10 +89,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "A",
                     tooltip: "the fourth neighboring pixel's red channel"
-                ),
-                new ParameterUIDescriptor(
-                    name: "Offset",
-                    tooltip: "the pixel offset to apply to the sample's UV coordinates"
                 )
             }
         );

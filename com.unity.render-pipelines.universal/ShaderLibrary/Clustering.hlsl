@@ -3,101 +3,80 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
 
-// TODO: Remove after PR #4039 is merged
-// Select uint4 component by index.
-// Helper to improve codegen for 2d indexing (data[x][y])
-// Replace:
-// data[i / 4][i % 4];
-// with:
-// select4(data[i / 4], i % 4);
-uint ClusteringSelect4(uint4 v, uint i)
+// internal
+struct ClusterIterator
 {
-    // x = 0 = 00
-    // y = 1 = 01
-    // z = 2 = 10
-    // w = 3 = 11
-    uint mask0 = uint(int(i << 31) >> 31);
-    uint mask1 = uint(int(i << 30) >> 31);
-    return
-        (((v.w & mask0) | (v.z & ~mask0)) & mask1) |
-        (((v.y & mask0) | (v.x & ~mask0)) & ~mask1);
-}
-
-struct ClusteredLightLoop
-{
-    uint baseIndex;
+    uint tileOffset;
+    uint zBinOffset;
     uint tileMask;
-    uint wordIndex;
-    uint bitIndex;
-    uint zBinMinMask;
-    uint zBinMaxMask;
-#if LIGHTS_PER_TILE > 32
-    uint wordMin;
-    uint wordMax;
-#endif
+    // Stores the next light index in first 16 bits, and the max light index in the last 16 bits.
+    uint entityIndexNextMax;
 };
 
-ClusteredLightLoop ClusteredLightLoopInit(float2 normalizedScreenSpaceUV, float3 positionWS)
+// internal
+ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, int headerIndex)
 {
-    ClusteredLightLoop state = (ClusteredLightLoop)0;
-    uint2 tileId = uint2(normalizedScreenSpaceUV * _AdditionalLightsTileScale);
-    state.baseIndex = (tileId.y * _AdditionalLightsTileCountX + tileId.x) * (LIGHTS_PER_TILE / 32);
+    ClusterIterator state = (ClusterIterator)0;
+
+    uint2 tileId = uint2(normalizedScreenSpaceUV * URP_FP_TILE_SCALE);
+    state.tileOffset = (tileId.y * URP_FP_TILE_COUNT_X + tileId.x) * URP_FP_WORDS_PER_TILE;
+
     float viewZ = dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
-    uint zBinIndex = min(4*MAX_ZBIN_VEC4S - 1, (uint)(sqrt(viewZ) * _AdditionalLightsZBinScale) - _AdditionalLightsZBinOffset);
-    uint zBinData = ClusteringSelect4(asuint(_AdditionalLightsZBins[zBinIndex / 4]), zBinIndex % 4);
-    uint2 zBin = min(uint2(zBinData & 0xFFFF, (zBinData >> 16) & 0xFFFF), MAX_VISIBLE_LIGHTS - 1);
-    uint2 zBinWords = zBin / 32;
-    state.zBinMinMask = 0xFFFFFFFF << (zBin.x & 0x1F);
-    state.zBinMaxMask = 0xFFFFFFFF >> (31 - (zBin.y & 0x1F));
-#if LIGHTS_PER_TILE > 32
-    state.wordMin = zBinWords.x;
-    state.wordMax = zBinWords.y;
-    state.wordIndex = zBinWords.x;
+    uint zBinBaseIndex = min(4*MAX_ZBIN_VEC4S - 1, (uint)(log2(viewZ) * URP_FP_ZBIN_SCALE + URP_FP_ZBIN_OFFSET)) * (2 + URP_FP_WORDS_PER_TILE);
+    uint zBinHeaderIndex = zBinBaseIndex + headerIndex;
+    state.zBinOffset = zBinBaseIndex + 2;
+
+#if MAX_LIGHTS_PER_TILE > 32
+    state.entityIndexNextMax = Select4(asuint(urp_ZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
+#else
+    uint tileIndex = state.tileOffset;
+    uint zBinIndex = state.zBinOffset;
+    if (URP_FP_WORDS_PER_TILE > 0)
+    {
+        state.tileMask =
+            Select4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
+            Select4(asuint(urp_ZBins[zBinIndex / 4]), zBinIndex % 4);
+    }
 #endif
-#if SHADER_TARGET < 45
-    state.bitIndex = zBin.x & 0x1F;
-#endif
+
     return state;
 }
 
-bool ClusteredLightLoopNextWord(inout ClusteredLightLoop state)
+// internal
+bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
 {
-#if LIGHTS_PER_TILE > 32
-    uint wordMin = state.wordMin;
-    uint wordMax = state.wordMax;
+#if MAX_LIGHTS_PER_TILE > 32
+    uint maxIndex = it.entityIndexNextMax >> 16;
+    while (it.tileMask == 0 && (it.entityIndexNextMax & 0xFFFF) <= maxIndex)
+    {
+        // Extract the lower 16 bits and shift by 5 to divide by 32.
+        uint wordIndex = ((it.entityIndexNextMax & 0xFFFF) >> 5);
+        uint tileIndex = it.tileOffset + wordIndex;
+        uint zBinIndex = it.zBinOffset + wordIndex;
+        it.tileMask =
+            Select4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
+            Select4(asuint(urp_ZBins[zBinIndex / 4]), zBinIndex % 4) &
+            // Mask out the beginning and end of the word.
+            (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));
+        // The light index can start at a non-multiple of 32, but the following iterations should always be multiples of 32.
+        // So we add 32 and mask out the lower bits.
+        it.entityIndexNextMax = (it.entityIndexNextMax + 32) & ~31;
+    }
+#endif
+    bool hasNext = it.tileMask != 0;
+    uint bitIndex = FIRST_BIT_LOW(it.tileMask);
+    it.tileMask ^= (1 << bitIndex);
+#if MAX_LIGHTS_PER_TILE > 32
+    // Subtract 32 because it stores the index of the _next_ word to fetch, but we want the current.
+    // The upper 16 bits and bits representing values < 32 are masked out. The latter is due to the fact that it will be
+    // included in what FIRST_BIT_LOW returns.
+    entityIndex = (((it.entityIndexNextMax - 32) & (0xFFFF & ~31))) + bitIndex;
 #else
-    uint wordMin = 0;
-    uint wordMax = 0;
+    entityIndex = bitIndex;
 #endif
-    if (state.wordIndex > wordMax) return false;
-    uint index = state.baseIndex + state.wordIndex;
-    state.tileMask = ClusteringSelect4(asuint(_AdditionalLightsTiles[index / 4]), index % 4);
-    if (state.wordIndex == wordMin) state.tileMask &= state.zBinMinMask;
-    if (state.wordIndex == wordMax) state.tileMask &= state.zBinMaxMask;
-    state.wordIndex++;
-#if SHADER_TARGET < 45
-    state.bitIndex = 0;
-#endif
-    return true;
-}
-
-bool ClusteredLightLoopNextLight(inout ClusteredLightLoop state)
-{
-    if (state.tileMask == 0) return false;
-#if SHADER_TARGET < 45
-    while ((state.tileMask & (1 << state.bitIndex)) == 0) state.bitIndex++;
-#else
-    state.bitIndex = firstbitlow(state.tileMask);
-#endif
-    state.tileMask ^= (1 << state.bitIndex);
-    return true;
-}
-
-uint ClusteredLightLoopGetLightIndex(ClusteredLightLoop state)
-{
-    return _AdditionalLightsDirectionalCount + (state.wordIndex - 1) * 32 + state.bitIndex;
+    return hasNext;
 }
 
 #endif

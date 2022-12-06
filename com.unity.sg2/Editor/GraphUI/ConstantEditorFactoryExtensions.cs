@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return builder.BuildDefaultConstantEditor(constants);
                 }
 
-                return new MatrixConstantPropertyField(constant, owner, builder.CommandTarget, (int)height, builder.Label);
+                return new MatrixConstantPropertyField(constant, owner, builder.CommandTarget, (int)height, null, builder.Label);
             }
 
             switch (owner)

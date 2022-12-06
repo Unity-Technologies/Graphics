@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "BlendFrames", "Blend Frames" }
             },
             functionSelectorLabel: "Mode",
-            parameters: new ParameterUIDescriptor[9] {
+            parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "the input UV coordinates",
@@ -95,6 +95,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Height",
                     tooltip: "the number of vertical tiles in the atlas texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Tile",
+                    tooltip: "index of the current tile where 0 is the first and 1 is the last"
                 ),
                 new ParameterUIDescriptor(
                     name: "InvertX",

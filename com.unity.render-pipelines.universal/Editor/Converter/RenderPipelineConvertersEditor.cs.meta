@@ -8,6 +8,7 @@ MonoImporter:
   - converterEditorAsset: {fileID: 9197481963319205126, guid: c700399f2adb2504dac99f1139d658f3, type: 3}
   - converterListAsset: {fileID: 9197481963319205126, guid: 3893b5ea9974b9549aefa44bd1b99e24, type: 3}
   - converterItem: {fileID: 9197481963319205126, guid: c04b8c76151329e42929df320c5901fe, type: 3}
+  - converterWidgetMainAsset: {fileID: 9197481963319205126, guid: 9b40f22c604c94f438696f75a42873eb, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

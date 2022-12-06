@@ -1,20 +1,20 @@
 # Eye
 
-The Eye Master Stack enables you to render custom physically-based eye materials in the High Definition Render Pipeline (HDRP). It models a two-layer material, in which the first layer describes the cornea and fluids on the surface, and the second layer describes the sclera and the iris, visible through the first layer. It supports various effects, such as cornea refraction, caustics, pupil dilation, limbal darkening, and subsurface scattering.
+Use the Eye Master Stack to render custom physically based eye Material in the High Definition Render Pipeline (HDRP). It models a two-layer material, in which the first layer describes the cornea and fluids on the surface, and the second layer describes the sclera and the iris, visible through the first layer. It supports various effects, such as cornea refraction, caustics, pupil dilation, limbal darkening, and subsurface scattering.
 
 ![](Images/HDRPFeatures-EyeShader.png)
 
 ## Creating an Eye Shader Graph
 
-To create an Eye material in Shader Graph, you can either:
+To create an Eye material in Shader Graph, use one of the following methods:
 
-* Modify an existing Shader Graph.
+* Modify an existing Shader Graph:
     1. Open the Shader Graph in the Shader Editor.
     2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button, and select **HDRP**.
     3. In the **Material** drop-down, select **Eye**.
 
-* Create a new Shader Graph.
-    1. Go to **Assets > Create > Shader Graph > HDRP** and click **Eye Shader Graph**.
+* Create a new Shader Graph:
+    * Go to **Assets > Create > Shader Graph > HDRP** and click **Eye Shader Graph**.
 
 ## Contexts
 
@@ -40,7 +40,7 @@ When you create a new Eye Master Stack, the Vertex Context contains the followin
 
 #### Relevant
 
-Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following locks to the Vertex Context:
+Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add the following Blocks to the Vertex Context:
 
 <table>
 <tr>
@@ -70,7 +70,7 @@ When you create a new Eye Master Stack, the Fragment Context contains the follow
 [!include[](snippets/shader-graph-blocks/normal-tangent-space.md)]
 [!include[](snippets/shader-graph-blocks/bent-normal.md)]
 [!include[](snippets/shader-graph-blocks/smoothness.md)]
-[!include[](snippets/shader-graph-blocks/ior.md)]
+[!include[](snippets/shader-graph-blocks/eye-ior.md)]
 [!include[](snippets/shader-graph-blocks/ambient-occlusion.md)]
 [!include[](snippets/shader-graph-blocks/mask.md)]
 [!include[](snippets/shader-graph-blocks/emission.md)]
@@ -105,6 +105,10 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/specular-aa-threshold.md)]
 [!include[](snippets/shader-graph-blocks/specular-occlusion.md)]
 [!include[](snippets/shader-graph-blocks/subsurface-mask.md)]
+[!include[](snippets/shader-graph-blocks/iris-plane-offset.md)]
+[!include[](snippets/shader-graph-blocks/iris-radius.md)]
+[!include[](snippets/shader-graph-blocks/iris-caustic-intensity-multiplier.md)]
+[!include[](snippets/shader-graph-blocks/iris-caustic-blend.md)]
 </table>
 
 ## Graph Settings

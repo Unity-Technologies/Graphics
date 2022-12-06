@@ -49,21 +49,21 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "Shape" },
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
-                    name: "Width",
-                    tooltip: "polygon width"
-                ),
-                new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "the input UV",
                     options: REF.OptionList.UVs
                 ),
                 new ParameterUIDescriptor(
-                    name: "Height",
-                    tooltip: "polygon height"
-                ),
-                new ParameterUIDescriptor(
                     name: "Sides",
                     tooltip: "amount of sides"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Width",
+                    tooltip: "polygon width"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Height",
+                    tooltip: "polygon height"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",

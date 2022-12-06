@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     "Quality",
             @"
                 folded = (In > 0.5) ? 1 - In : In;
-                curved = pow(folded * 2, (Contrast + 1.0)) / 2;
+                curved = pow(folded * 2, Contrast) / 2;
                 Out = (In > 0.5) ? 1 - curved : curved;
             ",
                     new ParameterDescriptor[]

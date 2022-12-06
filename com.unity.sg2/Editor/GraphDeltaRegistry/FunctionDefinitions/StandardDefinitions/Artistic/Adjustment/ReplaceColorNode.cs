@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "To",
-                    tooltip: "color to replace",
+                    tooltip: "color to replace with",
                     useColor:true
                 ),
                 new ParameterUIDescriptor(

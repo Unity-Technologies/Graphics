@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SetupLayersMappingKeywords(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
                 : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
-            BaseLitAPI.SetupStencil(material, receiveSSR, materialId == MaterialId.LitSSS);
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, materialId == MaterialId.LitSSS);
 
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
@@ -138,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
 
                 CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP" + i, material.GetTexture(kSubsurfaceMaskMap + i));
+                CoreUtils.SetKeyword(material, "_TRANSMISSION_MASK_MAP" + i, material.GetTexture(kTransmissionMaskMap + i));
                 CoreUtils.SetKeyword(material, "_THICKNESSMAP" + i, material.GetTexture(kThicknessMap + i));
             }
 

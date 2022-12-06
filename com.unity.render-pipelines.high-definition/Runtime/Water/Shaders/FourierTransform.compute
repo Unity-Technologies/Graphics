@@ -1,0 +1,123 @@
+// From "Fast Fourier Transform for Image Processing in DirectX* 11" Jospeh S.
+//--------------------------------------------------------------------------------------
+// Copyright 2014 Intel Corporation
+// All Rights Reserved
+//
+// Permission is granted to use, copy, distribute and prepare derivative works of this
+// software for any purpose and without fee, provided, that the above copyright notice
+// and this statement appear in all copies.  Intel makes no representations about the
+// suitability of this software for any purpose.  THIS SOFTWARE IS PROVIDED "AS IS."
+// INTEL SPECIFICALLY DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, AND ALL LIABILITY,
+// INCLUDING CONSEQUENTIAL AND OTHER INDIRECT DAMAGES, FOR THE USE OF THIS SOFTWARE,
+// INCLUDING LIABILITY FOR INFRINGEMENT OF ANY PROPRIETARY RIGHTS, AND INCLUDING THE
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  Intel does not
+// assume any responsibility for any errors which may appear in this software nor any
+// responsibility to update it.
+//--------------------------------------------------------------------------------------
+
+// Generic Graphics includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+// The set of possible kernels
+#pragma kernel RowPassTi_256            FFT_PASS_TI=RowPassTi_256 FFT_RESOLUTION=256 BUTTERFLY_COUNT=8 COMPENSATION_FACTOR=1.0
+#pragma kernel ColPassTi_256            FFT_PASS_TI=ColPassTi_256 COLUMN_PASS FFT_RESOLUTION=256 BUTTERFLY_COUNT=8 COMPENSATION_FACTOR=1.0
+#pragma kernel RowPassTi_128            FFT_PASS_TI=RowPassTi_128 FFT_RESOLUTION=128 BUTTERFLY_COUNT=7 COMPENSATION_FACTOR=0.5
+#pragma kernel ColPassTi_128            FFT_PASS_TI=ColPassTi_128 COLUMN_PASS FFT_RESOLUTION=128 BUTTERFLY_COUNT=7 COMPENSATION_FACTOR=0.5
+#pragma kernel RowPassTi_64             FFT_PASS_TI=RowPassTi_64 FFT_RESOLUTION=64 BUTTERFLY_COUNT=6 COMPENSATION_FACTOR=0.25
+#pragma kernel ColPassTi_64             FFT_PASS_TI=ColPassTi_64 COLUMN_PASS FFT_RESOLUTION=64 BUTTERFLY_COUNT=6 COMPENSATION_FACTOR=0.25
+
+// Input and output textures
+Texture2DArray<float4> _FFTRealBuffer;
+Texture2DArray<float4> _FFTImaginaryBuffer;
+RWTexture2DArray<float4> _FFTRealBufferRW;
+RWTexture2DArray<float4> _FFTImaginaryBufferRW;
+
+// SLM used to avoid having multiple dispatches per dimension
+groupshared float3 pingPongArray[4][FFT_RESOLUTION];
+
+// Unfortunately this breaks on vulkan, so I am doing it manually.
+uint2 reversebits_uint2(const uint2 input)
+{
+    uint2 x = input;
+    x = (((x & 0xaaaaaaaa) >> 1) | ((x & 0x55555555) << 1));
+    x = (((x & 0xcccccccc) >> 2) | ((x & 0x33333333) << 2));
+    x = (((x & 0xf0f0f0f0) >> 4) | ((x & 0x0f0f0f0f) << 4));
+    x = (((x & 0xff00ff00) >> 8) | ((x & 0x00ff00ff) << 8));
+    return((x >> 16) | (x << 16));
+}
+
+void GetButterflyValues(uint passIndex, uint x, out uint2 indices, out float2 weights)
+{
+    uint sectionWidth = 2 << passIndex;
+    uint halfSectionWidth = sectionWidth / 2;
+
+    uint sectionStartOffset = x & ~(sectionWidth - 1);
+    uint halfSectionOffset = x & (halfSectionWidth - 1);
+    uint sectionOffset = x & (sectionWidth - 1);
+
+    sincos(TWO_PI * sectionOffset / (float)sectionWidth, weights.y, weights.x);
+    weights.y = -weights.y;
+
+    indices.x = sectionStartOffset + halfSectionOffset;
+    indices.y = sectionStartOffset + halfSectionOffset + halfSectionWidth;
+
+    if (passIndex == 0)
+        indices = reversebits_uint2(indices.xy) >> (32 - BUTTERFLY_COUNT) & (FFT_RESOLUTION - 1);
+}
+
+void ButterflyPass(int passIndex, uint x, uint t0, uint t1, out float3 resultR, out float3 resultI)
+{
+    uint2 indices;
+    float2 weights;
+    GetButterflyValues(passIndex, x, indices, weights);
+
+    float3 inputR1 = pingPongArray[t0][indices.x];
+    float3 inputI1 = pingPongArray[t1][indices.x];
+
+    float3 inputR2 = pingPongArray[t0][indices.y];
+    float3 inputI2 = pingPongArray[t1][indices.y];
+
+    resultR = (inputR1 + weights.x * inputR2 + weights.y * inputI2);
+    resultI = (inputI1 - weights.y * inputR2 + weights.x * inputI2);
+}
+
+[numthreads(FFT_RESOLUTION, 1, 1)]
+void FFT_PASS_TI(uint3 id : SV_DispatchThreadID)
+{
+    uint3 position = id;
+
+    #ifdef COLUMN_PASS
+        uint2 texturePos = uint2(position.yx);
+    #else
+        uint2 texturePos = uint2(position.xy);
+    #endif
+
+    // Load entire row or column into scratch array
+    pingPongArray[0][position.x].xyz = LOAD_TEXTURE2D_ARRAY(_FFTRealBuffer, texturePos, id.z).xyz;
+    pingPongArray[1][position.x].xyz = LOAD_TEXTURE2D_ARRAY(_FFTImaginaryBuffer, texturePos, id.z).xyz;
+
+    uint4 textureIndices = uint4(0, 1, 2, 3);
+    for (int i = 0; i < BUTTERFLY_COUNT - 1; i++)
+    {
+        GroupMemoryBarrierWithGroupSync();
+        ButterflyPass(i, position.x, textureIndices.x, textureIndices.y, pingPongArray[textureIndices.z][position.x].xyz, pingPongArray[textureIndices.w][position.x].xyz);
+        textureIndices.xyzw = textureIndices.zwxy;
+    }
+
+    // Final butterfly will write directly to the target texture
+    GroupMemoryBarrierWithGroupSync();
+
+    // The final pass writes to the output UAV texture
+    float3 realValue = 0.0;
+    float3 imaginaryValue = 0.0;
+    ButterflyPass(BUTTERFLY_COUNT - 1, position.x, textureIndices.x, textureIndices.y, realValue, imaginaryValue);
+#if defined(COLUMN_PASS)
+    float sign_correction_and_normalization = ((position.x + position.y) & 0x01) ? -1.0 : 1.0;
+    _FFTRealBufferRW[int3(texturePos, id.z)] = float4(realValue * sign_correction_and_normalization, 0.0);
+#else
+    _FFTRealBufferRW[int3(texturePos, id.z)] = float4(realValue, 0.0);
+    _FFTImaginaryBufferRW[int3(texturePos, id.z)] = float4(imaginaryValue, 0.0);
+#endif
+}

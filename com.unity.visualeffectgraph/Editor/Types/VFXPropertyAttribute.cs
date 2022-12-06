@@ -4,8 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
-using UnityEngine.UIElements;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
@@ -31,6 +29,20 @@ namespace UnityEditor.VFX
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     sealed class AngleAttribute : PropertyAttribute
     {
+    }
+
+    // Attribute to setup logarithmic sliders
+    [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    sealed class LogarithmicAttribute : PropertyAttribute
+    {
+        public LogarithmicAttribute(float @base, bool snap)
+        {
+            logBase = @base;
+            snapToPower = snap;
+        }
+
+        public float logBase { get; } = 10;
+        public bool snapToPower { get; } = false;
     }
 
     // Attribute used to constrain a property to a Regex query
@@ -59,6 +71,7 @@ namespace UnityEditor.VFX
             BitField = 1 << 8,
             Enum = GraphAttribute | 1 << 9,
             MinMax = GraphAttribute | 1 << 10,
+            Logarithmic = GraphAttribute | 1 << 11,
 
             // Tells whether this attribute modifies the expression graph
             GraphAttribute = 1 << 31,
@@ -75,8 +88,9 @@ namespace UnityEditor.VFX
             { typeof(RegexAttribute),       Type.Regex },
             { typeof(DelayedAttribute),     Type.Delayed },
             { typeof(BitFieldAttribute),    Type.BitField },
-            { typeof(EnumAttribute),    Type.Enum },
-            { typeof(MinMaxAttribute), Type.MinMax},
+            { typeof(EnumAttribute),        Type.Enum },
+            { typeof(MinMaxAttribute),      Type.MinMax},
+            { typeof(LogarithmicAttribute), Type.Logarithmic},
         };
 
         public VFXPropertyAttributes(params object[] attributes) : this()
@@ -182,6 +196,11 @@ namespace UnityEditor.VFX
                 {
                     exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant(minMaxAttribute.min), VFXValue.Constant(minMaxAttribute.max));
                 }
+                else if (attribute is LogarithmicAttribute logarithmicAttribute)
+                {
+                    if (logarithmicAttribute.snapToPower)
+                        exp = VFXOperatorUtility.SnapToClosestPowerOfBase(exp, VFXValue.Constant(logarithmicAttribute.logBase));
+                }
                 else
                     throw new NotImplementedException("Unrecognized expression attribute: " + attribute);
             }
@@ -231,6 +250,27 @@ namespace UnityEditor.VFX
             }
 
             return Vector2.zero;
+        }
+
+        public float FindLogarithmicBase()
+        {
+            if (Is(Type.Logarithmic))
+            {
+                var attribute = m_AllAttributes.OfType<LogarithmicAttribute>().Single();
+                return attribute.logBase;
+            }
+
+            return -1f;
+        }
+        public bool FindSnapToPower()
+        {
+            if (Is(Type.Logarithmic))
+            {
+                var attribute = m_AllAttributes.OfType<LogarithmicAttribute>().Single();
+                return attribute.snapToPower;
+            }
+
+            return false;
         }
 
         public string[] FindEnum()

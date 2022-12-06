@@ -32,9 +32,7 @@ Height = ScreenParams.y;",
                 ),
                 new ParameterUIDescriptor(
                     name: "Height",
-                    options: REF.OptionList.Normals,
                     tooltip: "Screen's height in pixels."
-
                 )
             }
         );

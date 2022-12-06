@@ -1,12 +1,14 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Sky/Volumetric Clouds", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Volumetric-Clouds")]
+    [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Volumetric-Clouds")]
     public sealed partial class VolumetricClouds : VolumeComponent
     {
         /// <summary>
@@ -34,6 +36,31 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
             public CloudControlParameter(CloudControl value, bool overrideState = false) : base(value, overrideState) { }
+        }
+
+        /// <summary>
+        /// Controls the quality level for the simple mode.
+        /// </summary>
+        public enum CloudSimpleMode
+        {
+            /// <summary>Control the volumetric clouds with a set of presets and very few parameters (performance mode).</summary>
+            Performance,
+            /// <summary>Control the volumetric clouds with a set of presets and very few parameters (quality mode).</summary>
+            Quality
+        }
+
+        /// <summary>
+        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudSimpleMode"/> value.
+        /// </summary>
+        [Serializable]
+        public sealed class CloudSimpleModeParameter : VolumeParameter<CloudSimpleMode>
+        {
+            /// <summary>
+            /// Creates a new <see cref="CloudSimpleModeParameter"/> instance.
+            /// </summary>
+            /// <param name="value">The initial value to store in the parameter.</param>
+            /// <param name="overrideState">The initial override state for the parameter.</param>
+            public CloudSimpleModeParameter(CloudSimpleMode value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -184,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Enable/Disable the volumetric clouds effect.
         /// </summary>
         [Tooltip("Enable/Disable the volumetric clouds effect.")]
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// When enabled, clouds are part of the scene and you can interact with them. This means you can move around and inside the clouds, they can appear between the Camera and other GameObjects, and the Camera's clipping planes affect the clouds. When disabled, the clouds are part of the skybox. This means the clouds and their shadows appear relative to the Camera and always appear behind geometry.
@@ -214,13 +241,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the altitude of the bottom of the volumetric clouds volume in meters.
         /// </summary>
         [Tooltip("Controls the altitude of the bottom of the volumetric clouds volume in meters.")]
-        public MinFloatParameter lowestCloudAltitude = new MinFloatParameter(1000.0f, 0.01f);
+        public MinFloatParameter bottomAltitude = new MinFloatParameter(1200.0f, 0.01f);
 
         /// <summary>
-        /// Controls the thickness of the volumetric clouds volume in meters.
+        /// Controls the size of the volumetric clouds volume in meters.
         /// </summary>
-        [Tooltip("Controls the thickness of the volumetric clouds volume in meters.")]
-        public MinFloatParameter cloudThickness = new MinFloatParameter(8000.0f, 100.0f);
+        [Tooltip("Controls the size of the volumetric clouds volume in meters.")]
+        public MinFloatParameter altitudeRange = new MinFloatParameter(2000.0f, 100.0f);
 
         /// <summary>
         /// Controls the mode in which the clouds fade in when close to the camera's near plane.
@@ -256,13 +283,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the cloud map - Coverage (R), Rain (G), Type (B).
         /// </summary>
         [Tooltip("Specifies the cloud map - Coverage (R), Rain (G), Type (B).")]
-        public TextureParameter cloudMap = new TextureParameter(null);
+        public TextureParameter cloudMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Specifies the lookup table for the clouds - Profile Coverage (R), Erosion (G), Ambient Occlusion (B).
         /// </summary>
         [Tooltip("Specifies the lookup table for the clouds - Profile Coverage (R), Erosion (G), Ambient Occlusion (B).")]
-        public TextureParameter cloudLut = new TextureParameter(null);
+        public TextureParameter cloudLut = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Specifies the cloud control Mode: Simple, Advanced or Manual.
@@ -271,16 +298,33 @@ namespace UnityEngine.Rendering.HighDefinition
         public CloudControlParameter cloudControl = new CloudControlParameter(CloudControl.Simple);
 
         /// <summary>
+        /// Specifies the quality mode used to render the volumetric clouds.
+        /// </summary>
+        public CloudSimpleModeParameter cloudSimpleMode = new CloudSimpleModeParameter(CloudSimpleMode.Performance);
+
+        /// <summary>
         /// Specifies the weather preset in Simple mode.
         /// </summary>
-        [Tooltip("Specifies the weather preset in Simple mode.")]
-        public CloudPresetsParameter cloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
+        public CloudPresets cloudPreset
+        {
+            get
+            {
+                return m_CloudPreset.value;
+            }
+            set
+            {
+                m_CloudPreset.value = value;
+                ApplyCurrentCloudPreset();
+            }
+        }
+        [SerializeField, FormerlySerializedAs("cloudPreset")]
+        private CloudPresetsParameter m_CloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
 
         /// <summary>
         /// Specifies the lower cloud layer distribution in the advanced mode.
         /// </summary>
         [Tooltip("Specifies the lower cloud layer distribution in the advanced mode.")]
-        public TextureParameter cumulusMap = new TextureParameter(null);
+        public TextureParameter cumulusMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Overrides the coverage of the lower cloud layer specified in the cumulus map in the advanced mode.
@@ -292,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the higher cloud layer distribution in the advanced mode.
         /// </summary>
         [Tooltip("Specifies the higher cloud layer distribution in the advanced mode.")]
-        public TextureParameter altoStratusMap = new TextureParameter(null);
+        public TextureParameter altoStratusMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Overrides the coverage of the higher cloud layer specified in the alto stratus map in the advanced mode.
@@ -304,7 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the anvil shaped clouds distribution in the advanced mode.
         /// </summary>
         [Tooltip("Specifies the anvil shaped clouds distribution in the advanced mode.")]
-        public TextureParameter cumulonimbusMap = new TextureParameter(null);
+        public TextureParameter cumulonimbusMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Overrides the coverage of the anvil shaped clouds specified in the cumulonimbus map in the advanced mode.
@@ -316,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the rain distribution in the advanced mode.
         /// </summary>
         [Tooltip("Specifies the rain distribution in the advanced mode.")]
-        public TextureParameter rainMap = new TextureParameter(null);
+        public TextureParameter rainMap = new TextureParameter(null, TextureDimension.Tex2D);
 
         /// <summary>
         /// Specifies the internal texture resolution used for the cloud map in the advanced mode. A lower value will lead to higher performance, but less precise cloud type transitions.
@@ -328,19 +372,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customDensityCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.2f, 1.0f), new Keyframe(0.5f, 0.7f), new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.0f)), false);
+        public AnimationCurveParameter densityCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.15f, 1.0f), new Keyframe(1.0f, 0.1f)), false);
 
         /// <summary>
         /// Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customErosionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0.9f), new Keyframe(0.2f, 1.0f), new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.9f)), false);
+        public AnimationCurveParameter erosionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f)), false);
 
         /// <summary>
         /// Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customAmbientOcclusionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0f, 0f), new Keyframe(1.0f, 0.0f)), false);
+        public AnimationCurveParameter ambientOcclusionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.4f), new Keyframe(1.0f, 0.0f)), false);
 
         /// <summary>
         /// Specifies the tint of the cloud scattering color.
@@ -366,19 +410,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the global density of the cloud volume.
         /// </summary>
         [Tooltip("Controls the global density of the cloud volume.")]
-        public ClampedFloatParameter densityMultiplier = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
+        public ClampedFloatParameter densityMultiplier = new ClampedFloatParameter(0.4f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the larger noise passing through the cloud coverage. A higher value will yield less cloud coverage and smaller clouds.
         /// </summary>
         [Tooltip("Controls the larger noise passing through the cloud coverage. A higher value will yield less cloud coverage and smaller clouds.")]
-        public ClampedFloatParameter shapeFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
+        public ClampedFloatParameter shapeFactor = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the size of the larger noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the size of the larger noise passing through the cloud coverage.")]
-        public MinFloatParameter shapeScale = new MinFloatParameter(2.5f, 0.1f);
+        public MinFloatParameter shapeScale = new MinFloatParameter(5.0f, 0.1f);
 
         /// <summary>
         /// Controls the world space offset applied when evaluating the larger noise passing through the cloud coverage.
@@ -390,13 +434,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.
         /// </summary>
         [Tooltip("Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.")]
-        public ClampedFloatParameter erosionFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public ClampedFloatParameter erosionFactor = new ClampedFloatParameter(0.8f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the size of the smaller noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the size of the smaller noise passing through the cloud coverage.")]
-        public MinFloatParameter erosionScale = new MinFloatParameter(50.0f, 1.0f);
+        public MinFloatParameter erosionScale = new MinFloatParameter(107.0f, 1.0f);
 
         /// <summary>
         /// Controls the type of noise used to generate the smaller noise passing through the cloud coverage.
@@ -404,6 +448,24 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the type of noise used to generate the smaller noise passing through the cloud coverage.")]
         [AdditionalProperty]
         public CloudErosionNoiseParameter erosionNoiseType = new CloudErosionNoiseParameter(CloudErosionNoise.Perlin32);
+
+        /// <summary>
+        /// When enabled, an additional noise should be evaluated for the clouds in the advanced and manual modes. This increases signficantly the cost of the volumetric clouds.
+        /// </summary>
+        [Tooltip("When enabled, an additional noise should be evaluated for the clouds in the advanced and manual modes. This increases signficantly the cost of the volumetric clouds.")]
+        public BoolParameter microErosion = new BoolParameter(false);
+
+        /// <summary>
+        /// Controls the smallest noise on the edge of the clouds. A higher value will erode clouds more.
+        /// </summary>
+        [Tooltip("Controls the smallest noise on the edge of the clouds. A higher value will erode clouds more.")]
+        public ClampedFloatParameter microErosionFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the size of the smaller noise passing through the cloud coverage.
+        /// </summary>
+        [Tooltip("Controls the size of the smaller noise passing through the cloud coverage.")]
+        public MinFloatParameter microErosionScale = new MinFloatParameter(200.0f, 0.1f);
 
         /// <summary>
         /// Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.
@@ -441,7 +503,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [AdditionalProperty]
         [Tooltip("Controls the intensity of the wind-based altitude distortion of the clouds.")]
-        public ClampedFloatParameter altitudeDistortion = new ClampedFloatParameter(0.5f, -1.0f, 1.0f);
+        public ClampedFloatParameter altitudeDistortion = new ClampedFloatParameter(0.25f, -1.0f, 1.0f);
 
         /// <summary>
         /// Controls the multiplier to the speed of the cloud map.
@@ -491,6 +553,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter ghostingReduction = new BoolParameter(false);
 
         /// <summary>
+        /// Specifies the strength of the perceptual blending for the volumetric clouds. This value should be treated as flag and only be set to 0.0 or 1.0.
+        /// </summary>
+        [Tooltip("Specifies the strength of the perceptual blending for the volumetric clouds. This value should be treated as flag and only be set to 0.0 or 1.0.")]
+        public ClampedFloatParameter perceptualBlending = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).
         /// </summary>
         [Tooltip("Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).")]
@@ -528,6 +596,140 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the shadow opacity when outside the area covered by the volumetric clouds shadow.")]
         [AdditionalProperty]
         public ClampedFloatParameter shadowOpacityFallback = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
+
+        void ApplyCurrentCloudPreset()
+        {
+            // Apply the currently set preset
+            bool microDetails = cloudSimpleMode == CloudSimpleMode.Quality;
+            switch (cloudPreset)
+            {
+                case VolumetricClouds.CloudPresets.Sparse:
+                {
+                    densityMultiplier.value = 0.4f;
+                    if (microDetails)
+                    {
+                        shapeFactor.value = 0.925f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.85f;
+                        erosionScale.value = 75.0f;
+                        microErosionFactor.value = 0.65f;
+                        microErosionScale.value = 300.0f;
+                    }
+                    else
+                    {
+                        shapeFactor.value = 0.95f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.8f;
+                        erosionScale.value = 107.0f;
+                    }
+
+                    // Curves
+                    densityCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.75f, 1.0f), new Keyframe(1.0f, 0.0f));
+                    erosionCurve.value = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    ambientOcclusionCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.5f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    bottomAltitude.value = 3000.0f;
+                    altitudeRange.value = 1000.0f;
+                }
+                break;
+                case VolumetricClouds.CloudPresets.Cloudy:
+                {
+                    densityMultiplier.value = 0.4f;
+
+                    if (microDetails)
+                    {
+                        shapeFactor.value = 0.875f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.9f;
+                        erosionScale.value = 75.0f;
+                        microErosionFactor.value = 0.65f;
+                        microErosionScale.value = 300.0f;
+                    }
+                    else
+                    {
+                        shapeFactor.value = 0.9f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.8f;
+                        erosionScale.value = 107.0f;
+                    }
+
+                    // Curves
+                    densityCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.15f, 1.0f), new Keyframe(1.0f, 0.1f));
+                    erosionCurve.value = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    ambientOcclusionCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.4f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    bottomAltitude.value = 1200.0f;
+                    altitudeRange.value = 2000.0f;
+                }
+                break;
+                case VolumetricClouds.CloudPresets.Overcast:
+                {
+                    densityMultiplier.value = 0.3f;
+
+                    if (microDetails)
+                    {
+                        shapeFactor.value = 0.45f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.7f;
+                        erosionScale.value = 75.0f;
+                        microErosionFactor.value = 0.5f;
+                        microErosionScale.value = 300.0f;
+                    }
+                    else
+                    {
+                        shapeFactor.value = 0.5f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.5f;
+                        erosionScale.value = 107.0f;
+                    }
+
+                    // Curves
+                    densityCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.9f, 0.0f), new Keyframe(1.0f, 0.0f));
+                    erosionCurve.value = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    ambientOcclusionCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    bottomAltitude.value = 1500.0f;
+                    altitudeRange.value = 2500.0f;
+                }
+                break;
+                case VolumetricClouds.CloudPresets.Stormy:
+                {
+                    densityMultiplier.value = 0.35f;
+
+                    if (microDetails)
+                    {
+                        shapeFactor.value = 0.825f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.9f;
+                        erosionScale.value = 75.0f;
+                        microErosionFactor.value = 0.6f;
+                        microErosionScale.value = 300.0f;
+                    }
+                    else
+                    {
+                        shapeFactor.value = 0.85f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.75f;
+                        erosionScale.value = 107.0f;
+                    }
+
+                    // Curves
+                    densityCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.037f, 1.0f), new Keyframe(0.6f, 1.0f), new Keyframe(1.0f, 0.0f));
+                    erosionCurve.value = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.05f, 0.8f), new Keyframe(0.2438f, 0.9498f), new Keyframe(0.5f, 1.0f), new Keyframe(0.93f, 0.9268f), new Keyframe(1.0f, 1.0f));
+                    ambientOcclusionCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.1f, 0.4f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    bottomAltitude.value = 1000.0f;
+                    altitudeRange.value = 5000.0f;
+                }
+                break;
+                default:
+                    break;
+            }
+        }
 
         VolumetricClouds()
         {

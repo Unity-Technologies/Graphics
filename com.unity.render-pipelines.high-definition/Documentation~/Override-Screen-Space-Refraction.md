@@ -7,8 +7,7 @@ The **Screen Space Refraction** (SSR) override is a High Definition Render Pipel
 HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and modify SSR properties, you must add a **Screen Space Refraction** override to a [Volume](Volumes.md) in your Scene. To add **Screen Space Refraction** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Lighting** and click **Screen Space Refraction**.
-   HDRP now calculates SSR for any Camera this Volume affects.
+2. In the Inspector, go to **Add Override** > **Lighting** and select **Screen Space Refraction**.
 
 [!include[](snippets/volume-override-api.md)]
 

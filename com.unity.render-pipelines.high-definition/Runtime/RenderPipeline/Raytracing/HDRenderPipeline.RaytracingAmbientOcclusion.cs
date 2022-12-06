@@ -17,10 +17,21 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RTAOApplyIntensityKernel = m_GlobalSettings.renderPipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
         }
 
-        float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, AmbientOcclusion ssoSettings)
+        private float EvaluateRayTracedAmbientOcclusionHistoryValidity(HDCamera hdCamera)
         {
-            float remappedRayLength = (Mathf.Clamp(ssoSettings.rayLength, 1.25f, 1.5f) - 1.25f) / 0.25f;
-            return Mathf.Lerp(0.0f, 1.0f, 1.0f - remappedRayLength);
+            // Evaluate the history validity
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedAmbientOcclusion, (int)HDCamera.HistoryEffectFlags.RayTraced) ? 1.0f : 0.0f;
+            return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
+        }
+
+        private void PropagateRayTracedAmbientOcclusionHistoryValidity(HDCamera hdCamera)
+        {
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedAmbientOcclusion, (int)HDCamera.HistoryEffectFlags.RayTraced);
+        }
+
+        float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, ScreenSpaceAmbientOcclusion ssoSettings)
+        {
+            return ssoSettings.specularOcclusion.value;
         }
 
         static RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
@@ -34,8 +45,6 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidationBuffer,
             TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
-            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
-
             // Trace the signal
             var traceResult = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
 
@@ -87,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 builder.EnableAsyncCompute(false);
 
-                var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+                var aoSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
 
                 // Camera data
                 passData.actualWidth = hdCamera.actualWidth;
@@ -132,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Set the data for the ray generation
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, data.depthBuffer, RenderTextureSubElement.Stencil);
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
                         // Inject the ray-tracing sampling data
@@ -154,14 +164,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle DenoiseAO(RenderGraph renderGraph, HDCamera hdCamera, TraceAmbientOcclusionResult traceAOResult, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer)
         {
-            var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            var aoSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
             if (aoSettings.denoise)
             {
                 // Evaluate the history's validity
-                float historyValidity = EvaluateHistoryValidity(hdCamera);
+                float historyValidity = EvaluateRayTracedAmbientOcclusionHistoryValidity(hdCamera);
 
                 // Run the temporal denoiser
-                TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(hdCamera));
+                TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(renderGraph, hdCamera));
                 HDTemporalFilter.TemporalFilterParameters filterParams;
                 filterParams.singleChannel = true;
                 filterParams.historyValidity = historyValidity;
@@ -182,7 +192,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ddParams.halfResolutionFilter = false;
                 ddParams.jitterFilter = false;
                 ddParams.fullResolutionInput = true;
-                return diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
+                TextureHandle result = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
+                PropagateRayTracedAmbientOcclusionHistoryValidity(hdCamera);
+                return result;
             }
             else
                 return traceAOResult.signalBuffer;
@@ -213,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(false);
 
-                var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+                var aoSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
 
                 passData.intensity = aoSettings.intensity.value;
                 passData.actualWidth = hdCamera.actualWidth;
@@ -240,11 +252,35 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static RTHandle RequestAmbientOcclusionHistoryTexture(HDCamera hdCamera)
+        class ClearRTAOHistoryData
         {
-            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion,
-                AmbientOcclusionHistoryBufferAllocatorFunction, 1);
+            public TextureHandle aoTexture;
+        }
+
+        static RTHandle RequestAmbientOcclusionHistoryTexture(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            var aoHistoryTex = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion);
+            if (aoHistoryTex == null)
+            {
+                var newHistoryTexture = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
+                using (var builder = renderGraph.AddRenderPass<ClearRTAOHistoryData>("Clearing the AO History Texture", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingClearHistoryAmbientOcclusion)))
+                {
+                    builder.EnableAsyncCompute(false);
+                    passData.aoTexture = builder.ReadWriteTexture(renderGraph.ImportTexture(newHistoryTexture));
+
+                    builder.SetRenderFunc(
+                        (ClearRTAOHistoryData data, RenderGraphContext ctx) =>
+                        {
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.aoTexture, clearFlag: ClearFlag.Color, Color.black);
+                        });
+
+                    return newHistoryTexture;
+                }
+            }
+            else
+            {
+                return aoHistoryTex;
+            }
         }
     }
 }

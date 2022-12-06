@@ -16,6 +16,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_AllowMaterialOverride;
 
         [SerializeField]
+        SurfaceType m_SurfaceType;
+
+        [SerializeField]
         AlphaMode m_AlphaMode;
 
         [SerializeField]
@@ -31,6 +34,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_AllowMaterialOverride;
             set => m_AllowMaterialOverride = value;
+        }
+        public SurfaceType surfaceType
+        {
+            get => m_SurfaceType;
+            set => m_SurfaceType = value;
         }
 
         public AlphaMode alphaMode

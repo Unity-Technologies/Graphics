@@ -1,42 +1,26 @@
 #ifndef UNITY_TEXTURE_INCLUDED
 #define UNITY_TEXTURE_INCLUDED
 
-#ifdef SHADER_API_GLES
-    #define UNITY_BARE_SAMPLER(n) GLES2UnsupportedSamplerState n
-#else
-    #define UNITY_BARE_SAMPLER(n) SAMPLER(n)
-#endif
-
-struct GLES2UnsupportedSamplerState
-{
-};
-
-UNITY_BARE_SAMPLER(default_sampler_Linear_Repeat);
+SAMPLER(default_sampler_Linear_Repeat);
 
 struct UnitySamplerState
 {
-    UNITY_BARE_SAMPLER(samplerstate);
+    SAMPLER(samplerstate);
 };
 
-#ifdef SHADER_API_GLES
-    #define UnityBuildSamplerStateStruct(n) UnityBuildSamplerStateStructInternal()
-#else
-    #define UnityBuildSamplerStateStruct(n) UnityBuildSamplerStateStructInternal(n)
-#endif
+#define UnityBuildSamplerStateStruct(n) UnityBuildSamplerStateStructInternal(n)
 
 UnitySamplerState UnityBuildSamplerStateStructInternal(SAMPLER(samplerstate))
 {
     UnitySamplerState result;
-#ifndef SHADER_API_GLES
     result.samplerstate = samplerstate;
-#endif
     return result;
 }
 
 struct UnityTexture2D
 {
     TEXTURE2D(tex);
-    UNITY_BARE_SAMPLER(samplerstate);
+    SAMPLER(samplerstate);
     float4 texelSize;
     float4 scaleTranslate;
 
@@ -49,9 +33,6 @@ struct UnityTexture2D
 
     float2 GetTransformedUV(float2 uv)                                  { return uv * scaleTranslate.xy + scaleTranslate.zw; }
 
-#ifndef SHADER_API_GLES
-    float CalculateLevelOfDetail(UnitySamplerState s, float2 uv)        { return CALCULATE_TEXTURE2D_LOD(tex, s.samplerstate, uv); }
-
     float4 Sample(SAMPLER(s), float2 uv)                                { return SAMPLE_TEXTURE2D(tex, s, uv); }
     float4 SampleLevel(SAMPLER(s), float2 uv, float lod)                { return SAMPLE_TEXTURE2D_LOD(tex, s, uv, lod); }
     float4 SampleBias(SAMPLER(s), float2 uv, float bias)                { return SAMPLE_TEXTURE2D_BIAS(tex, s, uv, bias); }
@@ -59,7 +40,7 @@ struct UnityTexture2D
     float4 SampleCmpLevelZero(SAMPLER_CMP(s), float2 uv, float cmp)     { return SAMPLE_TEXTURE2D_SHADOW(tex, s, float3(uv, cmp)); }
     float4 Load(int3 pixel)                                             { return LOAD_TEXTURE2D_LOD(tex, pixel.xy, pixel.z); }
     float CalculateLevelOfDetail(SAMPLER(s), float2 uv)                 { return CALCULATE_TEXTURE2D_LOD(tex, s, uv); }
-#endif
+    float CalculateLevelOfDetail(UnitySamplerState s, float2 uv)        { return CALCULATE_TEXTURE2D_LOD(tex, s.samplerstate, uv); }
 
 #ifdef PLATFORM_SUPPORT_GATHER
     float4 Gather(UnitySamplerState s, float2 uv)                       { return GATHER_TEXTURE2D(tex, s.samplerstate, uv); }
@@ -86,9 +67,7 @@ UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplersta
 {
     UnityTexture2D result;
     result.tex = tex;
-#ifndef SHADER_API_GLES
     result.samplerstate = samplerstate;
-#endif
     result.texelSize = texelSize;
     result.scaleTranslate = scaleTranslate;
     return result;
@@ -98,11 +77,10 @@ UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplersta
 struct UnityTexture2DArray
 {
     TEXTURE2D_ARRAY(tex);
-    UNITY_BARE_SAMPLER(samplerstate);
+    SAMPLER(samplerstate);
 
     // these functions allows users to convert code using Texture2DArray to UnityTexture2DArray by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
-#ifndef SHADER_API_GLES
     float4 Sample(UnitySamplerState s, float3 uv)                               { return SAMPLE_TEXTURE2D_ARRAY(tex, s.samplerstate, uv.xy, uv.z); }
     float4 SampleLevel(UnitySamplerState s, float3 uv, float lod)               { return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s.samplerstate, uv.xy, uv.z, lod); }
     float4 SampleBias(UnitySamplerState s, float3 uv, float bias)               { return SAMPLE_TEXTURE2D_ARRAY_BIAS(tex, s.samplerstate, uv.xy, uv.z, bias); }
@@ -114,7 +92,6 @@ struct UnityTexture2DArray
     float4 SampleGrad(SAMPLER(s), float3 uv, float2 dpdx, float2 dpdy)          { return SAMPLE_TEXTURE2D_ARRAY_GRAD(tex, s, uv.xy, uv.z, dpdx, dpdy); }
     float4 SampleCmpLevelZero(SAMPLER_CMP(s), float3 uv, float cmp)             { return SAMPLE_TEXTURE2D_ARRAY_SHADOW(tex, s, float3(uv.xy, cmp), uv.z); }
     float4 Load(int4 pixel)                                                     { return LOAD_TEXTURE2D_ARRAY(tex, pixel.xy, pixel.z); }
-#endif
 };
 
 #define UnityBuildTexture2DArrayStruct(n) UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_ARGS(n, sampler##n))
@@ -122,9 +99,7 @@ UnityTexture2DArray UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_PARAM
 {
     UnityTexture2DArray result;
     result.tex = tex;
-#ifndef SHADER_API_GLES
     result.samplerstate = samplerstate;
-#endif
     return result;
 }
 
@@ -132,7 +107,7 @@ UnityTexture2DArray UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_PARAM
 struct UnityTextureCube
 {
     TEXTURECUBE(tex);
-    UNITY_BARE_SAMPLER(samplerstate);
+    SAMPLER(samplerstate);
 
     // these functions allows users to convert code using TextureCube to UnityTextureCube by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
@@ -140,11 +115,9 @@ struct UnityTextureCube
     float4 SampleLevel(UnitySamplerState s, float3 dir, float lod)      { return SAMPLE_TEXTURECUBE_LOD(tex, s.samplerstate, dir, lod); }
     float4 SampleBias(UnitySamplerState s, float3 dir, float bias)      { return SAMPLE_TEXTURECUBE_BIAS(tex, s.samplerstate, dir, bias); }
 
-#ifndef SHADER_API_GLES
     float4 Sample(SAMPLER(s), float3 dir)                               { return SAMPLE_TEXTURECUBE(tex, s, dir); }
     float4 SampleLevel(SAMPLER(s), float3 dir, float lod)               { return SAMPLE_TEXTURECUBE_LOD(tex, s, dir, lod); }
     float4 SampleBias(SAMPLER(s), float3 dir, float bias)               { return SAMPLE_TEXTURECUBE_BIAS(tex, s, dir, bias); }
-#endif
 
 #ifdef PLATFORM_SUPPORT_GATHER
     float4 Gather(UnitySamplerState s, float3 dir)                      { return GATHER_TEXTURECUBE(tex, s.samplerstate, dir); }
@@ -160,9 +133,7 @@ UnityTextureCube UnityBuildTextureCubeStructInternal(TEXTURECUBE_PARAM(tex, samp
 {
     UnityTextureCube result;
     result.tex = tex;
-#ifndef SHADER_API_GLES
     result.samplerstate = samplerstate;
-#endif
     return result;
 }
 
@@ -170,19 +141,16 @@ UnityTextureCube UnityBuildTextureCubeStructInternal(TEXTURECUBE_PARAM(tex, samp
 struct UnityTexture3D
 {
     TEXTURE3D(tex);
-    UNITY_BARE_SAMPLER(samplerstate);
+    SAMPLER(samplerstate);
 
     // these functions allows users to convert code using Texture3D to UnityTexture3D by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
     float4 Sample(UnitySamplerState s, float3 uvw)                      { return SAMPLE_TEXTURE3D(tex, s.samplerstate, uvw); }
-
-#ifndef SHADER_API_GLES
     float4 SampleLevel(UnitySamplerState s, float3 uvw, float lod)      { return SAMPLE_TEXTURE3D_LOD(tex, s.samplerstate, uvw, lod); }
 
     float4 Sample(SAMPLER(s), float3 uvw)                               { return SAMPLE_TEXTURE2D(tex, s, uvw); }
     float4 SampleLevel(SAMPLER(s), float3 uvw, float lod)               { return SAMPLE_TEXTURE2D_LOD(tex, s, uvw, lod); }
     float4 Load(int4 pixel)                                             { return LOAD_TEXTURE3D_LOD(tex, pixel.xyz, pixel.w); }
-#endif
 };
 
 float4 tex3D(UnityTexture3D tex, float3 uvw)                            { return SAMPLE_TEXTURE3D(tex.tex, tex.samplerstate, uvw); }
@@ -192,9 +160,7 @@ UnityTexture3D UnityBuildTexture3DStructInternal(TEXTURE3D_PARAM(tex, samplersta
 {
     UnityTexture3D result;
     result.tex = tex;
-#ifndef SHADER_API_GLES
     result.samplerstate = samplerstate;
-#endif
     return result;
 }
 

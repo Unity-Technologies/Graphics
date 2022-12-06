@@ -173,6 +173,8 @@ namespace UnityEngine
                 worldAnchorToLight = -transform.forward;
 
             Vector3 projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up);
+            if(projectOnGround.magnitude < 0.0001f)
+                projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up + axes.right * 0.0001f);
             projectOnGround.Normalize();
 
             float extractedYaw = Vector3.SignedAngle(axes.forward, projectOnGround, axes.up);
@@ -211,20 +213,19 @@ namespace UnityEngine
 
             Matrix4x4 viewToWorld = camera.cameraToWorldMatrix;
 
+            if (m_FrameSpace == UpDirection.Local)
+            {
+                Vector3 localUp = Camera.main.transform.up;
+                viewToWorld = Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.LookAt(camera.transform.position, anchorPosition, localUp).inverse;
+                viewToWorld = viewToWorld.inverse;
+            }
             // Correct view to world for perspective
-            if (!camera.orthographic && camera.transform.position != anchorPosition)
+            else if (!camera.orthographic && camera.transform.position != anchorPosition)
             {
                 var d = (anchorPosition - camera.transform.position).normalized;
                 var f = Quaternion.LookRotation(d);
                 viewToWorld = Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(camera.transform.position, f, Vector3.one).inverse;
                 viewToWorld = viewToWorld.inverse;
-            }
-
-            if (m_FrameSpace == UpDirection.World)
-            {
-                Vector3 viewUp = (Vector3)(Camera.main.worldToCameraMatrix * Vector3.up);
-                Quaternion worldTilt = Quaternion.FromToRotation(Vector3.up, viewUp);
-                viewToWorld = viewToWorld * Matrix4x4.Rotate(worldTilt);
             }
 
             Vector3 up = (viewToWorld * Vector3.up).normalized;

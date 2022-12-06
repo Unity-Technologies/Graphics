@@ -38,10 +38,14 @@ namespace UnityEditor.VFX
 
             private void OnSelectionChanged()
             {
-                m_Effects = Selection.gameObjects
-                    .Select(x => x.GetComponent<VisualEffect>())
-                    .Where(x => x != null)
-                    .ToArray();
+                List<VisualEffect> tempList = new List<VisualEffect>();
+                VisualEffect vfx;
+                foreach (var obj in Selection.gameObjects)
+                {
+                    if (obj.TryGetComponent<VisualEffect>(out vfx))
+                        tempList.Add(vfx);
+                }
+                m_Effects = tempList.ToArray();
             }
         }
 

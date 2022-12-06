@@ -1,4 +1,4 @@
-# Upgrading HDRP from 5.x to Unity 6.x
+# Upgrading from HDRP 5.x to 6.x
 
 In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from Unity 5.x to 6.x.
 

@@ -17,26 +17,18 @@ The **Default Volume Profile Asset** (A) references a Volume Profile in the HDRP
 
 The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](Look-Dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except that it overrides [Visual Environment Components](Override-Visual-Environment.md) and sky components.![](Images/HDRPgs_Volume_Profiles.png)
 
-## Diffusion Profile Assets
-
-Use this section to select which custom [Diffusion Profiles](Diffusion-Profile.md) can be in view at the same time. To use more than 15 custom Diffusion Profiles in a Scene, use the [Diffusion Profile Override](Override-Diffusion-Profile.md) inside a Volume. This allows you to specify which Diffusion Profiles to use in a certain area (or in the Scene if the Volume is global).
-
-The following image shows the Diffusion Profile Assets section set up for HDRP's default scene:
-
-![](Images/HDRPgs_Diffusion_Profile_Assets.png)
-
 ## Frame Settings (Default Values)
 
 The [Frame Settings](Frame-Settings.md) control the rendering passes that Cameras perform at runtime.
 
 Use this section to set default values for the Frame Settings that all Cameras use if you don't enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.md).
 
-## Layers Names
+## Rendering Layers
 
 | **Property**              | **Description**                                              |
 | --------------------------| ------------------------------------------------------------ |
-| Light Layer Names                     | The name displayed on Lights and Meshes when using [Light Layers](Light-Layers.md). |
-| Decal Layer Names                     | The name displayed on decals and Meshes when using [Decal Layers](Decal.md). |
+| Default Mesh Rendering Layer Mask | Defines the Default Rendering Layer Mask for any Terrains or Renderer you create after you set this property.<br/> To set a Layer Mast on existing Terrains or Renderers, use [Decal Layers](Decal.md.) |
+| Rendering Layer Names     | Defines the number and names of the Rendering Layers in your project. |
 
 ## Custom Post Process Orders
 
@@ -48,13 +40,15 @@ HDRP provides one list for each post processing injection point. See the [Custom
 
 ## Miscellaneous
 
-| **Property**              | **Description**                                              |
-| --------------------------| ------------------------------------------------------------ |
-| Lens Attenuation Mode                 | Set the attenuation mode of the lens that HDRP uses to compute exposure. <br/> &#8226;**Imperfect lens**: This mode loses some energy when HDRP converts from EV100 to the exposure multiplier.<br/> &#8226;**Perfect lens**: This mode has no attenuation and doesn't lose any energy. |
-| Dynamic Render Pass Culling           | When you enable this option, HDRP uses the RendererList API to skip drawing passes based on the type of GameObjects visible in the current frame objects. For example, if HDRP doesn't draw an object with distortion, it skips the Render Graph passes that draw the distortion effect and their dependencies, like the color pyramid generation. |
-| Use DLSS Custom Project ID           | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling module. If you enable this property, you can use **DLSS Custom Project ID** to specify a custom project ID.<br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
-| DLSS Custom Project ID               | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling (DLSS) module. If you enable this property, you can use **DLSS Custom Project ID** to specify a custom project ID. If you disable this property, Unity generates a unique project ID. <br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
-| Runtime Debug Shaders                 | When enabled, Unity includes shader variants that let you use the Rendering Debugger window to debug your build. When disabled, Unity excludes (strips) these variants. Enable this when you want to debug your shaders in the Rendering Debugger window, and disable it otherwise. |
+| **Property**                     | **Description**                                              |
+|----------------------------------| ------------------------------------------------------------ |
+| Lens Attenuation Mode            | Set the attenuation mode of the lens that HDRP uses to compute exposure. <br/> &#8226;**Imperfect lens**: This mode loses some energy when HDRP converts from EV100 to the exposure multiplier.<br/> &#8226;**Perfect lens**: This mode has no attenuation and doesn't lose any energy. |
+| Dynamic Render Pass Culling      | When you enable this option, HDRP uses the RendererList API to skip drawing passes based on the type of GameObjects visible in the current frame objects. For example, if HDRP doesn't draw an object with distortion, it skips the Render Graph passes that draw the distortion effect and their dependencies, like the color pyramid generation. |
+| Specular Fade                    | When enabled, allows specular highlights to completely disappear when using a specular workflow with the Lit and StackLit materials. Do note that this behavior is not physically correct.                                                                                                                                                                                                       |
+| Use DLSS Custom Project ID       | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling module. If you enable this property, you can use **DLSS Custom Project ID** to specify a custom project ID.<br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
+| DLSS Custom Project ID           | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling (DLSS) module. If you enable this property, you can use **DLSS Custom Project ID** to specify a custom project ID. If you disable this property, Unity generates a unique project ID. <br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
+| Runtime Debug Shaders            | When enabled, Unity includes shader variants that let you use the Rendering Debugger window to debug your build. When disabled, Unity excludes (strips) these variants. Enable this when you want to debug your shaders in the Rendering Debugger window, and disable it otherwise. |
+| Auto Register Diffusion Profiles | When enabled, diffusion profiles referenced by an imported material will be automatically added to the diffusion profile list in the HDRP Global Settings. |
 
 ## Shader Stripping
 

@@ -244,11 +244,11 @@ namespace UnityEditor.VFX
 
         List<VFXParameter> m_GizmoableParameters = new List<VFXParameter>();
 
-        protected override void EmptyLineControl(string name, string tooltip, int depth, VisualEffectResource resource)
+        protected override void EmptyLineControl(string name, string tooltip, VFXSpace? space, int depth, VisualEffectResource resource)
         {
             if (depth != 1)
             {
-                base.EmptyLineControl(name, tooltip, depth, resource);
+                base.EmptyLineControl(name, tooltip, space, depth, resource);
                 return;
             }
 
@@ -256,7 +256,7 @@ namespace UnityEditor.VFX
 
             if (parameter == null || !VFXGizmoUtility.HasGizmo(parameter.type))
             {
-                base.EmptyLineControl(name, tooltip, depth, resource);
+                base.EmptyLineControl(name, tooltip, space, depth, resource);
                 return;
             }
 
@@ -268,17 +268,14 @@ namespace UnityEditor.VFX
             m_GizmoableParameters.Add(parameter);
             if (!m_GizmoDisplayed)
             {
-                base.EmptyLineControl(name, tooltip, depth, resource);
+                base.EmptyLineControl(name, tooltip, space, depth, resource);
                 return;
             }
 
             GUILayout.BeginHorizontal();
-
-
-            GUILayout.Space(overrideWidth);
+            GUILayout.Space(Styles.overrideWidth);
             // Make the label half the width to make the tooltip
             EditorGUILayout.LabelField(GetGUIContent(name, tooltip), EditorStyles.boldLabel, GUILayout.Width(EditorGUIUtility.labelWidth));
-
             GUILayout.FlexibleSpace();
 
             // Toggle Button
@@ -362,16 +359,12 @@ namespace UnityEditor.VFX
                 get { return m_Parameter.type; }
             }
 
-            public override VFXCoordinateSpace space
+            public override VFXSpace space
             {
                 get
                 {
                     return m_Parameter.outputSlots[0].space;
                 }
-            }
-            public override bool spaceLocalByDefault
-            {
-                get { return true; }
             }
 
             public List<object> m_Stack = new List<object>();
@@ -612,7 +605,7 @@ namespace UnityEditor.VFX
                 {
                     foreach (var fieldInfo in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
                     {
-                        if (fieldInfo.FieldType == typeof(VFXCoordinateSpace))
+                        if (fieldInfo.FieldType == typeof(VFXSpace))
                             continue;
                         cmdList.Add(o =>
                         {
@@ -730,21 +723,33 @@ namespace UnityEditor.VFX
                     Repaint();
                 }
 
-                bool saveEnabled = GUI.enabled;
-                GUI.enabled = saveEnabled && m_GizmoedParameter != null;
-                if (GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
+                if (m_GizmoedParameter != null && m_GizmoDisplayed)
                 {
-                    if (m_GizmoDisplayed && m_GizmoedParameter != null)
+                    var context = GetGizmo();
+                    var gizmoError = VFXGizmoUtility.CollectGizmoError(context.context, (VisualEffect)target);
+                    if (gizmoError != GizmoError.None)
                     {
-                        ContextAndGizmo context = GetGizmo();
-                        Bounds bounds = VFXGizmoUtility.GetGizmoBounds(context.context, (VisualEffect)target, context.gizmo);
+                        var content = VFXSlotContainerEditor.Contents.GetGizmoErrorContent(gizmoError);
+                        GUILayout.Label(content, VFXSlotContainerEditor.Styles.warningStyle, GUILayout.Width(19),
+                            GUILayout.Height(18));
+                    }
+                    else if (GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
+                    {
+                        var bounds = VFXGizmoUtility.GetGizmoBounds(context.context, (VisualEffect)target, context.gizmo);
                         context.context.Unprepare(); //Restore initial state : if gizmo isn't actually rendered, it could be out of sync
                         var sceneView = SceneView.lastActiveSceneView;
                         if (sceneView)
                             sceneView.Frame(bounds, false);
                     }
                 }
-                GUI.enabled = saveEnabled;
+                else
+                {
+                    var saveEnabled = GUI.enabled;
+                    GUI.enabled = false;
+                    GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18));
+                    GUI.enabled = saveEnabled;
+                }
+
                 GUILayout.EndHorizontal();
             }
         }

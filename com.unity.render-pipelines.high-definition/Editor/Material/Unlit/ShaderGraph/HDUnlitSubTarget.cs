@@ -111,6 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (pass.IsForward())
             {
                 pass.keywords.Add(CoreKeywordDescriptors.Shadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
+                pass.keywords.Add(CoreKeywordDescriptors.AreaShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
                 pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
             }
         }
@@ -156,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Stencil state for unlit:
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, null, false);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, null, false, unlitData.enableShadowMatte);
         }
     }
 }

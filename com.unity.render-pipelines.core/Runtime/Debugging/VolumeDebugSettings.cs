@@ -16,22 +16,10 @@ namespace UnityEngine.Rendering
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
 
+        private Camera m_SelectedCamera;
+
         /// <summary>Current camera to debug.</summary>
-        public Camera selectedCamera
-        {
-            get
-            {
-                var c = cameras.ToList();
-
-                if (c.Count == 0)
-                    return null;
-
-                if (m_SelectedCameraIndex < 0 || m_SelectedCameraIndex >= m_Cameras.Count)
-                    return c.FirstOrDefault();
-
-                return c[m_SelectedCameraIndex];
-            }
-        }
+        public Camera selectedCamera => m_SelectedCamera;
 
         /// <summary>
         /// The selected camera index, use the property for better handling
@@ -42,7 +30,21 @@ namespace UnityEngine.Rendering
         public int selectedCameraIndex
         {
             get => m_SelectedCameraIndex;
-            set => m_SelectedCameraIndex = value;
+            set
+            {
+                m_SelectedCameraIndex = value;
+
+                var count = cameras.Count();
+                if (count != 0)
+                {
+                    m_SelectedCamera = m_SelectedCameraIndex < 0 || m_SelectedCameraIndex >= count ?
+                        cameras.First() : cameras.ElementAt(m_SelectedCameraIndex);
+                }
+                else
+                {
+                    m_SelectedCamera = null;
+                }
+            }
         }
 
         private Camera[] m_CamerasArray;
@@ -111,7 +113,7 @@ namespace UnityEngine.Rendering
         static List<(string, Type)> s_ComponentPathAndType;
 
         /// <summary>List of Volume component types.</summary>
-        public List<(string, Type)> volumeComponentsPathAndType => s_ComponentPathAndType ??= VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline);
+        public List<(string, Type)> volumeComponentsPathAndType => s_ComponentPathAndType ??= VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline, GraphicsSettings.currentRenderPipelineAssetType);
 
         /// <summary>
         /// Specifies the render pipeline for this volume settings

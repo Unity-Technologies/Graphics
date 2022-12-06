@@ -1,0 +1,216 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
+
+//#pragma enable_d3d11_debug_symbols
+
+// Line evaluation - Performance
+#pragma kernel ClearWaterLine
+#pragma kernel LineEvaluation1D
+#pragma kernel BoundsPropagation
+#pragma kernel LinePropagation1D
+
+// Underwater rendering
+#pragma kernel UnderWater
+
+// HDRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Water/Water.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+
+TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X_UINT2(_StencilTexture);
+
+RW_TEXTURE2D_X(uint, _WaterRegionTextureRW);
+
+// 1D WaterLine Buffer, contains the vertical (along upVector) height of the water line
+// first two elements contains the horizontal min and max of the visible water line
+RWStructuredBuffer<uint> _WaterLine;
+
+[numthreads(8, 1, 1)]
+void ClearWaterLine(uint dispatchThreadId : SV_DispatchThreadID)
+{
+    _WaterLine[dispatchThreadId] = 0;
+}
+
+[numthreads(8, 8, 1)]
+void LineEvaluation1D(uint3 currentCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
+
+    // Early exit pixels containing no water
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy).x;
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord.xy));
+    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+        return;
+
+    // Output to the water line buffer
+    float2 upVector = float2(_UpDirectionX, _UpDirectionY);
+    float2 rightVector = float2(_UpDirectionY, -_UpDirectionX);
+
+    uint posX = round(dot((float2)currentCoord.xy, rightVector) - _BoundsSS.x);
+    uint posY = round(dot((float2)currentCoord.xy, upVector) - _BoundsSS.z);
+
+    // We use InterlockedMax with depth values on higher bits to find closest pixel to camera
+    // We store the pixel height as payload in the lower bits to retrieve the waterline height later
+    uint height = posY + 1; // Add one to make sure 0 means missing value
+    uint packedValue = PackFloatToUInt(depthValue, 16, 16) | (height & 0xFFFF);
+
+    uint idx = min(posX + 2, _BufferStride) + currentCoord.z * _BufferStride;
+    InterlockedMax(_WaterLine[idx], packedValue);
+}
+
+#define GROUP_SIZE 128
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+groupshared uint2 gs_bounds[GROUP_SIZE];
+#endif
+
+uint2 ParallelReduction(uint threadIdx, uint2 bounds)
+{
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    return uint2(WaveActiveMin(bounds.x), WaveActiveMax(bounds.y));
+#else
+    gs_bounds[threadIdx] = bounds;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    UNITY_UNROLL
+    for (uint s = GROUP_SIZE / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_bounds[threadIdx] = uint2(
+                min(gs_bounds[threadIdx].x, gs_bounds[threadIdx + s].x),
+                max(gs_bounds[threadIdx].y, gs_bounds[threadIdx + s].y)
+            );
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    return gs_bounds[0];
+#endif
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void BoundsPropagation(uint2 currentCoord : SV_DispatchThreadID, uint groupThreadId : SV_GroupThreadID)
+{
+    // This kernel finds the leftmost and rightmost pixels containing water
+    uint coord = min(currentCoord.x + 2, _BufferStride) + currentCoord.y * _BufferStride;
+    uint packedValue = _WaterLine[coord];
+    uint2 bounds = packedValue == 0 ? uint2(0xFFFFFFFF, 0) : (uint2)currentCoord.x;
+    bounds = ParallelReduction(groupThreadId, bounds);
+
+    if (groupThreadId == 0)
+    {
+        InterlockedMax(_WaterLine[0 + currentCoord.y * _BufferStride], 0xFFFFFFFF - bounds.x);
+        InterlockedMax(_WaterLine[1 + currentCoord.y * _BufferStride], bounds.y);
+    }
+
+    if (packedValue == 0)
+    {
+        // Patch holes of less than GROUP_SIZE pixels
+        if (bounds.x != 0xFFFFFFFF) _WaterLine[coord] = _WaterLine[bounds.x + 2];
+        else if (bounds.y != 0    ) _WaterLine[coord] = _WaterLine[bounds.y + 2];
+    }
+}
+
+[numthreads(16, 16, 1)]
+void LinePropagation1D(uint3 currentCoord : SV_DispatchThreadID)
+{
+    // This kernel converts the 1D buffer to a fullscreen texture
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
+
+    float distanceToSurface = GetWaterCameraHeight();
+    uint underWater = distanceToSurface > 0 ? 0 : 1;
+
+    if (abs(distanceToSurface) < _WaterTransitionSize)
+    {
+        float2 upVector = float2(_UpDirectionX, _UpDirectionY);
+        float2 rightVector = float2(_UpDirectionY, -_UpDirectionX);
+
+        // Find index to sample in 1D buffer
+        uint xr = currentCoord.z * _BufferStride;
+        uint2 boundsX = uint2(0xFFFFFFFF - _WaterLine[0 + xr], _WaterLine[1 + xr]);
+        uint posX = round(dot((float2)currentCoord.xy, rightVector) - _BoundsSS.x);
+        posX = clamp(posX, boundsX.x, boundsX.y);
+
+        // Decompress water line height
+        uint posY = round(dot((float2)currentCoord.xy, upVector) - _BoundsSS.z);
+        uint packedValue = _WaterLine[posX + 2 + xr] & 0xFFFF;
+        uint waterLine = packedValue - 1;
+
+        // For the columns with missing values, try to guess based on camera pos
+        uint minHeight = 0, maxHeight = round(_BoundsSS.w - _BoundsSS.z);
+        if (packedValue == 0)
+            waterLine = distanceToSurface < 0 ? maxHeight : minHeight;
+
+        underWater = posY <= waterLine;
+    }
+
+    _WaterRegionTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = underWater;
+}
+
+// Input color value
+TEXTURE2D_X(_CameraColorTexture);
+TEXTURE2D_X_UINT(_WaterRegionTexture);
+
+// Output textures of the kernels
+RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
+
+// Need to be moved to a constant buffer
+[numthreads(8, 8, 1)]
+void UnderWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * 8 + groupThreadId;
+
+    // Fetch the direct camera color
+    float4 camColor = LOAD_TEXTURE2D_X(_CameraColorTexture, currentCoord);
+
+    // Only apply on pixels underwater
+    bool underWater = LOAD_TEXTURE2D_X(_WaterRegionTexture, currentCoord) == 1;
+    if (!underWater)
+    {
+        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = camColor;
+        return;
+    }
+
+    // Grab the vertical distance to the surface
+    float distanceToSurface = GetWaterCameraHeight();
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+
+    // Approximate the pixel depth based on the distance from camera to surface
+    float depth = max(-dot(posInput.positionWS, _WaterUpDirection.xyz) - distanceToSurface, 0);
+
+    // Evaluate the caustics for this position
+    float caustics = 1;
+
+    // Read the stencil value
+    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+        caustics = EvaluateSimulationCaustics(posInput.positionWS, depth, currentCoord * _ScreenSize.zw);
+
+    // Evaluate the fog of the target surface
+    float cameraDistance = depthValue == UNITY_RAW_FAR_CLIP_VALUE ? _ProjectionParams.z : length(posInput.positionWS);
+    float waterDistance = (cameraDistance + depth) / _MaxViewDistanceMultiplier;
+
+    // Evaluate the absorption tint (match ComputeWaterRefractionParams)
+    float3 waterAbsorption = exp(-waterDistance * _OutScatteringCoeff * (1.0 - _WaterRefractionColor.xyz));
+    const float3 farColor = _WaterScatteringColor.xyz * lerp(1.0, _WaterAmbientProbe.w * GetCurrentExposureMultiplier(), _UnderWaterAmbientProbeContribution);
+    const float3 clearColor = camColor.xyz * caustics;
+    float3 underWaterColor = lerp(farColor, clearColor, waterAbsorption);
+
+    // Output the camera color
+    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(underWaterColor, 1.0);
+}

@@ -4,6 +4,18 @@
 
 #ifndef GEOMETRYUTILS_CS_HLSL
 #define GEOMETRYUTILS_CS_HLSL
+// Generated from UnityEngine.Rendering.HighDefinition.OrientedBBox
+// PackingRules = Exact
+struct OrientedBBox
+{
+    float3 right;
+    float extentX;
+    float3 up;
+    float extentY;
+    float3 center;
+    float extentZ;
+};
+
 // Generated from UnityEngine.Rendering.HighDefinition.FrustumGPU
 // PackingRules = Exact
 struct FrustumGPU
@@ -28,18 +40,6 @@ struct FrustumGPU
     float4 corner5;
     float4 corner6;
     float4 corner7;
-};
-
-// Generated from UnityEngine.Rendering.HighDefinition.OrientedBBox
-// PackingRules = Exact
-struct OrientedBBox
-{
-    float3 right;
-    float extentX;
-    float3 up;
-    float extentY;
-    float3 center;
-    float extentZ;
 };
 
 //

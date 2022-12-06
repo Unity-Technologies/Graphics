@@ -337,6 +337,10 @@ void KBuild(uint3 dispatchThreadId : SV_DispatchThreadID)
         gradedColor = NeutralColorGrade(gradedColor);
     }
 
+    // Negative colors are technically allowed under ACEScg but we often use 11-11-10 anyway,
+    // so clamping is fine and it helps avoiding edge cases for tonemapping
+    gradedColor = max(gradedColor, 0.0);
+
 #ifdef HDR_OUTPUT
     gradedColor = ProcessColorForHDR(gradedColor);
 #else

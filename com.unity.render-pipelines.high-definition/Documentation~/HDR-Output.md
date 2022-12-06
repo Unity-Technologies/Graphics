@@ -1,4 +1,4 @@
-# High Dynamic Range (HDR) Output in HDRP
+# High Dynamic Range (HDR) Output
 
 [High Dynamic Range](https://en.wikipedia.org/wiki/High_dynamic_range) content has a wider color gamut and greater luminosity range than standard definition content.
 
@@ -7,6 +7,8 @@ HDRP can output HDR content for displays which support that functionality.
 ## Enabling HDR Output
 
 To activate HDR output, navigate to **Project Settings > Player** > **Other Settings** and enable **Use display in HDR mode**.
+
+Note that HDR Output will be active only in Game View and in Player.
 
 ## HDR tone mapping in HDRP
 

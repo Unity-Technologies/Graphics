@@ -1,0 +1,136 @@
+#pragma kernel FilterDeformation
+#pragma kernel EvaluateDeformationSurfaceGradient
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+// #pragma enable_d3d11_debug_symbols
+
+// Required to be defined for some includes
+#define WATER_SIMULATION
+
+// SRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterUtilities.hlsl"
+
+// EvaluateNormals UAVS
+RWTexture2D<float> _WaterDeformationBufferRW;
+
+// LDS to load the data
+#define DISPATCH_SIZE 8
+#define FILTER_SIZE_1D (DISPATCH_SIZE + 2) // With a 8x8 group, we have a 10x10 working area
+#define LDS_SIZE FILTER_SIZE_1D * FILTER_SIZE_1D
+groupshared float gs_cacheHeight[LDS_SIZE];
+
+bool IsValidCoord(int2 tapCoord)
+{
+    return tapCoord.x > 0 && tapCoord.y > 0 && tapCoord.x < (_WaterDeformationResolution - 1) && tapCoord.y < (_WaterDeformationResolution - 1);
+}
+
+void LoadDeformationIntoLDS(uint groupIndex, uint2 groupOrigin)
+{
+    int2 originXY = groupOrigin - int2(1, 1);
+    for (int i = 0; i < 2; ++i)
+    {
+        // Evaluate the offsets for the tap
+        uint sampleID = i + (groupIndex * 2);
+        int offsetX = sampleID % FILTER_SIZE_1D;
+        int offsetY = sampleID / FILTER_SIZE_1D;
+
+        // Evaluate the tap coordinate
+        int2 tapCoord = int2(originXY.x + offsetX, originXY.y + offsetY);
+
+        // Clamp the tap coordinate to the texture space
+        int2 sampleCoord = clamp(tapCoord, 0, _WaterDeformationResolution - 1);
+        float tapHeight = LOAD_TEXTURE2D(_WaterDeformationBuffer, sampleCoord);
+
+        // Write the result to the LDS
+        int LDSIndex = offsetX + offsetY * FILTER_SIZE_1D;
+        gs_cacheHeight[LDSIndex] = IsValidCoord(tapCoord) ? tapHeight : 0.0;
+    }
+}
+
+float GaussianWeight(float radius, float sigma)
+{
+    float v = radius / sigma;
+    return exp(-v * v);
+}
+
+[numthreads(DISPATCH_SIZE, DISPATCH_SIZE, 1)]
+void FilterDeformation(uint3 currentThread : SV_DispatchThreadID,
+                        int groupIndex : SV_GroupIndex,
+                        uint2 groupId : SV_GroupID,
+                        uint2 groupThreadId : SV_GroupThreadID)
+{
+    // Extract the information about the pixel to process
+    uint2 coord = currentThread.xy;
+
+    // We need to load a 100 values, only the 50 first thread need to do something.
+    if (groupIndex < 50)
+        LoadDeformationIntoLDS(groupIndex, groupId * DISPATCH_SIZE);
+
+    // Make sure all values are loaded in LDS by now.
+    GroupMemoryBarrierWithGroupSync();
+
+    float totalDeformation = 0.0;
+    float sumW = 0.0;
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            // Evaluate the gaussian weight
+            float radius = sqrt(x * x + y * y);
+            float weight = GaussianWeight(radius, 0.8);
+
+            // Tap from LDS
+            int2 tapAddress = (groupThreadId + 1) + int2(x, y);
+            uint ldsTapAddress = uint(tapAddress.x) % FILTER_SIZE_1D + tapAddress.y * FILTER_SIZE_1D;
+            float tapHeight = gs_cacheHeight[ldsTapAddress];
+
+            // Accumulate
+            totalDeformation += tapHeight * weight;
+            sumW += weight;
+        }
+    }
+
+    // Make sure the deformation is null at the edges
+    totalDeformation = IsValidCoord(coord) ? totalDeformation : 0.0;
+
+    // Output the normal and foam
+    _WaterDeformationBufferRW[coord] = totalDeformation / sumW;
+}
+
+// EvaluateNormals UAVS
+RWTexture2D<float2> _WaterDeformationSGBufferRW;
+
+[numthreads(8, 8, 1)]
+void EvaluateDeformationSurfaceGradient(uint3 currentThread : SV_DispatchThreadID)
+{
+    // Extract the information about the pixel to process
+    uint2 centerCoord = currentThread.xy;
+    uint bound = _WaterDeformationResolution - 1;
+    uint2 rightCoord = clamp(uint2(centerCoord + uint2(1, 0)), uint2(0, 0), uint2(bound, bound));
+    uint2 upCoord = clamp(uint2(centerCoord + uint2(0, 1)), uint2(0, 0), uint2(bound, bound));
+
+    // Get the displacement we need for the evaluate (and re-order them)
+    float displacementCenter = LOAD_TEXTURE2D(_WaterDeformationBuffer, centerCoord);
+    float displacementRight = LOAD_TEXTURE2D(_WaterDeformationBuffer, rightCoord);
+    float displacementUp = LOAD_TEXTURE2D(_WaterDeformationBuffer, upCoord);
+
+    // Evaluate the displacement normalization factor and pixel size
+    float2 pixelSize = _WaterDeformationExtent / _WaterDeformationResolution;
+
+    // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
+    float3 p0 = float3(0, displacementCenter, 0);
+    float3 p1 = float3(pixelSize.x, displacementRight, 0);
+    float3 p2 = float3(0, displacementUp, pixelSize.y);
+    float2 surfaceGradient = EvaluateSurfaceGradients(p0, p1, p2);
+
+    // Make sure the surface gradient is null at the edges
+    surfaceGradient = IsValidCoord(centerCoord) ? surfaceGradient : 0.0;
+
+    // Output the normal and foam
+    _WaterDeformationSGBufferRW[centerCoord] = surfaceGradient;
+}

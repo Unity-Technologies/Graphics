@@ -74,9 +74,9 @@ namespace UnityEngine.Rendering
             }
 
             // Build the index array
-            int nbFaces = vertices.Length;
-            int nbTriangles = nbFaces * 2;
-            int nbIndexes = nbTriangles * 3;
+            uint nbTriangles = longSubdiv * 2 +                    // Top and bottom cap
+                               (latSubdiv - 1) * longSubdiv * 2;   // Middle part
+            uint nbIndexes = nbTriangles * 3;
             int[] triangles = new int[nbIndexes];
 
             // Top Cap
@@ -487,6 +487,25 @@ namespace UnityEngine.Rendering
         {
             RebuildResources();
             return m_sphereMesh;
+        }
+
+        /// <summary>Builds a custom Sphere Mesh</summary>
+        /// <param name="radius">The radius of the generated sphere.</param>
+        /// <param name="longSubdiv">The number of subdivisions along the equator of the sphere. Must be at least 3 to give a relevant shape.</param>
+        /// <param name="latSubdiv">The number of subdivisions from north to south. Must be at least 1 to give a relevant shape.</param>
+        /// <returns>A Sphere Mesh</returns>
+        /// <example>
+        /// <code>
+        /// <![CDATA[
+        /// Mesh lowPolyDebugMesh = DebugShapes.instance.BuildCustomSphereMesh(0.5f, 9, 8); // Generates a 82 vert sphere
+        /// ]]>
+        ///</code>
+        /// </example>
+        public Mesh BuildCustomSphereMesh(float radius, uint longSubdiv, uint latSubdiv)
+        {
+            Mesh sphereMesh = new Mesh();
+            BuildSphere(ref sphereMesh, radius, longSubdiv, latSubdiv);
+            return sphereMesh;
         }
 
         /// <summary>Get a Box Mesh</summary>

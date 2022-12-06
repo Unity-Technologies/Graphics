@@ -15,7 +15,7 @@
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
 // TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
-    #if defined(SHADER_API_GLES) || !defined(_NORMALMAP)
+    #if !defined(_NORMALMAP)
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
     #elif !SHADER_HINT_NICE_QUALITY
@@ -221,7 +221,7 @@ int GetPerObjectLightIndex(uint index)
 // Even trying to reinterpret cast the unity_LightIndices to float[] won't work             /
 // it will cast to float4[] and create extra register pressure. :(                          /
 /////////////////////////////////////////////////////////////////////////////////////////////
-#elif !defined(SHADER_API_GLES)
+#else
     // since index is uint shader compiler will implement
     // div & mod as bitfield ops (shift and mask).
 
@@ -230,14 +230,6 @@ int GetPerObjectLightIndex(uint index)
     // u_xlat16_40 = dot(unity_LightIndices[int(u_xlatu13)], ImmCB_0_0_0[u_xlati1]);
     // This increases both arithmetic and register pressure.
     return unity_LightIndices[index / 4][index % 4];
-#else
-    // Fallback to GLES2. No bitfield magic here :(.
-    // We limit to 4 indices per object and only sample unity_4LightIndices0.
-    // Conditional moves are branch free even on mali-400
-    // small arithmetic cost but no extra register pressure from ImmCB_0_0_0 matrix.
-    half2 lightIndex2 = (index < 2.0h) ? unity_LightIndices[0].xy : unity_LightIndices[0].zw;
-    half i_rem = (index < 2.0h) ? index : index - 2.0h;
-    return (i_rem < 1.0h) ? lightIndex2.x : lightIndex2.y;
 #endif
 #else
     return 0;
@@ -305,11 +297,7 @@ struct BRDFData
 
 half ReflectivitySpecular(half3 specular)
 {
-#if defined(SHADER_API_GLES)
-    return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
-#else
     return Max3(specular.r, specular.g, specular.b);
-#endif
 }
 
 half OneMinusReflectivityMetallic(half metallic)
@@ -591,17 +579,10 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
     return SampleSH(normalWS);
 }
 
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-#define LIGHTMAP_NAME unity_Lightmaps
-#define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
-#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmaps
-#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV, unity_LightmapIndex.x
-#else
 #define LIGHTMAP_NAME unity_Lightmap
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
 #define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
 #define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV
-#endif
 
 // Sample baked lightmap. Non-Direction and Directional if available.
 // Realtime GI is not supported.
@@ -645,14 +626,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
-
-//TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-    half3 irradiance = encodedIrradiance.rgb;
-#else
     half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#endif
-
     return irradiance * occlusion;
 #endif // GLOSSY_REFLECTIONS
 

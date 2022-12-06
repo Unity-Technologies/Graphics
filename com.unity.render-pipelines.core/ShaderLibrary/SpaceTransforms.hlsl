@@ -1,7 +1,7 @@
 #ifndef UNITY_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_SPACE_TRANSFORMS_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -236,7 +236,7 @@ real3x3 CreateTangentToWorld(real3 normal, real3 tangent, real flipSign)
 
 // this function is intended to work on Normals (handles non-uniform scale)
 // tangentToWorld is the matrix representing the transformation of a normal from tangent to world space
-real3 TransformTangentToWorld(real3 normalTS, real3x3 tangentToWorld, bool doNormalize = false)
+real3 TransformTangentToWorld(float3 normalTS, real3x3 tangentToWorld, bool doNormalize = false)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
     real3 result = mul(normalTS, tangentToWorld);
@@ -340,7 +340,7 @@ real3 TransformObjectToTangent(real3 dirOS, real3x3 tangentToWorld)
     return TransformWorldToTangent(normalWS, tangentToWorld);
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

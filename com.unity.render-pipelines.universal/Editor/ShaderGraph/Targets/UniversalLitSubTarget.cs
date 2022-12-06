@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         static readonly GUID kSourceCodeGuid = new GUID("d6c78107b64145745805d963de80cc17"); // UniversalLitSubTarget.cs
 
-        public override int latestVersion => 1;
+        public override int latestVersion => 2;
 
         [SerializeField]
         WorkflowMode m_WorkflowMode = WorkflowMode.Metallic;
@@ -90,8 +90,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(PostProcessSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit, blendModePreserveSpecular)));
-            context.AddSubShader(PostProcessSubShader(SubShaders.LitGLESSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.LitSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit, blendModePreserveSpecular)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -183,6 +182,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+
+                bool enableAlphaToMask = (target.alphaClip && (target.surfaceType == SurfaceType.Opaque));
+                collector.AddFloatProperty(Property.AlphaToMask, enableAlphaToMask ? 1.0f : 0.0f);
             }
 
             // We always need these properties regardless of whether the material is allowed to override other shader properties.
@@ -324,8 +326,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            // SM 4.5, compute with dots instancing
-            public static SubShaderDescriptor LitComputeDotsSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, bool complexLit, bool blendModePreserveSpecular)
+            public static SubShaderDescriptor LitSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, bool complexLit, bool blendModePreserveSpecular)
             {
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
@@ -338,75 +339,32 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward));
+                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward, LitKeywords.Forward));
                 else
-                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.DOTSForward));
+                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.Forward, LitKeywords.Forward));
 
                 if (!complexLit)
                     result.passes.Add(LitPasses.GBuffer(target, workflowMode, blendModePreserveSpecular));
 
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.Instanced));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.Instanced));
 
                 if (complexLit)
-                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.Instanced));
                 else
-                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.DOTSDefault));
+                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.Instanced));
+
+                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.Default));
+
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
-
-                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DOTSDefault));
-
-                return result;
-            }
-
-            public static SubShaderDescriptor LitGLESSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, bool complexLit, bool blendModePreserveSpecular)
-            {
-                // SM 2.0, GLES
-
-                // ForwardOnly pass is used as complex Lit SM 2.0 fallback for GLES.
-                // Drops advanced features and renders materials as Lit.
-
-                SubShaderDescriptor result = new SubShaderDescriptor()
-                {
-                    pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = UniversalTarget.kLitMaterialTypeTag,
-                    renderType = renderType,
-                    renderQueue = renderQueue,
-                    generatesPreview = true,
-                    passes = new PassCollection()
-                };
-
-                if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward));
-                else
-                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular));
-
-                // cull the shadowcaster pass if we know it will never be used
-                if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(CorePasses.ShadowCaster(target));
-
-                if (target.mayWriteDepth)
-                    result.passes.Add(CorePasses.DepthOnly(target));
-
-                if (complexLit)
-                    result.passes.Add(CorePasses.DepthNormalOnly(target));
-                else
-                    result.passes.Add(CorePasses.DepthNormal(target));
-                result.passes.Add(LitPasses.Meta(target));
-                // Currently neither of these passes (selection/picking) can be last for the game view for
-                // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(CorePasses.SceneSelection(target));
-                result.passes.Add(CorePasses.ScenePicking(target));
-
-                result.passes.Add(LitPasses._2D(target));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.Default));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.Default));
+                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.Default));
 
                 return result;
             }
@@ -432,7 +390,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pass.defines.Add(LitKeywords.ReceiveShadowsOff, 1);
             }
 
-            public static PassDescriptor Forward(UniversalTarget target, WorkflowMode workflowMode, bool blendModePreserveSpecular, PragmaCollection pragmas = null)
+            public static PassDescriptor Forward(
+                UniversalTarget target,
+                WorkflowMode workflowMode,
+                bool blendModePreserveSpecular,
+                PragmaCollection pragmas,
+                KeywordCollection keywords)
             {
                 var result = new PassDescriptor()
                 {
@@ -459,7 +422,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = pragmas ?? CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { LitKeywords.Forward },
+                    keywords = new KeywordCollection() { keywords },
                     includes = LitIncludes.Forward,
 
                     // Custom Interpolator Support
@@ -467,8 +430,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
+                CorePasses.AddAlphaToMaskControlToPass(ref result, target);
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
@@ -480,7 +445,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 bool blendModePreserveSpecular,
                 BlockFieldDescriptor[] vertexBlocks,
                 BlockFieldDescriptor[] pixelBlocks,
-                PragmaCollection pragmas)
+                PragmaCollection pragmas,
+                KeywordCollection keywords)
             {
                 var result = new PassDescriptor
                 {
@@ -507,7 +473,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = pragmas,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { LitKeywords.Forward },
+                    keywords = new KeywordCollection() { keywords },
                     includes = LitIncludes.Forward,
 
                     // Custom Interpolator Support
@@ -518,13 +484,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.defines.Add(LitDefines.ClearCoat, 1);
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
+                CorePasses.AddAlphaToMaskControlToPass(ref result, target);
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
 
-            // Deferred only in SM4.5, MRT not supported in GLES2
+            // Deferred only in SM4.5
             public static PassDescriptor GBuffer(UniversalTarget target, WorkflowMode workflowMode, bool blendModePreserveSpecular)
             {
                 var result = new PassDescriptor
@@ -533,6 +501,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     displayName = "GBuffer",
                     referenceName = "SHADERPASS_GBUFFER",
                     lightMode = "UniversalGBuffer",
+                    useInPreview = true,
 
                     // Template
                     passTemplatePath = UniversalTarget.kUberTemplatePath,
@@ -549,7 +518,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
-                    pragmas = CorePragmas.DOTSGBuffer,
+                    pragmas = CorePragmas.GBuffer,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.GBuffer },
                     includes = LitIncludes.GBuffer,
@@ -561,6 +530,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target, blendModePreserveSpecular);
                 AddWorkflowModeControlToPass(ref result, target, workflowMode);
                 AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
@@ -666,7 +636,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() {  },
                     includes = CoreIncludes.DepthNormalsOnly,
 
                     // Custom Interpolator Support
@@ -674,6 +644,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
@@ -705,7 +676,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() { },
                     includes = CoreIncludes.DepthNormalsOnly,
 
                     // Custom Interpolator Support
@@ -713,6 +684,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddAlphaClipControlToPass(ref result, target);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
@@ -848,19 +820,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
-            public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
-            {
-                displayName = "Screen Space Ambient Occlusion",
-                referenceName = "_SCREEN_SPACE_OCCLUSION",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.MultiCompile,
-                scope = KeywordScope.Global,
-                stages = KeywordShaderStage.Fragment,
-            };
-
             public static readonly KeywordCollection Forward = new KeywordCollection
             {
-                { ScreenSpaceAmbientOcclusion },
+                { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -876,7 +838,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { CoreKeywordDescriptors.LightCookies },
-                { CoreKeywordDescriptors.ClusteredRendering },
+                { CoreKeywordDescriptors.ForwardPlus },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
@@ -893,7 +855,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
-                { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.RenderPassEnabled },
                 { CoreKeywordDescriptors.DebugDisplay },
             };
@@ -914,6 +875,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly IncludeCollection Forward = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
@@ -927,6 +890,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly IncludeCollection GBuffer = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },

@@ -72,101 +72,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private struct Sorting
-        {
-            public static void QuickSort<T>(T[] data, Func<T, T, int> compare)
-            {
-                QuickSort<T>(data, 0, data.Length - 1, compare);
-            }
-
-            // A non-allocating predicated sub-array quick sort.
-            // NOTE: Similar to UnityEngine.Rendering.CoreUnsafeUtils.QuickSort in CoreUnsafeUtils.cs,
-            // we should see if these could be merged in the future.
-            // For example: Sorting.QuickSort(test, 0, test.Length - 1, (int a, int b) => a - b);
-            public static void QuickSort<T>(T[] data, int start, int end, Func<T, T, int> compare)
-            {
-                int diff = end - start;
-                if (diff < 1)
-                    return;
-                if (diff < 8)
-                {
-                    InsertionSort(data, start, end, compare);
-                    return;
-                }
-
-                Assertions.Assert.IsTrue((uint)start < data.Length);
-                Assertions.Assert.IsTrue((uint)end < data.Length); // end == inclusive
-
-                if (start < end)
-                {
-                    int pivot = Partition<T>(data, start, end, compare);
-
-                    if (pivot >= 1)
-                        QuickSort<T>(data, start, pivot, compare);
-
-                    if (pivot + 1 < end)
-                        QuickSort<T>(data, pivot + 1, end, compare);
-                }
-            }
-
-            static T Median3Pivot<T>(T[] data, int start, int pivot, int end, Func<T, T, int> compare)
-            {
-                void Swap(int a, int b)
-                {
-                    var tmp = data[a];
-                    data[a] = data[b];
-                    data[b] = tmp;
-                }
-
-                if (compare(data[end], data[start]) < 0) Swap(start, end);
-                if (compare(data[pivot], data[start]) < 0) Swap(start, pivot);
-                if (compare(data[end], data[pivot]) < 0) Swap(pivot, end);
-                return data[pivot];
-            }
-
-            static int Partition<T>(T[] data, int start, int end, Func<T, T, int> compare)
-            {
-                int diff = end - start;
-                int pivot = start + diff / 2;
-
-                var pivotValue = Median3Pivot(data, start, pivot, end, compare);
-
-                while (true)
-                {
-                    while (compare(data[start], pivotValue) < 0) ++start;
-                    while (compare(data[end], pivotValue) > 0) --end;
-
-                    if (start >= end)
-                    {
-                        return end;
-                    }
-
-                    var tmp = data[start];
-                    data[start++] = data[end];
-                    data[end--] = tmp;
-                }
-            }
-
-            // A non-allocating predicated sub-array insertion sort.
-            static public void InsertionSort<T>(T[] data, int start, int end, Func<T, T, int> compare)
-            {
-                Assertions.Assert.IsTrue((uint)start < data.Length);
-                Assertions.Assert.IsTrue((uint)end < data.Length);
-
-                for (int i = start + 1; i < end + 1; i++)
-                {
-                    var iData = data[i];
-                    int j = i - 1;
-                    while (j >= 0 && compare(iData, data[j]) < 0)
-                    {
-                        data[j + 1] = data[j];
-                        j--;
-                    }
-                    data[j + 1] = iData;
-                }
-            }
-        }
-
         private struct LightCookieMapping
         {
             public ushort visibleLightIndex; // Index into visible light (src)
@@ -247,97 +152,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private struct ShaderBitArray
-        {
-            const int k_BitsPerElement = 32;
-            const int k_ElementShift = 5;
-            const int k_ElementMask = (1 << k_ElementShift) - 1;
 
-            private float[] m_Data;
-
-            public int elemLength => m_Data == null ? 0 : m_Data.Length;
-            public int bitCapacity => elemLength * k_BitsPerElement;
-            public float[] data => m_Data;
-
-            public void Resize(int bitCount)
-            {
-                if (bitCapacity > bitCount)
-                    return;
-
-                int newElemCount = ((bitCount + (k_BitsPerElement - 1)) / k_BitsPerElement);
-                if (newElemCount == m_Data?.Length)
-                    return;
-
-                var newData = new float[newElemCount];
-                if (m_Data != null)
-                {
-                    for (int i = 0; i < m_Data.Length; i++)
-                        newData[i] = m_Data[i];
-                }
-                m_Data = newData;
-            }
-
-            public void Clear()
-            {
-                for (int i = 0; i < m_Data.Length; i++)
-                    m_Data[i] = 0;
-            }
-
-            private void GetElementIndexAndBitOffset(int index, out int elemIndex, out int bitOffset)
-            {
-                elemIndex = index >> k_ElementShift;
-                bitOffset = index & k_ElementMask;
-            }
-
-            public bool this[int index]
-            {
-                get
-                {
-                    GetElementIndexAndBitOffset(index, out var elemIndex, out var bitOffset);
-
-                    unsafe
-                    {
-                        fixed (float* floatData = m_Data)
-                        {
-                            uint* uintElem = (uint*)&floatData[elemIndex];
-                            bool val = ((*uintElem) & (1u << bitOffset)) != 0u;
-                            return val;
-                        }
-                    }
-                }
-                set
-                {
-                    GetElementIndexAndBitOffset(index, out var elemIndex, out var bitOffset);
-                    unsafe
-                    {
-                        fixed (float* floatData = m_Data)
-                        {
-                            uint* uintElem = (uint*)&floatData[elemIndex];
-                            if (value == true)
-                                *uintElem = (*uintElem) | (1u << bitOffset);
-                            else
-                                *uintElem = (*uintElem) & ~(1u << bitOffset);
-                        }
-                    }
-                }
-            }
-
-            public override string ToString()
-            {
-                unsafe
-                {
-                    Debug.Assert(bitCapacity < 4096, "Bit string too long! It was truncated!");
-                    int len = Math.Min(bitCapacity, 4096);
-                    byte* buf = stackalloc byte[len];
-                    for (int i = 0; i < len; i++)
-                    {
-                        buf[i] = (byte)(this[i] ? '1' : '0');
-                    }
-
-                    return new string((sbyte*)buf, 0, len, System.Text.Encoding.UTF8);
-                }
-            }
-        }
 
         /// Must match light data layout.
         private class LightCookieShaderData : IDisposable
@@ -456,6 +271,10 @@ namespace UnityEngine.Rendering.Universal
         int m_CookieSizeDivisor = 1;
         uint m_PrevCookieRequestPixelCount = 0xFFFFFFFF;
 
+        // TODO: replace with a proper error system
+        // Frame "timestamp" of last warning to throttle warn messages.
+        int m_PrevWarnFrame = -1;
+
         internal bool IsKeywordLightCookieEnabled { get; private set; }
 
         public LightCookieManager(ref Settings settings)
@@ -547,7 +366,7 @@ namespace UnityEngine.Rendering.Universal
                 if (m_VisibleLightIndexToShaderDataIndex != null &&
                     m_AdditionalLightsCookieShaderData.isUploaded)
                 {
-                    int len = Math.Min(m_VisibleLightIndexToShaderDataIndex.Length, lightData.visibleLights.Length);
+                    int len = m_VisibleLightIndexToShaderDataIndex.Length;
                     for (int i = 0; i < len; i++)
                         m_VisibleLightIndexToShaderDataIndex[i] = -1;
                 }
@@ -672,10 +491,8 @@ namespace UnityEngine.Rendering.Universal
             int lightBufferOffset = 0;
             int validLightCount = 0;
 
-            // Warn on dropped lights
-
-            int maxLights = Math.Min(lightData.visibleLights.Length, validLightMappings.Length);
-            for (int i = 0; i < maxLights; i++)
+            int visibleLightCount = lightData.visibleLights.Length;
+            for (int i = 0; i < visibleLightCount; i++)
             {
                 if (i == skipMainLightIndex)
                 {
@@ -683,17 +500,18 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-                Light light = lightData.visibleLights[i].light;
+                ref var visLight = ref lightData.visibleLights.UnsafeElementAtMutable(i);
+                Light light = visLight.light;
 
                 // Skip lights without a cookie texture
                 if (light.cookie == null)
                     continue;
 
                 // Only spot and point lights are supported.
-                // Directional lights basically work,
-                // but would require a lot of constants for the uv transform parameters
-                // and there are very few use cases for multiple global cookies.
-                var lightType = lightData.visibleLights[i].lightType;
+                // Directional lights are not currently supported,
+                // they have very few use cases for multiple global cookies.
+                // Warn on dropped lights
+                var lightType = visLight.lightType;
                 if (!(lightType == LightType.Spot ||
                       lightType == LightType.Point))
                 {
@@ -709,6 +527,20 @@ namespace UnityEngine.Rendering.Universal
                 lp.light = light;
 
                 validLightMappings[validLightCount++] = lp;
+
+                if (validLightCount >= validLightMappings.Length)
+                {
+                    // TODO: Better error system
+                    if (visibleLightCount > m_Settings.maxAdditionalLights &&
+                        Time.frameCount - m_PrevWarnFrame > 60 * 60 * 30) // warn throttling: ~60 FPS * 60 secs * 30 mins
+                    {
+                        m_PrevWarnFrame = Time.frameCount;
+                        Debug.LogWarning($"Max light cookies ({validLightMappings.Length.ToString()}) reached. Some visible lights ({(visibleLightCount - i - 1).ToString()}) might skip light cookie rendering.");
+                    }
+
+                    // Always break, buffer full.
+                    break;
+                }
             }
 
             return validLightCount;
@@ -979,7 +811,7 @@ namespace UnityEngine.Rendering.Universal
                 // Update the mapping
                 m_VisibleLightIndexToShaderDataIndex[visIndex] = bufIndex;
 
-                var visLight = lightData.visibleLights[visIndex];
+                ref var visLight = ref lightData.visibleLights.UnsafeElementAtMutable(visIndex);
 
                 // Update the (cpu) data
                 lightTypes[bufIndex] = (int)visLight.lightType;

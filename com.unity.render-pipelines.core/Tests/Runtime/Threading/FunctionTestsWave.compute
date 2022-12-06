@@ -1,0 +1,297 @@
+#pragma multi_compile _ EMULATE_WAVE_SIZE_8 EMULATE_WAVE_SIZE_16 EMULATE_WAVE_SIZE_32 EMULATE_WAVE_SIZE_64 EMULATE_WAVE_SIZE_128
+#pragma multi_compile _ UNITY_DEVICE_SUPPORTS_WAVE_ANY
+
+// Warning: Keep this kernel order in sync with WaveKernel enum in WaveEmulationTests.cs
+#pragma kernel kAllEqual
+#pragma kernel kAllTrue
+#pragma kernel kAnyTrue
+#pragma kernel kBallot
+#pragma kernel kBitAnd
+#pragma kernel kBitOr
+#pragma kernel kBitXor
+#pragma kernel kCountBits
+#pragma kernel kMax
+#pragma kernel kMin
+#pragma kernel kProduct
+#pragma kernel kSum
+#pragma kernel kGetLaneCount
+#pragma kernel kGetLaneIndex
+#pragma kernel kIsFirstLane
+#pragma kernel kPrefixCountBits
+#pragma kernel kPrefixProduct
+#pragma kernel kPrefixSum
+#pragma kernel kReadLaneAtBroadcast
+#pragma kernel kReadLaneAtShuffle
+#pragma kernel kReadLaneFirst
+
+#if EMULATE_WAVE_SIZE_8
+    #define THREADING_WAVE_SIZE 8
+#elif EMULATE_WAVE_SIZE_16
+    #define THREADING_WAVE_SIZE 16
+#elif EMULATE_WAVE_SIZE_32
+    #define THREADING_WAVE_SIZE 32
+#elif EMULATE_WAVE_SIZE_64
+    #define THREADING_WAVE_SIZE 64
+#elif EMULATE_WAVE_SIZE_128
+    #define THREADING_WAVE_SIZE 128
+#endif
+
+// Required to define before using the threading library.
+#define THREADING_BLOCK_SIZE 128
+
+// BUG: There are currently a few issues preventing SM6 intrinsics from working on all platforms.
+//      For now, we avoid testing SM6 intrinsics on those platforms. Once the issues are resolved, this workaround should be removed to improve test coverage.
+//
+//      Issues:
+//          1. The BitXor, Product, and PrefixProduct SM6 intrinsics fail to compile on Xbox One because they aren't supported.
+//             We could potentially emulate these if necessary, but they aren't particularly useful.
+//             For now, we just skip the native path tests on Xbox One.
+#define ENABLE_SM6_WORKAROUND (defined(SHADER_API_GAMECORE_XBOXONE) || defined(SHADER_API_XBOXONE))
+
+// Force emulation on whenever a specific wave size is provided
+#if defined(THREADING_WAVE_SIZE) || ENABLE_SM6_WORKAROUND
+    #define THREADING_FORCE_WAVE_EMULATION
+#endif
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+typedef Threading::Wave  Wave;
+typedef Threading::Group Group;
+
+ByteAddressBuffer   _Input;
+RWByteAddressBuffer _Output;
+
+// Macros
+#define DATA ((uint)_Input.Load(group.dispatchID.x << 2))
+#define OUTPUT_ADDR ((uint)(group.groupIndex << 2))
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kAllEqual(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (uint)wave.AllEqual(DATA - group.groupIndex);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kAllTrue(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (uint)wave.AllTrue(DATA == group.groupIndex);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kAnyTrue(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (uint)wave.AnyTrue((DATA & (wave.GetLaneCount() - 1)) == (wave.GetLaneCount() / 2));
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kBallot(Group group)
+{
+    Wave wave = group.GetWave();
+
+    uint4 ballot = wave.Ballot(DATA == group.groupIndex);
+
+    uint numBits = (countbits(ballot.x) + countbits(ballot.y) + countbits(ballot.z) + countbits(ballot.w));
+
+    const uint result = (numBits == wave.GetLaneCount());
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kBitAnd(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = wave.And(DATA == group.groupIndex);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kBitOr(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (wave.Or(DATA != group.groupIndex) == 0);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kBitXor(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (wave.Xor(DATA != group.groupIndex) == 0);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kCountBits(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (wave.CountBits(DATA == group.groupIndex) == wave.GetLaneCount());
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kMax(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (wave.Max(DATA & (wave.GetLaneCount() - 1)) == (wave.GetLaneCount() - 1));
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kMin(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (wave.Min(DATA & (wave.GetLaneCount() - 1)) == 0);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kProduct(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = wave.Product((uint)(DATA == group.groupIndex));
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kSum(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (wave.Sum((uint)(DATA == group.groupIndex)) == wave.GetLaneCount());
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kGetLaneCount(Group group)
+{
+#if defined(THREADING_WAVE_SIZE)
+    Wave wave = group.GetWave();
+    const uint result = (THREADING_WAVE_SIZE == wave.GetLaneCount());
+#else
+    // If we don't know the wave size at compile time, we don't really have any way of verifying this functionality.
+    // Unconditionally return 1 so this case always passes.
+    const uint result = 1;
+#endif
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kGetLaneIndex(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = ((DATA & (wave.GetLaneCount() - 1)) == wave.GetLaneIndex());
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kIsFirstLane(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (wave.GetLaneIndex() != 0) ^ wave.IsFirstLane();
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kPrefixCountBits(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (wave.PrefixCountBits(DATA == group.groupIndex) == wave.GetLaneIndex());
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kPrefixProduct(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint value = ((wave.GetLaneIndex() % 8) == 0) ? 2u : 1u;
+
+    const uint expectedValue = (1u << ((wave.GetLaneIndex() / 8u) + 1));
+
+    const uint result = ((wave.PrefixProduct(value) * value) == expectedValue);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kPrefixSum(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint value = wave.GetLaneIndex();
+    const uint expectedValue = (wave.GetLaneIndex() * (wave.GetLaneIndex() + 1u)) / 2u;
+
+    const uint result = ((wave.PrefixSum(value) + value) == expectedValue);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kReadLaneAtBroadcast(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint laneValue = DATA & (wave.GetLaneCount() - 1);
+
+    const uint result = (wave.ReadLaneAt(laneValue, (wave.GetLaneCount() - 1)) == (wave.GetLaneCount() - 1));
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kReadLaneAtShuffle(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint laneValue = DATA & (wave.GetLaneCount() - 1);
+
+    const uint result = (wave.ReadLaneShuffle(laneValue, laneValue) == laneValue);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}
+
+[numthreads(THREADING_BLOCK_SIZE, 1, 1)]
+void kReadLaneFirst(Group group)
+{
+    Wave wave = group.GetWave();
+
+    const uint result = (wave.ReadLaneFirst(DATA & (wave.GetLaneCount() - 1)) == 0);
+
+    _Output.Store(OUTPUT_ADDR, result);
+}

@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderFoundry
 {
     internal static class SimpleSampleBuilder
     {
-        internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPInst, out CustomizationPointInstance surfaceCPInst);
+        internal delegate void BuildCallback(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointImplementation vertexCPInst, out CustomizationPointImplementation surfaceCPInst);
 
         // returns all of the shader IDs produced by the given target
         internal static IEnumerable<string> AllShaderIDs(Target target, ShaderContainer container = null)
@@ -57,15 +57,15 @@ namespace UnityEditor.ShaderFoundry
                 var templateInstanceBuilder = new TemplateInstance.Builder(container, template);
 
                 // Hard-coded find the two customization points we know will exist. This really should discovered from iterating long-term
-                var customizationPoints = template.CustomizationPoints().ToList();
+                var customizationPoints = template.CustomizationPoints.ToList();
                 var vertexCP = customizationPoints.Find((cp) => (cp.Name == LegacyCustomizationPoints.VertexDescriptionCPName));
                 var surfaceCP = customizationPoints.Find((cp) => (cp.Name == LegacyCustomizationPoints.SurfaceDescriptionCPName));
 
                 // Build the descriptors for the two customization points. These define the blocks we're adding
                 buildCallback(container, vertexCP, surfaceCP, out var vertexCPInst, out var surfaceCPInst);
 
-                templateInstanceBuilder.AddCustomizationPointInstance(vertexCPInst);
-                templateInstanceBuilder.AddCustomizationPointInstance(surfaceCPInst);
+                templateInstanceBuilder.AddCustomizationPointImplementation(vertexCPInst);
+                templateInstanceBuilder.AddCustomizationPointImplementation(surfaceCPInst);
 
                 var templateInstance = templateInstanceBuilder.Build();
                 shaderInstBuilder.TemplateInstances.Add(templateInstance);
@@ -82,10 +82,10 @@ namespace UnityEditor.ShaderFoundry
             fieldBuilder.AddAttribute(propertyAttribute.Build(container));
         }
 
-        internal static BlockInstance BuildSimpleBlockInstance(ShaderContainer container, Block block)
+        internal static BlockSequenceElement BuildSimpleBlockSequenceElement(ShaderContainer container, Block block)
         {
-            var blockInstBuilder = new BlockInstance.Builder(container, block);
-            return blockInstBuilder.Build();
+            var blockBlockSequenceElementBuilder = new BlockSequenceElement.Builder(container, block);
+            return blockBlockSequenceElementBuilder.Build();
         }
 
         internal static void BuildCommonTypes(ShaderContainer container)

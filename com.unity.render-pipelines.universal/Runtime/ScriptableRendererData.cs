@@ -5,6 +5,7 @@ using System.Reflection;
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditor;
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 
 namespace UnityEngine.Rendering.Universal
@@ -13,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>ScriptableRendererData</c> contains resources for a <c>ScriptableRenderer</c>.
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
+    [Icon("UnityEngine/Rendering/RenderPipelineAsset Icon")]
     public abstract class ScriptableRendererData : ScriptableObject
     {
         internal bool isInvalidated { get; set; }
@@ -43,6 +45,9 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
+#if UNITY_EDITOR
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.RenderPassEnabled)]
+#endif
         [SerializeField] bool m_UseNativeRenderPass = false;
 
         /// <summary>
@@ -68,6 +73,9 @@ namespace UnityEngine.Rendering.Universal
             return Create();
         }
 
+        /// <summary>
+        /// Editor-only function that Unity calls when the script is loaded or a value changes in the Inspector.
+        /// </summary>
         protected virtual void OnValidate()
         {
             SetDirty();
@@ -77,11 +85,17 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <summary>
+        /// This function is called when the object becomes enabled and active.
+        /// </summary>
         protected virtual void OnEnable()
         {
             SetDirty();
         }
 
+        /// <summary>
+        /// Specifies whether the renderer should use Native Render Pass.
+        /// </summary>
         public bool useNativeRenderPass
         {
             get => m_UseNativeRenderPass;

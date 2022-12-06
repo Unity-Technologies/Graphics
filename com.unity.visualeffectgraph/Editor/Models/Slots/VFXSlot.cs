@@ -97,13 +97,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get
             {
                 if (spaceable)
                     return GetMasterData().m_Space;
-                return (VFXCoordinateSpace)int.MaxValue;
+                return VFXSpace.None;
             }
 
             set
@@ -138,7 +138,7 @@ namespace UnityEditor.VFX
                 return false;
 
             var linkedSlot = m_LinkedSlots.First();
-            return linkedSlot.spaceable && linkedSlot.space != (VFXCoordinateSpace)int.MaxValue;
+            return linkedSlot.spaceable;
         }
 
         public SpaceableType GetSpaceTransformationType()
@@ -335,18 +335,12 @@ namespace UnityEditor.VFX
             if (m_SlotsSpaceable.Any())
             {
                 if (!spaceable)
-                    Debug.LogError("Unexpected slot spaceable while slot isn't mark as spaceable : " + property.type);
-
-                if (m_MasterData.m_Space == (VFXCoordinateSpace)int.MaxValue)
-                {
-                    m_MasterData.m_Space = VFXCoordinateSpace.Local;
-                }
+                    Debug.LogError("Unexpected slot spaceable while slot isn't marked as spaceable : " + property.type);
             }
             else
             {
                 if (spaceable)
-                    Debug.LogError("Expected slot spaceable while slot is  mark as spaceable : " + property.type);
-                m_MasterData.m_Space = (VFXCoordinateSpace)int.MaxValue;
+                    Debug.LogError("Expected slot spaceable while slot is marked as spaceable : " + property.type);
             }
         }
 
@@ -366,6 +360,11 @@ namespace UnityEditor.VFX
             slot.m_MasterData = masterData;
             slot.UpdateDefaultExpressionValue();
             slot.InitializeSpaceableCachedSlot();
+            if (slot.spaceable)
+            {
+                //When spaceable, initialize newly created slot with Local by default
+                slot.m_MasterData.m_Space = VFXSpace.Local;
+            }
             return slot;
         }
 
@@ -540,6 +539,14 @@ namespace UnityEditor.VFX
         {
             if (!IsMasterSlot())
                 return; //Give only the responsibility to the master slot to sanitize children (sanitizing deeper children first)
+
+            if (version < 12)
+            {
+                if (m_MasterData != null && (int)m_MasterData.m_Space == int.MaxValue)
+                {
+                    m_MasterData.m_Space = VFXSpace.None;
+                }
+            }
 
             //PropagateToChildrenReverse(c => c.InternalSanitize(version), false); //Not possible because collection could be modified while sanitizing
             var slotToSanitize = new List<VFXSlot>();
@@ -757,7 +764,6 @@ namespace UnityEditor.VFX
             {
                 m_Owner = null,
                 m_Value = new VFXSerializableObject(property.type, value),
-                m_Space = (VFXCoordinateSpace)int.MaxValue,
             };
 
             PropagateToChildren(s => s.SetMasterSlotAndData(this, null));
@@ -770,24 +776,10 @@ namespace UnityEditor.VFX
         }
 
         public int GetNbLinks() { return m_LinkedSlots.Count; }
-        public bool HasLink(bool rescursive = false)
+        public bool HasLink(bool recursive = false)
         {
-            if (GetNbLinks() != 0)
-            {
-                return true;
-            }
-
-            if (rescursive)
-            {
-                foreach (var child in children)
-                {
-                    if (child.HasLink(rescursive))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return GetNbLinks() > 0
+                || recursive && children.Any(x => x.HasLink(true));
         }
 
         public bool CanLink(VFXSlot other)
@@ -991,12 +983,12 @@ namespace UnityEditor.VFX
 
             var toInvalidate = new HashSet<VFXSlot>();
 
-            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : (VFXCoordinateSpace)int.MaxValue);
+            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : VFXSpace.None);
             masterSlot.PropagateToChildren(s =>
             {
                 var exp = s.ExpressionToChildren(s.m_OutExpression);
                 for (int i = 0; i < s.GetNbChildren(); ++i)
-                    s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : (VFXCoordinateSpace)int.MaxValue);
+                    s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : VFXSpace.None);
             });
 
             foreach (var slot in toInvalidate)
@@ -1022,20 +1014,28 @@ namespace UnityEditor.VFX
                     }
                     else
                     {
-                        exp = ConvertSpace(exp, destSpaceableType, destSlot.space);
+                        exp = ConvertSpace(exp, sourceSlot.space, destSpaceableType, destSlot.space);
                     }
                 }
             }
             return exp;
         }
 
-        public void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace = (VFXCoordinateSpace)int.MaxValue)
+        private VFXExpression ConvertSpace(VFXExpression input, VFXSpace destSpace)
+        {
+            if (spaceable)
+                if (space != destSpace)
+                {
+                    var spaceType = GetSpaceTransformationType();
+                    input = ConvertSpace(input, space, spaceType, destSpace);
+                }
+            return input;
+        }
+
+        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXSpace convertToSpace)
         {
             exp = m_Property.attributes.ApplyToExpressionGraph(exp);
-            if (convertToSpace != (VFXCoordinateSpace)int.MaxValue)
-            {
-                exp = ConvertSpace(exp, this, convertToSpace);
-            }
+            exp = ConvertSpace(exp, convertToSpace);
 
             if (m_OutExpression != exp)
             {
@@ -1085,7 +1085,7 @@ namespace UnityEditor.VFX
             }
 
             if (owner != null && direction == Direction.kInput)
-                owner.Invalidate(InvalidationCause.kExpressionInvalidated);
+                owner.Invalidate(this, InvalidationCause.kExpressionInvalidated);
         }
 
         public void UnlinkAll(bool recursive = false, bool notify = true)
@@ -1109,7 +1109,7 @@ namespace UnityEditor.VFX
                 if (IsMasterSlot() && direction == Direction.kInput && spaceable && HasLink())
                 {
                     var linkedSlot = m_LinkedSlots.First();
-                    if (linkedSlot.spaceable && linkedSlot.space != (VFXCoordinateSpace)int.MaxValue)
+                    if (linkedSlot.spaceable)
                     {
                         space = linkedSlot.space;
                     }
@@ -1132,6 +1132,18 @@ namespace UnityEditor.VFX
                     });
                 }
             }
+
+            if (direction == Direction.kOutput &&
+                ((cause == InvalidationCause.kParamChanged && m_LinkedInExpression == null) || // only propagate param changed if no linkedin expression is set
+                 cause == InvalidationCause.kExpressionValueInvalidated))
+            {
+                PropagateToTree(s =>
+                {
+                    foreach (var slot in s.m_LinkedSlots)
+                        slot.Invalidate(InvalidationCause.kExpressionValueInvalidated);
+                });
+            }
+
             base.OnInvalidate(model, cause);
         }
 
@@ -1196,12 +1208,12 @@ namespace UnityEditor.VFX
         {
             public MasterData()
             {
-                m_Space = (VFXCoordinateSpace)int.MaxValue;
+                m_Space = VFXSpace.None;
             }
 
             public VFXModel m_Owner;
             public VFXSerializableObject m_Value;
-            public VFXCoordinateSpace m_Space; //can be undefined
+            public VFXSpace m_Space;
         }
 
         private void SetMasterSlotAndData(VFXSlot masterSlot, MasterData masterData)

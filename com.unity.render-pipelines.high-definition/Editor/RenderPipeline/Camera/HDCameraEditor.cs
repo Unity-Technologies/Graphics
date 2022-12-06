@@ -2,11 +2,13 @@ using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
+    [CustomEditor(typeof(Camera))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {
@@ -38,6 +40,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Disable builtin camera overlay
             k_SceneViewCameraOverlay_ForceDisable.SetValue(null, true);
+            Undo.undoRedoPerformed += ReconstructReferenceToAdditionalDataSO;
+        }
+
+        void ReconstructReferenceToAdditionalDataSO()
+        {
+            OnDisable();
+            OnEnable();
         }
 
         void OnDisable()
@@ -54,6 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Restore builtin camera overlay
             k_SceneViewCameraOverlay_ForceDisable.SetValue(null, false);
+            Undo.undoRedoPerformed -= ReconstructReferenceToAdditionalDataSO;
         }
 
         public override void OnInspectorGUI()

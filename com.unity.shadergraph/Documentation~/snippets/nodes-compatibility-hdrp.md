@@ -2,7 +2,7 @@
 title: nodes-compatibility-hdrp
 ---
 
-This node is supported on the following render pipelines:
+node is supported on the following render pipelines:
 
 <table>
 <thead>

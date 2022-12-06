@@ -112,12 +112,26 @@ namespace UnityEditor.VFX
                 foreach (var s in base.filteredOutSettings)
                     yield return s;
 
+                yield return nameof(enableRayTracing);
+
                 // TODO Add a experimental bool to setting attribute
                 if (!VFXViewPreference.displayExperimentalOperator)
                 {
-                    yield return "MeshCount";
-                    yield return "lod";
+                    yield return nameof(MeshCount);
+                    yield return nameof(lod);
                 }
+            }
+        }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return nameof(enableRayTracing);
             }
         }
 
@@ -149,7 +163,7 @@ namespace UnityEditor.VFX
             return mapper;
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             var dataParticle = GetData() as VFXDataParticle;

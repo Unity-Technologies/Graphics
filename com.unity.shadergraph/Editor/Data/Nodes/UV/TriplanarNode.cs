@@ -6,21 +6,17 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("UV", "Sample Triplanar")]
+    [Title("UV", "Triplanar")]
     class TriplanarNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireBitangent
     {
-        public const int OutputSlotXYZId = 0;
-        public const int OutputSlotXZId = 7;
-        public const int OutputSlotYId = 8;
+        public const int OutputSlotId = 0;
         public const int TextureInputId = 1;
         public const int SamplerInputId = 2;
         public const int PositionInputId = 3;
         public const int NormalInputId = 4;
         public const int TileInputId = 5;
         public const int BlendInputId = 6;
-        const string OutputSlotXYZName = "XYZ";
-        const string OutputSlotXZName = "XZ";
-        const string OutputSlotYName = "Y";
+        const string kOutputSlotName = "Out";
         const string kTextureInputName = "Texture";
         const string kSamplerInputName = "Sampler";
         const string kPositionInputName = "Position";
@@ -35,7 +31,7 @@ namespace UnityEditor.ShaderGraph
 
         public TriplanarNode()
         {
-            name = "Sample Triplanar";
+            name = "Triplanar";
             synonyms = new string[] { "project" };
             m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();
@@ -103,17 +99,14 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(OutputSlotXYZId, OutputSlotXYZName, OutputSlotXYZName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
-            AddSlot(new Vector4MaterialSlot(OutputSlotXZId, OutputSlotXZName, OutputSlotXZName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
-            AddSlot(new Vector4MaterialSlot(OutputSlotYId, OutputSlotYName, OutputSlotYName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
-
+            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
             AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
             AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
             AddSlot(new PositionMaterialSlot(PositionInputId, kPositionInputName, kPositionInputName, inputSpace));
             AddSlot(new NormalMaterialSlot(NormalInputId, kNormalInputName, kNormalInputName, inputSpace));
             AddSlot(new Vector1MaterialSlot(TileInputId, kTileInputName, kTileInputName, SlotType.Input, 1));
             AddSlot(new Vector1MaterialSlot(BlendInputId, kBlendInputName, kBlendInputName, SlotType.Input, 1));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotXYZId, OutputSlotXZId, OutputSlotYId, TextureInputId, SamplerInputId, PositionInputId, NormalInputId, TileInputId, BlendInputId });
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId, TextureInputId, SamplerInputId, PositionInputId, NormalInputId, TileInputId, BlendInputId });
         }
 
         public override void Setup()
@@ -175,29 +168,15 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForNode()
                         , GetSlotValue(NormalInputId, generationMode));
 
-                    var outputXYZVariable = GetVariableNameForSlot(OutputSlotXYZId);
+                    var outputVariable = GetVariableNameForSlot(OutputSlotId);
                     sb.AppendLine("$precision4 {0} = $precision4({1}_X.zyx * {1}_Blend.x + {1}_Y.xzy * {1}_Blend.y + {1}_Z.xyz * {1}_Blend.z, 1);"
-                        , outputXYZVariable
-                        , GetVariableNameForNode());
-
-                    var outputXZVariable = GetVariableNameForSlot(OutputSlotXZId);
-                    sb.AppendLine("$precision4 {0} = $precision4({1}_X.zyx * {1}_Blend.x + {1}_Z.xyz * {1}_Blend.z, 1);"
-                        , outputXZVariable
-                        , GetVariableNameForNode());
-
-                    var outputYVariable = GetVariableNameForSlot(OutputSlotYId);
-                    sb.AppendLine("$precision4 {0} = $precision4({1}_Y.xzy * {1}_Blend.y, 1);"
-                        , outputYVariable
+                        , outputVariable
                         , GetVariableNameForNode());
 
                     // transform the normal from input to output space, and normalize
 
-                    outputXYZVariable = $"{outputXYZVariable}.rgb";
-                    SpaceTransformUtil.GenerateTransformCodeStatement(normalTransform, outputXYZVariable, outputXYZVariable, sb);
-                    outputXZVariable = $"{outputXZVariable}.rgb";
-                    SpaceTransformUtil.GenerateTransformCodeStatement(normalTransform, outputXZVariable, outputXZVariable, sb);
-                    outputYVariable = $"{outputYVariable}.rgb";
-                    SpaceTransformUtil.GenerateTransformCodeStatement(normalTransform, outputYVariable, outputYVariable, sb);
+                    outputVariable = $"{outputVariable}.rgb";
+                    SpaceTransformUtil.GenerateTransformCodeStatement(normalTransform, outputVariable, outputVariable, sb);
                     break;
                 default:
                     // We want the sum of the 3 blend weights (by which we normalize them) to be > 0.
@@ -230,13 +209,7 @@ namespace UnityEditor.ShaderGraph
                         , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id);
 
                     sb.AppendLine("$precision4 {0} = {1}_X * {1}_Blend.x + {1}_Y * {1}_Blend.y + {1}_Z * {1}_Blend.z;"
-                        , GetVariableNameForSlot(OutputSlotXYZId)
-                        , GetVariableNameForNode());
-                    sb.AppendLine("$precision4 {0} = {1}_X * {1}_Blend.x + {1}_Z * {1}_Blend.z;"
-                        , GetVariableNameForSlot(OutputSlotXZId)
-                        , GetVariableNameForNode());
-                    sb.AppendLine("$precision4 {0} = {1}_Y * {1}_Blend.y;"
-                        , GetVariableNameForSlot(OutputSlotYId)
+                        , GetVariableNameForSlot(OutputSlotId)
                         , GetVariableNameForNode());
                     break;
             }

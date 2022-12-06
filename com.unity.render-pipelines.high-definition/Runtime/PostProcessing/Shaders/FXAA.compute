@@ -1,6 +1,7 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel FXAA
 #pragma multi_compile _ ENABLE_ALPHA
+#pragma multi_compile _ FUTURE_HDR_OUTPUT
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 

@@ -8,6 +8,26 @@
 #define PLATFORM_SAMPLE_TEXTURE2D(textureName, samplerName, coord2)                     textureName.SampleLevel(samplerName, coord2, _RayTracingLodBias)
 #endif
 
+#ifdef SAMPLE_TEXTURE2D_GRAD
+#undef SAMPLE_TEXTURE2D_GRAD
+#define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2,dpdx, dpdy)              textureName.SampleLevel(samplerName, coord2, _RayTracingLodBias)
+#endif
+
+#ifdef PLATFORM_SAMPLE_TEXTURE2D_GRAD
+#undef PLATFORM_SAMPLE_TEXTURE2D_GRAD
+#define PLATFORM_SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2,dpdx, dpdy)     textureName.SampleLevel(samplerName, coord2, _RayTracingLodBias)
+#endif
+
+#ifdef SAMPLE_TEXTURE2D_BIAS
+#undef SAMPLE_TEXTURE2D_BIAS
+#define SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias)                   textureName.SampleLevel(samplerName, coord2, _RayTracingLodBias + bias)
+#endif
+
+#ifdef PLATFORM_SAMPLE_TEXTURE2D_BIAS
+#undef PLATFORM_SAMPLE_TEXTURE2D_BIAS
+#define PLATFORM_SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, coord2, bias)          textureName.SampleLevel(samplerName, coord2, _RayTracingLodBias + bias)
+#endif
+
 #ifdef SAMPLE_TEXTURE3D
 #undef SAMPLE_TEXTURE3D
 #define SAMPLE_TEXTURE3D(textureName, samplerName, coord3)                              textureName.SampleLevel(samplerName, coord3, 0)

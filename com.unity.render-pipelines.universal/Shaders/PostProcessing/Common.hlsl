@@ -2,42 +2,34 @@
 #define UNIVERSAL_POSTPROCESSING_COMMON_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-// ----------------------------------------------------------------------------------
-// Render fullscreen mesh by using a matrix set directly by the pipeline instead of
-// relying on the matrix set by the C++ engine to avoid issues with XR
+#if _FXAA
+// Notes on FXAA:
+// * We now rely on the official FXAA implementation (authored by Timothy Lottes while at NVIDIA)
+//   with minimal changes made by Unity to integrate with URP.
+// * The following 'Tweakable' defines are used by the FXAA implementation and can be changed if desired:
+//   * FXAA_PC set to 1 is the highest quality implementation ("PC" here is a misnomer, it will run on all platforms).
+//   * FXAA_PC set to 0 is the cheaper 'FXAA_PC_CONSOLE' variant
+//     (it's equivalent to URP's old implementation but less noisy and should run faster than before)
+//   * FXAA_GREEN_AS_LUMA can be set to 0 for an extra performance increase but will only antialias edges that have
+//     some green in them (will be visually equivalent on the vast majority of scenes).
+//   * FXAA_QUALITY__PRESET is used when FXAA_PC is set ot 1. We chose preset 12 as it runs almost as fast on Switch as
+//     our old noisy implementation did.
+//     On all other platforms we could basically get away with preset 15 which has slightly better edge quality.
 
-float4x4 _FullscreenProjMat;
+// Tweakable params (can be changed to get different performance and quality tradeoffs)
+#define FXAA_PC 1
+#define FXAA_GREEN_AS_LUMA 0
+#define FXAA_QUALITY__PRESET 12
 
-float4 TransformFullscreenMesh(half3 positionOS)
-{
-    return mul(_FullscreenProjMat, half4(positionOS, 1));
-}
+// Fixed params (should not be changed)
+#define FXAA_HLSL_5 1
+#define FXAA_GATHER4_ALPHA 0
+#define FXAA_PC_CONSOLE !FXAA_PC
 
-Varyings VertFullscreenMesh(Attributes input)
-{
-    Varyings output;
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-#if _USE_DRAW_PROCEDURAL
-    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
-#else
-    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
-    output.uv = input.uv;
+#include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/FXAA3_11.hlsl"
 #endif
-
-    return output;
-}
-
-// ----------------------------------------------------------------------------------
-// Samplers
-
-SAMPLER(sampler_LinearClamp);
-SAMPLER(sampler_LinearRepeat);
-SAMPLER(sampler_PointClamp);
-SAMPLER(sampler_PointRepeat);
 
 // ----------------------------------------------------------------------------------
 // Utility functions
@@ -195,76 +187,56 @@ half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, B
     return input;
 }
 
-#define FXAA_SPAN_MAX   (8.0)
-#define FXAA_REDUCE_MUL (1.0 / 8.0)
-#define FXAA_REDUCE_MIN (1.0 / 128.0)
-
-half3 FXAAFetch(float2 coords, float2 offset, TEXTURE2D_X(inputTexture))
-{
-    float2 uv = coords + offset;
-    return SAMPLE_TEXTURE2D_X(inputTexture, sampler_LinearClamp, uv).xyz;
-}
-
-half3 FXAALoad(int2 icoords, int idx, int idy, float4 sourceSize, TEXTURE2D_X(inputTexture))
-{
-    #if SHADER_API_GLES
-    float2 uv = (icoords + int2(idx, idy)) * sourceSize.zw;
-    return SAMPLE_TEXTURE2D_X(inputTexture, sampler_PointClamp, uv).xyz;
-    #else
-    return LOAD_TEXTURE2D_X(inputTexture, clamp(icoords + int2(idx, idy), 0, sourceSize.xy - 1.0)).xyz;
-    #endif
-}
+#if _FXAA
+static const FxaaFloat kSubpixelBlendAmount = 0.65;
+static const FxaaFloat kRelativeContrastThreshold = 0.15;
+static const FxaaFloat kAbsoluteContrastThreshold = 0.03;
+#endif
 
 half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceSize, TEXTURE2D_X(inputTexture))
 {
-    // Edge detection
-    half3 rgbNW = FXAALoad(positionSS, -1, -1, sourceSize, inputTexture);
-    half3 rgbNE = FXAALoad(positionSS,  1, -1, sourceSize, inputTexture);
-    half3 rgbSW = FXAALoad(positionSS, -1,  1, sourceSize, inputTexture);
-    half3 rgbSE = FXAALoad(positionSS,  1,  1, sourceSize, inputTexture);
+#if _FXAA
+    FxaaTex tex = {sampler_LinearClamp, _BlitTexture};
+    FxaaFloat4 kUnusedFloat4 = FxaaFloat4(0, 0, 0, 0);
 
-    rgbNW = saturate(rgbNW);
-    rgbNE = saturate(rgbNE);
-    rgbSW = saturate(rgbSW);
-    rgbSE = saturate(rgbSE);
-    color = saturate(color);
+    FxaaFloat4 fxaaConsolePos = 0;
+    FxaaFloat4 kFxaaConsoleRcpFrameOpt = 0;
+    FxaaFloat4 kFxaaConsoleRcpFrameOpt2 = 0;
+    FxaaFloat kFxaaConsoleEdgeSharpness = 0;
+    FxaaFloat kFxaaConsoleEdgeThreshold = 0;
+    FxaaFloat kFxaaConsoleEdgeThresholdMin = 0;
 
-    half lumaNW = Luminance(rgbNW);
-    half lumaNE = Luminance(rgbNE);
-    half lumaSW = Luminance(rgbSW);
-    half lumaSE = Luminance(rgbSE);
-    half lumaM = Luminance(color);
+#if FXAA_PC_CONSOLE == 1
+    fxaaConsolePos = FxaaFloat4(positionNDC.xy - 0.5*sourceSize.zw, positionNDC.xy + 0.5*sourceSize.zw);
+    kFxaaConsoleRcpFrameOpt = 0.5*FxaaFloat4(sourceSize.zw, -sourceSize.zw);
+    kFxaaConsoleRcpFrameOpt2 = 2.0*FxaaFloat4(-sourceSize.zw, sourceSize.zw);
+    kFxaaConsoleEdgeSharpness = 8.0;
+    kFxaaConsoleEdgeThreshold = 0.125;
+    kFxaaConsoleEdgeThresholdMin = 0.05;
+#endif
 
-    float2 dir;
-    dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));
-    dir.y = ((lumaNW + lumaSW) - (lumaNE + lumaSE));
-
-    half lumaSum = lumaNW + lumaNE + lumaSW + lumaSE;
-    float dirReduce = max(lumaSum * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);
-    float rcpDirMin = rcp(min(abs(dir.x), abs(dir.y)) + dirReduce);
-
-    dir = min((FXAA_SPAN_MAX).xx, max((-FXAA_SPAN_MAX).xx, dir * rcpDirMin)) * sourceSize.zw;
-
-    // Blur
-    half3 rgb03 = FXAAFetch(positionNDC, dir * (0.0 / 3.0 - 0.5), inputTexture);
-    half3 rgb13 = FXAAFetch(positionNDC, dir * (1.0 / 3.0 - 0.5), inputTexture);
-    half3 rgb23 = FXAAFetch(positionNDC, dir * (2.0 / 3.0 - 0.5), inputTexture);
-    half3 rgb33 = FXAAFetch(positionNDC, dir * (3.0 / 3.0 - 0.5), inputTexture);
-
-    rgb03 = saturate(rgb03);
-    rgb13 = saturate(rgb13);
-    rgb23 = saturate(rgb23);
-    rgb33 = saturate(rgb33);
-
-    half3 rgbA = 0.5 * (rgb13 + rgb23);
-    half3 rgbB = rgbA * 0.5 + 0.25 * (rgb03 + rgb33);
-
-    half lumaB = Luminance(rgbB);
-
-    half lumaMin = Min3(lumaM, lumaNW, Min3(lumaNE, lumaSW, lumaSE));
-    half lumaMax = Max3(lumaM, lumaNW, Max3(lumaNE, lumaSW, lumaSE));
-
-    return ((lumaB < lumaMin) || (lumaB > lumaMax)) ? rgbA : rgbB;
+    return FxaaPixelShader(
+        positionNDC,
+        FxaaFloat4(color, 0),
+        fxaaConsolePos,
+        tex,
+        tex,
+        tex,
+        sourceSize.zw,
+        kFxaaConsoleRcpFrameOpt,
+        kFxaaConsoleRcpFrameOpt2,
+        kUnusedFloat4,
+        kSubpixelBlendAmount,
+        kRelativeContrastThreshold,
+        kAbsoluteContrastThreshold,
+        kFxaaConsoleEdgeSharpness,
+        kFxaaConsoleEdgeThreshold,
+        kFxaaConsoleEdgeThresholdMin,
+        kUnusedFloat4
+    );
+#else
+    return color;
+#endif
 }
 
 #endif // UNIVERSAL_POSTPROCESSING_COMMON_INCLUDED

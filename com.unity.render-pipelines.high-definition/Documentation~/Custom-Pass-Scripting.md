@@ -338,38 +338,6 @@ public class OutlineDrawer : CustomPassDrawer
        return (lineAndSpaceHeight) * 3;
    }
 }
-
-{
-   // This property field allow you to control which common UI property to show.
-   // For the outline we only need the name and target color buffer.
-   protected override PassUIFlag commonPassUIFlags => PassUIFlag.TargetColorBuffer | PassUIFlag.Name;
-   SerializedProperty outlineLayer, outlineColor, threshold;
-   static float lineAndSpaceHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-   protected override void Initialize(SerializedProperty customPass)
-   {
-       // Initialize the local SerializedProperty you will use in your pass.
-       outlineLayer = customPass.FindPropertyRelative(nameof(Outline.outlineLayer));
-       outlineColor = customPass.FindPropertyRelative(nameof(Outline.outlineColor));
-       threshold = customPass.FindPropertyRelative(nameof(Outline.threshold));
-   }
-   protected override void DoPassGUI(SerializedProperty customPass, Rect rect)
-   {
-       // Draw your custom GUI using `EditorGUI` calls. Note that the Layout methods don't work here
-       Rect propertyRect = rect;
-       propertyRect.height = EditorGUIUtility.singleLineHeight;
-       EditorGUI.PropertyField(propertyRect, outlineLayer);
-       propertyRect.y += lineAndSpaceHeight;
-       EditorGUI.PropertyField(propertyRect, outlineColor);
-       propertyRect.y += lineAndSpaceHeight;
-       EditorGUI.PropertyField(propertyRect, threshold);
-   }
-   protected override float GetPassHeight(SerializedProperty customPass)
-   {
-       // Return the vertical height in pixels that you used in the DoPassGUI method above.
-       // Can be dynamic.
-       return (lineAndSpaceHeight) * 3;
-   }
-}
 ```
 
 When you create a Custom Pass drawer, Unity provides a default list of Custom Pass properties. Unity still does this when `DoPassGUI` is empty. These properties are the same properties that Unity provides in the [draw renderers CustomPass Volume](Custom-Pass-Creating.md#Draw-Renderers-Custom-Pass) component by default.

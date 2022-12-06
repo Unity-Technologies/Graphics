@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
@@ -29,12 +31,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
         static Mesh s_FullscreenMesh = null;
 
         /// <summary>
         /// Returns a mesh that you can use with <see cref="CommandBuffer.DrawMesh(Mesh, Matrix4x4, Material)"/> to render full-screen effects.
         /// </summary>
+        [Obsolete("Use Blitter.BlitCameraTexture instead of CommandBuffer.DrawMesh(fullscreenMesh, ...)")]
         public static Mesh fullscreenMesh
         {
             get
@@ -88,8 +90,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool SupportsLightLayers(GraphicsDeviceType type)
         {
-            // GLES2 does not support bitwise operations.
-            return type != GraphicsDeviceType.OpenGLES2;
+            return true;
         }
 
         static Material s_ErrorMaterial;
@@ -140,38 +141,120 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal static void SetScaleBiasRt(CommandBuffer cmd, in RenderingData renderingData, RTHandle rTHandle)
+        {
+            // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
+            CameraData cameraData = renderingData.cameraData;
+            bool isCameraColorFinalTarget = (cameraData.cameraType == CameraType.Game && rTHandle.nameID == BuiltinRenderTextureType.CameraTarget && cameraData.camera.targetTexture == null);
+            bool yflip = !isCameraColorFinalTarget;
+            float flipSign = yflip ? -1.0f : 1.0f;
+            Vector4 scaleBiasRt = (flipSign < 0.0f)
+                ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
+        }
+
+        internal static void SetScaleBiasRt(CommandBuffer cmd, in RenderingData renderingData)
+        {
+            var renderer = renderingData.cameraData.renderer;
+            // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
+            CameraData cameraData = renderingData.cameraData;
+            bool isCameraColorFinalTarget = (cameraData.cameraType == CameraType.Game && renderer.cameraColorTargetHandle.nameID == BuiltinRenderTextureType.CameraTarget && cameraData.camera.targetTexture == null);
+            bool yflip = !isCameraColorFinalTarget;
+            float flipSign = yflip ? -1.0f : 1.0f;
+            Vector4 scaleBiasRt = (flipSign < 0.0f)
+                ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
+        }
+
         internal static void Blit(CommandBuffer cmd,
             RTHandle source,
+            Rect viewport,
             RTHandle destination,
+            RenderBufferLoadAction loadAction,
+            RenderBufferStoreAction storeAction,
+            ClearFlag clearFlag,
+            Color clearColor,
             Material material,
-            int passIndex = 0,
-            bool useDrawProcedural = false,
-            RenderBufferLoadAction colorLoadAction = RenderBufferLoadAction.Load,
-            RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store,
-            RenderBufferLoadAction depthLoadAction = RenderBufferLoadAction.Load,
-            RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store)
+            int passIndex = 0)
         {
-            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
-            if (useDrawProcedural)
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+            CoreUtils.SetRenderTarget(cmd, destination, loadAction, storeAction, ClearFlag.None, Color.clear);
+            cmd.SetViewport(viewport);
+            Blitter.BlitTexture(cmd, source, viewportScale, material, passIndex);
+        }
+
+        internal static void Blit(CommandBuffer cmd,
+            RTHandle source,
+            Rect viewport,
+            RTHandle destinationColor,
+            RenderBufferLoadAction colorLoadAction,
+            RenderBufferStoreAction colorStoreAction,
+            RTHandle destinationDepthStencil,
+            RenderBufferLoadAction depthStencilLoadAction,
+            RenderBufferStoreAction depthStencilStoreAction,
+            ClearFlag clearFlag,
+            Color clearColor,
+            Material material,
+            int passIndex = 0)
+        {
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+            CoreUtils.SetRenderTarget(cmd,
+                destinationColor, colorLoadAction, colorStoreAction,
+                destinationDepthStencil, depthStencilLoadAction, depthStencilStoreAction,
+                clearFlag, clearColor); // implicit depth=1.0f stencil=0x0
+            cmd.SetViewport(viewport);
+            Blitter.BlitTexture(cmd, source, viewportScale, material, passIndex);
+        }
+
+        internal static void FinalBlit(
+            CommandBuffer cmd,
+            ref CameraData cameraData,
+            RTHandle source,
+            RTHandle destination,
+            RenderBufferLoadAction loadAction,
+            RenderBufferStoreAction storeAction,
+            Material material, int passIndex)
+        {
+            bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    isRenderToBackBufferTarget = new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1) == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, -1);
+#endif
+
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+
+            // We y-flip if
+            // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
+            // 2) renderTexture starts UV at top
+            bool yflip = isRenderToBackBufferTarget && cameraData.targetTexture == null && SystemInfo.graphicsUVStartsAtTop;
+            Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+            CoreUtils.SetRenderTarget(cmd, destination, loadAction, storeAction, ClearFlag.None, Color.clear);
+            if (isRenderToBackBufferTarget)
+                cmd.SetViewport(cameraData.pixelRect);
+
+            // cmd.Blit must be used in Scene View for wireframe mode to make the full screen draw with fill mode
+            // This branch of the if statement must be removed for render graph and the new command list with a novel way of using Blitter with fill mode
+            if (cameraData.isSceneViewCamera)
             {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
+                cmd.SetGlobalTexture("_BlitTexture", source);
+                // This set render target is necessary so we change the LOAD state to DontCare.
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                    loadAction, storeAction, // color
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+                cmd.Blit(source.nameID, destination.nameID);
             }
+            else if (source.rt == null)
+                Blitter.BlitTexture(cmd, source.nameID, scaleBias, material, passIndex);  // Obsolete usage of RTHandle aliasing a RenderTargetIdentifier
             else
-            {
-                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
-                cmd.Blit(source.nameID, BuiltinRenderTextureType.CurrentActive, material, passIndex);
-            }
+                Blitter.BlitTexture(cmd, source, scaleBias, material, passIndex);
         }
 
         // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
+        internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, CommandBuffer cmd)
         {
             // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
             // This might be in a point that some resources required for the pipeline are not finished importing yet.
@@ -189,7 +272,51 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
                 errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
 
-            context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
+            var param = new RendererListParams(cullResults, errorSettings, filterSettings);
+            var rl = context.CreateRendererList(ref param);
+            cmd.DrawRendererList(rl);
+        }
+
+        // Drawing a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
+        internal static void DrawRendererListWithRenderStateBlock(ScriptableRenderContext context, CommandBuffer cmd, RenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb)
+        {
+            unsafe
+            {
+                // Taking references to stack variables in the current function does not require any pinning (as long as you stay within the scope)
+                // so we can safely alias it as a native array
+                RenderStateBlock* rsbPtr = &rsb;
+                var stateBlocks = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<RenderStateBlock>(rsbPtr, 1, Allocator.None);
+
+                var shaderTag = ShaderTagId.none;
+                var tagValues = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<ShaderTagId>(&shaderTag, 1, Allocator.None);
+
+                // Inside CreateRendererList (below), we pass the NativeArrays to C++ by calling GetUnsafeReadOnlyPtr
+                // This will check read access but NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray does not set up the SafetyHandle (by design) so create/add it here
+                // NOTE: we explicitly share the handle
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                var safetyHandle = AtomicSafetyHandle.Create();
+                AtomicSafetyHandle.SetAllowReadOrWriteAccess(safetyHandle, true);
+
+                NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref stateBlocks, safetyHandle);
+                NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref tagValues, safetyHandle);
+#endif
+
+                // Create & schedule the RL
+                var param = new RendererListParams(data.cullResults, ds, fs)
+                {
+                    tagValues = tagValues,
+                    stateBlocks = stateBlocks
+
+                };
+                var rl = context.CreateRendererList(ref param);
+                cmd.DrawRendererList(rl);
+
+                // we need to explicitly release the SafetyHandle
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                AtomicSafetyHandle.Release(safetyHandle);
+#endif
+
+            }
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.
@@ -574,6 +701,53 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current the rendering state.
+        /// </summary>
+        /// <param name="shaderTagId">Shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns></returns>
+        /// <seealso cref="DrawingSettings"/>
+        static public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
+        {
+            Camera camera = renderingData.cameraData.camera;
+            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
+            DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
+            {
+                perObjectData = renderingData.perObjectData,
+                mainLightIndex = renderingData.lightData.mainLightIndex,
+                enableDynamicBatching = renderingData.supportsDynamicBatching,
+
+                // Disable instancing for preview cameras. This is consistent with the built-in forward renderer. Also fixes case 1127324.
+                enableInstancing = camera.cameraType == CameraType.Preview ? false : true,
+            };
+            return settings;
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current rendering state.
+        /// </summary>
+        /// /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns></returns>
+        /// <seealso cref="DrawingSettings"/>
+        static public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+            ref RenderingData renderingData, SortingCriteria sortingCriteria)
+        {
+            if (shaderTagIdList == null || shaderTagIdList.Count == 0)
+            {
+                Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
+                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
+            }
+
+            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
+            for (int i = 1; i < shaderTagIdList.Count; ++i)
+                settings.SetShaderPassName(i, shaderTagIdList[i]);
+            return settings;
         }
     }
 }

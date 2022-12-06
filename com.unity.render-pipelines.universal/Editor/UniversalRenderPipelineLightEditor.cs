@@ -1,11 +1,13 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [CustomEditor(typeof(Light))]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    [CustomEditorForRenderPipeline(typeof(Light), typeof(UniversalRenderPipelineAsset))]
     class UniversalRenderPipelineLightEditor : LightEditor
     {
         UniversalRenderPipelineSerializedLight serializedLight { get; set; }
@@ -13,6 +15,18 @@ namespace UnityEditor.Rendering.Universal
         protected override void OnEnable()
         {
             serializedLight = new UniversalRenderPipelineSerializedLight(serializedObject, settings);
+            Undo.undoRedoPerformed += ReconstructReferenceToAdditionalDataSO;
+        }
+
+        internal void ReconstructReferenceToAdditionalDataSO()
+        {
+            OnDisable();
+            OnEnable();
+        }
+
+        protected void OnDisable()
+        {
+            Undo.undoRedoPerformed -= ReconstructReferenceToAdditionalDataSO;
         }
 
         // IsPreset is an internal API - lets reuse the usable part of this function

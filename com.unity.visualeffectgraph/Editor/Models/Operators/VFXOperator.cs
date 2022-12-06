@@ -81,32 +81,29 @@ namespace UnityEditor.VFX
 
             if (cause == InvalidationCause.kConnectionChanged)
             {
-                ResyncSlots(true);
+                if (model is VFXSlot slot && slot.direction == VFXSlot.Direction.kInput)
+                    ResyncSlots(true);
+            }
+
+            if (cause == InvalidationCause.kParamChanged ||
+                cause == InvalidationCause.kExpressionValueInvalidated)
+            {
+                if (model is VFXSlot && ((VFXSlot)model).direction == VFXSlot.Direction.kInput)
+                {
+                    foreach (var slot in outputSlots)
+                        slot.Invalidate(InvalidationCause.kExpressionValueInvalidated);
+                }
             }
 
             base.OnInvalidate(model, cause);
         }
 
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
         {
-            /* Most common case : space is the maximal output space from input slot */
-            var space = (VFXCoordinateSpace)int.MaxValue;
-            foreach (var inputSlot in inputSlots)
-            {
-                if (inputSlot.spaceable)
-                {
-                    var currentSpace = inputSlot.space;
-                    if (space == (VFXCoordinateSpace)int.MaxValue
-                        || space < currentSpace)
-                    {
-                        space = currentSpace;
-                    }
-                }
-            }
-            if (space == (VFXCoordinateSpace)int.MaxValue)
-                space = outputSlot.space;
-
-            return space;
+            //Most common case : space is the maximal output space from input slot
+            return inputSlots.Any()
+                ? inputSlots.Select(o => o.space).Max()
+                : VFXSpace.None;
         }
 
         public override sealed void UpdateOutputExpressions()

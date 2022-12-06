@@ -5,25 +5,23 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Shadows, Midtones, Highlights effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Shadows, Midtones, Highlights", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Shadows, Midtones, Highlights")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public sealed class ShadowsMidtonesHighlights : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
         /// Use this to control and apply a hue to the shadows.
         /// </summary>
-        [Tooltip("Use this to control and apply a hue to the shadows.")]
         public Vector4Parameter shadows = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
         /// Use this to control and apply a hue to the midtones.
         /// </summary>
-        [Tooltip("Use this to control and apply a hue to the midtones.")]
         public Vector4Parameter midtones = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
         /// Use this to control and apply a hue to the highlights.
         /// </summary>
-        [Tooltip("Use this to control and apply a hue to the highlights.")]
         public Vector4Parameter highlights = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
@@ -62,6 +60,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => true;
     }
 }

@@ -28,13 +28,7 @@ float4 _CameraViewZExtent[2];
 #define INTENSITY _SSAOParams.x
 #define RADIUS _SSAOParams.y
 #define DOWNSAMPLE _SSAOParams.z
-
-// GLES2: In many cases, dynamic looping is not supported.
-#if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
-    #define SAMPLE_COUNT 3
-#else
-    #define SAMPLE_COUNT _SSAOParams.w
-#endif
+#define SAMPLE_COUNT _SSAOParams.w
 
 // Function defines
 #define SCREEN_PARAMS        GetScaledScreenParams()

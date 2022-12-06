@@ -331,7 +331,38 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter</param>
         /// <param name="overrideState">The initial override state for the parameter</param>
         public BoolParameter(bool value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="BoolParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter</param>
+        /// <param name="displayType">The display type to use for the parameter</param>
+        /// <param name="overrideState">The initial override state for the parameter</param>
+        public BoolParameter(bool value, DisplayType displayType, bool overrideState = false)
+            : base(value, overrideState)
+        {
+            this.displayType = displayType;
+        }
+
+        /// <summary>
+        /// Boolean widget type.
+        /// </summary>
+        public enum DisplayType
+        {
+            /// <summary> Display boolean parameter as checkbox. </summary>
+            Checkbox,
+            /// <summary> Display boolean parameter as enum popup with Disabled/Enabled options. </summary>
+            EnumPopup
+        }
+
+        /// <summary>
+        /// Type of widget used to display the <see cref="BoolParameter"/> in the UI.
+        /// </summary>
+        [NonSerialized]
+        public DisplayType displayType = DisplayType.Checkbox;
     }
 
     /// <summary>
@@ -1441,12 +1472,29 @@ namespace UnityEngine.Rendering
     public class TextureParameter : VolumeParameter<Texture>
     {
         /// <summary>
+        /// The accepted dimension of textures.
+        /// </summary>
+        public TextureDimension dimension;
+
+        /// <summary>
         /// Creates a new <seealso cref="TextureParameter"/> instance.
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TextureParameter(Texture value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : this(value, TextureDimension.Any, overrideState) { }
+
+        /// <summary>
+        /// Creates a new <seealso cref="TextureParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="dimension">The accepted dimension of textures.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public TextureParameter(Texture value, TextureDimension dimension, bool overrideState = false)
+            : base(value, overrideState)
+        {
+            this.dimension = dimension;
+        }
 
         // TODO: Texture interpolation
 

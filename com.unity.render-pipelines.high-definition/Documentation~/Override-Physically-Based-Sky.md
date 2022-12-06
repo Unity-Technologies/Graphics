@@ -51,7 +51,7 @@ To change how much the atmosphere attenuates light, you can change the density o
 | ------------------------------ | ------------------------------------------------------------ |
 | **Spherical Mode**             | Enables **Spherical Mode**. When in Spherical Mode, you can specify the location of the planet. Otherwise, the planet is always below the Camera in the world-space x-z plane. |
 | **Planetary Radius**           | The radius of the planet in meters. The radius is the distance from the center of the planet to the sea level. Only available in **Spherical Mode**. |
-| **Planet Center Position**     | The world-space position of the planet's center in meters. This does not affect the precomputation. Only available in **Spherical Mode**. |
+| **Planet Center Position**     | The world-space position of the planet's center in meters. This doesn't affect the precomputation. Only available in **Spherical Mode**. |
 | **Sea Level**                  | The world-space y coordinate of the planet's sea level in meters. Not available in **Spherical Mode**. |
 | **Planet Rotation**            | The orientation of the planet.                               |
 | **Ground Color Texture**       | Specifies a Texture that represents the planet's surface.    |
@@ -117,7 +117,7 @@ To make this section visible, set **Type** to **Custom Planet**.
 
 ## Implementation details
 
-This sky type is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](http://www-ljk.imag.fr/Publications/Basilic/com.lmc.publi.PUBLI_Article@11e7cdda2f7_f64b69/article.pdf) (Bruneton and Neyret, 2008).
+This sky type is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](https://hal.inria.fr/inria-00288758/en) (Bruneton and Neyret, 2008).
 
 This technique assumes that you always view the Scene from above the surface of the planet. This means that if a camera goes below the planet's surface, the sky renders as if the camera was at ground level. Where the surface of the planet is depends on whether you enable or disable the **Spherical Mode** property:
 
@@ -132,9 +132,9 @@ The default values in either mode make it so the planet's surface is at **0** on
 
 ## Warmup performance impact
 
-When you switch to or from a Physically Based Sky, it might cause a noticeable drop in framerate. This is because HDRP performs a large amount of precomputations to render a Physically Based Sky, so the first few frames (depending on the **Number of bounces** parameter) takes more time to render than other HDRP sky types.
+When you switch to or from a Physically Based Sky, it might cause a noticeable drop in frame rate. This is because HDRP performs a large amount of precomputations to render a Physically Based Sky, so the first few frames (depending on the **Number of bounces** parameter) takes more time to render than other HDRP sky types.
 
-This also applies when HDRP uses the volume system to interpolate between two different Physically Based Skies with different sets of parameters. To do this, HDRP restarts the precomputation every frame in which it performs interpolation. This causes a noticeable drop in framerate. To avoid this, use a single set of Physically Based Sky parameters for a scene and change the sun light direction and intensity to achieve the result you want.
+This also applies when HDRP uses the volume system to interpolate between two different Physically Based Skies with different sets of parameters. To do this, HDRP restarts the precomputation every frame in which it performs interpolation. This causes a noticeable drop in frame rate. To avoid this, use a single set of Physically Based Sky parameters for a scene and change the sun light direction and intensity to achieve the result you want.
 
 HDRP restarts precomputation when you change the following parameters:
 - **Type**
@@ -151,4 +151,4 @@ HDRP restarts precomputation when you change the following parameters:
 
 ### Reference list
 
-* Bruneton, Eric, and Fabrice Neyret. 2008. “Precomputed Atmospheric Scattering.” *Computer Graphics Forum* 27, no. 4 (2008): 1079–86. https://doi.org/10.1111/j.1467-8659.2008.01245.x.
+* Bruneton, Eric, and Fabrice Neyret. 2008. “Precomputed Atmospheric Scattering.” *Computer Graphics Forum* 27, no. 4 (2008): 1079–86. https://hal.inria.fr/inria-00288758/en.

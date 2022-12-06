@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Interface for storing the debug settings
     /// </summary>
-    public interface IDebugDisplaySettings : IDebugDisplaySettingsQuery
+    public interface IDebugDisplaySettings
     {
         /// <summary>
         /// Reset the stored debug settings

@@ -5,6 +5,13 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/MaterialDebug.cs.hlsl"
 
+#ifndef FRAG_INPUTS_ENABLE_STRIPPING
+    #define FRAG_INPUTS_USE_TEXCOORD0
+    #define FRAG_INPUTS_USE_TEXCOORD1
+    #define FRAG_INPUTS_USE_TEXCOORD2
+    #define FRAG_INPUTS_USE_TEXCOORD3
+#endif
+
 struct FragInputs
 {
     // Contain value return by SV_POSITION (That is name positionCS in PackedVarying).
@@ -14,10 +21,23 @@ struct FragInputs
     float3 positionRWS; // Relative camera space position
     float3 positionPredisplacementRWS; // Relative camera space position
     float2 positionPixel;              // Pixel position (VPOS)
-    float4 texCoord0;
-    float4 texCoord1;
-    float4 texCoord2;
-    float4 texCoord3;
+
+    #ifdef FRAG_INPUTS_USE_TEXCOORD0
+        float4 texCoord0;
+    #endif
+
+    #ifdef FRAG_INPUTS_USE_TEXCOORD1
+        float4 texCoord1;
+    #endif
+
+    #ifdef FRAG_INPUTS_USE_TEXCOORD2
+        float4 texCoord2;
+    #endif
+
+    #ifdef FRAG_INPUTS_USE_TEXCOORD3
+        float4 texCoord3;
+    #endif
+
     float4 color; // vertex color
 
     // TODO: confirm with Morten following statement
@@ -48,18 +68,26 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
 {
     switch (paramId)
     {
-    case DEBUGVIEWVARYING_TEXCOORD0:
-        result = input.texCoord0.xyz;
-        break;
-    case DEBUGVIEWVARYING_TEXCOORD1:
-        result = input.texCoord1.xyz;
-        break;
-    case DEBUGVIEWVARYING_TEXCOORD2:
-        result = input.texCoord2.xyz;
-        break;
-    case DEBUGVIEWVARYING_TEXCOORD3:
-        result = input.texCoord3.xyz;
-        break;
+    #ifdef FRAG_INPUTS_USE_TEXCOORD0
+        case DEBUGVIEWVARYING_TEXCOORD0:
+            result = input.texCoord0.xyz;
+            break;
+    #endif
+    #ifdef FRAG_INPUTS_USE_TEXCOORD1
+        case DEBUGVIEWVARYING_TEXCOORD1:
+            result = input.texCoord1.xyz;
+            break;
+    #endif
+    #ifdef FRAG_INPUTS_USE_TEXCOORD2
+        case DEBUGVIEWVARYING_TEXCOORD2:
+            result = input.texCoord2.xyz;
+            break;
+    #endif
+    #ifdef FRAG_INPUTS_USE_TEXCOORD3
+        case DEBUGVIEWVARYING_TEXCOORD3:
+            result = input.texCoord3.xyz;
+            break;
+    #endif
     case DEBUGVIEWVARYING_VERTEX_TANGENT_WS:
         result = input.tangentToWorld[0].xyz * 0.5 + 0.5;
         break;

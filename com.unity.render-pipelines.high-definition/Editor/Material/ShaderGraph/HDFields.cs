@@ -63,6 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor TransparentDepthPostPass = new FieldDescriptor(string.Empty, "TransparentDepthPostPass", string.Empty);
         public static FieldDescriptor RayTracing = new FieldDescriptor(string.Empty, "RayTracing", string.Empty);
         public static FieldDescriptor Unlit = new FieldDescriptor(string.Empty, "Unlit", string.Empty);
+        public static FieldDescriptor UseProfileIor = new FieldDescriptor(string.Empty, "UseProfileIor", string.Empty);
+        public static FieldDescriptor UseProfileLobes = new FieldDescriptor(string.Empty, "UseProfileLobes", string.Empty);
 
         // Custom motion vector
         public static FieldDescriptor CustomVelocity = new FieldDescriptor(string.Empty, "CustomVelocity", "CUSTOM_VELOCITY 1");
@@ -71,6 +73,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor TessellationFactor = new FieldDescriptor(string.Empty, "TessellationFactor", "_TESSELLATION_FACTOR 1");
         public static FieldDescriptor TessellationDisplacement = new FieldDescriptor(string.Empty, "TessellationDisplacement", "_TESSELLATION_DISPLACEMENT 1");
         public static FieldDescriptor GraphTessellation = new FieldDescriptor(kFeatures, "graphTessellation", "FEATURES_GRAPH_TESSELLATION");
+
+        // Line Rendering
+        public static FieldDescriptor LineWidth = new FieldDescriptor(string.Empty, "LineWidth", string.Empty);
 
         #endregion
     }

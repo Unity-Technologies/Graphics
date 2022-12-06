@@ -51,7 +51,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Material importer can be null when the selected material doesn't exists as asset (Material saved inside the scene)
             if (m_MaterialImporter != null)
+            {
+                if (m_MaterialImporter.userData == string.Empty)
+                {
+                    MaterialExternalReferences matExternalRefs = MaterialExternalReferences.GetMaterialExternalReferences(material);
+                    LayeredLitGUI.SaveMaterialLayers(material, matExternalRefs.materialReferences, m_WithUV);
+                }
                 LayeredLitGUI.InitializeMaterialLayers(m_MaterialImporter, ref m_MaterialLayers, ref m_WithUV);
+            }
         }
 
         /// <summary>

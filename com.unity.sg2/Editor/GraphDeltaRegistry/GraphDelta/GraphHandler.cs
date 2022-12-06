@@ -206,7 +206,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 #endif
         }
 
-        public void RebuildContextData(
+        internal void RebuildContextData(
             ElementID contextNode,
             ITargetProvider target,
             string templateName,

@@ -163,6 +163,9 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
 FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
+#if defined(HAVE_VFX_MODIFICATION) && defined(UNITY_INSTANCING_ENABLED)
+    unity_InstanceID = input.instanceID;
+#endif
     VaryingsMeshToPS unpacked = UnpackVaryingsMeshToPS(input);
     return BuildFragInputs(unpacked);
 }
