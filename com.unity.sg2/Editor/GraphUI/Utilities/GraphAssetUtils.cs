@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            if (graphAsset.ShaderGraphModel.IsSubGraph)
+            if (graphAsset.SGGraphModel.IsSubGraph)
             {
                 SaveSubGraphImplementation(graphTool);
             }
@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return string.Empty;
             }
 
-            return graphAsset.ShaderGraphModel.IsSubGraph
+            return graphAsset.SGGraphModel.IsSubGraph
                 ? SaveAsSubGraphImplementation(graphTool)
                 : SaveAsGraphImplementation(graphTool);
         }

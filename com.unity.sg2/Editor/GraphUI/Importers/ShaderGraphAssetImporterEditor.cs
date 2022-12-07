@@ -21,11 +21,11 @@ namespace UnityEditor.ShaderGraph
             {
                 AssetImporter importer = target as AssetImporter;
                 var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
-                var graph = asset.ShaderGraphModel.GraphHandler;
+                var graph = asset.SGGraphModel.GraphHandler;
 
                 var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
                 var node = graph.GetNode(key.Name);
-                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.ShaderGraphModel.ActiveTarget, asset.ShaderGraphModel.ShaderName);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.SGGraphModel.ActiveTarget, asset.SGGraphModel.ShaderName);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 string path = $"Temp/GeneratedFromGraph-{assetName.Replace(" ", "")}.shader";
                 if (FileHelpers.WriteToFile(path, shaderCode))
@@ -36,11 +36,11 @@ namespace UnityEditor.ShaderGraph
             {
                 AssetImporter importer = target as AssetImporter;
                 var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
-                var graph = asset.ShaderGraphModel.GraphHandler;
+                var graph = asset.SGGraphModel.GraphHandler;
 
                 var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
                 var node = graph.GetNode(key.Name);
-                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.ShaderGraphModel.ActiveTarget, asset.ShaderGraphModel.ShaderName);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.SGGraphModel.ActiveTarget, asset.SGGraphModel.ShaderName);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 File.WriteAllText($"Assets/{assetName}-GeneratedShader.shader", shaderCode);
                 AssetDatabase.Refresh();

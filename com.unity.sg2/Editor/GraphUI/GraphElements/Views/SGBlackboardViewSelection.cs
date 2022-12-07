@@ -11,18 +11,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public SGBlackboardViewSelection(RootView view, BlackboardViewModel viewModel)
             : base(view, viewModel) { }
 
-        ShaderGraphModel shaderGraphModel => m_GraphModelState.GraphModel as ShaderGraphModel;
+        SGGraphModel graphModel => m_GraphModelState.GraphModel as SGGraphModel;
 
         protected override void CutSelection()
         {
-            shaderGraphModel.isCutOperation = true;
+            graphModel.isCutOperation = true;
             base.CutSelection();
         }
 
         protected override void Paste()
         {
             base.Paste();
-            shaderGraphModel.isCutOperation = false;
+            graphModel.isCutOperation = false;
         }
     }
 }

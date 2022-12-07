@@ -41,11 +41,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             yield return AddNodeFromSearcherAndValidate(toNodeName);
 
             var fromNode = m_Window.GetNodeModelFromGraphByName(fromNodeName);
-            var outPort = ShaderGraphModel.FindOutputPortByName(fromNode, fromPortName);
+            var outPort = SGGraphModel.FindOutputPortByName(fromNode, fromPortName);
             Assert.IsNotNull(outPort, "Could not find output port: " + fromPortName + "on node: " + fromNodeName);
 
             var toNode = m_Window.GetNodeModelFromGraphByName(toNodeName);
-            var inPort =  ShaderGraphModel.FindInputPortByName(toNode, toPortName);
+            var inPort =  SGGraphModel.FindInputPortByName(toNode, toPortName);
             Assert.IsNotNull(inPort, "Could not find input port: " + toPortName + "on node: " + toNodeName);
 
             m_Window.GraphView.Dispatch(new CreateWireCommand(inPort, outPort));
@@ -54,10 +54,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         public void ConnectNodes(string fromNodeName, string toNodeName, string fromPortName = "Out", string toPortName = "In")
         {
             var fromNode = m_Window.GetNodeModelFromGraphByName(fromNodeName);
-            var fromPortModel = ShaderGraphModel.FindOutputPortByName(fromNode, fromPortName);
+            var fromPortModel = SGGraphModel.FindOutputPortByName(fromNode, fromPortName);
 
             var toNode = m_Window.GetNodeModelFromGraphByName(toNodeName);
-            var toPortModel =  ShaderGraphModel.FindInputPortByName(toNode, toPortName);
+            var toPortModel =  SGGraphModel.FindInputPortByName(toNode, toPortName);
 
             m_Window.GraphView.Dispatch(new CreateWireCommand(toPortModel, fromPortModel));
         }
@@ -67,8 +67,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_Window.GraphView.ShowItemLibrary(new Vector2());
 
             // TODO: (Sai) This throws an exception on some occasions in DisplaySmartSearch, ask Vlad for help figuring out why?
-            //TestEventHelpers.SendKeyDownEvent(m_Window, KeyCode.Space);
-            //TestEventHelpers.SendKeyUpEvent(m_Window, KeyCode.Space);
+            //TestEventHelpers.SendKeyDownEvent(m_MainWindow, KeyCode.Space);
+            //TestEventHelpers.SendKeyUpEvent(m_MainWindow, KeyCode.Space);
 
             var searcherWindow = (ItemLibraryWindow)EditorWindow.GetWindow(typeof(ItemLibraryWindow));
             return searcherWindow;

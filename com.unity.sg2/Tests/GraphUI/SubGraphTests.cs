@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             const string viewFieldName = "m_InspectorView";
 
-            var found = m_Window.TryGetOverlay(k_InspectorOverlayId, out var inspectorOverlay);
+            var found = m_MainWindow.TryGetOverlay(k_InspectorOverlayId, out var inspectorOverlay);
             Assert.IsTrue(found, "Inspector overlay was not found");
 
             m_InspectorView = (ModelInspectorView)inspectorOverlay.GetType()
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [Test]
         public void TestGraphModelIsSubGraph()
         {
-            var model = (ShaderGraphModel)m_Window.GraphView.GraphModel;
+            var model = (SGGraphModel)m_MainWindow.GraphView.GraphModel;
             Assert.IsTrue(model.IsSubGraph, "GraphModel.IsSubGraph should be true for subgraph asset");
         }
 
@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             const string outputNodeName = "DefaultContextDescriptor";
             const string outputInspectorListName = "sg-subgraph-output-list";
 
-            var output = m_Window.GetNodeModelFromGraphByName(outputNodeName);
+            var output = m_MainWindow.GetNodeModelFromGraphByName(outputNodeName);
             Assert.IsNotNull(output);
 
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, output));
