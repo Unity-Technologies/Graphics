@@ -6,12 +6,19 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [Overlay(typeof(ShaderGraphEditorWindow), k_OverlayID, "Preview", defaultDisplay = true,
-        defaultDockZone = DockZone.RightColumn, defaultLayout = Layout.Panel)]
+        defaultDockZone = DockZone.RightColumn, defaultDockPosition = DockPosition.Bottom,
+        defaultLayout = Layout.Panel, defaultWidth = 130, defaultHeight = 130)]
     class PreviewOverlay : Overlay
     {
         public const string k_OverlayID = "Preview";
 
         MainPreviewView m_MainPreviewView;
+
+        public PreviewOverlay()
+        {
+            minSize = new Vector2(130, 130);
+            maxSize = new Vector2(1000, 1000);
+        }
 
         public override VisualElement CreatePanelContent()
         {
@@ -26,18 +33,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (m_MainPreviewView != null)
                 return m_MainPreviewView;
 
-            m_MainPreviewView = new MainPreviewView(window.GraphTool.Dispatcher);
+            m_MainPreviewView = new MainPreviewView(window.GraphTool);
             m_MainPreviewView.AddToClassList("MainPreviewView");
             m_MainPreviewView.AddStylesheet("MainPreviewView.uss");
 
             window.SetMainPreviewReference(m_MainPreviewView);
-
-            // TODO: The overlays should be persisting the size and driving the main preview size
-            minSize = new Vector2(130, 130);
-            // Note: MaxSize needs to be different from size and non-zero for resizing manipulators to work
-            maxSize = new Vector2(1000, 1000);
-            if(Single.IsNaN(size.x) || Single.IsNaN(size.y))
-                size = minSize;
 
             return m_MainPreviewView;
         }
