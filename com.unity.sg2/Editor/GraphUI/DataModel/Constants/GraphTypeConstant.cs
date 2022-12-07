@@ -243,5 +243,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return TypeHandle.Unknown;
             }
         }
+
+        /// <inheritdoc />
+        public override bool IsAssignableFrom(Type t)
+        {
+            return t == typeof(Vector2) || t == typeof(Vector3) || t == typeof(Vector4) || t == typeof(Matrix4x4) ||
+                t == typeof(int) || t == typeof(bool) || t == typeof(float);
+        }
     }
 }
