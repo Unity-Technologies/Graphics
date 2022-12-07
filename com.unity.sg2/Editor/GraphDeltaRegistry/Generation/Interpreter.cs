@@ -695,7 +695,7 @@ namespace UnityEditor.ShaderGraph.Generation
             //builder.AddOutput
             //etc
             var block = workunit.blockBuilder.Build();
-            var blockDescBuilder = new BlockInstance.Builder(shaderContainer, block);
+            var blockDescBuilder = new BlockSequenceElement.Builder(shaderContainer, block);
             return blockDescBuilder.Build();
         }
 
@@ -766,15 +766,15 @@ namespace UnityEditor.ShaderGraph.Generation
                                         GraphHandler graph,
                                         Registry registry,
                                         ref List<(string, Texture)> defaultTextures,
-                                        out CustomizationPointInstance vertexCPDesc,
-                                        out CustomizationPointInstance surfaceCPDesc)
+                                        out CustomizationPointImplementation vertexCPDesc,
+                                        out CustomizationPointImplementation surfaceCPDesc)
         {
-            vertexCPDesc = CustomizationPointInstance.Invalid; // we currently do not use the vertex customization point
-            var surfaceDescBuilder = new CustomizationPointInstance.Builder(container, surfaceCP);
-            var vertexDescBuilder = new CustomizationPointInstance.Builder(container, vertexCP);
+            vertexCPDesc = CustomizationPointImplementation.Invalid; // we currently do not use the vertex customization point
+            var surfaceDescBuilder = new CustomizationPointImplementation.Builder(container, surfaceCP);
+            var vertexDescBuilder = new CustomizationPointImplementation.Builder(container, vertexCP);
             var blockInstance = GetShaderBlockForNode(node, registry, container);
             Debug.Log(GetShaderBlockInHumanReadableForm(blockInstance));
-            surfaceDescBuilder.BlockInstances.Add(blockInstance);
+            surfaceDescBuilder.AddBlockSequenceElement(blockInstance);
             surfaceCPDesc = surfaceDescBuilder.Build();
             
         }
