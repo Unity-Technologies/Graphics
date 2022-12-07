@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             // Create second graph
             var secondGraphPath = testAssetPath.Replace(ShaderGraphStencil.DefaultGraphAssetName, "NewShaderGraph1");
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+            var newGraphAction = ScriptableObject.CreateInstance<AssetUtils.CreateAssetGraphAction>();
             newGraphAction.Action(0, secondGraphPath, "");
             secondGraphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(secondGraphPath);
 

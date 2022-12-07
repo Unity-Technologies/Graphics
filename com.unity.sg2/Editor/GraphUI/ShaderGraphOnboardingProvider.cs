@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var path = EditorUtility.SaveFilePanelInProject(promptTitle, template.DefaultAssetName, ShaderGraphImporter.Extension, prompt);
             if (path.Length != 0)
             {
-                ShaderGraphAssetUtils.HandleCreate(path);
+                ShaderGraphAssetUtils.CreateNewAssetGraph(path);
                 return ShaderGraphAssetUtils.HandleLoad(path);
             }
             return null;

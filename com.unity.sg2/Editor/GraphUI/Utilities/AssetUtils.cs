@@ -5,17 +5,15 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    public static class GraphAssetUtils
+    public static class AssetUtils
     {
-        internal class CreateGraphAssetAction : ProjectWindowCallback.EndNameEditAction
+        internal class CreateAssetGraphAction : ProjectWindowCallback.EndNameEditAction
         {
-            internal bool isBlank = false;
-            internal bool isSubGraph = false;
-            internal ShaderGraphAssetUtils.GraphHandlerInitializationCallback callback = null;
+            internal LegacyTargetType legacyTargetType = LegacyTargetType.Blank;
 
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                ShaderGraphAssetUtils.HandleCreate(pathName, isSubGraph, isBlank, callback);
+                ShaderGraphAssetUtils.CreateNewAssetGraph(pathName, legacyTargetType);
                 var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(pathName);
                 Selection.activeObject = obj;
             }
@@ -24,8 +22,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [MenuItem("Assets/Create/Shader Graph 2/URP Lit Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
         public static void CreateURPLitGraphInProjectWindow()
         {
-            var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
-            newGraphAction.callback = URPTargetUtils.ConfigureURPLit;
+            var newGraphAction = ScriptableObject.CreateInstance<CreateAssetGraphAction>();
+            newGraphAction.legacyTargetType = LegacyTargetType.URPLit;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 newGraphAction,
@@ -37,8 +35,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [MenuItem("Assets/Create/Shader Graph 2/URP Unlit Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
         public static void CreateURPUnlitGraphInProjectWindow()
         {
-            var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
-            newGraphAction.callback = URPTargetUtils.ConfigureURPUnlit;
+            var newGraphAction = ScriptableObject.CreateInstance<CreateAssetGraphAction>();
+            newGraphAction.legacyTargetType = LegacyTargetType.URPUnlit;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
                 newGraphAction,
@@ -51,7 +49,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         //[MenuItem("Assets/Create/Shader Graph 2/Blank Shader SubGraph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
         //public static void CreateBlankSubGraphInProjectWindow()
         //{
-        //    var newGraphAction = ScriptableObject.CreateInstance<CreateGraphAssetAction>();
+        //    var newGraphAction = ScriptableObject.CreateInstance<CreateAssetGraphAction>();
         //    newGraphAction.isSubGraph = true;
 
         //    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
@@ -62,22 +60,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
         //        null);
         //}
 
-        private static void SaveImplementation(BaseGraphTool GraphTool, Action<string, ShaderGraphAsset> SaveAction)
+        private static void SaveImplementation(BaseGraphTool GraphTool)
         {
             // If no currently opened graph, early out
             if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() == null)
                 return;
-            if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() is ShaderGraphAsset assetModel)
+            if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() is ShaderGraphAsset graphAsset)
             {
                 var assetPath = GraphTool.ToolState.CurrentGraph.GetGraphAssetPath();
-                SaveAction(assetPath, assetModel);
 
                 // Set to false after saving to clear modification state from editor window tab
-                assetModel.Dirty = false;
+                graphAsset.Dirty = false;
             }
         }
 
-        private static string SaveAsImplementation(BaseGraphTool GraphTool, Action<string, ShaderGraphAsset> SaveAction, string dialogTitle, string extension)
+        private static string SaveAsImplementation(BaseGraphTool GraphTool, string dialogTitle, string extension)
         {
             // If no currently opened graph, early out
             if (GraphTool.ToolState.CurrentGraph.GetGraphAsset() == null)
@@ -94,8 +91,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (string.IsNullOrEmpty(destinationPath))
                     return string.Empty;
 
-                SaveAction(destinationPath, assetModel);
-
                 // Refresh asset database so newly saved asset shows up
                 AssetDatabase.Refresh();
 
@@ -105,21 +100,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return string.Empty;
         }
 
-        static void SaveGraphImplementation(BaseGraphTool GraphTool) =>
-            SaveImplementation(GraphTool,
-                ShaderGraphAssetUtils.HandleSave);
         static void SaveSubGraphImplementation(BaseGraphTool GraphTool) =>
-            SaveImplementation(GraphTool,
-                ShaderGraphAssetUtils.HandleSave);
+            SaveImplementation(GraphTool);
 
         static string SaveAsGraphImplementation(BaseGraphTool GraphTool) =>
             SaveAsImplementation(GraphTool,
-                ShaderGraphAssetUtils.HandleSave,
                 "Save Shader Graph Asset at: ",
                 ShaderGraphStencil.GraphExtension);
         static string SaveAsSubGraphImplementation(BaseGraphTool GraphTool) =>
             SaveAsImplementation(GraphTool,
-                ShaderGraphAssetUtils.HandleSave,
                 "Save Shader SubGraph Asset at:",
                 ShaderGraphStencil.SubGraphExtension);
 
@@ -141,7 +130,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
             else
             {
-                SaveGraphImplementation(graphTool);
+                graphAsset.Save();
             }
         }
 

@@ -52,29 +52,30 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             switch (GraphToInstantiate)
             {
                 case GraphInstantiation.MemoryBlank:
-                    graphAsset = ShaderGraphAssetUtils.CreateNewAssetGraph(false, true);
+                    graphAsset = ShaderGraphAssetUtils.CreateNewAssetGraph(testAssetPath);
                     break;
 
                 case GraphInstantiation.Memory:
-                    graphAsset = ShaderGraphAssetUtils.CreateNewAssetGraph(false, false);
+                    graphAsset = ShaderGraphAssetUtils.CreateNewAssetGraph(testAssetPath, LegacyTargetType.URPUnlit);
                     break;
 
                 case GraphInstantiation.MemorySubGraph:
-                    graphAsset = ShaderGraphAssetUtils.CreateNewAssetGraph(true, false);
+                    graphAsset = ShaderGraphAssetUtils.CreateNewSubGraph(testAssetPath);
                     break;
 
                 case GraphInstantiation.Disk:
                 {
-                    var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+                    var newGraphAction = ScriptableObject.CreateInstance<AssetUtils.CreateAssetGraphAction>();
                     newGraphAction.Action(0, testAssetPath, "");
                     graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(testAssetPath);
                     break;
                 }
 
+                // TODO: This should call a CreateSubGraphAssetAction instead
                 case GraphInstantiation.DiskSubGraph:
                 {
-                    var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
-                    newGraphAction.isSubGraph = true;
+                    var newGraphAction = ScriptableObject.CreateInstance<AssetUtils.CreateAssetGraphAction>();
+                    //newGraphAction.isSubGraph = true;
                     newGraphAction.Action(0, testAssetPath, "");
                     graphAsset = ShaderGraphAssetUtils.HandleLoad(testAssetPath);
                     break;
@@ -139,7 +140,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         /// </summary>
         public IEnumerator SaveAndReopenGraph()
         {
-            GraphAssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
+            AssetUtils.SaveOpenGraphAsset(m_Window.GraphTool);
             CloseWindow();
             yield return null;
 

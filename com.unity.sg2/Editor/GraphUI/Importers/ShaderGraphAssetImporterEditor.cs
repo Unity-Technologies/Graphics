@@ -75,14 +75,16 @@ namespace UnityEditor.ShaderGraph
         [OnOpenAsset(0)]
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
-            var path = AssetDatabase.GetAssetPath(instanceID);
-            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
-            return graphAsset && ShowWindow(path, graphAsset);
+            string path = AssetDatabase.GetAssetPath(instanceID);
+            var graphAsset = ShaderGraphAssetUtils.HandleLoad(path);;
+            if (graphAsset == null)
+                return false;
+            return graphAsset && ShowWindow(graphAsset);
         }
 
-        private static bool ShowWindow(string path, ShaderGraphAsset model)
+        static bool ShowWindow(ShaderGraphAsset asset)
         {
-            var window = GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<ShaderGraphEditorWindow>(model);
+            var window = GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<ShaderGraphEditorWindow>(asset);
             return window != null;
         }
     }

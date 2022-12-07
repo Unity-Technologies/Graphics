@@ -68,7 +68,7 @@ Shader ""Hidden/GraphErrorShader2""
         {
             if (string.CompareOrdinal(Path.GetExtension(assetPath), "."+Extension) == 0)
             {
-                ShaderGraphAssetUtils.HandleImport(ctx);
+                ShaderGraphAssetUtils.HandleImportAssetGraph(ctx);
             }
         }
     }

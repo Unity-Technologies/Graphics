@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var graphWindowTest = new BaseGraphWindowTest();
             var window = graphWindowTest.CreateWindow();
 
-            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+            var newGraphAction = ScriptableObject.CreateInstance<AssetUtils.CreateAssetGraphAction>();
             newGraphAction.Action(0, testAssetPath, "");
             var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(testAssetPath);
 
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
 
             // Save asset
-            ShaderGraphAssetUtils.HandleSave(testAssetPath, graphAsset);
+            graphAsset.Save();
         }
 
         [MenuItem("Tests/Shader Graph/Create Texture 2D Array")]

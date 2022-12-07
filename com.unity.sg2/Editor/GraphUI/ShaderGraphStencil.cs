@@ -8,25 +8,19 @@ using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    // TODO: With how graph templates seem to work, it would seem like we want to have separate stencil classes for the asset graph and subgraph
+    // TODO: Maybe a subclass of this for subgraphs which can override the graph name defaults and asset type extension etc.
     class ShaderGraphStencil : Stencil
     {
-        public const string Name = "ShaderGraph";
+        // TODO: (Sai) When subgraphs come in, add support for dropdown section
+        static readonly string[] k_Sections = {"Properties", "Keywords"};
+
         public const string DefaultGraphAssetName = "NewShaderGraph";
         public const string GraphExtension = "sg2";
         public const string DefaultSubGraphAssetName = "NewShaderSubGraph";
         public const string SubGraphExtension = "sg2subgraph";
-
-        public string ToolName =>
-            Name;
-
-        // TODO: (Sai) When subgraphs come in, add support for dropdown section
-        internal static readonly string[] sections = {"Properties", "Keywords"};
-
-        public override IEnumerable<string> SectionNames => sections;
-
-        public ShaderGraphStencil()
-        {
-        }
+        public override IEnumerable<string> SectionNames => k_Sections;
+        public ShaderGraphStencil() { }
 
         public override BlackboardGraphModel CreateBlackboardGraphModel(GraphModel graphModel) =>
             new SGBlackboardGraphModel(graphModel);
@@ -116,7 +110,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GroupModel selectedGroup = null)
         {
             // Only populate the Properties section for now. Will change in the future.
-            if (sectionName != sections[0]) return;
+            if (sectionName != k_Sections[0]) return;
 
             foreach (var type in ShaderGraphExampleTypes.BlackboardTypes)
             {
