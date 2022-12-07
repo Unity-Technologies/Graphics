@@ -130,7 +130,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="additionalData">Additional data of the camera rendering.</param>
         /// <param name="hdrpAsset">HDRenderPipelineAsset contening supported features.</param>
         public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset, HDRenderPipelineAsset defaultHdrpAsset)
-            => AggregateFrameSettings(
+        {
+            if (hdrpAsset == null && defaultHdrpAsset == null)
+                return;
+
+            AggregateFrameSettings(
                 ref aggregatedFrameSettings,
                 camera,
 #if UNITY_EDITOR
@@ -138,8 +142,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 additionalData,
                 ref HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
-                hdrpAsset.currentPlatformRenderPipelineSettings
+                hdrpAsset != null ? hdrpAsset.currentPlatformRenderPipelineSettings : defaultHdrpAsset.currentPlatformRenderPipelineSettings
             );
+        }
 
         // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
         /// <summary>Same than FrameSettings.AggregateFrameSettings but keep history of agregation in a collection for DebugMenu.
@@ -294,9 +299,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 createIfNull: true,
 #if UNITY_EDITOR
                 frameSettingsContainer == sceneViewFrameSettingsContainer
-                ? 1 : // Scene Camera
+                ? 100 : // Scene Camera
 #endif
-                2,    // Other Cameras (from Camera component)
+                101,    // Other Cameras (from Camera component)
                 overrideIfExist: true);
             panel.children.Add(widgets.ToArray());
         }

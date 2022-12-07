@@ -9,6 +9,7 @@ using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -203,13 +204,16 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (Time.renderedFrameCount > 0)
                 {
+                    if (!HDRenderPipeline.isReady)
+                        return;
+
                     bool reimportAllHDShaderGraphsTriggered = false;
                     bool reimportAllMaterialsTriggered = false;
                     bool fileExist = true;
                     // We check the file existence only once to avoid IO operations every frame.
                     if (s_NeedToCheckProjSettingExistence)
                     {
-                        fileExist = System.IO.File.Exists("ProjectSettings/HDRPProjectSettings.asset");
+                        fileExist = System.IO.File.Exists(HDProjectSettings.filePath);
                         s_NeedToCheckProjSettingExistence = false;
                     }
 
@@ -329,10 +333,32 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
+        static void RegisterReferencedDiffusionProfiles(Material material)
+        {
+            foreach (var nameID in GetShaderDiffusionProfileProperties(material.shader))
+            {
+                if (!material.HasProperty(nameID))
+                    continue;
+
+                var diffusionProfile = GetDiffusionProfileAsset(material, nameID);
+                HDRenderPipelineGlobalSettings.instance.TryAutoRegisterDiffusionProfile(diffusionProfile);
+            }
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var asset in importedAssets)
             {
+                // Register Diffuse Profiles
+                Material material = null;
+                if (HDRenderPipelineGlobalSettings.instance?.autoRegisterDiffusionProfiles == true)
+                {
+                    material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                    if (material == null)
+                        continue;
+                    RegisterReferencedDiffusionProfiles(material);
+                }
+
                 // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
                 if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
                 {
@@ -349,14 +375,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     continue;
                 }
-                else if (!asset.ToLowerInvariant().EndsWith(".mat"))
-                {
-                    continue;
-                }
 
                 // Materials (.mat) post processing:
+                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
+                    continue;
 
-                var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                if (material == null)
+                    material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                if (material == null)
+                    continue;
 
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {
@@ -392,7 +419,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                     continue;
-
 
                 (ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
                 var latestVersion = k_Migrations.Length;
@@ -449,7 +475,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // TODO: Maybe systematically remove from s_CreateAssets just in case
 
                 //upgrade
-                while (assetVersion.version < latestVersion)
+                while (assetVersion.version >= 0 && assetVersion.version < latestVersion)
                 {
                     k_Migrations[assetVersion.version](material, id);
                     assetVersion.version++;
@@ -506,6 +532,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ExposeRefraction,
             MetallicRemapping,
             ForceForwardEmissiveForDeferred,
+            UnlitStencilTag,
         };
 
         #region Migrations
@@ -1315,6 +1342,12 @@ namespace UnityEditor.Rendering.HighDefinition
             container.FindPropertyRelative("m_Scale").vector2Value = scale;
             container.FindPropertyRelative("m_Offset").vector2Value = offset;
             res.parent.DeleteArrayElementAtIndex(res.index + 1);
+        }
+
+        static void UnlitStencilTag(Material material, ShaderID id)
+        {
+            if (id == ShaderID.Unlit || id == ShaderID.SG_Unlit)
+                HDShaderUtils.ResetMaterialKeywords(material);
         }
 
         #endregion

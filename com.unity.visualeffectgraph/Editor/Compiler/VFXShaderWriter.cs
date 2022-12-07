@@ -176,7 +176,7 @@ namespace UnityEditor.VFX
             int startIndex = 0;
             while (true)
             {
-                int index = str.IndexOf(tag, startIndex);
+                int index = str.IndexOf(tag, startIndex, StringComparison.Ordinal);
                 if (index == -1)
                     break;
 
@@ -219,14 +219,6 @@ namespace UnityEditor.VFX
         public override string ToString()
         {
             return m_Builder.ToString();
-        }
-
-        private int WritePadding(int alignment, int offset, ref int index)
-        {
-            int padding = (alignment - (offset % alignment)) % alignment;
-            if (padding != 0)
-                WriteLineFormat("uint{0} PADDING_{1};", padding == 1 ? "" : padding.ToString(), index++);
-            return padding;
         }
 
         private static bool IsBufferBuiltinType(Type type)
@@ -305,6 +297,17 @@ namespace UnityEditor.VFX
 
         public void WriteBufferTypeDeclaration(IEnumerable<Type> types)
         {
+            types = types.Select(type =>
+            {
+                if (IsBufferBuiltinType(type))
+                {
+                    //Resolve type which are conflicting behind the same VFXValueType (Vector4 & Color for instance)
+                    var valueType = VFXExpression.GetVFXValueTypeFromType(type);
+                    type = VFXExpression.TypeToType(valueType);
+                }
+                return type;
+            }).Distinct();
+
             var alreadyGeneratedStructure = new HashSet<Type>();
             foreach (var type in types)
                 WriteBufferTypeDeclaration(type, alreadyGeneratedStructure);
@@ -337,16 +340,17 @@ namespace UnityEditor.VFX
             {
                 var names = mapper.GetNames(texture);
                 // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
-                for (int i = 0; i < names.Count; ++i)
+                // TODO : Investigate why we need Distinct in the first place
+                foreach (var name in names.Distinct())
                 {
-                    if (skipNames != null && skipNames.Contains(names[i]))
+                    if (skipNames != null && skipNames.Contains(name))
                         continue;
 
-                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), names[i]);
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(texture.valueType), name);
                     if (VFXExpression.IsTexture(texture.valueType)) //Mesh doesn't require a sampler or texel helper
                     {
-                        WriteLineFormat("SamplerState sampler{0};", names[i]);
-                        WriteLineFormat("float4 {0}_TexelSize;", names[i]); // TODO This is not very good to add a uniform for each texture that is hardly ever used
+                        WriteLineFormat("SamplerState sampler{0};", name);
+                        WriteLineFormat("float4 {0}_TexelSize;", name); // TODO This is not very good to add a uniform for each texture that is hardly ever used
                     }
                     WriteLine();
                 }
@@ -362,48 +366,91 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void WriteCBuffer(VFXUniformMapper mapper, string bufferName)
+        public bool WriteGraphValuesStruct(VFXUniformMapper contextUniformMapper)
         {
-            var uniformValues = mapper.uniforms
-                .Where(e => !e.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.InvalidOnCPU)) // Filter out constant expressions
-                .OrderByDescending(e => VFXValue.TypeToSize(e.valueType));
+            bool needsGraphValueStruct = false;
+            var contextUniforms = contextUniformMapper.uniforms;
 
-            var uniformBlocks = new List<List<VFXExpression>>();
-            foreach (var value in uniformValues)
+            if (contextUniforms.Any())
             {
-                var block = uniformBlocks.FirstOrDefault(b => b.Sum(e => VFXValue.TypeToSize(e.valueType)) + VFXValue.TypeToSize(value.valueType) <= 4);
-                if (block != null)
-                    block.Add(value);
-                else
-                    uniformBlocks.Add(new List<VFXExpression>() { value });
-            }
+                needsGraphValueStruct = true;
 
-            if (uniformBlocks.Count > 0)
-            {
-                WriteLineFormat("CBUFFER_START({0})", bufferName);
+                WriteLine("struct GraphValues");
+                WriteLine("{");
                 Indent();
 
-                int paddingIndex = 0;
-                foreach (var block in uniformBlocks)
+                foreach (var value in contextUniforms)
                 {
-                    int currentSize = 0;
-                    foreach (var value in block)
+                    string name = contextUniformMapper.GetName(value);
+                    string type = VFXExpression.TypeToCode(value.valueType);
+                    WriteLineFormat("{0} {1};", type, name);
+                }
+                Deindent();
+                WriteLine("};");
+            }
+
+            if (needsGraphValueStruct)
+            {
+                WriteLine("ByteAddressBuffer graphValuesBuffer;");
+                WriteLine();
+            }
+            return needsGraphValueStruct;
+        }
+
+        public void GenerateFillGraphValuesStruct(VFXUniformMapper contextUniformMapper, VFXDataParticle.GraphValuesLayout graphValuesLayout)
+        {
+            uint structSize = graphValuesLayout.paddedSizeInBytes;
+            var nameToOffset = graphValuesLayout.nameToOffset;
+            var contextUniforms = contextUniformMapper.uniforms;
+            if (contextUniforms.Any())
+            {
+                contextUniforms = contextUniforms.OrderBy(o => nameToOffset[contextUniformMapper.GetName(o)]);
+
+                WriteLine("GraphValues graphValues;");
+                WriteLine();
+
+                foreach (var value in contextUniforms)
+                {
+                    string name = contextUniformMapper.GetName(value);
+                    int currentOffset = nameToOffset[name];
+
+                    int typeSize = VFXExpression.TypeToSize(value.valueType);
+                    string loadType = typeSize == 1 ? "" : typeSize.ToString();
+                    if (value.valueType != VFXValueType.Matrix4x4)
                     {
-                        string type = VFXExpression.TypeToUniformCode(value.valueType);
-                        string name = mapper.GetName(value);
-                        if (name.StartsWith("unity_")) //Reserved unity variable name (could be filled manually see : VFXCameraUpdate)
-                            continue;
+                        string loadInstruction =
+                            $"graphValuesBuffer.Load{loadType}(instanceActiveIndex * {structSize}  + {currentOffset})";
 
-                        currentSize += VFXExpression.TypeToSize(value.valueType);
+                        switch (value.valueType)
+                        {
+                            case VFXValueType.Float:
+                            case VFXValueType.Float2:
+                            case VFXValueType.Float3:
+                            case VFXValueType.Float4:
+                                loadInstruction = $"asfloat({loadInstruction})";
+                                break;
+                            case VFXValueType.Int32:
+                                loadInstruction = $"asint({loadInstruction})";
+                                break;
+                            case VFXValueType.Boolean:
+                                loadInstruction = $"(bool){loadInstruction}";
+                                break;
+                        }
 
-                        WriteLineFormat("{0} {1};", type, name);
+                        WriteLineFormat("graphValues.{0} = {1};", name, loadInstruction);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            string loadInstruction =
+                                $"asfloat(graphValuesBuffer.Load4(instanceActiveIndex * {structSize}  + {currentOffset + 16 * i}))";
+                            string columnGetter = String.Format("._m0{0}_m1{0}_m2{0}_m3{0}",i);
+                            WriteLineFormat("graphValues.{0}{1} = {2};", name,columnGetter, loadInstruction);
+                        }
                     }
 
-                    WritePadding(4, currentSize, ref paddingIndex);
                 }
-
-                Deindent();
-                WriteLine("CBUFFER_END");
             }
         }
 

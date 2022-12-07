@@ -91,6 +91,8 @@ struct TessellationFactors
 
 TessellationFactors HullConstant(InputPatch<PackedVaryingsToDS, 3> input)
 {
+    UNITY_SETUP_INSTANCE_ID(input[0].vmesh);
+
     VaryingsToDS varying0 = UnpackVaryingsToDS(input[0]);
     VaryingsToDS varying1 = UnpackVaryingsToDS(input[1]);
     VaryingsToDS varying2 = UnpackVaryingsToDS(input[2]);
@@ -140,6 +142,8 @@ PackedVaryingsToDS Hull(InputPatch<PackedVaryingsToDS, 3> input, uint id : SV_Ou
 [domain("tri")]
 PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<PackedVaryingsToDS, 3> input, float3 baryCoords : SV_DomainLocation)
 {
+    UNITY_SETUP_INSTANCE_ID(input[0].vmesh);
+
     VaryingsToDS varying0 = UnpackVaryingsToDS(input[0]);
     VaryingsToDS varying1 = UnpackVaryingsToDS(input[1]);
     VaryingsToDS varying2 = UnpackVaryingsToDS(input[2]);

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -17,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private GraphicsFormat depthStencilFormat;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
+        private PassData m_PassData;
         FilteringSettings m_FilteringSettings;
 
         /// <summary>
@@ -31,9 +33,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             base.profilingSampler = new ProfilingSampler(nameof(DepthOnlyPass));
+            m_PassData = new PassData();
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
             useNativeRenderPass = false;
+            this.shaderTagId = k_ShaderTagId;
         }
 
         /// <summary>
@@ -50,7 +54,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.destination = depthAttachmentHandle;
             this.depthStencilFormat = baseDescriptor.depthStencilFormat;
-            this.shaderTagId = k_ShaderTagId;
         }
 
         /// <inheritdoc />
@@ -74,21 +77,59 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        private static void ExecutePass(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData)
+        {
+            var cmd = renderingData.commandBuffer;
+            var shaderTagId = passData.shaderTagId;
+            var filteringSettings = passData.filteringSettings;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
+            {
+                var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
+                var drawSettings = RenderingUtils.CreateDrawingSettings(shaderTagId, ref renderingData, sortFlags);
+                drawSettings.perObjectData = PerObjectData.None;
+
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, filteringSettings);
+                var rl = context.CreateRendererList(ref param);
+                cmd.DrawRendererList(rl);
+            }
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = renderingData.commandBuffer;
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
+            m_PassData.shaderTagId = this.shaderTagId;
+            m_PassData.filteringSettings = m_FilteringSettings;
+            ExecutePass(context, m_PassData, ref renderingData);
+        }
+
+        private class PassData
+        {
+            internal TextureHandle cameraDepthTexture;
+            internal RenderingData renderingData;
+            internal ShaderTagId shaderTagId;
+            internal FilteringSettings filteringSettings;
+        }
+
+        internal void Render(RenderGraph renderGraph, ref TextureHandle cameraDepthTexture, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddRenderPass<PassData>("DepthOnly Prepass", out var passData, base.profilingSampler))
             {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
+                passData.renderingData = renderingData;
+                passData.shaderTagId = this.shaderTagId;
+                passData.filteringSettings = m_FilteringSettings;
 
-                var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
-                drawSettings.perObjectData = PerObjectData.None;
+                //  TODO RENDERGRAPH: culling? force culling off for testing
+                builder.AllowPassCulling(false);
 
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                {
+                    ExecutePass(context.renderContext, data, ref data.renderingData);
+                });
             }
+
+            RenderGraphUtils.SetGlobalTexture(renderGraph,"_CameraDepthTexture", cameraDepthTexture, "Set Global CameraDepthTexture");
         }
     }
 }

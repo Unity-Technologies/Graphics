@@ -10,6 +10,8 @@
 #define SHADERGRAPH_AMBIENT_EQUATOR unity_AmbientEquator
 #define SHADERGRAPH_AMBIENT_GROUND unity_AmbientGround
 #define SHADERGRAPH_MAIN_LIGHT_DIRECTION shadergraph_MainLightDirection
+#define SHADERGRAPH_RENDERER_BOUNDS_MIN shadergraph_RendererBoundsWS_Min()
+#define SHADERGRAPH_RENDERER_BOUNDS_MAX shadergraph_RendererBoundsWS_Max()
 
 #if defined(REQUIRE_DEPTH_TEXTURE)
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -89,6 +91,16 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
 }
 
 float3 shadergraph_MainLightDirection()
+{
+    return 0.0f;
+}
+
+float3 shadergraph_RendererBoundsWS_Min()
+{
+    return 0.0f;
+}
+
+float3 shadergraph_RendererBoundsWS_Max()
 {
     return 0.0f;
 }

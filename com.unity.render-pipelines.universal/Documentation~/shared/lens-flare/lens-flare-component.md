@@ -43,4 +43,5 @@ To create a lens flare in a scene:
 | Occlusion Radius | Defines how far from the light source Unity occludes the lens flare. This value is in world space. |
 | Sample Count | The number of random samples the CPU uses to generate the **Occlusion Radius.** |
 | Occlusion Offset | Offsets the plane that the occlusion operates on. A higher value moves this plane closer to Camera. This value is in world space. <br/>For example, if a lens flare is inside the light bulb, you can use this to sample occlusion outside the light bulb. |
+| Occlusion Remap Curve | Allow the occlusion [from 0 to 1] to be remap with any desired shape. |
 | Allow Off Screen | Enable this property to allow lens flares outside the Camera's view to affect the current field of view. |

@@ -21,6 +21,8 @@
 
 #define HAVE_DECALS ( (defined(DECALS_3RT) || defined(DECALS_4RT)) && !defined(_DISABLE_DECALS) )
 
+#define APPLY_FOG_ON_SKY_REFLECTIONS
+
 //-----------------------------------------------------------------------------
 // ApplyBlendMode function
 //-----------------------------------------------------------------------------
@@ -109,6 +111,22 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 i
 #endif
 
     return result;
+}
+
+// Used for sky reflection. The sky reflection cubemap doesn't contain fog.
+// Apply height fog between pixel position and skybox, ignores volumetric fog for performance.
+float4 EvaluateFogForSkyReflections(float3 positionWS, float3 R)
+{
+    float  startHeight = positionWS.y;
+    float  cosZenith = R.y;
+
+    float3 volAlbedo = _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
+    float  odFallback = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+            _HeightFogExponents, cosZenith, startHeight, _MaxFogDistance);
+    float  trFallback = TransmittanceFromOpticalDepth(odFallback);
+
+    float3 fog = GetFogColor(-R, _MaxFogDistance) * volAlbedo * (1 - trFallback);
+    return float4(fog, trFallback);
 }
 
 //-----------------------------------------------------------------------------

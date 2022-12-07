@@ -3,13 +3,15 @@ using System.Linq;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
     using Styles = UniversalRenderPipelineCameraUI.Styles;
 
-    [CustomEditorForRenderPipeline(typeof(Camera), typeof(UniversalRenderPipelineAsset))]
+    [CustomEditor(typeof(Camera))]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [CanEditMultipleObjects]
     class UniversalRenderPipelineCameraEditor : CameraEditor
     {
@@ -40,6 +42,14 @@ namespace UnityEditor.Rendering.Universal
             m_OutputWarningCameras.Clear();
 
             UpdateCameras();
+
+            Undo.undoRedoPerformed += ReconstructReferenceToAdditionalDataSO;
+        }
+
+        void ReconstructReferenceToAdditionalDataSO()
+        {
+            OnDisable();
+            OnEnable();
         }
 
         void UpdateCameras()
@@ -312,6 +322,7 @@ namespace UnityEditor.Rendering.Universal
         public new void OnDisable()
         {
             base.OnDisable();
+            Undo.undoRedoPerformed -= ReconstructReferenceToAdditionalDataSO;
         }
 
         // IsPreset is an internal API - lets reuse the usable part of this function

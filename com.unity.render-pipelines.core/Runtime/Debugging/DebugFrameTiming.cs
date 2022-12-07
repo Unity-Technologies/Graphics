@@ -79,6 +79,7 @@ namespace UnityEngine.Rendering
             list.Add(new DebugUI.Foldout()
             {
                 displayName = "Frame Stats",
+                isHeader = true,
                 opened = true,
                 columnLabels = new string[] { "Avg", "Min", "Max" },
                 children =
@@ -149,6 +150,7 @@ namespace UnityEngine.Rendering
             list.Add(new DebugUI.Foldout
             {
                 displayName = "Bottlenecks",
+                isHeader = true,
                 children =
                 {
 #if UNITY_EDITOR

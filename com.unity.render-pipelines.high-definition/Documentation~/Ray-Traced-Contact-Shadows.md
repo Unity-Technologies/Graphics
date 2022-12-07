@@ -16,6 +16,8 @@ Ray-Traced Contact Shadows is a ray tracing feature in the High Definition Rende
 
 For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
+To troubleshoot this effect, HDRP provides a Shadows [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
+
 ## Using Ray-Traced Contact Shadows
 
 This feature is an alternative to the [Contact Shadows](Override-Contact-Shadows.md) Volume override, so the initial setup is similar. To set up ray-traced contact shadows:

@@ -3,14 +3,14 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.RayTracing)]
     unsafe struct ShaderVariablesRaytracing
     {
-        // Global ray bias used for all trace rays
-        public float _RaytracingRayBias;
+        public float _RayTracingPadding0;
         // Maximal ray length for trace ray (in case an other one does not override it)
         public float _RaytracingRayMaxLength;
         // Number of samples that will be used to evaluate an effect
         public int _RaytracingNumSamples;
         // Index of the current sample
         public int _RaytracingSampleIndex;
+
         // Value used to clamp the intensity of the signal to reduce the signal/noise ratio
         public float _RaytracingIntensityClamp;
         // Flag that tracks if ray counting is enabled
@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RaytracingPreExposition;
         // Near plane distance of the camera used for ray tracing
         public float _RaytracingCameraNearPlane;
+
         // Angle of a pixel (used for texture filtering)
         public float _RaytracingPixelSpreadAngle;
         // Ray traced reflection Data
@@ -26,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _RaytracingReflectionSmoothnessFadeStart;
         // Path tracing parameters
         public int _RaytracingMinRecursion;
+
         public int _RaytracingMaxRecursion;
         // Ray traced indirect diffuse data
         public int _RayTracingDiffuseLightingOnly;
@@ -33,11 +35,23 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _DirectionalShadowFallbackIntensity;
         // Global bias applied to texture reading for various reasons.
         public float _RayTracingLodBias;
+
         // Bit mask that defines which fall back to use when a ray misses.
         public int _RayTracingRayMissFallbackHierarchy;
         // Flag that defines if the sky should be used as an environment light.
         public int _RayTracingLastBounceFallbackHierarchy;
-        public int _Padding0;
-        public int _Padding1;
+        // Flag that defines if
+        public int _RayTracingClampingFlag;
+        // Dimmer that allows us to nuke the ambient probe (and legacy probe as a side effect) in ray tracing effects.
+        public float _RayTracingAmbientProbeDimmer;
+
+        // Flag that defines if the APV should be used in the case of a ray miss in performance mode
+        public int _RayTracingAPVRayMiss;
+        // Near plane ray Bias
+        public float _RayTracingRayBias;
+        // Far plane ray bias
+        public float _RayTracingDistantRayBias;
+        // Padding
+        public int _PaddingRT0;
     }
 }

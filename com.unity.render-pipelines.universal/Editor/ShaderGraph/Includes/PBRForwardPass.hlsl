@@ -22,7 +22,7 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
         inputData.normalWS = input.normalWS;
     #endif
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    inputData.viewDirectionWS = SafeNormalize(GetWorldSpaceViewDir(input.positionWS));
+    inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         inputData.shadowCoord = input.shadowCoord;
@@ -63,20 +63,35 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-half4 frag(PackedVaryings packedInput) : SV_TARGET
+void frag(
+    PackedVaryings packedInput
+    , out half4 outColor : SV_Target0
+#ifdef _WRITE_RENDERING_LAYERS
+    , out float4 outRenderingLayers : SV_Target1
+#endif
+)
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
-    #if _ALPHATEST_ON
-        half alpha = surfaceDescription.Alpha;
-        clip(alpha - surfaceDescription.AlphaClipThreshold);
-    #elif _SURFACE_TYPE_TRANSPARENT
-        half alpha = surfaceDescription.Alpha;
-    #else
-        half alpha = 1;
+#if defined(_SURFACE_TYPE_TRANSPARENT)
+    bool isTransparent = true;
+#else
+    bool isTransparent = false;
+#endif
+
+#if defined(_ALPHATEST_ON)
+    half alpha = AlphaDiscard(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+#elif defined(_SURFACE_TYPE_TRANSPARENT)
+    half alpha = surfaceDescription.Alpha;
+#else
+    half alpha = half(1.0);
+#endif
+
+    #if defined(LOD_FADE_CROSSFADE) && USE_UNITY_CROSSFADE
+        LODFadeCrossFade(unpacked.positionCS);
     #endif
 
     InputData inputData;
@@ -121,7 +136,14 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
     half4 color = UniversalFragmentPBR(inputData, surface);
-
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    return color;
+
+    color.a = OutputAlpha(color.a, isTransparent);
+
+    outColor = color;
+
+#ifdef _WRITE_RENDERING_LAYERS
+    uint renderingLayers = GetMeshRenderingLayer();
+    outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+#endif
 }

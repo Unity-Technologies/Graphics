@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using System.Runtime.CompilerServices;
+using System.Linq;
 
 [assembly: InternalsVisibleTo("MaterialPostprocessor")]
 namespace UnityEditor.Rendering.Universal
@@ -12,13 +13,11 @@ namespace UnityEditor.Rendering.Universal
     internal sealed class UniversalRenderPipelineMaterialUpgrader : RenderPipelineConverter
     {
         public override string name => "Material Upgrade";
-        public override string info => "This will upgrade your materials.";
+        public override string info => "This converter converts Materials from the Built-in Render Pipeline to URP. This converter works best on default pre-built Materials that are supplied by Unity. Custom Materials are not supported.";
         public override int priority => -1000;
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
-
-        private List<GUID> m_MaterialGUIDs = new();
 
         static List<MaterialUpgrader> m_Upgraders;
         private static HashSet<string> m_ShaderNamesToIgnore;
@@ -215,7 +214,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 throw new ArgumentNullException(nameof(path));
             }
-            return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase);
+            // Making sure it is a .mat file and it is not from a package.
+            return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase) && !(path.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase));
         }
 
         bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
@@ -226,25 +226,28 @@ namespace UnityEditor.Rendering.Universal
             if (material.shader == null)
                 return false;
 
+            // Checking if the Shader Graph tag exists, if it does it is a Shader Graph and shouldnt be Upgraded here
+            var result = material.GetTag("ShaderGraphShader", false, "sg");
+            if (result != "sg")
+            {
+                return false;
+            }
             return !shaderNamesToIgnore.Contains(material.shader.name);
         }
 
         /// <inheritdoc/>
         public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
+            List<ConverterItemDescriptor> descriptors = new List<ConverterItemDescriptor>();
             foreach (string path in AssetDatabase.GetAllAssetPaths())
             {
                 if (IsMaterialPath(path))
                 {
                     Material m = AssetDatabase.LoadMainAssetAtPath(path) as Material;
 
+                    // We should also check if the material is already URP
                     if (!ShouldUpgradeShader(m, m_ShaderNamesToIgnore))
                         continue;
-
-                    GUID guid = AssetDatabase.GUIDFromAssetPath(path);
-                    m_MaterialGUIDs.Add(guid);
-
-                    m_AssetsToConvert.Add(path);
 
                     ConverterItemDescriptor desc = new ConverterItemDescriptor()
                     {
@@ -253,10 +256,19 @@ namespace UnityEditor.Rendering.Universal
                         warningMessage = String.Empty,
                         helpLink = String.Empty,
                     };
-                    // Each converter needs to add this info using this API.
-                    context.AddAssetToConvert(desc);
+
+                    descriptors.Add(desc);
                 }
             }
+
+            // This need to be sorted by name property
+            descriptors = descriptors.OrderBy(o => o.name).ToList();
+            foreach (var desc in descriptors)
+            {
+                context.AddAssetToConvert(desc);
+                m_AssetsToConvert.Add(desc.info);
+            }
+
             callback.Invoke();
         }
 
@@ -280,8 +292,14 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Upgrade parameters for the supported shaders.
+    /// </summary>
     public static class SupportedUpgradeParams
     {
+        /// <summary>
+        /// Upgrade parameters for diffuse Opaque.
+        /// </summary>
         public static UpgradeParams diffuseOpaque = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
@@ -291,6 +309,9 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
+        /// <summary>
+        /// Upgrade parameters for specular opaque.
+        /// </summary>
         public static UpgradeParams specularOpaque = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
@@ -300,6 +321,9 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
+        /// <summary>
+        /// Upgrade parameters for diffuse alpha.
+        /// </summary>
         public static UpgradeParams diffuseAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
@@ -309,6 +333,9 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
+        /// <summary>
+        /// Upgrade parameters for specular alpha.
+        /// </summary>
         public static UpgradeParams specularAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
@@ -318,6 +345,9 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
+        /// <summary>
+        /// Upgrade parameters for diffuse alpha cutout.
+        /// </summary>
         public static UpgradeParams diffuseAlphaCutout = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
@@ -327,6 +357,9 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
+        /// <summary>
+        /// Upgrade parameters for specular alpha cutout.
+        /// </summary>
         public static UpgradeParams specularAlphaCutout = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
@@ -336,6 +369,9 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
+        /// <summary>
+        /// Upgrade parameters for diffuse cubemap.
+        /// </summary>
         public static UpgradeParams diffuseCubemap = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
@@ -345,6 +381,9 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
+        /// <summary>
+        /// Upgrade parameters for specular cubemap.
+        /// </summary>
         public static UpgradeParams specularCubemap = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
@@ -354,6 +393,9 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
+        /// <summary>
+        /// Upgrade parameters for diffuse cubemap alpha.
+        /// </summary>
         public static UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
@@ -363,6 +405,9 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
+        /// <summary>
+        /// Upgrade parameters for specular cubemap alpha.
+        /// </summary>
         public static UpgradeParams specularCubemapAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
@@ -373,6 +418,9 @@ namespace UnityEditor.Rendering.Universal
         };
     }
 
+    /// <summary>
+    /// Upgrader for the standard and standard (specular setup) shaders.
+    /// </summary>
     public class StandardUpgrader : MaterialUpgrader
     {
         enum LegacyRenderingMode
@@ -383,6 +431,11 @@ namespace UnityEditor.Rendering.Universal
             Transparent // Physically plausible transparency mode, implemented as alpha pre-multiply
         }
 
+        /// <summary>
+        /// Updates keywords for the standard shader.
+        /// </summary>
+        /// <param name="material">The material to update.</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public static void UpdateStandardMaterialKeywords(Material material)
         {
             if (material == null)
@@ -406,6 +459,11 @@ namespace UnityEditor.Rendering.Universal
             BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
+        /// <summary>
+        /// Updates keywords for the standard specular shader.
+        /// </summary>
+        /// <param name="material">The material to update.</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public static void UpdateStandardSpecularMaterialKeywords(Material material)
         {
             if (material == null)
@@ -463,6 +521,11 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Constructor for the StandardUpgrader class.
+        /// </summary>
+        /// <param name="oldShaderName">The name of the old shader.</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public StandardUpgrader(string oldShaderName)
         {
             if (oldShaderName == null)
@@ -551,8 +614,15 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Upgrader for terrain materials.
+    /// </summary>
     public class TerrainUpgrader : MaterialUpgrader
     {
+        /// <summary>
+        /// Constructor for the terrain upgrader.
+        /// </summary>
+        /// <param name="oldShaderName">The name of the old shader.</param>
         public TerrainUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit));
@@ -574,8 +644,16 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Upgrader for particle materials.
+    /// </summary>
     public class ParticleUpgrader : MaterialUpgrader
     {
+        /// <summary>
+        /// Constructor for the particle upgrader.
+        /// </summary>
+        /// <param name="oldShaderName">The name of the old shader.</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public ParticleUpgrader(string oldShaderName)
         {
             if (oldShaderName == null)
@@ -599,16 +677,28 @@ namespace UnityEditor.Rendering.Universal
             RenameFloat("_FlipbookMode", "_FlipbookBlending");
         }
 
+        /// <summary>
+        /// Updates the standard shader surface properties.
+        /// </summary>
+        /// <param name="material"></param>
         public static void UpdateStandardSurface(Material material)
         {
             UpdateSurfaceBlendModes(material);
         }
 
+        /// <summary>
+        /// Updates the unlit shader properties.
+        /// </summary>
+        /// <param name="material"></param>
         public static void UpdateUnlit(Material material)
         {
             UpdateSurfaceBlendModes(material);
         }
 
+        /// <summary>
+        /// Updates the blending mode properties.
+        /// </summary>
+        /// <param name="material"></param>
         public static void UpdateSurfaceBlendModes(Material material)
         {
             switch (material.GetFloat("_Mode"))
@@ -648,11 +738,18 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Upgrader for the autodesk interactive shaders.
+    /// </summary>
     public class AutodeskInteractiveUpgrader : MaterialUpgrader
     {
+        /// <summary>
+        /// Constructor for the autodesk interactive upgrader.
+        /// </summary>
+        /// <param name="oldShaderName">The name of the old shader.</param>
         public AutodeskInteractiveUpgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/Autodesk Interactive");
+            RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/AutodeskInteractive");
         }
 
         /// <inheritdoc/>

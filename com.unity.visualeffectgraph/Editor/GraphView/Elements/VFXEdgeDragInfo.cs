@@ -37,6 +37,10 @@ namespace UnityEditor.VFX.UI
 
         public void DisplayEdgeDragInfo(VFXDataAnchor draggedAnchor, VFXDataAnchor overAnchor)
         {
+            // Do not display any error message for "invisible" activation slot on subgraphs
+            if (overAnchor.controller.isSubgraphActivation)
+                return;
+
             if (m_ScheduledItem != null)
             {
                 m_ScheduledItem.Pause();

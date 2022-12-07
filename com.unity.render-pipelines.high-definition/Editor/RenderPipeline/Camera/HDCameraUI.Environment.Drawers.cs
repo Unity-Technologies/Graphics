@@ -8,18 +8,23 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         partial class Environment
         {
-            public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                CameraUI.Environment.Styles.header,
-                Expandable.Environment,
-                k_ExpandedState,
-                FoldoutOption.Indent,
-                CED.Group(
-                    Drawer_Environment_Background,
-                    CameraUI.Environment.Drawer_Environment_VolumeLayerMask,
-                    Drawer_Environment_VolumeAnchorOverride,
-                    Drawer_Environment_ProbeLayerMask
-                )
-            );
+            public static readonly CED.IDrawer Drawer;
+
+            static Environment()
+            {
+                Drawer = CED.FoldoutGroup(
+                    CameraUI.Environment.Styles.header,
+                    Expandable.Environment,
+                    k_ExpandedState,
+                    FoldoutOption.Indent,
+                    CED.Group(
+                        Drawer_Environment_Background,
+                        CameraUI.Environment.Drawer_Environment_VolumeLayerMask,
+                        Drawer_Environment_VolumeAnchorOverride,
+                        Drawer_Environment_ProbeLayerMask
+                    )
+                );
+            }
 
             static void Drawer_Environment_Background(SerializedHDCamera p, Editor owner)
             {

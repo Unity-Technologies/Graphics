@@ -11,24 +11,29 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         partial class Output
         {
-            public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                CameraUI.Output.Styles.header,
-                Expandable.Output,
-                k_ExpandedState,
-                FoldoutOption.Indent,
-                CED.Group(
+            public static readonly CED.IDrawer Drawer;
+
+            static Output()
+            {
+                Drawer = CED.FoldoutGroup(
+                    CameraUI.Output.Styles.header,
+                    Expandable.Output,
+                    k_ExpandedState,
+                    FoldoutOption.Indent,
+                    CED.Group(
 #if ENABLE_VR && ENABLE_XR_MANAGEMENT
-                    Drawer_SectionXRRendering,
+                        Drawer_SectionXRRendering,
 #endif
 #if ENABLE_MULTIPLE_DISPLAYS
-                    Drawer_Output_MultiDisplay,
+                        Drawer_Output_MultiDisplay,
 #endif
-                    CameraUI.Output.Drawer_Output_RenderTarget,
-                    Drawer_Output_MSAA_Warning,
-                    CameraUI.Output.Drawer_Output_Depth,
-                    CameraUI.Output.Drawer_Output_NormalizedViewPort
-                )
-            );
+                        CameraUI.Output.Drawer_Output_RenderTarget,
+                        Drawer_Output_MSAA_Warning,
+                        CameraUI.Output.Drawer_Output_Depth,
+                        CameraUI.Output.Drawer_Output_NormalizedViewPort
+                    )
+                );
+            }
 
             static void Drawer_Output_MSAA_Warning(SerializedHDCamera p, Editor owner)
             {

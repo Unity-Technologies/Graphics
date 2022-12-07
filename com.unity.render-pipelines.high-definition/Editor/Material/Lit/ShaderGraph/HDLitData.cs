@@ -6,6 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class HDLitData : HDTargetData
     {
+        [Obsolete("Use MaterialTypeMask instead.")]
         public enum MaterialType
         {
             Standard,
@@ -16,6 +17,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             Translucent
         }
 
+        [Flags]
+        public enum MaterialTypeMask
+        {
+            Standard = 1 << MaterialId.LitStandard,
+            SubsurfaceScattering = 1 << MaterialId.LitSSS,
+            Anisotropy = 1 << MaterialId.LitAniso,
+            Iridescence = 1 << MaterialId.LitIridescence,
+            SpecularColor = 1 << MaterialId.LitSpecular,
+            Translucent = 1 << MaterialId.LitTranslucent,
+        }
+
         [SerializeField]
         bool m_RayTracing;
         public bool rayTracing
@@ -24,12 +36,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_RayTracing = value;
         }
 
-        [SerializeField]
+        [SerializeField, Obsolete("use m_MaterialTypeMask instead.")]
         MaterialType m_MaterialType;
+
+        [Obsolete("Use materialTypeMask instead.")]
         public MaterialType materialType
         {
             get => m_MaterialType;
             set => m_MaterialType = value;
+        }
+
+        public bool HasMaterialType(MaterialTypeMask materialType)
+            => (m_MaterialTypeMask & materialType) != 0;
+
+        [SerializeField]
+        MaterialTypeMask m_MaterialTypeMask = MaterialTypeMask.Standard;
+        public MaterialTypeMask materialTypeMask
+        {
+            get => m_MaterialTypeMask;
+            set
+            {
+                if (value == 0)
+                    m_MaterialTypeMask = MaterialTypeMask.Standard;
+                else
+                    m_MaterialTypeMask = value;
+            }
         }
 
         [SerializeField]

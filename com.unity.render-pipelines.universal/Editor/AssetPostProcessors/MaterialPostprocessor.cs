@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
 using BlendMode = UnityEngine.Rendering.BlendMode;
@@ -63,6 +64,9 @@ namespace UnityEditor.Rendering.Universal
         {
             EditorApplication.update += () =>
             {
+                if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset universalRenderPipeline)
+                    return;
+
                 if (Time.renderedFrameCount > 0)
                 {
                     bool fileExist = true;
@@ -104,7 +108,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6 };
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -197,7 +201,7 @@ namespace UnityEditor.Rendering.Universal
                     AssetDatabase.AddObjectToAsset(assetVersion, asset);
                 }
 
-                while (assetVersion.version < k_Upgraders.Length)
+                while (assetVersion.version >= 0 && assetVersion.version < k_Upgraders.Length)
                 {
                     k_Upgraders[assetVersion.version](material, shaderID);
                     debug += $" upgrading:v{assetVersion.version} to v{assetVersion.version + 1}";
@@ -372,6 +376,25 @@ namespace UnityEditor.Rendering.Universal
                         BaseShaderGUI.SetMaterialKeywords(material);
                     }
                 }
+            }
+        }
+
+        // Upgrades alpha-clipped materials to include logic for automatic alpha-to-coverage support
+        static void UpgradeV7(Material material, ShaderID shaderID)
+        {
+            var surfacePropertyID = Shader.PropertyToID(Property.SurfaceType);
+            var alphaClipPropertyID = Shader.PropertyToID(Property.AlphaClip);
+            var alphaToMaskPropertyID = Shader.PropertyToID(Property.AlphaToMask);
+            if (material.HasProperty(surfacePropertyID) &&
+                material.HasProperty(alphaClipPropertyID) &&
+                material.HasProperty(alphaToMaskPropertyID))
+            {
+                bool isOpaque = material.GetFloat(surfacePropertyID) < 1.0f;
+                bool isAlphaClipEnabled = material.GetFloat(alphaClipPropertyID) > 0.0f;
+
+                float alphaToMask = (isOpaque && isAlphaClipEnabled) ? 1.0f : 0.0f;
+
+                material.SetFloat(alphaToMaskPropertyID, alphaToMask);
             }
         }
     }

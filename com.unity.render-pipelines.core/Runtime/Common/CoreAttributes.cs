@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Attribute used to customize UI display.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Class, AllowMultiple = false)]
     public class DisplayInfoAttribute : Attribute
     {
         /// <summary>Display name used in UI.</summary>
@@ -19,6 +19,14 @@ namespace UnityEngine.Rendering
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     public class AdditionalPropertyAttribute : Attribute
+    {
+    }
+
+    /// <summary>
+    /// Attribute used to hide enum values from Rendering Debugger UI
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field)]
+    public class HideInDebugUIAttribute : Attribute
     {
     }
 }

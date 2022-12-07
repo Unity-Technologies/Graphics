@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using System.Diagnostics;
-using System.Reflection;
 using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -24,8 +22,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
-
-            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
 
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
@@ -69,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // If requested by the render pipeline settings, or if we are in a release build,
             // don't compile fullscreen debug display variant
             bool isFullScreenDebugPass = snippet.passName == "FullScreenDebug";
-            if (isFullScreenDebugPass && (!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay))
+            if (isFullScreenDebugPass && m_StripDebugVariants)
                 return true;
 
             // Debug Display shader is currently the longest shader to compile, so we allow users to disable it at runtime.
@@ -78,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // we allow user to make explicit request for it and it bypass other request
             if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
             {
-                if ((!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                if (m_StripDebugVariants && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                     return true;
             }
 
@@ -132,6 +128,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
             }
 
+            foreach (var areaShadowVariant in m_ShadowKeywords.AreaShadowVariants)
+            {
+                if (areaShadowVariant.Key != shadowInitParams.areaShadowFilteringQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(areaShadowVariant.Value))
+                        return true;
+            }
+
             // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
             // either we have a variant that don't support at all. We can't have both at the same time.
             if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
@@ -142,10 +145,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // DECAL
 
-            // Strip the decal prepass variant when decals are disabled
-            if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) &&
-                !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
-                return true;
+            // Rendering layers and decal layers output to the same buffer
+            // Difference is that decal layers need also geometric normals, and rendering layers ignore _DISABLE_DECALS
+            // To reduce variants, we assume that enabling rendering layers will always enable decal layers, so we have 3 modes:
+            // - All off
+            // - Output layers and normal for relevant materials
+            // - Output layers and normals for everyone. (But if decal are disabled, buffer is only 16 bits so we don't write normals)
+            if (hdrpAsset.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer)
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer))
+                    return true;
+            }
+            else
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WriteRenderingLayer))
+                    return true;
+                // If we don't require the rendering layers, strip the decal prepass variant when decals are disabled
+                if ((inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBuffer) || inputData.shaderKeywordSet.IsEnabled(m_WriteDecalBufferAndRenderingLayer)) &&
+                    !(hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals && hdrpAsset.currentPlatformRenderPipelineSettings.supportDecalLayers))
+                    return true;
+            }
 
             // If decal support, remove unused variant
             if (hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)
@@ -193,359 +212,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
-            return false;
-        }
-    }
-
-#if UNITY_2020_2_OR_NEWER
-    class HDRPPreprocessComputeShaders : IPreprocessComputeShaders
-    {
-        struct ExportComputeShaderStrip : System.IDisposable
-        {
-            bool m_ExportLog;
-            string m_OutFile;
-            ComputeShader m_Shader;
-            string m_KernelName;
-            IList<ShaderCompilerData> m_InputData;
-            HDRPPreprocessComputeShaders m_PreProcess;
-
-            public ExportComputeShaderStrip(
-                string outFile,
-                ComputeShader shader,
-                string kernelName,
-                IList<ShaderCompilerData> inputData,
-                HDRPPreprocessComputeShaders preProcess
-            )
-            {
-                m_ExportLog = HDRenderPipelineGlobalSettings.instance.exportShaderVariants;
-                m_OutFile = outFile;
-                m_Shader = shader;
-                m_KernelName = kernelName;
-                m_InputData = inputData;
-                m_PreProcess = preProcess;
-
-                if (m_ExportLog)
-                {
-                    System.IO.File.AppendAllText(
-                        m_OutFile,
-                        $"{{ \"Compute shader\": \"{m_Shader.name}\", \"kernel\": \"{m_KernelName}\", \"variantIn\": {m_InputData.Count} }}\r\n"
-                    );
-                }
-            }
-
-            public void Dispose()
-            {
-                if (m_ExportLog)
-                {
-                    try
-                    {
-                        System.IO.File.AppendAllText(
-                            m_OutFile,
-                            $"{{ \"shader\": \"{m_Shader?.name}\",  \"kernel\": \"{m_KernelName}\", \"variantOut\": \"{m_InputData.Count}\", \"totalVariantIn\": \"{m_PreProcess?.m_TotalVariantsInputCount}\", \"totalVariantOut\": \"{m_PreProcess?.m_TotalVariantsOutputCount}\" }}\r\n"
-                        );
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-            }
-        }
-
-        uint m_TotalVariantsInputCount;
-        uint m_TotalVariantsOutputCount;
-
-        protected ShadowKeywords m_ShadowKeywords = new ShadowKeywords();
-        protected ShaderKeyword m_EnableAlpha = new ShaderKeyword("ENABLE_ALPHA");
-        protected ShaderKeyword m_MSAA = new ShaderKeyword("ENABLE_MSAA");
-        protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
-        protected ShaderKeyword m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
-        protected ShaderKeyword m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
-        protected ShaderKeyword m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
-
-        public int callbackOrder { get { return 0; } }
-
-        void LogShaderVariants(ComputeShader shader, string kernelName, uint prevVariantsCount, uint currVariantsCount, double stripTimeMs)
-        {
-            if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == ShaderVariantLogLevel.Disabled)
-                return;
-
-            m_TotalVariantsInputCount += prevVariantsCount;
-            m_TotalVariantsOutputCount += currVariantsCount;
-
-            float percentageCurrent = ((float)currVariantsCount / prevVariantsCount) * 100.0f;
-            float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
-
-            string result = string.Format("STRIPPING: {0} (kernel: {1}) -" +
-                " Remaining shader variants = {2}/{3} = {4}% - Total = {5}/{6} = {7}% - Time={8}Ms",
-                shader.name, kernelName, currVariantsCount,
-                prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                percentageTotal, stripTimeMs);
-            Debug.Log(result);
-        }
-
-        // Modify this function to add more stripping clauses
-        internal bool StripShader(HDRenderPipelineAsset hdAsset, ComputeShader shader, string kernelName, ShaderCompilerData inputData)
-        {
-            // Strip every useless shadow configs
-            var shadowInitParams = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-
-            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
-            {
-                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
-                {
-                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
-                        return true;
-                }
-            }
-
-            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
-            // either we have a variant that don't support at all. We can't have both at the same time.
-            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+#if !ENABLE_SENSOR_SDK
+            // If the SensorSDK package is not present, make sure that all code related to it is stripped away
+            if (inputData.shaderKeywordSet.IsEnabled(m_SensorEnableLidar) || inputData.shaderKeywordSet.IsEnabled(m_SensorOverrideReflectance))
                 return true;
-
-            if (inputData.shaderKeywordSet.IsEnabled(m_MSAA) && (hdAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
-            {
-                return true;
-            }
-
-            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
-                return true;
-
-            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.SupportsAlpha())
-            {
-                return true;
-            }
-
-            // Global Illumination
-            if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL1) &&
-                (!hdAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
-                return true;
-
-            if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL2) &&
-                (!hdAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
-                return true;
+#endif
 
             return false;
-        }
-
-        public void OnProcessComputeShader(ComputeShader shader, string kernelName, IList<ShaderCompilerData> inputData)
-        {
-            if (HDRenderPipeline.currentAsset == null)
-                return;
-
-            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
-                return;
-
-            // Discard any compute shader use for raytracing if none of the RP asset required it
-            ComputeShader unused;
-            if (!ShaderBuildPreprocessor.playerNeedRaytracing && ShaderBuildPreprocessor.computeShaderCache.TryGetValue(shader.GetInstanceID(), out unused))
-                return;
-
-            using (new ExportComputeShaderStrip("Temp/compute-shader-strip.json", shader, kernelName, inputData, this))
-            {
-                var inputShaderVariantCount = inputData.Count;
-                var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
-
-                if (hdPipelineAssets.Count == 0)
-                    return;
-
-                uint preStrippingCount = (uint)inputData.Count;
-
-                double stripTimeMs = 0;
-                using (TimedScope.FromRef(ref stripTimeMs))
-                {
-                    for (int i = 0; i < inputShaderVariantCount;)
-                    {
-                        ShaderCompilerData input = inputData[i];
-
-                        bool removeInput = true;
-                        foreach (var hdAsset in hdPipelineAssets)
-                        {
-                            if (!StripShader(hdAsset, shader, kernelName, input))
-                            {
-                                removeInput = false;
-                                break;
-                            }
-                        }
-
-                        if (removeInput)
-                            inputData[i] = inputData[--inputShaderVariantCount];
-                        else
-                            ++i;
-                    }
-
-                    if(!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
-                        Debug.LogException(error);
-                }
-
-                LogShaderVariants(shader, kernelName, preStrippingCount, (uint)inputData.Count, stripTimeMs);
-            }
-        }
-    }
-#endif // #if UNITY_2020_2_OR_NEWER
-
-    class HDRPreprocessShaders : IPreprocessShaders
-    {
-        // Track list of materials asking for specific preprocessor step
-        List<BaseShaderPreprocessor> shaderProcessorsList;
-
-        internal static event System.Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
-
-        uint m_TotalVariantsInputCount;
-        uint m_TotalVariantsOutputCount;
-
-        public HDRPreprocessShaders()
-        {
-            if (ShaderBuildPreprocessor.hdrpAssets == null || ShaderBuildPreprocessor.hdrpAssets.Count == 0)
-                return;
-
-            shaderProcessorsList = HDShaderUtils.GetBaseShaderPreprocessorList();
-        }
-
-        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, uint prevVariantsCount, uint currVariantsCount, double stripTimeMs)
-        {
-            if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == ShaderVariantLogLevel.Disabled)
-                return;
-
-            m_TotalVariantsInputCount += prevVariantsCount;
-            m_TotalVariantsOutputCount += currVariantsCount;
-
-            if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == ShaderVariantLogLevel.OnlySRPShaders && !HDShaderUtils.IsHDRPShader(shader))
-                return;
-
-            float percentageCurrent = ((float)currVariantsCount / prevVariantsCount) * 100.0f;
-            float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
-
-            string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
-                " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}% - Time={9}Ms",
-                shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
-                prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                percentageTotal, stripTimeMs);
-            Debug.Log(result);
-        }
-
-        struct ExportShaderStrip : System.IDisposable
-        {
-            bool m_ExportLog;
-            string m_OutFile;
-            Shader m_Shader;
-            ShaderSnippetData m_Snippet;
-            IList<ShaderCompilerData> m_InputData;
-            HDRPreprocessShaders m_PreProcess;
-
-            public ExportShaderStrip(
-                string outFile,
-                Shader shader,
-                ShaderSnippetData snippet,
-                IList<ShaderCompilerData> inputData,
-                HDRPreprocessShaders preProcess
-            )
-            {
-                m_ExportLog = HDRenderPipelineGlobalSettings.instance.exportShaderVariants;
-                m_OutFile = outFile;
-                m_Shader = shader;
-                m_Snippet = snippet;
-                m_InputData = inputData;
-                m_PreProcess = preProcess;
-
-                if (m_ExportLog)
-                {
-                    System.IO.File.AppendAllText(
-                        m_OutFile,
-                        $"{{ \"shader\": \"{m_Shader.name}\", \"pass\": \"{m_Snippet.passName}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantIn\": {m_InputData.Count} }}\r\n"
-                    );
-                }
-            }
-
-            public void Dispose()
-            {
-                if (m_ExportLog)
-                {
-                    try
-                    {
-                        System.IO.File.AppendAllText(
-                            m_OutFile,
-                            $"{{ \"shader\": \"{m_Shader?.name}\", \"pass\": \"{m_Snippet.passName ?? string.Empty}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantOut\": \"{m_InputData.Count}\", \"totalVariantIn\": \"{m_PreProcess?.m_TotalVariantsInputCount}\", \"totalVariantOut\": \"{m_PreProcess?.m_TotalVariantsOutputCount}\" }}\r\n"
-                        );
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-            }
-        }
-
-        public int callbackOrder { get { return 0; } }
-        public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
-        {
-            if (HDRenderPipeline.currentAsset == null)
-                return;
-
-            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
-                return;
-
-            double stripTimeMs = 0;
-            using (new ExportShaderStrip("Temp/shader-strip.json", shader, snippet, inputData, this))
-            {
-                // TODO: Grab correct configuration/quality asset.
-                var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
-
-                if (hdPipelineAssets.Count == 0)
-                    return;
-
-                uint preStrippingCount = (uint)inputData.Count;
-                using (TimedScope.FromRef(ref stripTimeMs))
-                {
-                    // Test if striping is enabled in any of the found HDRP assets.
-                    if (hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping))
-                        return;
-
-                    var inputShaderVariantCount = inputData.Count;
-                    for (int i = 0; i < inputShaderVariantCount;)
-                    {
-                        ShaderCompilerData input = inputData[i];
-
-                        // Remove the input by default, until we find a HDRP Asset in the list that needs it.
-                        bool removeInput = true;
-
-                        foreach (var hdAsset in hdPipelineAssets)
-                        {
-                            var strippedByPreprocessor = false;
-
-                            // Call list of strippers
-                            // Note that all strippers cumulate each other, so be aware of any conflict here
-                            foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
-                            {
-                                if (shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input))
-                                {
-                                    strippedByPreprocessor = true;
-                                    break;
-                                }
-                            }
-
-                            if (!strippedByPreprocessor)
-                            {
-                                removeInput = false;
-                                break;
-                            }
-                        }
-
-                        if (removeInput)
-                            inputData[i] = inputData[--inputShaderVariantCount];
-                        else
-                            ++i;
-                    }
-
-                    if (!inputData.TryRemoveElementsInRange(inputShaderVariantCount, inputData.Count - inputShaderVariantCount, out var error))
-                        Debug.LogException(error);
-                }
-
-                LogShaderVariants(shader, snippet, preStrippingCount, (uint)inputData.Count, stripTimeMs);
-            }
-
-            shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, stripTimeMs);
         }
     }
 
@@ -610,58 +283,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static bool TryGetRenderPipelineAssetsForBuildTarget<T>(BuildTarget buildTarget, List<T> srpAssets) where T : RenderPipelineAsset
-        {
-            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
-            if (qualitySettings == null)
-                return false;
-
-            var property = qualitySettings.FindProperty("m_QualitySettings");
-            if (property == null)
-                return false;
-
-            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
-            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
-
-            var allQualityLevelsAreOverriden = true;
-            for (int i = 0; i < property.arraySize; i++)
-            {
-                bool isExcluded = false;
-
-                var excludedTargetPlatforms = property.GetArrayElementAtIndex(i).FindPropertyRelative("excludedTargetPlatforms");
-                if (excludedTargetPlatforms == null)
-                    return false;
-
-                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
-                {
-                    var excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
-                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
-                    {
-                        isExcluded = true;
-                        break;
-                    }
-                }
-
-                if (!isExcluded)
-                {
-                    var asset = QualitySettings.GetRenderPipelineAssetAt(i) as T;
-                    if (asset != null)
-                        srpAssets.Add(asset);
-                    else
-                        allQualityLevelsAreOverriden = false;
-                }
-            }
-
-            if (!allQualityLevelsAreOverriden)
-            {
-                // We need to check the fallback cases
-                if (GraphicsSettings.defaultRenderPipeline is T srpAsset)
-                    srpAssets.Add(srpAsset);
-            }
-
-            return true;
-        }
-
         static void GetAllValidHDRPAssets(BuildTarget buildTarget)
         {
             s_PlayerNeedRaytracing = false;
@@ -680,7 +301,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
             //   AND at least one quality level does not have SRP override
             // Fetch all SRP overrides in all enabled quality levels for this platform
-            TryGetRenderPipelineAssetsForBuildTarget(buildTarget, _hdrpAssets);
+            buildTarget.TryGetRenderPipelineAssets<HDRenderPipelineAsset>(_hdrpAssets);
 
             // Get all enabled scenes path in the build settings.
             var scenesPaths = EditorBuildSettings.scenes
@@ -704,7 +325,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add the HDRP assets that are in the Resources folders.
-            _hdrpAssets.AddRange(Resources.LoadAll<HDRenderPipelineAsset>(""));
+            // Do not call this function below because it cause the issue https://fogbugz.unity3d.com/f/cases/1417508/
+            // Users will need to rely on label instead.
+            //_hdrpAssets.AddRange(Resources.LoadAll<HDRenderPipelineAsset>(""));
 
             // Add the HDRP assets that are labeled to be included
             _hdrpAssets.AddRange(
@@ -726,7 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (!Application.isBatchMode)
                 {
-                    if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
+                    if (!EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
                         throw new UnityEditor.Build.BuildFailedException("Build canceled");
                 }
                 else
@@ -743,7 +366,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         s_PlayerNeedRaytracing = true;
                 }
             }
-
 
             Debug.Log(string.Format("{0} HDRP assets included in build:{1}",
                 _hdrpAssets.Count,

@@ -3,6 +3,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Base of resources assets in SRP
     /// </summary>
+    [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/RenderPipelineResources Icon.asset")]
     public abstract class RenderPipelineResources : ScriptableObject
     {
         /// <summary>

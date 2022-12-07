@@ -10,38 +10,43 @@ namespace UnityEditor.Rendering.Universal
     {
         public partial class Output
         {
-            public static readonly CED.IDrawer Drawer = CED.Conditional(
-                (serialized, owner) => (CameraRenderType)serialized.cameraType.intValue == CameraRenderType.Base,
-                CED.FoldoutGroup(
-                    CameraUI.Output.Styles.header,
-                    Expandable.Output,
-                    k_ExpandedState,
-                    FoldoutOption.Indent,
-                    CED.Group(
-                        DrawerOutputTargetTexture
-                        ),
-                    CED.Conditional(
-                        (serialized, owner) => serialized.serializedObject.targetObject is Camera camera && camera.targetTexture == null,
+
+            public static readonly CED.IDrawer Drawer;
+            static Output()
+            {
+                Drawer = CED.Conditional(
+                    (serialized, owner) => (CameraRenderType)serialized.cameraType.intValue == CameraRenderType.Base,
+                    CED.FoldoutGroup(
+                        CameraUI.Output.Styles.header,
+                        Expandable.Output,
+                        k_ExpandedState,
+                        FoldoutOption.Indent,
                         CED.Group(
-                            DrawerOutputMultiDisplay
-                        )
-                        ),
+                            DrawerOutputTargetTexture
+                            ),
+                        CED.Conditional(
+                            (serialized, owner) => serialized.serializedObject.targetObject is Camera camera && camera.targetTexture == null,
+                            CED.Group(
+                                DrawerOutputMultiDisplay
+                            )
+                            ),
 #if ENABLE_VR && ENABLE_XR_MODULE
-                    CED.Group(DrawerOutputXRRendering),
+                        CED.Group(DrawerOutputXRRendering),
 #endif
-                    CED.Group(
-                        DrawerOutputNormalizedViewPort
-                        ),
-                    CED.Conditional(
-                        (serialized, owner) => serialized.serializedObject.targetObject is Camera camera && camera.targetTexture == null,
                         CED.Group(
-                            DrawerOutputHDR,
-                            DrawerOutputMSAA,
-                            DrawerOutputAllowDynamicResolution
+                            DrawerOutputNormalizedViewPort
+                            ),
+                        CED.Conditional(
+                            (serialized, owner) => serialized.serializedObject.targetObject is Camera camera && camera.targetTexture == null,
+                            CED.Group(
+                                DrawerOutputHDR,
+                                DrawerOutputMSAA,
+                                DrawerOutputAllowDynamicResolution
+                            )
                         )
                     )
-                )
-            );
+                );
+            }
 
             static void DrawerOutputMultiDisplay(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
@@ -79,7 +84,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 using (var checkScope = new EditorGUI.ChangeCheckScope())
                 {
-                    CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
+                    CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner, Styles.allowDynamicResolution);
                     if (checkScope.changed)
                     {
                         UpdateStackCamerasOutput(p, camera =>

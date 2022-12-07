@@ -1,7 +1,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
-#define FXAA_HDR_MAPUNMAP   0
+#define FXAA_HDR_MAPUNMAP   defined(FUTURE_HDR_OUTPUT)
 #define FXAA_SPAN_MAX       (8.0)
 #define FXAA_REDUCE_MUL     (1.0 / 8.0)
 #define FXAA_REDUCE_MIN     (1.0 / 128.0)

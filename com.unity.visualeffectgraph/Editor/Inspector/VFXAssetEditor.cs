@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
@@ -9,6 +10,7 @@ using UnityEngine.VFX;
 using UnityEditor.Callbacks;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
+using UnityEngine.Experimental.Rendering;
 
 using UnityObject = UnityEngine.Object;
 
@@ -117,13 +119,26 @@ class VisualEffectAssetEditor : Editor
         }
         else if (obj is VisualEffectAsset vfxAsset)
         {
-            VFXViewWindow.GetWindow(vfxAsset, true).LoadAsset(obj as VisualEffectAsset, null);
+            var window = VFXViewWindow.GetWindow(vfxAsset, false);
+            if (window == null)
+            {
+                window = VFXViewWindow.GetWindow(vfxAsset, true);
+            }
+
+            window.LoadAsset(vfxAsset, null);
+            window.Focus();
             return true;
         }
         else if (obj is VisualEffectSubgraph)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
-            VFXViewWindow.GetWindow(resource, true).LoadResource(resource, null);
+            var window = VFXViewWindow.GetWindow(resource, false);
+            if (window == null)
+            {
+                window = VFXViewWindow.GetWindow(resource, true);
+                window.LoadResource(resource, null);
+            }
+            window.Focus();
             return true;
         }
         else if (obj is Material || obj is ComputeShader)
@@ -153,6 +168,14 @@ class VisualEffectAssetEditor : Editor
         for (int i = 0; i < m_OutputContexts.Count(); ++i)
         {
             m_OutputContexts[i].vfxSystemSortPriority = i;
+        }
+
+        if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetInstanceID() != m_CurrentGraph.visualEffectResource.GetInstanceID() || !x.hasFocus))
+        {
+            using var reporter = new VFXCompileErrorReporter(new VFXErrorManager());
+            VFXGraph.compileReporter = reporter;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_CurrentGraph.visualEffectResource));
+            VFXGraph.compileReporter = null;
         }
     }
 
@@ -186,6 +209,15 @@ class VisualEffectAssetEditor : Editor
             m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
         }
 
+        if (s_PlayPauseIcons == null)
+        {
+            s_PlayPauseIcons = new[]
+            {
+                EditorGUIUtility.TrIconContent("PlayButton", "Animate preview"),
+                EditorGUIUtility.TrIconContent("PauseButton", "Pause preview animation"),
+            };
+        }
+
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
         m_ReorderableList.displayRemove = false;
         m_ReorderableList.displayAdd = false;
@@ -196,6 +228,8 @@ class VisualEffectAssetEditor : Editor
 
         if (m_VisualEffectGO == null)
         {
+            m_PreviewUtility?.Cleanup();
+
             m_PreviewUtility = new PreviewRenderUtility();
             m_PreviewUtility.camera.fieldOfView = 60.0f;
             m_PreviewUtility.camera.allowHDR = true;
@@ -211,6 +245,8 @@ class VisualEffectAssetEditor : Editor
 
             m_VisualEffectGO.hideFlags = HideFlags.DontSave;
             m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
+            m_VisualEffect.pause = true;
+            m_RemainingFramesToRender = 1;
             m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
 
             m_VisualEffectGO.transform.localPosition = Vector3.zero;
@@ -220,9 +256,8 @@ class VisualEffectAssetEditor : Editor
             m_VisualEffect.visualEffectAsset = target;
 
             m_CurrentBounds = new Bounds(Vector3.zero, Vector3.one);
-            m_FrameCount = 0;
-            m_Distance = 10;
-            m_Angles = Vector3.forward;
+            m_Distance = null;
+            m_Angles = Vector2.zero;
 
             if (s_CubeWireFrame == null)
             {
@@ -276,18 +311,25 @@ class VisualEffectAssetEditor : Editor
             prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
             prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
             initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
+            instancingModeProperty = resourceObject.FindProperty("m_Infos.m_InstancingMode");
+            instancingCapacityProperty = resourceObject.FindProperty("m_Infos.m_InstancingCapacity");
+        }
+        if (targets?.Length > 0)
+        {
+            targetObject = new SerializedObject(targets);
+            instancingDisabledReasonProperty = targetObject.FindProperty("m_Infos.m_InstancingDisabledReason");
         }
     }
+
 
     PreviewRenderUtility m_PreviewUtility;
 
     GameObject m_VisualEffectGO;
     VisualEffect m_VisualEffect;
-    Vector3 m_Angles;
-    float m_Distance;
+    Vector2 m_Angles;
+    float? m_Distance;
+    int m_RemainingFramesToRender;
     Bounds m_CurrentBounds;
-
-    int m_FrameCount = 0;
 
     const int kSafeFrame = 2;
 
@@ -296,28 +338,61 @@ class VisualEffectAssetEditor : Editor
         return !serializedObject.isEditingMultipleObjects;
     }
 
-    void ComputeFarNear()
+    void ComputeFarNear(float distance)
     {
         if (m_CurrentBounds.size != Vector3.zero)
         {
             float maxBounds = Mathf.Sqrt(m_CurrentBounds.size.x * m_CurrentBounds.size.x + m_CurrentBounds.size.y * m_CurrentBounds.size.y + m_CurrentBounds.size.z * m_CurrentBounds.size.z);
-            m_PreviewUtility.camera.farClipPlane = m_Distance + maxBounds * 1.1f;
-            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (m_Distance - maxBounds));
-            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (m_Distance - maxBounds));
+            m_PreviewUtility.camera.farClipPlane = distance + maxBounds * 1.1f;
+            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (distance - maxBounds));
+            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (distance - maxBounds));
         }
     }
+
+    public override void OnPreviewSettings()
+    {
+        EditorGUI.BeginChangeCheck();
+        int isAnimatedState = m_IsAnimated ? 1 : 0;
+        m_IsAnimated = PreviewGUI.CycleButton(isAnimatedState, s_PlayPauseIcons) == 1;
+        if (EditorGUI.EndChangeCheck())
+        {
+            m_VisualEffect.pause = !m_IsAnimated;
+
+            if (!m_IsAnimated)
+            {
+                StopRendering();
+            }
+        }
+
+        GUI.enabled = m_IsAnimated;
+        // Random id=10012 because when set to 0 the button get highlighted by default !?
+        if (EditorGUILayout.IconButton(10012, EditorGUIUtility.TrIconContent("Refresh", "Restart VFX"), EditorStyles.toolbarButton, null))
+        {
+            m_VisualEffect.Reinit();
+        }
+        GUI.enabled = true;
+    }
+
+    private static GUIContent[] s_PlayPauseIcons;
+    private bool m_IsAnimated;
+    private Rect m_LastArea;
 
     public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
     {
         if (m_VisualEffectGO == null)
             OnEnable();
 
-        bool isRepaint = (Event.current.type == EventType.Repaint);
+        bool isRepaint = Event.current.type == EventType.Repaint;
 
-        m_Angles = VFXPreviewGUI.Drag2D(m_Angles, r);
         Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
         if (renderer == null)
             return;
+
+        if (isRepaint && r != m_LastArea)
+            RequestSingleFrame();
+
+        if (VFXPreviewGUI.TryDrag2D(ref m_Angles, m_LastArea))
+            RequestSingleFrame();
 
         if (renderer.bounds.size != Vector3.zero)
         {
@@ -330,12 +405,14 @@ class VisualEffectAssetEditor : Editor
                 size.x = (m_CurrentBounds.size.y + m_CurrentBounds.size.z) * 0.1f;
                 m_CurrentBounds.size = size;
             }
+
             if (m_CurrentBounds.size.y == 0)
             {
                 Vector3 size = m_CurrentBounds.size;
                 size.y = (m_CurrentBounds.size.x + m_CurrentBounds.size.z) * 0.1f;
                 m_CurrentBounds.size = size;
             }
+
             if (m_CurrentBounds.size.z == 0)
             {
                 Vector3 size = m_CurrentBounds.size;
@@ -344,39 +421,72 @@ class VisualEffectAssetEditor : Editor
             }
         }
 
-        if (m_FrameCount == kSafeFrame) // wait to frame before asking the renderer bounds as it is a computed value.
+        if (!m_Distance.HasValue && m_RemainingFramesToRender == 1)
         {
-            float maxBounds = Mathf.Sqrt(m_CurrentBounds.size.x * m_CurrentBounds.size.x + m_CurrentBounds.size.y * m_CurrentBounds.size.y + m_CurrentBounds.size.z * m_CurrentBounds.size.z);
+            float maxBounds = Mathf.Sqrt(m_CurrentBounds.size.x * m_CurrentBounds.size.x +
+                                         m_CurrentBounds.size.y * m_CurrentBounds.size.y +
+                                         m_CurrentBounds.size.z * m_CurrentBounds.size.z);
             m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
-            ComputeFarNear();
+            ComputeFarNear(0f);
         }
         else
         {
-            ComputeFarNear();
+            ComputeFarNear(m_Distance.GetValueOrDefault(0f));
         }
-        m_FrameCount++;
+
         if (Event.current.isScrollWheel)
         {
-            m_Distance *= 1 + (Event.current.delta.y * .015f);
+            m_Distance *= 1 + Event.current.delta.y * .015f;
+            RequestSingleFrame();
         }
 
         if (m_Mat == null)
             m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
 
-        if (isRepaint)
+        if (!isRepaint)
         {
-            m_PreviewUtility.BeginPreview(r, background);
+            if (m_RemainingFramesToRender > 0)
+                Repaint();
+            return;
+        }
+
+        if (r.width > 50 && r.height > 50)
+            m_LastArea = r;
+
+        bool needsRender = m_IsAnimated || m_RemainingFramesToRender > 0;
+
+        if (needsRender)
+        {
+            m_RemainingFramesToRender--;
+            m_PreviewUtility.BeginPreview(m_LastArea, background);
 
             Quaternion rot = Quaternion.Euler(0, m_Angles.x, 0) * Quaternion.Euler(m_Angles.y, 0, 0);
-            m_PreviewUtility.camera.transform.position = m_CurrentBounds.center + rot * new Vector3(0, 0, -m_Distance);
+            m_PreviewUtility.camera.transform.position = m_CurrentBounds.center + rot * new Vector3(0, 0, -m_Distance.GetValueOrDefault(0));
             m_PreviewUtility.camera.transform.localRotation = rot;
-            m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(m_CurrentBounds.center, Quaternion.identity, m_CurrentBounds.size), m_Mat, 0);
+            if (m_Distance.HasValue)
+                m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(m_CurrentBounds.center, Quaternion.identity, m_CurrentBounds.size), m_Mat, 0);
             m_PreviewUtility.Render(true);
-            m_PreviewUtility.EndAndDrawPreview(r);
-
-            // Ask for repaint so the effect is animated.
-            Repaint();
+            m_PreviewUtility.EndAndDrawPreview(m_LastArea);
         }
+
+        if (!m_IsAnimated && m_RemainingFramesToRender == 0)
+            StopRendering();
+
+        if (m_IsAnimated)
+            Repaint();
+        else
+            EditorGUI.DrawPreviewTexture(m_LastArea, m_PreviewUtility.renderTexture);
+    }
+
+    void RequestSingleFrame()
+    {
+        if (m_RemainingFramesToRender < 0)
+            m_RemainingFramesToRender = 1;
+    }
+
+    void StopRendering()
+    {
+        m_RemainingFramesToRender = -1;
     }
 
     Material m_Mat;
@@ -406,10 +516,9 @@ class VisualEffectAssetEditor : Editor
         VFXCullingFlags.CullNone,
     };
 
-    private string UpdateModeToString(VFXUpdateMode mode)
-    {
-        return ObjectNames.NicifyVariableName(mode.ToString());
-    }
+    private static readonly GUIContent k_InstancingContent = EditorGUIUtility.TrTextContent("Instancing");
+    private static readonly GUIContent k_InstancingModeContent = EditorGUIUtility.TrTextContent("Instancing Mode", "Selects how the visual effect will be handled regarding instancing.");
+    private static readonly GUIContent k_InstancingCapacityContent = EditorGUIUtility.TrTextContent("Max Batch Capacity", "Max number of instances that can be grouped together in a single batch.");
 
     SerializedObject resourceObject;
     SerializedProperty resourceUpdateModeProperty;
@@ -418,6 +527,10 @@ class VisualEffectAssetEditor : Editor
     SerializedProperty prewarmDeltaTime;
     SerializedProperty prewarmStepCount;
     SerializedProperty initialEventName;
+    SerializedProperty instancingModeProperty;
+    SerializedProperty instancingCapacityProperty;
+    SerializedObject targetObject;
+    SerializedProperty instancingDisabledReasonProperty;
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
 
@@ -624,7 +737,11 @@ class VisualEffectAssetEditor : Editor
         //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
 
         bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
-            .OfType<VFXBasicInitialize>().Any(d => (d.GetData() as VFXDataParticle).boundsMode == BoundsSettingMode.Automatic);
+            .OfType<VFXBasicInitialize>()
+            .Select(x => x.GetData())
+            .OfType<VFXDataParticle>()
+            .Any(x => x.boundsMode == BoundsSettingMode.Automatic);
+
         using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
         {
             EditorGUILayout.BeginHorizontal();
@@ -647,6 +764,8 @@ class VisualEffectAssetEditor : Editor
         }
 
         EditorGUILayout.EndHorizontal();
+
+        DrawInstancingGUI();
 
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
         if (prewarmDeltaTime != null && prewarmStepCount != null)
@@ -756,13 +875,74 @@ class VisualEffectAssetEditor : Editor
         }
         GUI.enabled = false;
     }
+
+    private void DrawInstancingGUI()
+    {
+        VisualEffectEditor.ShowHeader(k_InstancingContent, false, false);
+
+        EditorGUI.BeginChangeCheck();
+
+        VFXInstancingDisabledReason disabledReason = (VFXInstancingDisabledReason)instancingDisabledReasonProperty.intValue;
+        bool forceDisabled = disabledReason != VFXInstancingDisabledReason.None;
+        if (forceDisabled)
+        {
+            System.Text.StringBuilder reasonString = new System.Text.StringBuilder("Instancing not available:");
+            GetInstancingDisabledReasons(reasonString, disabledReason);
+            EditorGUILayout.HelpBox(reasonString.ToString(), MessageType.Info);
+        }
+
+        VFXInstancingMode instancingMode = forceDisabled ? VFXInstancingMode.Disabled : (VFXInstancingMode)instancingModeProperty.intValue;
+        EditorGUI.BeginDisabled(forceDisabled);
+        instancingMode = (VFXInstancingMode)EditorGUILayout.EnumPopup(k_InstancingModeContent, instancingMode);
+        EditorGUI.EndDisabled();
+
+        int instancingCapacity = instancingCapacityProperty.intValue;
+        if (instancingMode == VFXInstancingMode.Custom)
+        {
+            instancingCapacity = EditorGUILayout.DelayedIntField(k_InstancingCapacityContent, instancingCapacity);
+        }
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            instancingModeProperty.intValue = (int)instancingMode;
+            instancingCapacityProperty.intValue = System.Math.Max(instancingCapacity, 1);
+            resourceObject.ApplyModifiedProperties();
+        }
+    }
+
+    void GetInstancingDisabledReasons(System.Text.StringBuilder reasonString, VFXInstancingDisabledReason disabledReasonMask)
+    {
+        if (disabledReasonMask == VFXInstancingDisabledReason.Unknown)
+        {
+            GetInstancingDisabledReason(reasonString, VFXInstancingDisabledReason.Unknown);
+        }
+        else
+        {
+            Enum.GetValues(typeof(VFXInstancingDisabledReason))
+                .Cast<VFXInstancingDisabledReason>()
+                .Where(x => x != VFXInstancingDisabledReason.None && disabledReasonMask.HasFlag(x))
+                .ToList()
+                .ForEach(x => GetInstancingDisabledReason(reasonString, x));
+        }
+    }
+
+    void GetInstancingDisabledReason(System.Text.StringBuilder reasonString, VFXInstancingDisabledReason disabledReasonFlag)
+    {
+        reasonString.AppendLine();
+        reasonString.Append("- ");
+
+        Type type = disabledReasonFlag.GetType();
+        var memberInfo = type.GetMember(type.GetEnumName(disabledReasonFlag));
+        var descriptionAttribute = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false).FirstOrDefault() as DescriptionAttribute;
+        reasonString.Append(descriptionAttribute?.Description ?? disabledReasonFlag.ToString());
+    }
 }
 
 
 static class VFXPreviewGUI
 {
     static int sliderHash = "Slider".GetHashCode();
-    public static Vector2 Drag2D(Vector2 scrollPosition, Rect position)
+    public static bool TryDrag2D(ref Vector2 scrollPosition, Rect position)
     {
         int id = GUIUtility.GetControlID(sliderHash, FocusType.Passive);
         Event evt = Event.current;
@@ -775,7 +955,7 @@ static class VFXPreviewGUI
                     evt.Use();
                     EditorGUIUtility.SetWantsMouseJumping(1);
                 }
-                break;
+                return false;
             case EventType.MouseDrag:
                 if (GUIUtility.hotControl == id)
                 {
@@ -784,13 +964,14 @@ static class VFXPreviewGUI
                     evt.Use();
                     GUI.changed = true;
                 }
-                break;
+                return true;
             case EventType.MouseUp:
                 if (GUIUtility.hotControl == id)
                     GUIUtility.hotControl = 0;
                 EditorGUIUtility.SetWantsMouseJumping(0);
-                break;
+                return false;
         }
-        return scrollPosition;
+
+        return false;
     }
 }

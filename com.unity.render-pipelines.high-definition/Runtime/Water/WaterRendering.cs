@@ -5,8 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the water surface.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/WaterRendering", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Water-Rendering")]
+    [Serializable, VolumeComponentMenu("Lighting/Water Rendering")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Water-Rendering")]
     public sealed partial class WaterRendering : VolumeComponent
     {
         /// <summary>
@@ -44,26 +45,38 @@ namespace UnityEngine.Rendering.HighDefinition
         /// When enabled, the water surfaces are rendered.
         /// </summary>
         [Tooltip("When enabled, the water surfaces are rendered.")]
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// Sets the size of the water grids in meters.
         /// </summary>
-        [Tooltip("Sets the size of the water grids in meters.")]
-        public MinFloatParameter gridSize = new MinFloatParameter(1000.0f, 100.0f);
+        [Tooltip("Sets the size of the minimum water grids in meters.")]
+        public MinFloatParameter minGridSize = new MinFloatParameter(75.0f, 25.0f);
+
+        /// <summary>
+        /// Sets the size of the water grids in meters.
+        /// </summary>
+        [Tooltip("Sets the size of the maximum water grids in meters.")]
+        public MinFloatParameter maxGridSize = new MinFloatParameter(2500.0f, 250.0f);
+
+        /// <summary>
+        /// Sets the elevation at which the max grid size is reached.
+        /// </summary>
+        [Tooltip("Sets the elevation at which the max grid size is reached.")]
+        public MinFloatParameter elevationTransition = new MinFloatParameter(1000.0f, 20.0f);
 
         /// <summary>
         /// Controls the number of LOD patches that are rendered.
         /// </summary>
         [Tooltip("Controls the number of LOD patches that are rendered.")]
-        public ClampedIntParameter numLevelOfDetails = new ClampedIntParameter(2, 1, 3);
+        public ClampedIntParameter numLevelOfDetails = new ClampedIntParameter(3, 1, 4);
 
         /// <summary>
         /// Sets the maximum tessellation factor for the water surface.
         /// </summary>
         [Tooltip("Sets the maximum tessellation factor for the water surface.")]
         [AdditionalProperty]
-        public ClampedFloatParameter maxTessellationFactor = new ClampedFloatParameter(10.0f, 0.0f, 15.0f);
+        public ClampedFloatParameter maxTessellationFactor = new ClampedFloatParameter(3.0f, 0.0f, 10.0f);
 
         /// <summary>
         /// Sets the distance at which the tessellation factor start to lower.
@@ -83,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the influence of the ambient light probe on the water surfaces.
         /// </summary>
         [Tooltip("Controls the influence of the ambient light probe on the water surfaces.")]
-        public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         WaterRendering()
         {

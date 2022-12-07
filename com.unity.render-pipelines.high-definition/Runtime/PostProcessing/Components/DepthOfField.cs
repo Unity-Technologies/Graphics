@@ -68,8 +68,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Depth Of Field", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Depth-of-Field")]
+    [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Post-Processing-Depth-of-Field")]
     public sealed class DepthOfField : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
@@ -319,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
 
         [AdditionalProperty]
-        [Tooltip("When enabled, HDRP uses bicubic filtering instead of bilinear filtering for the depth of field effect.")]
+        [Tooltip("When enabled, HDRP uses bicubic instead of bilinear filtering for the depth of field effect. Also conceals tiling artifacts in the physically-based mode.")]
         [SerializeField, FormerlySerializedAs("highQualityFiltering")]
         BoolParameter m_HighQualityFiltering = new BoolParameter(true);
 

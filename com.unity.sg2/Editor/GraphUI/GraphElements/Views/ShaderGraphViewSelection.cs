@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEngine.UIElements;
 
@@ -14,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public ShaderGraphViewSelection(GraphView view, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState)
             : base(view, graphModelState, selectionState) { }
 
-        ShaderGraphModel shaderGraphModel => m_GraphModelState.GraphModel as ShaderGraphModel;
+        SGGraphModel graphModel => m_GraphModelState.GraphModel as SGGraphModel;
 
         /// <summary>
         /// Adds items related to the selection to the contextual menu.
@@ -71,14 +72,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // This calls CopySelection()
         protected override void CutSelection()
         {
-            shaderGraphModel.isCutOperation = true;
+            graphModel.isCutOperation = true;
             base.CutSelection();
         }
 
-        void AddInputEdgesToSelection()
+        List<GraphElementModel> AddInputEdgesToSelection()
         {
             using (var updater = m_SelectionState.UpdateScope)
             {
+                var selectedInputEdges = new List<GraphElementModel>();
                 var selection = GetSelection();
                 for(var index = 0; index < selection.Count; index++)
                 {
@@ -89,19 +91,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         foreach(var edge in edges)
                         {
                             // Skip output edges
-                            if(edge.FromPort.NodeModel == nodeModel)
-                                continue;
-                            updater.SelectElement(edge, true);
+                            if(edge.FromPort.NodeModel != nodeModel)
+                                selectedInputEdges.Add(edge);
                         }
                     }
                 }
+                return selectedInputEdges;
             }
         }
 
-        protected override void CopySelection()
+        protected override IEnumerable<GraphElementModel> CopySelection()
         {
-            AddInputEdgesToSelection();
-            base.CopySelection();
+            var copySelection = base.CopySelection().ToList();
+            copySelection.AddRange(AddInputEdgesToSelection());
+            return copySelection;
         }
 
         protected override void DuplicateSelection()
@@ -113,7 +116,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void Paste()
         {
             base.Paste();
-            shaderGraphModel.isCutOperation = false;
+            graphModel.isCutOperation = false;
         }
     }
 }

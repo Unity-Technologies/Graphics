@@ -21,13 +21,13 @@ The Calculate Level of Detail Texture 2D node is under the **Input** &gt; **Text
 
 ## Compatibility
 
-[!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
+The Calculate Level of Detail Texture 2D [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
 
-[!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
+The Calculate Level of Detail Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
 
 ## Inputs
 
-[!include[nodes-inputs](./snippets/nodes-inputs.md)]
+The Calculate Level of Detail Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
 | **Name**     | **Type**      | **Binding** | **Description**  |
 | :---         | :------       |  :------    |   :----------    |
@@ -37,7 +37,7 @@ The Calculate Level of Detail Texture 2D node is under the **Input** &gt; **Text
 
 ## Controls
 
-[!include[nodes-single-control](./snippets/nodes-single-control.md)]
+The Calculate Level of Detail Texture 2D [!include[nodes-single-control](./snippets/nodes-single-control.md)]
 
 | **Name**     | **Type** | **Options** | **Description**  |
 | :---         | :---     | :------     |  :----------     |
@@ -46,7 +46,7 @@ The Calculate Level of Detail Texture 2D node is under the **Input** &gt; **Text
 
 ## Outputs
 
-[!include[nodes-single-output](./snippets/nodes-single-output.md)] <!-- SINGLE OUTPUT PORT INCLUDE -->
+The Calculate Level of Detail Texture 2D [!include[nodes-single-output](./snippets/nodes-single-output.md)] <!-- SINGLE OUTPUT PORT INCLUDE -->
 
 | **Name** | **Type** | **Description** |
 | :------  | :------- | :-------------  |
@@ -56,14 +56,14 @@ The Calculate Level of Detail Texture 2D node is under the **Input** &gt; **Text
 
 In the following example, a Calculate Level of Detail Texture 2D node calculates the mip level of the **Leaves_Albedo** Texture for a set of UV coordinates and a specific Sampler State. It sends the calculated mip level for the Texture to the **LOD** input port on a Sample Texture 2D LOD node, which samples the same Texture:
 
-![An image of the Graph window, that shows a Texture 2D asset node connected to a Calculate Level of Detail Texture 2D node. The node sends the calculated mip level as an input to the LOD input port on a Sample Texture 2D LOD node.](images/sg-calculate-level-detail-Texture-2d-node-example.png)
+![An image of the Graph window, that displays a Texture 2D asset node connected to a Calculate Level of Detail Texture 2D node. The node sends the calculated mip level as an input to the LOD input port on a Sample Texture 2D LOD node.](images/sg-calculate-level-detail-Texture-2d-node-example.png)
 
 
 ## Related nodes
 
 <!-- OPTIONAL. Any nodes that may be related to this node in some way that's worth mentioning -->
 
-[!include[nodes-related](./snippets/nodes-related.md)]
+[!include[nodes-related](./snippets/nodes-related.md)] Calculate Level of Detail Texture 2D node:
 
 - [Sample Texture 2D LOD node](Sample-Texture-2D-LOD-Node.md)
 - [Sampler State node](Sampler-State-Node.md)

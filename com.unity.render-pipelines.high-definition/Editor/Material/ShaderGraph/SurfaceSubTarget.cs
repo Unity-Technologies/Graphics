@@ -50,6 +50,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+
+            if (TargetsVFX())
+            {
+                string inspector;
+                if (supportLighting)
+                    inspector = typeof(VFXShaderGraphGUILit).FullName;
+                else
+                    inspector = typeof(VFXShaderGraphGUIUnlit).FullName;
+                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
+            }
+
             base.Setup(ref context);
         }
 
@@ -57,11 +68,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             yield return PostProcessSubShader(GetSubShaderDescriptor());
 
-            // Always omit DXR SubShader for VFX until DXR support is added.
-            if (!TargetsVFX())
+
+            if (supportRaytracing || supportPathtracing)
+                yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
+
+        }
+
+        protected override IEnumerable<KernelDescriptor> EnumerateKernels()
+        {
+            if (target.supportLineRendering)
             {
-                if (supportRaytracing || supportPathtracing)
-                    yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
+                yield return PostProcessKernel(HDShaderKernels.LineRenderingVertexSetup(supportLighting));
+
+                // TODO: We need to do a bit more work to get offscreen shading in compute working.
+                // We do it in a shader pass for now in HairPasses.OffscreenShading.
+                // yield return PostProcessKernel(HDShaderKernels.GenerateOffscreenShading());
             }
         }
 
@@ -101,11 +122,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (supportForward)
                 {
                     passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
-                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
+                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation, systemData.debugSymbols));
                 }
 
                 if (supportDistortion)
                     passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentDistortion, true));
+
+                if (target.supportLineRendering)
+                    passes.Add(HDShaderPasses.LineRenderingOffscreenShadingPass(supportLighting));
 
                 passes.Add(HDShaderPasses.GenerateFullScreenDebug(TargetsVFX(), systemData.tessellation));
 
@@ -119,7 +143,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 generatesPreview = false,
                 passes = GetPasses(),
-                usePassList = new List<string>() { "HDRP/RayTracingDebug/DebugDXR" }
             };
 
             PassCollection GetPasses()
@@ -133,6 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passes.Add(HDShaderPasses.GenerateRaytracingVisibility(supportLighting));
                     passes.Add(HDShaderPasses.GenerateRaytracingForward(supportLighting));
                     passes.Add(HDShaderPasses.GenerateRaytracingGBuffer(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateRaytracingDebug());
                 }
                 ;
 
@@ -237,6 +261,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             context.AddField(HDFields.TessellationFactor, systemData.tessellation);
             context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);
+            context.AddField(HDFields.LineWidth, target.supportLineRendering);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -278,6 +303,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
             context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
+
+            context.AddBlock(HDBlockFields.SurfaceDescription.LineWidth, target.supportLineRendering);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)

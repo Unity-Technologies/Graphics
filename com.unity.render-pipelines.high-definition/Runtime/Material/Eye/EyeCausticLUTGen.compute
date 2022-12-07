@@ -1,0 +1,532 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel SampleCaustic
+#pragma kernel CopyToLUT
+#pragma kernel ClearBuffer
+
+#define INV2PI 1.570796
+#define INV4PI 0.785398
+#define T_RAY_MISSED 1e9f
+#define CORNEA_RADIUS 1
+
+#define CORNEA_FLATTENING _CorneaFlatteningFactor
+#define LIGHT_LUMINOUS_FLUX _LightLuminousFlux
+#define DISTANCE_EPSILON 1e-3
+#define CORNEA_IOR 1.376f
+
+int _OutputWidth;
+int _OutputHeight;
+int _OutputDepth;
+int _OutputSlice;
+int _UseCorneaSymmetryMirroring;
+float _ExtraScleraMargin;
+
+float _LightWidth;
+float _LightHeight;
+float _LightDistance;
+float _LightLuminousFlux;
+float _LightGrazingAngleCos;
+
+int _CorneaApproxPrimitive;
+float _CorneaFlatteningFactor;
+float _CorneaPowerFactor;
+
+//4 uncorrelating random numbers,[0, 1]
+StructuredBuffer<float4> _RandomNumbers;
+int _RandCount;
+int _NumberOfSamplesAccumulated;
+
+SAMPLER (s_linear_clamp_sampler);
+
+RWByteAddressBuffer _GeneratedSamplesBuffer;
+
+RW_TEXTURE3D(float, _OutputLutTex);
+RW_TEXTURE2D(float, _CopyOutputPreviewTex);
+
+//from: https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
+float fresnelDiel(float eta, float cosTheta)
+{
+    float c = saturate(cosTheta);
+    float temp = eta * eta + c * c - 1.f;
+
+    if (temp < 0.f)
+        return 1.f;
+    else
+    {
+        float g = sqrt(temp);
+        return 0.5f * pow((g - c) / max(g + c, 0.00001f), 2) *
+            (1 + pow(((g + c) * c - 1.f) / ((g - c) * c + 1.f), 2));
+    }
+}
+
+float ApplyExtraMargin(float u)
+{
+    u *= 1.f - _ExtraScleraMargin;
+    u += _ExtraScleraMargin;
+    return u;
+}
+
+float RemoveExtraMargin(float u)
+{
+    u -= _ExtraScleraMargin;
+    u /= 1.f - _ExtraScleraMargin;
+    return u;
+}
+
+float CalculateLightAngleCos()
+{
+    float lightPositionSlice = float(_OutputSlice) / (_OutputDepth - 1);
+    float from = 1.f;
+    float to = _LightGrazingAngleCos;
+    float lightAngleCos = lerp(from, to, lightPositionSlice);
+    return lightAngleCos;
+}
+
+float3 CalculateLightCenterDir(float lightAngleCos)
+{
+    float lightAngleSin = sqrt(1.f - lightAngleCos * lightAngleCos);
+
+    float3 lightCenterDir = float3(0.0f, lightAngleCos, -lightAngleSin);
+    return lightCenterDir;
+}
+
+
+void CalculateLightCornerPoints(float lightAngleCos, out float3 leftBot, out float3 rightBot, out float3 leftTop, out float3 rightTop)
+{
+    float lightHalfWidth = _LightWidth * 0.5f;
+    float lightHalfHeight = _LightHeight * 0.5f;
+    float lightDistance = _LightDistance;
+
+    float3 lightCenterDir = CalculateLightCenterDir(lightAngleCos);
+
+    float3 axisX = float3(1.f, 0.0f, 0.0f);
+    float3 axisZ = lightCenterDir;
+    float3 axisY = cross(axisX, axisZ);
+
+    float3 lightCenter = axisZ * lightDistance;
+
+    leftBot = lightCenter - lightHalfWidth * axisX - lightHalfHeight * axisY;
+    rightBot = lightCenter + lightHalfWidth * axisX - lightHalfHeight * axisY;
+    leftTop = lightCenter - lightHalfWidth * axisX + lightHalfHeight * axisY;
+    rightTop = lightCenter + lightHalfWidth * axisX + lightHalfHeight * axisY;
+
+}
+
+void SamplePointOnLight(float2 rand, out float3 pointOnLight)
+{
+    float3 lb;
+    float3 rb;
+    float3 lt;
+    float3 rt;
+
+    float lightAngleCos = CalculateLightAngleCos();
+    CalculateLightCornerPoints(lightAngleCos, lb, rb, lt, rt);
+    pointOnLight = lerp(lerp(lb, rb, rand.x), lerp(lt, rt, rand.x), rand.y);
+}
+
+
+void SamplePointOnCornea(float2 rand, out float3 pointOnCornea)
+{
+    float y = rand.x;
+    float r = sqrt(max(0, 1.f - y * y));
+    float phi = 2 * PI * rand.y;
+
+    pointOnCornea = float3(r * cos(phi), y, r * sin(phi)) * CORNEA_RADIUS;
+    pointOnCornea.y *= CORNEA_FLATTENING;
+}
+
+
+void GenerateRayFromLightToCornea(float4 rand, out float3 pos, out float3 dir)
+{
+    float3 pointOnLight;
+    float3 pointOnCornea;
+
+    SamplePointOnLight(rand.xy, pointOnLight);
+    SamplePointOnCornea(rand.zw, pointOnCornea);
+    float3 lightToCornea = pointOnCornea - pointOnLight;
+    float3 rayDir = normalize(lightToCornea);
+
+    pos = pointOnLight;
+    dir = rayDir;
+}
+
+float RaySphereIntersect(float3 sphereC, float sphereRad, float3 pos, float3 dir)
+{
+    // geometric solution
+    float3 postoSphere = sphereC - pos;
+    float d = dot(dir, postoSphere);
+
+    float d2 = dot(postoSphere, postoSphere) - d * d;
+    if (d2 > sphereRad * sphereRad)
+        return T_RAY_MISSED;
+    else
+    {
+
+        float s = sqrt(sphereRad * sphereRad - d2);
+        float t1 = d - s;
+        float t2 = d + s;
+
+        float t = T_RAY_MISSED;
+
+        if (t1 >= 0)
+        {
+            t = t1;
+        }
+
+        if (t2 >= 0 && t2 < t)
+        {
+            t = t2;
+        }
+
+        return t;
+    }
+}
+
+float EvaluateCorneaHeightField(float2 xy)
+{
+    if (_CorneaApproxPrimitive == 0)
+    {
+        //sine approx
+        float r = saturate(length(xy) / CORNEA_RADIUS);
+        return PositivePow(sin(r * PI * 0.5f + PI * 0.5f), _CorneaPowerFactor) * CORNEA_RADIUS * CORNEA_FLATTENING;
+    }
+    else
+    {
+        //sphere
+        float r = length(xy) / CORNEA_RADIUS;
+        return r > 1.f ? 0.f : pow(sqrt(1 - r * r), _CorneaPowerFactor) * CORNEA_RADIUS * CORNEA_FLATTENING;
+    }
+}
+
+
+float3 GetCorneaNormal(float3 pos)
+{
+    //return normalize(pos);
+    float2 xy = pos.xz;
+
+    //normal from central finite differences
+    const float epsilon = 0.0001f;
+    float x0 = EvaluateCorneaHeightField(xy + float2(-epsilon, 0.f));
+    float x1 = EvaluateCorneaHeightField(xy + float2(epsilon, 0.f));
+
+    float y0 = EvaluateCorneaHeightField(xy + float2(0.f, -epsilon));
+    float y1 = EvaluateCorneaHeightField(xy + float2(0.f, epsilon));
+
+    float3 l = float3(xy.x - epsilon, x0, xy.y);
+    float3 r = float3(xy.x + epsilon, x1, xy.y);
+
+    float3 b = float3(xy.x, y0, xy.y - epsilon);
+    float3 t = float3(xy.x, y1, xy.y + epsilon);
+
+    return normalize(cross(r - l, b - t));
+}
+
+float RayIntersectCornea(float3 pos, float3 dir)
+{
+    float sphereT = RaySphereIntersect(float3(0.0f, 0.0f, 0.0f), CORNEA_RADIUS, pos, dir);
+
+    if (sphereT == T_RAY_MISSED)
+    {
+        return T_RAY_MISSED;
+    }
+    else
+    {
+
+        if ((pos + dir * sphereT).y < 0)
+        {
+            return T_RAY_MISSED;
+        }
+        else
+        {
+            //walk heightfield (simple function for now) and check for interaction
+            float rayStep = DISTANCE_EPSILON;
+            float distanceEpsilon = DISTANCE_EPSILON;
+            float t = sphereT;
+            while (true)
+            {
+                float3 currentPos = pos + t * dir;
+
+                if (currentPos.y < 0)
+                    break;
+
+                float height = EvaluateCorneaHeightField(currentPos.xz);
+                if (abs(height - currentPos.y) < distanceEpsilon)
+                {
+                    //TODO: do more accurate hit pos between this and previous pos. For now just return this
+                    return t;
+                }
+
+                t += rayStep;
+
+                if (dot(currentPos, currentPos) > CORNEA_RADIUS * CORNEA_RADIUS)
+                {
+                    break;
+                }
+            }
+
+            return T_RAY_MISSED;
+        }
+    }
+}
+
+bool EvaluateAndSampleRayCorneaIntersection(float rand, float3 rayPos, float3 rayDir, bool insideCornea, out float3 newDir,
+                                            out float weight)
+{
+    float corneaIOR = CORNEA_IOR;
+
+    bool isInsideCornea = insideCornea;
+
+    float3 corneaNormal = GetCorneaNormal(rayPos);
+    //make sure the normal points towards the ray
+    if (dot(rayDir, corneaNormal) > 0)
+    {
+        corneaNormal = -corneaNormal;
+    }
+
+    float cosTheta = dot(corneaNormal, -rayDir);
+    float eta = isInsideCornea ? 1.f / corneaIOR : corneaIOR;
+
+    float f = fresnelDiel(eta, cosTheta);
+
+    float w = saturate(dot(-rayDir, corneaNormal));
+
+    //cornea is assumed to be completely smooth so ignoring shadowing/masking and NDF, leaving only fresnel, jacobian and normalization (GGX)
+    if (f < rand)
+    {
+        newDir = refract(rayDir, corneaNormal, 1.f / eta);
+
+        float3 hVec = normalize(-rayDir + newDir * eta);
+        if (eta > 1.f)
+        {
+            hVec *= -1.f;
+        }
+
+        float OdotH = saturate(dot(-rayDir, hVec));
+        float IdotH = abs(dot(newDir, hVec));
+        float denom = OdotH + eta * IdotH;
+        denom *= denom;
+        float j = eta * eta * IdotH / max(denom, 1e-6f);
+
+        w *= OdotH * j / max(abs(dot(newDir, corneaNormal) * dot(corneaNormal, -rayDir)), 1e-4f);
+
+        isInsideCornea = !isInsideCornea;
+    }
+    else
+    {
+        newDir = reflect(rayDir, corneaNormal);
+        w *= 1.f / max(4.f * dot(newDir, corneaNormal) * dot(corneaNormal, -rayDir), 1e-4f);
+    }
+
+    weight = w;
+    return isInsideCornea;
+}
+
+float RayIntersectIris(float3 pos, float3 dir)
+{
+    const float3 irisNormal = float3(0.0f, 1.f, 0.0);
+
+    //ray-plane
+    float d = dot(-irisNormal, dir);
+
+    float res = T_RAY_MISSED;
+    if (d > 1e-6)
+    {
+        float t = dot(pos, irisNormal) / d;
+        if (t >= 0)
+        {
+
+            res = t;
+        }
+    }
+
+    return res;
+}
+
+float EvaluateIrisIntersection(float3 rayDir)
+{
+    const float3 irisNormal = float3(0.0f, 1.f, 0.0);
+    return saturate(dot(-rayDir, irisNormal));
+}
+
+
+bool EvaluateSample(int randInd, out float weight, out float2 locationXZ)
+{
+    float3 rayPos;
+    float3 rayDir;
+
+    float4 rand = _RandomNumbers[randInd];
+
+    GenerateRayFromLightToCornea(rand, rayPos, rayDir);
+
+    bool rayHit = true;
+    bool isInsideCornea = false;
+    float w = 1.f;
+
+    int randOffset = 1;
+
+    for (uint i = 0; i < 8; ++i)
+    {
+        float t = RayIntersectCornea(rayPos, rayDir);
+
+        bool irisHit = false;
+
+        if (isInsideCornea)
+        {
+            float tIris = RayIntersectIris(rayPos, rayDir);
+            if (tIris != T_RAY_MISSED && tIris < t)
+            {
+                //iris hit
+                t = tIris;
+                irisHit = true;
+            }
+        }
+
+        if (t == T_RAY_MISSED)
+        {
+            //ray escaped, we're done
+            w = 0.f;
+            rayHit = false;
+            break;
+        }
+
+        rayPos = rayPos + rayDir * t;
+
+        if (!irisHit)
+        {
+            float3 newDir;
+            float weight;
+
+            float rand2 = _RandomNumbers[randInd + randOffset++].x;
+
+            isInsideCornea = EvaluateAndSampleRayCorneaIntersection(rand2, rayPos, rayDir, isInsideCornea, newDir, weight);
+
+            w *= weight;
+            rayDir = newDir;
+
+            rayPos += newDir * 1e-9;
+        }
+        else
+        {
+            w *= EvaluateIrisIntersection(rayDir);
+        }
+
+
+        if (irisHit || w < 1e-9f)
+        {
+            break;
+        }
+    }
+
+    weight = saturate(w);
+    locationXZ = rayPos.xz;
+
+    return rayHit;
+}
+
+float RefractLightAngle(float lightAngleCos, float3 normal)
+{
+    float lightAngleSin = sqrt(1.f - lightAngleCos * lightAngleCos);
+    float3 lightCenterDir = float3(0.0f, lightAngleCos, -lightAngleSin);
+
+    float3 refractL = -refract(-lightCenterDir, normal, 1.0 / CORNEA_IOR);
+
+    return dot(float3(0.0f, 1.f, 0.0f), refractL);
+}
+
+
+int SampleTexelLocationToByteAddressBufferLocation(int2 texelLocation)
+{
+    return (texelLocation.x + texelLocation.y * _OutputWidth) * 4;
+}
+
+float CalculateFinalLUTValue(float samplesSum)
+{
+    float samplesAccumulatedInv = 1.f / float(_NumberOfSamplesAccumulated);
+    if(_UseCorneaSymmetryMirroring)
+    {
+        samplesAccumulatedInv *= 0.5f;
+    }
+
+    //we just divide the light flux to sample count amount of particles which we assume to be emitted to all directions uniformly, so just need to account for actually always sampling directions towards the light, ie. solid angle projected by light (approximate).
+    //In reality we should be calculating the solid angle of the cornea projected on light but we are doing it other way around (light projected on hemisphere aligned to cornea facing towards the light).
+    //we don' care that this is not accurate, since the LUT is just used as a heuristic multiplier to get the caustic shape (the intensity is somewhat arbitrary and is tuned by parameters when applying the LUT values)
+    float area = _LightWidth * _LightHeight;
+    //we assume that the hemisphere we are calculating the solid angle against is always aligned to face the light
+    float dotAbsCL = 1.f;
+    float solidAngle = ( dotAbsCL * area ) / (_LightDistance * _LightDistance);
+
+    float avgWeight = samplesSum * samplesAccumulatedInv;
+    float illuminance = avgWeight * solidAngle * LIGHT_LUMINOUS_FLUX * PI;
+
+    return illuminance;
+}
+
+void StoreSample(float2 locationUV, float weight)
+{
+    uint2 s = uint2(locationUV.x * _OutputWidth, locationUV.y * _OutputHeight);
+    int bufferLoc = SampleTexelLocationToByteAddressBufferLocation(s);
+
+    [allow_uav_condition]
+    while (true)
+    {
+        uint origValue = _GeneratedSamplesBuffer.Load(bufferLoc);
+        float origSample = asfloat(origValue);
+        float newSample = origSample + weight;
+        uint oldVal;
+        _GeneratedSamplesBuffer.InterlockedCompareExchange(bufferLoc, origValue, asuint(newSample), oldVal);
+        if (oldVal == origValue)
+            break;
+    }
+}
+
+[numthreads(64, 1, 1)]
+void SampleCaustic(uint dispatchThreadId : SV_DispatchThreadID)
+{
+    int randInd = dispatchThreadId;;
+
+    float2 sampleLocationXZ;
+    float weight;
+
+    if (EvaluateSample(randInd, weight, sampleLocationXZ))
+    {
+        //convert from cornea centric 3D space to uv space
+        float2 sampleLocationUV = float2(-sampleLocationXZ.y, sampleLocationXZ.x) / (CORNEA_RADIUS);
+        if (_UseCorneaSymmetryMirroring != 0)
+        {
+            sampleLocationUV.y = abs(sampleLocationUV.y) * 2.f - 1.f;
+        }
+        sampleLocationUV = sampleLocationUV * 0.5f + 0.5f;
+
+        sampleLocationUV.x = ApplyExtraMargin(sampleLocationUV.x);
+
+        if(sampleLocationUV.x > 0 && sampleLocationUV.x < 1 && sampleLocationUV.y > 0 && sampleLocationUV.y < 1)
+        {
+            StoreSample(sampleLocationUV, weight);
+        }
+    }
+}
+
+[numthreads(64, 1, 1)]
+void ClearBuffer(uint dispatchThreadId : SV_DispatchThreadID)
+{
+    int entries = _OutputWidth * _OutputHeight;
+    if (dispatchThreadId < uint(entries))
+        _GeneratedSamplesBuffer.Store(dispatchThreadId * 4, asuint(0.0f));
+}
+
+
+[numthreads(8, 8, 1)]
+void CopyToLUT(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    if (dispatchThreadId.x < uint(_OutputWidth) && dispatchThreadId.y < uint(_OutputHeight))
+    {
+        int bufferLoc = SampleTexelLocationToByteAddressBufferLocation(dispatchThreadId.xy);
+        float samples = asfloat(_GeneratedSamplesBuffer.Load(bufferLoc));
+        uint3 lutLoc = uint3(dispatchThreadId.x, dispatchThreadId.y, _OutputSlice);
+
+        _OutputLutTex[lutLoc] = CalculateFinalLUTValue(samples);
+    }
+}

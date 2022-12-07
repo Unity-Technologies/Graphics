@@ -199,7 +199,8 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float minMotionVecLenInPixels =  tileMaxNeighbourhood.z * _ScreenMagnitude;
 
     bool earlyOut = maxMotionVecLen <= _MinMotionVecThreshold;
-    bool fastPath = minMotionVecLenInPixels > (_MinMaxMotionVecRatioForSlowPath * maxMotionVecLen);
+    // With very wide blurs the mismatch between the gathered min and scattered max is more likely to give wrong results, hence we fallback on the slowpath.
+    bool fastPath = maxMotionVecLen < (_ScreenMagnitude * 0.333f) && minMotionVecLenInPixels > (_MinMaxMotionVecRatioForSlowPath * maxMotionVecLen);
 
 #if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
     earlyOut = WaveActiveAllTrue(earlyOut);

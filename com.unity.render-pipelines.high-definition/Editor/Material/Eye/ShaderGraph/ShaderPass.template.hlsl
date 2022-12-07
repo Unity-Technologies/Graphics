@@ -35,6 +35,11 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.Mask:                       surfaceData.mask =                      surfaceDescription.Mask;
     $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
     $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask = surfaceDescription.SubsurfaceMask;
+    $SurfaceDescription.IrisPlaneOffset:             surfaceData.irisPlaneOffset =           surfaceDescription.IrisPlaneOffset;
+    $SurfaceDescription.IrisRadius:                 surfaceData.irisRadius =                surfaceDescription.IrisRadius;
+    $SurfaceDescription.CausticIntensity:           surfaceData.causticIntensity =          surfaceDescription.CausticIntensity;
+    // Input by graph needs to be saturated to avoid unwated behaviors
+    $SurfaceDescription.CausticBlend:               surfaceData.causticBlend =              saturate(surfaceDescription.CausticBlend);
 
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;
@@ -47,11 +52,11 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_EYE_CINEMATIC;
     #endif
 
-    #ifdef _DOUBLESIDED_ON
-        float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-    #else
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+    #ifdef _MATERIAL_FEATURE_EYE_CAUSTIC_LUT
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT | MATERIALFEATUREFLAGS_EYE_CINEMATIC; //force light refraction with caustic
     #endif
+
+    float3 doubleSidedConstants = GetDoubleSidedConstants();
 
     // Note: It is assume that user in the shader graph provide a normal map with flat normal at the Cornea location
     // and an iris normal map. Same for smoothness, IOR and for subsurface mask. So we don't do any operation here.

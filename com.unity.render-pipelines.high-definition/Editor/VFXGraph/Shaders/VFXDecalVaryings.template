@@ -123,6 +123,8 @@ nointerpolation float4 viewToDecal2 : TEXCOORD7;
 VFX_OPTIONAL_INTERPOLATION float normalScale : TEXCOORD8;
 #endif
 
+VFX_VERTEX_OUTPUT_INSTANCE_INDEX
+
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPDecalFillVaryings}

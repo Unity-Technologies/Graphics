@@ -7,13 +7,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Fog Volume Component.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Fog", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Fog")]
+    [Serializable, VolumeComponentMenu("Fog")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Fog")]
     public class Fog : VolumeComponentWithQuality
     {
         /// <summary>Enable fog.</summary>
         [Tooltip("Enables the fog.")]
-        public BoolParameter enabled = new BoolParameter(false);
+        public BoolParameter enabled = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>Fog color mode.</summary>
         public FogColorParameter colorMode = new FogColorParameter(FogColorMode.SkyColor);
@@ -55,8 +56,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Common Fog Parameters (Exponential/Volumetric)
         /// <summary>Stores the fog albedo. This defines the color of the fog.</summary>
         public ColorParameter albedo = new ColorParameter(Color.white);
-        /// <summary>Multiplier for ambient probe contribution.</summary>
-        [DisplayInfo(name = "Ambient Light Probe Dimmer")]
+        /// <summary>Multiplier for global illumination (APV or ambient probe).</summary>
+        [DisplayInfo(name = "GI Dimmer")]
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         /// <summary>Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer. The lower the distance is, the higher the fog quality is.</summary>
         public MinFloatParameter depthExtent = new MinFloatParameter(64.0f, 0.1f);
@@ -162,8 +163,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool a = fog.enableVolumetricFog.value;
             bool b = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
             bool c = CoreUtils.IsSceneViewFogEnabled(hdCamera.camera);
+            bool d = fog.enabled.value;
 
-            return a && b && c;
+            return a && b && c && d;
         }
 
         internal static bool IsPBRFogEnabled(HDCamera hdCamera)
@@ -225,7 +227,8 @@ namespace UnityEngine.Rendering.HighDefinition
             LocalVolumetricFogArtistParameters param = new LocalVolumetricFogArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
             LocalVolumetricFogEngineData data = param.ConvertToEngineData();
 
-            cb._HeightFogBaseScattering = data.scattering;
+            // When volumetric fog is disabled, we don't want its color to affect the heightfog. So we pass neutral values here.
+            cb._HeightFogBaseScattering = enableVolumetrics ? data.scattering : Vector4.one * data.extinction;
             cb._HeightFogBaseExtinction = data.extinction;
 
             float crBaseHeight = baseHeight.value;

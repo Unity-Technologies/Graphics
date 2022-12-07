@@ -1,9 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
 {
     HLSLINCLUDE
-
-        #pragma exclude_renderers gles
-
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -41,9 +38,9 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
             return saturate(x);
         }
 
-        half4 Frag(Varyings input) : SV_Target
+        half4 FragLutBuilderLdr(Varyings input) : SV_Target
         {
-            float3 colorLinear = GetLutStripValue(input.uv, _Lut_Params);
+            float3 colorLinear = GetLutStripValue(input.texcoord, _Lut_Params);
 
             // White balance in LMS space
             float3 colorLMS = LinearToLMS(colorLinear);
@@ -156,8 +153,8 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
             Name "LutBuilderLdr"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
-                #pragma fragment Frag
+                #pragma vertex Vert
+                #pragma fragment FragLutBuilderLdr
             ENDHLSL
         }
     }

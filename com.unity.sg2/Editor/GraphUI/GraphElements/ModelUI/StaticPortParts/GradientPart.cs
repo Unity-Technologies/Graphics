@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnFieldValueChanged(ChangeEvent<Gradient> change)
         {
-            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (m_Model is not SGNodeModel graphDataNodeModel) return;
             m_OwnerElement.RootView.Dispatch(new SetGradientTypeValueCommand(graphDataNodeModel, m_PortName, change.newValue));
         }
     }

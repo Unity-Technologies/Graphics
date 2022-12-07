@@ -1,7 +1,7 @@
 #ifndef UNITY_HAMMERSLEY_INCLUDED
 #define UNITY_HAMMERSLEY_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -29,6 +29,10 @@ real2 Hammersley2dSeq(uint i, uint sequenceLength)
 {
     return real2(real(i) / real(sequenceLength), VanDerCorputBase2(i));
 }
+
+#ifdef HAMMERSLEY_USE_CB
+    #include "Packages/com.unity.render-pipelines.core/Runtime/ShaderLibrary/Sampling/Hammersley.cs.hlsl"
+#else
 
 static const real2 k_Hammersley2dSeq16[] = {
     real2(0.00000000, 0.00000000),
@@ -410,21 +414,30 @@ static const real2 k_Hammersley2dSeq256[] = {
     real2(0.99609375, 0.99609375)
 };
 
+#endif
+
 // Loads elements from one of the precomputed tables for sample counts of 16, 32, 64, 256.
 // Computes sample positions at runtime otherwise.
 real2 Hammersley2d(uint i, uint sampleCount)
 {
     switch (sampleCount)
     {
+    #ifdef HAMMERSLEY_USE_CB
+        case 16:  return hammersley2dSeq16[i].xy;
+        case 32:  return hammersley2dSeq32[i].xy;
+        case 64:  return hammersley2dSeq64[i].xy;
+        case 256: return hammersley2dSeq256[i].xy;
+    #else
         case 16:  return k_Hammersley2dSeq16[i];
         case 32:  return k_Hammersley2dSeq32[i];
         case 64:  return k_Hammersley2dSeq64[i];
         case 256: return k_Hammersley2dSeq256[i];
+    #endif
         default:  return Hammersley2dSeq(i, sampleCount);
     }
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

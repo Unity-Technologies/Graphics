@@ -16,37 +16,105 @@ To create a Hair material in Shader Graph, you can either:
 * Create a new Shader Graph.
     1. Go to **Assets > Create >Shader Graph > HDRP** and click **Hair Shader Graph**.
 
-## Approximate and Physically Based Models
+<a name="hair-approximate-physical"></a>
 
-The Hair Master Stack offers two model sub-types: **Approximate** and **Physical**. By default, a newly created Hair Shader Graph is configured to use the **Approximate** mode. To change it, simply navigate to the Graph Inspector and change the Hair's **Material Type** from **Approximate** to **Physical**. It's important to note that the **Physical** model is currently recommended to only be used when representing hair with strand geometry.
+## Hair Material Types
+
+HDRP’s Hair Master Stack has the following **Material Type** options:
+
+- [Approximate](#hair-approximate): This mode requires you to adjust nodes to suit the lighting in your scene.
+- [Physical](#hair-physical) : This mode automatically produces physically correct results.
+
+<a name="hair-approximate"></a>
+
+### Considerations for choosing a Material Type
+
+This table explains the conditions under which you might prefer to choose the Physical or Approximate hair Material Types:
+
+| **Material Type**                | **GPU requirements** | **Geometry compatibility**   | **Compatible with Path tracing**                             | **Hair tones**                                               |
+| -------------------------------- | -------------------- | ---------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [Approximate](#hair-approximate) | Moderate             | Hair cards.                  | No. <br/>For more information, see [Path tracing](Ray-Tracing-Path-Tracing.md.md#hair). | Works with all hair tones. However, it doesn't give light hair a volumetric appearance. |
+| [Physical](#hair-physical)       | High                 | Hair cards and hair strands. | Yes. However, path tracing is not compatible with ribbons. <br/>For more information, see [Path tracing](Ray-Tracing-Path-Tracing.md.md#hair). | Works with all hair tones. Gives lighter hair tones a volumetric appearance when you use [multiple scattering](#hair-scattering) |
+
+<a name="hair-approximate"></a>
+
+### The Approximate hair Material Type
+
+The **Approximate** Material Type mimics the characteristics of human hair. It is based on the [Kajiya-Kay](https://www.cs.drexel.edu/~david/Classes/Papers/p271-kajiya.pdf) hair shading model. HDRP computes this model faster than the [Physical](#hair-physical) Material Type because it is less resource intensive.
+
+The Approximate model doesn’t automatically look realistic in every lighting setup. This means you need to adjust the blocks in the [Fragment context](master-stack-hair.html#fragment-context) to suit the lighting environment in your scene.
+
+The Approximate model is best for darker hair tones. For best results with lighter hair tones, use the Physical model.
 
 ![](Images/hair-kajiya.png)
 
-The **Approximate** mode is a non energy-conserving model that was originally crafted against perceptual observations of human hair. Effective use of this model requires the artist to carefully balance the energy between the specular terms using multiple color parameters. Generally, the **Approximate** mode is accurate enough for darker hair, but falls short for lighter hair. Additionally, it is the faster of the two models to compute. The **Approximate** mode is based upon the Kajiya-Kay hair shading model.
+<a name="hair-physical"></a>
+
+### The Physical Material Type
+
+The Physical Material Type automatically creates physically correct results in any light environment. It accurately accounts for the amount of incident light to scatter within a hair fiber (known as an energy-conserving hair model). This means the Physical model works correctly in any lighting environment.
+
+This model adds the following nodes in the Fragment shader:
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Setting Dependency</th>
+<th>Default Value</th>
+</tr>
+[!include[](snippets/shader-graph-blocks/smoothness-radial.md)]
+[!include[](snippets/shader-graph-blocks/cuticle-angle.md)]
+</table>
+
+Change the [**Base Color** block](master-stack-hair.html#fragment-context) to define the color of the hair.
+
+The Physical Material Type is based on the [Marschner](http://www.graphics.stanford.edu/papers/hair/hair-sg03final.pdf) human hair fiber reflectance model.
 
 ![](Images/hair-marschner.png)
 
-The **Physical** mode puts parameters in much simpler and meaningful terms. This model is considered to be physically-based due to its considerations for how incident light has been measured to scatter in a hair fiber. While the **Approximate** variant requires four color parameters to tune overall appearance, the **Physical** variant only requires one. The **Base Color** parameter defines the hair cortex absorption, the fibrous structure underlying the cuticle scale. Additionally, the model is energy conserving, so no careful balancing of inputs should be required for your hair to fit naturally into any lighting scenario. The **Physical** mode is based on the Marschner human hair fiber reflectance model.
+<a name="hair-scattering"></a>
 
-A crucial component to the appearance of (especially light colored) hair is *multiple scattering*. Almost always, we never shade just a single hair fiber, but typically many thousands of fibers within close adjacency to one another. Because of this, coupled with the fact that light colored (lower absorbing) hair transmits large amount of light, the overall effect is a volumetric appearance to a head of light colored hair.
+### Multiple Scattering
+
+Multiple scattering creates the appearance of light scattering through thousands of hair strands. This gives lighter hair tones a volumetric appearance. To enable multiple scattering in your scene, select a **Scattering Mode** option.
+
+To select a **Scattering Mode** option:
+
+1. Open the Graph inspector.
+2. Set the **Material Type** to Physical**.**
+3. Set the **Geometry mode** to Strands.
+4. Open the **Advanced Options** section.
+5. Select **Scattering Mode.**
+
+The Scattering Mode options appear when you select the **Physical** material type:
+
+| Property        | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| **Physical**    | Physically simulates light transport through a volume of hair (multiple scattering). This feature is not available for public use yet. |
+| **Approximate** | Estimates the appearance of light transport through a volume of hair (multiple scattering). This mode does not take into account how transmittance affects the way light travels and slows through a volume of hair. It also ignores the effect that a hair's roughness has on the spread of light. |
 
 ![](Images/hair-multiple-scattering.png)
 
-When using the **Physical Material Type**, a **Scattering Mode** option will appear in the Graph Inspector. The **Scattering Mode** also comes with an **Approximate** and **Physical** option to choose from. By default, the **Physical Material Type** is configured to use the **Approximate Scattering Mode**.
-
-The **Approximate Scattering Mode** is a diffuse approximation term that extremely coarsely estimates the multiple scattering phenomenon (seen left). The approximation is coarse because it does not take into account the propogation and attenuation of light through a hair volume due to transmittance, and ignores the effect that a hair's roughness has on the spread of light.
-
-The **Physical Scattering Mode** performs a physically based simulation of light propogating through a volume of hair (seen right). This mode is only allowed for the **Physical Material Type** since the computation is dependant on the physically based nature of the model.
-
-The computation of the **Physical Scattering Mode** is dependent on the use of a strand geometry representation. Additionally, this approach has a dependency on important precomputed information stored in a **Strand Count Probe**. The **Strand Count Probe** is an L1 Band Spherical Harmonic of the directional hair fiber densities at a point in a hair volume. While it can be computed manually, this data is not readily available at the moment. The accessibility of the **Physical Scattering Mode** will be improved in future releases.
-
+<a name="hair-geometry"></a>
 ## Geometry Type
 
-Geometric representation of Hair and Fur in computer graphics is accomplished in one of three common ways: shells, cards, or strands. In the **Hair Master Stack**, the **Geometry Type** option allows you to specify which of these geometric representations you are using for your hair. Choosing the corresponding options to your geometry type allows appropriate assumptions to be made when compute the shading model. Currently, the **Geometry Type** allows you to specify between **Cards** and **Strands**.
+You need to select a geometry type in your shader that reflects the geometry you use to represent hair. This allows HDRP to make correct assumptions when it computes the shading model. You can use multiple types of geometry to render hair, but the Hair Master Stack is only compatible with the following geometry types:
 
-The **Cards** representation is a common approach for games. The concept of hair cards is to project a high resolution hair groom down onto a simplified proxy mesh (composed of the "cards"). This is a favorable approach for games since it greatly simplifies the complexity of strands while still producing good and performant results.
+- Cards: Hair cards display high-resolution hair textures on individual pieces of simplified geometry.
+  Card geometry is compatible with the Physical and Approximate Material types.
+- Strands: Hair strand geometry represents each individual hair fiber in the shape of tube geometry or ribbons.
+  Strand geometry is compatible with the Physical Material Type.
 
-The **Strands** representation is a growing trend in real-time graphics, as modern compute processing power continues to increase. The concept of hair strand geometry is to fully represent each individual hair fiber, either in the shape of "tube" geometry or a screen-aligned "ribbon".
+The hair card method is a simple and efficient way to render hair for games, and doesn’t demand a lot of resources from the GPU. We recommend cards where the user experience will not be negatively impacted by it. For example, for secondary characters, and even as a lower level of detail for main characters. Use strands only for main characters.
+
+### Select a geometry type
+
+To select the geometry type that your shader uses:
+
+1. Open your Hair shader
+2. In the Graph inspector, open the **Advanced Options** dropdown
+3. Select a **Geometry Type** Option
 
 ## Contexts
 
@@ -194,4 +262,6 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
 [!include[](snippets/shader-properties/advanced-options/geometry-type.md)]
 [!include[](snippets/shader-properties/advanced-options/scattering-mode.md)]
+[!include[](snippets/shader-properties/advanced-options/multiple-scattering-mode.md)]
+
 </table>

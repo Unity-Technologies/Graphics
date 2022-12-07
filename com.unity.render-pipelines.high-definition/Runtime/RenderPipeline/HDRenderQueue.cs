@@ -44,6 +44,10 @@ namespace UnityEngine.Rendering.HighDefinition
             AfterPostprocessTransparent = 3700,
             AfterPostprocessTransparentLast = 3700 + k_TransparentPriorityQueueRangeStep,
 
+            LineRenderingFirst = 3850 - k_TransparentPriorityQueueRangeStep,
+            LineRendering = 3850,
+            LineRenderingLast = 3850 + k_TransparentPriorityQueueRangeStep,
+
             Overlay = RenderQueue.Overlay
         }
 
@@ -60,6 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Transparent,
             LowTransparent,
             AfterPostprocessTransparent,
+            LineRendering,
 
             Overlay,
 
@@ -101,6 +106,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly RenderQueueRange k_RenderQueue_AfterPostProcessTransparent = new RenderQueueRange { lowerBound = (int)Priority.AfterPostprocessTransparentFirst, upperBound = (int)Priority.AfterPostprocessTransparentLast };
 
+        public static readonly RenderQueueRange k_RenderQueue_LineRendering = new RenderQueueRange { lowerBound = (int) Priority.LineRenderingFirst, upperBound = (int) Priority.LineRenderingLast };
+
         public static readonly RenderQueueRange k_RenderQueue_Overlay = new RenderQueueRange { lowerBound = (int)Priority.Overlay, upperBound = 5000 };
 
         public static readonly RenderQueueRange k_RenderQueue_All = new RenderQueueRange { lowerBound = 0, upperBound = 5000 };
@@ -130,6 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return RenderQueueType.LowTransparent;
             if (k_RenderQueue_AfterPostProcessTransparent.Contains(renderQueue))
                 return RenderQueueType.AfterPostprocessTransparent;
+            if (k_RenderQueue_LineRendering.Contains(renderQueue))
+                return RenderQueueType.LineRendering;
             if (renderQueue == (int)Priority.Overlay)
                 return RenderQueueType.Overlay;
             return RenderQueueType.Unknown;
@@ -155,6 +164,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return (int)Priority.LowTransparent + offset;
                 case RenderQueueType.AfterPostprocessTransparent:
                     return (int)Priority.AfterPostprocessTransparent + offset;
+                case RenderQueueType.LineRendering:
+                    return (int) Priority.LineRendering + offset;
                 case RenderQueueType.Overlay:
                     return (int)Priority.Overlay;
                 default:
@@ -170,6 +181,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return RenderQueueType.Transparent;
                 case RenderQueueType.AfterPostProcessOpaque:
                     return RenderQueueType.AfterPostprocessTransparent;
+                case RenderQueueType.LineRendering:
+                    return RenderQueueType.Transparent;
                 default:
                     //keep transparent mapped to transparent
                     return type;

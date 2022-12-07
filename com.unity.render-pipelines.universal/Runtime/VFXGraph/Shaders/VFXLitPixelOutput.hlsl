@@ -15,11 +15,11 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const InputData 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
 
 #if IS_OPAQUE_PARTICLE
-    float _Surface = 0.0f;
+    bool isTransparent = false;
 #else
-    float _Surface = 1.0f;
+    bool isTransparent = true;
 #endif
-    color.a = OutputAlpha(color.a, _Surface);
+    color.a = OutputAlpha(color.a, isTransparent);
     return color;
 }
 

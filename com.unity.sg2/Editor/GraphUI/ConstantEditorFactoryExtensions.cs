@@ -45,23 +45,23 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return builder.BuildDefaultConstantEditor(constants);
                 }
 
-                return new MatrixConstantPropertyField(constant, owner, builder.CommandTarget, (int)height, builder.Label);
+                return new MatrixConstantPropertyField(constant, owner, builder.CommandTarget, (int)height, null, builder.Label);
             }
 
             switch (owner)
             {
-                case GraphDataPortModel graphDataPort:
+                case SGPortModel graphDataPort:
                 {
-                    ((GraphDataNodeModel)graphDataPort.NodeModel).TryGetNodeHandler(out var nodeReader);
-
-                    var length = constant.GetLength();
-                    var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
-                    var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.owner.registryKey, nodeReader);
-                    var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.PortName);
-
-                    if (length >= GraphType.Length.Three && parameterUIDescriptor.UseColor)
+                    var sgModel = (SGGraphModel)graphDataPort.GraphModel;
+                    if (!sgModel.GetNodeViewModel(graphDataPort.owner.registryKey, out var nodeViewModel))
                     {
-                        return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, parameterUIDescriptor.Tooltip);
+                        break;
+                    }
+
+                    var portViewModel = nodeViewModel.GetParameterInfo(graphDataPort.graphDataName);
+                    if (portViewModel.UseColor)
+                    {
+                        return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, portViewModel.Tooltip);
                     }
 
                     break;

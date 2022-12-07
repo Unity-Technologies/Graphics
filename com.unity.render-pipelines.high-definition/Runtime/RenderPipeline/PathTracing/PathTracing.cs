@@ -7,7 +7,8 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif // UNITY_EDITOR
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+// Enable the denoising code path only on windows
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
 using UnityEngine.Rendering.Denoising;
 #endif
 
@@ -34,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Off
     }
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
     // For the HDRP path tracer we only enable a subset of the denoisers that are available in the denoising plugin
 
     /// <summary>
@@ -78,15 +79,16 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Path Tracing (Preview)", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Ray-Tracing-Path-Tracing")]
+    [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Ray-Tracing-Path-Tracing")]
     public sealed class PathTracing : VolumeComponent
     {
         /// <summary>
         /// Enables path tracing (thus disabling most other passes).
         /// </summary>
         [Tooltip("Enables path tracing (thus disabling most other passes).")]
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// Defines the layers that path tracing should include.
@@ -101,16 +103,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 16384);
 
         /// <summary>
-        /// Defines the minimum number of bounces for each path, in [1, 10].
+        /// Defines the minimum number of bounces for each path, in [1, 32].
         /// </summary>
-        [Tooltip("Defines the minimum number of bounces for each path, in [1, 10].")]
-        public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 10);
+        [Tooltip("Defines the minimum number of bounces for each path, in [1, 32].")]
+        public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 32);
 
         /// <summary>
-        /// Defines the maximum number of bounces for each path, in [minimumDepth, 10].
+        /// Defines the maximum number of bounces for each path, in [minimumDepth, 32].
         /// </summary>
-        [Tooltip("Defines the maximum number of bounces for each path, in [minimumDepth, 10].")]
-        public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 10);
+        [Tooltip("Defines the maximum number of bounces for each path, in [minimumDepth, 32].")]
+        public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 32);
 
         /// <summary>
         /// Defines the maximum, post-exposed luminance computed for indirect path segments.
@@ -118,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the maximum, post-exposed luminance computed for indirect path segments. Lower values help prevent noise and fireflies (very bright pixels), but introduce bias by darkening the overall result. Increase this value if your image looks too dark.")]
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
 
         /// <summary>
         /// Enables denoising for the converged path tracer frame
@@ -134,13 +136,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter useAOVs = new BoolParameter(true);
 
         /// <summary>
-        /// Enables temporally stable denoising (not all denosing backends support this option)
+        /// Enables temporally stable denoising when recording animation sequences (only affects recording / multi-frame accumulation when using the Optix denoiser)
         /// </summary>
-        [Tooltip("Enables temporally-stable denoising")]
+        [Tooltip("Enables temporally-stable denoising when recording animation sequences (only affects recording / multi-frame accumulation)")]
         public BoolParameter temporal = new BoolParameter(false);
 
         /// <summary>
-        /// Controls whether denoising will be asynchronus (non-blocking) for the scene view camera.
+        /// Controls whether denoising will be asynchronous (non-blocking) for the scene view camera.
         /// </summary>
         public BoolParameter asyncDenoising = new BoolParameter(true);
 #endif
@@ -173,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         uint  m_CacheMaxIteration = 0;
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
         HDDenoiserType m_CachedDenoiserType = HDDenoiserType.None;
 #endif
 
@@ -281,9 +283,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool enableDof = (dofSettings.focusMode.value == DepthOfFieldMode.UsePhysicalCamera) && !(hdCamera.camera.cameraType == CameraType.SceneView);
 
             // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
-            float apertureRadius = (enableDof && hdCamera.physicalParameters.aperture > 0) ? 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture : 0.0f;
+            float apertureRadius = (enableDof && hdCamera.camera.aperture > 0) ? 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.camera.aperture : 0.0f;
 
-            float focusDistance = (dofSettings.focusDistanceMode.value == FocusDistanceMode.Volume) ? dofSettings.focusDistance.value : hdCamera.physicalParameters.focusDistance;
+            float focusDistance = (dofSettings.focusDistanceMode.value == FocusDistanceMode.Volume) ? dofSettings.focusDistance.value : hdCamera.camera.focusDistance;
 
             return new Vector4(apertureRadius, focusDistance, 0.0f, 0.0f);
         }
@@ -309,7 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void InitPathTracingSettingsCache()
         {
             m_CacheMaxIteration = (uint)m_PathTracingSettings.maximumSamples.value;
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             m_CachedDenoiserType = m_PathTracingSettings.denoising.value;
 #endif
         }
@@ -325,20 +327,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CacheMaxIteration = (uint)m_PathTracingSettings.maximumSamples.value;
                 m_SubFrameManager.SelectiveReset(m_CacheMaxIteration);
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
                 // We have to reset the status of any active denoisers so the denoiser will run again when we have max samples
                 m_SubFrameManager.ResetDenoisingStatus();
 #endif
                 doPathTracingReset = false;
             }
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             // If we just change the denoiser type, we don't necessarily want to reset iteration
             if (m_PathTracingSettings && m_CachedDenoiserType != m_PathTracingSettings.denoising.value)
             {
+                if (m_PathTracingSettings.denoising.value == HDDenoiserType.None && m_PathTracingSettings.useAOVs == true)
+                {
+                    // When denoising is off we don't accumulate AOVs. For this reason, if we re-enable denoising and AOVs are enabled, we need to always re-accumulate
+                    // Note: this is called from the undo callback, so m_PathTracingSettings is the one that is going to be replaced/updated.
+                    doPathTracingReset = true;
+                }
+                else
+                {
+                    doPathTracingReset = false;
+                    m_SubFrameManager.ResetDenoisingStatus();
+                }
                 m_CachedDenoiserType = m_PathTracingSettings.denoising.value;
-                m_SubFrameManager.ResetDenoisingStatus();
-                doPathTracingReset = false;
             }
 #endif
 
@@ -361,14 +372,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif // UNITY_EDITOR
 
+        private AccelerationStructureSize GetAccelerationStructureSize(HDCamera hdCamera)
+        {
+            AccelerationStructureSize accelSize;
+
+            RayTracingAccelerationStructure accel = RequestAccelerationStructure(hdCamera);
+            accelSize.memUsage = accel != null ? accel.GetSize() : 0;
+            accelSize.instCount = accel != null ? accel.GetInstanceCount() : 0;
+
+            return accelSize;
+        }
+
         private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
+            bool isCameraDirty = false;
             // Check resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
                 camData.width = (uint)hdCamera.actualWidth;
                 camData.height = (uint)hdCamera.actualHeight;
-                return ResetPathTracing(camID, camData);
+                isCameraDirty = true;
             }
 
             // Check sky dirtiness
@@ -376,7 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.skyEnabled)
             {
                 camData.skyEnabled = enabled;
-                return ResetPathTracing(camID, camData);
+                isCameraDirty = true;
             }
 
             // Check fog dirtiness
@@ -384,45 +407,43 @@ namespace UnityEngine.Rendering.HighDefinition
             if (enabled != camData.fogEnabled)
             {
                 camData.fogEnabled = enabled;
-                return ResetPathTracing(camID, camData);
+                isCameraDirty = true;
             }
 
             // Check acceleration structure dirtiness
-            ulong accelSize = RequestAccelerationStructure(hdCamera).GetSize();
+            AccelerationStructureSize accelSize = GetAccelerationStructureSize(hdCamera);
             if (accelSize != camData.accelSize)
             {
                 camData.accelSize = accelSize;
-                return ResetPathTracing(camID, camData);
+                isCameraDirty = true;
             }
 
+            bool isSceneDirty = false;
             // Check materials dirtiness
             if (GetMaterialDirtiness(hdCamera))
             {
                 ResetMaterialDirtiness(hdCamera);
-                ResetPathTracing();
-                return camData;
+                isSceneDirty = true;
             }
 
             // Check light or geometry transforms dirtiness
             if (GetTransformDirtiness(hdCamera))
             {
                 ResetTransformDirtiness(hdCamera);
-                ResetPathTracing();
-                return camData;
+                isSceneDirty = true;
             }
 
             // Check lights dirtiness
             if (m_CacheLightCount != m_RayTracingLights.lightCount)
             {
                 m_CacheLightCount = (uint)m_RayTracingLights.lightCount;
-                ResetPathTracing();
-                return camData;
+                isSceneDirty = true;
             }
 
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
-                return ResetPathTracing(camID, camData);
+                isCameraDirty = true;
             }
 
             // If nothing but the camera has changed, re-render the sky texture
@@ -430,6 +451,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RenderSky = true;
                 m_CameraID = camID;
+            }
+
+            if (isSceneDirty)
+            {
+                ResetPathTracing();
+                return camData;
+            }
+
+            if (isCameraDirty)
+            {
+                return ResetPathTracing(camID, camData);
             }
 
             return camData;
@@ -547,12 +579,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingSkyTextureWidth, 2 * data.skySize);
                         ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingSkyTextureHeight, data.skySize);
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, data.skyReflection);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._SkyCameraTexture, data.skyBG);
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._PathTracingSkyCDFTexture, data.skyCDF);
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._PathTracingSkyMarginalTexture, data.skyMarginal);
 
                         // Further sky-related data for the ray miss
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._PathTracingCameraClearColor, data.backgroundColor);
-                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._SkyCameraTexture, data.skyBG);
 
                         // Data used in the camera rays generation
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._FrameTexture, data.output);
@@ -656,7 +688,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var albedo = TextureHandle.nullHandle;
             var normal = TextureHandle.nullHandle;
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             bool needsAOVs = m_PathTracingSettings.denoising.value != HDDenoiserType.None && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value);
 
             if (needsAOVs)
@@ -704,13 +736,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SubFrameManager.SetCameraData(camID, camData);
             }
 
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
+            if (!hdCamera.ActiveRayTracingAccumulation())
             {
                 camData.ResetIteration();
                 m_SubFrameManager.subFrameCount = 1;
             }
-#endif
 
             if (camData.currentIteration < m_SubFrameManager.subFrameCount)
             {
@@ -729,7 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture, albedo, normal, motionVector);
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
                 bool denoise = m_PathTracingSettings.denoising.value != HDDenoiserType.None;
                 // Note: for now we enable AOVs when temporal is also enabled, because this seems to work better with Optix.
                 if (denoise && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value))
@@ -753,7 +783,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-#if ENABLE_UNITY_DENOISING_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
     /// <summary>
     /// A <see cref="VolumeParameter"/> that holds a <see cref="DenoiserParameter"/> value.
     /// </summary>

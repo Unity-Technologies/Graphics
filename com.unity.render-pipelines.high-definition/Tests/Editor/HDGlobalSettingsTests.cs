@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
@@ -79,6 +80,34 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
             Undo.PerformUndo();
             Assert.AreEqual(initialGlobalSettings, HDRenderPipelineGlobalSettings.instance);
+        }
+
+        [Test]
+        public void DiffusionProfile_AutoRegister()
+        {
+            string profilePath = "Assets/HDGlobalSetttingsTests_DiffusionProfile.asset";
+            string materialPath = "Assets/HDGlobalSetttingsTests_Material.mat";
+
+            EnsureHDRPIsActivePipeline();
+
+            var profiles = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList;
+            var autoRegister = HDRenderPipelineGlobalSettings.instance.autoRegisterDiffusionProfiles;
+            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = new DiffusionProfileSettings[0];
+            HDRenderPipelineGlobalSettings.instance.autoRegisterDiffusionProfiles = true;
+
+            var profile = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
+            AssetDatabase.CreateAsset(profile, profilePath);
+
+            var material = new Material(Shader.Find("HDRP/Lit"));
+            AssetDatabase.CreateAsset(material, materialPath);
+
+            HDMaterial.SetDiffusionProfile(material, profile);
+            AssetDatabase.SaveAssets();
+
+            Assert.IsTrue(HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == profile));
+
+            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = profiles;
+            HDRenderPipelineGlobalSettings.instance.autoRegisterDiffusionProfiles = autoRegister;
         }
     }
 }

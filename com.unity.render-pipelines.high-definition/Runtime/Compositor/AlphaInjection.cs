@@ -1,6 +1,3 @@
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Compositor
@@ -8,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     // Injects an external alpha texture into the alpha channel. Used for controlling which pixels will be affected by post processing.
     // Use VolumeComponentDeprecated to hide the component from the volume menu (it's for internal compositor use only)
     [Serializable, HideInInspector]
-    internal sealed class AlphaInjection : CustomPostProcessVolumeComponent, IPostProcessComponent
+    internal sealed class AlphaInjection : CustomPostProcessVolumeComponent, IPostProcessComponent, ICompositionFilterComponent
     {
         internal class ShaderIDs
         {
@@ -17,6 +14,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         }
 
         Material m_Material;
+        CompositionFilter m_CurrentFilter;
+
+        #region ICompositionFilterComponent
+
+        CompositionFilter.FilterType ICompositionFilterComponent.compositionFilterType => CompositionFilter.FilterType.ALPHA_MASK;
+        CompositionFilter ICompositionFilterComponent.currentCompositionFilter
+        {
+            get => m_CurrentFilter;
+            set => m_CurrentFilter = value;
+        }
+
+        #endregion
 
         public bool IsActive() => m_Material != null;
 
@@ -34,24 +43,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             Debug.Assert(m_Material != null);
 
-            AdditionalCompositorData layerData = null;
-            camera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out layerData);
-            if (layerData == null || layerData.layerFilters == null)
-            {
-                HDUtils.BlitCameraTexture(cmd, source, destination);
-                return;
-            }
-
-            int index = layerData.layerFilters.FindIndex(x => x.filterType == CompositionFilter.FilterType.ALPHA_MASK);
-            if (index < 0)
-            {
-                HDUtils.BlitCameraTexture(cmd, source, destination);
-                return;
-            }
-
-            var filter = layerData.layerFilters[index];
             m_Material.SetTexture(ShaderIDs.k_InputTexture, source);
-            m_Material.SetTexture(ShaderIDs.k_AlphaTexture, filter.alphaMask);
+            m_Material.SetTexture(ShaderIDs.k_AlphaTexture, m_CurrentFilter.alphaMask);
 
             HDUtils.DrawFullScreen(cmd, m_Material, destination);
         }

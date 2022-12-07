@@ -1,23 +1,18 @@
 #pragma kernel CSMain
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
+${VFXPragmaOnlyRenderers}
+${VFXPragmaRequire}
+
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
-${VFXPerPassInclude}
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
 
-
-
-CBUFFER_START(params)
-    uint nbMax;
+CBUFFER_START(sortParamsConst)
     uint dispatchWidth;
+    ${VFXInstancingConstants}
 CBUFFER_END
 
 ByteAddressBuffer attributeBuffer;
 StructuredBuffer<uint> inputBuffer;
-
-#if USE_DEAD_LIST_COUNT
-ByteAddressBuffer deadListCount;
-#endif
 
 struct Kvp
 {
@@ -27,24 +22,49 @@ struct Kvp
 
 RWStructuredBuffer<Kvp> outputBuffer;
 
+${VFXPerPassInclude}
+
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
-	uint threshold = nbMax;
-#if USE_DEAD_LIST_COUNT
-	threshold -= deadListCount.Load(0);
-#endif
-	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
-	if (id < threshold)
+	uint id = GetThreadId(groupId, groupThreadId, dispatchWidth);
+	uint index = id;
+    ${VFXInitInstancing}
+
+
+
+	ContextData contextData = instancingContextData[instanceActiveIndex];
+	uint threshold = inputBuffer[instanceActiveIndex];
+
+    if(index == 0)
+        outputBuffer[instanceActiveIndex].index = threshold; //Store the count here
+
+	if (index < threshold)
 	{
-		uint index = inputBuffer[id];
+#if HAVE_VFX_MODIFICATION
+        ${VFXLoadGraphValues}
+
+    #if VFX_LOCAL_SPACE
+        ${VFXLoadParameter:{localToWorld}}
+        vfxLocalToWorld = localToWorld;
+
+        ${VFXLoadParameter:{worldToLocal}}
+        vfxWorldToLocal = worldToLocal;
+    #else
+        vfxWorldToLocal = k_identity4x4;
+        vfxLocalToWorld = k_identity4x4;
+    #endif
+#endif
+
+        uint indirectId = index + instancingBatchSize + instanceActiveIndex * RAW_CAPACITY;
+		uint index = inputBuffer[indirectId];
 
 		VFXAttributes attributes = (VFXAttributes)0;
         ${VFXLoadAttributes}
 
         ${VFXFeedSortingKeys}
 
-		outputBuffer[id] = output;
+        outputBuffer[indirectId] = output;
 	}
 }

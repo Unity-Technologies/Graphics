@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string SurfaceType = "_Surface";
         public static readonly string BlendMode = "_Blend";
         public static readonly string AlphaClip = "_AlphaClip";
+        public static readonly string AlphaToMask = "_AlphaToMask";
         public static readonly string SrcBlend = "_SrcBlend";
         public static readonly string DstBlend = "_DstBlend";
         public static readonly string SrcBlendAlpha = "_SrcBlendAlpha";

@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Configuration
             public List<CPDataDescriptor> CPIO;
         }
 
-        public static void GatherProviderCPIO(ITargetProvider targetProvider, out List<TemplateDataDescriptor> descriptors)
+        internal static void GatherProviderCPIO(ITargetProvider targetProvider, out List<TemplateDataDescriptor> descriptors)
         {
             descriptors = new List<TemplateDataDescriptor>();
             Target target = targetProvider as Target;
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Configuration
             foreach(var template in templateProvider.GetTemplates(new ShaderContainer()))
             {
                 var cpDescs = new List<CPDataDescriptor>();
-                foreach(var cp in template.CustomizationPoints())
+                foreach(var cp in template.CustomizationPoints)
                 {
                     var inputs = new List<CPEntryDescriptor>();
                     var outputs = new List<CPEntryDescriptor>();

@@ -1,0 +1,188 @@
+#pragma kernel ClearShadingSampleVisibilityBuffer
+#pragma kernel ClearShadingCompactionBuffer
+#pragma kernel ClearShadingAtlas
+#pragma kernel ClearHistogram
+#pragma kernel CopyHistoryToShadingAtlas
+#pragma kernel CreateCompactedShadingSamplesMapping
+#pragma kernel ReplicateShadedSamplesToShadingAtlas
+#pragma kernel CalculateHistogram
+#pragma kernel CalculateHighestVisibleHistogramID
+#pragma kernel DiscardSamplesBasedOnHistogram
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRenderingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#define SHADING_SAMPLE_HISTOGRAM_COUNT 512
+
+int _SampleCount;
+int _ShadingAtlasSampleOffset;
+int _SourceShadingAtlasSampleOffset;
+int _SourceTextureWidth;
+int _SourceTextureHeight;
+int _TargetTextureWidth;
+int _TargetTextureHeight;
+int _MaxSamplesToShade;
+int _SampleIDOffset;
+
+ByteAddressBuffer _PrefixSumBuffer;
+
+RWByteAddressBuffer _ShadingSampleVisibilityBuffer;
+RWByteAddressBuffer _ShadingCompactionBuffer;
+RWByteAddressBuffer _HistogramBuffer;
+
+Texture2D<float4> _ShadingScratchTexture;
+RWTexture2D<float4> _ShadingSamplesTexture;
+
+uint GetSampleID(uint sampleIndex)
+{
+    float r = GenerateHashedRandomFloat(sampleIndex + _SampleIDOffset);
+
+    return  min(r * SHADING_SAMPLE_HISTOGRAM_COUNT, SHADING_SAMPLE_HISTOGRAM_COUNT - 1);
+}
+
+[numthreads(256, 1, 1)]
+void ClearShadingSampleVisibilityBuffer(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_SampleCount)
+        return;
+
+    _ShadingSampleVisibilityBuffer.Store(dispatchThreadID.x << 2, 0);
+}
+
+[numthreads(256, 1, 1)]
+void ClearShadingCompactionBuffer(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_SampleCount)
+        return;
+
+    _ShadingCompactionBuffer.Store(dispatchThreadID.x << 2, INVALID_SHADING_SAMPLE);
+}
+
+[numthreads(256, 1, 1)]
+void ClearShadingAtlas(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_SampleCount)
+        return;
+    uint sampleIndex = dispatchThreadID.x;
+    uint2 dstTexelIndex = uint2((sampleIndex + _ShadingAtlasSampleOffset) % _TargetTextureWidth, (sampleIndex + _ShadingAtlasSampleOffset) / _TargetTextureWidth);
+    _ShadingSamplesTexture[dstTexelIndex] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+}
+
+[numthreads(SHADING_SAMPLE_HISTOGRAM_COUNT, 1, 1)]
+void ClearHistogram(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= SHADING_SAMPLE_HISTOGRAM_COUNT) return;
+
+    _HistogramBuffer.Store(dispatchThreadID.x << 2, 0);
+}
+
+
+[numthreads(256, 1, 1)]
+void CopyHistoryToShadingAtlas(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_SampleCount)
+        return;
+
+    uint sampleIndex = dispatchThreadID.x;
+
+    uint2 srcTexelIndex = uint2((sampleIndex + _SourceShadingAtlasSampleOffset) % _SourceTextureWidth, (sampleIndex + _SourceShadingAtlasSampleOffset) / _SourceTextureWidth);
+    uint2 dstTexelIndex = uint2((sampleIndex + _ShadingAtlasSampleOffset) % _TargetTextureWidth, (sampleIndex + _ShadingAtlasSampleOffset) / _TargetTextureWidth);
+    _ShadingSamplesTexture[dstTexelIndex] = _ShadingScratchTexture[srcTexelIndex];
+
+}
+
+
+[numthreads(256, 1, 1)]
+void CreateCompactedShadingSamplesMapping(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_SampleCount)
+        return;
+
+    int offset = _PrefixSumBuffer.Load(dispatchThreadID.x << 2);
+    int offsetNext = _PrefixSumBuffer.Load((dispatchThreadID.x + 1) << 2);
+    int nonCompactedIndex = dispatchThreadID.x;
+
+    if(offsetNext == ( offset + 1))
+    {
+        _ShadingCompactionBuffer.Store(offset << 2, nonCompactedIndex);
+    }
+
+
+}
+
+[numthreads(256, 1, 1)]
+void ReplicateShadedSamplesToShadingAtlas(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_SampleCount)
+        return;
+    uint compactedSampleIndex = dispatchThreadID.x;
+    uint sampleIndex = _ShadingCompactionBuffer.Load(compactedSampleIndex << 2);
+    if(sampleIndex != INVALID_SHADING_SAMPLE)
+    {
+        uint2 srcTexelIndex = uint2(compactedSampleIndex % _SourceTextureWidth, compactedSampleIndex / _SourceTextureWidth);
+        uint2 dstTexelIndex = uint2((sampleIndex + _ShadingAtlasSampleOffset) % _TargetTextureWidth, (sampleIndex + _ShadingAtlasSampleOffset) / _TargetTextureWidth);
+        _ShadingSamplesTexture[dstTexelIndex] = _ShadingScratchTexture[srcTexelIndex];
+    }
+}
+
+groupshared uint gs_HistogramLDS[SHADING_SAMPLE_HISTOGRAM_COUNT];
+
+[numthreads(SHADING_SAMPLE_HISTOGRAM_COUNT, 1, 1)]
+void CalculateHistogram(uint3 dispatchThreadID : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
+{
+    uint ldsIndex = groupIndex;
+    gs_HistogramLDS[ldsIndex] = 0;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if(dispatchThreadID.x < (uint)_SampleCount)
+    {
+        uint sampleIndex = dispatchThreadID.x;
+        uint sampleVisible = _ShadingSampleVisibilityBuffer.Load(sampleIndex << 2);
+
+        if(sampleVisible > 0)
+        {
+            uint id = GetSampleID(sampleIndex);
+            InterlockedAdd(gs_HistogramLDS[id], 1);
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    _HistogramBuffer.InterlockedAdd(ldsIndex << 2, gs_HistogramLDS[ldsIndex]);
+}
+
+
+[numthreads(SHADING_SAMPLE_HISTOGRAM_COUNT, 1, 1)]
+void CalculateHighestVisibleHistogramID(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= SHADING_SAMPLE_HISTOGRAM_COUNT) return;
+    uint histogramIndex = dispatchThreadID.x;
+
+    uint prefixSum = _PrefixSumBuffer.Load(histogramIndex << 2);
+    uint thisIDCount = _HistogramBuffer.Load(histogramIndex << 2);
+    bool isFinalID = histogramIndex == (SHADING_SAMPLE_HISTOGRAM_COUNT - 1);
+    bool isUpperLimit = (prefixSum + thisIDCount >= (uint)_MaxSamplesToShade) || isFinalID;
+    bool isLowerLimit = prefixSum < (uint)_MaxSamplesToShade || histogramIndex == 0;
+
+    if(isLowerLimit && isUpperLimit)
+    {
+        _HistogramBuffer.Store(SHADING_SAMPLE_HISTOGRAM_COUNT << 2, histogramIndex); //last index in histogram is used to store the last valid id
+    }
+}
+
+[numthreads(256, 1, 1)]
+void DiscardSamplesBasedOnHistogram(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_SampleCount)
+        return;
+    uint maxValidID = _HistogramBuffer.Load(SHADING_SAMPLE_HISTOGRAM_COUNT << 2);
+    uint sampleIndex = dispatchThreadID.x;
+    uint id = GetSampleID(sampleIndex);
+
+    if(id > maxValidID)
+    {
+        _ShadingSampleVisibilityBuffer.Store(sampleIndex << 2, 0);
+    }
+}

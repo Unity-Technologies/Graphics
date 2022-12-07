@@ -5,12 +5,12 @@
 // node work by falling to regular texture sampling.
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
 
-#if defined(_CLUSTERED_RENDERING)
+#if defined(_FORWARD_PLUS)
 #define _ADDITIONAL_LIGHTS 1
 #undef _ADDITIONAL_LIGHTS_VERTEX
-#define USE_CLUSTERED_LIGHTING 1
+#define USE_FORWARD_PLUS 1
 #else
-#define USE_CLUSTERED_LIGHTING 0
+#define USE_FORWARD_PLUS 0
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -20,7 +20,7 @@
 
 #if UNITY_REVERSED_Z
     // TODO: workaround. There's a bug where SHADER_API_GL_CORE gets erroneously defined on switch.
-    #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
+    #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES3)
         //GL with reversed z => z clip range is [near, -far] -> remapping to [0, far]
         #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) max((coord - _ProjectionParams.y)/(-_ProjectionParams.z-_ProjectionParams.y)*_ProjectionParams.z, 0)
     #else

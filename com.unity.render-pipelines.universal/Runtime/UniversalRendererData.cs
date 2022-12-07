@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 using System;
 using UnityEngine.Scripting.APIUpdating;
@@ -16,7 +17,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Depth will be copied after the opaques pass</summary>
         AfterOpaques,
         /// <summary>Depth will be copied after the transparents pass</summary>
-        AfterTransparents
+        AfterTransparents,
+        /// <summary>Depth will be written by a depth prepass</summary>
+        ForcePrepass
     }
 
     /// <summary>
@@ -104,6 +107,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: move to core and share with HDRP
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
+
             [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
             internal Shader coreBlitColorAndDepthPS;
 
@@ -147,12 +151,15 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
+#if UNITY_EDITOR
+        // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.Vulkan)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings._GBUFFER_NORMALS_OCT)]
+#endif
         [SerializeField] bool m_AccurateGbufferNormals = false;
-        [SerializeField] bool m_ClusteredRendering = false;
-        const TileSize k_DefaultTileSize = TileSize._32;
-        [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
         [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
 
+        /// <inheritdoc/>
         protected override ScriptableRenderer Create()
         {
             if (!Application.isPlaying)
@@ -188,6 +195,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// The default stencil state settings.
+        /// </summary>
         public StencilStateData defaultStencilState
         {
             get => m_DefaultStencilState;
@@ -251,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Use Octaedron Octahedron normal vector encoding for gbuffer normals.
+        /// Use Octahedron normal vector encoding for gbuffer normals.
         /// The overhead is negligible from desktop GPUs, while it should be avoided for mobile GPUs.
         /// </summary>
         public bool accurateGbufferNormals
@@ -261,27 +271,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_AccurateGbufferNormals = value;
-            }
-        }
-
-        internal bool clusteredRendering
-        {
-            get => m_ClusteredRendering;
-            set
-            {
-                SetDirty();
-                m_ClusteredRendering = value;
-            }
-        }
-
-        internal TileSize tileSize
-        {
-            get => m_TileSize;
-            set
-            {
-                Assert.IsTrue(value.IsValid());
-                SetDirty();
-                m_TileSize = value;
             }
         }
 
@@ -295,16 +284,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_IntermediateTextureMode = value;
-            }
-        }
-
-        /// <inheritdoc/>
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-            if (!m_TileSize.IsValid())
-            {
-                m_TileSize = k_DefaultTileSize;
             }
         }
 
@@ -337,11 +316,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <inheritdoc/>
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             m_AssetVersion = k_LatestAssetVersion;
         }
 
+        /// <inheritdoc/>
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             if (m_AssetVersion <= 1)

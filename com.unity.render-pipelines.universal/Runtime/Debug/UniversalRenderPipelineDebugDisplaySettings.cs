@@ -2,34 +2,37 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Class for the rendering debugger settings.
+    /// </summary>
     public class UniversalRenderPipelineDebugDisplaySettings : DebugDisplaySettings<UniversalRenderPipelineDebugDisplaySettings>
     {
-        DebugDisplaySettingsCommon CommonSettings { get; set; }
+        DebugDisplaySettingsCommon commonSettings { get; set; }
 
         /// <summary>
-        /// Material-related Rendering Debugger settings.
+        /// Material-related rendering debugger settings.
         /// </summary>
         public DebugDisplaySettingsMaterial materialSettings { get; private set; }
 
         /// <summary>
-        /// Rendering-related Rendering Debugger settings.
+        /// Rendering-related rendering debugger settings.
         /// </summary>
         public DebugDisplaySettingsRendering renderingSettings { get; private set; }
 
         /// <summary>
-        /// Lighting-related Rendering Debugger settings.
+        /// Lighting-related rendering debugger settings.
         /// </summary>
         public DebugDisplaySettingsLighting lightingSettings { get; private set; }
 
         /// <summary>
-        /// Volume-related Rendering Debugger settings.
+        /// Volume-related rendering debugger settings.
         /// </summary>
         public DebugDisplaySettingsVolume volumeSettings { get; private set; }
 
         /// <summary>
         /// Display stats.
         /// </summary>
-        internal DebugDisplayStats DisplayStats { get; private set; }
+        internal DebugDisplaySettingsStats<URPProfileId> displayStats { get; private set; }
 
         #region IDebugDisplaySettingsQuery
 
@@ -83,20 +86,20 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Reset()
         {
-            m_Settings.Clear();
+            base.Reset();
 
-            DisplayStats = Add(new DebugDisplayStats());
-            CommonSettings = Add(new DebugDisplaySettingsCommon());
+            displayStats = Add(new DebugDisplaySettingsStats<URPProfileId>(new UniversalRenderPipelineDebugDisplayStats()));
             materialSettings = Add(new DebugDisplaySettingsMaterial());
             lightingSettings = Add(new DebugDisplaySettingsLighting());
             renderingSettings = Add(new DebugDisplaySettingsRendering());
             volumeSettings = Add(new DebugDisplaySettingsVolume(new UniversalRenderPipelineVolumeDebugSettings()));
+            commonSettings = Add(new DebugDisplaySettingsCommon());
         }
 
-        internal void UpdateFrameTiming()
+        internal void UpdateDisplayStats()
         {
-            if (DisplayStats != null)
-                DisplayStats.UpdateFrameTiming();
+            if (displayStats != null)
+                displayStats.debugDisplayStats.Update();
         }
     }
 }

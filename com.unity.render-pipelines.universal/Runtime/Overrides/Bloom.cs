@@ -7,14 +7,22 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum BloomDownscaleMode
     {
+        /// <summary>
+        /// Use this to select half size as the starting resolution.
+        /// </summary>
         Half,
+
+        /// <summary>
+        /// Use this to select quarter size as the starting resolution.
+        /// </summary>
         Quarter,
     }
 
     /// <summary>
     /// A volume component that holds settings for the Bloom effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Bloom", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -87,9 +95,21 @@ namespace UnityEngine.Rendering.Universal
         public bool IsActive() => intensity.value > 0f;
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => false;
     }
 
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="BloomDownscaleMode"/> value.
+    /// </summary>
     [Serializable]
-    public sealed class DownscaleParameter : VolumeParameter<BloomDownscaleMode> { public DownscaleParameter(BloomDownscaleMode value, bool overrideState = false) : base(value, overrideState) { } }
+    public sealed class DownscaleParameter : VolumeParameter<BloomDownscaleMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="DownscaleParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public DownscaleParameter(BloomDownscaleMode value, bool overrideState = false) : base(value, overrideState) { }
+    }
 }

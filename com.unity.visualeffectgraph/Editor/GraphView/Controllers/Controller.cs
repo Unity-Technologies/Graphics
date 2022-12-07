@@ -64,23 +64,24 @@ namespace UnityEditor.VFX.UI
 
         void NotifyEventHandler(IControlledElement eventHandler, int eventID)
         {
-            ControllerChangedEvent e = new ControllerChangedEvent();
-            e.controller = this;
-            e.target = eventHandler;
-            e.change = eventID;
+            var e = new ControllerChangedEvent
+            {
+                controller = this,
+                target = eventHandler,
+                change = eventID
+            };
             eventHandler.OnControllerChanged(ref e);
             if (e.isPropagationStopped)
                 return;
-            if (eventHandler is VisualElement)
+            if (eventHandler is VisualElement element)
             {
-                var element = eventHandler as VisualElement;
                 eventHandler = element.GetFirstOfType<IControlledElement>();
                 while (eventHandler != null)
                 {
                     eventHandler.OnControllerChanged(ref e);
                     if (e.isPropagationStopped)
                         break;
-                    eventHandler = (eventHandler as VisualElement).GetFirstAncestorOfType<IControlledElement>();
+                    eventHandler = ((VisualElement)eventHandler).GetFirstAncestorOfType<IControlledElement>();
                 }
             }
         }

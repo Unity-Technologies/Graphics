@@ -83,9 +83,10 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Cloud Layer Volume Component.
     /// This component setups the Cloud Layer for rendering.
     /// </summary>
-    [VolumeComponentMenuForRenderPipeline("Sky/Cloud Layer", typeof(HDRenderPipeline))]
+    [VolumeComponentMenu("Sky/Cloud Layer")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [CloudUniqueID((int)CloudType.CloudLayer)]
-    [HDRPHelpURLAttribute("Override-Cloud-Layer")]
+    [HDRPHelpURL("Override-Cloud-Layer")]
     public partial class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
@@ -185,6 +186,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [InspectorName("Density")]
             [Tooltip("Density of the cloud layer.")]
             public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+            /// <summary>Ambient probe multiplier.</summary>
+            [Tooltip("Controls the influence of the ambient probe on the cloud layer volume. A lower value will suppress the ambient light and produce darker clouds overall.")]
+            public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
@@ -269,6 +273,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + lighting.GetHashCode();
                     hash = hash * 23 + steps.GetHashCode();
                     hash = hash * 23 + thickness.GetHashCode();
+                    hash = hash * 23 + ambientProbeDimmer.GetHashCode();
 
                     hash = hash * 23 + castShadows.GetHashCode();
                 }
@@ -283,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public CloudMap layerB = new CloudMap();
 
         internal int NumLayers => (layers == CloudMapMode.Single) ? 1 : 2;
-        internal bool CastShadows => layerA.castShadows.value || (layers == CloudMapMode.Double && layerB.castShadows.value);
+        internal bool CastShadows => layerA.castShadows.value || (layers.value == CloudMapMode.Double && layerB.castShadows.value);
 
         Vector3Int CastToInt3(Vector3 vec) => new Vector3Int((int)vec.x, (int)vec.y, (int)vec.z);
 

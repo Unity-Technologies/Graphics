@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent cookieSize = EditorGUIUtility.TrTextContent("Size", "Sets the size of the Cookie mask currently assigned to the Light.");
             public readonly GUIContent shadowBias = EditorGUIUtility.TrTextContent("Bias", "Controls the distance at which HDRP pushes shadows away from the Light. Useful for avoiding false self-shadowing artifacts.");
             public readonly GUIContent shadowNormalBias = EditorGUIUtility.TrTextContent("Normal Bias", "Controls distance at which HDRP shrinks the shadow casting surfaces along the surface normal. Useful for avoiding false self-shadowing artifacts.");
-            public readonly GUIContent shadowNearPlane = EditorGUIUtility.TrTextContent("Near Plane", "Controls the value for the active Camera's Near clipping Plane for rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
+            public readonly GUIContent shadowNearPlane = EditorGUIUtility.TrTextContent("Near Plane", "Controls the value of the shadow camera's near clipping plane for rendering shadows. Clamped to [0.01, 10] for Cone, Pyramid and Point Lights, and [0, 10] for Box and Area Lights.");
             public readonly GUIContent bakedShadowRadius = EditorGUIUtility.TrTextContent("Radius", "Sets the amount of artificial softening the baking process applies to the edges of shadows cast by this Point or Spot Light.");
             public readonly GUIContent bakedShadowAngle = EditorGUIUtility.TrTextContent("Angle", "Controls the amount of artificial softening the baking process applies to the edges of shadows cast by Directional Lights.");
             public readonly GUIContent lightBounceIntensity = EditorGUIUtility.TrTextContent("Indirect Multiplier", "Controls the intensity of the indirect light this Light contributes to the Scene. A value of 0 with a Realtime Light causes HDRP to remove it from realtime global illumination. A value of 0 for Baked and Mixed Lights cause them to no longer emit indirect lighting. This has no effect if you disable both Realtime and Baked global illumination.");
@@ -139,8 +139,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent maxDepthBias = EditorGUIUtility.TrTextContent("Max Depth Bias");
 
             // Layers
-            public readonly GUIContent unlinkLightAndShadowLayersText = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows seperately to lighting. When disabled, the Light Layer property in the General section specifies the layers for both lighting and for shadows.");
-            public readonly GUIContent shadowLayerMaskText = EditorGUIUtility.TrTextContent("Layer", "Specifies the light layer to use for shadows.");
+            public readonly GUIContent unlinkLightAndShadowLayersText = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows seperately to lighting. When disabled, the Rendering Layer Mask property in the General section specifies the layers for both lighting and shadows.");
+            public readonly GUIContent shadowLayerMaskText = EditorGUIUtility.TrTextContent("Shadow Layers", "Specifies the rendering layer mask to use for shadows.");
 
             // Settings
             public readonly GUIContent enableShadowMap = EditorGUIUtility.TrTextContent("Enable", "When enabled, this Light casts shadows.");

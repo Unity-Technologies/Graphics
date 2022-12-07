@@ -25,14 +25,15 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kPositionWSInputSlotId = 0;
         const string kPositionWSInputSlotName = "PositionWS";
 
-        const int kDisplacementInputSlotId = 1;
+        // Inputs
+        const int kNormalWSInputSlotId = 1;
+        const string kNormalWSInputSlotName = "NormalWS";
+
+        const int kDisplacementInputSlotId = 2;
         const string kDisplacementInputSlotName = "Displacement";
 
-        const int kLowFrequencyHeightInputSlotId = 2;
+        const int kLowFrequencyHeightInputSlotId = 3;
         const string kLowFrequencyHeightInputSlotName = "LowFrequencyHeight";
-
-        const int kSSSMaskInputSlotId = 3;
-        const string kSSSMaskInputSlotName = "SSSMask";
 
         // Outputs
         const int kPositionOSOutputSlotId = 4;
@@ -53,9 +54,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Inputs
             AddSlot(new Vector3MaterialSlot(kPositionWSInputSlotId, kPositionWSInputSlotName, kPositionWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
+            AddSlot(new Vector3MaterialSlot(kNormalWSInputSlotId, kNormalWSInputSlotName, kNormalWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
             AddSlot(new Vector3MaterialSlot(kDisplacementInputSlotId, kDisplacementInputSlotName, kDisplacementInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightInputSlotId, kLowFrequencyHeightInputSlotName, kLowFrequencyHeightInputSlotName, SlotType.Input, 0, ShaderStageCapability.Vertex));
-            AddSlot(new Vector1MaterialSlot(kSSSMaskInputSlotId, kSSSMaskInputSlotName, kSSSMaskInputSlotName, SlotType.Input, 0, ShaderStageCapability.Vertex));
 
             // Outputs
             AddSlot(new Vector3MaterialSlot(kPositionOSOutputSlotId, kPositionOSOutputSlotName, kPositionOSOutputSlotName, SlotType.Output, Vector3.zero));
@@ -66,9 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition
             RemoveSlotsNameNotMatching(new[]
             {
                 kPositionWSInputSlotId,
+                kNormalWSInputSlotId,
                 kDisplacementInputSlotId,
                 kLowFrequencyHeightInputSlotId,
-                kSSSMaskInputSlotId,
 
                 kPositionOSOutputSlotId,
                 kNormalOSOutputSlotId,
@@ -85,15 +86,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("ZERO_INITIALIZE(PackedWaterData, packedWaterData);");
 
                 string positionWS = GetSlotValue(kPositionWSInputSlotId, generationMode);
+                string normalWS = GetSlotValue(kNormalWSInputSlotId, generationMode);
                 string displacement = GetSlotValue(kDisplacementInputSlotId, generationMode);
                 string lowFrequencyHeight = GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode);
-                string sssMask = GetSlotValue(kSSSMaskInputSlotId, generationMode);
 
                 sb.AppendLine("PackWaterVertexData({0}, {1}, {2}, {3}, packedWaterData);",
                     positionWS,
+                    normalWS,
                     displacement,
-                    lowFrequencyHeight,
-                    sssMask
+                    lowFrequencyHeight
                 );
 
                 sb.AppendLine("$precision3 {0} = packedWaterData.positionOS;",

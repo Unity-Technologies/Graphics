@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void Awake()
         {
             type = ProbeSettings.ProbeType.PlanarProbe;
+
             k_PlanarProbeMigration.Migrate(this);
         }
     }

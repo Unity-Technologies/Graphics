@@ -1,0 +1,124 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7305898987014203766
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 12
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: LocalClouds_Material
+  m_Shader: {fileID: -6465566751694194690, guid: 713a6f8cc6afcf64bbac7c8aff8f5e79, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Main_3D_Noise:
+        m_Texture: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture3D_478178ff2845429682ab8d8f14ab7f0c_Texture_1:
+        m_Texture: {fileID: 11700000, guid: bc05f2e39084d7849a52034d2d41f1ef, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture3D_ab7a3e35c8414367b5fe9cf1e56e9fe4_Texture_1:
+        m_Texture: {fileID: 11700000, guid: bd96ac1d57f47d34f9f99535cd2acd45, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Secondary_3D_Noise:
+        m_Texture: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AddPrecomputedVelocity: 0
+    - _AlphaCutoffEnable: 0
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
+    - _BlendMode: 0
+    - _Cloud_Absorption: 1
+    - _ConservativeDepthOffsetEnable: 0
+    - _Contrast: 0.75
+    - _CullMode: 2
+    - _CullModeForward: 2
+    - _DepthOffsetEnable: 0
+    - _DoubleSidedEnable: 0
+    - _DoubleSidedGIMode: 0
+    - _DoubleSidedNormalMode: 2
+    - _DstBlend: 0
+    - _EnableFogOnTransparent: 1
+    - _Erode: 0.75
+    - _Erode_On_Border: 0.75
+    - _Float: 0.47
+    - _Main_Noise_Tiling: 0.5
+    - _OpaqueCullMode: 2
+    - _Pow: 0.96
+    - _Power: 2
+    - _RenderQueueType: 1
+    - _Secondary_Noise: 0.1
+    - _Secondary_Noise_Intensity: 0.1
+    - _Secondary_Noise_Tiling: 3
+    - _SrcBlend: 1
+    - _SurfaceType: 0
+    - _Tiling: 0.5
+    - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
+    - _TransparentWritingMotionVec: 0
+    - _TransparentZWrite: 0
+    - _UseShadowThreshold: 0
+    - _Use_Alpha_Channel: 0
+    - _Wind_Force: 0.1
+    - _ZTestDepthEqualForOpaque: 4
+    - _ZTestTransparent: 4
+    - _ZWrite: 1
+    m_Colors:
+    - _Clouds_Color: {r: 0.8207547, g: 0.8207547, b: 0.8207547, a: 0}
+    - _Color: {r: 1, g: 1, b: 1, a: 0}
+    - _Color_Border: {r: 0.8, g: 0.8, b: 0.8, a: 0}
+    - _Color_Dense: {r: 0.8867924, g: 0.8867924, b: 0.8867924, a: 0}
+    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Tiling: {r: 0.16, g: 0.1, b: 0.1, a: 0}
+    - _Wind_DIrection: {r: 1, g: -0.1, b: 0, a: 0}
+  m_BuildTextureStacks: []

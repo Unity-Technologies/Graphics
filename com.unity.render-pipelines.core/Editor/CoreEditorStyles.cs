@@ -118,6 +118,8 @@ namespace UnityEditor.Rendering
         public static readonly Texture2D iconFail;
         /// <summary> Success icon </summary>
         public static readonly Texture2D iconSuccess;
+        /// <summary> Complete icon </summary>
+        public static readonly Texture2D iconComplete;
         /// <summary> Pending icon </summary>
         public static readonly Texture2D iconPending;
 
@@ -211,6 +213,7 @@ namespace UnityEditor.Rendering
             iconWarn = CoreEditorUtils.LoadIcon("icons", "console.warnicon", ".png");
             iconFail = CoreEditorUtils.LoadIcon("icons", "console.erroricon", ".png");
             iconSuccess = EditorGUIUtility.FindTexture("TestPassed");
+            iconComplete = CoreEditorUtils.LoadIcon("icons", "GreenCheckmark", ".png");
             iconPending = EditorGUIUtility.FindTexture("Toolbar Minus");
 
             globalSettingsIcon = EditorGUIUtility.FindTexture("ScriptableObject Icon");

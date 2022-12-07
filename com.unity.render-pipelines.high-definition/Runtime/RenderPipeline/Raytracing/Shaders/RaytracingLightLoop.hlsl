@@ -3,8 +3,23 @@
 
 #define USE_LIGHT_CLUSTER
 
-void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData,
-                float4 reflection, float4 transmission,
+struct RayContext
+{
+    // Signal that came from a bounced ray
+    float3 reflection;
+    // Weight for the bounced ray
+    float reflectionWeight;
+
+    // Signal that came from a transmitted ray
+    float3 transmission;
+    // Weight for the transmitted ray
+    float transmissionWeight;
+
+    // Should the APV be used for the lightloop ? (in case of multibounce GI)
+    int useAPV;
+};
+
+void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, RayContext rayContext,
                 out LightLoopOutput lightLoopOutput)
 {
     // Init LightLoop output structure
@@ -16,6 +31,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowValue      = 1.0;
     context.splineVisibility = -1;
     context.sampleReflection = 0;
+#ifdef APPLY_FOG_ON_SKY_REFLECTIONS
+    context.positionWS       = posInput.positionWS;
+#endif
 
     // Initialize the contactShadow and contactShadowFade fields
     InvalidateConctactShadow(posInput, context);
@@ -83,24 +101,61 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     float refractionHierarchyWeight = 0.0;
 
     // Add the traced reflection (if any)
-    if (reflection.w == 1.0)
+    if (rayContext.reflectionWeight == 1.0)
     {
-        IndirectLighting lighting = EvaluateBSDF_RaytracedReflection(context, bsdfData, preLightData, reflection.xyz);
+        IndirectLighting lighting = EvaluateBSDF_RaytracedReflection(context, bsdfData, preLightData, rayContext.reflection.xyz);
         AccumulateIndirectLighting(lighting, aggregateLighting);
         reflectionHierarchyWeight = 1.0;
     }
 
 #if HAS_REFRACTION
     // Add the traced transmission (if any)
-    if (transmission.w == 1.0)
+    if (rayContext.transmissionWeight == 1.0)
     {
         IndirectLighting indirect;
         ZERO_INITIALIZE(IndirectLighting, indirect);
-        IndirectLighting lighting = EvaluateBSDF_RaytracedRefraction(context, preLightData, transmission.xyz);
+        IndirectLighting lighting = EvaluateBSDF_RaytracedRefraction(context, preLightData, rayContext.transmission.xyz);
         AccumulateIndirectLighting(lighting, aggregateLighting);
         refractionHierarchyWeight = 1.0;
     }
 #endif
+
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+    if (rayContext.useAPV == 1)
+    {
+        if (_EnableProbeVolumes && rayContext.useAPV == 1)
+        {
+            // Reflect normal to get lighting for reflection probe tinting
+            float3 R = reflect(-V, bsdfData.normalWS);
+
+            // This variable is used with APV for reflection probe normalization - see code for LIGHTFEATUREFLAGS_ENV
+            float3 lightInReflDir = float3(-1, -1, -1);
+
+            EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
+                bsdfData.normalWS,
+                -bsdfData.normalWS,
+                R,
+                V,
+                posInput.positionSS,
+                builtinData.bakeDiffuseLighting,
+                builtinData.backBakeDiffuseLighting,
+                lightInReflDir);
+        }
+        else // If probe volume is disabled we fallback on the ambient probes
+        {
+            builtinData.bakeDiffuseLighting = EvaluateAmbientProbe(bsdfData.normalWS) * _RayTracingAmbientProbeDimmer;
+            builtinData.backBakeDiffuseLighting = EvaluateAmbientProbe(-bsdfData.normalWS) * _RayTracingAmbientProbeDimmer;
+        }
+
+    #ifdef  MODIFY_BAKED_DIFFUSE_LIGHTING
+        // Make sure the baked diffuse lighting is tinted with the diffuse color
+        ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
+    #endif
+    }
+#endif
+
+    // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
+    builtinData.bakeDiffuseLighting *= GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
 
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...

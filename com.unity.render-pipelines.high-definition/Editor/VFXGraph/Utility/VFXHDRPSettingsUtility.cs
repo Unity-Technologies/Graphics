@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.HDRP
                     {
                         var vfxGraph = vfxWindow.graphView.controller.graph;
                         foreach (var output in vfxGraph.children.OfType<VFXDecalHDRPOutput>())
-                            output.RefreshErrors(vfxGraph);
+                            output.RefreshErrors();
                     }
                 }
             }

@@ -196,6 +196,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowValue      = 1;
     context.sampleReflection = 0;
     context.splineVisibility = -1;
+#ifdef APPLY_FOG_ON_SKY_REFLECTIONS
+    context.positionWS       = posInput.positionWS;
+#endif
 
     // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
@@ -358,7 +361,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     #endif
 
 #if HAS_REFRACTION
-
+        uint perPixelEnvStart = envLightStart;
+        uint perPixelEnvCount = envLightCount;
         // For refraction to be stable, we should reuse the same refraction probe for the whole object.
         // Otherwise as if the object span different tiles it could produce a different refraction probe picking and thus have visual artifacts.
         // For this we need to find the tile that is at the center of the object that is being rendered.
@@ -388,7 +392,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 envLightData = FetchEnvLight(FetchIndex(envLightStart, 0));
             }
-            else // If no refraction probe, use sky with a default proxy extent.
+            else if (perPixelEnvCount > 0) // If no refraction probe at the object center, we either fallback on the per pixel result.
+            {
+                envLightData = FetchEnvLight(FetchIndex(perPixelEnvStart, 0));
+            }
+            else // .. or the sky
             {
                 envLightData = InitDefaultRefractionEnvLightData(0);
             }

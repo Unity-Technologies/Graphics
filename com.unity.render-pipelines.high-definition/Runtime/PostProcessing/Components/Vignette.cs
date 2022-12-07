@@ -22,8 +22,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Vignette effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Vignette", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Vignette")]
+    [Serializable, VolumeComponentMenu("Post-processing/Vignette")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Post-Processing-Vignette")]
     public sealed class Vignette : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -48,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the strength of the vignette effect.
         /// </summary>
-        [Tooltip("Controls the strength of the vignette effect.")]
+        [Tooltip("Use the slider to set the strength of the Vignette effect.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
         /// <summary>

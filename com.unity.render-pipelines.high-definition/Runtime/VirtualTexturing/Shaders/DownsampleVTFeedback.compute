@@ -25,6 +25,10 @@ CBUFFER_END
 #define dstWidth         _Params1.z
 #define dstHeight        _Params1.w
 
+float4 ProcessPackedSample(float4 packedSample)
+{
+    return UnpackVTFeedbackWithAlpha(packedSample);
+}
 
 static const uint TGSize = 8;
 
@@ -47,7 +51,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     srcPos.y = min(srcPos.y, (uint)srcHeight - 1);
 
     float4 value = LOAD_TEXTURE2D_X(_InputTexture, srcPos);
-    _OutputTexture[samplePos] = value;
+    _OutputTexture[samplePos] = ProcessPackedSample(value);
 }
 
 [numthreads(TGSize, TGSize, 1)]
@@ -69,5 +73,5 @@ void KMainMSAA(uint3 dispatchThreadId : SV_DispatchThreadID)
     srcPos.y = min(srcPos.y, (uint)srcHeight - 1);
 
     float4 value = LOAD_TEXTURE2D_X_MSAA(_InputTextureMSAA, srcPos, 0);
-    _OutputTexture[samplePos] = value;
+    _OutputTexture[samplePos] = ProcessPackedSample(value);
 }

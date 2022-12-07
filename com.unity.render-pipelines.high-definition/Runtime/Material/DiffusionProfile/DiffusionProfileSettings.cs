@@ -19,26 +19,51 @@ namespace UnityEngine.Rendering.HighDefinition
         Max = 1000
     }
 
+    enum DefaultSssDownsampleSteps
+    {
+        Low = 0,
+        Medium = 0,
+        High = 0,
+        Max = 2
+    }
+
     [Serializable]
     class DiffusionProfile : IEquatable<DiffusionProfile>
     {
         public enum TexturingMode : uint
         {
+            [InspectorName("Pre and Post-Scatter")]
+            [Tooltip("Partially applies the albedo to the Material twice, before and after the subsurface scattering pass, for a softer look.")]
             PreAndPostScatter = 0,
+            [InspectorName("Post-Scatter")]
+            [Tooltip("Applies the albedo to the Material after the subsurface scattering pass, so the contents of the albedo texture aren't blurred.")]
             PostScatter = 1
         }
 
         public enum TransmissionMode : uint
         {
+            [InspectorName("Thick Object")]
+            [Tooltip("Select this mode for geometrically thick objects. This mode uses shadow maps.")]
             Regular = 0,
+            [InspectorName("Thin Object")]
+            [Tooltip("Select this mode for thin, double-sided geometry, such as paper or leaves.")]
             ThinObject = 1
         }
 
-        [ColorUsage(false, true)]
-        public Color scatteringDistance;         // Per color channel (no meaningful units)
+        [ColorUsage(false, false)]
+        public Color scatteringDistance; // Per color channel (no meaningful units)
+        [Min(0.0f)]
+        public float scatteringDistanceMultiplier;
         [ColorUsage(false, true)]
         public Color transmissionTint;           // HDR color
+        [Tooltip("Specifies when HDRP applies the albedo of the Material.")]
         public TexturingMode texturingMode;
+        [Range(1.0f, 2.0f)]
+        public Vector2 smoothnessMultipliers;
+        [Range(0.0f, 1.0f), Tooltip("Amount of mixing between the primary and secondary specular lobes.")]
+        public float lobeMix;
+        [Range(1.0f, 3.0f), Tooltip("Exponent on the cosine component of the diffuse lobe.\nHelps to simulate surfaces with strong subsurface scattering.")]
+        public float diffuseShadingPower;
         public TransmissionMode transmissionMode;
         public Vector2 thicknessRemap;             // X = min, Y = max (in millimeters)
         public float worldScale;                 // Size of the world unit in meters
@@ -60,8 +85,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ResetToDefault()
         {
             scatteringDistance = Color.grey;
+            scatteringDistanceMultiplier = 1;
             transmissionTint = Color.white;
             texturingMode = TexturingMode.PreAndPostScatter;
+            smoothnessMultipliers = Vector2.one;
+            lobeMix = 0.5f;
+            diffuseShadingPower = 1.0f;
             transmissionMode = TransmissionMode.ThinObject;
             thicknessRemap = new Vector2(0f, 5f);
             worldScale = 1f;
@@ -75,13 +104,22 @@ namespace UnityEngine.Rendering.HighDefinition
             worldScale = Mathf.Max(worldScale, 0.001f);
             ior = Mathf.Clamp(ior, 1.0f, 2.0f);
 
+            // Default values for serializable classes do not work, they are set to 0
+            // if we detect this case, we initialize them to the right default
+            if (diffuseShadingPower == 0.0f)
+            {
+                smoothnessMultipliers = Vector2.one;
+                lobeMix = 0.5f;
+                diffuseShadingPower = 1.0f;
+            }
+
             UpdateKernel();
         }
 
         // Ref: Approximate Reflectance Profiles for Efficient Subsurface Scattering by Pixar.
         void UpdateKernel()
         {
-            Vector3 sd = (Vector3)(Vector4)scatteringDistance;
+            Vector3 sd = scatteringDistanceMultiplier * (Vector3)(Vector4)scatteringDistance;
 
             // Rather inconvenient to support (S = Inf).
             shapeParam = new Vector3(Mathf.Min(16777216, 1.0f / sd.x),
@@ -186,6 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             return scatteringDistance == other.scatteringDistance &&
+                scatteringDistanceMultiplier == other.scatteringDistanceMultiplier &&
                 transmissionTint == other.transmissionTint &&
                 texturingMode == other.texturingMode &&
                 transmissionMode == other.transmissionMode &&
@@ -199,6 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Class for Diffusion Profile settings
     /// </summary>
     [HDRPHelpURLAttribute("Diffusion-Profile")]
+    [Icon("Packages/com.unity.render-pipelines.high-definition/Editor/Icons/Processed/DiffusionProfile Icon.asset")]
     public partial class DiffusionProfileSettings : ScriptableObject
     {
         [SerializeField]
@@ -208,6 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [NonSerialized] internal Vector4 shapeParamAndMaxScatterDist;                // RGB = S = 1 / D, A = d = RgbMax(D)
         [NonSerialized] internal Vector4 transmissionTintAndFresnel0;                // RGB = color, A = fresnel0
         [NonSerialized] internal Vector4 disabledTransmissionTintAndFresnel0;        // RGB = black, A = fresnel0 - For debug to remove the transmission
+        [NonSerialized] internal Vector4 dualLobeAndDiffusePower;                    // R = Smoothness A, G = Smoothness B, B = Lobe Mix, A = Diffuse Power - 1 (to have 0 as neutral value)
         [NonSerialized] internal int updateCount;
 
         /// <summary>
@@ -215,8 +256,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public Color scatteringDistance
         {
-            get => profile.scatteringDistance;
-            set { profile.scatteringDistance = value; profile.Validate(); UpdateCache(); }
+            get
+            {
+                return profile.scatteringDistance * profile.scatteringDistanceMultiplier;
+            }
+            set
+            {
+                HDUtils.ConvertHDRColorToLDR(value, out profile.scatteringDistance, out profile.scatteringDistanceMultiplier);
+                profile.Validate(); UpdateCache();
+            }
         }
 
         /// <summary>
@@ -243,6 +291,42 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Multiplier for the primary specular lobe. This multiplier is clamped between 1 and 2.
+        /// </summary>
+        public float primarySmoothnessMultiplier
+        {
+            get => profile.smoothnessMultipliers.y;
+            set { profile.smoothnessMultipliers.y = Mathf.Clamp(value, 1, 2); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Multiplier for the secondary specular lobe. This multiplier is clamped between 0 and 1.
+        /// </summary>
+        public float secondarySmoothnessMultiplier
+        {
+            get => profile.smoothnessMultipliers.x;
+            set { profile.smoothnessMultipliers.x = Mathf.Clamp(value, 0, 1); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Amount of mixing between the primary and secondary specular lobes.
+        /// </summary>
+        public float lobeMix
+        {
+            get => profile.lobeMix;
+            set { profile.lobeMix = value; UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Exponent on the cosine component of the diffuse lobe.\nHelps to simulate non lambertian surfaces.
+        /// </summary>
+        public float diffuseShadingPower
+        {
+            get => profile.diffuseShadingPower;
+            set { profile.diffuseShadingPower = value; UpdateCache(); }
+        }
+
+        /// <summary>
         /// Color which tints transmitted light. Alpha is ignored.
         /// </summary>
         public Color transmissionTint
@@ -262,11 +346,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             if (m_Version != MigrationDescription.LastVersion<Version>())
             {
+                // Initial migration step requires creating assets
                 // We delay the upgrade of the diffusion profile because in the OnEnable we are still
                 // in the import of the current diffusion profile, so we can't create new assets of the same
                 // type from here otherwise it will freeze the editor in an infinite import loop.
                 // Thus we delay the upgrade of one editor frame so the import of this asset is finished.
-                UnityEditor.EditorApplication.delayCall += TryToUpgrade;
+                if (m_Version == Version.Initial)
+                    UnityEditor.EditorApplication.delayCall += TryToUpgrade;
+                else
+                    k_Migration.Migrate(this);
             }
 
             UnityEditor.Rendering.HighDefinition.DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(this);
@@ -297,6 +385,8 @@ namespace UnityEngine.Rendering.HighDefinition
             fresnel0 *= fresnel0; // square
             transmissionTintAndFresnel0 = new Vector4(profile.transmissionTint.r * 0.25f, profile.transmissionTint.g * 0.25f, profile.transmissionTint.b * 0.25f, fresnel0); // Premultiplied
             disabledTransmissionTintAndFresnel0 = new Vector4(0.0f, 0.0f, 0.0f, fresnel0);
+            float smoothnessB = profile.lobeMix == 0.0f ? 1.0f : profile.smoothnessMultipliers.y; // this helps shader determine if dual lobe is active
+            dualLobeAndDiffusePower = new Vector4(profile.smoothnessMultipliers.x, smoothnessB, profile.lobeMix, profile.diffuseShadingPower - 1.0f);
 
             updateCount++;
         }

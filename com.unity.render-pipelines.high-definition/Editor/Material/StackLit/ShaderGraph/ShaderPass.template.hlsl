@@ -28,10 +28,12 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     ZERO_INITIALIZE(SurfaceData, surfaceData);
 
     $CoatMaskOne: surfaceData.coatMask = 1.0;
+    $UseProfileIor: surfaceData.useProfileIor = true;
 
     // Copy graph values to surfaceData, if defined
     $SurfaceDescription.BaseColor:                 surfaceData.baseColor =                surfaceDescription.BaseColor;
     $SurfaceDescription.SubsurfaceMask:            surfaceData.subsurfaceMask =           surfaceDescription.SubsurfaceMask;
+    $SurfaceDescription.TransmissionMask:          surfaceData.transmissionMask =         surfaceDescription.TransmissionMask;
     $SurfaceDescription.Thickness:                 surfaceData.thickness =                surfaceDescription.Thickness;
     $SurfaceDescription.DiffusionProfileHash:      surfaceData.diffusionProfileHash =     asuint(surfaceDescription.DiffusionProfileHash);
     $SurfaceDescription.IridescenceMask:           surfaceData.iridescenceMask =          surfaceDescription.IridescenceMask;
@@ -93,6 +95,9 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION;
     #endif
 
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_DIFFUSE_POWER;
+    $UseProfileLobes: surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_DUAL_LOBE;
+
     #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
         // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
         $Specular.EnergyConserving: surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
@@ -111,11 +116,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     // Setup all surfaceData normals: .normalWS, .bentNormalWS, .tangentWS, .coatNormalWS, .geomNormalWS
     //
 
-    #ifdef _DOUBLESIDED_ON
-        float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-    #else
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-    #endif
+    float3 doubleSidedConstants = GetDoubleSidedConstants();
 
     // normal delivered to master node
     $SurfaceDescription.NormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.NormalOS, surfaceData.normalWS, doubleSidedConstants);

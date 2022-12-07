@@ -21,11 +21,11 @@ namespace UnityEditor.ShaderGraph
             {
                 AssetImporter importer = target as AssetImporter;
                 var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
-                var graph = asset.ShaderGraphModel.GraphHandler;
+                var graph = asset.SGGraphModel.GraphHandler;
 
                 var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
                 var node = graph.GetNode(key.Name);
-                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.ShaderGraphModel.ActiveTarget, asset.ShaderGraphModel.ShaderName);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.SGGraphModel.ActiveTarget, asset.SGGraphModel.ShaderName);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 string path = $"Temp/GeneratedFromGraph-{assetName.Replace(" ", "")}.shader";
                 if (FileHelpers.WriteToFile(path, shaderCode))
@@ -36,11 +36,11 @@ namespace UnityEditor.ShaderGraph
             {
                 AssetImporter importer = target as AssetImporter;
                 var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
-                var graph = asset.ShaderGraphModel.GraphHandler;
+                var graph = asset.SGGraphModel.GraphHandler;
 
                 var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
                 var node = graph.GetNode(key.Name);
-                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.ShaderGraphModel.ActiveTarget, asset.ShaderGraphModel.ShaderName);
+                var shaderCode = Interpreter.GetShaderForNode(node, graph, graph.registry, out _, asset.SGGraphModel.ActiveTarget, asset.SGGraphModel.ShaderName);
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 File.WriteAllText($"Assets/{assetName}-GeneratedShader.shader", shaderCode);
                 AssetDatabase.Refresh();
@@ -75,44 +75,15 @@ namespace UnityEditor.ShaderGraph
         [OnOpenAsset(0)]
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
-            string path = AssetDatabase.GetAssetPath(instanceID);
+            var path = AssetDatabase.GetAssetPath(instanceID);
             var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
-            if (!graphAsset)
-            {
-                return false;
-            }
-            return ShowWindow(path, graphAsset);
+            return graphAsset && ShowWindow(path, graphAsset);
         }
 
         private static bool ShowWindow(string path, ShaderGraphAsset model)
         {
-            ShaderGraphEditorWindow shaderGraphEditorWindow = null;
-
-            // Prevents the same graph asset from being opened in two separate editor windows
-            var existingEditorWindows = (ShaderGraphEditorWindow[])Resources.FindObjectsOfTypeAll(typeof(ShaderGraphEditorWindow));
-            foreach (var existingEditorWindow in existingEditorWindows)
-            {
-                if (UnityEngine.Object.ReferenceEquals(existingEditorWindow.GraphTool.ToolState.CurrentGraph.GetGraphAsset(), model))
-                {
-                    shaderGraphEditorWindow = existingEditorWindow;
-                    break;
-                }
-            }
-
-            if(shaderGraphEditorWindow == null)
-            {
-                shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
-                if (shaderGraphEditorWindow == null)
-                {
-                    return false;
-                }
-                AssetDatabase.ImportAsset(path);
-            }
-
-            shaderGraphEditorWindow.Show();
-            shaderGraphEditorWindow.Focus();
-            shaderGraphEditorWindow.SetCurrentSelection(model, GraphViewEditorWindow.OpenMode.OpenAndFocus);
-            return true;
+            var window = GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<ShaderGraphEditorWindow>(model);
+            return window != null;
         }
     }
 }

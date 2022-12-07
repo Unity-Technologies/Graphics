@@ -81,6 +81,20 @@ AH4 FsrEasuBH(AF2 p)
 {
     return (AH4)GATHER_BLUE_TEXTURE2D_X(FSR_INPUT_TEXTURE, FSR_INPUT_SAMPLER, p);
 }
+
+void FsrEasuProcessInput(inout AH4 r, inout AH4 g, inout AH4 b)
+{
+#ifdef FUTURE_HDR_OUTPUT
+    AH3 s0 = InvertibleTonemap(AH3(r.x, g.x, b.x));
+    AH3 s1 = InvertibleTonemap(AH3(r.y, g.y, b.y));
+    AH3 s2 = InvertibleTonemap(AH3(r.z, g.z, b.z));
+    AH3 s3 = InvertibleTonemap(AH3(r.w, g.w, b.w));
+
+    r = AH4(s0.r, s1.r, s2.r, s3.r);
+    g = AH4(s0.g, s1.g, s2.g, s3.g);
+    b = AH4(s0.b, s1.b, s2.b, s3.b);
+#endif
+}
 #else
 AF4 FsrEasuRF(AF2 p)
 {
@@ -93,6 +107,20 @@ AF4 FsrEasuGF(AF2 p)
 AF4 FsrEasuBF(AF2 p)
 {
     return GATHER_BLUE_TEXTURE2D_X(FSR_INPUT_TEXTURE, FSR_INPUT_SAMPLER, p);
+}
+
+void FsrEasuProcessInput(inout AF4 r, inout AF4 g, inout AF4 b)
+{
+#ifdef FUTURE_HDR_OUTPUT
+    float3 s0 = InvertibleTonemap(float3(r.x, g.x, b.x));
+    float3 s1 = InvertibleTonemap(float3(r.y, g.y, b.y));
+    float3 s2 = InvertibleTonemap(float3(r.z, g.z, b.z));
+    float3 s3 = InvertibleTonemap(float3(r.w, g.w, b.w));
+
+    r = float4(s0.r, s1.r, s2.r, s3.r);
+    g = float4(s0.g, s1.g, s2.g, s3.g);
+    b = float4(s0.b, s1.b, s2.b, s3.b);
+#endif
 }
 #endif
 

@@ -145,6 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBufferRG;
             public TextureHandle normalBufferRG;
             public TextureHandle motionVectorBufferRG;
+            public TextureHandle renderingLayerMaskRG;
         }
 
         enum Version
@@ -202,6 +203,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 output.normalBufferRG = builder.ReadWriteTexture(targets.normalBufferRG);
             if (targets.motionVectorBufferRG.IsValid())
                 output.motionVectorBufferRG = builder.ReadWriteTexture(targets.motionVectorBufferRG);
+            // The rendering layer mask buffer is only accessible through the SG node we expose, and we don't allow writing to it
+            if (targets.renderingLayerMaskRG.IsValid())
+                output.renderingLayerMaskRG = builder.ReadTexture(targets.renderingLayerMaskRG);
 
             return output;
         }
@@ -233,6 +237,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering))
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
 
+                        if (customPass.currentRenderTarget.renderingLayerMaskRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering)
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._RenderingLayerMaskTexture, customPass.currentRenderTarget.renderingLayerMaskRG);
+
                         if (customPass.currentRenderTarget.normalBufferRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, customPass.currentRenderTarget.normalBufferRG);
 
@@ -261,7 +268,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             customPass.currentRenderTarget.motionVectorBufferRG,
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
-                            ctx.renderGraphPool.GetTempMaterialPropertyBlock()
+                            ctx.renderGraphPool.GetTempMaterialPropertyBlock(),
+                            customPass.injectionPoint
                         );
 
                         customPass.isExecuting = true;
