@@ -41,7 +41,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Out",
                     tooltip: "Output value"
-                )
+                ),
+                // UI for Red/Green/Blue vectors are intentionally left out because a custom editor is used.
             }
         );
     }

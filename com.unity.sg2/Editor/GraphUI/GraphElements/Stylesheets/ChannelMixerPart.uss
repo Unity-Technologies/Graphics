@@ -1,0 +1,7 @@
+#channel-toggle-container {
+    align-items: center;
+}
+
+#channel-toggle-container .unity-button-strip__button {
+    flex-grow: 1;
+}
