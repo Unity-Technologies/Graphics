@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             m_MainPreviewView = mainPreviewView;
             // This handles when the main preview overlay is undocked and moved around or re-docked
-            if(GraphView?.GraphModel is ShaderGraphModel shaderGraphModel)
+            if(GraphView?.GraphModel is SGGraphModel shaderGraphModel)
                 SetDefaultMainPreviewUpdateListener(shaderGraphModel);
         }
 
@@ -89,9 +89,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shaderGraphEditorWindow.m_WasWindowCloseCancelledInDirtyState = true;
             }
 
-            m_PreviewUpdateDispatcher.Cleanup();
+            Cleanup();
 
             base.OnDisable();
+        }
+
+        // Made internal for tests to access and call in case of a test failing and exceptions being thrown
+        internal void Cleanup()
+        {
+            m_PreviewUpdateDispatcher.Cleanup();
         }
 
         // returns true when the user is OK with closing the window or application (either they've saved dirty content, or are ok with losing it)
@@ -240,10 +246,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         // Entry point for initializing any systems that depend on the graph model
-        public void HandleGraphLoad(ShaderGraphModel shaderGraphModel, IPreviewUpdateReceiver previewUpdateReceiver)
+        public void HandleGraphLoad(SGGraphModel graphModel, IPreviewUpdateReceiver previewUpdateReceiver)
         {
             // Can be null when the editor window is opened to the onboarding page
-            if (shaderGraphModel == null)
+            if (graphModel == null)
                 return;
 
             TryGetOverlay(PreviewOverlay.k_OverlayID, out var overlay);
@@ -252,29 +258,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_PreviewSize = previewOverlay.size;
             }
 
-            shaderGraphModel.CreateUIData();
-            shaderGraphModel.MainPreviewData.mainPreviewSize = m_PreviewSize;
+            graphModel.CreateUIData();
+            graphModel.MainPreviewData.mainPreviewSize = m_PreviewSize;
 
-            m_PreviewUpdateDispatcher.Initialize(this, shaderGraphModel, previewUpdateReceiver);
+            m_PreviewUpdateDispatcher.Initialize(this, graphModel, previewUpdateReceiver);
 
-            SetDefaultMainPreviewUpdateListener(shaderGraphModel);
+            SetDefaultMainPreviewUpdateListener(graphModel);
 
             ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewUpdateDispatcher);
 
             PreviewCommands.RegisterCommandHandlers(
                 GraphTool,
                 m_PreviewUpdateDispatcher,
-                shaderGraphModel,
+                graphModel,
                 GraphTool.Dispatcher,
                 GraphView.GraphViewModel);
 
             // TODO (Joe): With this, we can remove old calls to DefineNode in places the UI expected nodes to reconcretize.
-            shaderGraphModel.GraphHandler.AddBuildCallback(nodeHandler =>
+            graphModel.GraphHandler.AddBuildCallback(nodeHandler =>
             {
                 var nodeLocalId = nodeHandler.ID.LocalPath;
                 var guid = new SerializableGUID(nodeLocalId);
 
-                if (!shaderGraphModel.TryGetModelFromGuid<GraphDataNodeModel>(guid, out var nodeModel) || nodeModel == null)
+                if (!graphModel.TryGetModelFromGuid<SGNodeModel>(guid, out var nodeModel) || nodeModel == null)
                 {
                     return;
                 }
@@ -286,13 +292,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// This gets the main fragment context node from the graph and sets it as the source of data for the main preview
         /// </summary>
-        /// <param name="shaderGraphModel"></param>
-        void SetDefaultMainPreviewUpdateListener(ShaderGraphModel shaderGraphModel)
+        /// <param name="graphModel"></param>
+        void SetDefaultMainPreviewUpdateListener(SGGraphModel graphModel)
         {
             // Give main preview its view-model
-            foreach (var nodeModel in shaderGraphModel.NodeModels)
+            foreach (var nodeModel in graphModel.NodeModels)
             {
-                if (nodeModel is GraphDataContextNodeModel contextNodeModel && contextNodeModel.IsMainContextNode())
+                if (nodeModel is SGContextNodeModel contextNodeModel && contextNodeModel.IsMainContextNode())
                     m_MainPreviewView.SetTargetPreviewUpdateListener(contextNodeModel);
             }
         }

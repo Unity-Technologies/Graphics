@@ -17,13 +17,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()
         {
-            var models = m_Models.OfType<GraphDataNodeModel>();
+            var models = m_Models.OfType<SGNodeModel>();
             if (!models.Any()) yield break;
 
             var nodeModel = models.First();
             if (!nodeModel.TryGetNodeHandler(out var nodeReader)) yield break;
 
-            var graphModel = (ShaderGraphModel)nodeModel.GraphModel;
+            var graphModel = (SGGraphModel)nodeModel.GraphModel;
             var stencil = (ShaderGraphStencil)graphModel.Stencil;
             var nodeUIDescriptor = stencil.GetUIHints(nodeModel.registryKey, nodeReader);
 

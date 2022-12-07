@@ -1,11 +1,28 @@
 ﻿using System.Collections.Generic;
 
-namespace UnityEditor.ShaderGraph.GraphUI.UIData
+namespace UnityEditor.ShaderGraph.GraphUI
 {
+    enum ComponentLength
+    {
+        One = 1,
+        Two = 2,
+        Three = 3,
+        Four = 4,
+        Unknown = -1
+    }
+
+    enum NumericType
+    {
+        Bool = 1,
+        Int = 2,
+        Float = 3,
+        Unknown = -1
+    }
+
     /// <summary>
     /// This struct holds the Application/Tool-side info. about the UI data relevant to a port
     /// </summary>
-    public struct SGPortUIData
+    struct SGPortViewModel
     {
         public string Name { get; }
         public string DisplayName { get; }
@@ -14,12 +31,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.UIData
         public bool IsHdr { get; }
         public bool IsStatic { get; }
         public bool IsGradient { get; }
+        public ComponentLength ComponentLength { get; }
+        public NumericType NumericType { get; }
+        public int MatrixHeight { get; }
+        public bool IsMatrix { get; }
         public bool UseSlider { get; }
         public bool InspectorOnly { get; }
         public readonly List<(string, object)> Options { get; }
 
 
-        public SGPortUIData(
+        public SGPortViewModel(
             string name,
             string displayName = null,
             string tooltip = "",
@@ -27,6 +48,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UIData
             bool isHdr = false,
             bool isStatic = false,
             bool isGradient = false,
+            ComponentLength componentLength = ComponentLength.Unknown,
+            NumericType numericType = NumericType.Float,
+            bool isMatrix = false,
+            int matrixHeight = 0,
             bool useSlider = false,
             bool inspectorOnly = false,
             List<(string, object)> options = null
@@ -39,6 +64,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UIData
             IsHdr = isHdr;
             IsStatic = isStatic;
             IsGradient = isGradient;
+            ComponentLength = componentLength;
+            NumericType = numericType;
+            IsMatrix = isMatrix;
+            MatrixHeight = matrixHeight;
             UseSlider = useSlider;
             InspectorOnly = inspectorOnly;
             Options = options;

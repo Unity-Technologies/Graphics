@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public ShaderGraphViewSelection(GraphView view, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState)
             : base(view, graphModelState, selectionState) { }
 
-        ShaderGraphModel shaderGraphModel => m_GraphModelState.GraphModel as ShaderGraphModel;
+        SGGraphModel graphModel => m_GraphModelState.GraphModel as SGGraphModel;
 
         /// <summary>
         /// Adds items related to the selection to the contextual menu.
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // This calls CopySelection()
         protected override void CutSelection()
         {
-            shaderGraphModel.isCutOperation = true;
+            graphModel.isCutOperation = true;
             base.CutSelection();
         }
 
@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void Paste()
         {
             base.Paste();
-            shaderGraphModel.isCutOperation = false;
+            graphModel.isCutOperation = false;
         }
     }
 }

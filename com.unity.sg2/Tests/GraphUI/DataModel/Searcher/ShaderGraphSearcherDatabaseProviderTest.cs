@@ -7,11 +7,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     /// <summary>
     /// This is a mock ShaderGraphModel, intended to be used in unit testing.
     /// </summary>
-    internal class ShaderGraphModelMock : ShaderGraphModel
+    internal class SGGraphModelMock : SGGraphModel
     {
         internal new ShaderGraphRegistry RegistryInstance;
 
-        internal ShaderGraphModelMock(ShaderGraphRegistry registry)
+        internal SGGraphModelMock(ShaderGraphRegistry registry)
         {
             RegistryInstance = registry;
         }
@@ -40,10 +40,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         {
             // Setup
             ShaderGraphRegistry registry = new ShaderGraphRegistry();
-            ShaderGraphModel shaderGraphModel = new ShaderGraphModelMock(registry);
+            SGGraphModel graphModel = new SGGraphModelMock(registry);
 
             // Test ItemLibraryItem list from an empty registry
-            var searcherItems = ShaderGraphSearcherDatabaseProvider.GetNodeSearcherItems(shaderGraphModel);
+            var searcherItems = ShaderGraphSearcherDatabaseProvider.GetNodeSearcherItems(graphModel);
             Assert.Zero(searcherItems.Count, "ItemLibraryItem list created from an empty Registry should be empty");
 
 

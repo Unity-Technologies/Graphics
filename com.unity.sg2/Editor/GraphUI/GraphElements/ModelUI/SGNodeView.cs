@@ -1,19 +1,15 @@
+using System;
 using Debug = UnityEngine.Debug;
 using Unity.GraphToolsFoundation.Editor;
-using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine.UIElements;
-using UnityEditor.ShaderGraph.Defs;
-using CoordinateSpace = UnityEditor.ShaderGraph.Internal.CoordinateSpace;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class GraphDataNode : CollapsibleInOutNode
+    class SGNodeView : CollapsibleInOutNode
     {
-        public const string PREVIEW_HINT = "Preview.Exists";
-        public NodePreviewPart NodePreview => m_NodePreviewPart;
         NodePreviewPart m_NodePreviewPart;
-        GraphDataNodeModel m_GraphDataNodeModel => NodeModel as GraphDataNodeModel;
         DynamicPartHolder m_StaticFieldParts;
+        SGNodeModel graphDataNodeModel => NodeModel as SGNodeModel;
 
         protected override void BuildPartList()
         {
@@ -23,81 +19,44 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // If this isn't in place, things like the PreviewMode dropdown show up on nodes
             PartList.RemovePart(nodeSettingsContainerPartName);
 
-            if (NodeModel is not GraphDataNodeModel)
+            // Retrieve this node's view model
+            var nodeViewModel = graphDataNodeModel.GetViewModel();
+            if (nodeViewModel.Name == null)
                 return;
-
-            if (!m_GraphDataNodeModel.TryGetNodeHandler(out var nodeReader))
-                return;
-
-            // Retrieve the UI information about this node from its
-            // NodeUIDescriptor, stored in the ShaderGraphStencil.
-            var stencil = (ShaderGraphStencil)m_GraphDataNodeModel.GraphModel.Stencil;
-            var nodeUIDescriptor = stencil.GetUIHints(m_GraphDataNodeModel.registryKey, nodeReader);
 
             // If the node has multiple possible topologies, show the selector.
-            if (nodeUIDescriptor.SelectableFunctions.Count > 0)
+            if (nodeViewModel.SelectedFunctionID != String.Empty)
             {
-                string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-                string selected = nodeReader.GetField(fieldName).GetData<string>();
                 FunctionSelectorPart part = new (
                     "sg-function-selector",
                     GraphElementModel,
                     this,
                     ussClassName,
-                    selected,
-                    nodeUIDescriptor.SelectableFunctions,
-                    nodeUIDescriptor.FunctionSelectorLabel
+                    nodeViewModel.SelectedFunctionID,
+                    nodeViewModel.SelectableFunctions,
+                    nodeViewModel.FunctionSelectorLabel
                 );
                 PartList.InsertPartAfter(portContainerPartName, part);
             }
 
-            m_StaticFieldParts = new(name, m_GraphDataNodeModel, this, ussClassName);
-
-            var isNonPreviewableType = false;
-
-            foreach (var portReader in nodeReader.GetPorts())
+            m_StaticFieldParts = new(name, graphDataNodeModel, this, ussClassName);
+            foreach (var portUIData in nodeViewModel.StaticPortUIData)
             {
-                if (!portReader.IsHorizontal)
-                    continue;
-                // Only add new node parts for static ports.
-                var staticField = portReader.GetTypeField().GetSubField<bool>("IsStatic");
-                var portKey = portReader.GetTypeField().GetRegistryKey();
-                // TODO: Move this stuff so it gets initialized as part of NodeUIDescriptors
-                // TODO: and stored there so SGNodeUIData can access it
-                bool isStatic = staticField?.GetData() ?? false;
-                bool isGradientType = portKey.Name == Registry.ResolveKey<GradientType>().Name;
-                var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(portReader.LocalID);
-
-                // GradientType cannot be previewed if directly acting as the output,
-                // disable preview part on it if so
-                if (isGradientType && !portReader.IsInput)
-                    isNonPreviewableType = true;
-
-                if (!isStatic || parameterUIDescriptor.InspectorOnly)
-                    continue;
-
-                if (isGradientType)
+                if (portUIData.IsGradient)
                 {
                     var gradientPart = new GradientPart(
                         "sg-gradient",
                         GraphElementModel,
                         this,
                         ussClassName,
-                        portReader.LocalID);
+                        portUIData.Name);
                     m_StaticFieldParts.PartList.InsertPartAfter(
                         portContainerPartName,
                         gradientPart);
                     continue;
                 }
 
-                if (portReader.GetTypeField().GetRegistryKey().Name != Registry.ResolveKey<GraphType>().Name)
-                    continue;
-
-                var typeField = portReader.GetTypeField();
-                if (typeField == null)
-                    continue;
-
-                var part = GetPartForPortField(portReader, typeField, parameterUIDescriptor);
+                var part = ResolvePortType(portUIData);
                 if (part != null)
                 {
                     PartList.InsertPartAfter(portContainerPartName, part);
@@ -105,8 +64,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             // TODO: There should probably be a better way to assign "special" node parts like this.
-            // Possibly using the UI data classes once the refactor branch is merged.
-            var nodeName = nodeReader.GetRegistryKey().Name;
+            var nodeName = graphDataNodeModel.registryKey.Name;
             if (nodeName == "Swizzle")
             {
                 PartList.InsertPartAfter(portContainerPartName, new SwizzleMaskPart("sg-swizzle-mask", GraphElementModel, this, ussClassName));
@@ -132,12 +90,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // By default we assume all nodes should display previews, unless there
             // is a UIHint that dictates otherwise
-            bool nodeHasPreview = nodeUIDescriptor.HasPreview;
+            bool nodeHasPreview = nodeViewModel.HasPreview;
 
-            var shouldShowPreview = m_GraphDataNodeModel.existsInGraphData &&
-                nodeHasPreview &&
-                !isNonPreviewableType &&
-                m_GraphDataNodeModel is not GraphDataContextNodeModel;
+            var shouldShowPreview =
+                graphDataNodeModel.existsInGraphData &&
+                nodeHasPreview;
 
             if (shouldShowPreview)
                 m_NodePreviewPart = new NodePreviewPart(
@@ -157,13 +114,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 GraphView.Dispatch(new ChangePreviewExpandedCommand(true, GraphView.GetSelection() ));
             },
-                m_GraphDataNodeModel.IsPreviewExpanded ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal);
+                graphDataNodeModel.IsPreviewExpanded ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal);
 
             evt.menu.AppendAction("Preview/Collapse", action =>
             {
                 GraphView.Dispatch(new ChangePreviewExpandedCommand(false, GraphView.GetSelection() ));
             },
-                m_GraphDataNodeModel.IsPreviewExpanded ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                graphDataNodeModel.IsPreviewExpanded ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
 
             evt.menu.AppendAction("Copy Shader", action =>
             {
@@ -192,56 +149,49 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.BuildContextualMenu(evt);
         }
 
-        private ModelViewPart GetPartForPortField(
-            PortHandler portHandler,
-            FieldHandler fieldHandler,
-            ParameterUIDescriptor parameterUIDescriptor)
+        // Figure out the correct part to display based on the port type.
+        ModelViewPart ResolvePortType(SGPortViewModel portViewModel)
         {
-            // Figure out the correct part to display based on the port's fields.
-            var length = GraphTypeHelpers.GetLength(fieldHandler);
-            var height = GraphTypeHelpers.GetHeight(fieldHandler);
-            var primitive = GraphTypeHelpers.GetPrimitive(fieldHandler);
-
-            if (height > GraphType.Height.One)
+            if (portViewModel.IsMatrix)
             {
                 return new MatrixPart(
                     "sg-matrix",
                     GraphElementModel,
                     this,
                     ussClassName,
-                    portHandler.LocalID,
-                    (int)height);
+                    portViewModel.Name,
+                    portViewModel.MatrixHeight);
             }
 
-            switch (length)
+            switch (portViewModel.ComponentLength)
             {
-                case GraphType.Length.One:
+                case ComponentLength.One:
                 {
-                    switch (primitive)
+                    switch (portViewModel.NumericType)
                     {
-                        case GraphType.Primitive.Bool:
+                        case NumericType.Bool:
                             return new BoolPart(
                                 "sg-bool",
                                 GraphElementModel,
                                 this,
                                 ussClassName,
-                                portHandler.LocalID);
-                        case GraphType.Primitive.Int:
+                                portViewModel.Name);
+                        case NumericType.Int:
                             return new IntPart(
                                 "sg-int",
                                 GraphElementModel,
                                 this,
                                 ussClassName,
-                                portHandler.LocalID);
-                        case GraphType.Primitive.Float:
-                            if (parameterUIDescriptor.UseSlider)
+                                portViewModel.Name);
+                        case NumericType.Float:
+                            if (portViewModel.UseSlider)
                             {
                                 return new SliderPart(
                                     "sg-slider",
                                     GraphElementModel,
                                     this,
                                     ussClassName,
-                                    portHandler.LocalID);
+                                    portViewModel.Name);
                             }
                             else
                             {
@@ -250,33 +200,33 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                     GraphElementModel,
                                     this,
                                     ussClassName,
-                                    portHandler.LocalID);
+                                    portViewModel.Name);
                             }
-                        case GraphType.Primitive.Any:
-                        // Not valid, the size should've been resolved.
+                        case NumericType.Unknown:
+                        // Not valid, the type should've been resolved.
                         default:
                             break;
                     }
                     break;
                 }
-                case GraphType.Length.Two:
+                case ComponentLength.Two:
                     return new Vector2Part(
                         "sg-vector2",
                         GraphElementModel,
                         this,
                         ussClassName,
-                        portHandler.LocalID);
-                case GraphType.Length.Three:
-                    if (parameterUIDescriptor.UseColor)
+                        portViewModel.Name);
+                case ComponentLength.Three:
+                    if (portViewModel.UseColor)
                     {
                         return new ColorPart(
                             "sg-color",
                             GraphElementModel,
                             this,
                             ussClassName,
-                            portHandler.LocalID,
+                            portViewModel.Name,
                             includeAlpha: false,
-                            isHdr: parameterUIDescriptor.IsHdr);
+                            isHdr: portViewModel.IsHdr);
                     }
                     else
                     {
@@ -285,19 +235,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             GraphElementModel,
                             this,
                             ussClassName,
-                            portHandler.LocalID);
+                            portViewModel.Name);
                     }
-                case GraphType.Length.Four:
-                    if (parameterUIDescriptor.UseColor)
+                case ComponentLength.Four:
+                    if (portViewModel.UseColor)
                     {
                         return new ColorPart(
                             "sg-color",
                             GraphElementModel,
                             this,
                             ussClassName,
-                            portHandler.LocalID,
+                            portViewModel.Name,
                             includeAlpha: true,
-                            isHdr: parameterUIDescriptor.IsHdr);
+                            isHdr: portViewModel.IsHdr);
                     }
                     else
                     {
@@ -306,9 +256,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             GraphElementModel,
                             this,
                             ussClassName,
-                            portHandler.LocalID);
+                            portViewModel.Name);
                     }
-                case GraphType.Length.Any:
+                case ComponentLength.Unknown:
                 // Not valid, the size should've been resolved.
                 default:
                     break;

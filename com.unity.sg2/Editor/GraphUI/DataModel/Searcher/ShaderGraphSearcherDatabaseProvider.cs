@@ -15,9 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     class ShaderGraphSearcherDatabaseProvider : DefaultDatabaseProvider
     {
         public ShaderGraphSearcherDatabaseProvider(ShaderGraphStencil stencil)
-            : base(stencil)
-        {
-        }
+            : base(stencil) { }
 
         /// <inheritdoc/>
         public override IReadOnlyList<ItemLibraryDatabaseBase> GetGraphElementsDatabases(GraphModel graphModel)
@@ -39,10 +37,81 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return databases;
         }
 
+        public override IReadOnlyList<ItemLibraryDatabaseBase> GetGraphElementContainerDatabases(GraphModel graphModel, IGraphElementContainer container)
+        {
+            if (container is not SGContextNodeModel contextNode)
+            {
+                return base.GetGraphElementContainerDatabases(graphModel, container);
+            }
+
+            var blocks = GetBlockSearcherItems(contextNode);
+            return new List<ItemLibraryDatabaseBase> {new ItemLibraryDatabase(blocks)};
+        }
+
+        private static List<ItemLibraryItem> GetBlockSearcherItems(SGContextNodeModel context)
+        {
+            var availableBlocks = new List<ItemLibraryItem>();
+
+            foreach (var entryName in context.GetContextEntryNames())
+            {
+                availableBlocks.Add(new GraphNodeModelLibraryItem(
+                    entryName,
+                    null,
+                    creationData =>
+                    {
+                        var isPreview = (creationData.SpawnFlags & SpawnFlags.Orphan) != 0;
+
+                        if (!isPreview && context.TryGetBlockForContextEntry(entryName, out var existingBlock))
+                        {
+                            // Point to an existing block if it's already present.
+                            return existingBlock;
+                        }
+
+                        var result = creationData.CreateBlock(
+                            typeof(SGBlockNodeModel),
+                            initializationCallback: node =>
+                            {
+                                if (node is not SGBlockNodeModel graphDataBlock) return;
+
+                                graphDataBlock.Title = entryName;
+                                graphDataBlock.ContextEntryName = entryName;
+                            },
+                            typeof(SGContextNodeModel));
+
+                        switch (result)
+                        {
+                            // When setting up a searcher preview, CreateBlock returns a dummy context to house our
+                            // block. In this case, copy over the important context info so the block can be dressed
+                            // properly.
+                            case SGContextNodeModel previewContext:
+                            {
+                                previewContext.graphDataName = context.graphDataName;
+                                previewContext.Title = context.Title;
+                                previewContext.DefineNode();
+
+                                var previewBlock = (SGBlockNodeModel)previewContext.GraphElementModels.First();
+                                previewBlock.DefineNode();
+                                break;
+                            }
+
+                            // If CreateBlock returns an actual block model, we created a real block. Define it now
+                            // that it's added to the context, so it appears with the right ports.
+                            case SGBlockNodeModel block:
+                                block.DefineNode();
+                                break;
+                        }
+
+                        return result;
+                    }));
+            }
+
+            return availableBlocks;
+        }
+
         internal static List<ItemLibraryItem> GetNodeSearcherItems(GraphModel graphModel)
         {
             var searcherItems = new List<ItemLibraryItem>();
-            if (graphModel is ShaderGraphModel shaderGraphModel)
+            if (graphModel is SGGraphModel shaderGraphModel)
             {
                 // Keep track of all the names that have been added to the ItemLibraryItem list.
                 // Having conflicting names in the ItemLibraryItem list causes errors

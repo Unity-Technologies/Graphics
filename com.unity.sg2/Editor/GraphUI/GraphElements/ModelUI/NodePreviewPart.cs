@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         VisualElement m_PreviewContainer;
         Image m_PreviewImage;
 
-        GraphDataNodeModel m_GraphDataNodeModel;
+        SGNodeModel m_SGNodeModel;
 
         const string ussRootName = "ge-node-preview-part";
 
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public NodePreviewPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
         {
-            m_GraphDataNodeModel = model as GraphDataNodeModel;
+            m_SGNodeModel = model as SGNodeModel;
         }
 
         protected override void BuildPartUI(VisualElement parent)
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_PreviewContainer = m_Root.Q<VisualElement>("previewContainer");
 
             // TODO: Handle preview collapse/expand state serialization
-            HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewExpanded);
+            HandlePreviewExpansionStateChanged(m_SGNodeModel.IsPreviewExpanded);
 
             parent.Add(Root);
         }
@@ -56,25 +56,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void UpdatePartFromModel()
         {
             // Don't need to do this for node previews in Searcher
-            if (!m_GraphDataNodeModel.existsInGraphData)
+            if (!m_SGNodeModel.existsInGraphData)
                 return;
 
-            HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewExpanded);
+            HandlePreviewExpansionStateChanged(m_SGNodeModel.IsPreviewExpanded);
 
             // TODO: When shader compilation is complete and we have updated texture, need to notify NodePreviewPart so image tint can be changed
-            HandlePreviewShaderCurrentlyCompiling(m_GraphDataNodeModel.PreviewShaderIsCompiling);
+            HandlePreviewShaderCurrentlyCompiling(m_SGNodeModel.PreviewShaderIsCompiling);
 
-            HandlePreviewTextureUpdated(m_GraphDataNodeModel.PreviewTexture);
+            HandlePreviewTextureUpdated(m_SGNodeModel.PreviewTexture);
         }
 
         void OnCollapseButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
+            m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_SGNodeModel }));
         }
 
         void OnExpandButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
+            m_OwnerElement.RootView.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_SGNodeModel }));
         }
 
         void HandlePreviewExpansionStateChanged(bool previewExpanded)

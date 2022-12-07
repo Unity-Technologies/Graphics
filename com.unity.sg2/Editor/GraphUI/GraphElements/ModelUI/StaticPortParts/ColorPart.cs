@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnFieldValueChanged(ChangeEvent<Color> change)
         {
-            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (m_Model is not SGNodeModel graphDataNodeModel) return;
 
             var values = new float[length];
             for (var i = 0; i < length; i++)
