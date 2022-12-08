@@ -418,7 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                    * 23
                    + m_GlobalSettings.colorGradingSpace.GetHashCode() * 23 +
-                   + UnityEditor.PlayerSettings.D3DHDRBitDepth.GetHashCode()
+                   + UnityEditor.PlayerSettings.hdrBitDepth.GetHashCode()
 
 #endif
                    ;
