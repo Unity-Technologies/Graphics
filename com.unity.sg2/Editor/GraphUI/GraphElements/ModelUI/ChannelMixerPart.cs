@@ -8,8 +8,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class ChannelMixerPart : BaseModelViewPart
     {
-        const float k_SliderMin = -2, k_SliderMax = 2;
-        static readonly string[] k_ChannelNames = { "Red", "Green", "Blue" };
+        static readonly string[] k_ChannelPortNames = { "Red", "Green", "Blue" };
         static readonly string[] k_ChannelLabels = { "R", "G", "B" };
 
         VisualElement m_Root;
@@ -29,14 +28,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphElementHelper.LoadTemplateAndStylesheet(m_Root, "ChannelMixerPart", "sg-channel-mixer");
 
             // TODO: This is GTF's port of the toggle control. Replace with public UITK equivalent when available.
-            var channelToggles = new ToggleButtonStrip(null, new[] {"Red", "Green", "Blue"}) {labels = new[] {"R", "G", "B"}};
+            var channelToggles = new ToggleButtonStrip(null, k_ChannelPortNames) {labels = k_ChannelLabels};
             channelToggles.RegisterValueChangedCallback(e =>
             {
                 m_CurrentChannel = e.newValue;
                 UpdatePartFromModel();
             });
 
-            m_CurrentChannel = k_ChannelNames[0];
+            m_CurrentChannel = k_ChannelPortNames[0];
             channelToggles.value = m_CurrentChannel;
 
             m_Root.Q("channel-toggle-container").Add(channelToggles);
