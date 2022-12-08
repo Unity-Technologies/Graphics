@@ -4,6 +4,14 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.1.2] - 2022-12-08
+
+### Changed
+- For Ray Tracing and Ray Tracing(Realtime GI) assets, DLLS was enabled. Forced resolution of 75%
+- 3rd Person controller camera properties were adjusted. Its basically now closer.
+- Default quality levels changed for consoles
+- Bloom scattering reduction to 0.4
+
 ## [14.1.1] - 2022-11-09
 
 ### Fixed
