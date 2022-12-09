@@ -682,7 +682,7 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 13
+  m_RendererIndex: 7
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1

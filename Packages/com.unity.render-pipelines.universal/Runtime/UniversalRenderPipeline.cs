@@ -684,6 +684,7 @@ namespace UnityEngine.Rendering.Universal
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
+            int rendererCount = asset.m_RendererDataList.Length;
 
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not
@@ -804,6 +805,18 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
                 baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
+
+                if (!isStackedRendering)
+                {
+                    for (int i = 0; i < rendererCount; ++i)
+                    {
+                        var currRenderer = asset.GetRenderer(i);
+                        if (baseCameraData.renderer != null && !currRenderer.hasReleasedRTs && baseCameraData.renderer != currRenderer)
+                        {
+                            currRenderer.ReleaseRenderTargets();
+                        }
+                    }
+                }
 
                 RenderSingleCamera(context, ref baseCameraData, anyPostProcessingEnabled);
                 using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))

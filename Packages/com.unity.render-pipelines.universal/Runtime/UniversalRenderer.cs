@@ -363,19 +363,11 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.Cleanup();
             m_GBufferPass?.Dispose();
             m_PostProcessPasses.Dispose();
-            m_ColorBufferSystem.Dispose();
-            m_MainLightShadowCasterPass?.Dispose();
-            m_AdditionalLightsShadowCasterPass?.Dispose();
             m_FinalBlitPass?.Dispose();
 
-            m_CameraDepthAttachment?.Release();
             m_XRTargetHandleAlias?.Release();
-            m_DepthTexture?.Release();
-            m_NormalsTexture?.Release();
-            m_DecalLayersTexture?.Release();
-            m_OpaqueColor?.Release();
-            m_MotionVectorColor?.Release();
-            m_MotionVectorDepth?.Release();
+
+            ReleaseRenderTargets();
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
@@ -387,6 +379,26 @@ namespace UnityEngine.Rendering.Universal
             CleanupRenderGraphResources();
 
             LensFlareCommonSRP.Dispose();
+        }
+
+        internal override void ReleaseRenderTargets()
+        {
+            m_ColorBufferSystem.Dispose();
+            if (m_DeferredLights != null && !m_DeferredLights.UseRenderPass)
+                m_GBufferPass?.Dispose();
+
+            m_PostProcessPasses.ReleaseRenderTargets();
+            m_MainLightShadowCasterPass?.Dispose();
+            m_AdditionalLightsShadowCasterPass?.Dispose();
+
+            m_CameraDepthAttachment?.Release();
+            m_DepthTexture?.Release();
+            m_NormalsTexture?.Release();
+            m_DecalLayersTexture?.Release();
+            m_OpaqueColor?.Release();
+            m_MotionVectorColor?.Release();
+            m_MotionVectorDepth?.Release();
+            hasReleasedRTs = true;
         }
 
         private void SetupFinalPassDebug(ref CameraData cameraData)

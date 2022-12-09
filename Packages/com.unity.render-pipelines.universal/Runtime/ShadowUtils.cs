@@ -446,7 +446,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>If the RTHandle needs to be re-allocated</returns>
         public static bool ShadowRTNeedsReAlloc(RTHandle handle, int width, int height, int bits, int anisoLevel, float mipMapBias, string name)
         {
-            if (handle == null)
+            if (handle == null || handle.rt == null)
                 return true;
             var descriptor = GetTemporaryShadowTextureDescriptor(width, height, bits);
             if (m_ForceShadowPointSampling)

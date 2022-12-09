@@ -87,6 +87,11 @@ namespace UnityEngine.Rendering.Universal
         protected ProfilingSampler profilingExecute { get; set; }
 
         /// <summary>
+        /// Used to determine whether to release render targets used by the renderer when the renderer is no more active
+        /// </summary>
+        internal bool hasReleasedRTs = true;
+
+        /// <summary>
         /// Configures the supported features for this renderer. When creating custom renderers
         /// for Universal Render Pipeline you can choose to opt-in or out for specific features.
         /// </summary>
@@ -666,6 +671,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             Dispose(true);
+            hasReleasedRTs = true;
             GC.SuppressFinalize(this);
         }
 
@@ -675,6 +681,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
+        {
+        }
+
+        internal virtual void ReleaseRenderTargets()
         {
         }
 
@@ -1046,6 +1056,7 @@ namespace UnityEngine.Rendering.Universal
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
             bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
 
+            hasReleasedRTs = false;
             m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;

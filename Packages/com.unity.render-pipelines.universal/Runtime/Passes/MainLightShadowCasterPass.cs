@@ -139,6 +139,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
             m_CreateEmptyShadowmap = false;
             useNativeRenderPass = true;
+            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyLightShadowmapTexture, 1, 1, k_ShadowmapBufferBits, name: "_EmptyLightShadowmapTexture");
 
             return true;
         }
@@ -150,6 +151,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
+            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyLightShadowmapTexture, 1, 1, k_ShadowmapBufferBits, name: "_EmptyLightShadowmapTexture");
 
             return true;
         }
