@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         List<string> m_DoNotShowPrimitives = new (new [] { PrimitiveType.Plane.ToString() });
 
-        Dispatcher m_CommandDispatcher;
+        ICommandTarget m_CommandDispatcher;
 
         Dictionary<string, Mesh> m_PreviewMeshIndex = new();
 
@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         IPreviewUpdateListener m_PreviewUpdateListener;
 
-        public MainPreviewView(Dispatcher dispatcher)
+        public MainPreviewView(ICommandTarget dispatcher)
         {
             m_CommandDispatcher = dispatcher;
 
