@@ -134,13 +134,14 @@ namespace UnityEngine.Rendering
             return !left.Equals(right);
         }
     }
-
+	
     /// <summary>
     /// Contains default values for built-in properties that the user is expected to manually
     /// provide for <c>DOTS_INSTANCING_ON</c> shaders. The struct layout matches the
     /// <c>unity_DOTSInstanceGlobalValues</c> constant buffer the shader expects the default
     /// values in.
     /// </summary>
+    [Obsolete("BatchRendererGroupGlobals and associated cbuffer are now set automatically by Unity. Setting it manually is no longer necessary or supported.")]
     [StructLayout(LayoutKind.Sequential)]
     [Serializable]
     public struct BatchRendererGroupGlobals : IEquatable<BatchRendererGroupGlobals>
@@ -243,4 +244,5 @@ namespace UnityEngine.Rendering
             return !left.Equals(right);
         }
     }
+
 }

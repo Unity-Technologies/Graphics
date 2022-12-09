@@ -21,7 +21,6 @@ public class SimpleBRGExample : MonoBehaviour
 
     private GraphicsBuffer m_InstanceData;
     private GraphicsBuffer m_CopySrc;
-    private GraphicsBuffer m_Globals;
     private BatchID m_BatchID;
     private BatchMeshID m_MeshID;
     private BatchMaterialID m_MaterialID;
@@ -111,12 +110,6 @@ public class SimpleBRGExample : MonoBehaviour
             BufferSize(bufferCount) / sizeof(int),
             sizeof(int));
 
-        // Create a constant buffer for BRG global values
-        m_Globals = new GraphicsBuffer(GraphicsBuffer.Target.Constant,
-            1,
-            UnsafeUtility.SizeOf<BatchRendererGroupGlobals>());
-        m_Globals.SetData(new [] { BatchRendererGroupGlobals.Default });
-
         // Place one zero matrix at the start of the instance data buffer, so loads from address 0 will return zero
         var zero = new Matrix4x4[1] { Matrix4x4.zero };
 
@@ -198,11 +191,6 @@ public class SimpleBRGExample : MonoBehaviour
         m_BatchID = m_BRG.AddBatch(metadata, m_InstanceData.bufferHandle, (uint)BufferOffset, (uint)BufferWindowSize);
     }
 
-    private void Update()
-    {
-        Shader.SetGlobalConstantBuffer(BatchRendererGroupGlobals.kGlobalsPropertyId, m_Globals, 0, m_Globals.stride);
-    }
-
     // We need to dispose our GraphicsBuffer and BatchRendererGroup when our script is no longer used,
     // to avoid leaking anything. Registered Meshes and Materials, and any batches added to the
     // BatchRendererGroup are automatically disposed when disposing the BatchRendererGroup.
@@ -211,7 +199,6 @@ public class SimpleBRGExample : MonoBehaviour
         m_CopySrc.Dispose();
         m_InstanceData.Dispose();
         m_BRG.Dispose();
-        m_Globals.Dispose();
     }
 
     // The callback method called by Unity whenever it visibility culls to determine which
