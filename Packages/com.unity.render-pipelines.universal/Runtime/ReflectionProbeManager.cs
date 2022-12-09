@@ -40,13 +40,13 @@ namespace UnityEngine.Rendering.Universal
 
         static class ShaderProperties
         {
-            public static readonly int HDR = Shader.PropertyToID("URP_ReflProbes_HDR");
-            public static readonly int BoxMin = Shader.PropertyToID("URP_ReflProbes_BoxMin");
-            public static readonly int BoxMax = Shader.PropertyToID("URP_ReflProbes_BoxMax");
-            public static readonly int ProbePosition = Shader.PropertyToID("URP_ReflProbes_ProbePosition");
-            public static readonly int MipScaleOffset = Shader.PropertyToID("URP_ReflProbes_MipScaleOffset");
-            public static readonly int Count = Shader.PropertyToID("URP_ReflProbes_Count");
-            public static readonly int Atlas = Shader.PropertyToID("URP_ReflProbes_Atlas");
+            public static readonly int HDR = Shader.PropertyToID("urp_ReflProbes_HDR");
+            public static readonly int BoxMin = Shader.PropertyToID("urp_ReflProbes_BoxMin");
+            public static readonly int BoxMax = Shader.PropertyToID("urp_ReflProbes_BoxMax");
+            public static readonly int ProbePosition = Shader.PropertyToID("urp_ReflProbes_ProbePosition");
+            public static readonly int MipScaleOffset = Shader.PropertyToID("urp_ReflProbes_MipScaleOffset");
+            public static readonly int Count = Shader.PropertyToID("urp_ReflProbes_Count");
+            public static readonly int Atlas = Shader.PropertyToID("urp_ReflProbes_Atlas");
         }
 
         public RenderTexture atlasRT => m_AtlasTexture0;

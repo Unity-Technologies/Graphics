@@ -36,7 +36,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     if (URP_FP_WORDS_PER_TILE > 0)
     {
         state.tileMask =
-            Select4(asuint(URP_Tiles[tileIndex / 4]), tileIndex % 4) &
+            Select4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
             Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4);
     }
 #endif
@@ -56,7 +56,7 @@ bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
         uint tileIndex = it.tileOffset + wordIndex;
         uint zBinIndex = it.zBinOffset + wordIndex;
         it.tileMask =
-            Select4(asuint(URP_Tiles[tileIndex / 4]), tileIndex % 4) &
+            Select4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
             Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4) &
             // Mask out the beginning and end of the word.
             (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));

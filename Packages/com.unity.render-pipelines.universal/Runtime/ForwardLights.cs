@@ -400,7 +400,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         m_ZBinsBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
                         m_TileMasksBuffer.SetData(m_TileMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
                         cmd.SetGlobalConstantBuffer(m_ZBinsBuffer, "URP_ZBinBuffer", 0, UniversalRenderPipeline.maxZBinWords * 4);
-                        cmd.SetGlobalConstantBuffer(m_TileMasksBuffer, "URP_TileBuffer", 0, UniversalRenderPipeline.maxTileWords * 4);
+                        cmd.SetGlobalConstantBuffer(m_TileMasksBuffer, "urp_TileBuffer", 0, UniversalRenderPipeline.maxTileWords * 4);
                     }
 
                     cmd.SetGlobalVector("_FPParams0", math.float4(m_ZBinScale, m_ZBinOffset, m_LightCount, m_DirectionalLightCount));
