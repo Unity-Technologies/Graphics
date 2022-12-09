@@ -76,8 +76,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass with the source and destination to execute on.
         /// </summary>
-        /// <param name="source">Source Render Target</param>
-        /// <param name="destination">Destination Render Target</param>
+        /// <param name="source">Source render target.</param>
+        /// <param name="destination">Destination render target.</param>
+        /// <param name="downsampling">The downsampling method to use.</param>
         [Obsolete("Use RTHandles for source and destination.")]
         public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
         {
@@ -90,8 +91,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass with the source and destination to execute on.
         /// </summary>
-        /// <param name="source">Source Render Target</param>
-        /// <param name="destination">Destination Render Target</param>
+        /// <param name="source">Source render target.</param>
+        /// <param name="destination">Destination render target.</param>
+        /// <param name="downsampling">The downsampling method to use.</param>
         public void Setup(RTHandle source, RTHandle destination, Downsampling downsampling)
         {
             this.source = source;

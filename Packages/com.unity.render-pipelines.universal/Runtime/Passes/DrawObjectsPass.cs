@@ -59,6 +59,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         string m_ProfilerTag;
         ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
+
+        /// <summary>
+        /// Used to indicate whether transparent objects should receive shadows or not.
+        /// </summary>
         public bool m_ShouldTransparentsReceiveShadows;
 
         PassData m_PassData;
@@ -302,6 +306,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Called before ExecutePass draws the objects.
+        /// </summary>
+        /// <param name="cmd">The command buffer to use.</param>
         protected virtual void OnExecute(CommandBuffer cmd) { }
     }
 }

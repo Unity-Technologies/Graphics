@@ -5,6 +5,9 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
+    /// <summary>
+    /// Render all objects that have a 'DepthNormals' and/or 'DepthNormalsOnly' pass into the given depth and normal buffers.
+    /// </summary>
     public class DepthNormalOnlyPass : ScriptableRenderPass
     {
         internal List<ShaderTagId> shaderTagIds { get; set; }
@@ -39,6 +42,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.shaderTagIds = k_DepthNormals;
         }
 
+        /// <summary>
+        /// Finds the format to use for the normals texture.
+        /// </summary>
+        /// <returns>The GraphicsFormat to use with the Normals texture.</returns>
         public static GraphicsFormat GetGraphicsFormat()
         {
             if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
@@ -63,8 +70,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <summary>
-        /// Configure the pass
+        /// Configures the pass.
         /// </summary>
+        /// <param name="depthHandle">The <c>RTHandle</c> used to render depth to.</param>
+        /// <param name="normalHandle">The <c>RTHandle</c> used to render normals.</param>
+        /// <param name="decalLayerHandle">The <c>RTHandle</c> used to render decals.</param>
+        /// <seealso cref="RTHandle"/>
         public void Setup(RTHandle depthHandle, RTHandle normalHandle, RTHandle decalLayerHandle)
         {
             Setup(depthHandle, normalHandle);

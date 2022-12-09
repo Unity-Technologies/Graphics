@@ -5,6 +5,9 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor
 {
+    /// <summary>
+    /// Editor script for the Lighting Explorer.
+    /// </summary>
     [LightingExplorerExtensionAttribute(typeof(UniversalRenderPipelineAsset))]
     public class LightExplorer : DefaultLightingExplorerExtension
     {
@@ -33,6 +36,7 @@ namespace UnityEditor
             public static readonly int[] ReflectionProbeSizeValues = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
         }
 
+        /// <inheritdoc />
         protected override LightingExplorerTableColumn[] GetReflectionProbeColumns()
         {
             return new[]

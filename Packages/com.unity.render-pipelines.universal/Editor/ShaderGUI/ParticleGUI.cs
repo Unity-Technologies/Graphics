@@ -7,100 +7,271 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
+    /// <summary>
+    /// Editor script for the particle material inspector.
+    /// </summary>
     public static class ParticleGUI
     {
+        /// <summary>
+        /// The available color modes.
+        /// Controls how the Particle color and the Material color blend together.
+        /// </summary>
         public enum ColorMode
         {
+            /// <summary>
+            /// Use this to select multiply mode.
+            /// </summary>
             Multiply,
+
+            /// <summary>
+            /// Use this to select additive mode.
+            /// </summary>
             Additive,
+
+            /// <summary>
+            /// Use this to select subtractive mode.
+            /// </summary>
             Subtractive,
+
+            /// <summary>
+            /// Use this to select overlay mode.
+            /// </summary>
             Overlay,
+
+            /// <summary>
+            /// Use this to select color mode.
+            /// </summary>
             Color,
+
+            /// <summary>
+            /// Use this to select difference mode.
+            /// </summary>
             Difference
         }
 
+        /// <summary>
+        /// Container for the text and tooltips used to display the shader.
+        /// </summary>
         public static class Styles
         {
+            /// <summary>
+            /// The text and tooltip color mode.
+            /// </summary>
             public static GUIContent colorMode = EditorGUIUtility.TrTextContent("Color Mode",
                 "Controls how the Particle color and the Material color blend together.");
 
+            /// <summary>
+            /// The text and tooltip flip-book blending.
+            /// </summary>
             public static GUIContent flipbookMode = EditorGUIUtility.TrTextContent("Flip-Book Blending",
                 "Blends the frames in a flip-book together in a smooth animation.");
 
+            /// <summary>
+            /// The text and tooltip soft particles.
+            /// </summary>
             public static GUIContent softParticlesEnabled = EditorGUIUtility.TrTextContent("Soft Particles",
                 "Makes particles fade out when they get close to intersecting with the surface of other geometry in the depth buffer.");
 
+            /// <summary>
+            /// The text and tooltip soft particles surface fade.
+            /// </summary>
             public static GUIContent softParticlesFadeText = EditorGUIUtility.TrTextContent("Surface Fade");
 
+            /// <summary>
+            /// The text and tooltip soft particles near fade distance.
+            /// </summary>
             public static GUIContent softParticlesNearFadeDistanceText =
                 EditorGUIUtility.TrTextContent("Near",
                     "The distance from the other surface where the particle is completely transparent.");
 
+            /// <summary>
+            /// The text and tooltip soft particles far fade distance.
+            /// </summary>
             public static GUIContent softParticlesFarFadeDistanceText =
                 EditorGUIUtility.TrTextContent("Far",
                     "The distance from the other surface where the particle is completely opaque.");
 
+            /// <summary>
+            /// The text and tooltip camera fading.
+            /// </summary>
             public static GUIContent cameraFadingEnabled = EditorGUIUtility.TrTextContent("Camera Fading",
                 "Makes particles fade out when they get close to the camera.");
 
+            /// <summary>
+            /// The text and tooltip camera fading distance.
+            /// </summary>
             public static GUIContent cameraFadingDistanceText = EditorGUIUtility.TrTextContent("Distance");
 
+            /// <summary>
+            /// The text and tooltip camera fading near distance.
+            /// </summary>
             public static GUIContent cameraNearFadeDistanceText =
                 EditorGUIUtility.TrTextContent("Near",
                     "The distance from the camera where the particle is completely transparent.");
 
+            /// <summary>
+            /// The text and tooltip camera fading far distance.
+            /// </summary>
             public static GUIContent cameraFarFadeDistanceText =
                 EditorGUIUtility.TrTextContent("Far", "The distance from the camera where the particle is completely opaque.");
 
+            /// <summary>
+            /// The text and tooltip distortion.
+            /// </summary>
             public static GUIContent distortionEnabled = EditorGUIUtility.TrTextContent("Distortion",
                 "Creates a distortion effect by making particles perform refraction with the objects drawn before them.");
 
+            /// <summary>
+            /// The text and tooltip distortion strength.
+            /// </summary>
             public static GUIContent distortionStrength = EditorGUIUtility.TrTextContent("Strength",
                 "Controls how much the Particle distorts the background. ");
 
+            /// <summary>
+            /// The text and tooltip distortion blend.
+            /// </summary>
             public static GUIContent distortionBlend = EditorGUIUtility.TrTextContent("Blend",
                 "Controls how visible the distortion effect is. At 0, there’s no visible distortion. At 1, only the distortion effect is visible, not the background.");
 
+            /// <summary>
+            /// The text and tooltip for vertex streams.
+            /// </summary>
             public static GUIContent VertexStreams = EditorGUIUtility.TrTextContent("Vertex Streams",
                 "List detailing the expected layout of data sent to the shader from the particle system.");
 
+            /// <summary>
+            /// The string for position vertex stream.
+            /// </summary>
             public static string streamPositionText = "Position (POSITION.xyz)";
+
+            /// <summary>
+            /// The string for normal vertex stream.
+            /// </summary>
             public static string streamNormalText = "Normal (NORMAL.xyz)";
+
+            /// <summary>
+            /// The string for color vertex stream.
+            /// </summary>
             public static string streamColorText = "Color (COLOR.xyzw)";
+
+            /// <summary>
+            /// The string for color instanced vertex stream.
+            /// </summary>
             public static string streamColorInstancedText = "Color (INSTANCED0.xyzw)";
+
+            /// <summary>
+            /// The string for UV vertex stream.
+            /// </summary>
             public static string streamUVText = "UV (TEXCOORD0.xy)";
+
+            /// <summary>
+            /// The string for UV2 vertex stream.
+            /// </summary>
             public static string streamUV2Text = "UV2 (TEXCOORD0.zw)";
+
+            /// <summary>
+            /// The string for AnimBlend Texcoord1 vertex stream.
+            /// </summary>
             public static string streamAnimBlendText = "AnimBlend (TEXCOORD1.x)";
+
+            /// <summary>
+            /// The string for AnimBlend Instanced1 vertex stream.
+            /// </summary>
             public static string streamAnimFrameText = "AnimFrame (INSTANCED1.x)";
+
+            /// <summary>
+            /// The string for tangent vertex stream.
+            /// </summary>
             public static string streamTangentText = "Tangent (TANGENT.xyzw)";
 
+            /// <summary>
+            /// The text and tooltip for the vertex stream fix now GUI.
+            /// </summary>
             public static GUIContent streamApplyToAllSystemsText = EditorGUIUtility.TrTextContent("Fix Now",
                 "Apply the vertex stream layout to all Particle Systems using this material");
 
+            /// <summary>
+            /// The string for applying custom vertex streams from material.
+            /// </summary>
             public static string undoApplyCustomVertexStreams = L10n.Tr("Apply custom vertex streams from material");
 
+            /// <summary>
+            /// The vertex stream icon.
+            /// </summary>
             public static GUIStyle vertexStreamIcon = new GUIStyle();
         }
 
         private static ReorderableList vertexStreamList;
 
+        /// <summary>
+        /// Container for the properties used in the <c>ParticleGUI</c> editor script.
+        /// </summary>
         public struct ParticleProperties
         {
             // Surface Option Props
+
+            /// <summary>
+            /// The MaterialProperty for color mode.
+            /// </summary>
             public MaterialProperty colorMode;
 
+
             // Advanced Props
+
+            /// <summary>
+            /// The MaterialProperty for flip-book blending.
+            /// </summary>
             public MaterialProperty flipbookMode;
+
+            /// <summary>
+            /// The MaterialProperty for soft particles enabled.
+            /// </summary>
             public MaterialProperty softParticlesEnabled;
+
+            /// <summary>
+            /// The MaterialProperty for camera fading.
+            /// </summary>
             public MaterialProperty cameraFadingEnabled;
+
+            /// <summary>
+            /// The MaterialProperty for distortion enabled.
+            /// </summary>
             public MaterialProperty distortionEnabled;
+
+            /// <summary>
+            /// The MaterialProperty for soft particles near fade distance.
+            /// </summary>
             public MaterialProperty softParticlesNearFadeDistance;
+
+            /// <summary>
+            /// The MaterialProperty for soft particles far fade distance.
+            /// </summary>
             public MaterialProperty softParticlesFarFadeDistance;
+
+            /// <summary>
+            /// The MaterialProperty for camera fading near distance.
+            /// </summary>
             public MaterialProperty cameraNearFadeDistance;
+
+            /// <summary>
+            /// The MaterialProperty for camera fading far distance.
+            /// </summary>
             public MaterialProperty cameraFarFadeDistance;
+
+            /// <summary>
+            /// The MaterialProperty for distortion blend.
+            /// </summary>
             public MaterialProperty distortionBlend;
+
+            /// <summary>
+            /// The MaterialProperty for distortion strength.
+            /// </summary>
             public MaterialProperty distortionStrength;
 
+            /// <summary>
+            /// Constructor for the <c>ParticleProperties</c> container struct.
+            /// </summary>
+            /// <param name="properties"></param>
             public ParticleProperties(MaterialProperty[] properties)
             {
                 // Surface Option Props
@@ -119,6 +290,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
+        /// <summary>
+        /// Sets up the material with correct keywords based on the color mode.
+        /// </summary>
+        /// <param name="material">The material to use.</param>
         public static void SetupMaterialWithColorMode(Material material)
         {
             var colorMode = (ColorMode)material.GetFloat("_ColorMode");
@@ -161,6 +336,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
+        /// <summary>
+        /// Draws the fading options GUI.
+        /// </summary>
+        /// <param name="material">The material to use.</param>
+        /// <param name="materialEditor">The material editor to use.</param>
+        /// <param name="properties">The particle properties to use.</param>
         public static void FadingOptions(Material material, MaterialEditor materialEditor, ParticleProperties properties)
         {
             // Z write doesn't work with fading
@@ -225,6 +406,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
+        /// <summary>
+        /// Draws the vertex streams area.
+        /// </summary>
+        /// <param name="material">The material to use.</param>
+        /// <param name="renderers">List of particle system renderers.</param>
+        /// <param name="useLighting">Marks whether the renderers uses lighting or not.</param>
         public static void DoVertexStreamsArea(Material material, List<ParticleSystemRenderer> renderers, bool useLighting = false)
         {
             EditorGUILayout.Space();
@@ -342,6 +529,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             return false;
         }
 
+        /// <summary>
+        /// Sets up the keywords for the material and shader.
+        /// </summary>
+        /// <param name="material">The material to use.</param>
         public static void SetMaterialKeywords(Material material)
         {
             // Setup particle + material color blending

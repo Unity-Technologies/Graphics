@@ -182,18 +182,30 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderPassEvent renderPassEvent { get; set; }
 
+        /// <summary>
+        /// The render target identifiers for color attachments.
+        /// This is obsolete, use colorAttachmentHandles instead.
+        /// </summary>
         [Obsolete("Use colorAttachmentHandles")]
         public RenderTargetIdentifier[] colorAttachments
         {
             get => m_ColorAttachmentIds;
         }
 
+        /// <summary>
+        /// The render target identifier for color attachment.
+        /// This is obsolete, use colorAttachmentHandle instead.
+        /// </summary>
         [Obsolete("Use colorAttachmentHandle")]
         public RenderTargetIdentifier colorAttachment
         {
             get => m_ColorAttachmentIds[0];
         }
 
+        /// <summary>
+        /// The render target identifier for depth attachment.
+        /// This is obsolete, use depthAttachmentHandle instead.
+        /// </summary>
         [Obsolete("Use depthAttachmentHandle")]
         public RenderTargetIdentifier depthAttachment
         {
@@ -725,6 +737,7 @@ namespace UnityEngine.Rendering.Universal
         /// Add a blit command to the context for execution. This applies the material to the color target.
         /// </summary>
         /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="data">RenderingData to access the active renderer.</param>
         /// <param name="source">Source texture or target identifier to blit from.</param>
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>

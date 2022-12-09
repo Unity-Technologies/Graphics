@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.Universal
         /// <see cref="CameraRenderType"/>
         /// Returns the bitmask of the supported camera render types in the renderer's current state.
         /// </summary>
+        /// <returns>The bitmask of the supported camera render types in the renderer's current state.</returns>
         public virtual int SupportedCameraStackingTypes()
         {
             return 0;
@@ -74,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
         /// Returns true if the given camera render type is supported in the renderer's current state.
         /// </summary>
         /// <param name="cameraRenderType">The camera render type that is checked if supported.</param>
+        /// <returns>True if the given camera render type is supported in the renderer's current state.</returns>
         public bool SupportsCameraStackingType(CameraRenderType cameraRenderType)
         {
             return (SupportedCameraStackingTypes() & 1 << (int)cameraRenderType) != 0;
@@ -532,6 +534,10 @@ namespace UnityEngine.Rendering.Universal
         private static bool m_UseOptimizedStoreActions = false;
 
         const int k_RenderPassBlockCount = 4;
+
+        /// <summary>
+        /// The RTHandle for the Camera Target.
+        /// </summary>
         protected static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
@@ -644,6 +650,10 @@ namespace UnityEngine.Rendering.Universal
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
 
+        /// <summary>
+        /// Disposable pattern implementation.
+        /// Cleans up resources used by the renderer.
+        /// </summary>
         public void Dispose()
         {
             // Dispose all renderer features...
@@ -659,6 +669,11 @@ namespace UnityEngine.Rendering.Universal
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Called by Dispose().
+        /// Override this function to clean up resources in your renderer.
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
         }

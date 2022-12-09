@@ -2,16 +2,49 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Struct container for shadow slice data.
+    /// </summary>
     public struct ShadowSliceData
     {
+        /// <summary>
+        /// The view matrix.
+        /// </summary>
         public Matrix4x4 viewMatrix;
-        public Matrix4x4 projectionMatrix;
-        public Matrix4x4 shadowTransform;
-        public int offsetX;
-        public int offsetY;
-        public int resolution;
-        public ShadowSplitData splitData; // splitData contains culling information
 
+        /// <summary>
+        /// The projection matrix.
+        /// </summary>
+        public Matrix4x4 projectionMatrix;
+
+        /// <summary>
+        /// The shadow transform matrix.
+        /// </summary>
+        public Matrix4x4 shadowTransform;
+
+        /// <summary>
+        /// The X offset to the shadow map.
+        /// </summary>
+        public int offsetX;
+
+        /// <summary>
+        /// The Y offset to the shadow map.
+        /// </summary>
+        public int offsetY;
+
+        /// <summary>
+        /// The maximum tile resolution in an Atlas.
+        /// </summary>
+        public int resolution;
+
+        /// <summary>
+        /// The shadow split data containing culling information.
+        /// </summary>
+        public ShadowSplitData splitData;
+
+        /// <summary>
+        /// Clears and resets the data.
+        /// </summary>
         public void Clear()
         {
             viewMatrix = Matrix4x4.identity;
@@ -382,6 +415,14 @@ namespace UnityEngine.Rendering.Universal
             return rtd;
         }
 
+        /// <summary>
+        /// Gets a temporary render texture for shadows.
+        /// This function has been deprecated. Use AllocShadowRT or ShadowRTReAllocateIfNeeded instead.
+        /// </summary>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <param name="bits">The number of depth bits.</param>
+        /// <returns>A shadow render texture.</returns>
         [Obsolete("Use AllocShadowRT or ShadowRTReAllocateIfNeeded")]
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
         {

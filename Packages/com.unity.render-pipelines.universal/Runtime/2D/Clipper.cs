@@ -420,17 +420,105 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    public enum ClipType { ctIntersection, ctUnion, ctDifference, ctXor };
-    public enum PolyType { ptSubject, ptClip };
+    /// <summary>
+    /// Options for clip types.
+    /// </summary>
+    public enum ClipType
+    {
+        /// <summary>
+        /// Use this for intersection.
+        /// </summary>
+        ctIntersection,
+
+        /// <summary>
+        /// Use this for union.
+        /// </summary>
+        ctUnion,
+
+        /// <summary>
+        /// Use this for difference.
+        /// </summary>
+        ctDifference,
+
+        /// <summary>
+        /// Use this for XOR.
+        /// </summary>
+        ctXor
+    };
+
+    /// <summary>
+    /// Options for polygon types.
+    /// </summary>
+    public enum PolyType
+    {
+        /// <summary>
+        /// Use this for subject.
+        /// </summary>
+        ptSubject,
+
+        /// <summary>
+        /// Use this for clip.
+        /// </summary>
+        ptClip
+    };
 
     //By far the most widely used winding rules for polygon filling are
     //EvenOdd & NonZero (GDI, GDI+, XLib, OpenGL, Cairo, AGG, Quartz, SVG, Gr32)
     //Others rules include Positive, Negative and ABS_GTR_EQ_TWO (only in OpenGL)
     //see http://glprogramming.com/red/chapter11.html
-    public enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
 
-    public enum JoinType { jtRound };
-    public enum EndType { etClosedPolygon, etClosedLine };
+    /// <summary>
+    /// Options for polygon filling types.
+    /// </summary>
+    public enum PolyFillType
+    {
+        /// <summary>
+        /// Use this for even odd.
+        /// </summary>
+        pftEvenOdd,
+
+        /// <summary>
+        /// Use this for non zero.
+        /// </summary>
+        pftNonZero,
+
+        /// <summary>
+        /// Use this for positive.
+        /// </summary>
+        pftPositive,
+
+        /// <summary>
+        /// Use this for negative.
+        /// </summary>
+        pftNegative
+    };
+
+    /// <summary>
+    /// Options for join types.
+    /// </summary>
+    public enum JoinType
+    {
+        /// <summary>
+        /// Use this for round.
+        /// </summary>
+        jtRound
+    };
+
+    /// <summary>
+    /// Options for end types.
+    /// </summary>
+    public enum EndType
+    {
+        /// <summary>
+        /// Use this for closed polygon.
+        /// </summary>
+        etClosedPolygon,
+
+        /// <summary>
+        /// Use this for closed line.
+        /// </summary>
+        etClosedLine
+    };
 
     internal enum EdgeSide { esLeft, esRight };
     internal enum Direction { dRightToLeft, dLeftToRight };

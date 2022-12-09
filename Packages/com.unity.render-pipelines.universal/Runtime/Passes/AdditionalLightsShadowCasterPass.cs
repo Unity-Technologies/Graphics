@@ -136,6 +136,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        /// <summary>
+        /// Cleans up resources used by the pass.
+        /// </summary>
         public void Dispose()
         {
             m_AdditionalLightsShadowmapHandle?.Release();
@@ -860,8 +863,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        // Get the "additional light index" (used to index arrays _AdditionalLightsPosition, _AdditionalShadowParams, ...) from the "global" visible light index
         // Function called by Deferred Renderer
+        /// <summary>
+        /// Gets the additional light index from the global visible light index, which is used to index arrays _AdditionalLightsPosition, _AdditionalShadowParams, etc.
+        /// </summary>
+        /// <param name="visibleLightIndex">The index of the visible light.</param>
+        /// <returns>The additional light index.</returns>
         public int GetShadowLightIndexFromLightIndex(int visibleLightIndex)
         {
             if (visibleLightIndex < 0 || visibleLightIndex >= m_VisibleLightIndexToAdditionalLightIndex.Length)

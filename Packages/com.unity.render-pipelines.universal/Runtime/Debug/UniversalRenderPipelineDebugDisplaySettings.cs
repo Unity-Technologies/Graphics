@@ -2,6 +2,9 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Class for the rendering debugger settings.
+    /// </summary>
     public class UniversalRenderPipelineDebugDisplaySettings : DebugDisplaySettings<UniversalRenderPipelineDebugDisplaySettings>
     {
         DebugDisplaySettingsCommon commonSettings { get; set; }

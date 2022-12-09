@@ -16,17 +16,45 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
+    /// <summary>
+    /// Options for the material type.
+    /// </summary>
     public enum MaterialType
     {
+        /// <summary>
+        /// Use this for URP lit.
+        /// </summary>
         Lit,
+
+        /// <summary>
+        /// Use this for URP unlit.
+        /// </summary>
         Unlit,
+
+        /// <summary>
+        /// Use this for sprite lit.
+        /// </summary>
         SpriteLit,
+
+        /// <summary>
+        /// Use this for Sprite unlit.
+        /// </summary>
         SpriteUnlit,
     }
 
+    /// <summary>
+    /// Workflow modes for the shader.
+    /// </summary>
     public enum WorkflowMode
     {
+        /// <summary>
+        /// Use this for specular workflow.
+        /// </summary>
         Specular,
+
+        /// <summary>
+        /// Use this for metallic workflow.
+        /// </summary>
         Metallic,
     }
 

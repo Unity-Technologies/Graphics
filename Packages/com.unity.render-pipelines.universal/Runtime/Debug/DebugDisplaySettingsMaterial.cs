@@ -16,20 +16,49 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public enum AlbedoDebugValidationPreset
         {
+            /// <summary> Use this for default luminance. </summary>
             DefaultLuminance,
+
+            /// <summary> Use this for black acrylic paint. </summary>
             BlackAcrylicPaint,
+
+            /// <summary> Use this for dark soil. </summary>
             DarkSoil,
+
+            /// <summary> Use this for worn asphalt. </summary>
             WornAsphalt,
+
+            /// <summary> Use this for dry clay soil. </summary>
             DryClaySoil,
+
+            /// <summary> Use this for green grass. </summary>
             GreenGrass,
+
+            /// <summary> Use this for old concrete. </summary>
             OldConcrete,
+
+            /// <summary> Use this for red clay tile. </summary>
             RedClayTile,
+
+            /// <summary> Use this for dry sand. </summary>
             DrySand,
+
+            /// <summary> Use this for new concrete. </summary>
             NewConcrete,
+
+            /// <summary> Use this for white acrylic paint. </summary>
             WhiteAcrylicPaint,
+
+            /// <summary> Use this for fresh snow. </summary>
             FreshSnow,
+
+            /// <summary> Use this for blue sky. </summary>
             BlueSky,
+
+            /// <summary> Use this for foliage. </summary>
             Foliage,
+
+            /// <summary> Use this for custom. </summary>
             Custom
         }
 
@@ -417,18 +446,26 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsQuery
+
+        /// <inheritdoc/>
         public bool AreAnySettingsActive =>
             (materialDebugMode != DebugMaterialMode.None) ||
             (vertexAttributeDebugMode != DebugVertexAttributeMode.None) ||
             (materialValidationMode != DebugMaterialValidationMode.None);
+
+        /// <inheritdoc/>
         public bool IsPostProcessingAllowed => !AreAnySettingsActive;
+
+        /// <inheritdoc/>
         public bool IsLightingActive => !AreAnySettingsActive;
 
+        /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
         {
             return false;
         }
 
+        /// <inheritdoc/>
         IDebugDisplaySettingsPanelDisposable IDebugDisplaySettingsData.CreatePanel()
         {
             return new SettingsPanel(this);

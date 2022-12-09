@@ -1937,15 +1937,28 @@ namespace UnityEngine.Rendering.Universal
             return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
         }
 
+        /// <summary>
+        /// Class containing texture resources used in URP.
+        /// </summary>
         [Serializable, ReloadGroup]
         public sealed class TextureResources
         {
+            /// <summary>
+            /// Pre-baked blue noise textures.
+            /// </summary>
             [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
             public Texture2D blueNoise64LTex;
 
+            /// <summary>
+            /// Bayer matrix texture.
+            /// </summary>
             [Reload("Textures/BayerMatrix.png")]
             public Texture2D bayerMatrixTex;
 
+            /// <summary>
+            /// Check if the textures need reloading.
+            /// </summary>
+            /// <returns>True if any of the textures need reloading.</returns>
             public bool NeedsReload()
             {
                 return blueNoise64LTex == null || bayerMatrixTex == null;

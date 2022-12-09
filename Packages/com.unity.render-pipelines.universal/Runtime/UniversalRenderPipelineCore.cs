@@ -25,10 +25,24 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Options for mixed lighting setup.
+    /// </summary>
     public enum MixedLightingSetup
     {
+        /// <summary>
+        /// Use this to disable mixed lighting.
+        /// </summary>
         None,
+
+        /// <summary>
+        /// Use this to select shadow mask.
+        /// </summary>
         ShadowMask,
+
+        /// <summary>
+        /// Use this to select subtractive.
+        /// </summary>
         Subtractive,
     };
 
@@ -157,8 +171,20 @@ namespace UnityEngine.Rendering.Universal
         /// True if mixed lighting is supported.
         /// </summary>
         public bool supportsMixedLighting;
+
+        /// <summary>
+        /// True if box projection is enabled for reflection probes.
+        /// </summary>
         public bool reflectionProbeBoxProjection;
+
+        /// <summary>
+        /// True if blending is enabled for reflection probes.
+        /// </summary>
         public bool reflectionProbeBlending;
+
+        /// <summary>
+        /// True if light layers are enabled.
+        /// </summary>
         public bool supportsLightLayers;
 
         /// <summary>
@@ -357,7 +383,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool postProcessingRequiresDepthTexture;
 
+        /// <summary>
+        /// Returns true if XR rendering is enabled.
+        /// </summary>
         public bool xrRendering;
+
         internal bool requireSrgbConversion
         {
             get
@@ -388,8 +418,8 @@ namespace UnityEngine.Rendering.Universal
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
         /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
         /// matrix when rendering with for cmd.Draw* and reading from camera textures.
-        /// <returns> True if the camera device projection matrix is flipped. </returns>
         /// </summary>
+        /// <returns> True if the camera device projection matrix is flipped. </returns>
         public bool IsCameraProjectionMatrixFlipped()
         {
             // Users only have access to CameraData on URP rendering scope. The current renderer should never be null.
@@ -413,6 +443,15 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
+        /// <summary>
+        /// True if the render target's projection matrix is flipped. This happens when the pipeline is rendering
+        /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
+        /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
+        /// matrix when rendering with for cmd.Draw* and reading from camera textures.
+        /// </summary>
+        /// <param name="color">Color render target to check whether the matrix is flipped.</param>
+        /// <param name="depth">Depth render target which is used if color is null. By default <c>depth</c> is set to null.</param>
+        /// <returns> True if the render target's projection matrix is flipped. </returns>
         public bool IsRenderTargetProjectionMatrixFlipped(RTHandle color, RTHandle depth = null)
         {
 
@@ -457,6 +496,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
+        /// <summary>
+        /// Is XR enabled or not.
+        /// This is obsolete, please use xr.enabled instead.
+        /// </summary>
         [Obsolete("Please use xr.enabled instead.", true)]
         public bool isStereoEnabled;
 
@@ -557,63 +600,186 @@ namespace UnityEngine.Rendering.Universal
         public Camera baseCamera;
     }
 
+    /// <summary>
+    /// Container struct for various data used for shadows in URP.
+    /// </summary>
     public struct ShadowData
     {
+        /// <summary>
+        /// True if main light shadows are enabled.
+        /// </summary>
         public bool supportsMainLightShadows;
+
+        /// <summary>
+        /// True if screen space shadows are required.
+        /// Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature
+        /// </summary>
         [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
         public bool requiresScreenSpaceShadowResolve;
+
+        /// <summary>
+        /// The width of the main light shadow map.
+        /// </summary>
         public int mainLightShadowmapWidth;
+
+        /// <summary>
+        /// The height of the main light shadow map.
+        /// </summary>
         public int mainLightShadowmapHeight;
+
+        /// <summary>
+        /// The number of shadow cascades.
+        /// </summary>
         public int mainLightShadowCascadesCount;
+
+        /// <summary>
+        /// The split between cascades.
+        /// </summary>
         public Vector3 mainLightShadowCascadesSplit;
+
         /// <summary>
         /// Main light last cascade shadow fade border.
         /// Value represents the width of shadow fade that ranges from 0 to 1.
         /// Where value 0 is used for no shadow fade.
         /// </summary>
         public float mainLightShadowCascadeBorder;
+
+        /// <summary>
+        /// True if additional lights shadows are enabled.
+        /// </summary>
         public bool supportsAdditionalLightShadows;
+
+        /// <summary>
+        /// The width of the additional light shadow map.
+        /// </summary>
         public int additionalLightsShadowmapWidth;
+
+        /// <summary>
+        /// The height of the additional light shadow map.
+        /// </summary>
         public int additionalLightsShadowmapHeight;
+
+        /// <summary>
+        /// True if soft shadows are enabled.
+        /// </summary>
         public bool supportsSoftShadows;
+
+        /// <summary>
+        /// The number of bits used.
+        /// </summary>
         public int shadowmapDepthBufferBits;
+
+        /// <summary>
+        /// A list of shadow bias.
+        /// </summary>
         public List<Vector4> bias;
+
+        /// <summary>
+        /// A list of resolution for the shadow maps.
+        /// </summary>
         public List<int> resolution;
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
     }
 
-    // Precomputed tile data.
+    /// <summary>
+    /// Precomputed tile data.
+    /// Tile left, right, bottom and top plane equations in view space.
+    /// Normals are pointing out.
+    /// </summary>
     public struct PreTile
     {
-        // Tile left, right, bottom and top plane equations in view space.
-        // Normals are pointing out.
+        /// <summary>
+        /// The left plane.
+        /// </summary>
         public Unity.Mathematics.float4 planeLeft;
+
+        /// <summary>
+        /// The right plane.
+        /// </summary>
         public Unity.Mathematics.float4 planeRight;
+
+        /// <summary>
+        /// The bottom plane.
+        /// </summary>
         public Unity.Mathematics.float4 planeBottom;
+
+        /// <summary>
+        /// The top plane.
+        /// </summary>
         public Unity.Mathematics.float4 planeTop;
     }
 
-    // Actual tile data passed to the deferred shaders.
+    /// <summary>
+    /// The tile data passed to the deferred shaders.
+    /// </summary>
     public struct TileData
     {
+        /// <summary>
+        /// The tile ID.
+        /// </summary>
         public uint tileID;         // 2x 16 bits
+
+        /// <summary>
+        /// The list bit mask.
+        /// </summary>
         public uint listBitMask;    // 32 bits
+
+        /// <summary>
+        /// The relative light offset.
+        /// </summary>
         public uint relLightOffset; // 16 bits is enough
+
+        /// <summary>
+        /// Unused variable.
+        /// </summary>
         public uint unused;
     }
 
-    // Actual point/spot light data passed to the deferred shaders.
+    /// <summary>
+    /// The point/spot light data passed to the deferred shaders.
+    /// </summary>
     public struct PunctualLightData
     {
+        /// <summary>
+        /// The world position.
+        /// </summary>
         public Vector3 wsPos;
+
+        /// <summary>
+        /// The radius of the light.
+        /// </summary>
         public float radius; // TODO remove? included in attenuation
+
+        /// <summary>
+        /// The color of the light.
+        /// </summary>
         public Vector4 color;
+
+        /// <summary>
+        /// The attenuation of the light.
+        /// </summary>
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
+
+        /// <summary>
+        /// The direction for spot lights.
+        /// </summary>
         public Vector3 spotDirection;   // for spotLights
+
+        /// <summary>
+        /// The flags used.
+        /// </summary>
         public int flags;
+
+        /// <summary>
+        /// The occlusion probe info.
+        /// </summary>
         public Vector4 occlusionProbeInfo;
+
+        /// <summary>
+        /// The layer mask used.
+        /// </summary>
         public uint layerMask;
     }
 
@@ -705,105 +871,270 @@ namespace UnityEngine.Rendering.Universal
         public bool useFastSRGBLinearConversion;
     }
 
+    /// <summary>
+    /// Container class for keywords used in URP shaders.
+    /// </summary>
     public static class ShaderKeywordStrings
     {
+        /// <summary> Keyword used for shadows without cascades. </summary>
         public const string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
+
+        /// <summary> Keyword used for shadows with cascades. </summary>
         public const string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";
+
+        /// <summary> Keyword used for screen space shadows. </summary>
         public const string MainLightShadowScreen = "_MAIN_LIGHT_SHADOWS_SCREEN";
-        public const string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW"; // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+
+        /// <summary> Keyword used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias. </summary>
+        public const string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW";
+
+        /// <summary> Keyword used for per vertex additional lights. </summary>
         public const string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
+
+        /// <summary> Keyword used for per pixel additional lights. </summary>
         public const string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
+
+        /// <summary> Keyword used for Forward+. </summary>
         internal const string ForwardPlus = "_FORWARD_PLUS";
+
+        /// <summary> Keyword used for shadows on additional lights. </summary>
         public const string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
+
+        /// <summary> Keyword used for Box Projection with Reflection Probes. </summary>
         public const string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
+
+        /// <summary> Keyword used for Reflection probe blending. </summary>
         public const string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
+
+        /// <summary> Keyword used for soft shadows. </summary>
         public const string SoftShadows = "_SHADOWS_SOFT";
+
+        /// <summary> Keyword used for Mixed Lights in Subtractive lighting mode. </summary>
         public const string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
+
+        /// <summary> Keyword used for mixing lightmap shadows. </summary>
         public const string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
+
+        /// <summary> Keyword used for Shadowmask. </summary>
         public const string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
+
+        /// <summary> Keyword used for Light Layers. </summary>
         public const string LightLayers = "_LIGHT_LAYERS";
+
+        /// <summary> Keyword used for RenderPass. </summary>
         public const string RenderPassEnabled = "_RENDER_PASS_ENABLED";
+
+        /// <summary> Keyword used for Billboard cameras. </summary>
         public const string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
+
+        /// <summary> Keyword used for Light Cookies. </summary>
         public const string LightCookies = "_LIGHT_COOKIES";
 
+        /// <summary> Keyword used for no Multi Sampling Anti-Aliasing (MSAA). </summary>
         public const string DepthNoMsaa = "_DEPTH_NO_MSAA";
+
+        /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 2 per pixel sample count. </summary>
         public const string DepthMsaa2 = "_DEPTH_MSAA_2";
+
+        /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 4 per pixel sample count. </summary>
         public const string DepthMsaa4 = "_DEPTH_MSAA_4";
+
+        /// <summary> Keyword used for Multi Sampling Anti-Aliasing (MSAA) with 8 per pixel sample count. </summary>
         public const string DepthMsaa8 = "_DEPTH_MSAA_8";
 
+        /// <summary> Keyword used for Linear to SRGB conversions. </summary>
         public const string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+
+        /// <summary> Keyword used for less expensive Linear to SRGB conversions. </summary>
         internal const string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
 
+        /// <summary> Keyword used for first target in the DBuffer. </summary>
         public const string DBufferMRT1 = "_DBUFFER_MRT1";
+
+        /// <summary> Keyword used for second target in the DBuffer. </summary>
         public const string DBufferMRT2 = "_DBUFFER_MRT2";
+
+        /// <summary> Keyword used for third target in the DBuffer. </summary>
         public const string DBufferMRT3 = "_DBUFFER_MRT3";
+
+        /// <summary> Keyword used for low quality normal reconstruction in Decals. </summary>
         public const string DecalNormalBlendLow = "_DECAL_NORMAL_BLEND_LOW";
+
+        /// <summary> Keyword used for medium quality normal reconstruction in Decals. </summary>
         public const string DecalNormalBlendMedium = "_DECAL_NORMAL_BLEND_MEDIUM";
+
+        /// <summary> Keyword used for high quality normal reconstruction in Decals. </summary>
         public const string DecalNormalBlendHigh = "_DECAL_NORMAL_BLEND_HIGH";
+
+        /// <summary> Keyword used for Decal Layers. </summary>
         public const string DecalLayers = "_DECAL_LAYERS";
 
+        /// <summary> Keyword used for writing Rendering Layers. </summary>
         public const string WriteRenderingLayers = "_WRITE_RENDERING_LAYERS";
 
+        /// <summary> Keyword used for low quality Subpixel Morphological Anti-aliasing (SMAA). </summary>
         public const string SmaaLow = "_SMAA_PRESET_LOW";
+
+        /// <summary> Keyword used for medium quality Subpixel Morphological Anti-aliasing (SMAA). </summary>
         public const string SmaaMedium = "_SMAA_PRESET_MEDIUM";
+
+        /// <summary> Keyword used for high quality Subpixel Morphological Anti-aliasing (SMAA). </summary>
         public const string SmaaHigh = "_SMAA_PRESET_HIGH";
+
+        /// <summary> Keyword used for generic Panini Projection. </summary>
         public const string PaniniGeneric = "_GENERIC";
+
+        /// <summary> Keyword used for unit distance Panini Projection. </summary>
         public const string PaniniUnitDistance = "_UNIT_DISTANCE";
+
+        /// <summary> Keyword used for low quality Bloom. </summary>
         public const string BloomLQ = "_BLOOM_LQ";
+
+        /// <summary> Keyword used for high quality Bloom. </summary>
         public const string BloomHQ = "_BLOOM_HQ";
+
+        /// <summary> Keyword used for low quality Bloom dirt. </summary>
         public const string BloomLQDirt = "_BLOOM_LQ_DIRT";
+
+        /// <summary> Keyword used for high quality Bloom dirt. </summary>
         public const string BloomHQDirt = "_BLOOM_HQ_DIRT";
+
+        /// <summary> Keyword used for RGBM format for Bloom. </summary>
         public const string UseRGBM = "_USE_RGBM";
+
+        /// <summary> Keyword used for Distortion. </summary>
         public const string Distortion = "_DISTORTION";
+
+        /// <summary> Keyword used for Chromatic Aberration. </summary>
         public const string ChromaticAberration = "_CHROMATIC_ABERRATION";
+
+        /// <summary> Keyword used for HDR Color Grading. </summary>
         public const string HDRGrading = "_HDR_GRADING";
+
+        /// <summary> Keyword used for ACES Tonemapping. </summary>
         public const string TonemapACES = "_TONEMAP_ACES";
+
+        /// <summary> Keyword used for Neutral Tonemapping. </summary>
         public const string TonemapNeutral = "_TONEMAP_NEUTRAL";
+
+        /// <summary> Keyword used for Film Grain. </summary>
         public const string FilmGrain = "_FILM_GRAIN";
+
+        /// <summary> Keyword used for Fast Approximate Anti-aliasing (FXAA). </summary>
         public const string Fxaa = "_FXAA";
+
+        /// <summary> Keyword used for Dithering. </summary>
         public const string Dithering = "_DITHERING";
+
+        /// <summary> Keyword used for Screen Space Occlusion, such as Screen Space Ambient Occlusion (SSAO). </summary>
         public const string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
+
+        /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public const string PointSampling = "_POINT_SAMPLING";
+
+        /// <summary> Keyword used for Robust Contrast-Adaptive Sharpening (RCAS) when doing upsampling. </summary>
         public const string Rcas = "_RCAS";
+
+        /// <summary> Keyword used for Gamma 2.0. </summary>
         public const string Gamma20 = "_GAMMA_20";
 
+        /// <summary> Keyword used for high quality sampling for Depth Of Field. </summary>
         public const string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
-        public const string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
-        public const string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
-        public const string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
-        public const string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+        /// <summary> Keyword used for Spot lights. </summary>
         public const string _SPOT = "_SPOT";
+
+        /// <summary> Keyword used for Directional lights. </summary>
         public const string _DIRECTIONAL = "_DIRECTIONAL";
+
+        /// <summary> Keyword used for Point lights. </summary>
         public const string _POINT = "_POINT";
+
+        /// <summary> Keyword used for stencils when rendering with the Deferred rendering path. </summary>
         public const string _DEFERRED_STENCIL = "_DEFERRED_STENCIL";
+
+        /// <summary> Keyword used for the first light when rendering with the Deferred rendering path. </summary>
         public const string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
+
+        /// <summary> Keyword used for the main light when rendering with the Deferred rendering path. </summary>
         public const string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
+
+        /// <summary> Keyword used for Accurate G-buffer normals when rendering with the Deferred rendering path. </summary>
         public const string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
+
+        /// <summary> Keyword used for Mixed Lighting when rendering with the Deferred rendering path. </summary>
         public const string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
+
+        /// <summary> Keyword used for Lightmaps. </summary>
         public const string LIGHTMAP_ON = "LIGHTMAP_ON";
+
+        /// <summary> Keyword used for dynamic Lightmaps. </summary>
         public const string DYNAMICLIGHTMAP_ON = "DYNAMICLIGHTMAP_ON";
+
+        /// <summary> Keyword used for Alpha testing. </summary>
         public const string _ALPHATEST_ON = "_ALPHATEST_ON";
+
+        /// <summary> Keyword used for combined directional Lightmaps. </summary>
         public const string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
+
+        /// <summary> Keyword used for 2x detail mapping. </summary>
         public const string _DETAIL_MULX2 = "_DETAIL_MULX2";
+
+        /// <summary> Keyword used for scaled detail mapping. </summary>
         public const string _DETAIL_SCALED = "_DETAIL_SCALED";
+
+        /// <summary> Keyword used for Clear Coat. </summary>
         public const string _CLEARCOAT = "_CLEARCOAT";
+
+        /// <summary> Keyword used for Clear Coat maps. </summary>
         public const string _CLEARCOATMAP = "_CLEARCOATMAP";
+
+        /// <summary> Keyword used for Debug Display. </summary>
         public const string DEBUG_DISPLAY = "DEBUG_DISPLAY";
+
+        /// <summary> Keyword used for LOD Crossfade. </summary>
         public const string LOD_FADE_CROSSFADE = "LOD_FADE_CROSSFADE";
+
+        /// <summary> Keyword used for LOD Crossfade with ShaderGraph shaders. </summary>
         public const string USE_UNITY_CROSSFADE = "USE_UNITY_CROSSFADE";
 
+        /// <summary> Keyword used for Emission. </summary>
         public const string _EMISSION = "_EMISSION";
+
+        /// <summary> Keyword used for receiving shadows. </summary>
         public const string _RECEIVE_SHADOWS_OFF = "_RECEIVE_SHADOWS_OFF";
+
+        /// <summary> Keyword used for opaque or transparent surface types. </summary>
         public const string _SURFACE_TYPE_TRANSPARENT = "_SURFACE_TYPE_TRANSPARENT";
+
+        /// <summary> Keyword used for Alpha premultiply. </summary>
         public const string _ALPHAPREMULTIPLY_ON = "_ALPHAPREMULTIPLY_ON";
+
+        /// <summary> Keyword used for Alpha modulate. </summary>
         public const string _ALPHAMODULATE_ON = "_ALPHAMODULATE_ON";
+
+        /// <summary> Keyword used for Normal maps. </summary>
         public const string _NORMALMAP = "_NORMALMAP";
 
+        /// <summary> Keyword used for editor visualization. </summary>
         public const string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
+
+        /// <summary> Keyword used for applying scale and bias. </summary>
         public const string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
 
-        // XR
+        /// <summary> Keyword used for half size downsampling. </summary>
+        public const string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
+
+        /// <summary> Keyword used for quarter size downsampling. </summary>
+        public const string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
+
+        /// <summary> Keyword used for eighth size downsampling. </summary>
+        public const string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
+
+        /// <summary> Keyword used for sixteenth size downsampling. </summary>
+        public const string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+
+        /// <summary> Keyword used for foveated rendering. </summary>
         public const string FoveatedRenderingNonUniformRaster = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER";
     }
 
@@ -1092,6 +1423,17 @@ namespace UnityEngine.Rendering.Universal
 #endif
         };
 
+        // Called from DeferredLights.cs too
+        /// <summary>
+        /// Calculates the attenuation for a given light and also direction for spot lights.
+        /// </summary>
+        /// <param name="lightType">The type of light.</param>
+        /// <param name="lightRange">The range of the light.</param>
+        /// <param name="lightLocalToWorldMatrix">The local to world light matrix.</param>
+        /// <param name="spotAngle">The spotlight angle.</param>
+        /// <param name="innerSpotAngle">The spotlight inner angle.</param>
+        /// <param name="lightAttenuation">The light attenuation.</param>
+        /// <param name="lightSpotDir">The spot light direction.</param>
         public static void GetLightAttenuationAndSpotDirection(
             LightType lightType, float lightRange, Matrix4x4 lightLocalToWorldMatrix,
             float spotAngle, float? innerSpotAngle,
@@ -1166,6 +1508,16 @@ namespace UnityEngine.Rendering.Universal
             lightSpotDir = new Vector4(-dir.x, -dir.y, -dir.z, 0.0f);
         }
 
+        /// <summary>
+        /// Initializes common light constants.
+        /// </summary>
+        /// <param name="lights">List of lights to iterate.</param>
+        /// <param name="lightIndex">The index of the light.</param>
+        /// <param name="lightPos">The position of the light.</param>
+        /// <param name="lightColor">The color of the light.</param>
+        /// <param name="lightAttenuation">The attenuation of the light.</param>
+        /// <param name="lightSpotDir">The direction of the light.</param>
+        /// <param name="lightOcclusionProbeChannel">The occlusion probe channel for the light.</param>
         public static void InitializeLightConstants_Common(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel)
         {
             lightPos = k_DefaultLightPosition;
