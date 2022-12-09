@@ -5,3 +5,7 @@
 #channel-toggle-container .unity-button-strip__button {
     flex-grow: 1;
 }
+
+.channel-mixer-slider Label {
+    min-width: 20px;
+}

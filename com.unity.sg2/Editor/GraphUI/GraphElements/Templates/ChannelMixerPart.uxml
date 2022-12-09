@@ -1,8 +1,8 @@
 <UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:gtf="Unity.GraphToolsFoundation.Editor">
     <ui:VisualElement>
         <ui:VisualElement name="channel-toggle-container"/>
-        <ui:Slider name="slider-r" label="R" low-value="-2" high-value="2" show-input-field="true"/>
-        <ui:Slider name="slider-g" label="G" low-value="-2" high-value="2" show-input-field="true"/>
-        <ui:Slider name="slider-b" label="B" low-value="-2" high-value="2" show-input-field="true"/>
+        <ui:Slider name="slider-r" class="channel-mixer-slider" label="R" low-value="-2" high-value="2" show-input-field="true"/>
+        <ui:Slider name="slider-g" class="channel-mixer-slider" label="G" low-value="-2" high-value="2" show-input-field="true"/>
+        <ui:Slider name="slider-b" class="channel-mixer-slider" label="B" low-value="-2" high-value="2" show-input-field="true"/>
     </ui:VisualElement>
 </UXML>
