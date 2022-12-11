@@ -317,15 +317,15 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
-            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
+            using var profScope = new ProfilingScope(ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
 
 #if UNITY_2021_1_OR_NEWER
-            using (new ProfilingScope(null, Profiling.Pipeline.beginContextRendering))
+            using (new ProfilingScope(Profiling.Pipeline.beginContextRendering))
             {
                 BeginContextRendering(renderContext, cameras);
             }
 #else
-            using (new ProfilingScope(null, Profiling.Pipeline.beginFrameRendering))
+            using (new ProfilingScope(Profiling.Pipeline.beginFrameRendering))
             {
                 BeginFrameRendering(renderContext, cameras);
             }
@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                    using (new ProfilingScope(Profiling.Pipeline.beginCameraRendering))
                     {
                         BeginCameraRendering(renderContext, camera);
                     }
@@ -379,7 +379,7 @@ namespace UnityEngine.Rendering.Universal
 
                     RenderSingleCameraInternal(renderContext, camera);
 
-                    using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                    using (new ProfilingScope(Profiling.Pipeline.endCameraRendering))
                     {
                         EndCameraRendering(renderContext, camera);
                     }
@@ -389,12 +389,12 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph.EndFrame();
 
 #if UNITY_2021_1_OR_NEWER
-            using (new ProfilingScope(null, Profiling.Pipeline.endContextRendering))
+            using (new ProfilingScope(Profiling.Pipeline.endContextRendering))
             {
                 EndContextRendering(renderContext, cameras);
             }
 #else
-            using (new ProfilingScope(null, Profiling.Pipeline.endFrameRendering))
+            using (new ProfilingScope(Profiling.Pipeline.endFrameRendering))
             {
                 EndFrameRendering(renderContext, cameras);
             }
@@ -595,7 +595,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Clear(cameraData.renderType);
 
-                using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
+                using (new ProfilingScope(Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
                     renderer.OnPreCullRenderPasses(in cameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
@@ -646,11 +646,11 @@ namespace UnityEngine.Rendering.Universal
                 if (useRenderGraph)
                 {
                     RecordAndExecuteRenderGraph(s_RenderGraph, context, ref renderingData);
-                    renderer.FinishRenderGraphRendering(context, ref renderingData);
+                    renderer.FinishRenderGraphRendering(ref renderingData);
                 }
                 else
                 {
-                    using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
+                    using (new ProfilingScope(Profiling.Pipeline.Renderer.setup))
                         renderer.Setup(context, ref renderingData);
 
                     // Timing scope inside
@@ -661,7 +661,7 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
 
-            using (new ProfilingScope(null, Profiling.Pipeline.Context.submit))
+            using (new ProfilingScope(Profiling.Pipeline.Context.submit))
             {
                 if (renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
                 {
@@ -683,7 +683,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to render.</param>
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
-            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.RenderCameraStack));
+            using var profScope = new ProfilingScope(ProfilingSampler.Get(URPProfileId.RenderCameraStack));
 
             baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
 
@@ -789,7 +789,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
 
-                using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                using (new ProfilingScope(Profiling.Pipeline.beginCameraRendering))
                 {
                     BeginCameraRendering(context, baseCamera);
                 }
@@ -840,7 +840,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 RenderSingleCamera(context, ref baseCameraData, anyPostProcessingEnabled);
-                using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                using (new ProfilingScope(Profiling.Pipeline.endCameraRendering))
                 {
                     EndCameraRendering(context, baseCamera);
                 }
@@ -868,7 +868,7 @@ namespace UnityEngine.Rendering.Universal
 
                             UpdateCameraStereoMatrices(currAdditionalCameraData.camera, xrPass);
 
-                            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                            using (new ProfilingScope(Profiling.Pipeline.beginCameraRendering))
                             {
                                 BeginCameraRendering(context, currCamera);
                             }
@@ -885,7 +885,7 @@ namespace UnityEngine.Rendering.Universal
 
                             RenderSingleCamera(context, ref overlayCameraData, anyPostProcessingEnabled);
 
-                            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                            using (new ProfilingScope(Profiling.Pipeline.endCameraRendering))
                             {
                                 EndCameraRendering(context, currCamera);
                             }
@@ -943,7 +943,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
-            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
+            using var profScope = new ProfilingScope(ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
 
             // We update the volume framework for:
             // * All cameras in the editor when not in playmode
@@ -1036,7 +1036,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, out CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeCameraData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeCameraData);
 
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
@@ -1079,7 +1079,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Camera data to initialize setttings.</param>
         static void InitializeStackedCameraData(Camera baseCamera, UniversalAdditionalCameraData baseAdditionalCameraData, ref CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeStackedCameraData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeStackedCameraData);
 
             var settings = asset;
             cameraData.targetTexture = baseCamera.targetTexture;
@@ -1182,7 +1182,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Settings to be initilized.</param>
         static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, ref CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeAdditionalCameraData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeAdditionalCameraData);
 
             var settings = asset;
 
@@ -1285,7 +1285,7 @@ namespace UnityEngine.Rendering.Universal
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
             bool anyPostProcessingEnabled, CommandBuffer cmd, out RenderingData renderingData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeRenderingData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeRenderingData);
 
             var visibleLights = cullResults.visibleLights;
 
@@ -1340,7 +1340,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeShadowData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeShadowData);
 
             m_ShadowBiasData.Clear();
             m_ShadowResolutionData.Clear();
@@ -1449,7 +1449,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeLightData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeLightData);
 
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
@@ -1557,7 +1557,7 @@ namespace UnityEngine.Rendering.Universal
 
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount, bool isForwardPlus)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.getPerObjectLightFlags);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.getPerObjectLightFlags);
 
             var configuration = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
@@ -1579,7 +1579,7 @@ namespace UnityEngine.Rendering.Universal
         // Main Light is always a directional light
         static int GetMainLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.getMainLightIndex);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.getMainLightIndex);
 
             int totalVisibleLights = visibleLights.Length;
 
@@ -1620,7 +1620,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void SetupPerFrameShaderConstants()
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.setupPerFrameShaderConstants);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerFrameShaderConstants);
 
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
@@ -1956,7 +1956,7 @@ namespace UnityEngine.Rendering.Universal
 
         static AdditionalLightsShadowAtlasLayout BuildAdditionalLightsShadowAtlasLayout(ref LightData lightData, ref ShadowData shadowData, ref CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.buildAdditionalLightsShadowAtlasLayout);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.buildAdditionalLightsShadowAtlasLayout);
             return new AdditionalLightsShadowAtlasLayout(ref lightData, ref shadowData, ref cameraData);
         }
     }

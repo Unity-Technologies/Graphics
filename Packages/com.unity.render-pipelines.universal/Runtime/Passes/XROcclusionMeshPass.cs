@@ -19,22 +19,18 @@ namespace UnityEngine.Rendering.Universal
             base.profilingSampler = new ProfilingSampler("XR Occlusion Pass");
         }
 
-        private static void ExecutePass(ScriptableRenderContext context, ref RenderingData renderingData)
+        private static void ExecutePass(RasterCommandBuffer cmd, ref RenderingData renderingData)
         {
-            var cmd = renderingData.commandBuffer;
-
             if (renderingData.cameraData.xr.hasValidOcclusionMesh)
             {
                 renderingData.cameraData.xr.RenderOcclusionMesh(cmd);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
             }
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            ExecutePass(context, ref renderingData);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), ref renderingData);
         }
 
         private class PassData
@@ -45,17 +41,17 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Render(RenderGraph renderGraph, in TextureHandle cameraDepthAttachment, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("XR Occlusion Pass", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("XR Occlusion Pass", out var passData, base.profilingSampler))
             {
                 passData.renderingData = renderingData;
-                passData.cameraDepthAttachment = builder.UseDepthBuffer(cameraDepthAttachment, DepthAccess.Write);
+                passData.cameraDepthAttachment = builder.UseTextureFragmentDepth(cameraDepthAttachment, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.renderContext, ref data.renderingData);
+                    ExecutePass(context.cmd, ref data.renderingData);
                 });
 
                 return;

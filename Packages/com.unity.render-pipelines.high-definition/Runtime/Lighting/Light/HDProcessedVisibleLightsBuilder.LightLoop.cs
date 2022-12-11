@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         private void SortLightKeys()
         {
-            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.SortVisibleLights)))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.SortVisibleLights)))
             {
                 //Tunning against ps4 console,
                 //32 items insertion sort has a workst case of 3 micro seconds.
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < m_ProcessVisibleLightCounts.Length; ++i)
                 m_ProcessVisibleLightCounts[i] = 0;
 
-            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.BuildVisibleLightEntities)))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.BuildVisibleLightEntities)))
             {
                 if (cullResults.visibleLights.Length > 0 && HDLightRenderDatabase.instance != null)
                 {
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shadowLightCount == 0)
                 return;
 
-            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.ProcessShadows)))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.ProcessShadows)))
             {
                 NativeArray<VisibleLight> visibleLights = cullResults.visibleLights;
                 var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();

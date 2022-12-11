@@ -423,7 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShadowRequestsAndCalculateShadowIndices(hdCamera, in cullResults, visibleLights, lightEntities, hdShadowSettings, debugDisplaySettings,
                 m_ShadowManager, m_Asset, shadowIndexResults, ref m_DebugSelectedLightShadowIndex, ref m_DebugSelectedLightShadowCount);
 
-            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CalculateLightDataTextureInfo)))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CalculateLightDataTextureInfo)))
             {
                 for (int sortKeyIndex = 0; sortKeyIndex < lightCounts; ++sortKeyIndex)
                 {
@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
             NativeArray<int> shadowIndices,
             ref int debugSelectedLightShadowIndex, ref int debugSelectedLightShadowCount)
         {
-            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CalculateShadowIndices)))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CalculateShadowIndices)))
             {
                 var shadowFilteringQuality = renderPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality;
 
@@ -605,7 +605,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Do all the directional light work we couldn't do inside the job.
 
-                using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.UpdateDirectionalShadowData)))
+                using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.UpdateDirectionalShadowData)))
                 {
                     for (int i = 0; i < cachedDirectionalCount; i++)
                     {
@@ -691,7 +691,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
 #if UNITY_EDITOR
-                using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.EditorOnlyDebugSelectedLightShadow)))
+                using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.EditorOnlyDebugSelectedLightShadow)))
                 {
                     for (int sortKeyIndex = 0; sortKeyIndex < lightCounts; sortKeyIndex++)
                     {

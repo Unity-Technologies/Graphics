@@ -129,7 +129,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cameraData = renderingData.cameraData;
+            ref var cameraData = ref renderingData.cameraData;
             var cmd = renderingData.commandBuffer;
             // ExecutePass(m_PassData, renderingData.cameraData, renderingData.commandBuffer);
             if (s_PassMaterial == null)
@@ -164,6 +164,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
+
             UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
             var colorCopyDescriptor = renderingData.cameraData.cameraTargetDescriptor;
             colorCopyDescriptor.depthBufferBits = (int) DepthBits.None;
@@ -171,32 +172,29 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
 
             if (m_RequiresColor)
             {
-                using (var builder = renderGraph.AddRenderPass<PassData>("CustomPostPro_ColorPass", out var passData, m_ProfilingSampler))
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("CustomPostPro_ColorPass", out var passData, m_ProfilingSampler))
                 {
-                     passData.source = builder.ReadTexture(renderer.activeColorTexture);
-                     passData.copiedColor = builder.UseColorBuffer(copiedColor, 0);
-                     builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                     passData.source = builder.UseTexture(renderer.activeColorTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                     passData.copiedColor = builder.UseTextureFragment(copiedColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                     builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                      {
                             Blitter.BlitTexture(rgContext.cmd, data.source, new Vector4(1, 1, 0, 0), 0.0f, false);
                      });
                 }
             }
 
-            using (var builder = renderGraph.AddRenderPass<PassData>("CustomPostPro_FullScreenPass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("CustomPostPro_FullScreenPass", out var passData, m_ProfilingSampler))
             {
                 passData.passIndex = m_PassIndex;
 
                 if (m_RequiresColor)
-                    passData.copiedColor = builder.ReadTexture(copiedColor);
+                    passData.copiedColor = builder.UseTexture(copiedColor, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                passData.source = builder.UseColorBuffer(renderer.activeColorTexture, 0);
+                passData.source = builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
-                    if (data.copiedColor.IsValid())
-                        s_PassMaterial.SetTexture(m_BlitTextureShaderID, data.copiedColor);
-
-                    CoreUtils.DrawFullScreen(rgContext.cmd, s_PassMaterial, null, data.passIndex);
+                    Blitter.BlitTexture(rgContext.cmd, data.copiedColor, new Vector4(1, 1, 0, 0), s_PassMaterial, data.passIndex);
                 });
             }
         }

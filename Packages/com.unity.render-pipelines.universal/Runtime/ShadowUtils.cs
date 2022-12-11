@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -211,6 +212,21 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
         }
 
+        internal static void RenderShadowSlice(RasterCommandBuffer cmd,
+            ref ShadowSliceData shadowSliceData, ref RendererList shadowRendererList,
+            Matrix4x4 proj, Matrix4x4 view)
+        {
+            cmd.SetGlobalDepthBias(1.0f, 2.5f); // these values match HDRP defaults (see https://github.com/Unity-Technologies/Graphics/blob/9544b8ed2f98c62803d285096c91b44e9d8cbc47/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowAtlas.cs#L197 )
+
+            cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
+            cmd.SetViewProjectionMatrices(view, proj);
+            if(shadowRendererList.isValid)
+                cmd.DrawRendererList(shadowRendererList);
+
+            cmd.DisableScissorRect();
+            cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
+        }
+
         /// <summary>
         /// Renders shadows to a shadow slice.
         /// </summary>
@@ -392,6 +408,11 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowLight"></param>
         /// <param name="shadowBias"></param>
         public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
+        {
+            SetupShadowCasterConstantBuffer(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref shadowLight, shadowBias);
+        }
+
+        internal static void SetupShadowCasterConstantBuffer(RasterCommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
 

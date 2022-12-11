@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
                 s_SortedShadowResolutionRequests[i] = s_ShadowResolutionRequests[i];
             }
 
-            using (new ProfilingScope(null, Sorting.s_QuickSortSampler))
+            using (new ProfilingScope(Sorting.s_QuickSortSampler))
             {
                 Sorting.QuickSort(s_SortedShadowResolutionRequests, 0, totalShadowResolutionRequestsCount - 1, s_CompareShadowResolutionRequest);
             }

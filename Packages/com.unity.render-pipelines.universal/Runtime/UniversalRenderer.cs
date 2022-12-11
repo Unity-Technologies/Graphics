@@ -126,6 +126,7 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle m_ActiveCameraDepthAttachment;
         internal RTHandle m_CameraDepthAttachment;
         RTHandle m_XRTargetHandleAlias;
+        RTHandle m_XRDepthHandleAlias;
         internal RTHandle m_DepthTexture;
         RTHandle m_NormalsTexture;
         RTHandle m_DecalLayersTexture;
@@ -378,7 +379,7 @@ namespace UnityEngine.Rendering.Universal
             m_DrawOverlayUIPass?.Dispose();
 
             m_XRTargetHandleAlias?.Release();
-
+            m_XRDepthHandleAlias?.Release();
             ReleaseRenderTargets();
 
             DebugHandler?.Dispose();
@@ -520,7 +521,7 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
             var cmd = renderingData.commandBuffer;
-            DebugHandler?.Setup(context, ref renderingData);
+            DebugHandler?.Setup(ref renderingData);
 
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;
@@ -850,7 +851,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderingUtils.ReAllocateIfNeeded(ref renderingLayersTexture, renderingLayersDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: renderingLayersTextureName);
 
                 cmd.SetGlobalTexture(renderingLayersTexture.name, renderingLayersTexture.nameID);
-                RenderingLayerUtils.SetupProperties(cmd, renderingLayerMaskSize);
+                RenderingLayerUtils.SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), renderingLayerMaskSize);
                 if (renderingModeActual == RenderingMode.Deferred) // As this is requested by render pass we still want to set it
                     cmd.SetGlobalTexture("_CameraRenderingLayersTexture", renderingLayersTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
@@ -1356,10 +1357,10 @@ namespace UnityEngine.Rendering.Universal
                     inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
             }
 
-            // NOTE: TAA and motion vector dependencies added here to share between Execute and Render (Graph) paths.
-            // TAA in postprocess requires motion to function.
+            // TAA in postprocess requires it to function.
             if (renderingData.cameraData.IsTemporalAAEnabled())
                 inputSummary.requiresMotionVectors = true;
+
 
             // Motion vectors imply depth
             if (inputSummary.requiresMotionVectors)
@@ -1370,7 +1371,7 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, CommandBuffer cmd, ref CameraData cameraData)
         {
-            using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
+            using (new ProfilingScope(Profiling.createCameraRenderTarget))
             {
                 if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget)
                 {

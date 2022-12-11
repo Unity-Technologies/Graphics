@@ -63,71 +63,105 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct RenderGraphContext : IDerivedRendergraphContext
     {
-        private InternalRenderGraphContext wrapped;
+        private InternalRenderGraphContext wrappedContext;
 
         /// <inheritdoc />
         public void FromInternalContext(InternalRenderGraphContext context)
         {
-            wrapped = context;
+            wrappedContext = context;
         }
 
         ///<summary>Scriptable Render Context used for rendering.</summary>
-        public ScriptableRenderContext renderContext { get => wrapped.renderContext; }
+        public ScriptableRenderContext renderContext { get => wrappedContext.renderContext; }
         ///<summary>Command Buffer used for rendering.</summary>
-        public CommandBuffer cmd { get => wrapped.cmd; }
+        public CommandBuffer cmd { get => wrappedContext.cmd; }
         ///<summary>Render Graph pool used for temporary data.</summary>
-        public RenderGraphObjectPool renderGraphPool { get => wrapped.renderGraphPool; }
+        public RenderGraphObjectPool renderGraphPool { get => wrappedContext.renderGraphPool; }
         ///<summary>Render Graph default resources.</summary>
-        public RenderGraphDefaultResources defaultResources { get => wrapped.defaultResources; }
+        public RenderGraphDefaultResources defaultResources { get => wrappedContext.defaultResources; }
     }
 
     /// <summary>
-    /// This class specifies the context given to the execute fuction of a raster render pass.
+    /// This class declares the context object passed to the execute function of a raster render pass.
     /// <see cref="RenderGraph.AddRasterRenderPass"/>
     /// </summary>
     public struct RasterGraphContext : IDerivedRendergraphContext
     {
-        private InternalRenderGraphContext wrapped;
+        private InternalRenderGraphContext wrappedContext;
 
         ///<summary>Command Buffer used for rendering.</summary>
         public RasterCommandBuffer cmd;
 
         ///<summary>Render Graph default resources.</summary>
-        public RenderGraphDefaultResources defaultResources { get => wrapped.defaultResources; }
+        public RenderGraphDefaultResources defaultResources { get => wrappedContext.defaultResources; }
 
         ///<summary>Render Graph pool used for temporary data.</summary>
-        public RenderGraphObjectPool renderGraphPool { get => wrapped.renderGraphPool; }
+        public RenderGraphObjectPool renderGraphPool { get => wrappedContext.renderGraphPool; }
 
+        static internal RasterCommandBuffer rastercmd = new RasterCommandBuffer(null, null, false);
         /// <inheritdoc />
         public void FromInternalContext(InternalRenderGraphContext context)
         {
-            wrapped = context;
-            cmd = new RasterCommandBuffer(wrapped.cmd, context.executingPass, false);
+            wrappedContext = context;
+            rastercmd.m_WrappedCommandBuffer = wrappedContext.cmd;
+            rastercmd.m_ExecutingPass = context.executingPass;
+            cmd = rastercmd;
         }
     }
 
     /// <summary>
-    /// This class specifies the context given to the execute fuction of a raster render pass.
+    /// This class declares the context object passed to the execute function of a compute render pass.
     /// <see cref="RenderGraph.AddComputePass"/>
     /// </summary>
     public class ComputeGraphContext : IDerivedRendergraphContext
     {
-        private InternalRenderGraphContext wrapped;
+        private InternalRenderGraphContext wrappedContext;
 
         ///<summary>Command Buffer used for rendering.</summary>
         public ComputeCommandBuffer cmd;
 
         ///<summary>Render Graph default resources.</summary>
-        public RenderGraphDefaultResources defaultResources { get => wrapped.defaultResources; }
+        public RenderGraphDefaultResources defaultResources { get => wrappedContext.defaultResources; }
 
         ///<summary>Render Graph pool used for temporary data.</summary>
-        public RenderGraphObjectPool renderGraphPool { get => wrapped.renderGraphPool; }
+        public RenderGraphObjectPool renderGraphPool { get => wrappedContext.renderGraphPool; }
 
         /// <inheritdoc />
         public void FromInternalContext(InternalRenderGraphContext context)
         {
-            wrapped = context;
-            cmd = new ComputeCommandBuffer(wrapped.cmd, context.executingPass, false);
+            wrappedContext = context;
+            cmd = new ComputeCommandBuffer(wrappedContext.cmd, wrappedContext.executingPass, false);
+        }
+    }
+
+    /// <summary>
+    /// This class declares the context object passed to the execute function of a low level render pass.
+    /// <see cref="RenderGraph.AddLowLevelPass"/>
+    /// </summary>
+    public class LowLevelGraphContext : IDerivedRendergraphContext
+    {
+        private InternalRenderGraphContext wrappedContext;
+
+        ///<summary>Scriptable Render Context used for rendering.</summary>
+        public ScriptableRenderContext renderContext { get => wrappedContext.renderContext; }
+
+        ///<summary>Command Buffer used for rendering.</summary>
+        public LowLevelCommandBuffer cmd;
+
+        ///<summary>Render Graph default resources.</summary>
+        public RenderGraphDefaultResources defaultResources { get => wrappedContext.defaultResources; }
+
+        ///<summary>Render Graph pool used for temporary data.</summary>
+        public RenderGraphObjectPool renderGraphPool { get => wrappedContext.renderGraphPool; }
+
+        static internal LowLevelCommandBuffer llcmd = new LowLevelCommandBuffer(null, null, false);
+        /// <inheritdoc />
+        public void FromInternalContext(InternalRenderGraphContext context)
+        {
+            wrappedContext = context;
+            llcmd.m_WrappedCommandBuffer = wrappedContext.cmd;
+            llcmd.m_ExecutingPass = context.executingPass;
+            cmd = llcmd;
         }
     }
 
@@ -560,6 +594,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Import an external texture to the Render Graph and set the handle as builtin handle
+        /// </summary>
+        internal TextureHandle ImportTexture(RTHandle rt, bool isBuiltin = false)
+        {
+            return m_Resources.ImportTexture(rt, isBuiltin);
+        }
+
+        /// <summary>
         /// Import the final backbuffer to render graph.
         /// </summary>
         /// <param name="rt">Backbuffer render target identifier.</param>
@@ -652,7 +694,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Creates a new Renderer List Render Graph resource.
         /// </summary>
         /// <param name="desc">Renderer List descriptor.</param>
-        /// <returns>A new TextureHandle.</returns>
+        /// <returns>A new RendererListHandle.</returns>
         public RendererListHandle CreateRendererList(in CoreRendererListDesc desc)
         {
             return m_Resources.CreateRendererList(desc);
@@ -662,10 +704,46 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Creates a new Renderer List Render Graph resource.
         /// </summary>
         /// <param name="desc">Renderer List descriptor.</param>
-        /// <returns>A new TextureHandle.</returns>
+        /// <returns>A new RendererListHandle.</returns>
         public RendererListHandle CreateRendererList(in RendererListParams desc)
         {
             return m_Resources.CreateRendererList(desc);
+        }
+
+        /// <summary>
+        /// Creates a new Shadow  Renderer List Render Graph resource.
+        /// </summary>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateShadowRendererList(ref ShadowDrawingSettings shadowDrawingSettings)
+        {
+            return m_Resources.CreateShadowRendererList(m_RenderGraphContext.renderContext, ref shadowDrawingSettings);
+        }
+
+        /// <summary>
+        /// Creates a new Gizmo Renderer List Render Graph resource.
+        /// </summary>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateGizmoRendererList(in Camera camera, in GizmoSubset gizmoSubset)
+        {
+            return m_Resources.CreateGizmoRendererList(m_RenderGraphContext.renderContext, camera, gizmoSubset);
+        }
+
+        /// <summary>
+        /// Creates a new UIOverlay Renderer List Render Graph resource.
+        /// </summary>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateUIOverlayRendererList(in Camera camera)
+        {
+            return m_Resources.CreateUIOverlayRendererList(m_RenderGraphContext.renderContext, camera);
+        }
+
+        /// <summary>
+        /// Creates a new WireOverlay Renderer List Render Graph resource.
+        /// </summary>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateWireOverlayRendererList(in Camera camera)
+        {
+            return m_Resources.CreateWireOverlayRendererList(m_RenderGraphContext.renderContext, camera);
         }
 
         /// <summary>
@@ -883,6 +961,62 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             var renderPass = m_RenderGraphPool.Get<ComputeRenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
+
+            passData = renderPass.data;
+
+            m_RenderPasses.Add(renderPass);
+
+            m_builderInstance.Setup(renderPass, m_Resources, this);
+            return m_builderInstance;
+        }
+
+        /// <summary>
+        /// Add a new Low Level Render Pass to the Render Graph. Low level passes can do certain operations compute/raster render passes cannot do and have
+        /// access to the full command buffer API. The low level API should be used sparingly as it has the following downsides
+        /// - All native render passes will be serialized out.
+        /// - In the future the render graph compiler may generate a sub-optimal command stream for low level passes.
+        /// When using a low level pass the graph will also not automatically set-up graphics state like rendertargets. The pass should do this itself
+        /// using cmd.SetRenderTarget and related commands.
+        /// </summary>
+        /// <typeparam name="PassData">Type of the class to use to provide data to the Render Pass.</typeparam>
+        /// <param name="passName">Name of the new Render Pass (this is also be used to generate a GPU profiling marker).</param>
+        /// <param name="passData">Instance of PassData that is passed to the render function and you must fill.</param>
+        /// <param name="file">File name of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
+        /// <param name="line">File line of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
+        /// <returns>A new instance of a ILowLevelRenderGraphBuilder used to setup the new Low Level Render Pass.</returns>
+        public ILowLevelRenderGraphBuilder AddLowLevelPass<PassData>(string passName, out PassData passData
+#if !CORE_PACKAGE_DOCTOOLS
+            , [CallerFilePath] string file = "",
+            [CallerLineNumber] int line = 0) where PassData : class, new()
+#endif
+        {
+            return AddLowLevelPass(passName, out passData, GetDefaultProfilingSampler(passName), file, line);
+        }
+
+        /// <summary>
+        /// Add a new Low Level Render Pass to the Render Graph. Low level passes can do certain operations compute/raster render passes cannot do and have
+        /// access to the full command buffer API. The low level API should be used sparingly as it has the following downsides
+        /// - All native render passes will be serialized out.
+        /// - In the future the render graph compiler may generate a sub-optimal command stream for low level passes.
+        /// When using a low level pass the graph will also not automatically set-up graphics state like rendertargets. The pass should do this itself
+        /// using cmd.SetRenderTarget and related commands.
+        /// </summary>
+        /// <typeparam name="PassData">Type of the class to use to provide data to the Render Pass.</typeparam>
+        /// <param name="passName">Name of the new Render Pass (this is also be used to generate a GPU profiling marker).</param>
+        /// <param name="passData">Instance of PassData that is passed to the render function and you must fill.</param>
+        /// <param name="sampler">Profiling sampler used around the pass.</param>
+        /// <param name="file">File name of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
+        /// <param name="line">File line of the source file this function is called from. Used for debugging. This parameter is automatically generated by the compiler. Users do not need to pass it.</param>
+        /// <returns>A new instance of a ILowLevelRenderGraphBuilder used to setup the new Low Level Render Pass.</returns>
+        public ILowLevelRenderGraphBuilder AddLowLevelPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler
+#if !CORE_PACKAGE_DOCTOOLS
+            , [CallerFilePath] string file = "",
+            [CallerLineNumber] int line = 0) where PassData : class, new()
+#endif
+        {
+            var renderPass = m_RenderGraphPool.Get<LowLevelRenderGraphPass<PassData>>();
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
+            renderPass.AllowGlobalState(true);
 
             passData = renderPass.data;
 
@@ -1866,13 +2000,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     if (pass.depthBuffer.IsValid())
                     {
                         if (pass.colorBufferMaxIndex > -1)
-                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]), m_Resources.GetTexture(pass.depthBuffer));
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]),
+                                m_Resources.GetTexture(pass.depthBuffer));
+                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
+                        }
                         else
+                        {
                             CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.depthBuffer));
+                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.depthBuffer));
+                        }
                     }
                     else
                     {
                         CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
+                        CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
                     }
                 }
             }

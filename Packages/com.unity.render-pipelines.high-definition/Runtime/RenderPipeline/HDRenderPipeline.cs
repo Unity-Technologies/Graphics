@@ -2045,7 +2045,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Flatten the render requests graph in an array that guarantee dependency constraints
                     FlattenRenderRequestGraph(renderRequests, renderRequestIndicesToRender);
 
-                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
+                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                     {
                         // Warm up the RTHandle system so that it gets init to the maximum resolution available (avoiding to call multiple resizes
                         // that can lead to high memory spike as the memory release is delayed while the creation is immediate).
@@ -2201,7 +2201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This call need to happen once per camera
                 // TODO: This can be wasteful for "compatible" cameras.
                 // We need to determine the minimum set of feature used by all the camera and build the minimum number of acceleration structures.
-                using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructure)))
+                using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructure)))
                 {
                     BuildRayTracingAccelerationStructure(hdCamera);
                 }
@@ -2259,7 +2259,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 {
-                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CustomPassVolumeUpdate)))
+                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CustomPassVolumeUpdate)))
                         CustomPassVolume.Update(hdCamera);
                 }
 
@@ -2611,14 +2611,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     OverrideCullingForRayTracing(hdCamera, camera, ref cullingParams);
                 }
 
-                using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CullResultsCull)))
+                using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CullResultsCull)))
                 {
                     cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
                 }
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 {
-                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CustomPassCullResultsCull)))
+                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CustomPassCullResultsCull)))
                     {
                         cullingResults.customPassCullingResults = CustomPassVolume.Cull(renderContext, hdCamera);
                     }
@@ -2629,7 +2629,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 {
-                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.DBufferPrepareDrawData)))
+                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.DBufferPrepareDrawData)))
                     {
                         DecalSystem.instance.EndCull(decalCullRequest, cullingResults.decalCullResults);
                     }

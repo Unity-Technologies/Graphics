@@ -126,7 +126,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd">Used command buffer</param>
         /// <param name="maskSize">The mask size of rendering layers texture</param>
-        public static void SetupProperties(CommandBuffer cmd, MaskSize maskSize)
+        public static void SetupProperties(CommandBuffer cmd, MaskSize maskSize) { SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), maskSize); }
+        internal static void SetupProperties(RasterCommandBuffer cmd, MaskSize maskSize)
         {
             int bits = GetBits(maskSize);
 

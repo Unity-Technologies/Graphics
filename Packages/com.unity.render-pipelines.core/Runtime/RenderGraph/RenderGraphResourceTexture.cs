@@ -20,7 +20,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
-        internal TextureHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared); }
+        private bool builtin;
+
+        internal TextureHandle(int handle, bool shared = false, bool builtin = false)
+        {
+            this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared);
+            this.builtin = builtin;
+        }
 
         /// <summary>
         /// Cast to RenderTargetIdentifier
@@ -55,6 +61,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => handle.IsValid();
+
+        /// <summary>
+        /// Return true if the handle is a builtin handle managed by RenderGraph internally.
+        /// </summary>
+        /// <returns>True if the handle is a builtin handle.</returns>
+        internal bool IsBuiltin() => this.builtin;
     }
 
     /// <summary>

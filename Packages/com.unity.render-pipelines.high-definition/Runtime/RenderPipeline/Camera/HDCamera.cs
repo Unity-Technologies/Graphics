@@ -1825,7 +1825,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (volumeAnchor == null)
                 volumeAnchor = camera.transform;
 
-            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.VolumeUpdate)))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.VolumeUpdate)))
             {
                 VolumeManager.instance.Update(volumeStack, volumeAnchor, volumeLayerMask);
             }

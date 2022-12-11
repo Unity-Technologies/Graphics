@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        internal static void UnmarkShaderProperties(CommandBuffer cmd, XRPassUniversal xrPass)
+        internal static void UnmarkShaderProperties(RasterCommandBuffer cmd, XRPassUniversal xrPass)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass.isLateLatchEnabled && xrPass.hasMarkedLateLatch)
@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        internal static void MarkShaderProperties(CommandBuffer cmd, XRPassUniversal xrPass, bool renderIntoTexture)
+        internal static void MarkShaderProperties(RasterCommandBuffer cmd, XRPassUniversal xrPass, bool renderIntoTexture)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass.isLateLatchEnabled && xrPass.canMarkLateLatch)

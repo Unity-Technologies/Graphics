@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
             out NativeArray<URPLightShadowCullingInfos> urpVisibleLightsShadowCullingInfos)
         {
             const int MaxShadowSplitCount = 6;
-            using var profScope = new ProfilingScope(null, computeShadowCasterCullingInfosMarker);
+            using var profScope = new ProfilingScope(computeShadowCasterCullingInfosMarker);
 
             NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
             NativeArray<ShadowSplitData> splitBuffer = new NativeArray<ShadowSplitData>(visibleLights.Length * MaxShadowSplitCount, Allocator.Temp);

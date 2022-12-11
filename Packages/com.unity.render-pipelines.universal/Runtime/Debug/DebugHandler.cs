@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -177,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void SetupShaderProperties(CommandBuffer cmd, int passIndex = 0)
+        internal void SetupShaderProperties(RasterCommandBuffer cmd, int passIndex = 0)
         {
             if (LightingSettings.lightingDebugMode == DebugLightingMode.ShadowCascades)
             {
@@ -296,10 +298,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        internal void Setup(ref RenderingData renderingData)
         {
             var cmd = renderingData.commandBuffer;
-            var cameraData = renderingData.cameraData;
+            ref var cameraData = ref renderingData.cameraData;
 
             if (IsActiveForCamera(ref cameraData))
             {
@@ -340,9 +342,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
 
         #region DebugRenderPasses
@@ -352,8 +351,6 @@ namespace UnityEngine.Rendering.Universal
             private class Enumerator : IEnumerator<DebugRenderSetup>
             {
                 private readonly DebugHandler m_DebugHandler;
-                private readonly ScriptableRenderContext m_Context;
-                private readonly CommandBuffer m_CommandBuffer;
                 readonly FilteringSettings m_FilteringSettings;
                 private readonly int m_NumIterations;
 
@@ -363,15 +360,11 @@ namespace UnityEngine.Rendering.Universal
                 object IEnumerator.Current => Current;
 
                 public Enumerator(DebugHandler debugHandler,
-                    ScriptableRenderContext context,
-                    CommandBuffer commandBuffer,
                     FilteringSettings filteringSettings)
                 {
                     DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
 
                     m_DebugHandler = debugHandler;
-                    m_Context = context;
-                    m_CommandBuffer = commandBuffer;
                     m_FilteringSettings = filteringSettings;
                     m_NumIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) ||
                         (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe))
@@ -393,7 +386,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        Current = new DebugRenderSetup(m_DebugHandler, m_Context, m_CommandBuffer, m_Index, m_FilteringSettings);
+                        Current = new DebugRenderSetup(m_DebugHandler, m_Index, m_FilteringSettings);
                         return true;
                     }
                 }
@@ -418,18 +411,12 @@ namespace UnityEngine.Rendering.Universal
             }
 
             private readonly DebugHandler m_DebugHandler;
-            private readonly ScriptableRenderContext m_Context;
-            private readonly CommandBuffer m_CommandBuffer;
             readonly FilteringSettings m_FilteringSettings;
 
             public DebugRenderPassEnumerable(DebugHandler debugHandler,
-                ScriptableRenderContext context,
-                CommandBuffer commandBuffer,
                 FilteringSettings filteringSettings)
             {
                 m_DebugHandler = debugHandler;
-                m_Context = context;
-                m_CommandBuffer = commandBuffer;
                 m_FilteringSettings = filteringSettings;
             }
 
@@ -437,7 +424,7 @@ namespace UnityEngine.Rendering.Universal
 
             public IEnumerator<DebugRenderSetup> GetEnumerator()
             {
-                return new Enumerator(m_DebugHandler, m_Context, m_CommandBuffer, m_FilteringSettings);
+                return new Enumerator(m_DebugHandler, m_FilteringSettings);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -448,37 +435,53 @@ namespace UnityEngine.Rendering.Universal
             #endregion
         }
 
-        internal IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
-            CommandBuffer commandBuffer, FilteringSettings filteringSettings)
+        private DebugRenderPassEnumerable CreateDebugRenderSetupEnumerable(FilteringSettings filteringSettings)
         {
-            return new DebugRenderPassEnumerable(this, context, commandBuffer, filteringSettings);
+            return new DebugRenderPassEnumerable(this, filteringSettings);
         }
 
-        internal delegate void DrawFunction(
+        private DebugRenderPassEnumerable m_DebugRenderPassEnumerable;
+        internal void CreateRendererListWithDebugRenderState(
             ScriptableRenderContext context,
-            CommandBuffer cmd,
             ref RenderingData renderingData,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
-            ref RenderStateBlock renderStateBlock);
-
-        internal void DrawWithDebugRenderState(
-            ScriptableRenderContext context,
-            CommandBuffer cmd,
-            ref RenderingData renderingData,
-            ref DrawingSettings drawingSettings,
-            ref FilteringSettings filteringSettings,
-            ref RenderStateBlock renderStateBlock,
-            DrawFunction func)
+            ref RenderStateBlock renderStateBlock)
         {
-            foreach (DebugRenderSetup debugRenderSetup in CreateDebugRenderSetupEnumerable(context, cmd, filteringSettings))
+            m_DebugRenderPassEnumerable = CreateDebugRenderSetupEnumerable(filteringSettings);
+            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderPassEnumerable)
             {
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
-                func(context, cmd, ref renderingData, ref debugDrawingSettings, ref filteringSettings, ref debugRenderStateBlock);
+                debugRenderSetup.CreateRendererList(context, ref renderingData, ref debugDrawingSettings, ref filteringSettings, ref debugRenderStateBlock);
             }
         }
 
+        internal void CreateRendererListWithDebugRenderState(
+            RenderGraph renderGraph,
+            ref RenderingData renderingData,
+            ref DrawingSettings drawingSettings,
+            ref FilteringSettings filteringSettings,
+            ref RenderStateBlock renderStateBlock)
+        {
+            m_DebugRenderPassEnumerable = CreateDebugRenderSetupEnumerable(filteringSettings);
+            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderPassEnumerable)
+            {
+                DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
+                RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
+                debugRenderSetup.CreateRendererList(renderGraph, ref renderingData, ref debugDrawingSettings, ref filteringSettings, ref debugRenderStateBlock);
+            }
+        }
+
+        internal void DrawWithRendererList(RasterCommandBuffer cmd)
+        {
+            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderPassEnumerable)
+            {
+                debugRenderSetup.Begin(cmd);
+                debugRenderSetup.DrawWithRendererList(cmd);
+                debugRenderSetup.End(cmd);
+            }
+        }
         #endregion
     }
 }

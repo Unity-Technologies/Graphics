@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
             NativeArray<ShadowSplitData> outSplitBuffer,
             out int outTotalSplitCount)
         {
-            using var profilerScope = new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.ComputeShadowCullingSplits));
+            using var profilerScope = new ProfilingScope(ProfilingSampler.Get(HDProfileId.ComputeShadowCullingSplits));
 
             int shadowLightCount = processedVisibleLights.shadowLightCount;
             int maxShadowSplitCount = shadowLightCount * HDShadowUtils.k_MaxShadowSplitCount;

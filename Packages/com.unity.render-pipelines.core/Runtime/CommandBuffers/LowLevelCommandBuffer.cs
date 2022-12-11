@@ -29,16 +29,22 @@ namespace UnityEngine.Experimental.Rendering
     using RendererList = UnityEngine.Rendering.RendererList;
 
     /// <summary>
-    /// A command buffer that is used with a rasterization render graph pass.
+    /// A command buffer that is used with a lowlevel render graph pass.
+    /// This commandbuffer can record certain commands that are not available in other commandbuffers eg.SetRenderTarget. It is only to be used in special situations and will break the native renderpasses in RenderGraph.
+    /// One example use case is to optmize lightmap mipmap data setup pass at the begining of the frame - by combining multiple blit passes into one lowlevel pass, it reduces the overall frame complexity and graph compiling cost.
     /// </summary>
-    public class RasterCommandBuffer : BaseCommandBuffer, IRasterCommandBuffer
+    public class LowLevelCommandBuffer : BaseCommandBuffer, ILowLevelCommandBuffer
     {
-        // RasterCommandBuffer is not created by users. The render graph creates them and passes them to the execute callback of the graph pass.
-        internal RasterCommandBuffer(CommandBuffer wrapped, RenderGraphPass executingPass, bool isAsync) : base(wrapped, executingPass, isAsync) { }
+        // LowLevelCommandBuffer is not created by users. The render graph creates them and passes them to the execute callback of the graph pass.
+        internal LowLevelCommandBuffer(CommandBuffer wrapped, RenderGraphPass executingPass, bool isAsync) : base(wrapped, executingPass, isAsync) { }
 
         /// <summary>Wraps [SetInvertCulling](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetInvertCulling.html) on a CommandBuffer.</summary>
         /// <param name="invertCulling">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetInvertCulling.html)</param>
         public void SetInvertCulling(bool invertCulling)  {  m_WrappedCommandBuffer.SetInvertCulling(invertCulling); }
+
+        /// <summary>Wraps [Clear](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.Clear.html) on a CommandBuffer.</summary>
+
+        public void Clear()  {  m_WrappedCommandBuffer.Clear(); }
 
         /// <summary>Wraps [SetViewport](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewport.html) on a CommandBuffer.</summary>
         /// <param name="pixelRect">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewport.html)</param>
@@ -232,6 +238,101 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>Wraps [ConfigureFoveatedRendering](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ConfigureFoveatedRendering.html) on a CommandBuffer.</summary>
         /// <param name="platformData">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ConfigureFoveatedRendering.html)</param>
         public void ConfigureFoveatedRendering(IntPtr platformData)  { ThrowIfGlobalStateNotAllowed();  m_WrappedCommandBuffer.ConfigureFoveatedRendering(platformData); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="rt">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier rt)  {  m_WrappedCommandBuffer.SetRenderTarget(rt); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="rt">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="loadAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="storeAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier rt, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction)  {  m_WrappedCommandBuffer.SetRenderTarget(rt, loadAction, storeAction); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="rt">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="colorLoadAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="colorStoreAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depthLoadAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depthStoreAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier rt, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction)  {  m_WrappedCommandBuffer.SetRenderTarget(rt, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="rt">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="mipLevel">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier rt, int mipLevel)  {  m_WrappedCommandBuffer.SetRenderTarget(rt, mipLevel); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="rt">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="mipLevel">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="cubemapFace">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier rt, int mipLevel, CubemapFace cubemapFace)  {  m_WrappedCommandBuffer.SetRenderTarget(rt, mipLevel, cubemapFace); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="rt">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="mipLevel">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="cubemapFace">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depthSlice">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier rt, int mipLevel, CubemapFace cubemapFace, int depthSlice)  {  m_WrappedCommandBuffer.SetRenderTarget(rt, mipLevel, cubemapFace, depthSlice); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="color">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier color, RenderTargetIdentifier depth)  {  m_WrappedCommandBuffer.SetRenderTarget(color, depth); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="color">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="mipLevel">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier color, RenderTargetIdentifier depth, int mipLevel)  {  m_WrappedCommandBuffer.SetRenderTarget(color, depth, mipLevel); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="color">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="mipLevel">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="cubemapFace">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier color, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace)  {  m_WrappedCommandBuffer.SetRenderTarget(color, depth, mipLevel, cubemapFace); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="color">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="mipLevel">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="cubemapFace">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depthSlice">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier color, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice)  {  m_WrappedCommandBuffer.SetRenderTarget(color, depth, mipLevel, cubemapFace, depthSlice); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="color">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="colorLoadAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="colorStoreAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depthLoadAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depthStoreAction">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier color, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction, RenderTargetIdentifier depth, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction)  {  m_WrappedCommandBuffer.SetRenderTarget(color, colorLoadAction, colorStoreAction, depth, depthLoadAction, depthStoreAction); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="colors">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth)  {  m_WrappedCommandBuffer.SetRenderTarget(colors, depth); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="colors">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="mipLevel">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="cubemapFace">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depthSlice">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice)  {  m_WrappedCommandBuffer.SetRenderTarget(colors, depth, mipLevel, cubemapFace, depthSlice); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="binding">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="mipLevel">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="cubemapFace">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        /// <param name="depthSlice">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetBinding binding, int mipLevel, CubemapFace cubemapFace, int depthSlice)  {  m_WrappedCommandBuffer.SetRenderTarget(binding, mipLevel, cubemapFace, depthSlice); }
+
+        /// <summary>Wraps [SetRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="binding">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html)</param>
+        public void SetRenderTarget(RenderTargetBinding binding)  {  m_WrappedCommandBuffer.SetRenderTarget(binding); }
 
         /// <summary>Wraps [SetupCameraProperties](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetupCameraProperties.html) on a CommandBuffer.</summary>
         /// <param name="camera">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetupCameraProperties.html)</param>
