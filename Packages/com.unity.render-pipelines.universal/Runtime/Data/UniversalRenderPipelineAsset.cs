@@ -402,24 +402,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
-#if UNITY_EDITOR
-        // Defaults for renderer features that are not dependent on other settings.
-        // These are the filter rules if no such renderer features are present.
-
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
-
-        // TODO: decal settings needs some rework before we can filter DBufferMRT/DecalNormalBlend.
-        // Atm the setup depends on the technique but settings are present for both at the same time.
-        //[ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.DBufferMRT1, ShaderKeywordStrings.DBufferMRT2, ShaderKeywordStrings.DBufferMRT3})]
-        //[ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.DecalNormalBlendLow, ShaderKeywordStrings.DecalNormalBlendMedium, ShaderKeywordStrings.DecalNormalBlendHigh})]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DecalLayers)]
-        private const bool k_RendererFeatureDefaults = true;
-
-        // Platform specific filtering overrides
-        [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.WriteRenderingLayers)]
-        private const bool k_CommonGLDefaults = true;
-#endif
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
@@ -545,7 +527,6 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         // multi_compile_fragment _ _LIGHT_LAYERS
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.LightLayers)]
-        // TODO: Filtering WriteRenderingLayers requires different filter triggers for different passes (i.e. per-pass filter attributes)
 #endif
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;

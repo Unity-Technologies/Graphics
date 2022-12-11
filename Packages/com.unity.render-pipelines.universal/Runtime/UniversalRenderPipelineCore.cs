@@ -1143,6 +1143,15 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for foveated rendering. </summary>
         public const string FoveatedRenderingNonUniformRaster = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER";
 
+        /// <summary> Keyword used for disabling Texture 2D Arrays. </summary>
+        public const string DisableTexture2DXArray = "DISABLE_TEXTURE2D_X_ARRAY";
+
+        /// <summary> Keyword used for Single Slice Blits. </summary>
+        public const string BlitSingleSlice = "BLIT_SINGLE_SLICE";
+
+        /// <summary> Keyword used for rendering a combined mesh for XR. </summary>
+        public const string XROcclusionMeshCombined = "XR_OCCLUSION_MESH_COMBINED";
+
         /// <summary> Keyword used for applying scale and bias. </summary>
         public const string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
 
