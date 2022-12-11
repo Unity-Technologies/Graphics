@@ -157,7 +157,8 @@ namespace UnityEngine.Rendering
         // we want to be able to switch to the default one through the ResetMainStack() function.
         VolumeStack m_DefaultStack = null;
 
-        VolumeManager()
+ 		// Internal for tests
+        internal VolumeManager()
         {
             m_SortedVolumes = new Dictionary<int, List<Volume>>();
             m_Volumes = new List<Volume>();
