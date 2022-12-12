@@ -5,11 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [15.0.2] - 2022-12-12
+
+### Added
+  - Added the ability to disable batching in ShaderGraph.
+
 ## [15.0.1] - 2022-08-04
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
-
 
 ## [15.0.0] - 2022-06-13
 
