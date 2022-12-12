@@ -79,9 +79,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var disableBatchingRow = new PropertyRow(disableBatchingLabel);
             var disableBatchingToggle = new Toggle();
             disableBatchingToggle.RegisterValueChangedCallback((ChangeEvent<bool> evt) => {
-                foreach (var target in graphData.activeTargets) {
-                    graphData.disableBatching = evt.newValue;
-                }
+                graphData.disableBatching = evt.newValue;
                 RegisterActionToUndo("DisableBatchingUndo");
             });
             disableBatchingRow.Add(disableBatchingToggle);
