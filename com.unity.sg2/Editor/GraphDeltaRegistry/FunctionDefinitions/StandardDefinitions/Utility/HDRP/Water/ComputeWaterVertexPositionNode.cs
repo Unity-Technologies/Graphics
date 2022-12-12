@@ -9,11 +9,11 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"Out = GetWaterVertexPosition(PositionWS);",
+@"PositionWS = GetWaterVertexPosition(temp);",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
-                new ParameterDescriptor("Out", TYPE.Vec3, Usage.Out)
+                new ParameterDescriptor("temp", TYPE.Vec3, Usage.Local, REF.WorldSpace_Position),
+                new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.Out)
             }
         );
 
@@ -27,8 +27,8 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
-                    name: "Out",
-                    displayName: "Out",
+                    name: "PositionWS",
+                    displayName: "PositionWS",
                     tooltip: ""
                 )
             }

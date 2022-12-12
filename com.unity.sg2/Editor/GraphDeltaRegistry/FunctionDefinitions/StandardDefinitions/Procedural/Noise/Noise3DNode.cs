@@ -175,6 +175,48 @@ namespace UnityEditor.ShaderGraph.Defs
                     isHelper: true
                 ),
                 new(
+                    "simplexNoise",
+@"    i = floor(p + (p.x + p.y + p.z) * 0.333333333);
+    d0 = p - (i - (i.x + i.y + i.z) * 0.166666667);
+    e = step(float3(0.0, 0.0, 0.0), d0 - d0.yzx);
+	i1 = e * (1.0 - e.zxy);
+    i2 = 1.0 - e.zxy * (1.0 - e);
+    d1 = d0 - (i1 - 1.0 * 0.166666667);
+    d2 = d0 - (i2 - 2.0 * 0.166666667);
+    d3 = d0 - (1.0 - 3.0 * 0.166666667);
+    h = max(0.6 - float4(dot(d0, d0), dot(d1, d1), dot(d2, d2), dot(d3, d3)), 0.0);
+	Hash_Tchou_3_3_float(i, s);
+	Hash_Tchou_3_3_float(i + i1, t);
+	Hash_Tchou_3_3_float(i + i2, u);
+	Hash_Tchou_3_3_float(i + 1.0, v);
+    n = h * h * h * h * float4(dot(d0, s*2-1), dot(d1, t*2-1), dot(d2, u*2-1), dot(d3, v*2-1));
+    Out = dot(float4(31.316, 31.316, 31.316, 31.316), n);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("p", TYPE.Vec3, Usage.In),
+                        new ParameterDescriptor("i", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("d0", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("e", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("i1", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("i2", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("d1", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("d2", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("d3", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("h", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("s", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("t", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("u", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("v", TYPE.Vec3, Usage.Local),
+                        new ParameterDescriptor("n", TYPE.Vec4, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                    },
+                    new string[]
+                    {
+                        "\"Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl\""
+                    },
+                    isHelper: true
+                ),
+                new(
                     "ValueFBM",
 @"   Position *= Scale;
     for(int i=0; i<Octaves; i++) {
@@ -388,7 +430,113 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
                     }
                 ),
-
+                new(
+                    "SimplexFBM",
+@"   Position *= Scale;
+    for(int i=0; i<Octaves; i++) {
+        simplexNoise(Position*freq, x);
+        if (RotateOctaves) Position = mul(Position, randRotMat);
+        sum += x*amp;
+	    freq *= Lacunarity;
+	    amp *= Gain;
+    }
+    Out = sum+0.5;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
+                        new ParameterDescriptor("Scale", TYPE.Vec3, Usage.In, new float[] { 10.0f, 10.0f, 10.0f }),
+                        new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
+                        new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
+                        new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("randRotMat", TYPE.Mat3, Usage.Local, new float[]
+                        {
+                            0.5703109f, -0.6308292f, 0.5261179f,
+                            0.8214105f, 0.4336779f, -0.3704164f,
+                            0.0055037f, 0.6434113f,  0.7655009f
+                        }),//rotates the octaves by x37, y19, z53 degrees
+                        new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
+                        new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
+                        new ParameterDescriptor("sum", TYPE.Float, Usage.Local, new float[] {0.0f}),
+                        new ParameterDescriptor("x", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                    }
+                ),
+                new(
+                    "SimplexTurbulence",
+@"   Position *= Scale;
+    for(int i=0; i<Octaves; i++) {
+        simplexNoise(Position*freq, x);
+        if (RotateOctaves) Position = mul(Position, randRotMat);
+        sum += abs(x)*amp;
+        freq *= Lacunarity;
+        amp *= Gain;
+    }
+    Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
+                        new ParameterDescriptor("Scale", TYPE.Vec3, Usage.In, new float[] { 10.0f, 10.0f, 10.0f }),
+                        new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
+                        new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
+                        new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("randRotMat", TYPE.Mat3, Usage.Local, new float[]
+                        {
+                            0.5703109f, -0.6308292f, 0.5261179f,
+                            0.8214105f, 0.4336779f, -0.3704164f,
+                            0.0055037f, 0.6434113f,  0.7655009f
+                        }),//rotates the octaves by x37, y19, z53 degrees
+                        new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
+                        new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {1.0f}),
+                        new ParameterDescriptor("sum", TYPE.Float, Usage.Local, new float[] {0.0f}),
+                        new ParameterDescriptor("x", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                    }
+                ),
+                new(
+                    "SimplexRidgedMF",
+@"   Position *= Scale;
+    for(int i=0; i<Octaves; i++) {
+        simplexNoise(Position*freq, x);
+        if (RotateOctaves) Position = mul(Position, randRotMat);
+        ridge(x, Offset, n);
+		sum += n*amp*prev;
+		prev = n;
+		freq *= Lacunarity;
+		amp *= Gain;
+	}
+	Out = sum;
+    if (sRGBOutput) Out = pow(Out, 2.2);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("Position", TYPE.Vec3, Usage.In, REF.WorldSpace_Position),
+                        new ParameterDescriptor("Scale", TYPE.Vec3, Usage.In, new float[] { 10.0f, 10.0f, 10.0f }),
+                        new ParameterDescriptor("Octaves", TYPE.Int, Usage.In, new float[] {3}),
+                        new ParameterDescriptor("Lacunarity", TYPE.Float, Usage.In, new float[] {2.0f}),
+                        new ParameterDescriptor("Gain", TYPE.Float, Usage.In, new float[] {0.5f}),
+                        new ParameterDescriptor("Offset", TYPE.Float, Usage.In, new float[] {1.0f}),
+                        new ParameterDescriptor("RotateOctaves", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
+                        new ParameterDescriptor("randRotMat", TYPE.Mat3, Usage.Local, new float[]
+                        {
+                            0.5703109f, -0.6308292f, 0.5261179f,
+                            0.8214105f, 0.4336779f, -0.3704164f,
+                            0.0055037f, 0.6434113f,  0.7655009f
+                        }),//rotates the octaves by x37, y19, z53 degrees
+                        new ParameterDescriptor("freq", TYPE.Float, Usage.Local, new float[] {1.0f}),
+                        new ParameterDescriptor("amp", TYPE.Float, Usage.Local, new float[] {0.5f}),
+                        new ParameterDescriptor("sum", TYPE.Float, Usage.Local, new float[] {0.0f}),
+                        new ParameterDescriptor("prev", TYPE.Float, Usage.Local, new float[] {1.0f}),
+                        new ParameterDescriptor("x", TYPE.Float, Usage.Local),
+                        new ParameterDescriptor("n", TYPE.Float, Usage.Local, new float[] {0.0f}),
+                        new ParameterDescriptor("Out", TYPE.Float, Usage.Out),
+                    }
+                ),
                 new(
                     "WorleyFBM",
 @"   Position *= Scale;
@@ -726,21 +874,25 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[5] { "perlin", "gradient", "value", "octave", "worley" },
             selectableFunctions: new()
             {
+                { "ValueTexFBM", "Value Texture Fractal Brownian Motion" },
+                { "ValueTexTurbulence", "Value Texture Turbulence" },
+                { "ValueTexRidgedMF", "Value Texture Ridged Multifractal" },
+                { "GradientTexFBM", "Gradient Texture Fractal Brownian Motion" },
+                { "GradientTexTurbulence", "Gradient Texture Turbulence" },
+                { "GradientTexRidgedMF", "Gradient Texture Ridged Multifractal" },
                 { "ValueFBM", "Value Math Fractal Brownian Motion" },
                 { "ValueTurbulence", "Value Math Turbulence" },
                 { "ValueRidgedMF", "Value Math Ridged Multifractal" },
+                { "SimplexFBM", "Simplex Math Fractal Brownian Motion" },
+                { "SimplexTurbulence", "Simplex Math Turbulence" },
+                { "SimplexRidgedMF", "Simplex Math Ridged Multifractal" },
                 { "GradientFBM", "Gradient Math Fractal Brownian Motion" },
                 { "GradientTurbulence", "Gradient Math Turbulence" },
                 { "GradientRidgedMF", "Gradient Math Ridged Multifractal" },
                 { "WorleyFBM", "Worley Math Fractal Brownian Motion" },
                 { "WorleyTurbulence", "Worley Math Turbulence" },
                 { "WorleyRidgedMF", "Worley Math Ridged Multifractal" },
-                { "ValueTexFBM", "Value Texture Fractal Brownian Motion" },
-                { "ValueTexTurbulence", "Value Texture Turbulence" },
-                { "ValueTexRidgedMF", "Value Texture Ridged Multifractal" },
-                { "GradientTexFBM", "Gradient Texture Fractal Brownian Motion" },
-                { "GradientTexTurbulence", "Gradient Texture Turbulence" },
-                { "GradientTexRidgedMF", "Gradient Texture Ridged Multifractal" }
+
             },
             functionSelectorLabel: "Noise Type",
             parameters: new ParameterUIDescriptor[11] {

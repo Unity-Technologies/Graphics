@@ -16,7 +16,7 @@ MaterialNodeView.Math #title {
 }
 
 MaterialNodeView.Procedural #title {
-    border-color:#BF00BF;
+    border-color:#6000BF;
 }
 
 MaterialNodeView.Utility #title {
