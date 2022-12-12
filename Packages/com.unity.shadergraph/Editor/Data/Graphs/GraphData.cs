@@ -314,6 +314,15 @@ namespace UnityEditor.ShaderGraph
         public MessageManager messageManager { get; set; }
         public bool isSubGraph { get; set; }
 
+        [SerializeField]
+        private bool m_disableBatching = false;
+
+        public bool disableBatching
+        {
+            get => m_disableBatching;
+            set => m_disableBatching = value;
+        }
+
         // we default this to Graph for subgraphs
         // but for shadergraphs, this will get replaced with Single
         [SerializeField]

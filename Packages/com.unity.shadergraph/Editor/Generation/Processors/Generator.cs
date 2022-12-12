@@ -296,13 +296,16 @@ namespace UnityEditor.ShaderGraph
 
                     // process the subshaders
                     var subShaderProperties = GetSubShaderPropertiesForTarget(m_Targets[i], m_GraphData, m_Mode, m_OutputNode, outTemporaryBlocks);
-                    foreach (SubShaderDescriptor subShader in context.subShaders)
-                    {
-                        // only generate subshaders that belong to the current shader we are building
+                    for (int t = 0; t < context.subShaders.Count; t++) {
+                        SubShaderDescriptor subShader = context.subShaders[t];
+
                         if (subShader.additionalShaderID != additionalShaderID)
                             continue;
 
-                        GenerateSubShader(i, subShader, subShaderProperties);
+                        subShader.disableBatching = m_GraphData.disableBatching ? "True" : "False";
+                        context.subShaders[t] = subShader;
+
+                        GenerateSubShader(i, context.subShaders[t], subShaderProperties);
 
                         // pull out shader data from the subshader
                         if (subShader.shaderDependencies != null)
