@@ -5,30 +5,56 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [15.0.2] - 2022-11-04
+## [15.0.3] - 2022-12-02
+
+This version is compatible with Unity 2023.1.0a23.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.2] - 2022-11-04
+
+This version is compatible with Unity 2023.1.0a19.
+
+### Changed
+- Modified the AssetPostprocessor for Shader Graph so it now performs the majority of its work when a shader-related asset has been changed.
+
+### Fixed
+- Improved the stability of shadergraph imports when doing operations with the package manager.
+- Fixed shader graph incorrectly stripping variants for BiRP shaders that weren't built with shader graph.
+- Fixed Shader Graph BiRP Target so it now works correctly with point lights and transparent objects.
+- Fixed unity_StereoEyeIndex error when building XR project with URP Fullscreen master node containing Shader.
 
 ## [15.0.1] - 2022-08-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2023.1.0a6.
 
+### Changed
+- Reduced time taken by code generation when a shader graph asset is imported.
+
+### Fixed
+- Fixed a compilation bug in BiRP Target in some variants with lightmaps.
+- Fixed the TimeManager for MaterialVariant tests.
 
 ## [15.0.0] - 2022-06-13
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2023.1.0a1.
+
+### Fixed
+- Fixed shader graph incorrectly stripping variants for BiRP shaders that weren't built with shader graph.
+- Fixed unity_StereoEyeIndex error when building XR project with URP Fullscreen master node containing Shader.
 
 ## [14.0.3] - 2021-05-09
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2022.2.0a14.
+
+### Fixed
+- Fixed the sample buffer nodes in ShaderGraph.
+- Set the default value of Normalize Output toggle in Transform Node to **true** to make different node versions consistent.
 
 ## [14.0.2] - 2021-02-04
 
+This version is compatible with Unity 2022.2.0a8.
 ### Fixed
  - Fixed ShaderGraph pixel and screen coordinates to work correctly with render scale [1387468]
 
