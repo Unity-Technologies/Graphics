@@ -105,8 +105,6 @@ namespace UnityEditor.ShaderGraph
             sgModel.OnEnable();
             var graphHandler = sgModel.GraphHandler;
 
-
-
             if (!sgModel.IsSubGraph)
             {
                 // TODO: SGModel should know what it's entry point is for creating a shader.

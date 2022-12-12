@@ -136,7 +136,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     if (nodeUIInfo.SelectableFunctions.Count > 0)
                     {
                         string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-                        selectedFunctionID = nodeTopology.GetField(fieldName).GetData<string>();
+                        FieldHandler selectedFunctionField = nodeTopology.GetField<string>(fieldName);
+                        selectedFunctionID = selectedFunctionField.GetData<string>();
                     }
 
                     var shouldShowPreview = nodeUIInfo.HasPreview && showPreviewForType;
