@@ -100,7 +100,10 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
+                EditorGUI.showMixedValue = true;
+                EditorGUI.BeginDisabledGroup(true);
                 EditorGUI.DropdownButton(position, new GUIContent(""), FocusType.Keyboard, EditorStyles.popup);
+                EditorGUI.EndDisabledGroup();
             }
         }
     }

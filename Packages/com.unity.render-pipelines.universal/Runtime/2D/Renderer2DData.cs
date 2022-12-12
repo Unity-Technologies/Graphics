@@ -14,8 +14,8 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>Renderer2DData</c> contains resources for a <c>Renderer2D</c>.
     /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
-    [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData-overview.html")]
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal", "Unity.RenderPipelines.Universal.Runtime")]
+    [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData_overview.html")]
     public partial class Renderer2DData : ScriptableRendererData
     {
         internal enum Renderer2DDefaultMaterialType

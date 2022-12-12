@@ -306,12 +306,8 @@ namespace UnityEngine.Rendering.Universal
                 if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.castingOption == ShadowCaster2D.ShadowCastingOptions.CastShadow)
                 {
                     Renderer renderer = GetRendererFromCaster(shadowCaster, light, layerToRender);
-                    int numberOfMaterials = renderer != null ? shadowCaster.spriteMaterialCount : 1;
-                    for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
-                    {
-                        SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
-                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedUnshadowMaterial, materialIndex, 1);
-                    }
+                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
+                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedUnshadowMaterial, 0, 1);
                 }
             }
 
