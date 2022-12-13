@@ -65,5 +65,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to check m_SkySettings because it can be "nulled" when destroying the volume containing the settings (as it's a ScriptableObject) without the context knowing about it.
             return m_SkySettings != null;
         }
+		
+        public void Reset()
+        {
+            if (skyRenderer != null)
+                skyRenderer.Reset();
+        }		
     }
 }
