@@ -231,6 +231,42 @@ namespace UnityEditor.ShaderGraph.GraphUI
             DefineNode();
         }
 
+        public void SetReferableDropdown(string portName, ReferenceValueDescriptor desc)
+        {
+            if (!TryGetNodeHandler(out var handler)) return;
+            var port = handler.GetPort(portName);
+
+            var existing = GetReferableDropdown(portName);
+            if (existing != -1)
+            {
+                if (GetViewModel().GetParameterInfo(portName).Options[existing].Item2 is ReferenceValueDescriptor existingDesc)
+                {
+                    graphHandler.graphDelta.RemoveDefaultConnection(existingDesc.ContextName, port.ID, registry.Registry);
+                }
+            }
+
+            graphHandler.graphDelta.AddDefaultConnection(desc.ContextName, port.ID, registry.Registry);
+        }
+
+        public int GetReferableDropdown(string portName)
+        {
+            var paramInfo = GetViewModel().GetParameterInfo(portName);
+            if (!existsInGraphData) return 0;
+
+            if (!TryGetNodeHandler(out var handler)) return -1;
+            var port = handler.GetPort(portName);
+            var connection = port.GetFirstConnectedPort();
+
+            for (var i = 0; i < paramInfo.Options.Count; i++)
+            {
+                var (name, value) = paramInfo.Options[i];
+                if (value is not ReferenceValueDescriptor desc) continue;
+                if (connection.LocalID.Equals($"out_{desc.ContextName}")) return i;
+            }
+
+            return -1;
+        }
+
         public void OnPreviewTextureUpdated(Texture newTexture)
         {
             PreviewTexture = newTexture;

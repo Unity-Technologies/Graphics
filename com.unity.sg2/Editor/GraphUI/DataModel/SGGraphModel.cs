@@ -193,10 +193,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             bool isMatrixType = GraphTypeHelpers.GetHeight(portInfo.GetTypeField()) > GraphType.Height.One;
             int matrixHeight = (int)GraphTypeHelpers.GetHeight(portInfo.GetTypeField());
 
-            // Only add new node parts for static ports & ports that should actually appear on nodes
-            if (!isStatic || parameter.InspectorOnly)
-                return false;
-
             if (isGradientType && !portInfo.IsInput)
                 showPreviewForType = false;
 
