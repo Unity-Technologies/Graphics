@@ -246,6 +246,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             graphHandler.graphDelta.AddDefaultConnection(desc.ContextName, port.ID, registry.Registry);
+            graphHandler.ReconcretizeNode(graphDataName);
         }
 
         public int GetReferableDropdown(string portName)
@@ -255,13 +256,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (!TryGetNodeHandler(out var handler)) return -1;
             var port = handler.GetPort(portName);
-            var connection = port.GetFirstConnectedPort();
+            var connection = graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID, registry.Registry);
+            if (connection == null) return -1;
 
             for (var i = 0; i < paramInfo.Options.Count; i++)
             {
                 var (name, value) = paramInfo.Options[i];
                 if (value is not ReferenceValueDescriptor desc) continue;
-                if (connection.LocalID.Equals($"out_{desc.ContextName}")) return i;
+                if (connection == desc.ContextName) return i;
             }
 
             return -1;

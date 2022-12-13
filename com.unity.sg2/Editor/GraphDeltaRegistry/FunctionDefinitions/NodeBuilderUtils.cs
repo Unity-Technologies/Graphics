@@ -198,11 +198,17 @@ namespace UnityEditor.ShaderGraph.Defs
             };
             if (param.DefaultValue is ReferenceValueDescriptor referenceValueDescriptor)
             {
-                portHandler.Owner.AddDefaultConnection(
-                    referenceValueDescriptor.ContextName,
-                    portHandler.ID,
-                    portHandler.Registry);
+                var graphDelta = portHandler.Owner;
+                var existingConnection = graphDelta.GetDefaultConnectionToPort(portHandler.ID, registry);
+                if (existingConnection == null)
+                {
+                    portHandler.Owner.AddDefaultConnection(
+                        referenceValueDescriptor.ContextName,
+                        portHandler.ID,
+                        portHandler.Registry);
+                }
             }
+
             return portHandler;
         }
     }

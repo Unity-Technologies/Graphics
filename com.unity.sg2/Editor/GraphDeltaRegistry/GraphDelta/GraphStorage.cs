@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     }
 
     [Serializable]
-    internal class ContextConnection
+    internal class ContextConnection : IEquatable<ContextConnection>
     {
         [SerializeField]
         private string m_context;
@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public bool Equals(ContextConnection obj)
         {
-            return Context.Equals(obj.Context) && Input.Equals(obj.Input);
+            return obj != null && Context.Equals(obj.Context) && Input.Equals(obj.Input);
         }
     }
 
