@@ -54,6 +54,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
             tmp.InitializeDefaults();
             var namesCollection = tmp.DefaultTopologies.GetNodes()
                 .Select(e => e.ID.LocalPath)
+                // TODO (Brett) THESE ARE REMOVED FROM TESTING BECAUSE THEY ARE FAILING.
+                // TODO (Brett) REMOVE THESE FROM THE LIST AS THEY START WORKING.
                 .Where(s =>
                     !s.StartsWith("CustomColorBuffer") &&
                     !s.StartsWith("CustomDepthBuffer") &&
