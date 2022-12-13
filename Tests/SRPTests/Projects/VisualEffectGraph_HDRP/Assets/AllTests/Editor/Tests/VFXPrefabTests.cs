@@ -23,8 +23,6 @@ namespace UnityEditor.VFX.Test
         [OneTimeSetUp]
         public void Init()
         {
-            System.IO.Directory.CreateDirectory("Assets/Temp");
-
             m_mainCamera = new GameObject();
             var camera = m_mainCamera.AddComponent<Camera>();
             camera.transform.localPosition = Vector3.one;
@@ -59,7 +57,7 @@ namespace UnityEditor.VFX.Test
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
-        static readonly string k_tempFileFormat = "Assets/TmpTests/vfx_prefab_{0}.{1}";
+        static readonly string k_tempFileFormat = VFXTestCommon.tempBasePath + "vfx_prefab_{0}.{1}";
         static int m_TempFileCounter = 0;
 
         string MakeTempFilePath(string extension)

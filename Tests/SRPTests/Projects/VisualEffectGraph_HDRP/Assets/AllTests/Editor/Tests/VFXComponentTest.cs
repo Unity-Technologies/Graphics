@@ -50,17 +50,18 @@ namespace UnityEditor.VFX.Test
                 return;
             m_Init = true;
 
-            System.IO.Directory.CreateDirectory("Assets/Temp");
             var cubeEmptyName = "VFX_Test_Cube_Empty_Name";
             var sphereEmptyName = "VFX_Test_Sphere_Empty_Name";
+
+            System.IO.Directory.CreateDirectory(VFXTestCommon.tempBasePath);
 
             m_cubeEmpty = GameObject.CreatePrimitive(PrimitiveType.Cube);
             m_cubeEmpty.name = cubeEmptyName;
             m_sphereEmpty = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             m_sphereEmpty.name = sphereEmptyName;
 
-            m_pathTexture2D_A = "Assets/texture2D_A.asset";
-            m_pathTexture2D_B = "Assets/texture2D_B.asset";
+            m_pathTexture2D_A = VFXTestCommon.tempBasePath + "/texture2D_A.asset";
+            m_pathTexture2D_B = VFXTestCommon.tempBasePath + "/texture2D_B.asset";
             m_texture2D_A = new Texture2D(16, 16);
             m_texture2D_B = new Texture2D(32, 32);
             AssetDatabase.CreateAsset(m_texture2D_A, m_pathTexture2D_A);
@@ -68,8 +69,8 @@ namespace UnityEditor.VFX.Test
             m_texture2D_A = AssetDatabase.LoadAssetAtPath<Texture2D>(m_pathTexture2D_A);
             m_texture2D_B = AssetDatabase.LoadAssetAtPath<Texture2D>(m_pathTexture2D_B);
 
-            m_pathTexture2DArray_A = "Assets/texture2DArray_A.asset";
-            m_pathTexture2DArray_B = "Assets/texture2DArray_B.asset";
+            m_pathTexture2DArray_A = VFXTestCommon.tempBasePath + "texture2DArray_A.asset";
+            m_pathTexture2DArray_B = VFXTestCommon.tempBasePath + "texture2DArray_B.asset";
             m_texture2DArray_A = new Texture2DArray(16, 16, 4, TextureFormat.ARGB32, false);
             m_texture2DArray_B = new Texture2DArray(32, 32, 4, TextureFormat.ARGB32, false);
             AssetDatabase.CreateAsset(m_texture2DArray_A, m_pathTexture2DArray_A);
@@ -77,8 +78,8 @@ namespace UnityEditor.VFX.Test
             m_texture2DArray_A = AssetDatabase.LoadAssetAtPath<Texture2DArray>(m_pathTexture2DArray_A);
             m_texture2DArray_B = AssetDatabase.LoadAssetAtPath<Texture2DArray>(m_pathTexture2DArray_B);
 
-            m_pathTexture3D_A = "Assets/texture3D_A.asset";
-            m_pathTexture3D_B = "Assets/texture3D_B.asset";
+            m_pathTexture3D_A = VFXTestCommon.tempBasePath + "texture3D_A.asset";
+            m_pathTexture3D_B = VFXTestCommon.tempBasePath + "texture3D_B.asset";
             m_texture3D_A = new Texture3D(16, 16, 16, TextureFormat.ARGB32, false);
             m_texture3D_B = new Texture3D(8, 8, 8, TextureFormat.ARGB32, false);
             AssetDatabase.CreateAsset(m_texture3D_A, m_pathTexture3D_A);
@@ -86,8 +87,8 @@ namespace UnityEditor.VFX.Test
             m_texture3D_A = AssetDatabase.LoadAssetAtPath<Texture3D>(m_pathTexture3D_A);
             m_texture3D_B = AssetDatabase.LoadAssetAtPath<Texture3D>(m_pathTexture3D_B);
 
-            m_pathTextureCube_A = "Assets/textureCube_A.asset";
-            m_pathTextureCube_B = "Assets/textureCube_B.asset";
+            m_pathTextureCube_A = VFXTestCommon.tempBasePath + "textureCube_A.asset";
+            m_pathTextureCube_B = VFXTestCommon.tempBasePath + "textureCube_B.asset";
             m_textureCube_A = new Cubemap(16, TextureFormat.ARGB32, false);
             m_textureCube_B = new Cubemap(32, TextureFormat.ARGB32, false);
             AssetDatabase.CreateAsset(m_textureCube_A, m_pathTextureCube_A);
@@ -95,8 +96,8 @@ namespace UnityEditor.VFX.Test
             m_textureCube_A = AssetDatabase.LoadAssetAtPath<Cubemap>(m_pathTextureCube_A);
             m_textureCube_B = AssetDatabase.LoadAssetAtPath<Cubemap>(m_pathTextureCube_B);
 
-            m_pathTextureCubeArray_A = "Assets/textureCubeArray_A.asset";
-            m_pathTextureCubeArray_B = "Assets/textureCubeArray_B.asset";
+            m_pathTextureCubeArray_A = VFXTestCommon.tempBasePath + "textureCubeArray_A.asset";
+            m_pathTextureCubeArray_B = VFXTestCommon.tempBasePath + "textureCubeArray_B.asset";
             m_textureCubeArray_A = new CubemapArray(16, 4, TextureFormat.ARGB32, false);
             m_textureCubeArray_B = new CubemapArray(32, 4, TextureFormat.ARGB32, false);
             AssetDatabase.CreateAsset(m_textureCubeArray_A, m_pathTextureCubeArray_A);

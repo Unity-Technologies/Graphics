@@ -31,6 +31,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Add_Category_With_Only_Spaces_In_Name()
         {
             // Prepare
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var categoryName = "new category";
             var graph = VFXTestCommon.MakeTemporaryGraph();
             var window = VFXViewWindow.GetWindow(graph, true);
@@ -53,6 +54,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Duplicate_Category_And_Rename()
         {
             // Prepare
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             var categoryName = "new category";
             var graph = VFXTestCommon.MakeTemporaryGraph();
             var window = VFXViewWindow.GetWindow(graph, true);

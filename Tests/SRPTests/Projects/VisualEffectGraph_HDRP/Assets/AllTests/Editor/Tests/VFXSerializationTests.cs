@@ -1230,30 +1230,6 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(newVFXContent.Contains("Name_B"));
         }
 
-        [UnityTest, Description("Cover regression UUM-5728")]
-        public IEnumerator ShaderGraph_Lit_On_Unlit()
-        {
-            var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_5728.zip";
-            var tempDest = VFXTestCommon.tempBasePath + "/Repro_5728";
-
-            LogAssert.Expect(LogType.Error, new Regex("You must use an unlit vfx master node with an unlit output"));
-            LogAssert.Expect(LogType.Error, new Regex("System.InvalidOperationException"));
-
-            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
-            AssetDatabase.Refresh();
-            yield return null;
-
-            var scene = SceneManagement.EditorSceneManager.OpenScene(tempDest + "/Repro_5728.unity");
-
-            for (int i = 0; i < 4; ++i)
-                yield return null;
-
-            SceneManagement.EditorSceneManager.CloseScene(scene, false);
-
-            for (int i = 0; i < 4; ++i)
-                yield return null;
-        }
-
         [UnityTest, Description("Cover regression UUM-563")]
         public IEnumerator ShaderGraph_Not_Reverted_On_Save()
         {
@@ -1337,6 +1313,99 @@ namespace UnityEditor.VFX.Test
             File.WriteAllText(s_Modify_SG_Property_SG_B, m_Modify_SG_Property_SG_B);
 
             VFXTestCommon.DeleteAllTemporaryGraph();
+        }
+    }
+
+
+    [TestFixture]
+    public class VFXSerializationTestsWithCustomLogger
+    {
+        private ILogHandler m_BackupLogHandler;
+
+        [OneTimeSetUp]
+        public void SetUp()
+        {
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            m_BackupLogHandler = Debug.unityLogger.logHandler;
+        }
+
+        //Equivalent of LogAssert but always works during import
+        //LogAssert.Expect(LogType.Error, new Regex("You must use an unlit vfx master node with an unlit output"));
+        //LogAssert.Expect(LogType.Error, new Regex("System.InvalidOperationException"));
+        //It also provides the ability of breaking on log while running test
+        class ShaderGraph_Lit_On_Unlit_Logger : ILogHandler
+        {
+            public ILogHandler m_ForwardHandler;
+
+            public bool m_HasLoggedMustUnlit;
+            public bool m_HasLoggedCantCompile;
+
+            public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
+            {
+                if (logType == LogType.Error)
+                {
+                    var result = string.Format(format, args);
+                    if (result.StartsWith("You must use an unlit vfx master node with an unlit output"))
+                    {
+                        m_HasLoggedMustUnlit = true;
+                        return;
+                    }
+
+                    if (result.StartsWith("Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_5728/Repro_5728.vfx\""))
+                    {
+                        m_HasLoggedCantCompile = true;
+                        return;
+                    }
+                }
+
+                m_ForwardHandler.LogFormat(logType, context, format, args);
+            }
+
+            public void LogException(Exception exception, UnityEngine.Object context)
+            {
+                if (exception is InvalidOperationException invalidOperationException
+                    && invalidOperationException.Message.StartsWith("Unhandled log message: '[Error] Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_5728/Repro_5728.vfx\""))
+                {
+                    return;
+                }
+
+                m_ForwardHandler.LogException(exception, context);
+            }
+        }
+
+        [UnityTest, Description("Cover regression UUM-5728")]
+        public IEnumerator ShaderGraph_Lit_On_Unlit()
+        {
+            var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_5728.zip";
+            var tempDest = VFXTestCommon.tempBasePath + "/Repro_5728";
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
+
+            var customLogger = new ShaderGraph_Lit_On_Unlit_Logger() { m_ForwardHandler = m_BackupLogHandler };;
+
+            Debug.unityLogger.logHandler = customLogger;
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            yield return null;
+
+            SceneManagement.EditorSceneManager.OpenScene(tempDest + "/Repro_5728.unity");
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            SceneManagement.EditorSceneManager.OpenScene("Assets/empty.unity");
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            Assert.IsTrue(customLogger.m_HasLoggedMustUnlit);
+            Assert.IsTrue(customLogger.m_HasLoggedCantCompile);
+        }
+
+        [OneTimeTearDown]
+        public void CleanUp()
+        {
+            VFXTestCommon.DeleteAllTemporaryGraph();
+            Debug.unityLogger.logHandler = m_BackupLogHandler;
         }
     }
 }

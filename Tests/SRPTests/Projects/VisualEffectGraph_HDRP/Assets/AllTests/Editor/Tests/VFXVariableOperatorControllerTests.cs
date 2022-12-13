@@ -17,40 +17,19 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXVariableOperatorControllersTests
     {
-        VFXViewController m_ViewController;
-
-        const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
-
-        private int m_StartUndoGroupId;
+        private VFXViewController m_ViewController;
+        private bool experimental;
 
         [SetUp]
         public void CreateTestAsset()
         {
-            var directoryPath = Path.GetDirectoryName(testAssetName);
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-            if (File.Exists(testAssetName))
-            {
-                AssetDatabase.DeleteAsset(testAssetName);
-            }
-
-            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(testAssetName);
-            var resource = asset.GetResource(); // force resource creation
-
-            m_ViewController = VFXViewController.GetController(resource);
-            m_ViewController.useCount++;
-
-            m_StartUndoGroupId = Undo.GetCurrentGroup();
-
-
             experimental = EditorPrefs.GetBool(VFXViewPreference.experimentalOperatorKey, false);
             if (!experimental)
                 EditorPrefs.SetBool(VFXViewPreference.experimentalOperatorKey, true);
-        }
 
-        bool experimental;
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            m_ViewController = VFXTestCommon.StartEditTestAsset();
+        }
 
         [TearDown]
         public void DestroyTestAsset()
@@ -59,9 +38,9 @@ namespace UnityEditor.VFX.Test
             {
                 EditorPrefs.SetBool(VFXViewPreference.experimentalOperatorKey, false);
             }
-            m_ViewController.useCount--;
-            Undo.RevertAllDownToGroup(m_StartUndoGroupId);
-            AssetDatabase.DeleteAsset(testAssetName);
+
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
         VFXNodeController CreateNew(string name, Vector2 position, Type nodeType = null)
