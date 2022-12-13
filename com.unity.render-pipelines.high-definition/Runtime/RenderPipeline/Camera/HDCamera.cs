@@ -138,6 +138,12 @@ namespace UnityEngine.Rendering.HighDefinition
             colorPyramidHistoryIsValid = false;
             colorPyramidHistoryValidFrames = 0;
             dofHistoryIsValid = false;
+			
+            // Camera was potentially Reset() so we need to reset timers on the renderers.
+            if (visualSky != null)
+                visualSky.Reset();
+            if (lightingSky != null && visualSky != lightingSky)
+                lightingSky.Reset();
         }
 
         /// <summary>
