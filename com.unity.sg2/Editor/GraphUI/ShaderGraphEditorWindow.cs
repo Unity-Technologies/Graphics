@@ -237,7 +237,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             var onboardingProviders = new List<OnboardingProvider>();
             onboardingProviders.Add(new ShaderGraphOnboardingProvider());
-            return new BlankPage(GraphTool?.Dispatcher, onboardingProviders);
+            return new BlankPage(GraphTool, onboardingProviders);
         }
 
         protected override bool CanHandleAssetType(GraphAsset asset)
@@ -271,7 +271,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 GraphTool,
                 m_PreviewUpdateDispatcher,
                 graphModel,
-                GraphTool.Dispatcher,
+                GraphTool,
                 GraphView.GraphViewModel);
 
             // TODO (Joe): With this, we can remove old calls to DefineNode in places the UI expected nodes to reconcretize.
