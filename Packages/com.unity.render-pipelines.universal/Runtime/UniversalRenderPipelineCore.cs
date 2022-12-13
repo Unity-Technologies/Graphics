@@ -511,13 +511,6 @@ namespace UnityEngine.Rendering.Universal
         internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
 
         /// <summary>
-        /// Is XR enabled or not.
-        /// This is obsolete, please use xr.enabled instead.
-        /// </summary>
-        [Obsolete("Please use xr.enabled instead.", true)]
-        public bool isStereoEnabled;
-
-        /// <summary>
         /// Maximum shadow distance visible to the camera. When set to zero shadows will be disable for that camera.
         /// </summary>
         public float maxShadowDistance;
@@ -623,13 +616,6 @@ namespace UnityEngine.Rendering.Universal
         /// True if main light shadows are enabled.
         /// </summary>
         public bool supportsMainLightShadows;
-
-        /// <summary>
-        /// True if screen space shadows are required.
-        /// Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature
-        /// </summary>
-        [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
-        public bool requiresScreenSpaceShadowResolve;
 
         /// <summary>
         /// The width of the main light shadow map.
@@ -1195,20 +1181,6 @@ namespace UnityEngine.Rendering.Universal
                 throw new ArgumentNullException("camera");
 
             return camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR;
-        }
-
-        /// <summary>
-        /// Checks if a camera is rendering in stereo mode.
-        /// </summary>
-        /// <param name="camera">Camera to check state from.</param>
-        /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
-        [Obsolete("Please use CameraData.xr.enabled instead.", true)]
-        public static bool IsStereoEnabled(Camera camera)
-        {
-            if (camera == null)
-                throw new ArgumentNullException("camera");
-
-            return IsGameCamera(camera) && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         /// <summary>

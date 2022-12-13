@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.Universal
         /// Names used for display of light layers with Layer's index as prefix.
         /// For example: "0: Light Layer Default"
         /// </summary>
-        [Obsolete("This is obsolete, please use prefixedRenderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use prefixedRenderingLayerMaskNames instead.", true)]
         public string[] prefixedLightLayerNames => new string[0];
 
 

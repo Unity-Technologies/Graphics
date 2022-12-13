@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Defines if profiling is logged or not. This enum is not longer in use, use the Profiler instead.
     /// </summary>
-    [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect.", false)]
+    [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect.", true)]
     public enum PipelineDebugLevel
     {
         /// <summary>
@@ -287,11 +287,6 @@ namespace UnityEngine.Rendering.Universal
         /// Use this for 2D Renderer.
         /// </summary>
         _2DRenderer,
-        /// <summary>
-        /// This name was used before the Universal Renderer was implemented.
-        /// </summary>
-        [Obsolete("ForwardRenderer has been renamed (UnityUpgradable) -> UniversalRenderer", true)]
-        ForwardRenderer = UniversalRenderer,
     }
 
     /// <summary>
@@ -529,7 +524,7 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.LightLayers)]
 #endif
         [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] [Obsolete("",true)] PipelineDebugLevel m_DebugLevel;
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
         [SerializeField] bool m_EnableRenderGraph = false;
 
@@ -1396,7 +1391,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
         /// </summary>
-        [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", false)]
+        [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", true)]
         public bool supportsLightLayers
         {
             get { return m_SupportsLightLayers; }
@@ -1418,7 +1413,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Previously returned the debug level for this Render Pipeline Asset but is now deprecated. Replaced to use the profiler and is no longer used.
         /// </summary>
-        [Obsolete("PipelineDebugLevel is deprecated and replaced to use the profiler. Calling debugLevel is not necessary.", false)]
+        [Obsolete("PipelineDebugLevel is deprecated and replaced to use the profiler. Calling debugLevel is not necessary.", true)]
         public PipelineDebugLevel debugLevel
         {
             get => PipelineDebugLevel.Disabled;
@@ -1710,7 +1705,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", true)]
         public string[] lightLayerMaskNames => new string[0];
 
         /// <summary>

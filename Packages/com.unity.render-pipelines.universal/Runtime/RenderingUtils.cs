@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns a mesh that you can use with <see cref="CommandBuffer.DrawMesh(Mesh, Matrix4x4, Material)"/> to render full-screen effects.
         /// </summary>
-        [Obsolete("Use Blitter.BlitCameraTexture instead of CommandBuffer.DrawMesh(fullscreenMesh, ...)")]
+        [Obsolete("Use Blitter.BlitCameraTexture instead of CommandBuffer.DrawMesh(fullscreenMesh, ...)")]  // TODO OBSOLETE: need to fix the URP test failures when bumping
         public static Mesh fullscreenMesh
         {
             get
@@ -451,7 +451,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
-        [Obsolete("Use RTHandles for colorBuffers")]
+        [Obsolete("Use RTHandles for colorBuffers")]  // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         internal static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
         {
             uint nonNullColorBuffers = 0;
@@ -490,7 +490,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
-        [Obsolete("Use RTHandles for colorBuffers")]
+        [Obsolete("Use RTHandles for colorBuffers")]  // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
         {
             return GetValidColorBufferCount(colorBuffers) > 1;

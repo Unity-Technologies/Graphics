@@ -511,7 +511,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="context">Render context used to record commands during execution.</param>
         /// <param name="camera">Camera to render.</param>
         /// <seealso cref="ScriptableRenderContext"/>
-        [Obsolete("RenderSingleCamera is obsolete, please use RenderPipeline.SubmiteRenderRequest with UniversalRenderer.SingleCameraRequest as RequestData type", false)]
+        [Obsolete("RenderSingleCamera is obsolete, please use RenderPipeline.SubmiteRenderRequest with UniversalRenderer.SingleCameraRequest as RequestData type", true)]
         public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
         {
             RenderSingleCameraInternal(context, camera);
@@ -1378,12 +1378,6 @@ namespace UnityEngine.Rendering.Universal
             shadowData.bias = m_ShadowBiasData;
             shadowData.resolution = m_ShadowResolutionData;
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
-
-            // We no longer use screen space shadows in URP.
-            // This change allows us to have particles & transparent objects receive shadows.
-#pragma warning disable 0618
-            shadowData.requiresScreenSpaceShadowResolve = false;
-#pragma warning restore 0618
 
             shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
