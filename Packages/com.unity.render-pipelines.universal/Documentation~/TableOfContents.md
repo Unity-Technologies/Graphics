@@ -57,6 +57,7 @@
     * [Rendering from multiple Cameras to the same render target](rendering-to-the-same-render-target.md)
     * [Rendering to a Render Texture](rendering-to-a-render-texture.md)
   * [Clearing, rendering order and overdraw](cameras-advanced.md)
+  * [Anti-aliasing](anti-aliasing.md)
   * [Camera component reference](camera-component-reference.md)
 
 * [Post-processing](integration-with-post-processing.md)
