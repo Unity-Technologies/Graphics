@@ -466,6 +466,7 @@ namespace UnityEngine.Rendering.Universal
 
             LayerUtility.InitializeBudget(m_Renderer2DData.lightRenderTextureMemoryBudget);
             ShadowRendering.InitializeBudget(m_Renderer2DData.shadowRenderTextureMemoryBudget);
+            RendererLighting.lightBatch.Reset();
 
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)
