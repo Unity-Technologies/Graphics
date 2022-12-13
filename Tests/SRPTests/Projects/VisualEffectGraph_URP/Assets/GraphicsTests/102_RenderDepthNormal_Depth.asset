@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
-  m_Name: 102_RenderDepth_Renderer
+  m_Name: 102_RenderDepthNormal_Depth
   m_EditorClassIdentifier: 
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
@@ -75,7 +75,7 @@ MonoBehaviour:
     AOMethod: 1
     Downsample: 0
     AfterOpaque: 0
-    Source: 0
+    Source: 1
     NormalSamples: 0
     Intensity: 10
     DirectLightingStrength: 1

@@ -67,9 +67,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -123,7 +120,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1001 &1646490925189934020
+--- !u!1001 &506847126
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -186,10 +183,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1406075087144468581, guid: 16fe45a5cdb00674b93e371639ac280c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3810374529044331504, guid: 16fe45a5cdb00674b93e371639ac280c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5086335781946457343, guid: 16fe45a5cdb00674b93e371639ac280c,
         type: 3}
       propertyPath: m_Name
-      value: Common
+      value: 102_RenderDepth
+      objectReference: {fileID: 0}
+    - target: {fileID: 8838305188015677342, guid: 16fe45a5cdb00674b93e371639ac280c,
+        type: 3}
+      propertyPath: m_RendererIndex
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
