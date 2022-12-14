@@ -256,7 +256,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (!TryGetNodeHandler(out var handler)) return -1;
             var port = handler.GetPort(portName);
-            var connection = graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID, registry.Registry);
+            var connection = graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID);
             if (connection == null) return -1;
 
             for (var i = 0; i < paramInfo.Options.Count; i++)

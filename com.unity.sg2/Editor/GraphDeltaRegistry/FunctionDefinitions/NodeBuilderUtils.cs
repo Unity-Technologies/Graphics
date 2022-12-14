@@ -199,7 +199,7 @@ namespace UnityEditor.ShaderGraph.Defs
             if (param.DefaultValue is ReferenceValueDescriptor referenceValueDescriptor)
             {
                 var graphDelta = portHandler.Owner;
-                var existingConnection = graphDelta.GetDefaultConnectionToPort(portHandler.ID, registry);
+                var existingConnection = graphDelta.GetDefaultConnectionToPort(portHandler.ID);
                 if (existingConnection == null)
                 {
                     portHandler.Owner.AddDefaultConnection(

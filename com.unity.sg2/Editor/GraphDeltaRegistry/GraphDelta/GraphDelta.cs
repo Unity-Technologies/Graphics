@@ -451,7 +451,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         }
                     }
                 }
-
             }
         }
 
@@ -468,14 +467,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return null;
         }
 
-        internal string GetDefaultConnectionToPort(ElementID port, Registry registry)
+        internal string GetDefaultConnectionToPort(ElementID port)
         {
             bool isInput = m_data.GetMetadata<bool>(port, PortHeader.kInput);
             if (!isInput) return null;
 
-            foreach(var defConnection in m_data.defaultConnections)
+            foreach (var defConnection in m_data.defaultConnections)
             {
-                if(isInput && defConnection.Input.Equals(port))
+                if (defConnection.Input.Equals(port))
                 {
                     return defConnection.Context;
                 }
