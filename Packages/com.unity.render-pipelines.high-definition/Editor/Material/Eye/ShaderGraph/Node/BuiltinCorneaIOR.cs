@@ -6,12 +6,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.ShaderGraph
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "Builtin Cornea IOR (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "Builtin Cornea IOR")]
     class BuiltinCorneaIOR : AbstractMaterialNode, IGeneratesBodyCode
     {
         public BuiltinCorneaIOR()
         {
-            name = "Builtin Cornea IOR (Preview)";
+            name = "Builtin Cornea IOR";
             UpdateNodeAfterDeserialization();
         }
 

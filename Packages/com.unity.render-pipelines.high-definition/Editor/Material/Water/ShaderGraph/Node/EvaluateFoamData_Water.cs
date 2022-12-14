@@ -9,12 +9,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateFoamData_Water (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateFoamData_Water")]
     class EvaluateFoamData_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public EvaluateFoamData_Water()
         {
-            name = "Evaluate Foam Data Water (Preview)";
+            name = "Evaluate Foam Data Water";
             UpdateNodeAfterDeserialization();
         }
 

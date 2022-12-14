@@ -5,12 +5,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.ShaderGraph
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisOffset (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisOffset")]
     class IrisOffset : CodeFunctionNode
     {
         public IrisOffset()
         {
-            name = "Iris Offset (Preview)";
+            name = "Iris Offset";
         }
 
         public override bool hasPreview
