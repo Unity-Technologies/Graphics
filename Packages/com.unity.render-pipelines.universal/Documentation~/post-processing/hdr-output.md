@@ -109,7 +109,7 @@ This debug view uses a color coded gradient to indicate parts of the Scene that 
 
 ## Known Limitations
 
-HDR Output is currently only compatible with desktop and console devices.
+HDR Output is only compatible with desktop and console devices. It does not work with mobile devices.
 
 HDR Output is not compatible with the following effects:
 
