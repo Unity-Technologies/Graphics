@@ -754,7 +754,7 @@ namespace UnityEditor.VFX
             outEventDesc.AddRange(eventDescTemp);
         }
 
-        private void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, VFXCompilationMode compilationMode, HashSet<string> dependencies)
+        private void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, VFXCompilationMode compilationMode, HashSet<string> dependencies, bool enableShaderDebugSymbols)
         {
             Profiler.BeginSample("VFXEditor.GenerateShaders");
             try
@@ -775,7 +775,7 @@ namespace UnityEditor.VFX
 
                     if (context.doesGenerateShader)
                     {
-                        var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData, dependencies);
+                        var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData, dependencies, enableShaderDebugSymbols);
                         if (generatedContent != null)
                         {
                             outGeneratedCodeData.Add(new GeneratedCodeData()
@@ -1005,7 +1005,7 @@ namespace UnityEditor.VFX
             m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
         }
 
-        public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation, VFXAnalytics analytics)
+        public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation, bool enableShaderDebugSymbols, VFXAnalytics analytics)
         {
             // Early out in case: (Not even displaying the popup)
             if (m_Graph.children.Count() < 1 ||         // Graph is empty
@@ -1128,7 +1128,7 @@ namespace UnityEditor.VFX
                         particleData.GenerateSystemUniformMapper(m_ExpressionGraph, contextToCompiledData);
                 }
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 8 / nbSteps);
-                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, sourceDependencies);
+                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, sourceDependencies, enableShaderDebugSymbols);
 
                 m_Graph.systemNames.Sync(m_Graph);
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Saving shaders", 9 / nbSteps);
