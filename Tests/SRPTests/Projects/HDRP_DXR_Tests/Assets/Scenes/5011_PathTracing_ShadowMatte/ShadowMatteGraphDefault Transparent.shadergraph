@@ -4,7 +4,7 @@
     "m_ObjectId": "a1dc1e9863c44efb96471573747011a4",
     "m_Properties": [
         {
-            "m_Id": "f385e513e5364afd8953082eec0e59bd"
+            "m_Id": "7f69c081a1af4a7097c486a6d18887b1"
         }
     ],
     "m_Keywords": [],
@@ -37,7 +37,7 @@
             "m_Id": "d9dbc727adaf4ff28a0461a7f107ec10"
         },
         {
-            "m_Id": "6d86953c90f24fb5882dceac920e8986"
+            "m_Id": "0c3be5fe3cdf45949546618db7660d08"
         }
     ],
     "m_GroupDatas": [],
@@ -46,7 +46,7 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "6d86953c90f24fb5882dceac920e8986"
+                    "m_Id": "0c3be5fe3cdf45949546618db7660d08"
                 },
                 "m_SlotId": 0
             },
@@ -113,6 +113,42 @@
             "m_Id": "b6ab8a0bbefd4aae90c92352ff6ef065"
         }
     ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "0c3be5fe3cdf45949546618db7660d08",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -361.3333435058594,
+            "y": 238.66665649414063,
+            "width": 209.33334350585938,
+            "height": 128.00003051757813
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "e0c442c254574737acce34a88e5198f7"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "7f69c081a1af4a7097c486a6d18887b1"
+    }
 }
 
 {
@@ -270,64 +306,33 @@
 }
 
 {
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
-    "m_ObjectId": "6d86953c90f24fb5882dceac920e8986",
-    "m_Group": {
-        "m_Id": ""
+    "m_SGVersion": 3,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.ColorShaderProperty",
+    "m_ObjectId": "7f69c081a1af4a7097c486a6d18887b1",
+    "m_Guid": {
+        "m_GuidSerialized": "a1991e7e-7dac-4d2c-bd03-bdd5155dff45"
     },
-    "m_Name": "Property",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": -326.0,
-            "y": 370.0,
-            "width": 144.0,
-            "height": 36.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "7944c18b68f344dcb85ad5b45ef2c281"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
+    "m_Name": "Shadow Tint",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "Shadow Tint",
+    "m_DefaultReferenceName": "_Shadow_Tint",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_Property": {
-        "m_Id": "f385e513e5364afd8953082eec0e59bd"
-    }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "7944c18b68f344dcb85ad5b45ef2c281",
-    "m_Id": 0,
-    "m_DisplayName": "Shadow Tint",
-    "m_SlotType": 1,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
     "m_Hidden": false,
-    "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
     "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
     },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
+    "isMainColor": false,
+    "m_ColorMode": 0
 }
 
 {
@@ -346,7 +351,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Alpha",
     "m_StageCapability": 2,
-    "m_Value": 1.0,
+    "m_Value": 0.0,
     "m_DefaultValue": 1.0,
     "m_Labels": []
 }
@@ -488,7 +493,7 @@
     "m_Name": "",
     "m_ChildObjectList": [
         {
-            "m_Id": "f385e513e5364afd8953082eec0e59bd"
+            "m_Id": "7f69c081a1af4a7097c486a6d18887b1"
         }
     ]
 }
@@ -498,8 +503,8 @@
     "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.SystemData",
     "m_ObjectId": "d6a240c9c6324bdfa4bf91a6ee2ac709",
     "m_MaterialNeedsUpdateHash": 0,
-    "m_SurfaceType": 0,
-    "m_RenderingPass": 1,
+    "m_SurfaceType": 1,
+    "m_RenderingPass": 4,
     "m_BlendMode": 0,
     "m_ZTest": 4,
     "m_ZWrite": false,
@@ -557,6 +562,31 @@
         "m_SerializableColors": []
     },
     "m_SerializedDescriptor": "SurfaceDescription.ShadowTint"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "e0c442c254574737acce34a88e5198f7",
+    "m_Id": 0,
+    "m_DisplayName": "Shadow Tint",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -628,36 +658,6 @@
 }
 
 {
-    "m_SGVersion": 3,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.ColorShaderProperty",
-    "m_ObjectId": "f385e513e5364afd8953082eec0e59bd",
-    "m_Guid": {
-        "m_GuidSerialized": "7beec023-6018-4bae-9d33-33f8a850aa48"
-    },
-    "m_Name": "Shadow Tint",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Shadow Tint",
-    "m_DefaultReferenceName": "_Shadow_Tint",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_DismissedVersion": 0,
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": {
-        "r": 0.0,
-        "g": 0.0,
-        "b": 0.0,
-        "a": 0.0
-    },
-    "isMainColor": false,
-    "m_ColorMode": 0
-}
-
-{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.ColorRGBAMaterialSlot",
     "m_ObjectId": "f740f37ad35e47b6a058a96fb25c08c8",
@@ -668,7 +668,7 @@
     "m_ShaderOutputName": "ShadowTint",
     "m_StageCapability": 2,
     "m_Value": {
-        "x": 0.0,
+        "x": 1.0,
         "y": 0.0,
         "z": 0.0,
         "w": 1.0
