@@ -7,12 +7,14 @@ using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
+    [Serializable]
     internal sealed class GraphDelta
     {
         public const string k_concrete = "Concrete";
         public const string k_user = "User";
 
-        internal readonly GraphStorage m_data;
+        [SerializeReference]
+        internal GraphStorage m_data;
 
         internal const string kRegistryKeyName = "_RegistryKey";
 

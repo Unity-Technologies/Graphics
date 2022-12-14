@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class SGGraphModel : GraphModel
     {
-        [SerializeField]
+        [SerializeReference]
         private SerializableGraphHandler graphHandlerBox = new();
         [SerializeField]
         private SerializableTargetSettings targetSettingsBox = new();
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 // at most there is only one target right now, so this solution is not robust.
                 InitializeContextFromTarget(target.value);
             }
-            GraphHandler.ReconcretizeAll();
+            GraphHandler?.ReconcretizeAll();
             base.OnEnable();
             mainPreviewModel = new(Guid.ToString());
             m_DefaultContextNode = GetMainContextNode();

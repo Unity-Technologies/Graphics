@@ -5,13 +5,22 @@ using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
 {
+    [Serializable]
     public class Element
     {
+        [field: SerializeField]
         public ElementID ID { get; internal set; }
         public DataHeader Header { get; internal set; }
+
+        [field: SerializeReference]
         public List<Element> Children { get; internal set; }
+
+        [field: SerializeReference]
         public Element Parent { get; internal set; }
+
+        [field: SerializeReference]
         internal ContextLayeredDataStorage owner;
+
         internal string serializedData;
 
         public Element(ContextLayeredDataStorage owner)
@@ -83,9 +92,12 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
     }
 
+    [Serializable]
     public class Element<T> : Element
     {
+        [SerializeField]
         internal T m_Data;
+
         public ref readonly T Data => ref m_Data;
 
         [Serializable]
@@ -124,6 +136,17 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
     }
 
+    class IntElement : Element<int>
+    {
+        /// <inheritdoc />
+        public IntElement(ElementID id, int data, ContextLayeredDataStorage owner)
+            : base(id, data, owner) { }
+
+        /// <inheritdoc />
+        public IntElement(ElementID id, int data, ContextLayeredDataStorage owner, DataHeader header)
+            : base(id, data, owner, header) { }
+    }
+
     //Used to organize elements when serialized to try and keep a consistent ordering
     internal class SerializedDataComparer : IComparer<SerializedElementData>
     {
@@ -133,7 +156,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
     }
 
-    //Stores a single Element's data 
+    //Stores a single Element's data
     [Serializable]
     internal struct SerializedElementData
     {

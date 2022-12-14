@@ -8,7 +8,9 @@ using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -75,9 +77,13 @@ namespace UnityEditor.ShaderGraph
 
         public static void HandleSave(string path, ShaderGraphAsset asset)
         {
+            Profiler.BeginSample("HandleSave");
+            InternalEditorUtility.SaveToSerializedFileAndForget(new UnityEngine.Object[] { asset }, path, true);
+            Profiler.EndSample();
+/*
             var json = EditorJsonUtility.ToJson(asset, true);
             File.WriteAllText(path, json);
-            AssetDatabase.ImportAsset(path); // Is this necessary?
+            AssetDatabase.ImportAsset(path); // Is this necessary?*/
         }
 
         public static ShaderGraphAsset HandleLoad(string path)
@@ -186,18 +192,20 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     internal class SerializableGraphHandler : ISerializationCallbackReceiver
     {
-        [SerializeField]
-        string json = "";
+        //[SerializeField]
+        //string json = "";
 
-        [NonSerialized]
+        [SerializeReference]
         GraphHandler m_graph;
 
         // Provide a previously initialized graphHandler-- round-trip it for ownership.
         public void Init(GraphHandler value)
         {
-            json = value.ToSerializedFormat();
+            //json = value.ToSerializedFormat();
             var reg = ShaderGraphRegistry.Instance.Registry; // TODO: Singleton?
-            m_graph = GraphHandler.FromSerializedFormat(json, reg);
+            //m_graph = GraphHandler.FromSerializedFormat(json, reg);
+            m_graph = value;
+            m_graph.registry = reg;
             m_graph.ReconcretizeAll();
         }
 
@@ -209,7 +217,10 @@ namespace UnityEditor.ShaderGraph
             // triggers a serialize on the cloned node before it has a graph handler reference
             if (m_graph == null)
                 return;
-            json = m_graph.ToSerializedFormat();
+
+            Profiler.BeginSample("SerializableGraphHandler.OnBeforeSerialize");
+            //json = m_graph.ToSerializedFormat();
+            Profiler.EndSample();
         }
 
         public void OnAfterDeserialize() { }
@@ -217,7 +228,7 @@ namespace UnityEditor.ShaderGraph
         public void OnEnable(bool reconcretize = true)
         {
             var reg = ShaderGraphRegistry.Instance.Registry;
-            m_graph = GraphHandler.FromSerializedFormat(json, reg);
+            //m_graph = GraphHandler.FromSerializedFormat(json, reg);
             if (reconcretize)
             {
                 m_graph.ReconcretizeAll();

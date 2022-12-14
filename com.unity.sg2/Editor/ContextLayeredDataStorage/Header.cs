@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ContextLayeredDataStorage
 {
-    public class DataHeader 
+    public class DataHeader
     {
         public virtual DataReader GetReader(Element element)
         {

@@ -9,11 +9,14 @@ namespace UnityEditor.ContextLayeredDataStorage
     public class ContextLayeredDataStorage : ISerializationCallbackReceiver
     {
         [SerializeField]
+        LayerList m_serializedLayerList;
+
+        [SerializeField]
         internal List<SerializedLayerData> m_serializedData;
         [SerializeField]
         internal MetadataCollection m_metadata;
         [NonSerialized]
-        internal readonly LayerList m_layerList;
+        internal LayerList m_layerList;
         [NonSerialized]
         protected Dictionary<ElementID, Element> m_flatStructureLookup;
         [NonSerialized]
@@ -40,12 +43,12 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        
+
         public ContextLayeredDataStorage()
         {
             m_layerList = new LayerList(this);
             m_flatStructureLookup = new Dictionary<ElementID, Element>(new ElementIDComparer());
-            m_flatStructure = new Element<int>("", -1, this);
+            m_flatStructure = new IntElement("", -1, this);
             m_metadata = new MetadataCollection(this);
             AddDefaultLayers();
         }
@@ -413,7 +416,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             return elem.owner == this;
         }
 
-        
+
         protected void Rebalance()
         {
             foreach(var layer in m_layerList)
@@ -422,7 +425,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Rebalance(layer.Value.element, elems);
             }
         }
-        
+
 
         //Get all elements descended from root inclusive in a list
         internal void GatherAll(Element root, out List<Element> elements)
@@ -505,7 +508,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                         recurseList.Remove(c);
                     }
                 }
-                //if this element did not belong in any existing bucket, create a new bucket 
+                //if this element did not belong in any existing bucket, create a new bucket
                 else if (!found)
                 {
                     recurseList.Add((element, new List<Element>()));
@@ -525,16 +528,28 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         }
 
+        bool SerializingAsset { get; set; } = false;
+
         public virtual void OnBeforeSerialize()
         {
-            m_serializedData = new List<SerializedLayerData>();
-            foreach(var layer in m_layerList)
+            if (SerializingAsset)
             {
-                if(layer.Value.descriptor.isSerialized)
+                m_serializedLayerList = null;
+
+                m_serializedData = new List<SerializedLayerData>();
+                foreach (var layer in m_layerList)
                 {
-                    var serializedLayer = SerializeLayer(layer.Value.descriptor, layer.Value.element);
-                    m_serializedData.Add(serializedLayer);
+                    if (layer.Value.descriptor.isSerialized)
+                    {
+                        var serializedLayer = SerializeLayer(layer.Value.descriptor, layer.Value.element);
+                        m_serializedData.Add(serializedLayer);
+                    }
                 }
+            }
+            else
+            {
+                m_serializedData?.Clear();
+                m_serializedLayerList = m_layerList;
             }
         }
 
@@ -607,9 +622,16 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public virtual void OnAfterDeserialize()
         {
-            foreach(var serializedLayer in m_serializedData)
+            if (SerializingAsset)
             {
-                DeserializeLayer(serializedLayer);
+                foreach (var serializedLayer in m_serializedData)
+                {
+                    DeserializeLayer(serializedLayer);
+                }
+            }
+            else
+            {
+                m_layerList = m_serializedLayerList;
             }
         }
 
@@ -774,7 +796,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
 
             //our root elements have no name and an int value signifying the layer value
-            if(traverser is Element<int> root && (root.ID.FullPath.Length == 0))
+            if(traverser is IntElement root && (root.ID.FullPath.Length == 0))
             {
                 return root.Data;
             }

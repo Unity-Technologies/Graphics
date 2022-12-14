@@ -24,10 +24,11 @@ namespace UnityEditor.ContextLayeredDataStorage
     public class ElementID : ISerializationCallbackReceiver
     {
         [SerializeField]
+        string m_serializedFullPath;
+
+        [SerializeField]
         private string[] m_path;
-        [SerializeField]
         private char[][] m_charPath;
-        [SerializeField]
         private char[] m_fullPath;
         private int m_hash;
         private int[] m_pathHash;
@@ -103,7 +104,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                     {
                         m_pathList.Add(new string(subPath));
                     }
-                    
+
                 }
                 return m_pathList;
             }
@@ -167,7 +168,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                                 length++;
                             }
                         }
-                        
+
                     }
                     m_pathHash[index] = GetDeterministicStringHash(m_fullPath, startIndex, length);
                 }
@@ -438,10 +439,14 @@ namespace UnityEditor.ContextLayeredDataStorage
                 }
                 m_fullPath = temp.ToCharArray();
             }
+
+            m_serializedFullPath = new string(m_fullPath);
         }
 
         public void OnAfterDeserialize()
         {
+            m_fullPath = m_serializedFullPath.ToCharArray();
+
             if(m_path != null)
             {
                 m_charPath = new char[m_path.Length][];

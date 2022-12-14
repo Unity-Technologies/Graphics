@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Configuration;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Profiling;
 using static UnityEditor.ShaderGraph.Configuration.CPGraphDataProvider;
@@ -12,9 +14,13 @@ using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
+    [Serializable]
     public class GraphHandler
     {
+        [SerializeReference]
         internal GraphDelta graphDelta;
+
+        [NonSerialized]
         internal Registry registry;
 
         [Obsolete("The empty constructer for GraphHandler is obselete; please provide a Registry for updated behavior", false)]
