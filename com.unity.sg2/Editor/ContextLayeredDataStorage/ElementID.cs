@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Unity.Profiling;
 using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
@@ -23,6 +24,11 @@ namespace UnityEditor.ContextLayeredDataStorage
     [Serializable]
     public class ElementID : ISerializationCallbackReceiver
     {
+        static ProfilerMarker s_IsSubpathOf = new ProfilerMarker("ElementID.IsSubpathOf");
+        static ProfilerMarker s_OnBeforeSerialize = new ProfilerMarker("ElementID.OnBeforeSerialize");
+        static ProfilerMarker s_OnAfterDeserialize = new ProfilerMarker("ElementID.OnAfterDeserialize");
+        static ProfilerMarker s_CreateUniqueLocalID = new ProfilerMarker("ElementID.CreateUniqueLocalID");
+
         [SerializeField]
         private string[] m_path;
         [SerializeField]
@@ -103,7 +109,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                     {
                         m_pathList.Add(new string(subPath));
                     }
-                    
+
                 }
                 return m_pathList;
             }
@@ -167,7 +173,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                                 length++;
                             }
                         }
-                        
+
                     }
                     m_pathHash[index] = GetDeterministicStringHash(m_fullPath, startIndex, length);
                 }
@@ -308,6 +314,8 @@ namespace UnityEditor.ContextLayeredDataStorage
         /// <returns></returns>
         public bool IsSubpathOf(ElementID other)
         {
+            using var scope = s_IsSubpathOf.Auto();
+
             //special case for root, empty string is always a subpath
             if(IsRoot)
             {
@@ -353,6 +361,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public static ElementID CreateUniqueLocalID(ElementID parentID, IEnumerable<string> existingLocalChildIDs, string desiredLocalID)
         {
+            using var scope = s_CreateUniqueLocalID.Auto();
+
             string uniqueName = SanitizeName(existingLocalChildIDs, "{0}_{1}", desiredLocalID, "\"");
             return $"{parentID.FullPath}{(parentID.FullPath.Length > 0 ? "." : "")}{uniqueName}";
         }
@@ -422,6 +432,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public void OnBeforeSerialize()
         {
+            using var scope = s_OnBeforeSerialize.Auto();
             if (m_fullPath == null)
             {
                 string temp = "";
@@ -442,6 +453,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public void OnAfterDeserialize()
         {
+            using var scope = s_OnAfterDeserialize.Auto();
+
             if(m_path != null)
             {
                 m_charPath = new char[m_path.Length][];

@@ -8,11 +8,17 @@ using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Unity.GraphToolsFoundation;
+using Unity.Profiling;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     class SGGraphModel : GraphModel
     {
+        static ProfilerMarker s_OnEnable = new ProfilerMarker("ShaderGraphModel.OnEnable");
+        static ProfilerMarker s_Init = new ProfilerMarker("ShaderGraphModel.Init");
+        static ProfilerMarker s_InitializeContextFromTarget = new ProfilerMarker("ShaderGraphModel.InitializeContextFromTarget");
+        static ProfilerMarker s_InitializeContextFromTargetDefineNodes = new ProfilerMarker("ShaderGraphModel.InitializeContextFromTarget.DefineNodes");
+
         [SerializeField]
         private SerializableGraphHandler graphHandlerBox = new();
         [SerializeField]
@@ -56,6 +62,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal void Init(GraphHandler graph, bool isSubGraph, Target target)
         {
+            using var scope = s_Init.Auto();
+
             graphHandlerBox.Init(graph);
             this.isSubGraph = isSubGraph;
             if (!isSubGraph && target != null)
@@ -77,6 +85,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void OnEnable()
         {
+            using var scope = s_OnEnable.Auto();
+
             graphHandlerBox.OnEnable(false);
 
             targetSettingsBox.OnEnable();
@@ -225,12 +235,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal void InitializeContextFromTarget(Target target)
         {
+            using var scope = s_InitializeContextFromTarget.Auto();
+
             // TODO: we can assume we're using the standard SG config for now, but this is not good.
             ShaderGraphAssetUtils.RebuildContextNodes(GraphHandler, target);
 
-            foreach (var contextNode in NodeModels.OfType<SGContextNodeModel>())
+            using (var defineNodeScope = s_InitializeContextFromTargetDefineNodes.Auto())
             {
-                contextNode.DefineNode();
+                foreach (var contextNode in NodeModels.OfType<SGContextNodeModel>())
+                {
+                    contextNode.DefineNode();
+                }
             }
         }
 

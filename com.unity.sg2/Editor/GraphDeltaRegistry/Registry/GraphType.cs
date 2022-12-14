@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEditor.ShaderGraph.Defs;
 using System.Collections;
+using Unity.Profiling;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -12,6 +13,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// </summary>
     public static class GraphTypeHelpers
     {
+        static ProfilerMarker s_ResolveDynamicPorts = new ProfilerMarker("GraphTypeHelpers.ResolveDynamicPorts");
+        static ProfilerMarker s_SetComponent = new ProfilerMarker("GraphTypeHelpers.SetComponent");
+
         #region DynamicPortResolution
         private static int Truncate(int a, int b) // scalars always lose.
             => Mathf.Max(
@@ -82,6 +86,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public static void ResolveDynamicPorts(NodeHandler node)
         {
+            using var scope = s_ResolveDynamicPorts.Auto();
+
             // TODO: Resolve precision/primitive too.
             bool hasVector = CalcResolve(node, out var resolvedLength, out var resolvedHeight, out var resolvedPrecision, out var resolvedPrimitive);
 
@@ -269,6 +275,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public static void SetComponent(FieldHandler field, int idx, float val)
         {
+            using var scope = s_SetComponent.Auto();
+
             var sub = field.GetSubField<float>(GraphType.kC(idx)) ?? field.AddSubField(GraphType.kC(idx), val, true);
             sub.SetData(val);
         }

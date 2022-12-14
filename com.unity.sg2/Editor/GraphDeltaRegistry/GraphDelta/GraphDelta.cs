@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Profiling;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEngine;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
@@ -9,6 +10,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     internal sealed class GraphDelta
     {
+        static ProfilerMarker s_BuildNode = new ProfilerMarker("GraphDelta.BuildNode");
+        static ProfilerMarker s_ReconcretizeNode = new ProfilerMarker("GraphDelta.ReconcretizeNode");
+
         public const string k_concrete = "Concrete";
         public const string k_user = "User";
 
@@ -46,6 +50,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private void BuildNode(NodeHandler node, INodeDefinitionBuilder builder, Registry registry)
         {
+            using var scope = s_BuildNode.Auto();
+
             node.DefaultLayer = k_concrete;
             builder.BuildNode(node, registry);
             node.DefaultLayer = k_user;
@@ -165,6 +171,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public bool ReconcretizeNode(ElementID id, Registry registry, bool propagate = true)
         {
+            using var scope = s_ReconcretizeNode.Auto();
+
             //temporary workaround for old code
             if (registry == null)
             {
