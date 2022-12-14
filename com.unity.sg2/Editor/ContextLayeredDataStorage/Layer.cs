@@ -26,10 +26,10 @@ namespace UnityEditor.ContextLayeredDataStorage
         //[SerializeReference]
         private ContextLayeredDataStorage owner;
 
-        [SerializeReference]
+        [SerializeField]
         List<int> m_SerializedKeys;
 
-        [SerializeReference]
+        [SerializeField]
         List<LayerDescriptor> m_SerializedLayerDescriptors;
 
         [SerializeReference]

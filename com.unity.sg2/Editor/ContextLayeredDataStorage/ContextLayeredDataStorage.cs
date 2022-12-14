@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Unity.Profiling;
 using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
@@ -8,6 +9,21 @@ namespace UnityEditor.ContextLayeredDataStorage
     [Serializable]
     public class ContextLayeredDataStorage : ISerializationCallbackReceiver
     {
+        static ProfilerMarker s_AddData = new ProfilerMarker("CLDS.AddData");
+        static ProfilerMarker s_AddChild = new ProfilerMarker("CLDS.AddChild");
+        static ProfilerMarker s_AddChildUnique = new ProfilerMarker("CLDS.AddChildUnique");
+        static ProfilerMarker s_EvaluateParent = new ProfilerMarker("CLDS.EvaluateParent");
+        static ProfilerMarker s_UpdateFlattenedStructureAdd = new ProfilerMarker("CLDS.UpdateFlattenedStructureAdd");
+        static ProfilerMarker s_UpdateFlattenedStructureRemove = new ProfilerMarker("CLDS.UpdateFlattenedStructureRemove");
+        static ProfilerMarker s_GetHierarchyValue = new ProfilerMarker("CLDS.GetHierarchyValue");
+        static ProfilerMarker s_OnBeforeDeserialize = new ProfilerMarker("CLDS.OnBeforeDeserialize");
+        static ProfilerMarker s_OnAfterDeserialize = new ProfilerMarker("CLDS.OnAfterDeserialize");
+        static ProfilerMarker s_FlatStructurePartialSearch = new ProfilerMarker("CLDS.FlatStructurePartialSearch");
+        static ProfilerMarker s_DeserializeLayer = new ProfilerMarker("CLDS.DeserializeLayer");
+        static ProfilerMarker s_SerializeLayer = new ProfilerMarker("CLDS.SerializeLayer");
+        static ProfilerMarker s_DeserializeElement = new ProfilerMarker("CLDS.DeserializeElement");
+
+
         [SerializeField]
         LayerList m_serializedLayerList;
 
@@ -197,6 +213,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         internal void AddData<T>(Element elem, ElementID id, T data, out Element<T> output)
         {
+            using var scope = s_AddData.Auto();
+
             EvaluateParent(in elem, id, out Element parent);
             output = new Element<T>(id, data, this);
             AddChild(parent, output);
@@ -205,6 +223,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         internal void AddData(Element elem, ElementID id, out Element output)
         {
+            using var scope = s_AddData.Auto();
+
             EvaluateParent(in elem, id, out Element parent);
             output = new Element(id, this);
             AddChild(parent, output);
@@ -213,12 +233,15 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         private void AddChild(Element parent, Element child)
         {
+            using var scope = s_AddChild.Auto();
+
             parent.Children.Add(child);
             child.Parent = parent;
         }
 
         private void AddChildUnique(Element parent, ref Element child)
         {
+            using var scope = s_AddChildUnique.Auto();
             child.ID = child.GetUniqueLocalID(child.ID.FullPath.Replace($"{parent.ID.FullPath}.", ""), parent);
             AddChild(parent, child);
         }
@@ -231,6 +254,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         private void EvaluateParent(in Element element, ElementID id, out Element parent)
         {
+            using var scope = s_EvaluateParent.Auto();
+
             parent = null;
             Element traverser = element;
             Element swap = null;
@@ -532,6 +557,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public virtual void OnBeforeSerialize()
         {
+            using var scope = s_OnBeforeDeserialize.Auto();
             if (SerializingAsset)
             {
                 m_serializedLayerList = null;
@@ -555,6 +581,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         internal SerializedLayerData SerializeLayer(LayerDescriptor layerDescriptor, Element root)
         {
+            using var scope = s_SerializeLayer.Auto();
+
             var serializedLayer = new SerializedLayerData(layerDescriptor.layerName, new List<SerializedElementData>());
             GatherAll(root, out var elements);
             foreach (var elem in elements)
@@ -622,6 +650,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public virtual void OnAfterDeserialize()
         {
+            using var scope = s_OnAfterDeserialize.Auto();
             if (SerializingAsset)
             {
                 foreach (var serializedLayer in m_serializedData)
@@ -638,6 +667,8 @@ namespace UnityEditor.ContextLayeredDataStorage
         //This version expects a layer in the layerlist to have a matching name to the serializedLayerData
         private void DeserializeLayer(SerializedLayerData data)
         {
+            using var scope = s_DeserializeLayer.Auto();
+
             var root = m_layerList.GetLayerRoot(data.layerName);
             List<Element> elems = new List<Element>();
             foreach (var elemData in data.layerData)
@@ -654,6 +685,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         private Element DeserializeElement(SerializedElementData data)
         {
+            using var scope = s_DeserializeElement.Auto();
+
             Element output = null;
             if (data.valueType != null && data.valueType.Length > 0)
             {
@@ -703,6 +736,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         private IEnumerable<Element> FlatStructurePartialSearch(ElementID searchID)
         {
+            using var scope = s_FlatStructurePartialSearch.Auto();
+
             Stack<Element> workingSet = new Stack<Element>();
             HashSet<ElementID> returnedElements = new HashSet<ElementID>(new ElementIDComparer());
             workingSet.Push(m_flatStructure);
@@ -746,6 +781,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         internal void UpdateFlattenedStructureAdd(Element addedElement)
         {
+            using var scope = s_UpdateFlattenedStructureAdd.Auto();
+
             ElementID id = addedElement.ID;
             if(m_flatStructureLookup.TryGetValue(id, out Element elem))
             {
@@ -764,6 +801,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         protected void UpdateFlattenedStructureRemove(ElementID removedElementId)
         {
+            using var scope = s_UpdateFlattenedStructureRemove.Auto();
+
             var replacement = SearchInternal(removedElementId);
             if(replacement != null)
             {
@@ -783,6 +822,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         internal int GetHierarchyValue(Element element)
         {
+            using var scope = s_GetHierarchyValue.Auto();
+
             if(element.owner != this)
             {
                 Debug.LogError("Tried to get hierarchy value on an element not registered to this store: " + element.ID);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Unity.Profiling;
 using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
@@ -23,6 +24,11 @@ namespace UnityEditor.ContextLayeredDataStorage
     [Serializable]
     public class ElementID : ISerializationCallbackReceiver
     {
+        static ProfilerMarker s_IsSubpathOf = new ProfilerMarker("ElementID.IsSubpathOf");
+        static ProfilerMarker s_OnBeforeSerialize = new ProfilerMarker("ElementID.OnBeforeSerialize");
+        static ProfilerMarker s_OnAfterDeserialize = new ProfilerMarker("ElementID.OnAfterDeserialize");
+        static ProfilerMarker s_CreateUniqueLocalID = new ProfilerMarker("ElementID.CreateUniqueLocalID");
+
         [SerializeField]
         string m_serializedFullPath;
 
@@ -309,6 +315,8 @@ namespace UnityEditor.ContextLayeredDataStorage
         /// <returns></returns>
         public bool IsSubpathOf(ElementID other)
         {
+            using var scope = s_IsSubpathOf.Auto();
+
             //special case for root, empty string is always a subpath
             if(IsRoot)
             {
@@ -354,6 +362,8 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public static ElementID CreateUniqueLocalID(ElementID parentID, IEnumerable<string> existingLocalChildIDs, string desiredLocalID)
         {
+            using var scope = s_CreateUniqueLocalID.Auto();
+
             string uniqueName = SanitizeName(existingLocalChildIDs, "{0}_{1}", desiredLocalID, "\"");
             return $"{parentID.FullPath}{(parentID.FullPath.Length > 0 ? "." : "")}{uniqueName}";
         }
@@ -423,6 +433,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public void OnBeforeSerialize()
         {
+            using var scope = s_OnBeforeSerialize.Auto();
             if (m_fullPath == null)
             {
                 string temp = "";
@@ -445,6 +456,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public void OnAfterDeserialize()
         {
+            using var scope = s_OnAfterDeserialize.Auto();
             m_fullPath = m_serializedFullPath.ToCharArray();
 
             if(m_path != null)

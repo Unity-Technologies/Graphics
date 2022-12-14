@@ -1,9 +1,10 @@
-//#define HANDLER_PROFILING
+#define HANDLER_PROFILING
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using Unity.Profiling;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.Configuration;
 using UnityEditorInternal;
@@ -17,7 +18,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     [Serializable]
     public class GraphHandler
     {
-        [SerializeReference]
+        static ProfilerMarker s_FromSerializedFormat = new ProfilerMarker("GraphHandler.FromSerializedFormat");
+        static ProfilerMarker s_ToSerializedFormat = new ProfilerMarker("GraphHandler.ToSerializedFormat");
+        static ProfilerMarker s_ReconcretizeAll = new ProfilerMarker("GraphHandler.ReconcretizeAll");
+
         internal GraphDelta graphDelta;
 
         [NonSerialized]
@@ -44,11 +48,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         static public GraphHandler FromSerializedFormat(string json, Registry registry)
         {
+            using var scope = s_FromSerializedFormat.Auto();
             return new GraphHandler(json, registry);
         }
 
         public string ToSerializedFormat()
         {
+            using var scope = s_ToSerializedFormat.Auto();
             return EditorJsonUtility.ToJson(graphDelta.m_data, true);
         }
 
@@ -158,6 +164,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public void ReconcretizeAll()
         {
+            using var scope = s_ReconcretizeAll.Auto();
+
             foreach(var name in GraphHandlerUtils.GetNodesTopologically(this))
             {
                 var node = GetNode(name);

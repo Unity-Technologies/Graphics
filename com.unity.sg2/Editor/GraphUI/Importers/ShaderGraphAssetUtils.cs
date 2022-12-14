@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Unity.Profiling;
 using UnityEditor.AssetImporters;
 using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -16,11 +17,16 @@ namespace UnityEditor.ShaderGraph
 {
     static class ShaderGraphAssetUtils
     {
+        static ProfilerMarker s_HandleImport = new ProfilerMarker("ShaderGraphAssetUtils.HandleImport");
+        static ProfilerMarker s_RebuildContextNodes = new ProfilerMarker("ShaderGraphAssetUtils.RebuildContextNodes");
+
         public static readonly string kBlackboardContextName = Registry.ResolveKey<PropertyContext>().Name;
         public static readonly string kMainEntryContextName = Registry.ResolveKey<Defs.ShaderGraphContext>().Name;
 
         internal static void RebuildContextNodes(GraphHandler graph, Target target)
         {
+            using var scope = s_RebuildContextNodes.Auto();
+
             // This should be consistent for all legacy targets.
             graph.RebuildContextData("VertIn", target, "UniversalPipeline", "VertexDescription", true);
             graph.RebuildContextData("VertOut", target, "UniversalPipeline", "VertexDescription", false);
@@ -100,6 +106,8 @@ namespace UnityEditor.ShaderGraph
 
         public static void HandleImport(AssetImportContext ctx)
         {
+            using var scope = s_HandleImport.Auto();
+
             // Deserialize the json box
             string path = ctx.assetPath;
             string json = File.ReadAllText(path, Encoding.UTF8);
@@ -192,6 +200,8 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     internal class SerializableGraphHandler : ISerializationCallbackReceiver
     {
+        static ProfilerMarker s_OnEnable = new ProfilerMarker("OnEnable");
+
         //[SerializeField]
         //string json = "";
 
@@ -227,6 +237,7 @@ namespace UnityEditor.ShaderGraph
 
         public void OnEnable(bool reconcretize = true)
         {
+            using var scope = s_OnEnable.Auto();
             var reg = ShaderGraphRegistry.Instance.Registry;
             //m_graph = GraphHandler.FromSerializedFormat(json, reg);
             if (reconcretize)
