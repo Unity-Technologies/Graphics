@@ -36,6 +36,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _RTHandleScaleHistory;
     float4 _RTHandlePostProcessScale;
     float4 _RTHandlePostProcessScaleHistory;
+    float4 _DynamicResolutionFullscreenScale;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
     float4 unity_OrthoParams;

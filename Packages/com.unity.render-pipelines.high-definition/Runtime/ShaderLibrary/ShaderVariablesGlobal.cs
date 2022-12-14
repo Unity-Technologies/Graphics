@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _RTHandlePostProcessScale;           // { postProcessWidth / RTHandle.maxWidth, postProcessWidth / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
         public Vector4 _RTHandlePostProcessScaleHistory;    // Same as above but the RTHandle handle size for post process is that of the history buffer
 
+        public Vector4 _DynamicResolutionFullscreenScale;   // Represent the scale between dynamic resolution and the final camera viewport resolution
+
         // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
         // x = 1 - f/n
         // y = f/n

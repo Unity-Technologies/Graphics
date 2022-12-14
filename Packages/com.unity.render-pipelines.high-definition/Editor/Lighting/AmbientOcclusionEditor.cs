@@ -27,7 +27,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Ray Tracing parameters
         SerializedDataParameter m_RayTracing;
+        SerializedDataParameter m_SpecularOcclusion;
         SerializedDataParameter m_LayerMask;
+
         SerializedDataParameter m_OccluderMotionRejection;
         SerializedDataParameter m_ReceiverMotionRejection;
         SerializedDataParameter m_RayLength;
@@ -56,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SpatialBilateralAggressiveness = Unpack(o.Find(x => x.spatialBilateralAggressiveness));
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
+            m_SpecularOcclusion = Unpack(o.Find(x => x.specularOcclusion));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_OccluderMotionRejection = Unpack(o.Find(x => x.occluderMotionRejection));
             m_ReceiverMotionRejection = Unpack(o.Find(x => x.receiverMotionRejection));
@@ -98,7 +101,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // If ray tracing is supported and it is enabled on this volume, display the ray tracing options.
             if (HDRenderPipeline.assetSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
+                PropertyField(m_SpecularOcclusion, EditorGUIUtility.TrTextContent("Specular Occlusion", "Controls the influence of the ambient occlusion on the specular occlusion. Increase this value to reduce the amount of specular leaking in occluded areas."));
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
+
                 base.OnInspectorGUI(); // Quality Setting
                 using (new QualityScope(this))
                 {

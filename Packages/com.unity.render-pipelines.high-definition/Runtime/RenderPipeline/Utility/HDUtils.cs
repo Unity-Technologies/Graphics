@@ -802,7 +802,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool IsSupportedBuildTargetAndDevice(UnityEditor.BuildTarget activeBuildTarget, out GraphicsDeviceType unsupportedGraphicDevice)
         {
-            unsupportedGraphicDevice = SystemInfo.graphicsDeviceType;
+            GraphicsDeviceType systemGraphicsDeviceType = SystemInfo.graphicsDeviceType;
+            unsupportedGraphicDevice = systemGraphicsDeviceType;
 
             // If the build target matches the operating system of the editor
             // and if the graphic api is chosen automatically, then only the system's graphic device type matters
@@ -810,9 +811,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // if the build target does not match the editor OS, then we have to check using the graphic api list
             bool autoAPI = UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(activeBuildTarget) && (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget));
 
-            if (autoAPI ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
-                && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
-                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
+            // If the editor's graphics device type is null though, we still have to iterate the target's graphic api list.
+            bool skipCheckingAPIList = autoAPI && systemGraphicsDeviceType != GraphicsDeviceType.Null;
+
+            if (skipCheckingAPIList ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
+                    && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
+                    && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
                 return true;
 
             return false;

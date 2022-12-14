@@ -184,3 +184,21 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable on  XR yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: driver issue?
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: driver issue?

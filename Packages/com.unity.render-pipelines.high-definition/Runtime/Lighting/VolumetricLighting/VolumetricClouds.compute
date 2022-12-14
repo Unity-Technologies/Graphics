@@ -1132,8 +1132,8 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
 
             if (rejectNeighborhood == 1.0f)
             {
-                // We don't have any valid history and there is no neighbor that is usable
-                previousResult = 0.0f;
+                // We don't have any valid history and there is no neighbor that is usable, we consider that we have no clouds.
+                previousResult = float4(0.0, 0.0, 0.0, 1.0);
                 previousSampleCount = 0.0f;
             }
             else

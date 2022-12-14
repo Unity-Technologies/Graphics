@@ -73,7 +73,7 @@ void MissShaderRenderer(inout RayIntersection rayIntersection : SV_RayPayload)
 void RayGenRenderer()
 {
     uint3 LaunchIndex = DispatchRaysIndex();
-    uint2 LaunchDim = DispatchRaysDimensions();
+    uint2 LaunchDim = DispatchRaysDimensions().xy;
 
     UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
 

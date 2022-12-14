@@ -564,12 +564,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.GenerateMips(dest);
         }
 
-        internal void RenderSkyOnlyToCubemap(CommandBuffer commandBuffer, RTHandle outputCubemap, bool includeSunInBaking, SkyRenderer skyRenderer)
+        internal void RenderSkyOnlyToCubemap(CommandBuffer commandBuffer, RTHandle outputCubemap, bool includeSunInBaking, Matrix4x4[] pixelToViewDir, SkyRenderer skyRenderer)
         {
             for (int i = 0; i < 6; ++i)
             {
                 m_BuiltinParameters.commandBuffer = commandBuffer;
-                m_BuiltinParameters.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
+                m_BuiltinParameters.pixelCoordToViewDirMatrix = pixelToViewDir[i];
                 m_BuiltinParameters.viewMatrix = m_CameraRelativeViewMatrices[i];
                 m_BuiltinParameters.colorBuffer = outputCubemap;
                 m_BuiltinParameters.depthBuffer = null;

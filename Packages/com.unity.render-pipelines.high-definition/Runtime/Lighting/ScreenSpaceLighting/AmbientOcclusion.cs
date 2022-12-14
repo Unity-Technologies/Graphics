@@ -60,6 +60,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
         /// <summary>
+        /// Controls the influence of the ambient occlusion on the specular occlusion. 
+        /// </summary>
+        [AdditionalProperty]
+        public ClampedFloatParameter specularOcclusion = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Controls the length of ray traced ambient occlusion rays.
         /// </summary>
         public float rayLength

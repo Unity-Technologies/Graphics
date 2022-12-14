@@ -38,7 +38,7 @@ CBUFFER_START(cb0)
     float4 _VignetteColor;
     float4 _DistortionParams1;
     float4 _DistortionParams2;
-    float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: unused
+    float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: We need lut at all or not
     float4 _BloomParams;
     float4 _BloomThreshold;
     float4 _BloomTint;
@@ -69,6 +69,8 @@ CBUFFER_END
 
 #define PostExposure            _LogLut3D_Params.z
 
+#define NeedLUT		            _LogLut3D_Params.w
+
 #define BloomTint               _BloomTint.xyz
 #define BloomIntensity          _BloomParams.x
 #define DirtIntensity           _BloomParams.y
@@ -78,6 +80,7 @@ CBUFFER_END
 #define DirtOffset              _BloomDirtScaleOffset.zw
 
 #define OutputLogEnabled        _DebugFlags.x
+#define IsSearchingHierarchy	_DebugFlags.w
 
 #define AlphaScale              _AlphaScaleBias.x
 #define AlphaBias               _AlphaScaleBias.y
@@ -213,7 +216,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Output in log space for debug & exr export (external grading)
         color.xyz = saturate(LinearToLogC(color.xyz));
     }
-    else
+    else if (NeedLUT)
     {
         // Artist request to fine tune exposure in post without affecting bloom, dof etc
         color.xyz *= PostExposure;
@@ -227,11 +230,14 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // Alpha mask
 #ifdef ENABLE_ALPHA
-        // Post processing is not applied on pixels with zero alpha
-        // The alpha scale and bias control how steep is the transition between the post-processed and plain regions
-        float alpha = inputColor.a * AlphaScale + AlphaBias;
-        // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
-        color.xyz = lerp(inputColor.xyz, color.xyz, saturate(alpha));
+		if (IsSearchingHierarchy == 0)
+		{
+			// Post processing is not applied on pixels with zero alpha
+			// The alpha scale and bias control how steep is the transition between the post-processed and plain regions
+			float alpha = inputColor.a * AlphaScale + AlphaBias;
+			// Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
+			color.xyz = lerp(inputColor.xyz, color.xyz, saturate(alpha));
+		}
 #endif
 
 #ifdef GAMMA2_OUTPUT

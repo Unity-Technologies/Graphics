@@ -743,7 +743,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         protected string GetRayTracingError() => $@"
-            #if defined(SHADER_STAGE_RAY_TRACING)
+            #if defined(SHADER_STAGE_RAY_TRACING) && defined(RAYTRACING_SHADER_GRAPH_DEFAULT)
             #error '{name}' node is not supported in ray tracing, please provide an alternate implementation, relying for instance on the 'Raytracing Quality' keyword
             #endif";
 

@@ -90,8 +90,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("Destination for DownSample is too small, it needs to be at least half as big as source.");
             if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"DownSample is not supported with MSAA buffers");
+            
+            // Apply an additional scale bias
 
             using (new ProfilingScope(ctx.cmd, downSampleSampler))
+            using (new OverrideRTHandleScale(ctx))
             {
                 SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
 
@@ -128,11 +131,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void Copy(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
         {
             if (source == destination)
-                Debug.LogError("Can't copy the buffer. Source has to be different from the destination.");
+                Debug.LogError("Can't copy the buffer. Source has to be different from the destination.");
             if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"Copy is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, copySampler))
+            using (new OverrideRTHandleScale(ctx))
             {
                 SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
@@ -177,11 +181,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void VerticalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
         {
             if (source == destination)
-                Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
+                Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
             if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"GaussianBlur is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, verticalBlurSampler))
+            using (new OverrideRTHandleScale(ctx))
             {
                 SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
 
@@ -223,11 +228,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void HorizontalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
         {
             if (source == destination)
-                Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
+                Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
             if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"GaussianBlur is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, horizontalBlurSampler))
+            using (new OverrideRTHandleScale(ctx))
             {
                 SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
 
@@ -273,7 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void GaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 9, float radius = 5, int sourceMip = 0, int destMip = 0, bool downSample = true)
         {
             if (source == tempTarget || destination == tempTarget)
-                Debug.LogError("Can't blur the buffer. tempTarget has to be different from both source or destination.");
+                Debug.LogError("Can't blur the buffer. tempTarget has to be different from both source or destination.");
             if (tempTarget.scaleFactor.x != tempTarget.scaleFactor.y || (tempTarget.scaleFactor.x != 0.5f && tempTarget.scaleFactor.x != 1.0f))
                 Debug.LogError($"Can't blur the buffer. Only a scaleFactor of 0.5 or 1.0 is supported on tempTarget. Current scaleFactor: {tempTarget.scaleFactor}");
             if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1 || tempTarget.rt.antiAliasing > 1)
@@ -287,22 +293,60 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (downSample)
                 {
-                    // Downsample to half res in mip 0 of temp target (in case temp target doesn't have any mipmap we use 0)
-                    DownSample(ctx, source, tempTarget, sourceScaleBias, destScaleBias, sourceMip, 0);
-                    // Vertical blur
-                    VerticalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, 0, destMip);
-                    // Instead of allocating a new buffer on the fly, we copy the data.
-                    // We will be able to allocate it when rendergraph lands
-                    Copy(ctx, destination, tempTarget, sourceScaleBias, destScaleBias, 0, destMip);
-                    // Horizontal blur and upsample
-                    HorizontalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, sourceMip, destMip);
+                    using (new OverrideRTHandleScale(ctx))
+                    {
+                        // Downsample to half res in mip 0 of temp target (in case temp target doesn't have any mipmap we use 0)
+                        DownSample(ctx, source, tempTarget, sourceScaleBias, sourceScaleBias, sourceMip, 0);
+                        // Vertical blur
+                        VerticalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, sourceScaleBias, sampleCount, radius, 0, destMip);
+                        // Instead of allocating a new buffer on the fly, we copy the data.
+                        // We will be able to allocate it when rendergraph lands
+                        Copy(ctx, destination, tempTarget, sourceScaleBias, sourceScaleBias, 0, destMip);
+                        // Horizontal blur and upsample
+                        HorizontalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, sourceMip, destMip);
+                    }
                 }
                 else
                 {
-                    // Vertical blur
-                    VerticalGaussianBlur(ctx, source, tempTarget, sourceScaleBias, destScaleBias, sampleCount, radius, sourceMip, destMip);
-                    // Horizontal blur and upsample
-                    HorizontalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, sourceMip, destMip);
+                    using (new OverrideRTHandleScale(ctx))
+                    {
+                        // Vertical blur
+                        VerticalGaussianBlur(ctx, source, tempTarget, sourceScaleBias, sourceScaleBias, sampleCount, radius, sourceMip, destMip);
+                        // Horizontal blur and upsample
+                        HorizontalGaussianBlur(ctx, tempTarget, destination, sourceScaleBias, destScaleBias, sampleCount, radius, sourceMip, destMip);
+                    }
+                }
+            }
+        }
+
+        struct OverrideRTHandleScale : IDisposable
+        {
+            // Prevent overriding multiple times in case of nested statements
+            static int overrideCounter = 0;
+            CustomPassInjectionPoint injectionPoint;
+            
+            public OverrideRTHandleScale(in CustomPassContext ctx)
+            {
+                injectionPoint = ctx.injectionPoint;
+                
+                // Lower side effects, technically the _RTHandleScale variable in the shader has a
+                // different value from C# side only in the after post process injection point.
+                if (injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                {
+                    if (overrideCounter == 0)
+                        propertyBlock.SetVector(HDShaderIDs._OverrideRTHandleScale,
+                            RTHandles.rtHandleProperties.rtHandleScale);
+                    overrideCounter++;
+                }
+            }
+            
+            public void Dispose()
+            {
+                if (injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                {
+                    if (overrideCounter == 1)
+                        propertyBlock.SetVector(HDShaderIDs._OverrideRTHandleScale, Vector4.zero);
+                    overrideCounter--;
                 }
             }
         }

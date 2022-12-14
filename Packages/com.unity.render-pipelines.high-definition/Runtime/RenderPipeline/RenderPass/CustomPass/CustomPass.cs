@@ -261,7 +261,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             customPass.currentRenderTarget.motionVectorBufferRG,
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
-                            ctx.renderGraphPool.GetTempMaterialPropertyBlock()
+                            ctx.renderGraphPool.GetTempMaterialPropertyBlock(),
+                            customPass.injectionPoint
                         );
 
                         customPass.isExecuting = true;

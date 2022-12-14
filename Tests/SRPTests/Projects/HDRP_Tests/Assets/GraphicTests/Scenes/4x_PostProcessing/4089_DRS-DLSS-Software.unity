@@ -185,6 +185,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
+      propertyPath: m_Version
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
       propertyPath: antialiasing
       value: 0
       objectReference: {fileID: 0}
@@ -224,6 +229,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 817e8c2dc8cbb07419050aa94f25c644,
         type: 2}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: checkMemoryAllocation
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: ImageComparisonSettings.TargetWidth
@@ -517,6 +527,7 @@ Transform:
   m_LocalRotation: {x: 0.13875811, y: 0.5250831, z: -0.42723507, w: 0.72284454}
   m_LocalPosition: {x: 0.26, y: 2.95, z: -6.32}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
