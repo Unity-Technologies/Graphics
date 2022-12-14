@@ -1,34 +1,89 @@
----
-uid: changelog
----
-
 # Changelog
-
-
-## [12.1.8] - 2022-11-04
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
+All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.1.7] - 2022-03-29
+
+## [12.1.9] - 2022-12-12
+
+This version is compatible with Unity 2021.3.16f1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.8] - 2022-11-04
+
+This version is compatible with Unity 2021.3.14f1.
+
+### Added
+- Added public api and updated docs for Light2D shape properties.
+
+### Changed
+- Updated Burst dependency to 1.7.3.
+- Messages regarding reducing resolution for additional punctual lights are now only displayed in debug builds.
+- Avoid using Depth32Stencil8 format on Android.
+
+### Fixed
+- Fixed Android Vulkan issues with depth prepass and copy depth pass.
+- Fixed Blit and MotionVectors shader compilation errors with GLES2 API.
+- Fixed errors when using Native RenderPass and Render Objects feature after Post Processing.
+- Fixed an issue of Renderer2D using the incorrect render path when lights are out of the scene view.
+- Fixed smooth material lighting banding issues on mobile platforms.
+- URP 2D - Fix bug when upgrading parametric lights to freeform lights.
+- URP 2D - Fix Light2D upgrading issue with m_AlphaBlendOnOverlap property
+- Added multi_compile_instancing to SimpleLit shader on SM 2.0.
+- URP 2D - Fixes vertex color for sprite shapes.
+- Fixed alpha discard on Unlit Sprite targets for Shadergraph.
+- Fixed an additional light performance regression on Quest.
+- Fixed Gizmos in Game View when using Viewports (UUM-7069).
+- Fixed excessive banding from FSR in URP.
+- Fixed decals correctly handle last batch.
+- Fixed decal msaa error then camera is selected in deferred rendering path.
+- Fixed render scale correctly work with screen size property. This includes decals.
+- Fixed decals to produce correct world to tangent matrix.
+- Fixed decals to pass correct viewDirectionWS to screen space and gbuffer lighting.
+- Fixed decal screen space to work without intermediate texture and DBuffer to force using intermediate texture.
+- Fixed instacing error when decals loaded, but not the decal shaders.
+- Fixed default URP asset being included in builds when it wasn't supposed to be (when URP asset overrides are available for all target's quality levels).
+- Shaders correctly fallback to error shader.
+- Added force depth prepass option when requesting the Depth Texture.
+- Fixed graphics stereo tests.
+- Fixed artifacts on mobile targets by changing some halfs to floats in Normals logic.
+- Fixed a resource leak when switching between scenes with different pipeline assets.
+- Fixed URP Deferred Fog pass does not work in XR singlepass.
+- Fixed disappearing UI when changing Render Scale.
+- Materials that use Autodesk Interactive shader are now converted correctly.
+- Broken setters which could cause infinite loop in URP pipeline asset.
+
+## [12.1.7] - 2022-03-29
+
+This version is compatible with Unity 2021.2.19f1.
+
+### Changed
+- Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
+- Added support for FidelityFX Super Resolution 1.0 upscaling filter.
+
+### Fixed
+- Fixed FXAA quality issues when render scale was not 1.0.
+- Fixed an issue in where the _ScreenParams was not setup correctly.
+- Fixed several Native RenderPass issues regarding input attachments, DepthOnly pass, and Decals.
+- Fixed an intermediate texture mode SSAO compatibility issue and updated default intermediate texture mode to always.
 
 ## [12.1.6] - 2022-02-09
 
+This version is compatible with Unity 2021.2.14f1.
+
 ### Fixed
+- Fixed an issue where the menu button to be able to convert selected materials was missing.
 - Fixed incorrect shadow batching and shadow length [case 1387859](https://issuetracker.unity3d.com/issues/shadow-caster-2d-casts-artifacted-shadows)
 - Fixed an issue where 2D global lights with shadows enabled could break light layer batching [case 1376487](https://issuetracker.unity3d.com/issues/2d-urp-upgrading-global-light-sets-shadow-settings-to-enabled)
 - Fixed Light2D Sprite Light not updating when Sprite properties are modified [case 1396416][case 1396418][case 1396422]
 - Fixed decal automatic technique to correctly work with webgl. [case 1370326](https://issuetracker.unity3d.com/issues/pink-textures-appear-on-decal-projector-when-building-to-webgl2-and-decal-technique-is-set-to-automatic)
 
 ## [12.1.5] - 2022-01-14
+
+This version is compatible with Unity 2021.2.12f1.
 
 ### Fixed
 - Fixed FXAA quality issues when render scale is not 1.0.

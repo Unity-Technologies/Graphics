@@ -5,23 +5,55 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [12.1.8] - 2022-11-04
+## [12.1.9] - 2022-12-12
+
+This version is compatible with Unity 2021.3.16f1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.8] - 2022-11-04
+
+This version is compatible with Unity 2021.3.14f1.
+
+### Changed
+- Reduced time taken by code generation when a VFX asset is imported
+- Reduced the time taken by VFXGraph.CheckCompilationVersion that would previously potentially query all assets on every domain reload.
+
+### Fixed
+- Fixed an issue that in `Output Particle` blocks, shader graph exposed properties order is now consistent with shader graph blackboard.
+- Fixed exception when there is a GPU in subgraph and flow link in parent graph.
+- Unexcepted double blend direction slot on Position Mesh block.
+- Position ArcSphere failing with BlendDirection.
+- Unexpected lossy scale evaluation on GPU.
+- Read only fields texts is almost invisible due to an opacity value issue.
+- Vector2 node indeterminate value behavior was not consistent with other Vector nodes.
+- Fixed an issue with Motion Vector target offset with Line Output.
+- Removed incompatible target generating shader targetting VFX.
+- Stop rendering VFX shadows when VFX are disabled in Scene View visibility menu.
+- Fixed position where VFX are created when VFX asset is dragged to Scene View.
+- Fixed flickering when sorting large systems.
+- Create a new system then convert an operator node to subgraphs fails.
+- Fixed single pass stereo rendering issue with SG integration due to uncorrectly setup instanceID.
 
 ## [12.1.7] - 2022-03-29
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2021.2.19f1.
 
+### Fixed
+- Fixed an exception when changing the setting of space of a shape to world.
+- Fixed Picking and Selection passes issue.
 
 ## [12.1.6] - 2022-02-09
+
+This version is compatible with Unity 2021.2.14f1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.5] - 2022-01-14
+
+This version is compatible with Unity 2021.2.12f1.
 
 ### Fixed
 - Unexpected possible connection between GPUEvent and Spawn context [Case 1362739](https://issuetracker.unity3d.com/product/unity/issues/guid/1362739/)
