@@ -36,8 +36,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_SwellTotalAmplitude = EditorGUIUtility.TrTextContent("Total Amplitude", "Displays the current maximum amplitude of the swell. This is the sum of the first and second frequency bands.");
 
         // Swell Bands
-        static public readonly GUIContent k_SwellBand0Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Multiplier", "Controls the attenuation of amplitude on the first frequency band of the swell.");
-        static public readonly GUIContent k_SwellBand1Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Multiplier", "Controls the attenuation of amplitude on the second frequency band of the swell.");
+        static public readonly GUIContent k_SwellBand0Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Dimmer", "Controls the attenuation of amplitude on the first frequency band of the swell.");
+        static public readonly GUIContent k_SwellBand1Mutliplier = EditorGUIUtility.TrTextContent("Amplitude Dimmer", "Controls the attenuation of amplitude on the second frequency band of the swell.");
         static public readonly GUIContent k_SwellFadeToggle = EditorGUIUtility.TrTextContent("Fade", "When enabled, HDRP starts fading the contribution of this frequency band over a given range. This helps reduce the aliasing artifacts at a distance.");
         static public readonly GUIContent k_SwellMaxAmplitude = EditorGUIUtility.TrTextContent("Max Amplitude", "Displays the current maximum amplitude of this frequency band.");
 
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_AgitationCurrent = EditorGUIUtility.TrTextContent("Current", "Sets the properties of the current for the swell. This current translates the swell at a constant speed in a given direction.");
         static public readonly GUIContent k_AgitationCurrentSpeed = EditorGUIUtility.TrTextContent("Speed", "Sets the speed of the current for the swell in kilometers per hour. This current translates the swell at a constant speed in a given direction.");
         static public readonly GUIContent k_AgitationCurrentOrientation = EditorGUIUtility.TrTextContent("Orient", "Sets the orientation of the current for the swell in degrees in a counterclockwise fashion relative to the X world vector.");
-        static public readonly GUIContent k_AgitationBandMutliplier = EditorGUIUtility.TrTextContent("Amplitude Multiplier", "Controls the attenuation of amplitude on the frequency band of the agitation.");
+        static public readonly GUIContent k_AgitationBandMutliplier = EditorGUIUtility.TrTextContent("Amplitude Dimmer", "Controls the attenuation of amplitude on the frequency band of the agitation.");
         static public readonly GUIContent k_AgitationTotalAmplitude = EditorGUIUtility.TrTextContent("Total Amplitude", "Displays the current maximum amplitude of the agitaion.");
 
         // Fade parameters

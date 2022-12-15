@@ -333,9 +333,9 @@ void EvaluateInstanceData(uint3 currentThread : SV_DispatchThreadID)
     OrientedBBox obb;
     obb.right = float3(1.0, 0, 0);
     obb.up = float3(0, 1.0, 0);
-    obb.extentX = size.x * 0.5;
+    obb.extentX = size.x * 0.5 + _MaxWaveDisplacement;
     obb.extentY = _MaxWaveHeight;
-    obb.extentZ = size.y * 0.5;
+    obb.extentZ = size.y * 0.5 + _MaxWaveDisplacement;
     obb.center = float3(_PatchOffset.x + center.x, _PatchOffset.y, _PatchOffset.z + center.y);
 
     // Need to make sure that
