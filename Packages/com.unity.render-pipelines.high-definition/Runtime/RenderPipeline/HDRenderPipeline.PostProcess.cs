@@ -570,10 +570,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, sunOcclusionTexture, taaEnabled);
                     LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
                 }
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture, taaEnabled);
 
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source);
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph);
+
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture, taaEnabled);
+
                 source = UberPass(renderGraph, hdCamera, logLutOutput, bloomTexture, source);
                 PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.ColorLog);
 

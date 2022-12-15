@@ -502,31 +502,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Lens Flare
-            if (useLensFlare)
-            {
-                bool usePanini;
-                float paniniDistance;
-                float paniniCropToFit;
-                if (m_PaniniProjection.IsActive())
-                {
-                    usePanini = true;
-                    paniniDistance = m_PaniniProjection.distance.value;
-                    paniniCropToFit = m_PaniniProjection.cropToFit.value;
-                }
-                else
-                {
-                    usePanini = false;
-                    paniniDistance = 1.0f;
-                    paniniCropToFit = 1.0f;
-                }
-
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
-                {
-                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
-                }
-            }
-
             // Combined post-processing stack
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.UberPostProcess)))
             {
@@ -539,6 +514,31 @@ namespace UnityEngine.Rendering.Universal
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.Bloom)))
                         SetupBloom(cmd, GetSource(), m_Materials.uber);
+                }
+
+                // Lens Flare
+                if (useLensFlare)
+                {
+                    bool usePanini;
+                    float paniniDistance;
+                    float paniniCropToFit;
+                    if (m_PaniniProjection.IsActive())
+                    {
+                        usePanini = true;
+                        paniniDistance = m_PaniniProjection.distance.value;
+                        paniniCropToFit = m_PaniniProjection.cropToFit.value;
+                    }
+                    else
+                    {
+                        usePanini = false;
+                        paniniDistance = 1.0f;
+                        paniniCropToFit = 1.0f;
+                    }
+
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+                    {
+                        DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
+                    }
                 }
 
                 // Setup other effects constants
