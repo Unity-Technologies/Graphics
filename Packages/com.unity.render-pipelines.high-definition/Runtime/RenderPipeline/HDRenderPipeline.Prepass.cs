@@ -100,9 +100,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 bindTextureMS = msaa,
                 msaaSamples = msaaSamples,
                 clearBuffer = clear,
-                name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
+                name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil",
+                disableFallBackToImportedTexture = true,
 #if UNITY_2020_2_OR_NEWER
-                , fastMemoryDesc = fastMemDesc
+                fastMemoryDesc = fastMemDesc,
 #endif
             };
 
@@ -127,12 +128,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 bindTextureMS = msaa,
                 msaaSamples = msaaSamples,
                 enableRandomWrite = !msaa,
-                name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
+                name = msaa ? "NormalBufferMSAA" : "NormalBuffer",
+                fallBackToBlackTexture = true,
 #if UNITY_2020_2_OR_NEWER
-                , fastMemoryDesc = fastMemDesc
+                fastMemoryDesc = fastMemDesc,
 #endif
-                ,
-                fallBackToBlackTexture = true
             };
             return renderGraph.CreateTexture(normalDesc);
         }
@@ -779,8 +779,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var depthMipchainSize = hdCamera.depthMipChainSize;
                     passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
 
-                    passData.outputDepth = builder.WriteTexture(renderGraph.CreateTexture(
-                        new TextureDesc(depthMipchainSize.x, depthMipchainSize.y, true, true)
+                    passData.outputDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(depthMipchainSize.x, depthMipchainSize.y, true, true)
                         { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" }));
 
                     passData.GPUCopy = m_GPUCopy;

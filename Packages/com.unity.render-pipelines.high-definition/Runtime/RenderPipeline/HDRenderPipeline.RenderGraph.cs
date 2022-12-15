@@ -798,7 +798,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return CreateTransparentRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting, transparentRange);
         }
 
-        static void RenderForwardRendererList(FrameSettings frameSettings,
+        static internal void RenderForwardRendererList(FrameSettings frameSettings,
             RendererList rendererList,
             bool opaque,
             ScriptableRenderContext renderContext,
@@ -989,14 +989,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.transparentAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(
                     CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent)));
 
-                var output = builder.UseColorBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
+                var output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
                 if (useDepthBuffer)
                     builder.UseDepthBuffer(prepassOutput.resolvedDepthBuffer, DepthAccess.ReadWrite);
-
-                // If the pass is culled at runtime from the RendererList API, set the appropriate fall-back for the output
-                // Here we need an opaque black texture as default (alpha = 1) due to the way the output of this pass is composed with the post-process output (see FinalPass.shader)
-                output.SetFallBackResource(renderGraph.defaultResources.blackTextureXR);
 
                 builder.SetRenderFunc(
                     (AfterPostProcessPassData data, RenderGraphContext ctx) =>

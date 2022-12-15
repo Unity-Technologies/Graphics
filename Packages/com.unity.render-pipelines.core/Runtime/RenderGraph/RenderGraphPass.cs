@@ -35,8 +35,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public List<RendererListHandle> usedRendererListList = new List<RendererListHandle>();
 
-        public List<RendererListHandle> dependsOnRendererListList = new List<RendererListHandle>();
-
         public RenderGraphPass()
         {
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
@@ -60,7 +58,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             usedRendererListList.Clear();
-            dependsOnRendererListList.Clear();
             enableAsyncCompute = false;
             allowPassCulling = true;
             allowRendererListCulling = true;
@@ -94,11 +91,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void UseRendererList(RendererListHandle rendererList)
         {
             usedRendererListList.Add(rendererList);
-        }
-
-        public void DependsOnRendererList(RendererListHandle rendererList)
-        {
-            dependsOnRendererListList.Add(rendererList);
         }
 
         public void EnableAsyncCompute(bool value)
