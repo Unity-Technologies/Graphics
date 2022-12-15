@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Unity.Profiling;
@@ -22,6 +23,7 @@ namespace UnityEditor.ContextLayeredDataStorage
     }
 
     [Serializable]
+    [DebuggerDisplay("FullPath {FullPath}")]
     public class ElementID : ISerializationCallbackReceiver
     {
         static ProfilerMarker s_IsSubpathOf = new ProfilerMarker("ElementID.IsSubpathOf");

@@ -34,10 +34,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     [Serializable]
     internal class Edge
     {
-        [SerializeReference]
+        [SerializeField]
         private ElementID m_output;
         public ElementID Output { get => m_output; }
-        [SerializeReference]
+        [SerializeField]
         private ElementID m_input;
         public ElementID Input { get => m_input; }
 
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         [SerializeField]
         private string m_context;
         public string Context { get => m_context; }
-        [SerializeReference]
+        [SerializeField]
         private ElementID m_input;
         public ElementID Input { get => m_input; }
 
@@ -99,19 +99,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     [Serializable]
     internal sealed partial class GraphStorage : CLDS, ISerializationCallbackReceiver
     {
-        [SerializeReference]
+        [SerializeField]
         internal List<Edge> edges = new List<Edge>();
 
-        [SerializeReference]
+        [SerializeField]
         internal List<ContextConnection> defaultConnections = new List<ContextConnection>();
 
         // TODO (Sai): Cleanup how this is exposed and consult with Liz to a better solution
         internal Dictionary<string, ReferableToReferenceNodeMapping> referableToReferenceNodeMap = new();
 
-        [SerializeReference]
+        [SerializeField]
         List<string> referableNames;
 
-        [SerializeReference]
+        [SerializeField]
         List<ReferableToReferenceNodeMapping> referenceNodeMappings;
 
         protected override void AddDefaultLayers()

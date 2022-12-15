@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
             newGraphAction.Action(0, testAssetPath, "");
-            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(testAssetPath);
+            var graphAsset = InternalEditorUtility.LoadSerializedFileAndForget(testAssetPath).OfType<ShaderGraphAsset>().FirstOrDefault();
 
             if (graphAsset != null)
             {

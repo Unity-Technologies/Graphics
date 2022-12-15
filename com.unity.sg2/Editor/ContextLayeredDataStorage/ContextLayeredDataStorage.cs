@@ -23,10 +23,6 @@ namespace UnityEditor.ContextLayeredDataStorage
         static ProfilerMarker s_SerializeLayer = new ProfilerMarker("CLDS.SerializeLayer");
         static ProfilerMarker s_DeserializeElement = new ProfilerMarker("CLDS.DeserializeElement");
 
-
-        [SerializeField]
-        LayerList m_serializedLayerList;
-
         [SerializeField]
         internal List<SerializedLayerData> m_serializedData;
         [SerializeField]
@@ -558,24 +554,14 @@ namespace UnityEditor.ContextLayeredDataStorage
         public virtual void OnBeforeSerialize()
         {
             using var scope = s_OnBeforeDeserialize.Auto();
-            if (SerializingAsset)
+            m_serializedData = new List<SerializedLayerData>();
+            foreach (var layer in m_layerList)
             {
-                m_serializedLayerList = null;
-
-                m_serializedData = new List<SerializedLayerData>();
-                foreach (var layer in m_layerList)
+                if (layer.Value.descriptor.isSerialized)
                 {
-                    if (layer.Value.descriptor.isSerialized)
-                    {
-                        var serializedLayer = SerializeLayer(layer.Value.descriptor, layer.Value.element);
-                        m_serializedData.Add(serializedLayer);
-                    }
+                    var serializedLayer = SerializeLayer(layer.Value.descriptor, layer.Value.element);
+                    m_serializedData.Add(serializedLayer);
                 }
-            }
-            else
-            {
-                m_serializedData?.Clear();
-                m_serializedLayerList = m_layerList;
             }
         }
 
@@ -651,16 +637,9 @@ namespace UnityEditor.ContextLayeredDataStorage
         public virtual void OnAfterDeserialize()
         {
             using var scope = s_OnAfterDeserialize.Auto();
-            if (SerializingAsset)
+            foreach(var serializedLayer in m_serializedData)
             {
-                foreach (var serializedLayer in m_serializedData)
-                {
-                    DeserializeLayer(serializedLayer);
-                }
-            }
-            else
-            {
-                m_layerList = m_serializedLayerList;
+                DeserializeLayer(serializedLayer);
             }
         }
 
@@ -837,7 +816,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
 
             //our root elements have no name and an int value signifying the layer value
-            if(traverser is IntElement root && (root.ID.FullPath.Length == 0))
+            if(traverser is Element<int> root && (root.ID.FullPath.Length == 0))
             {
                 return root.Data;
             }

@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph
 {
     static class ShaderGraphAssetUtils
     {
+        static ProfilerMarker s_HandleSave = new ProfilerMarker("ShaderGraphAssetUtils.HandleSave");
         static ProfilerMarker s_HandleImport = new ProfilerMarker("ShaderGraphAssetUtils.HandleImport");
         static ProfilerMarker s_RebuildContextNodes = new ProfilerMarker("ShaderGraphAssetUtils.RebuildContextNodes");
 
@@ -83,19 +84,15 @@ namespace UnityEditor.ShaderGraph
 
         public static void HandleSave(string path, ShaderGraphAsset asset)
         {
-            Profiler.BeginSample("HandleSave");
+            using var scope = s_HandleSave.Auto();
             InternalEditorUtility.SaveToSerializedFileAndForget(new UnityEngine.Object[] { asset }, path, true);
-            Profiler.EndSample();
-/*
-            var json = EditorJsonUtility.ToJson(asset, true);
-            File.WriteAllText(path, json);
-            AssetDatabase.ImportAsset(path); // Is this necessary?*/
+            AssetDatabase.ImportAsset(path);
         }
 
         public static ShaderGraphAsset HandleLoad(string path)
         {
             AssetDatabase.ImportAsset(path);
-            var asset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
+            var asset = InternalEditorUtility.LoadSerializedFileAndForget(path).OfType<ShaderGraphAsset>().FirstOrDefault();
             return asset;
         }
 
@@ -111,8 +108,13 @@ namespace UnityEditor.ShaderGraph
             // Deserialize the json box
             string path = ctx.assetPath;
             string json = File.ReadAllText(path, Encoding.UTF8);
-            var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
-            EditorJsonUtility.FromJsonOverwrite(json, asset);
+            var asset = InternalEditorUtility.LoadSerializedFileAndForget(ctx.assetPath).OfType<ShaderGraphAsset>().FirstOrDefault();
+            if (asset == null)
+            {
+                asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
+                EditorJsonUtility.FromJsonOverwrite(json, asset);
+            }
+
             // Although name gets set during asset's OnEnable, it can get clobbered during deserialize
             asset.Name = Path.GetFileNameWithoutExtension(path);
             var sgModel = asset.SGGraphModel;
@@ -179,8 +181,13 @@ namespace UnityEditor.ShaderGraph
         public static string[] GatherDependenciesForShaderGraphAsset(string assetPath)
         {
             string json = File.ReadAllText(assetPath, Encoding.UTF8);
-            var asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
-            EditorJsonUtility.FromJsonOverwrite(json, asset);
+            var asset = InternalEditorUtility.LoadSerializedFileAndForget(assetPath).OfType<ShaderGraphAsset>().FirstOrDefault();
+            if (asset == null)
+            {
+                asset = ScriptableObject.CreateInstance<ShaderGraphAsset>();
+                EditorJsonUtility.FromJsonOverwrite(json, asset);
+            }
+
             asset.SGGraphModel.OnEnable();
             SortedSet<string> deps = new();
             var graph = asset.SGGraphModel.GraphHandler;
@@ -198,14 +205,14 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Serializable]
-    internal class SerializableGraphHandler : ISerializationCallbackReceiver
+    internal class SerializableGraphHandler //: ISerializationCallbackReceiver
     {
         static ProfilerMarker s_OnEnable = new ProfilerMarker("OnEnable");
 
         //[SerializeField]
         //string json = "";
 
-        [SerializeReference]
+        [SerializeField]
         GraphHandler m_graph;
 
         // Provide a previously initialized graphHandler-- round-trip it for ownership.
@@ -220,20 +227,20 @@ namespace UnityEditor.ShaderGraph
         }
 
         public GraphHandler Graph => m_graph;
-
-        public void OnBeforeSerialize()
-        {
-            // Cloning node models (i.e. GTFs model of cloning a scriptable object,
-            // triggers a serialize on the cloned node before it has a graph handler reference
-            if (m_graph == null)
-                return;
-
-            Profiler.BeginSample("SerializableGraphHandler.OnBeforeSerialize");
-            //json = m_graph.ToSerializedFormat();
-            Profiler.EndSample();
-        }
-
-        public void OnAfterDeserialize() { }
+        //
+        // public void OnBeforeSerialize()
+        // {
+        //     // Cloning node models (i.e. GTFs model of cloning a scriptable object,
+        //     // triggers a serialize on the cloned node before it has a graph handler reference
+        //     if (m_graph == null)
+        //         return;
+        //
+        //     Profiler.BeginSample("SerializableGraphHandler.OnBeforeSerialize");
+        //     //json = m_graph.ToSerializedFormat();
+        //     Profiler.EndSample();
+        // }
+        //
+        // public void OnAfterDeserialize() { }
 
         public void OnEnable(bool reconcretize = true)
         {

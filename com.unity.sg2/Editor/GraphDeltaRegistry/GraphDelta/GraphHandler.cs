@@ -22,6 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         static ProfilerMarker s_ToSerializedFormat = new ProfilerMarker("GraphHandler.ToSerializedFormat");
         static ProfilerMarker s_ReconcretizeAll = new ProfilerMarker("GraphHandler.ReconcretizeAll");
 
+        [SerializeField]
         internal GraphDelta graphDelta;
 
         [NonSerialized]
@@ -31,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public GraphHandler()
         {
             graphDelta = new GraphDelta();
-            registry = null;
+            registry = ShaderGraphRegistry.Instance.Registry;
         }
 
         public GraphHandler(Registry registry)

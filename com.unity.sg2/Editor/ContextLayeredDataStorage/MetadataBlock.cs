@@ -8,21 +8,15 @@ namespace UnityEditor.ContextLayeredDataStorage
     internal struct SerializedEntry
     {
         public string key;
-        public string valueType;
-        public string valueEntry;
+        [SerializeReference]
+        public object value;
     }
 
     [Serializable]
-    internal class MetadataBlock : Dictionary<string, ValueType>, ISerializationCallbackReceiver
+    internal class MetadataBlock : Dictionary<string, object>, ISerializationCallbackReceiver
     {
         [SerializeField]
         private List<SerializedEntry> serializedEntries;
-
-
-        private struct DataBox<T>
-        {
-            public T data;
-        }
 
         public bool HasMetadata(string lookup)
         {
@@ -31,12 +25,12 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public T GetMetadata<T>(string lookup)
         {
-            return (this[lookup] as DataBox<T>?).Value.data;
+            return (T)this[lookup];
         }
 
         public void SetMetadata<T>(string lookup, T data)
         {
-            this[lookup] = new DataBox<T> { data = data };
+            this[lookup] = data;
         }
 
         public void OnBeforeSerialize()
@@ -47,8 +41,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                 serializedEntries.Add(new SerializedEntry()
                 {
                     key = key,
-                    valueType = value.GetType().GetGenericArguments()[0].AssemblyQualifiedName,
-                    valueEntry = EditorJsonUtility.ToJson(value)
+                    value = value
                 });
             }
         }
@@ -57,22 +50,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             foreach(var entry in serializedEntries)
             {
-                Type generic = typeof(DataBox<>);
-                Type valueType;
-                try
-                {
-                    valueType = Type.GetType(entry.valueType);
-                }
-                catch
-                {
-                    Debug.LogError($"Could not deserialize the data on metadata {entry.key} of type {entry.valueType}; skipping");
-                    continue;
-                }
-                var constructedType = generic.MakeGenericType(valueType);
-                var dataBox = JsonUtility.FromJson(entry.valueEntry, constructedType);
-                var dataField = constructedType.GetField("data");
-                var data = dataField.GetValue(dataBox);
-                typeof(MetadataBlock).GetMethod("SetMetadata").MakeGenericMethod(valueType).Invoke(this, new object[] { entry.key, data });
+                this[entry.key] = entry.value;
             }
         }
     }
@@ -98,6 +76,9 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
         public void OnAfterDeserialize()
         {
+            if (serializedBlocks == null)
+                return;
+
             foreach(var block in serializedBlocks)
             {
                 Add(block.key, block.block);
@@ -118,7 +99,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                         block = value
                     });
                 }
-            
+
             }
         }
     }

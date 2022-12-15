@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string k_concrete = "Concrete";
         public const string k_user = "User";
 
-        [SerializeReference]
+        [SerializeField]
         internal GraphStorage m_data;
 
         internal const string kRegistryKeyName = "_RegistryKey";

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor.AssetImporters;
 using UnityEditor.Callbacks;
 using Unity.GraphToolsFoundation.Editor;
@@ -7,6 +8,7 @@ using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphDelta.Utils;
 using UnityEditor.ShaderGraph.GraphUI;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -20,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             if (GUILayout.Button("View Generated Shader"))
             {
                 AssetImporter importer = target as AssetImporter;
-                var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
+                var asset = InternalEditorUtility.LoadSerializedFileAndForget(importer.assetPath).OfType<ShaderGraphAsset>().FirstOrDefault();
                 var graph = asset.SGGraphModel.GraphHandler;
 
                 var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
@@ -35,7 +37,7 @@ namespace UnityEditor.ShaderGraph
             if(GUILayout.Button("Save out generated Shader"))
             {
                 AssetImporter importer = target as AssetImporter;
-                var asset = (ShaderGraphAsset)AssetDatabase.LoadAssetAtPath(importer.assetPath, typeof(ShaderGraphAsset));
+                var asset = InternalEditorUtility.LoadSerializedFileAndForget(importer.assetPath).OfType<ShaderGraphAsset>().FirstOrDefault();
                 var graph = asset.SGGraphModel.GraphHandler;
 
                 var key = Registry.ResolveKey<Defs.ShaderGraphContext>();
@@ -76,8 +78,15 @@ namespace UnityEditor.ShaderGraph
         public static bool OnOpenShaderGraph(int instanceID, int line)
         {
             var path = AssetDatabase.GetAssetPath(instanceID);
-            var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
-            return graphAsset && ShowWindow(path, graphAsset);
+            //var graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(path);
+            var graphAsset = InternalEditorUtility.LoadSerializedFileAndForget(path).OfType<ShaderGraphAsset>().FirstOrDefault();
+            if(graphAsset != null)
+            {
+                graphAsset.SetFilePath(path);
+                return ShowWindow(path, graphAsset);
+            }
+
+            return false;
         }
 
         private static bool ShowWindow(string path, ShaderGraphAsset model)
