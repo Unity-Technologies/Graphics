@@ -1379,22 +1379,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
         };
 
-        public static KeywordDescriptor BlendMode = new KeywordDescriptor()
-        {
-            displayName = "Blend Mode",
-            referenceName = "_BLENDMODE",
-            type = KeywordType.Enum,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-            entries = new KeywordEntry[]
-            {
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
-                new KeywordEntry() { displayName = "Alpha", referenceName = "ALPHA" },
-                new KeywordEntry() { displayName = "Add", referenceName = "ADD" },
-                new KeywordEntry() { displayName = "PreMultiply", referenceName = "PRE_MULTIPLY" },
-            }
-        };
-
         public static KeywordDescriptor FogOnTransparent = new KeywordDescriptor()
         {
             displayName = "Enable Fog On Transparent",

@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering
     {
         public uint inputVariants;
         public uint outputVariants;
-        public override string ToString() => $"Total={inputVariants}/{outputVariants}({outputVariants / (float)inputVariants * 100f:0.00}%)";
+        public override string ToString() => $"Total={outputVariants}/{inputVariants}({outputVariants / (float)inputVariants * 100f:0.00}%)";
     }
 
     [Serializable]
