@@ -62,6 +62,9 @@ MonoBehaviour:
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
+  specularOcclusion:
+    m_OverrideState: 1
+    m_Value: 0
   occluderMotionRejection:
     m_OverrideState: 0
     m_Value: 1
@@ -169,10 +172,10 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   upperHemisphereLuxValue:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 4.1886163
   upperHemisphereLuxColor:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: {x: 0.44019982, y: 0.4541125, z: 0.5}
   desiredLuxValue:
     m_OverrideState: 0

@@ -4,9 +4,9 @@ namespace UnityEngine.VFX.Utility
 {
     [AddComponentMenu("VFX/Property Binders/Previous Position Binder")]
     [VFXBinder("Transform/Position (Previous)")]
-    class VFXPreviousPositionBinder : VFXBinderBase
+    class VFXPreviousPositionBinder : VFXSpaceableBinder
     {
-        [VFXPropertyBinding("UnityEngine.Vector3"), UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
+        [VFXPropertyBinding("UnityEngine.Vector3")]
         public ExposedProperty m_Property = "PreviousPosition";
         public Transform Target = null;
         Vector3 oldPosition;
@@ -25,7 +25,8 @@ namespace UnityEngine.VFX.Utility
         public override void UpdateBinding(VisualEffect component)
         {
             component.SetVector3(m_Property, oldPosition);
-            oldPosition = Target.position;
+            var currentPosition = ApplySpacePosition(component, m_Property, Target.position);
+            oldPosition = currentPosition;
         }
 
         public override string ToString()

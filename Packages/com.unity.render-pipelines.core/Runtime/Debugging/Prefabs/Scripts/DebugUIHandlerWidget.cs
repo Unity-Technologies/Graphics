@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.UI
     /// <summary>
     /// Base class for handling UI actions for widgets.
     /// </summary>
+    [CoreRPHelpURL("Rendering-Debugger")]
     public class DebugUIHandlerWidget : MonoBehaviour
     {
         /// <summary>

@@ -17,7 +17,7 @@ class ProceduralMesh : MonoBehaviour
             _mesh.SetVertexBufferParams
               (varray.Length,
                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
-               new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.SNorm16, 4),               
+               new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.SNorm16, 4),
                new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.UNorm8, 4),
                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float16, 2));
 
@@ -38,7 +38,7 @@ class ProceduralMesh : MonoBehaviour
 
     void OnEnable()
     {
-        _mesh = new Mesh();  
+        _mesh = new Mesh();
 
         CreateMeshGeometry();
     }
@@ -54,7 +54,7 @@ class ProceduralMesh : MonoBehaviour
     }
 
     NativeArray<Vertex> CreateVertexArray(uint sphereRes)
-    { 
+    {
         uint vertexCount = (sphereRes + 1) * (sphereRes + 1);
 
         Vertex[] vertices = new Vertex[vertexCount];
@@ -74,7 +74,7 @@ class ProceduralMesh : MonoBehaviour
             {
                 float sectorAngle = j * sectorStep;
 
-                float x = xz * Mathf.Cos(sectorAngle); 
+                float x = xz * Mathf.Cos(sectorAngle);
                 float z = xz * Mathf.Sin(sectorAngle);
 
                 Vector3 pos = new Vector3(x, y, z);
@@ -88,7 +88,7 @@ class ProceduralMesh : MonoBehaviour
                 color += new Vector3(0.5f, 0.5f, 0.5f);
                 color *= 255.0f;
                 uint colorRGBA = (uint)color.x | ((uint)color.y << 8) | ((uint)color.z << 16) | 0xff000000;
-                vertices[vertexIndex].color = colorRGBA;                
+                vertices[vertexIndex].color = colorRGBA;
 
                 vertexIndex++;
             }
@@ -109,11 +109,11 @@ class ProceduralMesh : MonoBehaviour
             {
                 indices[index++] = i * (sphereRes + 1) + j;
                 indices[index++] = (i + 1) * (sphereRes + 1) + j + 1;
-				indices[index++] = (i + 1) * (sphereRes + 1) + j;
+                indices[index++] = (i + 1) * (sphereRes + 1) + j;
 
                 indices[index++] = i * (sphereRes + 1) + j;
                 indices[index++] = i * (sphereRes + 1) + j + 1;
-				indices[index++] = (i + 1) * (sphereRes + 1) + j + 1;
+                indices[index++] = (i + 1) * (sphereRes + 1) + j + 1;
             }
 
         return new NativeArray<uint>(indices, Allocator.Temp);

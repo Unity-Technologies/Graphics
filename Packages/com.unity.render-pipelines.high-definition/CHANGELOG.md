@@ -4,6 +4,23 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+
+## [15.0.1] - 2022-08-04
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
+## [15.0.0] - 2022-06-13
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [14.0.3] - 2021-05-09
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [14.0.2] - 2021-02-04
 
 ### Added
@@ -15,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
 - Added an optional CPU simulation for the water system.
 - Added new Unity material ball matching the new Unity logo.
+- Adding injection points options for DLSS (After Depth of Field and After Post) which should mitigate some of the performance cost in post process.
 
 ### Changed
 - Moved custom Sensor Lidar path tracing code to the SensorSDK package.

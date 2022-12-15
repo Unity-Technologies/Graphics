@@ -355,11 +355,14 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB = m_ShaderVariablesRayTracingCB;
             // Override the ones we need to
             deferredParameters.raytracingCB._RaytracingRayMaxLength = settings.rayLength;
+            deferredParameters.raytracingCB._RayTracingClampingFlag = transparent ? 0 : 1;
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
             deferredParameters.raytracingCB._RaytracingPreExposition = 0;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 0;
+            deferredParameters.raytracingCB._RayTracingAPVRayMiss = 0;
             deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMiss;
             deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
+            deferredParameters.raytracingCB._RayTracingAmbientProbeDimmer = settings.ambientProbeDimmer.value;
 
             return deferredParameters;
         }
@@ -421,6 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float lodBias;
             public int rayMissfallbackHierarchy;
             public int lastBouncefallbackHierarchy;
+            public float ambientProbeDimmer;
 
             // Other parameters
             public RayTracingAccelerationStructure accelerationStructure;
@@ -462,6 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lodBias = settings.textureLodBias.value;
                 passData.rayMissfallbackHierarchy = (int)settings.rayMiss.value;
                 passData.lastBouncefallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
+                passData.ambientProbeDimmer = settings.ambientProbeDimmer.value;
 
                 // Other parameters
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
@@ -489,6 +494,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingAccelerationStructure(data.reflectionShader, HDShaderIDs._RaytracingAccelerationStructureName, data.accelerationStructure);
 
                         // Global reflection parameters
+                        data.shaderVariablesRayTracingCB._RayTracingClampingFlag = data.transparent ? 0 : 1;
                         data.shaderVariablesRayTracingCB._RaytracingIntensityClamp = data.clampValue;
                         // Inject the ray generation data
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
@@ -506,7 +512,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
                         data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMissfallbackHierarchy;
                         data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBouncefallbackHierarchy;
-
+                        data.shaderVariablesRayTracingCB._RayTracingAmbientProbeDimmer = data.ambientProbeDimmer;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Inject the ray-tracing sampling data

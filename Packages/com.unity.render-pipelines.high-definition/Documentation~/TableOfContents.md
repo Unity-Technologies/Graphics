@@ -4,26 +4,30 @@
   * [10 / Unity 2020.2](whats-new-10.md)
   * [11 / Unity 2021.1](whats-new-11.md)
   * [12 / Unity 2021.2](whats-new-12.md)
+  * [13 / Unity 2022.1](whats-new-13.md)
+  * [14 / Unity 2022.2](whats-new-14.md)
 * Features
   * [Features List](HDRP-Features.md)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison.md)
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP.md)
-  * [Upgrading to HDRP](Upgrading-To-HDRP.md)
-  * [Render Pipeline Wizard](Render-Pipeline-Wizard.md)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering.md)
   * [Exposing Additional Properties](More-Options.md)
   * [Sample Content](HDRP-Sample-Content.md)
   * [Sample project](HDRP-Sample-Projects.md)
   * [Menu Items](Menu-Items.md)
-* Upgrading HDRP between Unity Versions
+* [Upgrade guides](upgrade-guides.md)
+  * [High Definition Render Pipeline Wizard](Render-Pipeline-Wizard.md)
+  * [Upgrading to HDRP from the built-in render pipeline](Upgrading-To-HDRP.md)
   * [Material Upgrade](Material-Upgrade.md)
-  * [5.x to 6.x](Upgrading-from-2019.1-to-2019.2.md)
-  * [6.x to 7.x](Upgrading-from-2019.2-to-2019.3.md)
-  * [7.x to 8.x](Upgrading-from-2019.3-to-2020.1.md)
-  * [8.x to 9.x-preview/10.x](Upgrading-from-2020.1-to-2020.2.md)
-  * [10.x-preview to 11.x](Upgrading-from-2020.2-to-2021.1.md)
-  * [11.x to 12.x](Upgrading-from-2021.1-to-2021.2.md)
+  * [Upgrading from HDRP 13.x to 14.x](Upgrading-from-2022.1-to-2022.2.md)
+  * [Upgrading from HDRP 12.x to 13.x](Upgrading-from-2021.2-to-2022.1.md)
+  * [Upgrading from HDRP 11.x to 12.x](Upgrading-from-2021.1-to-2021.2.md)
+  * [Upgrading from HDRP 10.x to 11.x](Upgrading-from-2020.2-to-2021.1.md)
+  * [Upgrading from HDRP 8.x to 10.x](Upgrading-from-2020.1-to-2020.2.md)
+  * [Upgrading from HDRP 7.x to 8.x](Upgrading-from-2019.3-to-2020.1.md)
+  * [Upgrading from HDRP 6.x to 7.x](Upgrading-from-2019.2-to-2019.3.md)
+  * [Upgrading from HDRP 5.x to 6.x](Upgrading-from-2019.1-to-2019.2.md)
 * Volume Framework
   * [Volumes](Volumes.md)
   * [Volume Profiles](Volume-Profile.md)
@@ -38,7 +42,7 @@
       * [Screen Space Reflection](Override-Screen-Space-Reflection.md)
       * [Screen Space Refraction](Override-Screen-Space-Refraction.md)
     * Material
-      * [Diffusion Profile](Override-Diffusion-Profile.md)
+      * [Diffusion Profile List](Override-Diffusion-Profile.md)
     * Post-processing
       * [Bloom](Post-Processing-Bloom.md)
       * [Channel Mixer](Post-Processing-Channel-Mixer.md)
@@ -54,6 +58,7 @@
       * [Shadows, Midtones, Highlights](Post-Processing-Shadows-Midtones-Highlights.md)
       * [Split Toning](Post-Processing-Split-Toning.md)
       * [Tonemapping](Post-Processing-Tonemapping.md)
+      * [High Dynamic Range (HDR) Output](HDR-Output.md)
       * [Vignette](Post-Processing-Vignette.md)
       * [White Balance](Post-Processing-White-Balance.md)
     * Shadowing
@@ -82,6 +87,8 @@
   * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing.md)
   * [Mask Map and Detail Map](Mask-Map-and-Detail-Map.md)
   * [Material Type](Material-Type.md)
+  * [Material Variants](materialvariant-HDRP)
+  * [Reduce shader variants in your build](Shader-Stripping)
   * [Tessellation](Tessellation.md)
   * [Surface Type](Surface-Type.md)
   * [Renderer and Material Priority](Renderer-And-Material-Priority.md)
@@ -137,7 +144,7 @@
   * [Clouds in HDRP](clouds-in-hdrp.md)
   * [Atmospheric Scattering](Atmospheric-Scattering.md)
   * [Local Volumetric Fog](Local-Volumetric-Fog.md)
-  * [Light Layers](Light-Layers.md)
+  * [Rendering Layers](Rendering-Layers.md)
   * [Shadows](Shadows-in-HDRP.md)
   * [Shadowmasks](Lighting-Mode-Shadowmask.md)
   * [Volumetric Lighting](Volumetric-Lighting.md)
@@ -158,6 +165,7 @@
 * [Post-processing](Post-Processing-Main.md)
   * [Effect Execution Order](Post-Processing-Execution-Order.md)
   * [Effect List](post-processing-effect-list.md)
+  * [HDR Output](HDR-Output.md)
   * Authoring Lookup Textures
     * [Overview](Authoring-LUTs.md)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop.md)
@@ -195,6 +203,7 @@
 * Debugging
   * [MatCap](MatCap.md)
   * [Rendering Debugger](Render-Pipeline-Debug-Window.md)
+  * [Add controls to the Rendering Debugger](Rendering-Debugger-Add-Controls.md)
 * Virtual Reality
   * [VR Overview](VR-Overview.md)
 * Consoles

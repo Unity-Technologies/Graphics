@@ -18,7 +18,11 @@ namespace UnityEngine.Rendering.HighDefinition
             First,
             UpdateMSAA,
             UpdateLensFlare,
-            MovedSupportRuntimeDebugDisplayToGlobalSettings
+            MovedSupportRuntimeDebugDisplayToGlobalSettings,
+            DisableAutoRegistration,
+            MoveDiffusionProfilesToVolume,
+            GenericRenderingLayers,
+            SupportRuntimeDebugDisplayToStripRuntimeDebugShaders
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -44,11 +48,94 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.MovedSupportRuntimeDebugDisplayToGlobalSettings, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                var activePipeline = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
-                if (activePipeline != null)
+                if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset activePipeline)
                 {
-                    data.supportRuntimeDebugDisplay = activePipeline.currentPlatformRenderPipelineSettings.m_ObsoleteSupportRuntimeDebugDisplay;
+                    data.m_SupportRuntimeDebugDisplay = activePipeline.currentPlatformRenderPipelineSettings.m_ObsoleteSupportRuntimeDebugDisplay;
                 }
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.DisableAutoRegistration, (HDRenderPipelineGlobalSettings data) =>
+            {
+                // Field is on for new projects, but disable it for existing projects
+                data.autoRegisterDiffusionProfiles = false;
+            }),
+            MigrationStep.New(Version.MoveDiffusionProfilesToVolume, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                if (data.m_ObsoleteDiffusionProfileSettingsList.Length == 0)
+                    return;
+
+                var volumeProfile = data.GetOrCreateDefaultVolumeProfile();
+
+                #if UNITY_EDITOR
+                // Profile from resources is read only in released packages, so we have to copy it to the assets folder
+                if (data.IsVolumeProfileFromResources())
+                {
+                    string path = "Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath + '/' + volumeProfile.name + ".asset";
+                    if (!UnityEditor.AssetDatabase.IsValidFolder("Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath))
+                        UnityEditor.AssetDatabase.CreateFolder("Assets", HDProjectSettingsReadOnlyBase.projectSettingsFolderPath);
+
+                    //try load one if one already exist
+                    volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+                    if (volumeProfile == null || volumeProfile.Equals(null))
+                    {
+                        //else create it
+                        UnityEditor.AssetDatabase.CopyAsset(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile), path);
+                        volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+                    }
+
+                    data.volumeProfile = volumeProfile;
+                }
+                #endif
+
+                var overrides = data.GetOrCreateDiffusionProfileList();
+                foreach (var profile in data.m_ObsoleteDiffusionProfileSettingsList)
+                {
+                    bool found = false;
+                    foreach (var profile2 in overrides.diffusionProfiles.value)
+                    {
+                        if (profile2 == profile)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                        data.AddDiffusionProfile(profile);
+                }
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.GenericRenderingLayers, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.renderingLayerNames = new string[16]
+                {
+                    data.lightLayerName0,
+                    data.lightLayerName1,
+                    data.lightLayerName2,
+                    data.lightLayerName3,
+                    data.lightLayerName4,
+                    data.lightLayerName5,
+                    data.lightLayerName6,
+                    data.lightLayerName7,
+                    data.decalLayerName0,
+                    data.decalLayerName1,
+                    data.decalLayerName2,
+                    data.decalLayerName3,
+                    data.decalLayerName4,
+                    data.decalLayerName5,
+                    data.decalLayerName6,
+                    data.decalLayerName7,
+                };
+                data.m_PrefixedRenderingLayerNames = null;
+
+                data.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).SetEnabled(FrameSettingsField.RenderingLayerMaskBuffer, true);
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.SupportRuntimeDebugDisplayToStripRuntimeDebugShaders, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.stripDebugVariants = !data.m_SupportRuntimeDebugDisplay; // Inversion logic
 #pragma warning restore 618
             })
         );
@@ -120,9 +207,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 oldAsset.diffusionProfileSettings.TryToUpgrade();
 
             int oldSize = oldAsset.m_ObsoleteDiffusionProfileSettingsList?.Length ?? 0;
-            System.Array.Resize(ref assetToUpgrade.diffusionProfileSettingsList, oldSize);
+            System.Array.Resize(ref assetToUpgrade.m_ObsoleteDiffusionProfileSettingsList, oldSize);
             for (int i = 0; i < oldSize; ++i)
-                assetToUpgrade.diffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
+                assetToUpgrade.m_ObsoleteDiffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
 #pragma warning restore 618
 
             //3. Set version to next & Launch remaining of migration

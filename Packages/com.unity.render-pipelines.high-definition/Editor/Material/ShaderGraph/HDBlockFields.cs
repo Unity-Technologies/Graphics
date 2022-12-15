@@ -60,6 +60,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SubsurfaceMask = new BlockFieldDescriptor(SurfaceDescription.name, "SubsurfaceMask", "Subsurface Mask", "SURFACEDESCRIPTION_SUBSURFACEMASK",
                 new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor TransmissionMask = new BlockFieldDescriptor(SurfaceDescription.name, "TransmissionMask", "Transmission Mask", "SURFACEDESCRIPTION_TRANSMISSIONMASK",
+                new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Thickness = new BlockFieldDescriptor(SurfaceDescription.name, "Thickness", "SURFACEDESCRIPTION_THICKNESS",
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static CustomSlotBlockFieldDescriptor DiffusionProfileHash = new CustomSlotBlockFieldDescriptor(SurfaceDescription.name, "DiffusionProfileHash", "Diffusion Profile", "SURFACEDESCRIPTION_DIFFUSIONPROFILEHASH",
@@ -86,11 +88,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 () => { return new DefaultMaterialSlot(0, "Baked Back GI", "BakedBackGI", ShaderStageCapability.Fragment); });
             public static BlockFieldDescriptor DepthOffset = new BlockFieldDescriptor(SurfaceDescription.name, "DepthOffset", "Depth Offset", "SURFACEDESCRIPTION_DEPTHOFFSET",
                 new FloatControl(0.0f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor RefractionIndex = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionIndex", "Refraction Index", "SURFACEDESCRIPTION_REFRACTIONINDEX",
+            public static BlockFieldDescriptor RefractionIndex = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionIndex", "Index Of Refraction", "SURFACEDESCRIPTION_REFRACTIONINDEX",
                 new FloatControl(1.0f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor RefractionColor = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionColor", "Refraction Color", "SURFACEDESCRIPTION_REFRACTIONCOLOR",
+            public static BlockFieldDescriptor RefractionColor = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionColor", "Transmittance Color", "SURFACEDESCRIPTION_REFRACTIONCOLOR",
                 new ColorControl(Color.white, false), ShaderStage.Fragment);
-            public static BlockFieldDescriptor RefractionDistance = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionDistance", "Refraction Distance", "SURFACEDESCRIPTION_REFRACTIONDISTANCE",
+            public static BlockFieldDescriptor RefractionDistance = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionDistance", "Absorption Distance", "SURFACEDESCRIPTION_REFRACTIONDISTANCE",
                 new FloatControl(1.0f), ShaderStage.Fragment);
 
             // --------------------------------------------------
@@ -114,6 +116,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(1.4f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Mask = new BlockFieldDescriptor(SurfaceDescription.name, "Mask", "SURFACEDESCRIPTION_MASK",
                 new Vector2Control(new Vector2(1.0f, 0.0f)), ShaderStage.Fragment);
+            public static BlockFieldDescriptor IrisPlaneOffset = new BlockFieldDescriptor(SurfaceDescription.name, "IrisPlaneOffset", "Iris Plane Offset", "SURFACEDESCRIPTION_IRISPLANEOFFSET",
+                new FloatControl(0.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor IrisRadius = new BlockFieldDescriptor(SurfaceDescription.name, "IrisRadius", "Iris Radius", "SURFACEDESCRIPTION_IRISRADIUS",
+                new FloatControl(0.22f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CausticIntensity = new BlockFieldDescriptor(SurfaceDescription.name, "CausticIntensity", "Iris Caustic Intensity Multiplier", "SURFACEDESCRIPTION_CAUSTICINTENSITY",
+                new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CausticBlend = new BlockFieldDescriptor(SurfaceDescription.name, "CausticBlend", "Iris Caustic Blend", "SURFACEDESCRIPTION_CAUSTICBLEND",
+                new FloatControl(1.0f), ShaderStage.Fragment);
 
             // --------------------------------------------------
             // Hair

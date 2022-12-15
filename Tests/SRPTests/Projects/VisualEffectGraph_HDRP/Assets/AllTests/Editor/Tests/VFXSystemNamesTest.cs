@@ -1,16 +1,38 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+
 using NUnit.Framework;
+
+using UnityEditor.VFX.UI;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
 {
     class VFXSystemNamesTest
     {
-        private class ContextSpawner : VFXContext
+        private string m_TestAssetRandomFileName;
+
+        [SetUp]
+        public void Setup()
         {
-            public ContextSpawner() : base(VFXContextType.Spawner) {}
+            CloseAllWindows();
+        }
+
+        [TearDown]
+        public void DestroyTestAsset()
+        {
+            CloseAllWindows();
+            VFXTestCommon.DeleteAllTemporaryGraph();
+        }
+
+        private void CloseAllWindows()
+        {
+            VFXViewWindow.GetAllWindows()
+                .ToList()
+                .ForEach(x => x.Close());
         }
 
         [Test]
@@ -28,8 +50,8 @@ namespace UnityEditor.VFX.Test
                 "foobar (1)",
                 null,
                 "",
-                VFXSystemNames.DefaultSystemName,
-                VFXSystemNames.DefaultSystemName,
+                "System", //VFXSystemNames.DefaultSystemName
+                "System", //VFXSystemNames.DefaultSystemName
                 "foo",
                 "bar",
                 "J'aime les panoramas",
@@ -49,27 +71,78 @@ namespace UnityEditor.VFX.Test
             var spawnerCount = names.Length / 2;
             var GPUSystemCount = names.Length - spawnerCount;
 
-            List<VFXModel> systems = new List<VFXModel>();
+            var models = new List<VFXContext>();
+            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             int i = 0;
             for (; i < spawnerCount; ++i)
             {
-                var context = ScriptableObject.CreateInstance<ContextSpawner>();
+                var context = ScriptableObject.CreateInstance<VFXBasicSpawner>();
                 VFXSystemNames.SetSystemName(context, names[i]);
-                systems.Add(context);
+                graph.AddChild(context);
+                models.Add(context);
             }
             for (; i < spawnerCount + GPUSystemCount; ++i)
             {
-                var data = ScriptableObject.CreateInstance<VFXDataParticle>();
-                VFXSystemNames.SetSystemName(data, names[i]);
-                systems.Add(data);
+                var context = ScriptableObject.CreateInstance<VFXBasicGPUEvent>();
+                VFXSystemNames.SetSystemName(context, names[i]);
+                graph.AddChild(context);
+                models.Add(context);
             }
 
-            var systemNames = new VFXSystemNames();
-            systemNames.Init(systems);
-            var uniqueNames = systems.Select(system => systemNames.GetUniqueSystemName(system)).Where(name => !string.IsNullOrEmpty(name)).Distinct().ToList();
+            var systemNames = graph.systemNames;
+            systemNames.Sync(graph);
+            var uniqueNames = models
+                .Select(model => systemNames.GetUniqueSystemName(model.GetData()))
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Distinct()
+                .ToList();
 
-            Assert.IsTrue(uniqueNames.Count() == names.Length, "Some systems have the same name or are null or empty.");
+            Assert.IsTrue(uniqueNames.Count == names.Length, "Some systems have the same name or are null or empty.");
+        }
+
+        [Test]
+        public void Create_Two_Systems()
+        {
+            // Prepare
+            if (!Directory.Exists(VFXTestCommon.tempBasePath))
+            {
+                Directory.CreateDirectory(VFXTestCommon.tempBasePath);
+            }
+
+            m_TestAssetRandomFileName = $"{VFXTestCommon.tempBasePath}random_{Guid.NewGuid()}.vfx";
+            // Create default VFX Graph
+            var templateString = File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            File.WriteAllText(m_TestAssetRandomFileName, templateString);
+            AssetDatabase.ImportAsset(m_TestAssetRandomFileName);
+
+            // Open this vfx the same way it would be done by a user
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(m_TestAssetRandomFileName);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+
+            var window = VFXViewWindow.GetWindow(asset, true);
+            var viewController = window.graphView.controller;
+
+            // Act
+            // Create a new system
+            var spawnerContext = viewController.AddVFXContext(new Vector2(0, 0), VFXLibrary.GetContexts().Single(o => o.name == "Spawn"));
+            var initializeContext = viewController.AddVFXContext(new Vector2(0, 200), VFXLibrary.GetContexts().Single(o => o.name == "Initialize Particle"));
+            var updateContext = viewController.AddVFXContext(new Vector2(0, 500), VFXLibrary.GetContexts().Single(o => o.name == "Update Particle"));
+            var outputContext = viewController.AddVFXContext(new Vector2(0, 700), VFXLibrary.GetContexts().Single(o => o.name == "Output Particle Quad"));
+
+            spawnerContext.LinkTo(initializeContext);
+            initializeContext.LinkTo(updateContext);
+            updateContext.LinkTo(outputContext);
+            viewController.ApplyChanges();
+            var systemNames = viewController.graph.systemNames;
+            systemNames.Sync(viewController.graph);
+
+            // Assert
+            // Spawner makes up a system by itself
+            Assert.AreEqual("System (1)", systemNames.GetUniqueSystemName(spawnerContext.GetData()));
+            Assert.AreEqual("System (2)", systemNames.GetUniqueSystemName(initializeContext.GetData()));
+            Assert.AreEqual("System (2)", systemNames.GetUniqueSystemName(updateContext.GetData()));
+            Assert.AreEqual("System (2)", systemNames.GetUniqueSystemName(outputContext.GetData()));
         }
     }
 }

@@ -12,7 +12,7 @@ URP_Foundation_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -50,7 +50,7 @@ Build_URP_Foundation_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
     name: Build URP_Foundation on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -87,7 +87,7 @@ URP_Foundation_Android_Vulkan_Standalone_XR_il2cpp_Linear_trunk:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -125,7 +125,7 @@ Build_URP_Foundation_Android_Vulkan_Standalone_XR_il2cpp_Linear_trunk:
     name: Build URP_Foundation on Android_Vulkan_il2cpp_Linear_Standalone_XR_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -162,7 +162,7 @@ URP_Foundation_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -200,7 +200,7 @@ Build_URP_Foundation_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Foundation on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -237,7 +237,7 @@ URP_Foundation_Android_Vulkan_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::mobile::samsung
         model: s21-eu
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -275,7 +275,7 @@ Build_URP_Foundation_Android_Vulkan_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Foundation on Android_Vulkan_il2cpp_Linear_Standalone_XR_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

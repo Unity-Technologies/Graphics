@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
                 manager.RegisterError("PositionDepthOperatorUnavailableWithoutHDRP", VFXErrorType.Warning, "Position (Depth) is currently only supported in the High Definition Render Pipeline (HDRP).");
@@ -133,9 +133,9 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
         {
-            return VFXCoordinateSpace.World;
+            return VFXSpace.World;
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
@@ -153,7 +153,7 @@ namespace UnityEditor.VFX.Operator
             // Camera expressions
             var expressions = Block.CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this), camera);
             // camera matrix is already in world even in custom mode due to GetOutputSpaceFromSlot returning world space
-            Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions, VFXCoordinateSpace.World, VFXCoordinateSpace.World);
+            Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions, VFXSpace.World, VFXSpace.World);
 
             var Camera_depthBuffer = expressions.First(e => e.name == "Camera_depthBuffer").exp;
             var CamPixDim = expressions.First(e => e.name == "Camera_pixelDimensions").exp;

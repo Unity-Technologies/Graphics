@@ -1,0 +1,60 @@
+#pragma kernel CombineCloudsWater
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
+
+// #pragma enable_d3d11_debug_symbols
+
+// HDRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+
+// Input textures of the kernels
+TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X_UINT2(_StencilTexture);
+TEXTURE2D_X(_CameraColorTexture);
+TEXTURE2D_X(_VolumetricCloudsLightingTexture);
+TEXTURE2D_X(_VolumetricCloudsDepthTexture);
+
+// Output textures of the kernels
+RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
+
+// TODO: Anis move this to dispatch indirect on water tiles
+[numthreads(8, 8, 1)]
+void CombineCloudsWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = dispatchThreadId.xy;
+
+    // Read the color buffer
+    float4 cameraColor = LOAD_TEXTURE2D_X(_CameraColorTexture, currentCoord);
+
+    // Is this a water pixel?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+    {
+        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = cameraColor;
+        return;
+    }
+
+    // Read the water depth
+    float waterDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+
+    // Read the clouds depth
+    float cloudDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, currentCoord).x;
+
+    // Read the clouds lighting
+    float4 cloudLighting = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, currentCoord);
+
+    #if defined(UNITY_REVERSED_Z)
+    bool validCloud = waterDepth < cloudDepth;
+    #else
+    bool validCloud = waterDepth > cloudDepth;
+    #endif
+
+    // Read the color buffer
+    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = validCloud ? float4(cameraColor.xyz * cloudLighting.a + cloudLighting.xyz, cameraColor.a) : cameraColor;
+}

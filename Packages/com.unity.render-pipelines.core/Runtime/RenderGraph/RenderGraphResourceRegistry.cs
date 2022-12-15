@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
 
 // Typedefs for the in-engine RendererList API (to avoid conflicts with the experimental version)
-using CoreRendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using CoreRendererList = UnityEngine.Rendering.RendererList;
 using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        delegate void ResourceCallback(RenderGraphContext rgContext, IRenderGraphResource res);
+        delegate void ResourceCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res);
 
         class RenderGraphResourcesData
         {
@@ -44,16 +44,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public ResourceCallback createResourceCallback;
             public ResourceCallback releaseResourceCallback;
 
+            public RenderGraphResourcesData()
+            {
+                resourceArray.Resize(1); // Element 0 is the null element
+            }
+
             public void Clear(bool onException, int frameIndex)
             {
-                resourceArray.Resize(sharedResourcesCount); // First N elements are reserved for shared persistent resources and are kept as is.
+                resourceArray.Resize(sharedResourcesCount+1); // First N elements are reserved for shared persistent resources and are kept as is. Element 0 is null
+
                 pool.CheckFrameAllocation(onException, frameIndex);
             }
 
             public void Cleanup()
             {
                 // Cleanup all shared resources.
-                for (int i = 0; i < sharedResourcesCount; ++i)
+                for (int i = 1; i < sharedResourcesCount+1; ++i)
                 {
                     var resource = resourceArray[i];
                     if (resource != null)
@@ -111,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 if (handle.fallBackResource != TextureHandle.nullHandle.handle)
                     return GetTextureResource(handle.fallBackResource).graphicsResource;
                 else if (!texResource.imported)
-                    throw new InvalidOperationException("Trying to use a texture that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+                    throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
             }
 
             return resource;
@@ -133,16 +139,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_RendererListResources[handle].rendererList;
         }
 
-        internal ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
+        internal GraphicsBuffer GetBuffer(in BufferHandle handle)
         {
             if (!handle.IsValid())
                 return null;
 
-            var resource = GetComputeBufferResource(handle.handle);
+            var bufferResource = GetBufferResource(handle.handle);
+            var resource = bufferResource.graphicsResource;
             if (resource == null)
-                throw new InvalidOperationException("Trying to use a compute buffer that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+                throw new InvalidOperationException("Trying to use a graphics buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
 
-            return resource.graphicsResource;
+            return resource;
         }
 
         private RenderGraphResourceRegistry()
@@ -163,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderGraphResources[(int)RenderGraphResourceType.Texture].releaseResourceCallback = ReleaseTextureCallback;
             m_RenderGraphResources[(int)RenderGraphResourceType.Texture].pool = new TexturePool();
 
-            m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].pool = new ComputeBufferPool();
+            m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].pool = new BufferPool();
         }
 
         internal void BeginRenderGraph(int executionCount)
@@ -196,6 +203,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         void CheckHandleValidity(RenderGraphResourceType type, int index)
         {
             var resources = m_RenderGraphResources[(int)type].resourceArray;
+            if (index == 0)
+                throw new ArgumentException($"Trying to access resource of type {type} with an null resource index.");
             if (index >= resources.size)
                 throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
         }
@@ -206,6 +215,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderGraphResources[res.iType].resourceArray[res.index].IncrementWriteCount();
         }
 
+        internal void NewVersion(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            m_RenderGraphResources[res.iType].resourceArray[res.index].NewVersion();
+        }
+
+        internal ResourceHandle GetLatestVersionHandle(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].version;
+            return new ResourceHandle(res, ver);
+        }
+
+        internal ResourceHandle GetZeroVersionedHandle(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            return new ResourceHandle(res, 0);
+        }
+
+        internal ResourceHandle GetNewVersionedHandle(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].NewVersion();
+            return new ResourceHandle(res, ver);
+        }
         internal string GetRenderGraphResourceName(in ResourceHandle res)
         {
             CheckHandleValidity(res);
@@ -227,7 +261,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal bool IsRenderGraphResourceShared(RenderGraphResourceType type, int index)
         {
             CheckHandleValidity(type, index);
-            return index < m_RenderGraphResources[(int)type].sharedResourcesCount;
+            return index <= m_RenderGraphResources[(int)type].sharedResourcesCount;
         }
 
         internal bool IsGraphicsResourceCreated(in ResourceHandle res)
@@ -268,13 +302,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var textureResources = m_RenderGraphResources[(int)RenderGraphResourceType.Texture];
             int sharedTextureCount = textureResources.sharedResourcesCount;
 
-            Debug.Assert(textureResources.resourceArray.size <= sharedTextureCount);
+            Debug.Assert(textureResources.resourceArray.size <= sharedTextureCount+1);
 
             // try to find an available slot.
             TextureResource texResource = null;
             int textureIndex = -1;
 
-            for (int i = 0; i < sharedTextureCount; ++i)
+            for (int i = 1; i < sharedTextureCount+1; ++i)
             {
                 var resource = textureResources.resourceArray[i];
                 if (resource.shared == false) // unused
@@ -315,11 +349,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal void ReleaseSharedTexture(TextureHandle texture)
         {
             var texResources = m_RenderGraphResources[(int)RenderGraphResourceType.Texture];
-            if (texture.handle >= texResources.sharedResourcesCount)
+            if (texture.handle == 0 || texture.handle >= texResources.sharedResourcesCount+1)
                 throw new InvalidOperationException("Tried to release a non shared texture.");
 
             // Decrement if we release the last one.
-            if (texture.handle == (texResources.sharedResourcesCount - 1))
+            if (texture.handle == (texResources.sharedResourcesCount))
                 texResources.sharedResourcesCount--;
 
             var texResource = GetTextureResource(texture.handle);
@@ -352,9 +386,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new TextureHandle(newHandle);
         }
 
+        internal int GetResourceCount(RenderGraphResourceType type)
+        {
+            return m_RenderGraphResources[(int)type].resourceArray.size;
+        }
+
         internal int GetTextureResourceCount()
         {
-            return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray.size;
+            return GetResourceCount(RenderGraphResourceType.Texture);
         }
 
         TextureResource GetTextureResource(in ResourceHandle handle)
@@ -377,43 +416,49 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             ValidateRendererListDesc(desc);
 
+            int newHandle = m_RendererListResources.Add(new RendererListResource(CoreRendererListDesc.ConvertToParameters(desc)));
+            return new RendererListHandle(newHandle);
+        }
+
+        internal RendererListHandle CreateRendererList(in RendererListParams desc)
+        {
             int newHandle = m_RendererListResources.Add(new RendererListResource(desc));
             return new RendererListHandle(newHandle);
         }
 
-        internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
+        internal BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer)
         {
-            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].AddNewRenderGraphResource(out ComputeBufferResource bufferResource);
-            bufferResource.graphicsResource = computeBuffer;
+            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].AddNewRenderGraphResource(out BufferResource bufferResource);
+            bufferResource.graphicsResource = graphicsBuffer;
             bufferResource.imported = true;
 
-            return new ComputeBufferHandle(newHandle);
+            return new BufferHandle(newHandle);
         }
 
-        internal ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc, int transientPassIndex = -1)
+        internal BufferHandle CreateBuffer(in BufferDesc desc, int transientPassIndex = -1)
         {
-            ValidateComputeBufferDesc(desc);
+            ValidateBufferDesc(desc);
 
-            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].AddNewRenderGraphResource(out ComputeBufferResource bufferResource);
+            int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].AddNewRenderGraphResource(out BufferResource bufferResource);
             bufferResource.desc = desc;
             bufferResource.transientPassIndex = transientPassIndex;
 
-            return new ComputeBufferHandle(newHandle);
+            return new BufferHandle(newHandle);
         }
 
-        internal ComputeBufferDesc GetComputeBufferResourceDesc(in ResourceHandle handle)
+        internal BufferDesc GetBufferResourceDesc(in ResourceHandle handle)
         {
-            return (m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].resourceArray[handle] as ComputeBufferResource).desc;
+            return (m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle] as BufferResource).desc;
         }
 
-        internal int GetComputeBufferResourceCount()
+        internal int GetBufferResourceCount()
         {
-            return m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].resourceArray.size;
+            return GetResourceCount(RenderGraphResourceType.Buffer);
         }
 
-        ComputeBufferResource GetComputeBufferResource(in ResourceHandle handle)
+        BufferResource GetBufferResource(in ResourceHandle handle)
         {
-            return m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].resourceArray[handle] as ComputeBufferResource;
+            return m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle] as BufferResource;
         }
 
         internal void UpdateSharedResourceLastFrameIndex(int type, int index)
@@ -426,7 +471,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
                 var resources = m_RenderGraphResources[type];
-                for (int i = 0; i < resources.sharedResourcesCount; ++i)
+                for (int i = 1; i < resources.sharedResourcesCount+1; ++i)
                 {
                     var resource = m_RenderGraphResources[type].resourceArray[i];
                     bool isCreated = resource.IsCreated();
@@ -446,8 +491,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        internal void CreatePooledResource(RenderGraphContext rgContext, int type, int index)
+        internal void CreatePooledResource(InternalRenderGraphContext rgContext, int type, int index)
         {
+            Debug.Assert(index != 0, "Index 0 indicates the null object it can't be used here");
+
             var resource = m_RenderGraphResources[type].resourceArray[index];
             if (!resource.imported)
             {
@@ -459,8 +506,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
         }
+        internal void CreatePooledResource(InternalRenderGraphContext rgContext, ResourceHandle handle)
+        {
+            CreatePooledResource(rgContext, handle.iType, handle.index);
+        }
 
-        void CreateTextureCallback(RenderGraphContext rgContext, IRenderGraphResource res)
+        void CreateTextureCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res)
         {
             var resource = res as TextureResource;
 
@@ -484,7 +535,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        internal void ReleasePooledResource(RenderGraphContext rgContext, int type, int index)
+        internal void ReleasePooledResource(InternalRenderGraphContext rgContext, int type, int index)
         {
             var resource = m_RenderGraphResources[type].resourceArray[index];
 
@@ -501,7 +552,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void ReleaseTextureCallback(RenderGraphContext rgContext, IRenderGraphResource res)
+        internal void ReleasePooledResource(InternalRenderGraphContext rgContext, ResourceHandle handle)
+        {
+            ReleasePooledResource(rgContext, handle.iType, handle.index);
+        }
+
+        void ReleaseTextureCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res)
         {
             var resource = res as TextureResource;
 
@@ -557,16 +613,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         }
 
-        void ValidateComputeBufferDesc(in ComputeBufferDesc desc)
+        void ValidateBufferDesc(in BufferDesc desc)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (desc.stride % 4 != 0)
             {
-                throw new ArgumentException("Invalid Compute Buffer creation descriptor: Compute Buffer stride must be at least 4.");
+                throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer stride must be at least 4.");
             }
             if (desc.count == 0)
             {
-                throw new ArgumentException("Invalid Compute Buffer creation descriptor: Compute Buffer count  must be non zero.");
+                throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer count  must be non zero.");
             }
 #endif
         }
@@ -580,7 +636,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 ref var rendererListResource = ref m_RendererListResources[rendererList];
                 ref var desc = ref rendererListResource.desc;
-                rendererListResource.rendererList = context.CreateRendererList(desc);
+                rendererListResource.rendererList = context.CreateRendererList(ref desc);
                 m_ActiveRendererLists.Add(rendererListResource.rendererList);
             }
 

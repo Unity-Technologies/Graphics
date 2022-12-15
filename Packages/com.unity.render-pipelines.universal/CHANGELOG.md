@@ -1,8 +1,37 @@
+---
+uid: changelog
+---
+
 # Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+
+## [15.0.1] - 2022-08-04
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
+## [15.0.0] - 2022-06-13
+
+### Added
+- All pre-built URP shaders and URP Shader Graph shaders now support the Mesh LOD cross-fade. Use the UniversalRenderPipelineAsset.lodCrossFadeDitheringType property to select the type of the cross-fade.
+- Add Alpha Clipping to shadergraph options for Sprite sub targets.
+- Added Screen Coordinates Override feature. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
+
+### Changed
+- Obsoleted ClipType, PolyType, PolyFillType, JoinType, and EndType enums from clipper.
+
+### Fixed
+- Fixed spot light distance attenuation artefact on some platforms due to fp16 precision issue.
+
+## [14.0.3] - 2021-05-09
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [14.0.2] - 2021-02-04
 
@@ -11,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added default DOTS compatible loading shader (FallbackLoading.shader)
 - Add #pragma editor_sync_compilation directive to FallbackError.shader
 - Added commandBuffer variable to RenderingData struct and switched all of the renderer to use that buffer instead of creating local command buffers.
+- Added automatic Alpha-To-Coverage feature which improves visual quality for alpha-clipped opaque geometry when MSAA is enabled
 
 ### Changed
 - PostProcessPass to internal visibility since it's in Internal namespace.
@@ -26,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue in where a user could stack cameras with different renderers and not get a warning in the editor (this is not supported).
 - Fixed decal automatic technique to correctly work with webgl. [case 1370326](https://issuetracker.unity3d.com/issues/pink-textures-appear-on-decal-projector-when-building-to-webgl2-and-decal-technique-is-set-to-automatic)
 - Fixed ScreenSpaceShadows target which was not bound during draw. [case 1388353](https://issuetracker.unity3d.com/product/unity/issues/guid/1388353/)
+- Use D24_UNorm_S8_UInt depth buffer format on some platforms to improve performance.
 
 ## [14.0.1] - 2021-12-07
 
@@ -900,7 +931,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - The 2D renderer and Light2D component received a number of improvements and are now ready to try as experimental features.
-- Updated the [Feature Comparison Table](lwrp-builtin-feature-comparison.md) to reflect the current state of LWRP features.
+- Updated the Feature Comparison Table page to reflect the current state of LWRP features.
 
 ### Fixed
 - When in playmode, the error 'Non matching Profiler.EndSample' no longer appears. [case 1140750](https://fogbugz.unity3d.com/f/cases/1140750/)
@@ -1008,7 +1039,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The __Double sided__ property is now __Render Face__. This means you can also do front face culling.
 - Changed the docs for Lit Shader, Simple Lit Shader and Unlit Shader according to Shader GUI changes.
 - When you create a new LWRP Asset, it will now be initialized with settings that favor performance on mobile platforms.
-- Updated the [FAQ](faq.md) and the [Built-in/LWRP feature comparison table](lwrp-builtin-feature-comparison.md).
+- Updated the FAQ section and the Built-in/LWRP feature comparison table.
 
 ### Fixed
 - Several tweaks to reduce bandwidth consumption on mobile devices.
@@ -1045,7 +1076,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.1.0] - 2018-11-19
 ### Added
-- The user documentation for LWRP is now in this GitHub repo, instead of in the separate GitHub wiki. You can find the most up-to-date pages in the [TableOfContents.md](TableOfCotents.md) file. Pages not listed in that file are still in progress.
+- The user documentation for LWRP is now in this GitHub repo, instead of in the separate GitHub wiki. You can find the most up-to-date pages in the TableOfContents.md file. Pages not listed in that file are still in progress.
 
 ### Changed
 - The LWRP package is no longer in preview.

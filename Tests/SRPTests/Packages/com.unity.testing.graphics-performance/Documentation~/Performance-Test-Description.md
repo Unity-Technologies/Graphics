@@ -1,8 +1,8 @@
-# Performance Test Description 
+# Performance Test Description
 
 Use the Performance Test Description asset to configure the test suite that Unity uses for three supported test categories: **Performance Counters**, **Memory,** and **Build Time.**
 
-You can reference multiple SRP assets for each test category. Unity pairs each SRP asset with each scene, then generates a test for each pairing within each test category. 
+You can reference multiple SRP assets for each test category. Unity pairs each SRP asset with each scene, then generates a test for each pairing within each test category.
 
 For example, if you have two SRP assets and four scenes, Unity generates eight tests in the Test Runner window (four for each SRP asset).
 
@@ -21,7 +21,7 @@ C. **Build Time**
 The Build Time test uses the BuildPipeline to profile the build time of a scene with a particular SRP asset.
 
 D. **Refresh Test Runner List**
-Click this button to update the Test Runner window. This triggers a domain reload and updates the Test Runner window with any new data. 
+Click this button to update the Test Runner window. This triggers a domain reload and updates the Test Runner window with any new data.
 
 E. **SRP Asset Aliases**
 This section lists the SRP assets that the Performance Test Description asset uses to send the data to the Google BigQuery database. Using aliases allows you to rename your assets without changing your queries in Grafana. You can add an alias; to do this, select the plus (**+**) button at the bottom of this panel. If your SRP asset does not have a defined alias, it takes the name of the asset on the disk.
@@ -50,4 +50,3 @@ public override string ToString()
 ​        assetData.assetLabels,
 ​        k_Default)
 ```
-

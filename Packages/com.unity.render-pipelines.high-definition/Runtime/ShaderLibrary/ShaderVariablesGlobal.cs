@@ -32,12 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global)]
     unsafe struct ShaderVariablesGlobal
     {
-        public const int RenderingLightLayersMask = 0x000000FF;
-        public const int RenderingLightLayersMaskShift = 0;
-        public const int RenderingDecalLayersMask = 0x0000FF00;
-        public const int RenderingDecalLayersMaskShift = 8;
-        public const int DefaultRenderingLayerMask = 0x0101;
-        public const int DefaultDecalLayers = RenderingDecalLayersMask >> RenderingDecalLayersMaskShift;
+        public const int RenderingLayersMask = (int)RenderingLayerMask.Everything;
 
         // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
         // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
@@ -70,6 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _RTHandleScaleHistory;               // Same as above but the RTHandle handle size is that of the history buffer
         public Vector4 _RTHandlePostProcessScale;           // { postProcessWidth / RTHandle.maxWidth, postProcessWidth / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
         public Vector4 _RTHandlePostProcessScaleHistory;    // Same as above but the RTHandle handle size for post process is that of the history buffer
+
+        public Vector4 _DynamicResolutionFullscreenScale;   // Represent the scale between dynamic resolution and the final camera viewport resolution
 
         // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
         // x = 1 - f/n
@@ -140,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _VolumetricFilteringEnabled;
         public Vector2 _HeightFogExponents; // { 1/H, H }
         public int _FogDirectionalOnly;
-        public float _Pad1;
+        public float _FogGIDimmer;
 
         // VBuffer
         public Vector4 _VBufferViewportSize;           // { w, h, 1/w, 1/h }
@@ -153,21 +150,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
         public float _VBufferLastSliceDist;          // The distance to the middle of the last slice
 
-        // Light Loop
-        public const int s_MaxEnv2DLight = 32;
-
         public Vector4 _ShadowAtlasSize;
         public Vector4 _CascadeShadowAtlasSize;
         public Vector4 _AreaShadowAtlasSize;
         public Vector4 _CachedShadowAtlasSize;
         public Vector4 _CachedAreaShadowAtlasSize;
 
-        [HLSLArray(s_MaxEnv2DLight, typeof(Matrix4x4))]
-        public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];
-        [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
-        public fixed float _Env2DCaptureForward[s_MaxEnv2DLight * 4];
-        [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
-        public fixed float _Env2DAtlasScaleOffset[s_MaxEnv2DLight * 4];
+        public int _SpecularFade;
+        public uint _EnableRenderingLayers;
+        public int _UnusedPadding1;
+        public int _UnusedPadding2;
 
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;
@@ -203,7 +195,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CookieAtlasSize;
         public Vector4 _CookieAtlasData;
-        public Vector4 _PlanarAtlasData;
+        public Vector4 _ReflectionAtlasCubeData;
+        public Vector4 _ReflectionAtlasPlanarData;
 
         // Tile/Cluster
         public uint _NumTileFtplX;
@@ -229,6 +222,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _TransmissionTintsAndFresnel0[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];  // RGB = 1/4 * color, A = fresnel0
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
         public fixed float _WorldScalesAndFilterRadiiAndThicknessRemaps[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4]; // X = meters per world unit, Y = filter radius (in mm), Z = remap start, W = end - start
+        [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
+        public fixed float _DualLobeAndDiffusePower[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4]; // RGB = dual lobe, A = diffuse power
         // Because of constant buffer limitation, arrays can only hold 4 components elements (otherwise we get alignment issues)
         // We could pack the 16 values inside 4 uint4 but then the generated code is inefficient and generates a lots of swizzle operations instead of a single load.
         // That's why we have 16 uint and only use the first component of each element.
@@ -263,5 +258,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _GlobalTessellationFactorMultiplier;
         public float _SpecularOcclusionBlend;
         public float _DeExposureMultiplier;
+
+        // See ScreenCoordOverride.hlsl for details.
+        public Vector4 _ScreenSizeOverride;
+        public Vector4 _ScreenCoordScaleBias;
     }
 }

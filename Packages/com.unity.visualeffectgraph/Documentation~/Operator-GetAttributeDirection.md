@@ -10,7 +10,7 @@ The **Get Attribute: direction** returns the direction, which is a [standard att
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| direction  | Vecotr3  | The value of the direction attribute, based on **Location**. <br/>If this attribute has not been written to, this Operator returns the default attribute value. |
+| direction  | Vector3  | The value of the direction attribute, based on **Location**. <br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
 ## Details
 

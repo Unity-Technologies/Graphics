@@ -58,7 +58,12 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return "VFX.ParticleSystem.CopyIndirectCount";
                 yield return "VFX.ParticleSystem.UpdateMaterial";
                 yield return "VFX.ParticleSystem.Init";
+                yield return "VFX.ParticleSystem.BatchInit";
                 yield return "VFX.ParticleSystem.Update";
+                yield return "VFX.ParticleSystem.BatchUpdate";
+                yield return "VFX.ParticleSystem.BatchUpdateStrip";
+                yield return "VFX.ParticleSystem.BatchUploadStepData";
+                yield return "VFX.ParticleSystem.BatchCopyDeadListCount";
                 yield return "VFX.ParticleSystem.PerStripUpdate";
                 yield return "VFX.ParticleSystem.RenderPoint";
                 yield return "VFX.ParticleSystem.RenderPointIndirect";
@@ -90,6 +95,10 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return "VFXEditor.VisualEffectImporter.GenerateAssetDataOneShader";
                 yield return "VFXEditor.VisualEffectResource.GetResourceAtPath";
                 yield return "VFXEditor.VisualEffectResource.GetResourceAtPath_Depoint";
+                yield return "VisualEffect.PrepareMaterial";
+                yield return "VisualEffect.Update";
+                yield return "VisualEffect.Simulate";
+                yield return "VisualEffect.Transfer";
             }
         }
 

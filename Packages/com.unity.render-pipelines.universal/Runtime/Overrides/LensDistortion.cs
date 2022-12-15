@@ -5,7 +5,8 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Lens Distortion effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Lens Distortion", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Lens Distortion")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public sealed class LensDistortion : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -29,13 +30,13 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Distortion center point. 0.5,0.5 is center of the screen
         /// </summary>
-        [Tooltip("Distortion center point. 0.5,0.5 is center of the screen")]
+        [Tooltip("Distortion center point. 0.5,0.5 is center of the screen.")]
         public Vector2Parameter center = new Vector2Parameter(new Vector2(0.5f, 0.5f));
 
         /// <summary>
-        /// Controls global screen scaling for the distortion effect. Use this to hide screen borders when using high \"Intensity.\"
+        /// Controls global screen scaling for the distortion effect. Use this to hide the screen borders when using high \"Intensity.\"
         /// </summary>
-        [Tooltip("Controls global screen scaling for the distortion effect. Use this to hide screen borders when using high \"Intensity.\"")]
+        [Tooltip("Controls global screen scaling for the distortion effect. Use this to hide the screen borders when using high \"Intensity.\"")]
         public ClampedFloatParameter scale = new ClampedFloatParameter(1f, 0.01f, 5f);
 
         /// <inheritdoc/>
@@ -46,6 +47,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => false;
     }
 }

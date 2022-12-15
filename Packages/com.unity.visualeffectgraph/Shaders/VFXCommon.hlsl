@@ -38,14 +38,6 @@
 #define UNITY_INV_HALF_PI   0.636619772367f
 #endif
 
-// SHADER_AVAILABLE_XXX defines are not yet passed to compute shader atm
-// So we define it manually for compute atm.
-// It won't compile for devices that don't have cubemap array support but this is acceptable by now
-// TODO Remove this once SHADER_AVAILABLE_XXX are passed to compute shaders
-#ifdef SHADER_STAGE_COMPUTE
-#define SHADER_AVAILABLE_CUBEARRAY 1
-#endif
-
 struct VFXSampler2D
 {
     Texture2D t;
@@ -70,6 +62,7 @@ struct VFXSamplerCube
     SamplerState s;
 };
 
+//Warning: this define 'SHADER_AVAILABLE_CUBEARRAY' relies on '#pragma require cubearray'
 #if SHADER_AVAILABLE_CUBEARRAY
 struct VFXSamplerCubeArray
 {
@@ -94,6 +87,7 @@ float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorld
 float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionWorldToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionWorldToPreviousClip(pos); }
 float4 TransformPositionVFXToNonJitteredClip(float3 pos) { return VFXTransformPositionWorldToNonJitteredClip(pos); }
+float3 TransformPreviousVFXPositionToWorld(float3 pos) { return pos; }
 float3x3 GetVFXToViewRotMatrix() { return VFXGetWorldToViewRotMatrix(); }
 float3 GetViewVFXPosition() { return VFXGetViewWorldPosition(); }
 #else
@@ -104,9 +98,41 @@ float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorld
 float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionObjectToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionObjectToPreviousClip(pos); }
 float4 TransformPositionVFXToNonJitteredClip(float3 pos) { return VFXTransformPositionObjectToNonJitteredClip(pos); }
+float3 TransformPreviousVFXPositionToWorld(float3 pos) { return VFXTransformPreviousObjectToWorld(pos); }
 float3x3 GetVFXToViewRotMatrix() { return mul(VFXGetWorldToViewRotMatrix(), (float3x3)VFXGetObjectToWorldMatrix()); }
 float3 GetViewVFXPosition() { return mul(VFXGetWorldToObjectMatrix(), float4(VFXGetViewWorldPosition(), 1.0f)).xyz; }
 #endif
+
+
+float3 VFXSafeNormalize(float3 v)
+{
+    float sqrLength = max(VFX_FLT_MIN, dot(v, v));
+    return v * rsqrt(sqrLength);
+}
+
+float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
+{
+    float3 outVec = cross(v1, v2);
+    outVec = dot(outVec, outVec) < VFX_EPSILON ? fallback : normalize(outVec);
+    return outVec;
+}
+
+float3 GetViewOrRayDirection(float3 position)
+{
+#if defined(SHADER_STAGE_RAY_TRACING)
+    #if SHADERPASS != SHADERPASS_RAYTRACING_VISIBILITY
+        //Is only really correct for mirror reflections
+        float3 camPos = GetViewVFXPosition();
+        float camToOrigin = length(camPos - ObjectRayOrigin());
+        float3 virtualOrigin = ObjectRayOrigin() - camToOrigin * ObjectRayDirection();
+        return -normalize(position - virtualOrigin);
+    #else
+        return normalize(ObjectRayDirection());
+    #endif
+#else
+    return GetVFXToViewRotMatrix()[2];
+#endif
+}
 
 #define VFX_SAMPLER(name) GetVFXSampler(name,sampler##name)
 
@@ -232,7 +258,7 @@ float3 GetNormalFromSDF(VFXSampler3D s, float3 uvw, float level = 0.0f)
     float3 normal;
     if (outsideDist > 0.5f) // Check whether point is outside the box
     {
-        normal = normalize(uvw - 0.5f);
+        normal = VFXSafeNormalize(uvw - 0.5f);
     }
     else
     {
@@ -240,7 +266,7 @@ float3 GetNormalFromSDF(VFXSampler3D s, float3 uvw, float level = 0.0f)
         float3 dir = SampleSDFDerivatives(s, projUVW, level);
         if (dist < 0)
             dir = -dir;
-        normal =  normalize(dir);
+        normal =  VFXSafeNormalize(dir);
     }
     return normal;
 }
@@ -603,19 +629,6 @@ float4x4 GetVFXToElementMatrix(float3 axisX, float3 axisY, float3 axisZ, float3 
         float4(0, 0, 0, 1));
 }
 
-float3 VFXSafeNormalize(float3 v)
-{
-    float sqrLength = max(VFX_FLT_MIN, dot(v, v));
-    return v * rsqrt(sqrLength);
-}
-
-float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
-{
-    float3 outVec = cross(v1, v2);
-    outVec = dot(outVec, outVec) < VFX_EPSILON ? fallback : normalize(outVec);
-    return outVec;
-}
-
 /////////////////////
 // flipbooks utils //
 /////////////////////
@@ -706,7 +719,109 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 {
     return GetUVData(flipBookSize, 1.0f / flipBookSize, uv, texIndex);
 }
+//////////////////
+// Orient Utils //
+//////////////////
 
+void GetCameraPlaneFacingAxes(float3x3 viewRot, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    axisX = viewRot[0].xyz;
+    axisY = viewRot[1].xyz;
+    axisZ =  -viewRot[2].xyz;
+}
+
+#if defined(SHADER_STAGE_RAY_TRACING)
+void GetRayFacingAxes(float3x3 viewRot, float3 position, float3 worldUp, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    axisZ = -GetViewOrRayDirection(position);
+    #if SHADERPASS != SHADERPASS_RAYTRACING_VISIBILITY
+    axisX = VFXSafeNormalizedCross(worldUp, axisZ, float3(1,0,0));
+    #else
+    axisX = VFXSafeNormalizedCross(viewRot[1].xyz, axisZ, float3(1,0,0));
+    #endif
+    axisY = cross(axisZ,axisX);
+}
+#endif
+
+void GetCameraPlaneOrRayFacingAxes(float3x3 viewRot, float3 position, float3 worldUp, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        GetRayFacingAxes(viewRot, position, worldUp, axisX, axisY, axisZ);
+    #else
+        GetCameraPlaneFacingAxes(viewRot, axisX, axisY, axisZ);
+    #endif
+}
+
+void GetCameraPositionFacingAxes(float3x3 viewRot, float3 position, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    axisZ = normalize(position - GetViewVFXPosition());
+    axisX = VFXSafeNormalizedCross(viewRot[1].xyz, axisZ, float3(1,0,0));
+    axisY = cross(axisZ,axisX);
+}
+
+
+void GetCameraPositionOrRayFacingAxes(float3x3 viewRot, float3 position, float3 worldUp, inout float3 axisX, inout float3 axisY, inout float3 axisZ)
+{
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        GetRayFacingAxes(viewRot, position, worldUp, axisX, axisY, axisZ);
+    #else
+        GetCameraPositionFacingAxes(viewRot, position, axisX, axisY, axisZ);
+    #endif
+}
+
+////////////////
+// Prefix Sum //
+////////////////
+
+//Binary search in Inclusive Prefix sum
+//Returns the index of the category between startIndex (included) and endIndex (excluded) where value lands.
+//If value exceeds the total capacity of the list, the function will return endIndex and remainder will be the amount exceeding
+//Optionally, it can return the remainder of the value compared to its category
+uint BinarySearchPrefixSum(uint value, StructuredBuffer<uint> prefixSum,uint startIndex, uint endIndex, out uint remainder)
+{
+    uint left = startIndex;
+    uint right = endIndex - 1;
+
+    while (left < right)
+    {
+        uint center = (left + right) / 2;
+        if (value < prefixSum[center])
+        {
+            right = center;
+        }
+        else
+        {
+            left = center + 1;
+        }
+    }
+    uint index = left;
+
+    uint prevValue = 0;
+    [branch]
+    if (index > startIndex)
+    {
+        prevValue = prefixSum[index - 1];
+    }
+    remainder = value - prevValue;
+    return index;
+}
+
+uint BinarySearchPrefixSum(uint value, StructuredBuffer<uint> prefixSum, uint startIndex, uint endIndex)
+{
+    uint remainder;
+    return BinarySearchPrefixSum(value, prefixSum, startIndex, endIndex, remainder);
+}
+
+/////////////////////
+// Thread indexing //
+/////////////////////
+
+#ifdef NB_THREADS_PER_GROUP
+uint GetThreadId(uint3 groupId, uint3 groupThreadId, uint dispatchWidth)
+{
+    return groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+}
+#endif
 
 ///////////
 // Noise //
@@ -720,10 +835,14 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 
 #include "VFXParticleStripCommon.hlsl"
 
-
-
 ////////////////////////////
 // Bounds reduction utils //
 ////////////////////////////
 
-#include "VFXBoundsReduction.hlsl"
+#include "VFXBoundsUtils.hlsl"
+
+
+//////////////////////
+// Instancing Utils //
+//////////////////////
+#include "VFXInstancing.hlsl"

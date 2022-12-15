@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Assertions;

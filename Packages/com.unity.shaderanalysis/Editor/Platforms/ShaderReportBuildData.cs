@@ -1,8 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEditor.ShaderAnalysis.Internal;
 using UnityEngine;
@@ -32,8 +31,6 @@ namespace UnityEditor.ShaderAnalysis
             }
         }
 
-        static readonly Regex k_FragmentDeclaration = new Regex(@"#pragma\s+fragment\s([^\s]+)");
-
         // Inputs
         readonly Shader m_Shader;
         readonly HashSet<int> m_SkippedPassesFromFilter = new HashSet<int>();
@@ -44,16 +41,25 @@ namespace UnityEditor.ShaderAnalysis
         public ShaderData shaderData { get; private set; }
 #endif
 
+        static readonly Dictionary<ShaderProfile, Regex> k_ProfileToDeclaration = new()
+        {
+            { ShaderProfile.VertexProgram, new Regex(@"#pragma\s+vertex\s([^\s]+)") },
+            { ShaderProfile.HullProgram, new Regex(@"#pragma\s+hull\s([^\s]+)") },
+            { ShaderProfile.DomainProgram, new Regex(@"#pragma\s+domain\s([^\s]+)") },
+            { ShaderProfile.PixelProgram, new Regex(@"#pragma\s+fragment\s([^\s]+)") },
+        };
+
         public List<Pass> passes { get; set; }
 
         Dictionary<int, List<int>> m_CompileUnitPerPass = new Dictionary<int, List<int>>();
 
         protected ShaderBuildData(
             Shader shader,
+            ShaderProfile profile,
             DirectoryInfo temporaryDirectory,
             IEnumerable<string> shaderKeywords,
             ShaderProgramFilter filter,
-            ProgressWrapper progress) : base(temporaryDirectory, progress, filter)
+            ProgressWrapper progress) : base(profile, temporaryDirectory, progress, filter)
         {
             this.m_Shader = shader;
             this.m_ShaderKeywords = shaderKeywords != null ? new HashSet<string>(shaderKeywords) : new HashSet<string>();
@@ -176,7 +182,7 @@ namespace UnityEditor.ShaderAnalysis
                 {
                     progress.SetNormalizedProgress(s * (i + s2 * j), "Building compile units pass: {0:D3} / {1:D3}, unit: {2:D3} / {3:D3}", i + 1, c, j + 1, c2);
 
-                    var match = k_FragmentDeclaration.Match(pass.sourceCode);
+                    var match = k_ProfileToDeclaration[shaderProfile].Match(pass.sourceCode);
                     Assert.IsTrue(match.Success);
 
                     var entryPoint = match.Groups[1].Value;
@@ -187,13 +193,13 @@ namespace UnityEditor.ShaderAnalysis
                         sourceDir,
                         pass.shaderModel);
                     compileOptions.defines.UnionWith(pass.combinedMulticompiles[j]);
-                    compileOptions.defines.Add(ShaderAnalysisUtils.DefineFragment);
+                    compileOptions.defines.Add(k_ProfileToDefine[shaderProfile]);
 
                     var unit = new CompileUnit
                     {
                         sourceCodeFile = pass.sourceCodeFile,
                         compileOptions = compileOptions,
-                        compileProfile = ShaderProfile.PixelProgram,
+                        compileProfile = shaderProfile,
                         compileTarget = ShaderTarget.PS_5,
                         compiledFile = ShaderAnalysisUtils.GetTemporaryProgramCompiledFile(pass.sourceCodeFile, temporaryDirectory, j.ToString("D3"))
                     };
@@ -237,7 +243,7 @@ namespace UnityEditor.ShaderAnalysis
                 for (var j = 0; j < unitIndices.Count; j++)
                 {
                     var unit = GetCompileUnitAt(unitIndices[j]);
-                    program.AddCompileUnit(j, unit.compileOptions.defines.ToArray(), unit.warnings.ToArray(), unit.errors.ToArray(), ShaderProfile.PixelProgram, unit.compileOptions.entry);
+                    program.AddCompileUnit(j, unit.compileOptions.defines.ToArray(), unit.warnings.ToArray(), unit.errors.ToArray(), shaderProfile, unit.compileOptions.entry);
                 }
 
                 for (var j = 0; j < unitIndices.Count; j++)

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using NUnit;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -9,6 +10,8 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using System.IO;
+using System.Linq;
+using UnityEngine.VFX;
 
 public class HDRP_GraphicTestRunner
 {
@@ -18,21 +21,107 @@ public class HDRP_GraphicTestRunner
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        HDRP_TestSettings settings = null;
+        Camera[] cameras = null;
+        HDCamera[] hdCameras = null;
+        Camera camera = null;
+
+#if UNITY_EDITOR
+        // Load the test settings
+        var oldValueShaderUtil = UnityEditor.ShaderUtil.allowAsyncCompilation;
+        var oldValueEditorSettings = UnityEditor.EditorSettings.asyncShaderCompilation;
+
+        UnityEditor.ShaderUtil.allowAsyncCompilation = true;
+        UnityEditor.EditorSettings.asyncShaderCompilation = true;
+
         SceneManager.LoadScene(testCase.ScenePath);
 
-        // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
+        // Wait for scene loading to retrieve settings/camera.
         for (int i = 0; i < 5; ++i)
             yield return new WaitForEndOfFrame();
 
-        // Load the test settings
-        var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
-
-        var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
+        camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
         if (camera == null)
         {
             Assert.Fail("Missing camera for graphic tests.");
         }
+
+        // Purpose is to setup proper test aspect ratio for the camera to "see" all objects and trigger related shader compilation tasks.
+        int warmupTime = 1;
+        if (XRGraphicsAutomatedTests.enabled)
+            warmupTime = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.xrCompatible, warmupTime, settings.ImageComparisonSettings);
+        else
+            camera.targetTexture = RenderTexture.GetTemporary(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
+
+        // Trigger any test specific script. This is because it may change objects state and trigger shader compilation.
+        settings.doBeforeTest?.Invoke();
+
+        // Wait one rendered frame to trigger shader compilation.
+        for (int i = 0; i < warmupTime; ++i)
+            yield return new WaitForEndOfFrame();
+
+        // Wait for all compilation to end.
+        while (UnityEditor.ShaderUtil.anythingCompiling)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+
+        camera.targetTexture = null;
+#endif
+
+        // Reload the scene to reset time in order to be deterministic.
+        SceneManager.LoadScene(testCase.ScenePath);
+
+        // Arbitrary wait for a few frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
+        // Used to be 5 but we changed the process a bit with shader compilation in editor so we need 4 to retain old behavior.
+        int frameSkip = 5;
+#if UNITY_EDITOR
+        frameSkip = 4;
+#endif
+
+        for (int i = 0; i < frameSkip; ++i)
+            yield return new WaitForEndOfFrame();
+
+        // Need to retrieve objects again after scene reload.
+        settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
+        camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
+        if (camera == null)
+        {
+            Assert.Fail("Missing camera for graphic tests.");
+        }
+
+        // Grab the HDCamera
+        HDCamera hdCamera = HDCamera.GetOrCreate(camera);
+
+        //We need to get all the cameras to set accumulation in all of them for tests that uses multiple cameras
+        cameras = GameObject.FindObjectsOfType<Camera>();
+
+        //Grab the HDCameras
+        hdCameras = new HDCamera[cameras.Length];
+        for(int i = 0; i < cameras.Length; ++i)
+        {
+            hdCameras[i] = HDCamera.GetOrCreate(cameras[i]);
+        }
+
+
+        bool useBackBuffer = settings.ImageComparisonSettings.UseBackBuffer;
+
+// #if UNITY_EDITOR
+        if (useBackBuffer)
+        {
+            //When using back buffer, we have to set accumulation to true to make sure effects accumulates.
+            SetRayTracingAccumulationOnCameras(hdCameras, true);
+        }
+        else
+        {
+            //To no break our current tests, we have to disable accumulation if we capture using render texture.
+            SetRayTracingAccumulationOnCameras(hdCameras, false);
+        }
+// #endif
+
 
         Time.captureFramerate = settings.captureFramerate;
 
@@ -62,8 +151,45 @@ public class HDRP_GraphicTestRunner
             yield return new WaitForEndOfFrame();
         }
 
-        // Reset temporal effects on hdCamera
-        HDCamera.GetOrCreate(camera).Reset();
+        // Reset temporal effects on hdCameras
+        foreach(HDCamera hdCam in hdCameras)
+            hdCam.Reset();
+
+        if (settings.waitForFrameCountMultiple)
+        {
+            // When we capture from the back buffer, there is no requirement of compensation frames
+            // Else, given that we will render two frames, we need to compensate for them in the waiting
+            var frameCountOffset = useBackBuffer ? 0 : 2;
+            while (((hdCamera.cameraFrameCount + frameCountOffset) % (uint)settings.frameCountMultiple) != 0)
+                yield return new WaitForEndOfFrame();
+        }
+
+        // Force clear all the history buffers
+        if (useBackBuffer)
+        {
+            foreach(HDCamera hdCam in hdCameras)
+            {
+                hdCamera.RequestClearHistoryBuffers();
+            }
+        }
+
+        // Reset temporal effects on hdCameras
+        foreach(HDCamera hdCam in hdCameras)
+            hdCam.Reset();
+
+        // Ensure frame consistency for VFXs
+        if (settings.containsVFX)
+        {
+            const int maxFrameWaiting = 8;
+            int maxFrame = maxFrameWaiting;
+            var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
+            while (vfxComponents.All(o => o.culled) && maxFrame-- > 0)
+                yield return new WaitForEndOfFrame();
+            Assert.Greater(maxFrame, 0);
+
+            foreach (var component in vfxComponents)
+                component.Reinit();
+        }
 
         for (int i = 0; i < waitFrames; ++i)
             yield return new WaitForEndOfFrame();
@@ -144,6 +270,26 @@ public class HDRP_GraphicTestRunner
             if (sgFail && biFail) Assert.Fail("Both Shader Graph and Non-Shader Graph Objects failed to match the reference image");
             else if (sgFail) Assert.Fail("Shader Graph Objects failed.");
             else if (biFail) Assert.Fail("Non-Shader Graph Objects failed to match Shader Graph objects.");
+        }
+
+#if UNITY_EDITOR
+        UnityEditor.ShaderUtil.allowAsyncCompilation = oldValueShaderUtil;
+        UnityEditor.EditorSettings.asyncShaderCompilation = oldValueEditorSettings;
+#endif
+
+        //When using back buffer, we have to set accumulation back to true at the end of the test
+        if (useBackBuffer)
+        {
+            SetRayTracingAccumulationOnCameras(hdCameras, true);
+        }
+
+    }
+
+    public void SetRayTracingAccumulationOnCameras(HDCamera[] hdCameras, bool b)
+    {
+        foreach(HDCamera hdCamera in hdCameras)
+        {
+            hdCamera.SetRayTracingAccumulation(b);
         }
     }
 

@@ -1,9 +1,0 @@
-<linker>
-  <assembly fullname="Unity.PerformanceTesting">
-    <namespace fullname="Unity.PerformanceTesting" preserve="all"/>
-    <namespace fullname="Unity.PerformanceTesting.Data" preserve="all"/>
-  </assembly>
-  <assembly fullname="Assembly-CSharp-Editor-testable">
-    <type fullname="SetupGraphicsTestCases" preserve="all"/>
-  </assembly>
-</linker>

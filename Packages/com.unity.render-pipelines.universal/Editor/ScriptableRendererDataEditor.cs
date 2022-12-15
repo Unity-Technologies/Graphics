@@ -221,10 +221,22 @@ namespace UnityEditor.Rendering.Universal
             else
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
 
+            AddShowAdditionalPropertiesMenuItem(ref menu, id);
+
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
 
             menu.DropDown(new Rect(position, Vector2.zero));
+        }
+
+        private void AddShowAdditionalPropertiesMenuItem(ref GenericMenu menu, int id)
+        {
+            if (m_Editors[id].GetType() == typeof(FullScreenPassRendererFeatureEditor))
+            {
+                var featureReference = m_Editors[id] as FullScreenPassRendererFeatureEditor;
+                bool additionalPropertiesAreCurrentlyOn = featureReference.showAdditionalProperties;
+                menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), additionalPropertiesAreCurrentlyOn, () => featureReference.showAdditionalProperties = !additionalPropertiesAreCurrentlyOn);
+            }
         }
 
         internal void AddComponent(string type)

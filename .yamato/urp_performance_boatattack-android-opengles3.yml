@@ -11,7 +11,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
     name: URP_Performance_BoatAttack on Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -205,7 +205,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
     name: URP_Performance_BoatAttack on Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
-        image: mobile/android-execution-r19:stable
+        image: mobile/android-execution-r19:v0.0.2-804381
         flavor: b1.large
     variables:
         BOAT_ATTACK_BRANCH: master

@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering
     /// An atlas texture is a texture collection that collects multiple sub-textures into a single big texture.
     /// Sub-texture allocation for Texture2DAtlasDynamic is dynamic.
     /// </summary>
-    class Texture2DAtlasDynamic
+    internal class Texture2DAtlasDynamic
     {
         private RTHandle m_AtlasTexture = null;
         private bool isAtlasTextureOwner = false;
@@ -362,6 +362,10 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Creates a new empty texture atlas.
         /// </summary>
+        /// <param name="width">Atlas width.</param>
+        /// <param name="height">Atlas height.</param>
+        /// <param name="capacity">Maximum number of items in the atlas.</param>
+        /// <param name="format">Atlas format.</param>
         public Texture2DAtlasDynamic(int width, int height, int capacity, GraphicsFormat format)
         {
             m_Width = width;
@@ -395,6 +399,10 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Creates a new empty texture atlas. Use external atlas texture.
         /// </summary>
+        /// <param name="width">Atlas width.</param>
+        /// <param name="height">Atlas height.</param>
+        /// <param name="capacity">Maximum number of items in the atlas.</param>
+        /// <param name="atlasTexture">Atlas texture.</param>
         public Texture2DAtlasDynamic(int width, int height, int capacity, RTHandle atlasTexture)
         {
             m_Width = width;
@@ -428,6 +436,10 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Add a texture into the atlas.
         /// </summary>
+        /// <param name="cmd">A command buffer Unity uses to upload the texture.</param>
+        /// <param name="scaleOffset">The texture rectangle coordinates in the atlas.</param>
+        /// <param name="texture">The texture added.</param>
+        /// <returns>Returns True if Unity successfully adds the texture.</returns>
         public bool AddTexture(CommandBuffer cmd, out Vector4 scaleOffset, Texture texture)
         {
             int key = texture.GetInstanceID();
@@ -457,6 +469,9 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Check if the atlas contains the texture.
         /// </summary>
+        /// <param name="scaleOffset">The texture rectangle coordinates in the atlas.</param>
+        /// <param name="key">The key that identifies the texture.</param>
+        /// <returns>Returns True if the texture is cached.</returns>
         public bool IsCached(out Vector4 scaleOffset, int key)
         {
             return m_AllocationCache.TryGetValue(key, out scaleOffset);
@@ -465,6 +480,12 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Allocate space from the atlas.
         /// </summary>
+        /// <param name="isUploadNeeded">Wether the texture upload is needed after Unity ensures that the slot is allocated.</param>
+        /// <param name="scaleOffset">The texture rectangle coordinates in the atlas.</param>
+        /// <param name="key">The key that identifies the texture.</param>
+        /// <param name="width">Width of the texture.</param>
+        /// <param name="height">Height of the texture.</param>
+        /// <returns>Returns True if Unity successfully allocates the slot.</returns>
         public bool EnsureTextureSlot(out bool isUploadNeeded, out Vector4 scaleOffset, int key, int width, int height)
         {
             isUploadNeeded = false;
@@ -483,6 +504,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Release allocated space from the atlas.
         /// </summary>
+        /// <param name="key">The key that identifies the texture.</param>
         public void ReleaseTextureSlot(int key)
         {
             m_AtlasAllocator.Release(key);

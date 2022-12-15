@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Test
 {
-    public class VisualEffectTest : ScriptableObject
+    public class VisualEffectTest : VFXPlayModeTest
     {
         [SerializeField] bool m_Init = false;
 
@@ -111,11 +111,15 @@ namespace UnityEditor.VFX.Test
             m_mainCamera = new GameObject(mainCameraName);
             var camera = this.m_mainCamera.AddComponent<Camera>();
             camera.transform.localPosition = Vector3.one;
-            camera.transform.LookAt(this.m_mainCamera.transform);
+            camera.transform.LookAt(m_mainObject.transform.position);
 
             Time.captureFramerate = 10;
             UnityEngine.VFX.VFXManager.fixedTimeStep = 0.1f;
             UnityEngine.VFX.VFXManager.maxDeltaTime = 0.1f;
+
+            ShaderUtil.allowAsyncCompilation = false;
+
+            VFXTestCommon.CloseAllUnecessaryWindows();
         }
 
         [OneTimeTearDown]
@@ -142,6 +146,8 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_A);
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_B);
             VFXTestCommon.DeleteAllTemporaryGraph();
+
+            ShaderUtil.allowAsyncCompilation = true;
         }
 
         VFXGraph CreateGraph_And_System()
@@ -170,22 +176,81 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
-        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(string name)
+        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(IEnumerable<string> names)
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
             var graphicsBufferDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("graphicsbuffer")).FirstOrDefault();
             Assert.IsNotNull(graphicsBufferDesc);
+            foreach (var targetGraphicsBuffer in names)
+            {
+                var parameter = graphicsBufferDesc.CreateInstance();
+                parameter.SetSettingValue("m_ExposedName", targetGraphicsBuffer);
+                parameter.SetSettingValue("m_Exposed", true);
+                graph.AddChild(parameter);
+            }
 
-            var targetGraphicsBuffer = "my_exposed_graphics_buffer";
-
-            var parameter = graphicsBufferDesc.CreateInstance();
-            parameter.SetSettingValue("m_ExposedName", targetGraphicsBuffer);
-            parameter.SetSettingValue("m_Exposed", true);
-            graph.AddChild(parameter);
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-
             return graph;
+        }
+
+        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(string name)
+        {
+            return CreateTemporaryGraph_With_GraphicsBuffer(new []{ name });
+        }
+
+        //Case 1406873, Vector4 & Color are bound to the same HLSL type
+        [UnityTest]
+        public IEnumerator CreateGraph_With_GraphicsBuffer_Using_SampleFloat4_And_Color()
+        {
+            var graphicsBuffers = new(string name, Type type)[] {("Buffer_A", typeof(Color)), ("Buffer_B", typeof(Vector4))};
+            var graph = CreateTemporaryGraph_With_GraphicsBuffer(graphicsBuffers.Select(o => o.name));
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            graph.AddChild(contextInitialize);
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            spawner.LinkTo(contextInitialize);
+            graph.AddChild(spawner);
+
+            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+            output.LinkFrom(contextInitialize);
+            graph.AddChild(output);
+
+            foreach (var graphicsBuffer in graphicsBuffers)
+            {
+                var sampleBuffer = ScriptableObject.CreateInstance<UnityEditor.VFX.Operator.SampleBuffer>();
+                sampleBuffer.SetOperandType(graphicsBuffer.type);
+                graph.AddChild(sampleBuffer);
+
+                var param = graph.children.OfType<VFXParameter>().FirstOrDefault(o => o.exposedName == graphicsBuffer.name);
+                Assert.IsNotNull(param);
+                Assert.IsTrue(sampleBuffer.inputSlots[0].Link(param.outputSlots[0]));
+
+                var block = VFXLibrary.GetBlocks().FirstOrDefault(o =>
+                     o.model is UnityEditor.VFX.Block.SetAttribute setAttr
+                     && setAttr.attribute.Contains("color"));
+                Assert.IsNotNull(block);
+
+                var addAttribute = block.CreateInstance();
+                addAttribute.SetSettingValue("Composition", UnityEditor.VFX.Block.AttributeCompositionMode.Add);
+                contextInitialize.AddChild(addAttribute);
+                Assert.IsTrue(sampleBuffer.outputSlots[0].Link(addAttribute.inputSlots[0]));
+            }
+
+            var assetPath = AssetDatabase.GetAssetPath(graph);
+            AssetDatabase.ImportAsset(assetPath);
+
+            for (uint i = 0; i < 8; i++)
+                yield return null;
+
+            //Check compilation error
+            var allSubAsset = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            var computeInitialize = allSubAsset.OfType<ComputeShader>().FirstOrDefault(o => o.name.Contains("Initialize"));
+            Assert.IsNotNull(computeInitialize);
+            Assert.AreNotEqual(computeInitialize.FindKernel("CSMain"), -1);
+
+            yield return null;
         }
 
         // Deactivated test by now as GetGraphicsBuffer is not public
@@ -218,6 +283,66 @@ namespace UnityEditor.VFX.Test
             newGraphicsBuffer.Release();
             yield return null;
 
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponent_With_Spaceable_Properties()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var coneParameter = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.ToLowerInvariant() == "cone");
+            Assert.IsNotNull(coneParameter);
+
+            //Basic spaceable parameter
+            var baseName = "my_exposed_cone_";
+            var availableSpace = Enum.GetValues(typeof(VFXSpace)).Cast<VFXSpace>().ToArray();
+            var expectedSpaceCount = 3;
+            Assert.AreEqual(expectedSpaceCount, availableSpace.Count());
+            foreach (var space in availableSpace)
+            {
+                var parameter = coneParameter.CreateInstance();
+                parameter.SetSettingValue("m_ExposedName", baseName + space.ToString().ToLowerInvariant());
+                parameter.SetSettingValue("m_Exposed", true);
+                parameter.outputSlots[0].space = space;
+                graph.AddChild(parameter);
+            }
+
+            //Other parameter (not spaceable)
+            var intDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.ToLowerInvariant().Contains("int"));
+            Assert.IsNotNull(intDesc);
+            var parameterInteger = intDesc.CreateInstance();
+            parameterInteger.SetSettingValue("m_ExposedName", "my_exposed_integer");
+            parameterInteger.SetSettingValue("m_Exposed", true);
+            graph.AddChild(parameterInteger);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var visualEffectAsset = graph.visualEffectResource.asset;
+
+            var exposedProperties = new List<VFXExposedProperty>();
+            visualEffectAsset.GetExposedProperties(exposedProperties);
+            var valueCountInCone = 6;
+            Assert.AreEqual(valueCountInCone * expectedSpaceCount + 1, exposedProperties.Count);
+
+            foreach (var exposedProperty in exposedProperties)
+            {
+                var readSpace = visualEffectAsset.GetExposedSpace(exposedProperty.name);
+                var expectedSpace = VFXSpace.None;
+                foreach (var space in availableSpace)
+                {
+                    //There is a mix of exposed properties in this test component
+                    //The name indicates the expected space if mentioned
+                    //If not in name, then, it wasn't a spaceable property
+                    if (exposedProperty.name.IndexOf(space.ToString(),
+                            StringComparison.InvariantCultureIgnoreCase) > 0)
+                    {
+                        expectedSpace = space;
+                        break;
+                    }
+                }
+                Assert.AreEqual(readSpace, expectedSpace);
+            }
+            yield return null;
         }
 
         public enum GraphicsBufferResetCase
@@ -317,22 +442,22 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
-            //Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //N.B. : This cannot be tested after EnterPlayMode due to the closure
+            //Assert.DoesNotThrow(() => VFXTestCommon.GetSpawnerState(vfxComponent, 0)); //N.B. : This cannot be tested after EnterPlayMode due to the closure
             int maxFrame = 512;
-            while (VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime < 1.0f && maxFrame-- > 0)
+            while (VFXTestCommon.GetSpawnerState(vfxComponent, 0).totalTime < 1.0f && maxFrame-- > 0)
                 yield return null;
 
-            Assert.GreaterOrEqual(VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime, 1.0f);
+            Assert.GreaterOrEqual(VFXTestCommon.GetSpawnerState(vfxComponent, 0).totalTime, 1.0f);
 
             vfxComponent.enabled = false;
             vfxComponent.enabled = true;
             yield return null;
 
             maxFrame = 64;
-            while (VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime > 1.0f && maxFrame-- > 0)
+            while (VFXTestCommon.GetSpawnerState(vfxComponent, 0).totalTime > 1.0f && maxFrame-- > 0)
                 yield return null;
 
-            Assert.Less(VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime, 1.0f);
+            Assert.Less(VFXTestCommon.GetSpawnerState(vfxComponent, 0).totalTime, 1.0f);
 
             yield return new ExitPlayMode();
         }
@@ -359,7 +484,7 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
-            Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
+            Assert.DoesNotThrow(() => VFXTestCommon.GetSpawnerState(vfxComponent, 0));
 
             yield return null;
 
@@ -376,7 +501,7 @@ namespace UnityEditor.VFX.Test
             Debug.unityLogger.logEnabled = false;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             Debug.unityLogger.logEnabled = true;
-            Assert.Throws(typeof(IndexOutOfRangeException), () => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
+            Assert.Throws(typeof(IndexOutOfRangeException), () => VFXTestCommon.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
         }
 
         [UnityTest]
@@ -764,7 +889,7 @@ namespace UnityEditor.VFX.Test
             int maxFrameCount = 1024;
             while (maxFrameCount-- > 0)
             {
-                var spawnerState = VisualEffectUtility.GetSpawnerState(vfx, 0u);
+                var spawnerState = VFXTestCommon.GetSpawnerState(vfx, 0u);
                 if (spawnerState.totalTime > spawnerLimit)
                     break;
                 yield return null;
@@ -799,7 +924,7 @@ namespace UnityEditor.VFX.Test
             }
             yield return null;
 
-            var spawnerStateFinal = VisualEffectUtility.GetSpawnerState(vfx, 0u);
+            var spawnerStateFinal = VFXTestCommon.GetSpawnerState(vfx, 0u);
             Assert.IsTrue(spawnerStateFinal.totalTime > spawnerLimit); //Check there isn't any reset time
             Assert.IsTrue(vfx.HasVector2(exposedName));
             Assert.AreEqual(expectedValue.x, vfx.GetVector2(exposedName).x); Assert.AreEqual(expectedValue.y, vfx.GetVector2(exposedName).y);
@@ -825,7 +950,7 @@ namespace UnityEditor.VFX.Test
                 GameObject.DestroyImmediate(editor);
 
                 yield return null;
-                spawnerStateFinal = VisualEffectUtility.GetSpawnerState(vfx, 0u);
+                spawnerStateFinal = VFXTestCommon.GetSpawnerState(vfx, 0u);
 
                 Assert.IsTrue(spawnerStateFinal.totalTime > spawnerLimit); //Check there isn't any reset time
                 Assert.IsTrue(vfx.HasVector2(exposedName));
@@ -1321,7 +1446,7 @@ namespace UnityEditor.VFX.Test
             if (!type.IsValueType)
                 return true;
             if (Nullable.GetUnderlyingType(type) != null)
-                return true; 
+                return true;
             return false;
         }
 
@@ -1329,10 +1454,9 @@ namespace UnityEditor.VFX.Test
         private static VFXNullableTest[] nullableTestCase = s_supportedValueType.Where(o => IsTypeNullable(VFXValue.TypeToType(o))).Select(o => new VFXNullableTest() { type = o }).ToArray();
 #pragma warning restore 0414
 
-        [UnityTest]
+        [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-14622")]
         public IEnumerator Check_SetNullable_Throw_An_Exception_While_Using_Null([ValueSource("nullableTestCase")] VFXNullableTest valueType)
         {
-
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             var vfx = m_mainObject.AddComponent<VisualEffect>();
@@ -1563,6 +1687,95 @@ namespace UnityEditor.VFX.Test
                 }
                 yield return null;
             }
+            yield return new ExitPlayMode();
+        }
+
+        static uint s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount = 0u;
+        static void VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCountFn(VFXOutputEventArgs evt)
+        {
+            s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount++;
+        }
+
+        [UnityTest, Description("Regression test UUM-6379")]
+        public IEnumerator VisualEffect_Spawned_Behind_Camera_Doesnt_Update()
+        {
+            while (EditorWindow.HasOpenInstances<SceneView>())
+                EditorWindow.GetWindow<SceneView>().Close();
+
+            if (!EditorWindow.HasOpenInstances<GameView>())
+                EditorApplication.ExecuteMenuItem("Window/General/Game");
+
+            Assert.IsTrue(EditorWindow.HasOpenInstances<GameView>());
+
+            yield return new EnterPlayMode();
+
+            //Delete unexpected camera (will be restore with ExitPlayMode)
+            foreach (var camera in Camera.allCameras)
+            {
+                if (camera.gameObject == m_mainCamera)
+                    continue;
+
+                camera.enabled = false;
+            }
+
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            contextInitialize.GetData().SetSettingValue(nameof(VFXDataParticle.boundsMode), BoundsSettingMode.Manual);
+            var bounds = contextInitialize.inputSlots.FirstOrDefault(o => o.name.ToLowerInvariant() == nameof(VFXBasicInitialize.InputPropertiesBounds.bounds));
+            Assert.IsNotNull(bounds);
+            bounds.value = new AABox() { center = Vector3.zero, size = Vector3.one };
+            graph.AddChild(contextInitialize);
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var setSpawnCount = ScriptableObject.CreateInstance<Block.VFXSpawnerSetAttribute>();
+            setSpawnCount.SetSettingValue("attribute", VFXAttribute.SpawnCount.name);
+            setSpawnCount.inputSlots[0].value = 1.0f;
+            spawner.AddChild(setSpawnCount);
+            spawner.LinkTo(contextInitialize);
+            graph.AddChild(spawner);
+
+            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+            output.LinkFrom(contextInitialize);
+            graph.AddChild(output);
+
+            var outputEvent = ScriptableObject.CreateInstance<VFX.VFXOutputEvent>();
+            outputEvent.LinkFrom(spawner);
+            graph.AddChild(outputEvent);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var visualEffectObject = new GameObject("VFX_Behind_Camera");
+            visualEffectObject.transform.position = 10.0f * m_mainCamera.transform.position;
+
+            var vfx = visualEffectObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount = 0u;
+            vfx.outputEventReceived += VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCountFn;
+
+            //Really first update, the culled status is true for one frame when we don't know
+            //See https://unity.slack.com/archives/G1BTWN88Z/p1655996888047749?thread_ts=1655796328.440779&cid=G1BTWN88Z
+            yield return null;
+            Assert.AreEqual(1u, s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount);
+            Assert.IsFalse(vfx.culled);
+            s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount = 0u;
+
+            //Wait for a few frames
+            for (int i = 0; i < 16; i++)
+                yield return null;
+
+            Assert.AreEqual(0u, s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount);
+            Assert.IsTrue(vfx.culled);
+
+            s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount = 0u;
+            visualEffectObject.transform.position = Vector3.zero;
+            //Wait for a few frames, after back in frustum
+            for (int i = 0; i < 8; i++)
+                yield return null;
+
+            Assert.IsTrue(s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount > 0u);
+            Assert.IsFalse(vfx.culled);
+
             yield return new ExitPlayMode();
         }
     }

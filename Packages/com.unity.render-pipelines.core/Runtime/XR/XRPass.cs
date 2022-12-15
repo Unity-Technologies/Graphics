@@ -13,6 +13,7 @@ namespace UnityEngine.Experimental.Rendering
         internal RenderTextureDescriptor renderTargetDesc;
         internal ScriptableCullingParameters cullingParameters;
         internal Material occlusionMeshMaterial;
+        internal IntPtr foveatedRenderingInfo;
         internal int multipassId;
         internal int cullingPassId;
         internal bool copyDepth;
@@ -76,6 +77,18 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
+        /// Returns true if the pass can use foveated rendering commands.
+        /// </summary>
+        public bool supportsFoveatedRendering
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            get => enabled && foveatedRenderingInfo != IntPtr.Zero && XRSystem.foveatedRenderingCaps != FoveatedRenderingCaps.None;
+#else
+            get => false;
+#endif
+        }
+
+        /// <summary>
         /// If true, the render pipeline is expected to output a valid depth buffer to the renderTarget.
         /// </summary>
         public bool copyDepth { get; private set; }
@@ -114,6 +127,11 @@ namespace UnityEngine.Experimental.Rendering
         /// If true, the render pipeline is expected to use single-pass techniques to save CPU time.
         /// </summary>
         public bool singlePassEnabled { get => viewCount > 1; }
+
+        /// <summary>
+        /// Native pointer from the XR plugin to be consumed by ConfigureFoveatedRendering.
+        /// </summary>
+        public IntPtr foveatedRenderingInfo { get; private set; }
 
         /// <summary>
         /// Returns the projection matrix for a given view.
@@ -288,13 +306,13 @@ namespace UnityEngine.Experimental.Rendering
         public void InitBase(XRPassCreateInfo createInfo)
         {
             m_Views.Clear();
-            multipassId = createInfo.multipassId;
-            cullingPassId = createInfo.cullingPassId;
-            cullingParams = createInfo.cullingParameters;
             copyDepth = createInfo.copyDepth;
+            multipassId = createInfo.multipassId;
+            AssignCullingParams(createInfo.cullingPassId, createInfo.cullingParameters);
             renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
             renderTargetDesc = createInfo.renderTargetDesc;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
+            foveatedRenderingInfo = createInfo.foveatedRenderingInfo;
         }
 
         internal void AddView(XRView xrView)

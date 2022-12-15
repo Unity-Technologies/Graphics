@@ -4,11 +4,11 @@ namespace UnityEngine.VFX.Utility
 {
     [AddComponentMenu("VFX/Property Binders/Transform Binder")]
     [VFXBinder("Transform/Transform")]
-    class VFXTransformBinder : VFXBinderBase
+    class VFXTransformBinder : VFXSpaceableBinder
     {
         public string Property { get { return (string)m_Property; } set { m_Property = value; UpdateSubProperties(); } }
 
-        [VFXPropertyBinding("UnityEditor.VFX.Transform"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
+        [VFXPropertyBinding("UnityEditor.VFX.Transform"), SerializeField]
         protected ExposedProperty m_Property = "Transform";
         public Transform Target = null;
 
@@ -40,9 +40,10 @@ namespace UnityEngine.VFX.Utility
 
         public override void UpdateBinding(VisualEffect component)
         {
-            component.SetVector3((int)Position, Target.position);
-            component.SetVector3((int)Angles, Target.eulerAngles);
-            component.SetVector3((int)Scale, Target.localScale);
+            ApplySpaceTRS(component, Position, Target, out var position, out var eulerAngles, out var scale);
+            component.SetVector3((int)Position, position);
+            component.SetVector3((int)Angles, eulerAngles);
+            component.SetVector3((int)Scale, scale);
         }
 
         public override string ToString()

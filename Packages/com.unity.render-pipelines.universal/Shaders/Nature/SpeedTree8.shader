@@ -46,6 +46,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
 
+            AlphaToMask On
+
             HLSLPROGRAM
 
             #pragma vertex SpeedTree8Vert
@@ -57,8 +59,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _CLUSTERED_RENDERING
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ _FORWARD_PLUS
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
@@ -96,7 +98,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma vertex SpeedTree8VertDepth
             #pragma fragment SpeedTree8FragDepth
 
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
@@ -120,7 +122,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles
+            #pragma target 4.5
+
+            // Deferred Rendering Path does not support the OpenGL-based graphics API:
+            // Desktop OpenGL, OpenGL ES 2.0, OpenGL ES 3.0, WebGL 1.0, WebGL 2.0.
+            #pragma exclude_renderers gles gles3 glcore
+
             #pragma vertex SpeedTree8Vert
             #pragma fragment SpeedTree8Frag
 
@@ -130,11 +137,11 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-            #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
@@ -168,7 +175,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma vertex SpeedTree8VertDepth
             #pragma fragment SpeedTree8FragDepth
 
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
@@ -204,7 +211,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma vertex SpeedTree8VertDepth
             #pragma fragment SpeedTree8FragDepth
 
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
@@ -236,7 +243,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
             #pragma shader_feature_local EFFECT_BUMP
 
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_instancing
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
@@ -251,5 +258,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
         }
     }
 
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "SpeedTree8ShaderGUI"
 }

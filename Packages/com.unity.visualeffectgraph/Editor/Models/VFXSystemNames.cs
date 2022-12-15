@@ -1,11 +1,7 @@
-using UnityEngine;
-using UnityEditor.VFX;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.UI;
-using UnityEditor;
-using System.Runtime.CompilerServices;
+
+using UnityEngine;
 
 using SysRegex = System.Text.RegularExpressions.Regex;
 
@@ -13,100 +9,52 @@ namespace UnityEditor.VFX
 {
     internal class VFXSystemNames
     {
-        public static readonly string DefaultSystemName = "System";
-
+        private static readonly string DefaultSystemName = "System";
         private static readonly string IndexPattern = @" (\(([0-9])*\))$";
-        private Dictionary<VFXModel, int> m_SystemToIndex = new Dictionary<VFXModel, int>();
+
+        private readonly Dictionary<VFXData, string> m_SystemNamesCache = new();
 
         public static string GetSystemName(VFXModel model)
         {
-            // general case
-            var data = model as VFXData;
-            if (data != null)
+            switch (model)
             {
-                return data.title;
-            }
-
-            // special case for spawners
-            var context = model as VFXContext;
-            if (context != null)
-            {
-                if (context.contextType == VFXContextType.Spawner)
+                case VFXDataSpawner data:
+                    return data.owners.First().label;
+                case VFXData data:
+                    return data.title;
+                case VFXContext { contextType: VFXContextType.Spawner } context:
                     return context.label;
-                else
-                {
-                    var contextData = context.GetData();
-                    if (contextData != null)
-                        return contextData.title;
-                }
+                case VFXContext context when context.GetData() is {} data:
+                    return data.title;
+                default:
+                    return null;
             }
-            return null;
         }
 
         public static void SetSystemName(VFXModel model, string name)
         {
-            // general case
-            var data = model as VFXData;
-            if (data != null)
+            switch (model)
             {
-                data.title = name;
-                return;
-            }
-
-            // special case for spawner
-            var context = model as VFXContext;
-            if (context != null)
-            {
-                if (context.contextType == VFXContextType.Spawner)
-                {
+                case VFXData data:
+                    data.title = name;
+                    break;
+                case VFXContext { contextType: VFXContextType.Spawner } context:
                     context.label = name;
-                    return;
-                }
-                else
-                {
-                    var contextData = context.GetData();
-                    if (contextData != null)
-                    {
-                        contextData.title = name;
-                        return;
-                    }
-                }
+                    break;
+                case VFXContext context when context.GetData() is {} data:
+                    data.title = name;
+                    break;
             }
         }
 
-        private static string GetSystemUnindexedName(VFXModel model)
+        public string GetUniqueSystemName(VFXData system)
         {
-            var name = GetSystemName(model);
-            return string.IsNullOrEmpty(name) ? name : SysRegex.Replace(name, IndexPattern, "");
-        }
-
-        private static int ExtractIndex(string name)
-        {
-            if (SysRegex.IsMatch(name, IndexPattern))
+            if (m_SystemNamesCache.TryGetValue(system, out var systemName))
             {
-                var afterOpeningBracket = name.LastIndexOf('(') + 1;
-                var closingBracket = name.LastIndexOf(')');
-                var index = name.Substring(afterOpeningBracket, closingBracket - afterOpeningBracket);
-                return int.Parse(index);
+                return systemName;
             }
-            return 0;
-        }
 
-        public string GetUniqueSystemName(VFXModel model)
-        {
-            int index;
-            if (m_SystemToIndex.TryGetValue(model, out index))
-            {
-                var wishedName = GetSystemUnindexedName(model);
-                if (string.IsNullOrEmpty(wishedName))
-                    wishedName = DefaultSystemName;
-                var format = "{0} ({1})";
-                var newName = index == 0 ? wishedName : string.Format(format, wishedName, index);
-                return newName;
-            }
-            if (!(model is VFXSubgraphContext))
-                throw new InvalidOperationException("SystemNames : Model is not registered " + model);
-            return GetSystemName(model);
+            return GenerateUniqueName(system);
         }
 
         public void Sync(VFXGraph graph)
@@ -114,54 +62,43 @@ namespace UnityEditor.VFX
             var models = new HashSet<ScriptableObject>();
             graph.CollectDependencies(models, false);
 
-            var systems = models.OfType<VFXContext>()
-                .Where(c => c.contextType == VFXContextType.Spawner || c.GetData() != null)
-                .Select(c => c.contextType == VFXContextType.Spawner ? c as VFXModel : c.GetData())
-                .Distinct();
+            var systems = models
+                .OfType<VFXContext>()
+                .Select(x => x.GetData())
+                .Distinct()
+                .Where(x => x != null);
 
-            Init(systems);
-        }
-
-        public void Init(IEnumerable<VFXModel> models)
-        {
-            m_SystemToIndex.Clear();
-            foreach (var system in models)
+            m_SystemNamesCache.Clear();
+            foreach (var system in systems)
             {
-                var systemName = GetSystemUnindexedName(system);
-                var index = GetIndex(systemName);
-                m_SystemToIndex[system] = index;
+                GenerateUniqueName(system);
             }
         }
 
-        private int GetIndex(string unindexedName)
+        private static string GetSystemUnindexedName(string name)
         {
-            int index = -1;
+            return string.IsNullOrEmpty(name)
+                ? name
+                : SysRegex.Replace(name, IndexPattern, ""); // Remove any number in the system name
+        }
 
-            IEnumerable<int> unavailableIndices;
-            if (string.IsNullOrEmpty(unindexedName) || unindexedName == DefaultSystemName)
-                unavailableIndices = m_SystemToIndex.Where(pair => (string.IsNullOrEmpty(GetSystemUnindexedName(pair.Key)) || GetSystemUnindexedName(pair.Key) == DefaultSystemName)).Select(pair => pair.Value);
-            else
-                unavailableIndices = m_SystemToIndex.Where(pair => GetSystemUnindexedName(pair.Key) == unindexedName).Select(pair => pair.Value);
-            if (unavailableIndices.Any())
+        private string GenerateUniqueName(VFXData system)
+        {
+            var wishedName = GetSystemUnindexedName(GetSystemName(system));
+            if (string.IsNullOrEmpty(wishedName))
             {
-                var unavailableIndicesList = unavailableIndices.ToList();
-                unavailableIndicesList.Sort();
-                for (int i = 0; i < unavailableIndicesList.Count(); ++i)
-                    if (i != unavailableIndicesList[i])
-                    {
-                        index = i;
-                        break;
-                    }
-
-                if (index == -1)
-                    index = unavailableIndicesList.Last() + 1;
-            }
-            else
-            {
-                index = 0;
+                wishedName = DefaultSystemName;
             }
 
-            return index;
+            var index = 1;
+            var systemName = wishedName;
+            while (m_SystemNamesCache.Values.Contains(systemName))
+            {
+                systemName = $"{wishedName} ({index++})";
+            }
+
+            m_SystemNamesCache[system] = systemName;
+            return systemName;
         }
     }
 }

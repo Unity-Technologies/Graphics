@@ -27,12 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kHorizontalDisplacementOutputSlotId = 1;
         const string kHorizontalDisplacementSlotName = "HorizontalDisplacement";
 
-        const int kSSSMaskOutputSlotId = 2;
-        const string kSSSMaskSlotName = "SSSMask";
-
-        const int kCustomFoamOutputSlotId = 3;
-        const string kCustomFoamSlotName = "CustomFoam";
-
         public override bool hasPreview { get { return false; } }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -40,26 +34,20 @@ namespace UnityEditor.Rendering.HighDefinition
             // Outputs
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightOutputSlotId, kLowFrequencyHeightSlotName, kLowFrequencyHeightSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(kHorizontalDisplacementOutputSlotId, kHorizontalDisplacementSlotName, kHorizontalDisplacementSlotName, SlotType.Output, 0));
-            AddSlot(new Vector1MaterialSlot(kSSSMaskOutputSlotId, kSSSMaskSlotName, kSSSMaskSlotName, SlotType.Output, 0));
-            AddSlot(new Vector1MaterialSlot(kCustomFoamOutputSlotId, kCustomFoamSlotName, kCustomFoamSlotName, SlotType.Output, 0));
 
             RemoveSlotsNameNotMatching(new[]
             {
                 // Outputs
                 kLowFrequencyHeightOutputSlotId,
                 kHorizontalDisplacementOutputSlotId,
-                kSSSMaskOutputSlotId,
-                kCustomFoamOutputSlotId
             });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            sb.AppendLine("$precision {1} = IN.{0}.x; $precision {2} = IN.{0}.y; $precision {3} = IN.{0}.z; $precision {4} = IN.{0}.w;",
+            sb.AppendLine("$precision {1} = saturate(IN.{0}.x); $precision {2} = IN.{0}.y;",
                 ShaderGeneratorNames.GetUVName(UVChannel.UV1),
                 GetVariableNameForSlot(kLowFrequencyHeightOutputSlotId),
-                GetVariableNameForSlot(kCustomFoamOutputSlotId),
-                GetVariableNameForSlot(kSSSMaskOutputSlotId),
                 GetVariableNameForSlot(kHorizontalDisplacementOutputSlotId)
             );
         }

@@ -199,7 +199,7 @@ namespace UnityEditor.VFX.PerformanceTest
             Enum.TryParse<VFXCompilationMode>(compilationModeName, out compilationMode);
 
             //This compilation test shouldn't measure shader compilation time, furthermore, the first variant isn't always relevant.
-            bool forceShaderValidationMode = false; 
+            bool forceShaderValidationMode = false;
 
             VFXGraph graph;
             string fullPath;

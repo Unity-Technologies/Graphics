@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
                     {
                         EditorGUI.BeginChangeCheck();
                         var pos = extremities.extremities[i];
-                        var result = Handles.Slider(s_ExtremitiesNames[i], pos, pos - extremities.bottomCap, handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
+                        var result = Handles.Slider(gizmo.GetCombinedHashCode(s_ExtremitiesNames[i]), pos, pos - extremities.bottomCap, handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
                         if (EditorGUI.EndChangeCheck())
                         {
                             baseRadiusProperty.SetValue(result.magnitude);
@@ -158,17 +158,17 @@ namespace UnityEditor.VFX
 
                         var pos = extremities.extremities[i];
                         var dir = pos - extremities.topCap;
-                        var result = Handles.Slider(s_ExtremitiesNames[i], pos, dir, handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
-
+                        var result = Handles.Slider(gizmo.GetCombinedHashCode(s_ExtremitiesNames[i]), pos, dir, handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
                         if (EditorGUI.EndChangeCheck())
                             topRadiusProperty.SetValue((result - extremities.topCap).magnitude);
+                        GUI.changed = false;
                     }
                 }
 
                 if (heightProperty.isEditable)
                 {
                     EditorGUI.BeginChangeCheck();
-                    var result = Handles.Slider(s_HeightCapName, extremities.topCap, Vector3.up, handleSize * HandleUtility.GetHandleSize(extremities.topCap), CustomCubeHandleCap, 0);
+                    var result = Handles.Slider(gizmo.GetCombinedHashCode(s_HeightCapName), extremities.topCap, Vector3.up, handleSize * HandleUtility.GetHandleSize(extremities.topCap), CustomCubeHandleCap, 0);
                     if (EditorGUI.EndChangeCheck())
                         heightProperty.SetValue(result.magnitude);
                 }

@@ -82,19 +82,16 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
 }
 
 // Function responsible for volume scattering
-void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPayload, float3 inputSample, bool sampleLocalLights, float3 lightPosition)
+void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 inputSample, bool sampleLocalLights, float3 lightPosition)
 {
-    // Reset the ray intersection color, which will store our final result
-    pathIntersection.value = 0.0;
-
-    // Grab depth information
-    uint currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+    // Reset the payload color, which will store our final result
+    payload.value = 0.0;
 
     // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
+    bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
 
     // Compute the scattering position
-    float3 scatteringPosition = WorldRayOrigin() + pathIntersection.t * WorldRayDirection();
+    float3 scatteringPosition = WorldRayOrigin() + payload.rayTHit * WorldRayDirection();
 
     // Create the list of active lights (a local light can be forced by providing its position)
     LightList lightList = CreateLightList(scatteringPosition, sampleLocalLights, lightPosition);
@@ -106,32 +103,34 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     ray.Origin = scatteringPosition;
     ray.TMin = 0.0;
 
-    PathIntersection nextPathIntersection;
+    PathPayload shadowPayload;
 
     // Light sampling
     if (computeDirect)
     {
         if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
         {
-            // FIXME: Apply phase function and divide by pdf (only isotropic for now, and not sure about sigmaS value)
+            // Apply phase function and divide by PDF
             value *= _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y) * INV_FOUR_PI / pdf;
 
             if (Luminance(value) > 0.001)
             {
-                // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
-                nextPathIntersection.remainingDepth = _RaytracingMaxRecursion + 1;
+                // Shoot a transmission ray
+                shadowPayload.segmentID = SEGMENT_ID_TRANSMISSION;
+                shadowPayload.value = 1.0;
                 ray.TMax -= _RaytracingRayBias;
-                nextPathIntersection.value = 1.0;
 
-                // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
+                // FIXME: For the time being, there is no front/back face culling for shadows
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                         RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, nextPathIntersection);
+                         RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
 
-                pathIntersection.value += value * GetLightTransmission(nextPathIntersection.value, shadowOpacity);
+                payload.value += value * GetLightTransmission(shadowPayload.value, shadowOpacity);
             }
         }
     }
 
+    // Override AOV motion vector information
+    payload.aovMotionVector = 0.0;
 }
 
 #endif // UNITY_PATH_TRACING_VOLUME_INCLUDED

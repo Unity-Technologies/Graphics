@@ -11,7 +11,7 @@ pre_pack_hdrp_template_Win_trunk:
     name: Pre-Pack HDRP Template Win trunk
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -46,7 +46,7 @@ test_hdrp_template_Win_trunk:
     name: Test HDRP Template Win trunk
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_Win_trunk
@@ -64,7 +64,7 @@ pre_pack_hdrp_template_OSX_trunk:
     name: Pre-Pack HDRP Template OSX trunk
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -98,7 +98,7 @@ test_hdrp_template_OSX_trunk:
     name: Test HDRP Template OSX trunk
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
@@ -153,7 +153,7 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
     name: Pre-Pack HDRP Template Win CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -188,7 +188,7 @@ test_hdrp_template_Win_CUSTOM-REVISION:
     name: Test HDRP Template Win CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_Win_CUSTOM-REVISION
@@ -202,11 +202,13 @@ test_hdrp_template_Win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
     name: Pre-Pack HDRP Template OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -240,7 +242,7 @@ test_hdrp_template_OSX_CUSTOM-REVISION:
     name: Test HDRP Template OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_CUSTOM-REVISION
@@ -253,12 +255,16 @@ test_hdrp_template_OSX_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 publish_hdrp_template_CUSTOM-REVISION:
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd
@@ -278,6 +284,8 @@ publish_hdrp_template_CUSTOM-REVISION_dry_run:
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish HDRP Template CUSTOM-REVISION Dry Run
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd --dry-run
@@ -295,7 +303,7 @@ pre_pack_universal_template_Win_trunk:
     name: Pre-Pack Universal Template Win trunk
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -330,7 +338,7 @@ test_universal_template_Win_trunk:
     name: Test Universal Template Win trunk
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_Win_trunk
@@ -348,7 +356,7 @@ pre_pack_universal_template_OSX_trunk:
     name: Pre-Pack Universal Template OSX trunk
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -382,7 +390,7 @@ test_universal_template_OSX_trunk:
     name: Test Universal Template OSX trunk
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
@@ -437,7 +445,7 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
     name: Pre-Pack Universal Template Win CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -472,7 +480,7 @@ test_universal_template_Win_CUSTOM-REVISION:
     name: Test Universal Template Win CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: package-ci/win10:stable
+        image: package-ci/win10:v1.21.0-1103460
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_Win_CUSTOM-REVISION
@@ -486,11 +494,13 @@ test_universal_template_Win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 pre_pack_universal_template_OSX_CUSTOM-REVISION:
     name: Pre-Pack Universal Template OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -524,7 +534,7 @@ test_universal_template_OSX_CUSTOM-REVISION:
     name: Test Universal Template OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: package-ci/mac:v1.20.0-1079282
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_OSX_CUSTOM-REVISION
@@ -537,12 +547,16 @@ test_universal_template_OSX_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 publish_universal_template_CUSTOM-REVISION:
     agent:
         type: Unity::VM
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish Universal Template CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-universal
@@ -562,6 +576,8 @@ publish_universal_template_CUSTOM-REVISION_dry_run:
         image: package-ci/win10:v2.2.1-1064078
         flavor: b1.large
     name: Publish Universal Template CUSTOM-REVISION Dry Run
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-universal --dry-run
@@ -605,3 +621,5 @@ all_template_ci_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set

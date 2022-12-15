@@ -1,25 +1,34 @@
 # 3DS Physical Material shader
 
-The 3DS Physical Material shader replicates the 3DS Physical Material shader available in Autodesk® 3DsMax for the High Definition Render Pipeline (HDRP). When Unity imports an FBX that includes a material using Autodesk's 3DS Physical Material shader, it applies HDRP's 3DS Physical Material shader to the material. The material properties and texture inputs are identical between the Unity and Autodesk versions of this shader. The materials themselves also look and respond to light similarly. Note that there are slight differences between what you see in Autodesk® 3DsMax and what you see in HDRP and HDRP does not support some material features.
+The 3DS Physical Material shader replicates the 3DS Physical Material shader available in Autodesk® 3DsMax for the High Definition Render Pipeline (HDRP). When Unity imports an FBX that includes a material using Autodesk's 3DS Physical Material shader, it applies HDRP's 3DS Physical Material shader to the material. The material properties and texture inputs are identical between the Unity and Autodesk versions of this shader. The materials themselves also look and respond to light similarly.
 
-Note that the HDRP implementation of this shader uses a Shader Graph.
+**Note**: There are slight differences between what you see in Autodesk® 3DsMax and what you see in HDRP. HDRP doesn't support some material features.
+
+**Note**: The HDRP implementation of the 3DS Physical Material shader uses a Shader Graph.
 
 ## Creating a 3DS Physical Material
 
-When Unity imports an FBX with a compatible 3DS Physical Material shader, it automatically creates a 3DS Physical Material. If you want to manually create an 3DS Physical Material:
+When Unity imports an FBX with a compatible 3DS Physical Material shader, it automatically creates a 3DS Physical Material. If you want to manually create a 3DS Physical Material:
 
-1. Create a new material (menu: **Assets > Create > Material**).
-2. In the Inspector for the Material, click the Shader drop-down then click **HDRP > 3DSMaxPhysicalMaterial > PhysicalMaterial3DSMax**.
+1. Create a new material (menu: **Assets** > **Create** > **Material**).
+2. In the Inspector for the Material, click the Shader drop-down then click **HDRP** > **3DSMaxPhysicalMaterial** > **PhysicalMaterial3DSMax**.
 
 ## Properties
 
 ### Surface Options
+
 **Surface Options** control the overall look of your Material's surface and how Unity renders the Material on screen.
+
 <table>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
+<thead>
+  <tr>
+    <th>Property</th>
+    <th></th>
+    <th></th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>
 [!include[](snippets/shader-properties/surface-options/surface-type.md)]
 [!include[](snippets/shader-properties/surface-options/rendering-pass.md)]
 [!include[](snippets/shader-properties/surface-options/blending-mode.md)]
@@ -36,6 +45,7 @@ When Unity imports an FBX with a compatible 3DS Physical Material shader, it aut
 [!include[](snippets/shader-properties/surface-options/receive-decals.md)]
 [!include[](snippets/shader-properties/surface-options/receive-ssr.md)]
 [!include[](snippets/shader-properties/surface-options/receive-ssr-transparent.md)]
+</tbody>
 </table>
 
 ### Exposed Properties
@@ -75,13 +85,19 @@ When Unity imports an FBX with a compatible 3DS Physical Material shader, it aut
 </table>
 
 ### Advanced Options
+
 <table>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
+<thead>
+  <tr>
+    <th>Property</th>
+    <th></th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>
 [!include[](snippets/shader-properties/general/enable-gpu-instancing.md)]
 [!include[](snippets/shader-properties/general/emission.md)]
 [!include[](snippets/shader-properties/general/emission-global-illumination.md)]
 [!include[](snippets/shader-properties/general/motion-vector-for-vertex-animation.md)]
+</tbody>
 </table>

@@ -158,6 +158,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         public override void OnEnable()
         {
+            base.OnEnable();
+
             if (m_EnumField == null)
                 return;
 

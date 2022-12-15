@@ -310,27 +310,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public override void CreatePooledGraphicsResource()
         {
-            Debug.Assert(m_Pool != null, "CreatePooledGraphicsResource should only be called for regular pooled resources");
+            Debug.Assert(m_Pool != null, "TextureResource: CreatePooledGraphicsResource should only be called for regular pooled resources");
 
             int hashCode = desc.GetHashCode();
 
             if (graphicsResource != null)
-                throw new InvalidOperationException(string.Format("Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
+                throw new InvalidOperationException(string.Format("TextureResource: Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
 
             var pool = m_Pool as TexturePool;
             if (!pool.TryGetResource(hashCode, out graphicsResource))
             {
-                CreateGraphicsResource();
+                CreateGraphicsResource(desc.name);
             }
 
             cachedHash = hashCode;
             pool.RegisterFrameAllocation(cachedHash, graphicsResource);
+            graphicsResource.m_Name = desc.name;
         }
 
         public override void ReleasePooledGraphicsResource(int frameIndex)
         {
             if (graphicsResource == null)
-                throw new InvalidOperationException($"Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
+                throw new InvalidOperationException($"TextureResource: Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
 
             // Shared resources don't use the pool
             var pool = m_Pool as TexturePool;
@@ -414,7 +415,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         // Another C# nicety.
         // We need to re-implement the whole thing every time because:
-        // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, ComputeBuffers etc)
+        // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, GraphicsBuffers etc)
         // - We can't use a virtual release function because it will capture 'this' in the lambda for RemoveAll generating GCAlloc in the process.
         override public void PurgeUnusedResources(int currentFrameIndex)
         {

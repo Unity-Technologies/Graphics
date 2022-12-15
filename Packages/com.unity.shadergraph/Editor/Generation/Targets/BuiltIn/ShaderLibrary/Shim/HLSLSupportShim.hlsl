@@ -163,52 +163,101 @@
     #define UNITY_SAMPLE_SCREENSPACE_TEXTURE(tex, uv) tex2D(tex, uv)
 #endif
 
-// DXC no longer supports DX9-style HLSL syntax of sampler2D, tex2D and friends.
-// Emulate those using our own small structs & functions that have a combined sampler & texture.
+// DXC no longer supports DX9-style HLSL syntax for sampler2D, tex2D and the like.
+// These are emulated for backwards compatibility using our own small structs and functions which manually combine samplers and textures.
 #if defined(UNITY_COMPILER_DXC) && !defined(DXC_SAMPLER_COMPATIBILITY)
 #define DXC_SAMPLER_COMPATIBILITY 1
-struct sampler1D            { Texture1D t; SamplerState s; };
-struct sampler2D            { Texture2D t; SamplerState s; };
-struct sampler3D            { Texture3D t; SamplerState s; };
-struct samplerCUBE          { TextureCube t; SamplerState s; };
 
-float4 tex1D(sampler1D x, float v)              { return x.t.Sample(x.s, v); }
-float4 tex2D(sampler2D x, float2 v)             { return x.t.Sample(x.s, v); }
-float4 tex3D(sampler3D x, float3 v)             { return x.t.Sample(x.s, v); }
-float4 texCUBE(samplerCUBE x, float3 v)         { return x.t.Sample(x.s, v); }
+// On DXC platforms which don't care about explicit sampler precison we want the emulated types to work directly e.g without needing to redefine 'sampler2D' to 'sampler2D_f'
+#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH)
+    #define sampler1D_f sampler1D
+    #define sampler2D_f sampler2D
+    #define sampler3D_f sampler3D
+    #define samplerCUBE_f samplerCUBE
+#endif
 
-float4 tex1Dbias(sampler1D x, in float4 t)              { return x.t.SampleBias(x.s, t.x, t.w); }
-float4 tex2Dbias(sampler2D x, in float4 t)              { return x.t.SampleBias(x.s, t.xy, t.w); }
-float4 tex3Dbias(sampler3D x, in float4 t)              { return x.t.SampleBias(x.s, t.xyz, t.w); }
-float4 texCUBEbias(samplerCUBE x, in float4 t)          { return x.t.SampleBias(x.s, t.xyz, t.w); }
+struct sampler1D_f      { Texture1D<float4> t; SamplerState s; };
+struct sampler2D_f      { Texture2D<float4> t; SamplerState s; };
+struct sampler3D_f      { Texture3D<float4> t; SamplerState s; };
+struct samplerCUBE_f    { TextureCube<float4> t; SamplerState s; };
 
-float4 tex1Dlod(sampler1D x, in float4 t)           { return x.t.SampleLevel(x.s, t.x, t.w); }
-float4 tex2Dlod(sampler2D x, in float4 t)           { return x.t.SampleLevel(x.s, t.xy, t.w); }
-float4 tex3Dlod(sampler3D x, in float4 t)           { return x.t.SampleLevel(x.s, t.xyz, t.w); }
-float4 texCUBElod(samplerCUBE x, in float4 t)       { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+float4 tex1D(sampler1D_f x, float v)        { return x.t.Sample(x.s, v); }
+float4 tex2D(sampler2D_f x, float2 v)       { return x.t.Sample(x.s, v); }
+float4 tex3D(sampler3D_f x, float3 v)       { return x.t.Sample(x.s, v); }
+float4 texCUBE(samplerCUBE_f x, float3 v)   { return x.t.Sample(x.s, v); }
 
-float4 tex1Dgrad(sampler1D x, float t, float dx, float dy)              { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 tex2Dgrad(sampler2D x, float2 t, float2 dx, float2 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 tex3Dgrad(sampler3D x, float3 t, float3 dx, float3 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 texCUBEgrad(samplerCUBE x, float3 t, float3 dx, float3 dy)       { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex1Dbias(sampler1D_f x, in float4 t)        { return x.t.SampleBias(x.s, t.x, t.w); }
+float4 tex2Dbias(sampler2D_f x, in float4 t)        { return x.t.SampleBias(x.s, t.xy, t.w); }
+float4 tex3Dbias(sampler3D_f x, in float4 t)        { return x.t.SampleBias(x.s, t.xyz, t.w); }
+float4 texCUBEbias(samplerCUBE_f x, in float4 t)    { return x.t.SampleBias(x.s, t.xyz, t.w); }
 
-float4 tex1D(sampler1D x, float t, float dx, float dy)              { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 tex2D(sampler2D x, float2 t, float2 dx, float2 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 tex3D(sampler3D x, float3 t, float3 dx, float3 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 texCUBE(samplerCUBE x, float3 t, float3 dx, float3 dy)       { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex1Dlod(sampler1D_f x, in float4 t)     { return x.t.SampleLevel(x.s, t.x, t.w); }
+float4 tex2Dlod(sampler2D_f x, in float4 t)     { return x.t.SampleLevel(x.s, t.xy, t.w); }
+float4 tex3Dlod(sampler3D_f x, in float4 t)     { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+float4 texCUBElod(samplerCUBE_f x, in float4 t) { return x.t.SampleLevel(x.s, t.xyz, t.w); }
 
-float4 tex1Dproj(sampler1D s, in float2 t)              { return tex1D(s, t.x / t.y); }
-float4 tex1Dproj(sampler1D s, in float4 t)              { return tex1D(s, t.x / t.w); }
-float4 tex2Dproj(sampler2D s, in float3 t)              { return tex2D(s, t.xy / t.z); }
-float4 tex2Dproj(sampler2D s, in float4 t)              { return tex2D(s, t.xy / t.w); }
-float4 tex3Dproj(sampler3D s, in float4 t)              { return tex3D(s, t.xyz / t.w); }
-float4 texCUBEproj(samplerCUBE s, in float4 t)          { return texCUBE(s, t.xyz / t.w); }
+float4 tex1Dgrad(sampler1D_f x, float t, float dx, float dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex2Dgrad(sampler2D_f x, float2 t, float2 dx, float2 dy)     { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex3Dgrad(sampler3D_f x, float3 t, float3 dx, float3 dy)     { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 texCUBEgrad(samplerCUBE_f x, float3 t, float3 dx, float3 dy) { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+float4 tex1D(sampler1D_f x, float t, float dx, float dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex2D(sampler2D_f x, float2 t, float2 dx, float2 dy)     { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex3D(sampler3D_f x, float3 t, float3 dx, float3 dy)     { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 texCUBE(samplerCUBE_f x, float3 t, float3 dx, float3 dy) { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+float4 tex1Dproj(sampler1D_f s, in float2 t)        { return tex1D(s, t.x / t.y); }
+float4 tex1Dproj(sampler1D_f s, in float4 t)        { return tex1D(s, t.x / t.w); }
+float4 tex2Dproj(sampler2D_f s, in float3 t)        { return tex2D(s, t.xy / t.z); }
+float4 tex2Dproj(sampler2D_f s, in float4 t)        { return tex2D(s, t.xy / t.w); }
+float4 tex3Dproj(sampler3D_f s, in float4 t)        { return tex3D(s, t.xyz / t.w); }
+float4 texCUBEproj(samplerCUBE_f s, in float4 t)    { return texCUBE(s, t.xyz / t.w); }
+
+// Half precision emulated samplers used instead the sampler.*_half unity types
+struct sampler1D_h      { Texture1D<min16float4> t; SamplerState s; };
+struct sampler2D_h      { Texture2D<min16float4> t; SamplerState s; };
+struct sampler3D_h      { Texture3D<min16float4> t; SamplerState s; };
+struct samplerCUBE_h    { TextureCube<min16float4> t; SamplerState s; };
+
+min16float4 tex1D(sampler1D_h x, float v)       { return x.t.Sample(x.s, v); }
+min16float4 tex2D(sampler2D_h x, float2 v)      { return x.t.Sample(x.s, v); }
+min16float4 tex3D(sampler3D_h x, float3 v)      { return x.t.Sample(x.s, v); }
+min16float4 texCUBE(samplerCUBE_h x, float3 v)  { return x.t.Sample(x.s, v); }
+
+min16float4 tex1Dbias(sampler1D_h x, in float4 t)       { return x.t.SampleBias(x.s, t.x, t.w); }
+min16float4 tex2Dbias(sampler2D_h x, in float4 t)       { return x.t.SampleBias(x.s, t.xy, t.w); }
+min16float4 tex3Dbias(sampler3D_h x, in float4 t)       { return x.t.SampleBias(x.s, t.xyz, t.w); }
+min16float4 texCUBEbias(samplerCUBE_h x, in float4 t)   { return x.t.SampleBias(x.s, t.xyz, t.w); }
+
+min16float4 tex1Dlod(sampler1D_h x, in float4 t)        { return x.t.SampleLevel(x.s, t.x, t.w); }
+min16float4 tex2Dlod(sampler2D_h x, in float4 t)        { return x.t.SampleLevel(x.s, t.xy, t.w); }
+min16float4 tex3Dlod(sampler3D_h x, in float4 t)        { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+min16float4 texCUBElod(samplerCUBE_h x, in float4 t)    { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+
+min16float4 tex1Dgrad(sampler1D_h x, float t, float dx, float dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 tex2Dgrad(sampler2D_h x, float2 t, float2 dx, float2 dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 tex3Dgrad(sampler3D_h x, float3 t, float3 dx, float3 dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 texCUBEgrad(samplerCUBE_h x, float3 t, float3 dx, float3 dy)    { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+min16float4 tex1D(sampler1D_h x, float t, float dx, float dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 tex2D(sampler2D_h x, float2 t, float2 dx, float2 dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 tex3D(sampler3D_h x, float3 t, float3 dx, float3 dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 texCUBE(samplerCUBE_h x, float3 t, float3 dx, float3 dy)    { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+min16float4 tex1Dproj(sampler1D_h s, in float2 t)       { return tex1D(s, t.x / t.y); }
+min16float4 tex1Dproj(sampler1D_h s, in float4 t)       { return tex1D(s, t.x / t.w); }
+min16float4 tex2Dproj(sampler2D_h s, in float3 t)       { return tex2D(s, t.xy / t.z); }
+min16float4 tex2Dproj(sampler2D_h s, in float4 t)       { return tex2D(s, t.xy / t.w); }
+min16float4 tex3Dproj(sampler3D_h s, in float4 t)       { return tex3D(s, t.xyz / t.w); }
+min16float4 texCUBEproj(samplerCUBE_h s, in float4 t)   { return texCUBE(s, t.xyz / t.w); }
 #endif
 
 // Define "fixed" precision to be half on non-GLSL platforms,
 // and sampler*_prec to be just simple samplers.
 #if !defined(SHADER_API_GLES) && !defined(SHADER_API_PSSL) && !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH)
 #define UNITY_FIXED_IS_HALF 1
+#define sampler1D_half sampler1D
+#define sampler1D_float sampler1D
 #define sampler2D_half sampler2D
 #define sampler2D_float sampler2D
 #define samplerCUBE_half samplerCUBE

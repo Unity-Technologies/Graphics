@@ -289,7 +289,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, uint mipCount
 
         // Mip count has been reduced but the texelSize was not updated to take that into account
         uint mipReductionLevel = originalTextureMipCount - mipCount;
-        uint mipReductionFactor = 1 << mipReductionLevel;
+        uint mipReductionFactor = 1U << mipReductionLevel;
         if (mipReductionFactor)
         {
             float oneOverMipReductionFactor = 1.0 / mipReductionFactor;
@@ -390,7 +390,7 @@ real3 GetOverdrawColor(real overdrawCount, real maxOverdrawCount)
     return HsvToRgb(real3(hue, saturation, 1.0));
 }
 
-int OverdrawLegendBucketInterval(int maxOverdrawCount)
+uint OverdrawLegendBucketInterval(uint maxOverdrawCount)
 {
     if (maxOverdrawCount <= 10)
         return 1;
@@ -399,9 +399,9 @@ int OverdrawLegendBucketInterval(int maxOverdrawCount)
     if (maxOverdrawCount <= 100)
         return 10;
 
-    const int digitCount = floor(log10(maxOverdrawCount));
-    const int digitMultiplier = pow(10, digitCount);
-    const int biggestDigit = floor(maxOverdrawCount/digitMultiplier);
+    const uint digitCount = floor(log10(maxOverdrawCount));
+    const uint digitMultiplier = pow(10, digitCount);
+    const uint biggestDigit = floor(maxOverdrawCount/digitMultiplier);
     if (biggestDigit < 5)
         return pow(10, digitCount - 1) * 5;
 
@@ -456,8 +456,8 @@ void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize,
     // Bucket label
     if (0 < bucket && bucket <= maxOverdrawCount)
     {
-        const int bucketInterval = OverdrawLegendBucketInterval(maxOverdrawCount);
-        const int bucketLabelIndex = (int(bucket) / bucketInterval) * bucketInterval;
+        const uint bucketInterval = OverdrawLegendBucketInterval(maxOverdrawCount);
+        const uint bucketLabelIndex = (uint(bucket) / bucketInterval) * bucketInterval;
         const real2 labelStartCoord = real2(
             bandLabelPositionUV.x + (bucketLabelIndex - 1) * (bandSizeUV.x / maxOverdrawCount),
             bandLabelPositionUV.y

@@ -4,6 +4,43 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [15.1.2] - 2022-12-08
+
+### Changed
+- For Ray Tracing and Ray Tracing(Realtime GI) assets, DLLS was enabled. Forced resolution of 75%
+- 3rd Person controller camera properties were adjusted. Its basically now closer.
+- Default quality levels changed for consoles
+- Bloom scattering reduction to 0.4
+
+## [15.1.1] - 2022-11-09
+
+### Fixed
+- Remove default sounds from the 3rd person controller asset
+- Remove a debug plane gameobject
+
+## [15.1.0] - 2022-07-06
+
+### Added
+- Added new HDRP assets "Very High" and "Ultra" and corresponding quality levels have been created for raytracing
+- Added new 3rd person character control 
+- Added "Additional properties" page for the IET
+- Added missing prefab edition scene
+
+### Fixed
+- Fixed issue with new hdrp cubemap atlas system
+- Fixed wrong position for the collision proxy of the lounge chair
+
+### Changed
+- Switch to DX12 by default undre windows
+- IET has been updated
+- Updated Images showing the Unity material ball
+- The default low/medium/high values for SSR and RTAO have been retuned to offer better results out of the box
+
+## [15.0.0] - 2022-07-06
+
+### Fixed
+- Fixed issue with new hdrp cubemap atlas system
+
 ## [13.4.1] - 2022-03-16
 
 ### Added

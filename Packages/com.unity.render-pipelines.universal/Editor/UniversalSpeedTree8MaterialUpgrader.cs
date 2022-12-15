@@ -34,7 +34,10 @@ namespace UnityEditor.Rendering.Universal
             if (RenderPipelineManager.currentPipeline is UniversalRenderPipeline)
             {
                 SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
-                SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, UniversalSpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer);
+                if(stImporter.isV8)
+                {
+                    SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, UniversalSpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer);
+                }
             }
         }
     }

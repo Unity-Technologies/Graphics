@@ -37,7 +37,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile _ _FORWARD_PLUS
             #pragma multi_compile __ BILLBOARD_FACE_CAMERA_POS
             #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
@@ -86,7 +86,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles
+            #pragma target 4.5
+
+            // Deferred Rendering Path does not support the OpenGL-based graphics API:
+            // Desktop OpenGL, OpenGL ES 2.0, OpenGL ES 3.0, WebGL 1.0, WebGL 2.0.
+            #pragma exclude_renderers gles gles3 glcore
+
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
@@ -135,4 +140,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             ENDHLSL
         }
     }
+
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }

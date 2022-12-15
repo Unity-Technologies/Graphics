@@ -8,11 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed some post effects not scaling correctly when dynamic resolution is enabled on a camera's target texture (case 1166603)
+- Fixed obsolete API call GetScriptingDefineSymbolsForGroup
 
 ## [3.2.2] - 2022-04-05
 
 ### Fixed
 - Fixed FXAA artefact when trying to preserve alpha channel output.
+- Fixed MSVO aliasing artifact by using a z-Bias parameter. (case 1375337)
 
 ## [3.2.1] - 2022-01-12
 

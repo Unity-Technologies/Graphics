@@ -52,7 +52,7 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     $FragInputs.positionRWS:                    output.positionRWS =                input.positionRWS;
     $FragInputs.positionPixel:                  output.positionPixel =              input.positionCS.xy; // NOTE: this is not actually in clip space, it is the VPOS pixel coordinate value
     $FragInputs.positionPredisplacementRWS:     output.positionPredisplacementRWS = input.positionPredisplacementRWS;
-    $FragInputs.tangentToWorld:                 output.tangentToWorld =             BuildTangentToWorld(input.tangentWS, input.normalWS);
+    $FragInputs.tangentToWorld:                 output.tangentToWorld =             GetLocalFrame(input.normalWS);
     $FragInputs.texCoord0:                      output.texCoord0 =                  input.texCoord0;
     $FragInputs.texCoord1:                      output.texCoord1 =                  input.texCoord1;
 

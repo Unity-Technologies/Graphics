@@ -148,7 +148,7 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 
     if(!GetMeshAndElementIndex(input, element))
         return output; // Culled index.
-
+    UNITY_TRANSFER_INSTANCE_ID(input, output); //Transfer again because we modify it in GetMeshAndElementIndex
     if(!GetInterpolatorAndElementData(output, element))
         return output; // Dead particle.
 

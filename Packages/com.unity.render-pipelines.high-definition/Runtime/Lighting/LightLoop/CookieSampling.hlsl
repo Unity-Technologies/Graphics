@@ -14,6 +14,9 @@
 // Adjust UVs using the LOD padding size
 float2 RemapUVWithPadding(float2 coord, float2 size, float rcpPaddingWidth, float lod)
 {
+    // This is likely wrong because for the proper calculation, size must be the size without padding.
+    // TextureAtlas allocator returns scale offset with padding inclusive. So the size here is the size with padding.
+    // The error is subtle but can lead to some unexpected results.
     float2 scale = rcp(size + rcpPaddingWidth) * size;
     float2 offset = 0.5 * (1.0 - scale);
 

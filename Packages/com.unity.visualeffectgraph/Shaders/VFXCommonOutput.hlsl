@@ -118,6 +118,11 @@ float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
 {
     float fade = 1.0f;
     #if USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)
+    #if defined(SHADER_STAGE_RAY_TRACING)
+    //In raytracing, if the object is out of screen, don't apply soft particle fade
+        if(any(i.VFX_VARYING_POSCS < 0) || any(i.VFX_VARYING_POSCS > _ScreenSize.xy) )
+            return fade;
+    #endif
     float sceneZ, selfZ;
     if(IsPerspectiveProjection())
     {
@@ -129,8 +134,14 @@ float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
         sceneZ = VFXLinearEyeDepthOrthographic(VFXSampleDepth(i.VFX_VARYING_POSCS));
         selfZ = VFXLinearEyeDepthOrthographic(i.VFX_VARYING_POSCS.z);
     }
-    fade = saturate(i.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE * (sceneZ - selfZ));
+    float delta  = sceneZ - selfZ;
+    #if defined(SHADER_STAGE_RAY_TRACING)
+    //Don't fade when the object is occluded
+    if(delta >= 0)
+    #endif
+        fade = saturate(i.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE * delta);
     fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
+
     #endif
     return fade;
 }
@@ -219,10 +230,11 @@ float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
 }
 #endif
 
-bool TryGetElementToVFXBaseIndex(uint elementIndex, out uint elementToVFXBaseIndex)
+bool TryGetElementToVFXBaseIndex(uint elementIndex, uint instanceIndex, out uint elementToVFXBaseIndex, uint currentFrameIndex)
 {
     elementToVFXBaseIndex = ~0u;
 #if defined(VFX_FEATURE_MOTION_VECTORS)
+    elementIndex += RAW_CAPACITY * instanceIndex;
 #if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
     uint viewTotal = asuint(cameraXRSettings.x);
     uint viewCount = asuint(cameraXRSettings.y);
@@ -232,7 +244,7 @@ bool TryGetElementToVFXBaseIndex(uint elementIndex, out uint elementToVFXBaseInd
     elementToVFXBaseIndex = elementIndex * 13;
 #endif
     uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
-    return asuint(currentFrameIndex) - previousFrameIndex == 1u;
+    return currentFrameIndex - previousFrameIndex == 1u;
 #endif
     return false;
 }

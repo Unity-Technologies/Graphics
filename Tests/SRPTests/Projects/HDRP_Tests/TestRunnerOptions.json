@@ -1,7 +1,0 @@
-{
-    "disableBatchMode": true,
-    "allowedGraphicsTarget": {
-        "metal": ["amd"]
-    }
-}
-  

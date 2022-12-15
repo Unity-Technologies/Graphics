@@ -90,6 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Thickness of the waves
             public float tipThickness;
 
+            public uint frontFace;
+
             // Integer that allows us to track which water surface this is
             public uint surfaceIndex;
         }

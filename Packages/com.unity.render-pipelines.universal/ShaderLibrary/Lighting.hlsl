@@ -37,7 +37,7 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
 }
 
 half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
-    half3 lightColor, half3 lightDirectionWS, half lightAttenuation,
+    half3 lightColor, half3 lightDirectionWS, float lightAttenuation,
     half3 normalWS, half3 viewDirectionWS,
     half clearCoatMask, bool specularHighlightsOff)
 {
@@ -88,7 +88,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, ha
     return LightingPhysicallyBased(brdfData, noClearCoat, light, normalWS, viewDirectionWS, 0.0, specularHighlightsOff);
 }
 
-half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
+half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, float lightAttenuation, half3 normalWS, half3 viewDirectionWS)
 {
     Light light;
     light.color = lightColor;
@@ -104,7 +104,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, ha
     return LightingPhysicallyBased(brdfData, noClearCoat, light, normalWS, viewDirectionWS, 0.0, specularHighlightsOff);
 }
 
-half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS, bool specularHighlightsOff)
+half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, float lightAttenuation, half3 normalWS, half3 viewDirectionWS, bool specularHighlightsOff)
 {
     Light light;
     light.color = lightColor;
@@ -269,7 +269,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     BRDFData brdfDataClearCoat = CreateClearCoatBRDFData(surfaceData, brdfData);
     half4 shadowMask = CalculateShadowMask(inputData);
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
-    uint meshRenderingLayers = GetMeshRenderingLightLayer();
+    uint meshRenderingLayers = GetMeshRenderingLayer();
     Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
 
     // NOTE: We don't apply AO to the GI here because it's done in the lighting calculation below...
@@ -280,8 +280,9 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     lightingData.giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                               inputData.bakedGI, aoFactor.indirectAmbientOcclusion, inputData.positionWS,
                                               inputData.normalWS, inputData.viewDirectionWS);
-
+#ifdef _LIGHT_LAYERS
     if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+#endif
     {
         lightingData.mainLightColor = LightingPhysicallyBased(brdfData, brdfDataClearCoat,
                                                               mainLight,
@@ -292,12 +293,14 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     #if defined(_ADDITIONAL_LIGHTS)
     uint pixelLightCount = GetAdditionalLightsCount();
 
-    #if USE_CLUSTERED_LIGHTING
+    #if USE_FORWARD_PLUS
     for (uint lightIndex = 0; lightIndex < min(_AdditionalLightsDirectionalCount, MAX_VISIBLE_LIGHTS); lightIndex++)
     {
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
+#ifdef _LIGHT_LAYERS
         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+#endif
         {
             lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
                                                                           inputData.normalWS, inputData.viewDirectionWS,
@@ -309,7 +312,9 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
+#ifdef _LIGHT_LAYERS
         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+#endif
         {
             lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
                                                                           inputData.normalWS, inputData.viewDirectionWS,
@@ -359,7 +364,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     }
     #endif
 
-    uint meshRenderingLayers = GetMeshRenderingLightLayer();
+    uint meshRenderingLayers = GetMeshRenderingLayer();
     half4 shadowMask = CalculateShadowMask(inputData);
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
     Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
@@ -369,7 +374,9 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     inputData.bakedGI *= surfaceData.albedo;
 
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
+#ifdef _LIGHT_LAYERS
     if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+#endif
     {
         lightingData.mainLightColor += CalculateBlinnPhong(mainLight, inputData, surfaceData);
     }
@@ -377,11 +384,13 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #if defined(_ADDITIONAL_LIGHTS)
     uint pixelLightCount = GetAdditionalLightsCount();
 
-    #if USE_CLUSTERED_LIGHTING
+    #if USE_FORWARD_PLUS
     for (uint lightIndex = 0; lightIndex < min(_AdditionalLightsDirectionalCount, MAX_VISIBLE_LIGHTS); lightIndex++)
     {
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+#ifdef _LIGHT_LAYERS
         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+#endif
         {
             lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
         }
@@ -390,7 +399,9 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+#ifdef _LIGHT_LAYERS
         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+#endif
         {
             lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
         }
@@ -398,7 +409,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
-    lightingData.vertexLightingColor += inputData.vertexLighting;
+    lightingData.vertexLightingColor += inputData.vertexLighting * surfaceData.albedo;
     #endif
 
     return CalculateFinalColor(lightingData, surfaceData.alpha);

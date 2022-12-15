@@ -14,7 +14,7 @@ public class GraphicsTests
 #endif
     public const string path = "Assets/ReferenceImages";
 
-    [UnityTest, Category("GraphicsTest")]
+    [UnityTest, Category("GraphicsTest"), Ignore("Tests are unstable. See case 1411201.")]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases(path)]
     public IEnumerator Run(GraphicsTestCase testCase)

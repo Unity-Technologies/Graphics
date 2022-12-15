@@ -8,26 +8,12 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookie.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Clustering.hlsl"
 
-///////////////////////////////////////////////////////////////////////////////
-//                             Light Layers                                   /
-///////////////////////////////////////////////////////////////////////////////
-
-// Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
-uint GetMeshRenderingLightLayer()
-{
-    #ifdef _LIGHT_LAYERS
-    return (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT;
-    #else
-    return DEFAULT_LIGHT_LAYERS;
-    #endif
-}
-
 // Abstraction over Light shading data.
 struct Light
 {
     half3   direction;
     half3   color;
-    half    distanceAttenuation;
+    float   distanceAttenuation; // full-float precision required on some platforms
     half    shadowAttenuation;
     uint    layerMask;
 };
@@ -40,12 +26,12 @@ struct Light
     #define _USE_WEBGL1_LIGHTS 0
 #endif
 
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     #define LIGHT_LOOP_BEGIN(lightCount) \
     ClusteredLightLoop cll = ClusteredLightLoopInit(inputData.normalizedScreenSpaceUV, inputData.positionWS); \
-    while (ClusteredLightLoopNextWord(cll)) { while (ClusteredLightLoopNextLight(cll)) { \
+    [loop] while (ClusteredLightLoopNext(cll)) { \
         uint lightIndex = ClusteredLightLoopGetLightIndex(cll);
-    #define LIGHT_LOOP_END } }
+    #define LIGHT_LOOP_END }
 #elif !_USE_WEBGL1_LIGHTS
     #define LIGHT_LOOP_BEGIN(lightCount) \
     for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
@@ -104,7 +90,7 @@ Light GetMainLight()
 {
     Light light;
     light.direction = half3(_MainLightPosition.xyz);
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     light.distanceAttenuation = 1.0;
 #else
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
@@ -112,11 +98,7 @@ Light GetMainLight()
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
-#ifdef _LIGHT_LAYERS
     light.layerMask = _MainLightLayerMask;
-#else
-    light.layerMask = DEFAULT_LIGHT_LAYERS;
-#endif
 
     return light;
 }
@@ -164,23 +146,13 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
-#ifdef _LIGHT_LAYERS
     uint lightLayerMask = _AdditionalLightsBuffer[perObjectLightIndex].layerMask;
-#else
-    uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
-#endif
-
 #else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
-#ifdef _LIGHT_LAYERS
     uint lightLayerMask = asuint(_AdditionalLightsLayerMasks[perObjectLightIndex]);
-#else
-    uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
-#endif
-
 #endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
@@ -189,7 +161,8 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
-    half attenuation = half(DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw));
+    // full-float precision required on some platforms
+    float attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
 
     Light light;
     light.direction = lightDirection;
@@ -263,7 +236,7 @@ int GetPerObjectLightIndex(uint index)
 // index to a perObjectLightIndex
 Light GetAdditionalLight(uint i, float3 positionWS)
 {
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     int lightIndex = i;
 #else
     int lightIndex = GetPerObjectLightIndex(i);
@@ -273,7 +246,7 @@ Light GetAdditionalLight(uint i, float3 positionWS)
 
 Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 {
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     int lightIndex = i;
 #else
     int lightIndex = GetPerObjectLightIndex(i);
@@ -310,7 +283,7 @@ Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientO
 
 int GetAdditionalLightsCount()
 {
-#if USE_CLUSTERED_LIGHTING
+#if USE_FORWARD_PLUS
     // Counting the number of lights in clustered requires traversing the bit list, and is not needed up front.
     return 0;
 #else

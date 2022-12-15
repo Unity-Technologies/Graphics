@@ -33,8 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for screen space reflection and ray traced reflections.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Screen Space Reflection", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Override-Screen-Space-Reflection")]
+    [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Override-Screen-Space-Reflection")]
     public class ScreenSpaceReflection : VolumeComponentWithQuality
     {
         bool UsesRayTracingQualityMode()
@@ -53,11 +54,11 @@ namespace UnityEngine.Rendering.HighDefinition
         #region General
         /// <summary>Enable Screen Space Reflections.</summary>
         [Tooltip("Enable Screen Space Reflections.")]
-        public BoolParameter enabled = new BoolParameter(true);
+        public BoolParameter enabled = new BoolParameter(true, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>Enable Transparent Screen Space Reflections.</summary>
         [Tooltip("Enable Transparent Screen Space Reflections.")]
-        public BoolParameter enabledTransparent = new BoolParameter(true);
+        public BoolParameter enabledTransparent = new BoolParameter(true, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
         /// </summary>
@@ -202,6 +203,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public RayTracingFallbackHierachyParameter lastBounceFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
 
         /// <summary>
+        /// Controls the dimmer applied to the ambient and legacy light probes.
+        /// </summary>
+        [Tooltip("Controls the dimmer applied to the ambient and legacy light probes.")]
+        [AdditionalProperty]
+        public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
         /// </summary>
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
@@ -229,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
 
         /// <summary>
-        /// Clamps the exposed intensity.
+        /// Clamps the exposed intensity, this only affects reflections on opaque objects.
         /// </summary>
         public float clampValue
         {
@@ -243,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_ClampValue.value = value; }
         }
         [SerializeField, FormerlySerializedAs("clampValue")]
-        [Tooltip("Controls the clamp of intensity.")]
+        [Tooltip("Clamps the exposed intensity, this only affects reflections on opaque objects.")]
         private ClampedFloatParameter m_ClampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
 
         /// <summary>

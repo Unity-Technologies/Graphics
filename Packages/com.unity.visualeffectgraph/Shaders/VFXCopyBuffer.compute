@@ -1,18 +1,31 @@
 #pragma kernel CSVFXCopyBuffer
+#pragma kernel CSVFXCopyStructBuffer
 #pragma kernel CSVFXInitDeadListBuffer
 #pragma kernel CSVFXZeroInitBuffer
+#pragma kernel CSVFXBatchCopyCountUint
+#pragma kernel CSVFXBatchCopyCountKvp
+#pragma kernel CSVFXInitBoundsBuffer
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3
 
 #include "HLSLSupport.cginc"
 
 CBUFFER_START(Uniform)
     uint dstOffset;
     uint srcOffset;
+    uint srcStride;
     uint size;
     uint dispatchWidth;
 CBUFFER_END
 
+struct Kvp
+{
+    float sortKey;
+    uint index;
+};
+
+StructuredBuffer<uint> srcStructBufferUint;
+StructuredBuffer<Kvp> srcStructBufferKvp;
 ByteAddressBuffer srcBuffer;
 RWByteAddressBuffer dstBuffer;
 RWStructuredBuffer<uint> dstStructBuffer;
@@ -31,12 +44,23 @@ void CSVFXCopyBuffer(uint3 id : SV_DispatchThreadID)
     }
 }
 
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXCopyStructBuffer(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < size) /* One dword is copied by thread */
+    {
+        uint srcIndex = id.x + srcOffset ;
+        uint dstIndex = id.x + dstOffset ;
+        dstStructBuffer[dstIndex] = srcStructBufferUint[srcIndex];
+    }
+}
+
 [numthreads(NB_THREADS_PER_GROUP, 1, 1)]
 void CSVFXInitDeadListBuffer(uint3 groupId : SV_GroupID, uint3 threadId : SV_DispatchThreadID)
 {
     uint index = groupId.y * dispatchWidth * NB_THREADS_PER_GROUP + threadId.x;
     if (index < size)
-        dstStructBuffer[index] = size - index - 1u;
+        dstStructBuffer[dstOffset + index] = size - index - 1u;
 }
 
 [numthreads(NB_THREADS_PER_GROUP, 1, 1)]
@@ -44,5 +68,33 @@ void CSVFXZeroInitBuffer(uint3 groupId : SV_GroupID, uint3 threadId : SV_Dispatc
 {
     uint index = groupId.y * dispatchWidth * NB_THREADS_PER_GROUP + threadId.x;
     if (index < size)
-        dstBuffer.Store(index << 2, 0u);
+        dstBuffer.Store((dstOffset + index) << 2, 0u);
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXBatchCopyCountUint(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < size) /* One dword is copied by thread */
+    {
+        uint load = srcStructBufferUint[id.x];
+        dstBuffer.Store((id.x + dstOffset) << 2, load);
+    }
+}
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXBatchCopyCountKvp(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < size) /* One dword is copied by thread */
+    {
+        uint load = srcStructBufferKvp[id.x].index;
+        dstBuffer.Store((id.x + dstOffset) << 2, load);
+    }
+}
+
+
+[numthreads(NB_THREADS_PER_GROUP, 1, 1)]
+void CSVFXInitBoundsBuffer(uint3 groupId : SV_GroupID, uint3 threadId : SV_DispatchThreadID)
+{
+    uint index = groupId.y * dispatchWidth * NB_THREADS_PER_GROUP + threadId.x;
+    if (index < size)
+        dstStructBuffer[index] = index % 6 < 3 ? 0xffffffff : 0u;
 }

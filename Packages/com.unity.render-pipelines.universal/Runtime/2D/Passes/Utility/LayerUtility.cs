@@ -4,6 +4,10 @@ namespace UnityEngine.Rendering.Universal
 {
     internal struct LayerBatch
     {
+#if UNITY_EDITOR
+        public int startIndex;
+        public int endIndex;
+#endif
         public int startLayerID;
         public int endLayerValue;
         public SortingLayerRange layerRange;
@@ -66,13 +70,24 @@ namespace UnityEngine.Rendering.Universal
         {
             var layerId1 = sortingLayers[layerIndex1].id;
             var layerId2 = sortingLayers[layerIndex2].id;
+
             foreach (var light in lightCullResult.visibleLights)
             {
-                // If the lit layers are different, or if they are lit but this is a shadow casting light then don't batch.
-                bool lightCastsShadows = (light.lightType != Light2D.LightType.Global && light.shadowsEnabled);
-                if ((light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2)) || (light.IsLitLayer(layerId1) && lightCastsShadows))
+                // If the lit layers are different don't batch.
+                if (light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2))
                     return false;
             }
+
+            foreach (var group in lightCullResult.visibleShadows)
+            {
+                foreach (var shadowCaster in group.GetShadowCasters())
+                {
+                    // Don't batch when the layer has different shadow casters
+                    if (shadowCaster.IsShadowedLayer(layerId1) != shadowCaster.IsShadowedLayer(layerId2))
+                        return false;
+                }
+            }
+
             return true;
         }
 
@@ -140,6 +155,10 @@ namespace UnityEngine.Rendering.Universal
                 // Renderer within this range share the same set of lights so they should be rendered together.
                 var sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
+#if UNITY_EDITOR
+                layerBatch.startIndex = i;
+                layerBatch.endIndex = upperLayerInBatch;
+#endif
                 layerBatch.startLayerID = layerToRender;
                 layerBatch.endLayerValue = endLayerValue;
                 layerBatch.layerRange = sortingLayerRange;

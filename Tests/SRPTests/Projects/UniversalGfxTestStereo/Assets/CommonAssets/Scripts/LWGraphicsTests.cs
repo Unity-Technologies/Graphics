@@ -71,7 +71,7 @@ public class LWGraphicsTests
         // so we need to capture and reload the resulting file.
         ScreenCapture.CaptureScreenshot(tempScreenshotFile, ScreenCapture.StereoScreenCaptureMode.BothEyes);
 
-        // NOTE: there's discussions around whether Unity has actually documented this correctly. 
+        // NOTE: there's discussions around whether Unity has actually documented this correctly.
         // Unity says: next frame MUST have the file ready
         // Community says: not true, file write might take longer, so have to explicitly check the file handle before use
         // https://forum.unity.com/threads/how-to-wait-for-capturescreen-to-complete.172194/

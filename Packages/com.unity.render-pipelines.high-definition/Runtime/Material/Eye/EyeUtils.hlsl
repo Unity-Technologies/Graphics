@@ -3,9 +3,14 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 
+// This defines the radius of the iris in the geometry provided by the HDRP package
+#define BUILTIN_IRIS_RADIUS 0.22
+#define BUILTIN_CORNEA_IOR 1.3333
+#define BUILTIN_IRIS_PLANE_OFFSET 0.02
+
 void GetScleraUVLocation(float3 positionOS, out float2 scleraUV)
 {
-    scleraUV =  positionOS.xy + float2(0.5, 0.5);
+    scleraUV = positionOS.xy + float2(0.5, 0.5);
 }
 
 void GetIrisUVLocation(float3 positionOS, float irisRadius, out float2 irisUV)

@@ -48,7 +48,7 @@ void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, o
         float distSq = dist * dist;
 
         L = -light.forward;
-        distances.xyz = float3(1.0f, distSq, 1.0);
+        distances.xyz = float3(dist, distSq, 1.0);
     }
     else
     {

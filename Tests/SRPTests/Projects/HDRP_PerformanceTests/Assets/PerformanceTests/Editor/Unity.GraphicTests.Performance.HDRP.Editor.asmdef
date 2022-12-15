@@ -5,6 +5,7 @@
         "Unity.PerformanceTesting",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Editor",
         "Unity.GraphicTests.Performance.Runtime",
         "UnityEngine.TestRunner",
         "Unity.GraphicTests.Performance.Editor",

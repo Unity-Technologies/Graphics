@@ -15,7 +15,6 @@
     #define SMAA_PRESET_HIGH
 #endif
 
-TEXTURE2D_X(_ColorTexture);
 TEXTURE2D_X(_BlendTexture);
 TEXTURE2D(_AreaTexture);
 TEXTURE2D(_SearchTexture);
@@ -42,7 +41,7 @@ float4 _Metrics;
 struct VaryingsEdge
 {
     float4 positionCS    : SV_POSITION;
-    float2 uv            : TEXCOORD0;
+    float2 texcoord      : TEXCOORD0;
     float4 offsets[3]    : TEXCOORD1;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -52,20 +51,26 @@ VaryingsEdge VertEdge(Attributes input)
     VaryingsEdge output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-#if _USE_DRAW_PROCEDURAL
-    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
+
+#if SHADER_API_GLES
+    float4 pos = input.positionOS;
+    float2 uv  = input.uv;
 #else
-    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
-    output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
+    float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
+    float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 #endif
-    SMAAEdgeDetectionVS(output.uv, output.offsets);
+
+    output.positionCS = pos;
+    output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
+
+    SMAAEdgeDetectionVS(output.texcoord, output.offsets);
     return output;
 }
 
 float4 FragEdge(VaryingsEdge input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return float4(SMAAColorEdgeDetectionPS(input.uv, input.offsets, _ColorTexture), 0.0, 0.0);
+    return float4(SMAAColorEdgeDetectionPS(input.texcoord, input.offsets, _BlitTexture), 0.0, 0.0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -74,7 +79,7 @@ float4 FragEdge(VaryingsEdge input) : SV_Target
 struct VaryingsBlend
 {
     float4 positionCS    : SV_POSITION;
-    float2 uv            : TEXCOORD0;
+    float2 texcoord      : TEXCOORD0;
     float2 pixcoord      : TEXCOORD1;
     float4 offsets[3]    : TEXCOORD2;
     UNITY_VERTEX_OUTPUT_STEREO
@@ -85,20 +90,26 @@ VaryingsBlend VertBlend(Attributes input)
     VaryingsBlend output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-#if _USE_DRAW_PROCEDURAL
-    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
+
+#if SHADER_API_GLES
+    float4 pos = input.positionOS;
+    float2 uv  = input.uv;
 #else
-    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
-    output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
+    float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
+    float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 #endif
-    SMAABlendingWeightCalculationVS(output.uv, output.pixcoord, output.offsets);
+
+    output.positionCS = pos;
+    output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
+
+    SMAABlendingWeightCalculationVS(output.texcoord, output.pixcoord, output.offsets);
     return output;
 }
 
 float4 FragBlend(VaryingsBlend input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return SMAABlendingWeightCalculationPS(input.uv, input.pixcoord, input.offsets, _ColorTexture, _AreaTexture, _SearchTexture, 0);
+    return SMAABlendingWeightCalculationPS(input.texcoord, input.pixcoord, input.offsets, _BlitTexture, _AreaTexture, _SearchTexture, 0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -107,7 +118,7 @@ float4 FragBlend(VaryingsBlend input) : SV_Target
 struct VaryingsNeighbor
 {
     float4 positionCS    : SV_POSITION;
-    float2 uv            : TEXCOORD0;
+    float2 texcoord      : TEXCOORD0;
     float4 offset        : TEXCOORD1;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -117,20 +128,26 @@ VaryingsNeighbor VertNeighbor(Attributes input)
     VaryingsNeighbor output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-#if _USE_DRAW_PROCEDURAL
-    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
+
+#if SHADER_API_GLES
+    float4 pos = input.positionOS;
+    float2 uv  = input.uv;
 #else
-    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
-    output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
+    float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
+    float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 #endif
-    SMAANeighborhoodBlendingVS(output.uv, output.offset);
+
+    output.positionCS = pos;
+    output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
+
+    SMAANeighborhoodBlendingVS(output.texcoord, output.offset);
     return output;
 }
 
 float4 FragNeighbor(VaryingsNeighbor input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return SMAANeighborhoodBlendingPS(input.uv, input.offset, _ColorTexture, _BlendTexture);
+    return SMAANeighborhoodBlendingPS(input.texcoord, input.offset, _BlitTexture, _BlendTexture);
 }
 
 #endif // UNIVERSAL_POSTPROCESSING_SMAA_BRIDGE

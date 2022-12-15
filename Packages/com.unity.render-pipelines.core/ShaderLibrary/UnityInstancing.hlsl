@@ -36,6 +36,12 @@
 #endif
 #if defined(UNITY_SUPPORT_INSTANCING) && defined(DOTS_INSTANCING_ON)
     #define UNITY_DOTS_INSTANCING_ENABLED
+
+    // On GL & GLES, use UBO path, on every other platform use SSBO path (including Switch, even if it defines SHADER_API_GLCORE)
+    #if (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)) && (!defined(SHADER_API_SWITCH))
+        #define UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+    #endif
+
 #endif
 #if defined(UNITY_SUPPORT_STEREO_INSTANCING) && defined(STEREO_INSTANCING_ON)
     #define UNITY_STEREO_INSTANCING_ENABLED
@@ -47,8 +53,18 @@
     #define UNITY_ANY_INSTANCING_ENABLED 0
 #endif
 
-#if defined(DOTS_INSTANCING_ON) && (SHADER_TARGET < 45)
-#error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater).
+#if defined(DOTS_INSTANCING_ON)
+    #if defined(UNITY_DOTS_INSTANCING_UNIFORM_BUFFER)
+        #if (SHADER_TARGET < 35)
+            #error The DOTS_INSTANCING_ON keyword requires shader model 3.5 or greater ("#pragma target 3.5" or greater) on OpenGL. Make sure to use target 3.5 or greater in all SubShaders or variants that use DOTS_INSTANCING_ON, and to NOT use DOTS_INSTANCING_ON in any SubShaders that must use a lower target version.
+        #endif
+    #else
+        // DOTS_INSTANCING_ON requires SM4.5 on D3D11, but we skip issuing this error for SM3.5 as a workaround to d3d11 being enabled
+        // for SM2.0/SM3.5 subshaders in URP.
+        #if (defined(SHADER_API_D3D11) && (SHADER_TARGET < 35)) || (!defined(SHADER_API_D3D11) && (SHADER_TARGET < 45))
+            #error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater). Make sure to use target 4.5 or greater in all SubShaders or variants that use DOTS_INSTANCING_ON, and to NOT use DOTS_INSTANCING_ON in any SubShaders that must use a lower target version.
+        #endif
+    #endif
 #endif
 
 #if defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
@@ -79,6 +95,10 @@
         UNITY_INSTANCING_CBUFFER_SCOPE_END
     #endif
 
+#if defined(SHADER_STAGE_RAY_TRACING)
+    #define DEFAULT_UNITY_VERTEX_INPUT_INSTANCE_ID uint instanceID;
+    #define UNITY_GET_INSTANCE_ID(input)        input.instanceID
+#else
     #ifdef SHADER_API_PSSL
         #define DEFAULT_UNITY_VERTEX_INPUT_INSTANCE_ID uint instanceID;
         #define UNITY_GET_INSTANCE_ID(input)    _GETINSTANCEID(input)
@@ -86,6 +106,7 @@
         #define DEFAULT_UNITY_VERTEX_INPUT_INSTANCE_ID uint instanceID : SV_InstanceID;
         #define UNITY_GET_INSTANCE_ID(input)    input.instanceID
     #endif
+#endif
 
 #else
     #define DEFAULT_UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -159,7 +180,7 @@
 #endif
 
 ////////////////////////////////////////////////////////
-// - UNITY_SETUP_INSTANCE_ID        Should be used at the very beginning of the vertex shader / fragment shader,
+// - UNITY_SETUP_INSTANCE_ID        Should be used at the very beginning of the vertex shader / fragment shader / ray tracing hit shaders,
 //                                  so that succeeding code can have access to the global unity_InstanceID.
 //                                  Also procedural function is called to setup instance data.
 // - UNITY_TRANSFER_INSTANCE_ID     Copy instance ID from input struct to output struct. Used in vertex shader.
@@ -188,6 +209,9 @@
                 unity_StereoEyeIndex = inputInstanceID % _XRViewCount;
                 unity_InstanceID = unity_BaseInstanceID + (inputInstanceID / _XRViewCount);
             #endif
+        #elif defined(SHADER_STAGE_RAY_TRACING)
+            // InstanceIndex() intrinsic is the global ray tracing instance index in the TLAS and unity_BaseInstanceID is where the array of instances starts in the TLAS
+            unity_InstanceID = InstanceIndex() - unity_BaseInstanceID;
         #else
             unity_InstanceID = inputInstanceID + unity_BaseInstanceID;
         #endif
@@ -200,17 +224,25 @@
             void UNITY_INSTANCING_PROCEDURAL_FUNC(); // forward declaration of the procedural function
             #define DEFAULT_UNITY_SETUP_INSTANCE_ID(input)      { UnitySetupInstanceID(UNITY_GET_INSTANCE_ID(input)); UNITY_INSTANCING_PROCEDURAL_FUNC();}
         #endif
+    #elif defined(SHADER_STAGE_RAY_TRACING)
+        #define DEFAULT_UNITY_SETUP_INSTANCE_ID                 { UnitySetupInstanceID(0);}
     #else
         #define DEFAULT_UNITY_SETUP_INSTANCE_ID(input)          { UnitySetupInstanceID(UNITY_GET_INSTANCE_ID(input));}
     #endif
     #define UNITY_TRANSFER_INSTANCE_ID(input, output)   output.instanceID = UNITY_GET_INSTANCE_ID(input)
+#elif defined(SHADER_STAGE_RAY_TRACING)
+    #define DEFAULT_UNITY_SETUP_INSTANCE_ID
 #else
     #define DEFAULT_UNITY_SETUP_INSTANCE_ID(input)
     #define UNITY_TRANSFER_INSTANCE_ID(input, output)
 #endif
 
 #if !defined(UNITY_SETUP_INSTANCE_ID)
-#   define UNITY_SETUP_INSTANCE_ID(input) DEFAULT_UNITY_SETUP_INSTANCE_ID(input)
+    #if defined(SHADER_STAGE_RAY_TRACING)
+        #define UNITY_SETUP_INSTANCE_ID DEFAULT_UNITY_SETUP_INSTANCE_ID
+    #else
+        #define UNITY_SETUP_INSTANCE_ID(input) DEFAULT_UNITY_SETUP_INSTANCE_ID(input)
+    #endif
 #endif
 
 ////////////////////////////////////////////////////////
@@ -242,14 +274,23 @@
         #undef UNITY_SETUP_INSTANCE_ID
         #define UNITY_SETUP_INSTANCE_ID(input) {\
             DEFAULT_UNITY_SETUP_INSTANCE_ID(input);\
-            SetupDOTSVisibleInstancingData();}
+            SetupDOTSVisibleInstancingData();\
+            UNITY_SETUP_DOTS_SH_COEFFS; }
     #endif
 
+#else
+
+#if defined(SHADER_STAGE_RAY_TRACING)
+    #define UNITY_INSTANCING_BUFFER_START(buf)
+    #define UNITY_INSTANCING_BUFFER_END(arr)
+    #define UNITY_DEFINE_INSTANCED_PROP(type, var)  StructuredBuffer<type> var;
+    #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   var[unity_InstanceID]
 #else
     #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {
     #define UNITY_INSTANCING_BUFFER_END(arr)        } arr##Array[UNITY_INSTANCED_ARRAY_SIZE]; UNITY_INSTANCING_CBUFFER_SCOPE_END
     #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var;
     #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   arr##Array[unity_InstanceID].var
+#endif
 
     #define UNITY_DOTS_INSTANCING_START(name)
     #define UNITY_DOTS_INSTANCING_END(name)
@@ -287,6 +328,10 @@
         #ifdef DYNAMICLIGHTMAP_ON
             #define UNITY_USE_DYNAMICLIGHTMAPST_ARRAY
         #endif
+    #endif
+
+    #if defined(UNITY_INSTANCED_RENDERER_BOUNDS)
+        #define UNITY_USE_RENDERER_BOUNDS
     #endif
 
     #if defined(UNITY_INSTANCED_SH) && !defined(LIGHTMAP_ON)
@@ -328,6 +373,12 @@
             UNITY_DEFINE_INSTANCED_PROP(float, unity_RenderingLayerArray)
             #define unity_RenderingLayer UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_RenderingLayerArray).xxxx
         #endif
+        #if defined(UNITY_USE_RENDERER_BOUNDS)
+            UNITY_DEFINE_INSTANCED_PROP(float4, unity_RendererBounds_MinArray)
+            UNITY_DEFINE_INSTANCED_PROP(float4, unity_RendererBounds_MaxArray)
+            #define unity_RendererBounds_Min UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_RendererBounds_MinArray)
+            #define unity_RendererBounds_Max UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_RendererBounds_MaxArray)
+        #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins1)
 
     UNITY_INSTANCING_BUFFER_START(PerDraw2)
@@ -368,23 +419,27 @@
     UNITY_INSTANCING_BUFFER_END(unity_Builtins3)
     #endif
 
-    // TODO: What about UNITY_DONT_INSTANCE_OBJECT_MATRICES for DOTS?
     #if defined(UNITY_DOTS_INSTANCING_ENABLED)
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
         #undef UNITY_PREV_MATRIX_M
         #undef UNITY_PREV_MATRIX_I_M
 
+        #define UNITY_DOTS_MATRIX_M        LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld))
+        #define UNITY_DOTS_MATRIX_I_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject))
+        #define UNITY_DOTS_PREV_MATRIX_M   LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousM))
+        #define UNITY_DOTS_PREV_MATRIX_I_M LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousMI))
+
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-            #define UNITY_MATRIX_M        ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld)))
-            #define UNITY_MATRIX_I_M      ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject)))
-            #define UNITY_PREV_MATRIX_M   ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousM)))
-            #define UNITY_PREV_MATRIX_I_M ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousMI)))
+            #define UNITY_MATRIX_M        ApplyCameraTranslationToMatrix(UNITY_DOTS_MATRIX_M)
+            #define UNITY_MATRIX_I_M      ApplyCameraTranslationToInverseMatrix(UNITY_DOTS_MATRIX_I_M)
+            #define UNITY_PREV_MATRIX_M   ApplyCameraTranslationToMatrix(UNITY_DOTS_PREV_MATRIX_M)
+            #define UNITY_PREV_MATRIX_I_M ApplyCameraTranslationToInverseMatrix(UNITY_DOTS_PREV_MATRIX_I_M)
         #else
-            #define UNITY_MATRIX_M        LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld))
-            #define UNITY_MATRIX_I_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject))
-            #define UNITY_PREV_MATRIX_M   LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousM))
-            #define UNITY_PREV_MATRIX_I_M LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousMI))
+            #define UNITY_MATRIX_M        UNITY_DOTS_MATRIX_M
+            #define UNITY_MATRIX_I_M      UNITY_DOTS_MATRIX_I_M
+            #define UNITY_PREV_MATRIX_M   UNITY_DOTS_PREV_MATRIX_M
+            #define UNITY_PREV_MATRIX_I_M UNITY_DOTS_PREV_MATRIX_I_M
         #endif
     #else
 

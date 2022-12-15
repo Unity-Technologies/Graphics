@@ -2,21 +2,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
-using UnityEngine;
-using UnityEditor.VFX.Block.Test;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
-
-
-using Object = UnityEngine.Object;
 using System.IO;
-using UnityEngine.TestTools;
 using System.Collections;
-using System.Threading;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using UnityEditor.VersionControl;
+
+using NUnit.Framework;
+
+using UnityEditor.VFX.Block.Test;
 using UnityEditor.VFX.UI;
+
+using UnityEngine;
+using UnityEngine.VFX;
+using UnityEngine.TestTools;
+
 using Task = System.Threading.Tasks.Task;
 
 namespace UnityEditor.VFX.Test
@@ -454,6 +453,112 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        [Test]
+        public void Sanitize_MeshSampling_To_OutOfExperimental_MeshSampling()
+        {
+            string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSanitizeMeshSampling.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            Assert.AreEqual(2, graph.children.OfType<VFXBasicUpdate>().Count());
+            Assert.AreEqual(4, graph.children.OfType<Operator.SampleMesh>().Count());
+
+            var basicUpdateInLocal = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.space == VFXSpace.Local);
+            var basicUpdateInWorld = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.space == VFXSpace.World);
+
+            //N.B. Tangent is transform into Tangent (vec3) + BitangentSigne (float), if sanitize has been done, we have another input
+            var sampleMeshAll = graph.children.OfType<Operator.SampleMesh>().FirstOrDefault(o => (Operator.SampleMesh.SourceType)o.GetSettingValue("source") == Operator.SampleMesh.SourceType.Mesh && o.outputSlots.Count != 4);
+            var sampleSkinnedAll = graph.children.OfType<Operator.SampleMesh>().FirstOrDefault(o => (Operator.SampleMesh.SourceType)o.GetSettingValue("source") == Operator.SampleMesh.SourceType.SkinnedMeshRenderer && o.outputSlots.Count != 4);
+
+            var sampleMeshSet = graph.children.OfType<Operator.SampleMesh>().FirstOrDefault(o => (Operator.SampleMesh.SourceType)o.GetSettingValue("source") == Operator.SampleMesh.SourceType.Mesh && o.outputSlots.Count == 4);
+            var sampleSkinnedSet = graph.children.OfType<Operator.SampleMesh>().FirstOrDefault(o => (Operator.SampleMesh.SourceType)o.GetSettingValue("source") == Operator.SampleMesh.SourceType.SkinnedMeshRenderer && o.outputSlots.Count == 4);
+
+            Assert.IsNotNull(basicUpdateInLocal);
+            Assert.IsNotNull(basicUpdateInWorld);
+
+            Assert.IsNotNull(sampleMeshAll);
+            Assert.IsNotNull(sampleSkinnedAll);
+
+            Assert.IsNotNull(sampleMeshSet);
+            Assert.IsNotNull(sampleSkinnedSet);
+
+            var positionMeshLocal = basicUpdateInLocal.children.OfType<Block.PositionMesh>().FirstOrDefault(o => (Operator.SampleMesh.SourceType)o.GetSettingValue("sourceMesh") == Operator.SampleMesh.SourceType.Mesh);
+            var positionSkinnedLocal = basicUpdateInLocal.children.OfType<Block.PositionMesh>().FirstOrDefault(o => (Operator.SampleMesh.SourceType)o.GetSettingValue("sourceMesh") == Operator.SampleMesh.SourceType.SkinnedMeshRenderer);
+
+            var positionMeshWorld = basicUpdateInWorld.children.OfType<Block.PositionMesh>().FirstOrDefault(o => (Operator.SampleMesh.SourceType)o.GetSettingValue("sourceMesh") == Operator.SampleMesh.SourceType.Mesh);
+            var positionSkinnedWorld = basicUpdateInWorld.children.OfType<Block.PositionMesh>().FirstOrDefault(o => (Operator.SampleMesh.SourceType)o.GetSettingValue("sourceMesh") == Operator.SampleMesh.SourceType.SkinnedMeshRenderer);
+
+            Assert.IsNotNull(positionMeshLocal);
+            Assert.IsNotNull(positionSkinnedLocal);
+
+            Assert.IsNotNull(positionMeshWorld);
+            Assert.IsNotNull(positionSkinnedWorld);
+
+            //Sanitization should insure identity transform to be consistent with previous behavior
+            Assert.AreEqual(Operator.SampleMesh.SkinnedRootTransform.None, positionMeshLocal.GetSettingValue("skinnedTransform"));
+            Assert.AreEqual(Operator.SampleMesh.SkinnedRootTransform.None, positionSkinnedLocal.GetSettingValue("skinnedTransform"));
+            Assert.AreEqual(Operator.SampleMesh.SkinnedRootTransform.None, positionMeshWorld.GetSettingValue("skinnedTransform"));
+            Assert.AreEqual(Operator.SampleMesh.SkinnedRootTransform.None, positionSkinnedWorld.GetSettingValue("skinnedTransform"));
+
+            Assert.AreEqual(VFXSpace.Local, positionMeshLocal.inputSlots.Last().space);
+            Assert.AreEqual(VFXSpace.Local, positionSkinnedLocal.inputSlots.Last().space);
+            Assert.AreEqual(VFXSpace.World, positionMeshWorld.inputSlots.Last().space);
+            Assert.AreEqual(VFXSpace.World, positionSkinnedWorld.inputSlots.Last().space);
+
+            //Check where expected link
+            var meshSlotAll = sampleMeshAll.outputSlots.Where(o => o.name != "Tangent");
+            meshSlotAll = meshSlotAll.Concat(sampleMeshAll.outputSlots.First(o => o.name == "Tangent")[0].children);
+            var skinnedMeshSlotAll = sampleSkinnedAll.outputSlots.Where(o => o.name != "Tangent");
+            skinnedMeshSlotAll = skinnedMeshSlotAll.Concat(sampleSkinnedAll.outputSlots.First(o => o.name == "Tangent")[0].children);
+
+            //The first two are Position & Normal and they have been redirected to an inline Vector3
+            var meshSlotSet = new[]{ sampleMeshSet.outputSlots[0], sampleMeshSet.outputSlots[1], sampleMeshSet.outputSlots[2][0][0], sampleMeshSet.outputSlots[2][0][1], sampleMeshSet.outputSlots[2][0][2], sampleMeshSet.outputSlots[3] };
+            var skinnedMeshSlotSet = new[] { sampleSkinnedSet.outputSlots[0], sampleSkinnedSet.outputSlots[1], sampleSkinnedSet.outputSlots[2][0][0], sampleSkinnedSet.outputSlots[2][0][1], sampleSkinnedSet.outputSlots[2][0][2], sampleSkinnedSet.outputSlots[3] };
+
+            Assert.IsTrue(meshSlotAll.All(o => o.HasLink()));
+            Assert.IsTrue(skinnedMeshSlotAll.All(o => o.HasLink()));
+
+            Assert.IsTrue(meshSlotSet.All(o => o.HasLink()));
+            Assert.IsTrue(skinnedMeshSlotSet.All(o => o.HasLink()));
+
+            //Check dest link
+            var addOperator = graph.children.OfType<Operator.Add>().FirstOrDefault();
+            var mulOperator = graph.children.OfType<Operator.Multiply>().FirstOrDefault();
+            var substractOperator = graph.children.OfType<Operator.Subtract>().FirstOrDefault();
+            var divideOperator = graph.children.OfType<Operator.Subtract>().FirstOrDefault();
+
+            Assert.IsNotNull(addOperator);
+            Assert.IsNotNull(mulOperator);
+            Assert.IsNotNull(substractOperator);
+            Assert.IsNotNull(divideOperator);
+
+            Assert.IsFalse(addOperator.outputSlots[0].spaceable);
+            Assert.IsFalse(mulOperator.outputSlots[0].spaceable);
+            Assert.IsFalse(substractOperator.outputSlots[0].spaceable);
+            Assert.IsFalse(divideOperator.outputSlots[0].spaceable);
+
+            Assert.AreEqual(typeof(Vector4), addOperator.outputSlots[0].property.type);
+            Assert.AreEqual(typeof(Vector4), mulOperator.outputSlots[0].property.type);
+            Assert.AreEqual(typeof(float), substractOperator.outputSlots[0].property.type);
+            Assert.AreEqual(typeof(float), divideOperator.outputSlots[0].property.type);
+
+            Assert.AreEqual(14, addOperator.inputSlots.Count);
+            Assert.AreEqual(14, mulOperator.inputSlots.Count);
+
+            Assert.AreEqual(10, substractOperator.inputSlots.Count);
+            Assert.AreEqual(10, divideOperator.inputSlots.Count);
+
+            Assert.IsTrue(addOperator.inputSlots.All(o => o.HasLink()));
+            Assert.IsTrue(mulOperator.inputSlots.All(o => o.HasLink()));
+            Assert.IsTrue(substractOperator.inputSlots.All(o => o.HasLink()));
+            Assert.IsTrue(divideOperator.inputSlots.All(o => o.HasLink()));
+
+            Assert.IsTrue(addOperator.inputSlots.Take(2).All(o => o.property.type == typeof(Vector3)));
+            Assert.IsTrue(mulOperator.inputSlots.Take(2).All(o => o.property.type == typeof(Vector3)));
+            Assert.IsTrue(addOperator.inputSlots.Skip(2).All(o => o.property.type == typeof(Vector4)));
+            Assert.IsTrue(mulOperator.inputSlots.Skip(2).All(o => o.property.type == typeof(Vector4)));
+
+        }
+
         //Cover case 1352832, extension of Sanitize_Shape_To_TShape
         [UnityTest]
         public IEnumerator Sanitize_Shape_To_TShape_And_Check_VFXParameter_State()
@@ -485,6 +590,62 @@ namespace UnityEditor.VFX.Test
                 }
             }
             Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count()); //Orphan link
+        }
+
+        [Test]
+        public void Sanitize_SpaceNone_IntMaxValue_To_Minus_One()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSpaceNoneMigration.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            Assert.AreEqual(8, graph.children.OfType<VFXInlineOperator>().Count());
+            Assert.AreEqual(2, graph.children.OfType<Operator.Add>().Count());
+            Assert.AreEqual(1, graph.children.OfType<VFXBasicUpdate>().Count());
+            Assert.AreEqual(1, graph.children.OfType<VFXBasicInitialize>().Count());
+
+            var positions = graph.children.OfType<VFXInlineOperator>().Where(o => o.inputSlots[0] is VFXSlotPosition).ToArray();
+            Assert.AreEqual(3, positions.Length);
+            Assert.AreEqual(1, positions.Count(o => o.inputSlots[0].space == VFXSpace.Local));
+            Assert.AreEqual(1, positions.Count(o => o.inputSlots[0].space == VFXSpace.World));
+            Assert.AreEqual(1, positions.Count(o => o.inputSlots[0].space == VFXSpace.None));
+
+            var adds = graph.children.OfType<Operator.Add>().ToArray();
+            var addLocalAndNone = adds.FirstOrDefault(o => o.inputSlots[0].space == VFXSpace.Local && o.inputSlots[1].space == VFXSpace.None);
+            var addNoneAndNone = adds.FirstOrDefault(o => o != addLocalAndNone);
+            Assert.IsNotNull(addLocalAndNone);
+            Assert.IsNotNull(addNoneAndNone);
+
+            Assert.AreEqual(VFXSpace.Local, addLocalAndNone.inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.None, addLocalAndNone.inputSlots[1].space);
+            Assert.AreEqual(VFXSpace.Local, addLocalAndNone.outputSlots[0].space);
+
+            Assert.AreEqual(VFXSpace.None, addNoneAndNone.inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.None, addNoneAndNone.inputSlots[1].space);
+            Assert.AreEqual(VFXSpace.None, addNoneAndNone.outputSlots[0].space);
+
+            var basicUpdate = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault();
+            Assert.IsNotNull(basicUpdate);
+            Assert.AreEqual(3, basicUpdate.children.Count());
+
+            Assert.AreEqual(VFXSpace.Local, basicUpdate.children.ElementAt(0).inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.World, basicUpdate.children.ElementAt(1).inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.None, basicUpdate.children.ElementAt(2).inputSlots[0].space);
+
+            var basicInitialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+            Assert.IsNotNull(basicInitialize);
+            Assert.AreEqual(3, basicInitialize.children.Count());
+            Assert.IsTrue(basicInitialize.children.SelectMany(o => o.inputSlots).All(o => o.HasLink()));
+
+            Assert.AreEqual(VFXSpace.World, basicInitialize.children.ElementAt(0).inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.Local, basicInitialize.children.ElementAt(1).inputSlots[0].space);
+            Assert.AreEqual(VFXSpace.None, basicInitialize.children.ElementAt(2).inputSlots[0].space);
+
+            var directions = graph.children.OfType<VFXInlineOperator>().Where(o => o.inputSlots[0] is VFXSlotDirection).ToArray();
+            Assert.AreEqual(3, directions.Length);
+            Assert.IsTrue(directions.All(o => o.outputSlots[0].HasLink()));
+            Assert.AreEqual(1, directions.Count(o => o.inputSlots[0].space == VFXSpace.Local));
+            Assert.AreEqual(1, directions.Count(o => o.inputSlots[0].space == VFXSpace.World));
+            Assert.AreEqual(1, directions.Count(o => o.inputSlots[0].space == VFXSpace.None));
         }
 
         [OneTimeSetUpAttribute]
@@ -967,6 +1128,28 @@ namespace UnityEditor.VFX.Test
             Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(string.Empty));
         }
 
+        [Test(Description = "Cover issue 1403202")]
+        public void Check_GPU_Event_In_Subgraph_With_Link()
+        {
+            string kSourceAssetMain = "Assets/AllTests/Editor/Tests/VFXGPUEvent_Main.vfx_";
+            var main = VFXTestCommon.CopyTemporaryGraph(kSourceAssetMain);
+
+            string kSourceAssetSubGraph = "Assets/AllTests/Editor/Tests/VFXGPUEvent_Subgraph.vfx_";
+            var subGraph = VFXTestCommon.CopyTemporaryGraph(kSourceAssetSubGraph);
+
+            var subgraphContext = main.children.OfType<VFXSubgraphContext>().FirstOrDefault();
+            Assert.IsNotNull(subgraphContext);
+
+            var subGraphAsset = subGraph.GetResource().asset;
+            Assert.IsNotNull(subGraphAsset);
+
+            subgraphContext.SetSettingValue("m_Subgraph", subGraphAsset);
+            Assert.AreEqual(subGraphAsset, subgraphContext.GetSettingValue("m_Subgraph"));
+
+            var path = AssetDatabase.GetAssetPath(main);
+            AssetDatabase.ImportAsset(path);
+        }
+
 
         //Cover regression test : 1315191
         [UnityTest]
@@ -1045,6 +1228,61 @@ namespace UnityEditor.VFX.Test
 
             var newVFXContent = File.ReadAllText(s_Modify_SG_Property_VFX);
             Assert.IsTrue(newVFXContent.Contains("Name_B"));
+        }
+
+        [UnityTest, Description("Cover regression UUM-5728")]
+        public IEnumerator ShaderGraph_Lit_On_Unlit()
+        {
+            var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_5728.zip";
+            var tempDest = VFXTestCommon.tempBasePath + "/Repro_5728";
+
+            LogAssert.Expect(LogType.Error, new Regex("You must use an unlit vfx master node with an unlit output"));
+            LogAssert.Expect(LogType.Error, new Regex("System.InvalidOperationException"));
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
+            AssetDatabase.Refresh();
+            yield return null;
+
+            var scene = SceneManagement.EditorSceneManager.OpenScene(tempDest + "/Repro_5728.unity");
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            SceneManagement.EditorSceneManager.CloseScene(scene, false);
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+        }
+
+        [UnityTest, Description("Cover regression UUM-563")]
+        public IEnumerator ShaderGraph_Not_Reverted_On_Save()
+        {
+            // Create empty graph
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXViewWindow.GetWindow(graph.GetResource(), true);
+            var viewController = VFXViewController.GetController(graph.GetResource(), true);
+            window.graphView.controller = viewController;
+            yield return null;
+
+            // Add a static mesh output
+            var staticMeshOutputContextDesc = VFXLibrary.GetContexts().Single(x => x.model is VFXStaticMeshOutput);
+            var staticMeshOutputContext = (VFXStaticMeshOutput)window.graphView.controller.AddVFXContext(Vector2.zero, staticMeshOutputContextDesc);
+            var shaderGraph = AssetDatabase.LoadAssetAtPath<Shader>("Assets/AllTests/Editor/Tests/Modify_SG_Property_A.shadergraph");
+            staticMeshOutputContext.SetSettingValue("shader", shaderGraph);
+            window.graphView.OnSave();
+            yield return null;
+
+            // Check that the shader is correctly assigned
+            var s = staticMeshOutputContext.GetSetting("shader").value;
+            Assert.NotNull(staticMeshOutputContext.GetSetting("shader").value);
+
+            // Change shader to None
+            staticMeshOutputContext.SetSettingValue("shader", null);
+            window.graphView.OnSave();
+            yield return null;
+
+            // Check that the shader is still set to None
+            Assert.IsNull(staticMeshOutputContext.GetSetting("shader").value, "The shader was expected to be null but it didn't. Probably the previous value has been restored when saving");
         }
 
         [OneTimeTearDown]

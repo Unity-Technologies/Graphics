@@ -121,33 +121,53 @@ namespace UnityEditor.Rendering.HighDefinition
             // the first time we display this information. And thus setup the MotionVector Pass to false.
             const string materialTag = "MotionVector";
 
-            string tag = materials[0].GetTag(materialTag, false, "Nothing");
-            if (tag == "Nothing")
+            foreach (var material in materials)
             {
-                materials[0].SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-                materials[0].SetOverrideTag(materialTag, "User");
+                string tag = material.GetTag(materialTag, false, "Nothing");
+                if (tag == "Nothing")
+                {
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
+                    material.SetOverrideTag(materialTag, "User");
+                }
             }
 
             //In the case of additional velocity data we will enable the motion vector pass.
-            bool addPrecomputedVelocity = false;
-            if (materials[0].HasProperty(kAddPrecomputedVelocity))
-            {
-                addPrecomputedVelocity = materials[0].GetInt(kAddPrecomputedVelocity) != 0;
-            }
-
-            bool currentMotionVectorState = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
-            bool enabled = currentMotionVectorState || addPrecomputedVelocity;
+            bool enabled = GetEnabledMotionVectorVertexAnim(materials[0]);
+            bool mixedValue = materials.Length > 1 && materials.Any(m => GetEnabledMotionVectorVertexAnim(m) != enabled);
+            bool addPrecomputedVelocity = GetAddPrecomputeVelocity(materials[0]);
+            bool mixedPrecomputedVelocity = materials.Length > 1 && materials.Any(m => GetAddPrecomputeVelocity(m) != addPrecomputedVelocity);
 
             EditorGUI.BeginChangeCheck();
-
-            using (new EditorGUI.DisabledScope(addPrecomputedVelocity))
             {
-                enabled = EditorGUILayout.Toggle(Styles.motionVectorForVertexAnimationText, enabled);
+                using (new EditorGUI.DisabledScope(addPrecomputedVelocity || mixedPrecomputedVelocity))
+                {
+                    EditorGUI.showMixedValue = mixedValue;
+                    enabled = EditorGUILayout.Toggle(Styles.motionVectorForVertexAnimationText, enabled);
+                    EditorGUI.showMixedValue = false;
+                }
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                foreach (var mat in materials)
+                    mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
             }
 
-            if (EditorGUI.EndChangeCheck() || currentMotionVectorState != enabled)
+            bool GetEnabledMotionVectorVertexAnim(Material material)
             {
-                materials[0].SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
+                bool addPrecomputedVelocity = GetAddPrecomputeVelocity(material);
+                bool currentMotionVectorState = material.GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
+
+                return currentMotionVectorState || addPrecomputedVelocity;
+            }
+
+            bool GetAddPrecomputeVelocity(Material material)
+            {
+                bool addPrecomputedVelocity = false;
+
+                if (materials[0].HasProperty(kAddPrecomputedVelocity))
+                    addPrecomputedVelocity = materials[0].GetInt(kAddPrecomputedVelocity) != 0;
+
+                return addPrecomputedVelocity;
             }
         }
     }

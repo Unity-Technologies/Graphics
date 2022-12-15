@@ -66,3 +66,35 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 7
     Reason: 'XR : development build text issue'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 245a2b08a4f72437193b06846a5c8e33, type: 3}
+    - {fileID: 102900000, guid: 677cb6424a7fe3947974395b6c3d70a4, type: 3}
+    - {fileID: 102900000, guid: 4cd2c01cabdfb47d5a3ac05309090490, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Disabled to make builder green
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e23c793ace3c4a146a73360af1600fbd, type: 3}
+    - {fileID: 102900000, guid: 149f6ec36de310842bf26e54caf9240b, type: 3}
+    - {fileID: 102900000, guid: 637e9541c01cb864b859cec63d622ef9, type: 3}
+    - {fileID: 102900000, guid: 625fae218da02c440b56ea72ea59d986, type: 3}
+    - {fileID: 102900000, guid: f928decd68efd04459541f49d86f0fbf, type: 3}
+    - {fileID: 102900000, guid: 04e9a5e9f9bee5742b25a8f229a49428, type: 3}
+    - {fileID: 102900000, guid: b2a47910b2788df489a1f84de6e4486c, type: 3}
+    - {fileID: 102900000, guid: a1c09e3c33ec7fc4084de318357c2fa0, type: 3}
+    - {fileID: 102900000, guid: fb8f8e7cc18a5314f8d66d2ddfbfbaec, type: 3}
+    - {fileID: 102900000, guid: 677cb6424a7fe3947974395b6c3d70a4, type: 3}
+    - {fileID: 102900000, guid: 50a55af44edbd47579041b1556ed9a58, type: 3}
+    - {fileID: 102900000, guid: 4978d640e872ce74bb4412e77a67d88b, type: 3}
+    - {fileID: 102900000, guid: c53e60919f143ad40b950bea9827efc5, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: 

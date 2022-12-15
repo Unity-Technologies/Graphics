@@ -1,8 +1,9 @@
 // Depth pass
 Pass
-{		
+{
+    Name ${VFXPassDepth}
 	Tags { "LightMode"=${VFXPassDepth} }
-	
+
 	ZWrite On
 	Blend Off
 

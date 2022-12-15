@@ -1,6 +1,9 @@
 using System;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
+using UnityEditor.SceneManagement;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -177,11 +180,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.DecalLayerDefault;
+        RenderingLayerMask m_DecalLayerMask = RenderingLayerMask.DecalLayerDefault;
         /// <summary>
         /// The layer of the decal.
         /// </summary>
-        public DecalLayerEnum decalLayerMask
+        public RenderingLayerMask decalLayerMask
         {
             get => m_DecalLayerMask;
             set => m_DecalLayerMask = value;
@@ -303,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int layerMask;
             public ulong sceneLayerMask;
             public float fadeFactor;
-            public DecalLayerEnum decalLayerMask;
+            public RenderingLayerMask decalLayerMask;
         }
 
         internal CachedDecalData GetCachedDecalData()
@@ -354,15 +357,22 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             cachedEditorLayer = gameObject.layer;
             // Handle scene visibility
-            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
+            SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
+            PrefabStage.prefabStageOpened += RegisterDecalVisibilityUpdatePrefabStage;
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null) // In case the prefab stage is already opened when enabling the decal
+                RegisterDecalVisibilityUpdatePrefabStage();
 #endif
         }
 
 #if UNITY_EDITOR
         void UpdateDecalVisibility()
         {
+            // This callback is called before HDRP is initialized after a domain reload
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             // Fade out the decal when it is hidden by the scene visibility
-            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject) && m_Handle != null)
+            if (SceneVisibilityManager.instance.IsHidden(gameObject) && m_Handle != null)
             {
                 DecalSystem.instance.RemoveDecal(m_Handle);
                 m_Handle = null;
@@ -378,6 +388,42 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void RegisterDecalVisibilityUpdatePrefabStage(PrefabStage stage = null)
+        {
+            SceneView.duringSceneGui -= UpdateDecalVisibilityPrefabStage;
+            SceneView.duringSceneGui += UpdateDecalVisibilityPrefabStage;
+        }
+
+        void UnregisterDecalVisibilityUpdatePrefabStage()
+            => SceneView.duringSceneGui -= UpdateDecalVisibilityPrefabStage;
+
+        bool m_LastPrefabStageVisibility = true;
+        void UpdateDecalVisibilityPrefabStage(SceneView sv)
+        {
+            bool showDecal = true;
+
+            // If prefab context is not hidden, then we should render the decal
+            if (!CoreUtils.IsSceneViewPrefabStageContextHidden())
+                showDecal = true;
+
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null)
+            {
+                bool isDecalInPrefabStage = gameObject.scene == stage.scene;
+
+                if (!isDecalInPrefabStage && stage.mode == PrefabStage.Mode.InIsolation)
+                    showDecal = false;
+                if (!isDecalInPrefabStage && CoreUtils.IsSceneViewPrefabStageContextHidden())
+                    showDecal = false;
+            }
+
+            // Update decal visibility based on showDecal
+            if (!m_LastPrefabStageVisibility && showDecal)
+                m_Handle = DecalSystem.instance.AddDecal(this);
+            else if (m_LastPrefabStageVisibility && !showDecal)
+                DecalSystem.instance.RemoveDecal(m_Handle);
+            m_LastPrefabStageVisibility = showDecal;
+        }
 #endif
 
         void OnDisable()
@@ -388,7 +434,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Handle = null;
             }
 #if UNITY_EDITOR
-            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibility;
+            SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibility;
+            UnregisterDecalVisibilityUpdatePrefabStage();
+            PrefabStage.prefabStageOpened -= RegisterDecalVisibilityUpdatePrefabStage;
 #endif
         }
 

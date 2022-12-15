@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 4
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
@@ -106,7 +106,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -119,7 +119,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -152,9 +152,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 92247174}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &92247176
@@ -466,9 +474,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 260797553}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &260797555
@@ -598,9 +614,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 334101957}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &334101959
@@ -707,6 +731,7 @@ MonoBehaviour:
     type: 0
     mode: 1
     realtimeMode: 1
+    timeSlicing: 0
     lighting:
       multiplier: 1
       weight: 1
@@ -741,7 +766,7 @@ MonoBehaviour:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 1
+      m_CSVersion: 2
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
@@ -755,6 +780,10 @@ MonoBehaviour:
       m_UseOverride: 0
       m_Level: 0
     resolution: 0
+    cubeResolution:
+      m_Override: 128
+      m_UseOverride: 0
+      m_Level: 0
     cameraSettings:
       customRenderingSettings: 0
       renderingPathCustomFrameSettings:
@@ -770,6 +799,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -955,33 +985,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 277.11194
-    sh[ 1]: -148.10918
-    sh[ 2]: 67.57194
-    sh[ 3]: 3.1445918
-    sh[ 4]: -26.79525
-    sh[ 5]: -61.867363
-    sh[ 6]: -11.856552
-    sh[ 7]: 13.274283
-    sh[ 8]: -8.525043
-    sh[ 9]: 397.53394
-    sh[10]: -202.64891
-    sh[11]: -13.992484
-    sh[12]: 36.56438
-    sh[13]: -67.98595
-    sh[14]: 38.209255
-    sh[15]: -15.561092
-    sh[16]: -19.606153
-    sh[17]: -15.917231
-    sh[18]: 560.54004
-    sh[19]: -84.47734
-    sh[20]: -213.46635
-    sh[21]: 59.169117
-    sh[22]: -53.81318
-    sh[23]: 66.08101
-    sh[24]: 47.33732
-    sh[25]: -95.87061
-    sh[26]: 28.853296
+    sh[ 0]: 294.43283
+    sh[ 1]: -157.366
+    sh[ 2]: 71.79524
+    sh[ 3]: 3.3411484
+    sh[ 4]: -28.469948
+    sh[ 5]: -65.73405
+    sh[ 6]: -12.597583
+    sh[ 7]: 14.103926
+    sh[ 8]: -9.057853
+    sh[ 9]: 422.65167
+    sh[10]: -215.68033
+    sh[11]: -15.197263
+    sh[12]: 38.74776
+    sh[13]: -72.11784
+    sh[14]: 40.978745
+    sh[15]: -16.51425
+    sh[16]: -20.724785
+    sh[17]: -17.009516
+    sh[18]: 595.57367
+    sh[19]: -89.75712
+    sh[20]: -226.80797
+    sh[21]: 62.867195
+    sh[22]: -57.176517
+    sh[23]: 70.211075
+    sh[24]: 50.295887
+    sh[25]: -101.86257
+    sh[26]: 30.656483
   m_SHValidForCapturePosition: {x: -3.424, y: 13.12, z: 3.08}
   m_SHValidForSourcePosition: {x: -3.424, y: 13.12, z: 3.08}
   m_HDProbeVersion: 3
@@ -1163,9 +1193,17 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 525690398}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &525690400
@@ -1260,9 +1298,17 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 683602977}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &683602979
@@ -1357,9 +1403,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 766200815}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &766200817
@@ -1522,6 +1576,7 @@ MonoBehaviour:
     e32: 0
     e33: 1
   cachedHashCode: 507495071
+  fillEmptySpaces: 0
 --- !u!4 &1017176620
 Transform:
   m_ObjectHideFlags: 0
@@ -1537,6 +1592,63 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1198170530
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1198170532}
+  - component: {fileID: 1198170531}
+  m_Layer: 0
+  m_Name: Probe Touchup Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1198170531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1198170530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55f90731af2ebc94fb7fdaebe2a9a409, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shape: 0
+  size: {x: 5.7269, y: 0.8505597, z: 4.86174}
+  radius: 1
+  mode: 0
+  intensityScale: 1
+  overriddenDilationThreshold: 0.75
+  virtualOffsetRotation: {x: 0, y: 0, z: 0}
+  virtualOffsetDistance: 1
+  geometryBias: 0.01
+  rayOriginBias: -0.001
+  version: 1
+  invalidateProbes: 1
+  overrideDilationThreshold: 0
+--- !u!4 &1198170532
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1198170530}
+  m_LocalRotation: {x: -0.24676245, y: 0.6819678, z: -0.24926546, w: 0.6417905}
+  m_LocalPosition: {x: -3.5244923, y: 9.793617, z: 6.298096}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 12
+  m_LocalEulerAnglesHint: {x: 1.332, y: 92.978, z: -41.049}
 --- !u!1 &1381588290
 GameObject:
   m_ObjectHideFlags: 0
@@ -1844,9 +1956,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1522498572}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1522498574
@@ -1941,9 +2061,17 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1715235054}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1715235056
@@ -2049,7 +2177,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.001
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
-    AverageCorrectnessThreshold: 0.001
+    AverageCorrectnessThreshold: 0.0006
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
@@ -2061,11 +2189,14 @@ MonoBehaviour:
       m_Calls: []
   captureFramerate: 30
   waitFrames: 150
+  waitForFrameCountMultiple: 0
+  frameCountMultiple: 8
   xrCompatible: 1
   xrThresholdMultiplier: 1
   checkMemoryAllocation: 1
   renderPipelineAsset: {fileID: 11400000, guid: e9f382b6155be5443811c22d984cea2c,
     type: 2}
+  forceCameraRenderDuringSetup: 0
 --- !u!114 &1735562049
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2091,11 +2222,14 @@ MonoBehaviour:
   stopNaNs: 0
   taaSharpenStrength: 0.5
   TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
   taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
   taaAntiHistoryRinging: 0
   taaBaseBlendFactor: 0.875
+  taaJitterScale: 1
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
@@ -2115,6 +2249,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   hasPersistentHistory: 0
+  screenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  screenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
   allowDeepLearningSuperSampling: 1
   deepLearningSuperSamplingUseCustomQualitySettings: 0
   deepLearningSuperSamplingQuality: 0
@@ -2138,6 +2274,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
@@ -2145,7 +2282,7 @@ MonoBehaviour:
       data1: 0
       data2: 13835058055282163712
   defaultFrameSettings: 0
-  m_Version: 8
+  m_Version: 9
   m_ObsoleteRenderingPath: 0
   m_ObsoleteFrameSettings:
     overrides: 0
@@ -2214,9 +2351,17 @@ Camera:
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -2343,15 +2488,15 @@ MonoBehaviour:
   serializedScenarios:
   - scenario: Scenario 1
     data:
-      sceneHash: 1784705805
-      cellDataAsset: {fileID: 4900000, guid: 33ad5211599350941aaefb40a027a52f, type: 3}
-      cellOptionalDataAsset: {fileID: 4900000, guid: 777185668354240419006bd3f247492e,
+      sceneHash: 484293852
+      cellDataAsset: {fileID: 4900000, guid: ae544a6f3c1b9164abd2fab0146045c0, type: 3}
+      cellOptionalDataAsset: {fileID: 4900000, guid: 53fac240cb0516e49bb93a839ab630fa,
         type: 3}
   - scenario: Scenario 2
     data:
-      sceneHash: 1784705805
-      cellDataAsset: {fileID: 4900000, guid: 0a543b607d2590343a782f224798513d, type: 3}
-      cellOptionalDataAsset: {fileID: 4900000, guid: 640e074dc3b3bcf4ca37e51301964f7b,
+      sceneHash: 484293852
+      cellDataAsset: {fileID: 4900000, guid: 119c8614a43e778428c158c35e6ac459, type: 3}
+      cellOptionalDataAsset: {fileID: 4900000, guid: bbdacefbfc0bb9142a400cebc6fb1060,
         type: 3}
 --- !u!4 &1943135966
 Transform:
@@ -2395,9 +2540,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1970315737}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1970315739
@@ -2492,9 +2645,17 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2072380636}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &2072380638
@@ -2594,13 +2755,15 @@ MonoBehaviour:
   parameters:
     albedo: {r: 1, g: 1, b: 1, a: 1}
     meanFreePath: 1
+    blendingMode: 1
+    priority: 0
     anisotropy: 0
     volumeMask: {fileID: 0}
     textureScrollingSpeed: {x: 0, y: 0, z: 0}
     textureTiling: {x: 1, y: 1, z: 1}
-    positiveFade: {x: 0, y: 0, z: 0}
-    negativeFade: {x: 0, y: 0, z: 0}
-    m_EditorUniformFade: 0
+    positiveFade: {x: 0.03695569, y: 0.12298492, z: 0.020658419}
+    negativeFade: {x: 0.03695569, y: 0.12298492, z: 0.020658419}
+    m_EditorUniformFade: 0.3
     m_EditorPositiveFade: {x: 0, y: 0, z: 0}
     m_EditorNegativeFade: {x: 0, y: 0, z: 0}
     m_EditorAdvancedFade: 0
@@ -2610,6 +2773,8 @@ MonoBehaviour:
     distanceFadeEnd: 10000
     textureOffset: {x: 0, y: 0, z: 0}
     falloffMode: 0
+    maskMode: 0
+    materialMask: {fileID: 0}
   m_Version: 2
 --- !u!4 &2120413993
 Transform:
@@ -2653,9 +2818,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2132055074}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &2132055076

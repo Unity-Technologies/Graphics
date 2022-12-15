@@ -1,15 +1,16 @@
 // Forward pass
 Pass
-{		
+{
+    Name ${VFXPassForward}
 	Tags { "LightMode"=${VFXPassForward} }
-	
+
 	${VFXStencilForward}
 
 	ZWrite Off
-	
+
 	HLSLPROGRAM
 	${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticleDecals/Pass.template")}
-	
+
 	ENDHLSL
 }

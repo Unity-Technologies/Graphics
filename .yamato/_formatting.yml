@@ -15,8 +15,8 @@ formatting:
     - | # Checking if there is a diff, to fail the job if yes (-s check means does the file contain something)
       if [ -s format.patch ]; then exit 1; fi
   timeout: 1
-  triggers:
-    expression: pull_request.target eq "master"
+  # triggers:
+  #   expression: pull_request.target eq "master"
   artifacts:
     diff:
       paths:

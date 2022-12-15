@@ -14,11 +14,14 @@ using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
     static class VFXCodeGenerator
     {
+        private const uint nbThreadsPerGroup = 64u;
+
         private static string GetIndent(string src, int index)
         {
             var indent = "";
@@ -47,7 +50,7 @@ namespace UnityEditor.VFX
                 while (true)
                 {
                     var targetCopy = target.ToString();
-                    var index = targetCopy.IndexOf(targetQuery);
+                    var index = targetCopy.IndexOf(targetQuery, StringComparison.Ordinal);
                     if (index == -1)
                     {
                         break;
@@ -155,6 +158,16 @@ namespace UnityEditor.VFX
             }
             return r;
         }
+        static internal VFXShaderWriter GenerateSetInstancingIndices(VFXContext context)
+        {
+            var r = new VFXShaderWriter();
+
+            // Hardcoded, duplicated from VFXParticleCommon.template
+            r.WriteLine("uint instanceIndex, instanceActiveIndex;");
+            r.WriteLine("index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex);");
+
+            return r;
+        }
 
         static internal VFXShaderWriter GenerateLoadParameter(string matching, VFXNamedExpression[] namedExpressions, Dictionary<VFXExpression, string> expressionToName)
         {
@@ -192,7 +205,8 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
+        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode,
+            VFXContextCompiledData contextData, HashSet<string> dependencies)
         {
             var templatePath = string.Format("{0}.template", context.codeGeneratorTemplate);
 
@@ -296,7 +310,7 @@ namespace UnityEditor.VFX
 
             int currentPos = -1;
             int builderOffset = 0;
-            while ((currentPos = source.IndexOf("${")) != -1)
+            while ((currentPos = source.IndexOf("${", StringComparison.Ordinal)) != -1)
             {
                 int endPos = source.IndexOf('}', currentPos);
                 if (endPos == -1)
@@ -362,12 +376,12 @@ namespace UnityEditor.VFX
             blockCallFunctionContent = blockCallFunction.builder.ToString();
         }
 
-        internal static void BuildParameterBuffer(VFXContextCompiledData contextData, IEnumerable<string> filteredOutTextures, out string parameterBufferContent)
+        internal static void BuildParameterBuffer(VFXContextCompiledData contextData, IEnumerable<string> filteredOutTextures, out string parameterBufferContent, out bool needsGraphValueStruct) //TODO: pass all in one? Do we need some info out of that method?
         {
             var parameterBuffer = new VFXShaderWriter();
-            parameterBuffer.WriteCBuffer(contextData.uniformMapper, "parameters");
+            needsGraphValueStruct = parameterBuffer.WriteGraphValuesStruct(contextData.uniformMapper);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values.Distinct());
+            parameterBuffer.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
             parameterBuffer.WriteLine();
             parameterBuffer.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
             parameterBuffer.WriteLine();
@@ -437,7 +451,7 @@ namespace UnityEditor.VFX
             buildVertexPropertiesGeneration = vertexInputsGeneration.ToString();
         }
 
-        internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData,
+        internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData, bool raytracing,
             out string interpolatorsGeneration)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
@@ -447,7 +461,7 @@ namespace UnityEditor.VFX
 
             var additionalInterpolantsGeneration = new VFXShaderWriter();
             var additionalInterpolantsPreparation = new VFXShaderWriter();
-
+            string varyingVariableName = raytracing ? "input." : "output.";
             foreach (string fragmentParameter in context.fragmentParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
@@ -468,7 +482,7 @@ namespace UnityEditor.VFX
                         additionalInterpolantsGeneration.WriteLine();
                     }
                     additionalInterpolantsGeneration.ExitScope();
-                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "output." + filteredNamedExpression.name, filteredNamedExpression.name + "__");
+                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, varyingVariableName + filteredNamedExpression.name, filteredNamedExpression.name + "__");
                     additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
                 }
             }
@@ -521,7 +535,17 @@ namespace UnityEditor.VFX
             buildFragInputsGeneration = fragInputsGeneration.ToString();
         }
 
-        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
+        internal static void BuildFillGraphValues(VFXContextCompiledData contextData, VFXDataParticle.GraphValuesLayout graphValuesLayout,
+            VFXUniformMapper systemUniformMapper,
+            out string fillGraphValues)
+        {
+            var fillGraphValuesShaderWriter = new VFXShaderWriter();
+            fillGraphValuesShaderWriter.GenerateFillGraphValuesStruct(contextData.uniformMapper, graphValuesLayout);
+            fillGraphValues = fillGraphValuesShaderWriter.ToString();
+        }
+
+        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode,
+            VFXContextCompiledData contextData, HashSet<string> dependencies)
         {
             if (!context.SetupCompilation())
                 return null;
@@ -550,10 +574,14 @@ namespace UnityEditor.VFX
             var allSourceAttributes = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
-            globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values.Distinct());
+            globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
+            var particleData = (context.GetData() as VFXDataParticle);
+            var systemUniformMapper = particleData.systemUniformMapper;
+            contextData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
+            var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(contextData.uniformMapper);
             globalDeclaration.WriteLine();
+
             globalDeclaration.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
             globalDeclaration.WriteLine();
             globalDeclaration.WriteTexture(contextData.uniformMapper);
@@ -569,8 +597,11 @@ namespace UnityEditor.VFX
             var blockFunction = new VFXShaderWriter();
             var blockCallFunction = new VFXShaderWriter();
             var blockDeclared = new HashSet<string>();
-            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var expressionToName = context.GetData().GetAttributes()
+                .ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode)
+                .ToDictionary(s => s.Key, s => s.Value);
 
             int cpt = 0;
             foreach (var current in context.activeFlattenedChildrenWithImplicit)
@@ -580,7 +611,7 @@ namespace UnityEditor.VFX
 
             //< Final composition
             var globalIncludeContent = new VFXShaderWriter();
-            globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
+            globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP " + nbThreadsPerGroup);
             globalIncludeContent.WriteLine("#define HAS_VFX_ATTRIBUTES 1");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_ACTUAL (0)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_MOTION_VECTOR (1)");
@@ -610,9 +641,15 @@ namespace UnityEditor.VFX
             if (context.GetData() is ISpaceable)
             {
                 var spaceable = context.GetData() as ISpaceable;
-                globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
+                globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
             globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
+
+            if (needsGraphValueStruct)
+                globalIncludeContent.WriteLine("#define VFX_USE_GRAPH_VALUES 1");
+
+            foreach (string s in GetInstancingAdditionalDefines(context, particleData))
+                globalIncludeContent.WriteLine(s);
 
             var perPassIncludeContent = new VFXShaderWriter();
             string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl" : renderRuntimePipePath + "/VFXCommon.hlsl";
@@ -622,6 +659,14 @@ namespace UnityEditor.VFX
             {
                 perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");
             }
+
+            // Per-block defines
+            var defines = Enumerable.Empty<string>();
+            foreach (var block in context.activeFlattenedChildrenWithImplicit)
+                defines = defines.Concat(block.defines);
+            var uniqueDefines = new HashSet<string>(defines);
+            foreach (var define in uniqueDefines)
+                globalIncludeContent.WriteLineFormat("#define {0}{1}", define, define.Contains(' ') ? "" : " 1");
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();
@@ -637,6 +682,10 @@ namespace UnityEditor.VFX
             ReplaceMultiline(stringBuilder, "${VFXPerPassInclude}", perPassIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction.builder);
             ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);
+
+            VFXShaderWriter fillGraphValueStruct = new VFXShaderWriter();
+            fillGraphValueStruct.GenerateFillGraphValuesStruct(contextData.uniformMapper, particleData.graphValuesLayout);
+            ReplaceMultiline(stringBuilder, "${VFXLoadGraphValues}", fillGraphValueStruct.builder);
 
             var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
             foreach (var match in GetUniqueMatches("\\${VFXLoadParameter:{(.*?)}}", stringBuilder.ToString()))
@@ -717,6 +766,17 @@ namespace UnityEditor.VFX
                 ReplaceMultiline(stringBuilder, str, storeAttributes.builder);
             }
 
+            //< Detect needed pragma require
+            var useCubeArray = contextData.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
+            var pragmaRequire = useCubeArray ? new StringBuilder("#pragma require cubearray") : new StringBuilder();
+            ReplaceMultiline(stringBuilder, "${VFXPragmaRequire}", pragmaRequire);
+            if (VFXLibrary.currentSRPBinder != null)
+            {
+                var allowedRenderers = new StringBuilder("#pragma only_renderers ");
+                allowedRenderers.Append(String.Join(" ", VFXLibrary.currentSRPBinder.GetSupportedGraphicDevices().Select(d => DeviceTypeToShaderString(d))));
+                ReplaceMultiline(stringBuilder, "${VFXPragmaOnlyRenderers}", allowedRenderers);
+            }
+
             foreach (var addionalReplacement in context.additionalReplacements)
             {
                 ReplaceMultiline(stringBuilder, addionalReplacement.Key, addionalReplacement.Value.builder);
@@ -731,6 +791,23 @@ namespace UnityEditor.VFX
             context.EndCompilation();
             return stringBuilder;
         }
+
+        static string DeviceTypeToShaderString(GraphicsDeviceType deviceType) => deviceType switch
+        {
+            GraphicsDeviceType.Direct3D11 => "d3d11",
+            GraphicsDeviceType.OpenGLCore => "glcore",
+            GraphicsDeviceType.OpenGLES2 => "gles",
+            GraphicsDeviceType.OpenGLES3 => "gles3",
+            GraphicsDeviceType.Metal => "metal",
+            GraphicsDeviceType.Vulkan => "vulkan",
+            GraphicsDeviceType.XboxOne => "xboxone",
+            GraphicsDeviceType.GameCoreXboxOne => "xboxone",
+            GraphicsDeviceType.GameCoreXboxSeries => "xboxseries",
+            GraphicsDeviceType.PlayStation4 => "playstation",
+            GraphicsDeviceType.Switch => "switch",
+            GraphicsDeviceType.PlayStation5 => "ps5",
+            _ => throw new Exception($"Graphics Device Type '{deviceType}' not supported in shader string."),
+        };
 
         private static StringBuilder TryBuildFromShaderGraph(VFXShaderGraphParticleOutput context, VFXContextCompiledData contextData)
         {
@@ -785,6 +862,12 @@ namespace UnityEditor.VFX
 
         private static void BuildBlock(VFXContextCompiledData contextData, List<VFXSlot> linkedEventOut, VFXShaderWriter blockFunction, VFXShaderWriter blockCallFunction, HashSet<string> blockDeclared, Dictionary<VFXExpression, string> expressionToName, VFXBlock block, ref int blockIndex)
         {
+            // Check enabled state
+            VFXExpression enabledExp = contextData.gpuMapper.FromNameAndId(VFXBlock.activationSlotName, blockIndex);
+            bool needsEnabledCheck = enabledExp != null && !enabledExp.Is(VFXExpression.Flags.Constant);
+            if (enabledExp != null && !needsEnabledCheck && !enabledExp.Get<bool>())
+                throw new ArgumentException("This method should not be called on a disabled block");
+
             var parameters = block.mergedAttributes.Select(o =>
             {
                 return new VFXShaderWriter.FunctionParameter
@@ -821,19 +904,34 @@ namespace UnityEditor.VFX
                     commentMethod);
             }
 
-            //< Parameters (computed and/or extracted from uniform)
             var expressionToNameLocal = expressionToName;
-            bool needScope = parameters.Any(o => !expressionToNameLocal.ContainsKey(o.expression));
-            if (needScope)
+            bool needsEnabledScope = needsEnabledCheck && !expressionToNameLocal.ContainsKey(enabledExp);
+            bool hasParameterTransformation = parameters.Any(o => !expressionToNameLocal.ContainsKey(o.expression));
+            bool needsParametersScope = needsEnabledCheck || hasParameterTransformation;
+
+            if (needsEnabledScope || hasParameterTransformation)
             {
                 expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToNameLocal);
+            }
+
+            if (needsEnabledScope)
+            {
+                blockCallFunction.EnterScope();
+                blockCallFunction.WriteVariable(enabledExp, expressionToNameLocal);
+            }
+
+            if (needsEnabledCheck)
+            {
+                blockCallFunction.WriteLineFormat("if ({0})", expressionToNameLocal[enabledExp]);
+            }
+
+            if (needsParametersScope)
+            {
                 blockCallFunction.EnterScope();
                 foreach (var exp in parameters.Select(o => o.expression))
                 {
                     if (expressionToNameLocal.ContainsKey(exp))
-                    {
                         continue;
-                    }
                     blockCallFunction.WriteVariable(exp, expressionToNameLocal);
                 }
             }
@@ -843,7 +941,7 @@ namespace UnityEditor.VFX
             {
                 if ((parameters[indexEventCount].mode & VFXAttributeMode.Read) != 0)
                     throw new InvalidOperationException(string.Format("{0} isn't expected as read (special case)", VFXAttribute.EventCount.name));
-                blockCallFunction.WriteLine(string.Format("{0} = 0u;", VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current)));
+                blockCallFunction.WriteLineFormat("{0} = 0u;", VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current));
             }
 
             blockCallFunction.WriteCallFunction(methodName,
@@ -860,10 +958,50 @@ namespace UnityEditor.VFX
                         blockCallFunction.WriteLineFormat("{0}_{1} += {2};", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex), VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current));
                 }
             }
-            if (needScope)
+
+            if (needsParametersScope)
+                blockCallFunction.ExitScope();
+
+            if (needsEnabledScope)
                 blockCallFunction.ExitScope();
 
             blockIndex++;
+        }
+
+        internal static IEnumerable<string> GetInstancingAdditionalDefines(VFXContext context, VFXDataParticle particleData)
+        {
+            yield return "#define VFX_USE_INSTANCING 1";
+
+            if (context is VFXAbstractParticleOutput output)
+            {
+                uint fixedSize;
+                if (!output.IsInstancingFixedSize(out fixedSize))
+                {
+                    fixedSize = particleData.alignedCapacity;
+                }
+                yield return "#define VFX_INSTANCING_FIXED_SIZE " + fixedSize;
+                yield return "#pragma multi_compile_instancing";
+            }
+            else
+            {
+                Debug.Assert(context.codeGeneratorCompute);
+                if (context is VFXBasicInitialize)
+                {
+                    yield return "#define VFX_INSTANCING_VARIABLE_SIZE 1";
+                }
+                else
+                {
+                    yield return "#define VFX_INSTANCING_FIXED_SIZE " + Math.Max(particleData.alignedCapacity, nbThreadsPerGroup);
+                }
+            }
+
+            bool hasActiveIndirection = context.contextType == VFXContextType.Filter || context.contextType == VFXContextType.Output;
+            if (hasActiveIndirection)
+                yield return "#define VFX_INSTANCING_ACTIVE_INDIRECTION 1";
+
+            bool hasBatchIndirection = true;
+            if (hasBatchIndirection)
+                yield return "#define VFX_INSTANCING_BATCH_INDIRECTION 1";
         }
     }
 }

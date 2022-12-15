@@ -86,6 +86,7 @@ When you use MSAA, be aware of the following:
   * [Subsurface scattering](Subsurface-Scattering.md).
   * Low Resolution Transparency.
 * Ray tracing doesn't support MSAA. If you use ray tracing in your project, you are unable to use MSAA.
+* The Water System is not compatible with MSAA. If enable the water system in your project, you are unable to use MSAA.
 
 When you enable MSAA in your Unity Project, you must also enable it for your Cameras in their [Frame Settings](Frame-Settings.md). You can do this either globally or on individual Cameras. To enable MSAA globally, go to **Edit** > **Project Settings** > **HDRP Default Settings** > **Frame Settings**. To enable MSAA on a per-Camera basis, enable Forward Lit Shader Mode and then enable the MSAA within Forward checkbox. For information on where to find global and local Frame Settings, see the documentation on [Frame Settings](Frame-Settings.md).
 

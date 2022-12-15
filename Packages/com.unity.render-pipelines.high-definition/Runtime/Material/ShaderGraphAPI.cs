@@ -57,12 +57,17 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetFloat(kReceivesSSR) != 0 : false;
             bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0 : false;
-            BaseLitAPI.SetupStencil(material, receiveSSR, useSplitLighting);
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting);
         }
 
         public static void ValidateDecalMaterial(Material material)
         {
             DecalAPI.SetupCommonDecalMaterialKeywordsAndPass(material);
+        }
+
+        public static void ValidateFogVolumeMaterial(Material material)
+        {
+            FogVolumeAPI.SetupFogVolumeKeywordsAndProperties(material);
         }
     }
 }

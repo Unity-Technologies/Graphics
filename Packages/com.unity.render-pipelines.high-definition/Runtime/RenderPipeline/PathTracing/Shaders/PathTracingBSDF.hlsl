@@ -522,14 +522,14 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     float3 sigmaS, sigmaT;
     RemapSubSurfaceScatteringParameters(diffuseColor, meanFreePath, sigmaS, sigmaT);
 
-    // Initialize the intersection structure
-    PathIntersection intersection;
-    intersection.remainingDepth = _RaytracingMaxRecursion + 1;
+    // Initialize the payload
+    PathPayload payload;
+    payload.segmentID = SEGMENT_ID_RANDOM_WALK;
 
     // Initialize the walk parameters
-    RayDesc rayDesc;
-    rayDesc.Origin = position - normal * _RaytracingRayBias;
-    rayDesc.TMin = 0.0;
+    RayDesc ray;
+    ray.Origin = position - normal * _RaytracingRayBias;
+    ray.TMin = 0.0;
 
     bool hit;
     uint walkIdx = 0;
@@ -553,24 +553,24 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         uint channelIdx = GetChannel(walkSample[3], channelWeights);
 
         // Evaluate the length of our steps
-        rayDesc.TMax = -log(1.0 - walkSample[2]) / sigmaT[channelIdx];
+        ray.TMax = -log(1.0 - walkSample[2]) / sigmaT[channelIdx];
 
         // Sample our next path segment direction
-        rayDesc.Direction = walkIdx ?
+        ray.Direction = walkIdx ?
             SampleSphereUniform(walkSample[0], walkSample[1]) : SampleHemisphereCosine(walkSample[0], walkSample[1], -normal);
 
-        // Initialize the intersection data
-        intersection.t = -1.0;
+        // Initialize the payload data
+        payload.rayTHit = FLT_INF;
 
         // Do the next step
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
-                 RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDesc, intersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
+                 RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, payload);
 
         // Check if we hit something
-        hit = intersection.t > 0.0;
+        hit = payload.rayTHit < FLT_INF;
 
         // How much did the ray travel?
-        float t = hit ? intersection.t : rayDesc.TMax;
+        float t = hit ? payload.rayTHit : ray.TMax;
 
         // Evaluate the transmittance for the current segment
         float3 transmittance = exp(-t * sigmaT);
@@ -582,7 +582,7 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         result.throughput *= SafeDivide(hit ? transmittance : sigmaS * transmittance, pdf);
 
         // Compute the next path position
-        rayDesc.Origin += rayDesc.Direction * t;
+        ray.Origin += ray.Direction * t;
 
         // increment the path depth
         walkIdx++;
@@ -603,8 +603,8 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     }
     else
     {
-        result.exitPosition = rayDesc.Origin;
-        result.exitNormal = intersection.value;
+        result.exitPosition = ray.Origin;
+        result.exitNormal = payload.value;
     }
 
 #ifdef _DOUBLESIDED_ON

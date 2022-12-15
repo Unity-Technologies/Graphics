@@ -16,7 +16,6 @@ namespace Tests
             {
                 yield return new TestCaseData(BuildTarget.Android);
                 yield return new TestCaseData(BuildTarget.iOS);
-                yield return new TestCaseData(BuildTarget.Lumin);
                 yield return new TestCaseData(BuildTarget.PS4);
                 yield return new TestCaseData(BuildTarget.PS5);
                 yield return new TestCaseData(BuildTarget.Stadia);
@@ -41,7 +40,6 @@ namespace Tests
                 case BuildTarget.StandaloneOSX:
                 case BuildTarget.Android:
                 case BuildTarget.iOS:
-                case BuildTarget.Lumin:
                 case BuildTarget.tvOS:
                 case BuildTarget.WebGL:
                     return false;

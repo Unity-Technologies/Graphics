@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     //E.G.: We need the path where asset are created if we want to load or create a new HDRenderPipelineGlobalSettings asset in HDRenderPipelineGlobalSettings.Ensure
     class HDProjectSettingsReadOnlyBase : ScriptableObject
     {
-        protected const string filePath = "ProjectSettings/HDRPProjectSettings.asset";
+        public const string filePath = "ProjectSettings/HDRPProjectSettings.asset";
 
         [SerializeField]
         protected string m_ProjectSettingFolderPath = "HDRPDefaultResources";

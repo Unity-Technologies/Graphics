@@ -7,10 +7,6 @@
 // Keep in sync with RenderingUtils.useStructuredBuffer
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
 
-#define RENDERING_LIGHT_LAYERS_MASK (255)
-#define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
-#define DEFAULT_LIGHT_LAYERS (RENDERING_LIGHT_LAYERS_MASK >> RENDERING_LIGHT_LAYERS_MASK_SHIFT)
-
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
@@ -25,18 +21,19 @@
 
 // Match with values in UniversalRenderPipeline.cs
 #define MAX_ZBIN_VEC4S 1024
-#define MAX_TILE_VEC4S 4096
-#if MAX_VISIBLE_LIGHTS < 32
-    #define LIGHTS_PER_TILE 32
+#if MAX_VISIBLE_LIGHTS <= 32
+    #define MAX_LIGHTS_PER_TILE 32
+    #define MAX_TILE_VEC4S 1024
 #else
-    #define LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
+    #define MAX_LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
+    #define MAX_TILE_VEC4S 4096
 #endif
 
 struct InputData
 {
     float3  positionWS;
     float4  positionCS;
-    half3   normalWS;
+    float3  normalWS;
     half3   viewDirectionWS;
     float4  shadowCoord;
     half    fogCoord;
@@ -86,6 +83,13 @@ SAMPLER(sampler_GlossyEnvironmentCubeMap);
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
 
+// x = Mip Bias
+// y = 2.0 ^ [Mip Bias]
+float2 _GlobalMipBias;
+
+// 1.0 if it's possible for AlphaToMask to be enabled for this draw and 0.0 otherwise
+float _AlphaToMaskAvailable;
+
 float4 _MainLightPosition;
 half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
@@ -97,17 +101,26 @@ half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
 
-#if USE_CLUSTERED_LIGHTING
+uint _RenderingLayerMaxInt;
+float _RenderingLayerRcpMaxInt;
+
+// Screen coord override.
+float4 _ScreenCoordScaleBias;
+float4 _ScreenSizeOverride;
+
+#if USE_FORWARD_PLUS
 // Directional lights would be in all clusters, so they don't go into the cluster structure.
 // Instead, they are stored first in the light buffer.
 uint _AdditionalLightsDirectionalCount;
-// The number of Z-bins to skip based on near plane distance.
-uint _AdditionalLightsZBinOffset;
-// Scale from view-space Z to Z-bin.
-float _AdditionalLightsZBinScale;
 // Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
 float2 _AdditionalLightsTileScale;
 uint _AdditionalLightsTileCountX;
+uint _AdditionalLightsWordsPerTile;
+float4 _AdditionalLightsParams0;
+
+#define URP_ADDITIONAL_LIGHTS_ZBIN_SCALE _AdditionalLightsParams0.x
+#define URP_ADDITIONAL_LIGHTS_ZBIN_OFFSET _AdditionalLightsParams0.y
+
 #endif
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
@@ -129,13 +142,14 @@ CBUFFER_END
 #endif
 #endif
 
-#if USE_CLUSTERED_LIGHTING
-    CBUFFER_START(AdditionalLightsZBins)
+#if USE_FORWARD_PLUS
+
+CBUFFER_START(AdditionalLightsZBins)
         float4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
-    CBUFFER_END
-    CBUFFER_START(AdditionalLightsTiles)
+CBUFFER_END
+CBUFFER_START(AdditionalLightsTiles)
         float4 _AdditionalLightsTiles[MAX_TILE_VEC4S];
-    CBUFFER_END
+CBUFFER_END
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

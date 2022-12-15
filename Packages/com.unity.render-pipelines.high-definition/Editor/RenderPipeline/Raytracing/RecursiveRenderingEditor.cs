@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
@@ -16,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MinSmoothness;
         SerializedDataParameter m_RayMiss;
         SerializedDataParameter m_LastBounce;
+        SerializedDataParameter m_AmbientProbeDimmer;
 
         public override void OnEnable()
         {
@@ -28,6 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
             m_RayMiss = Unpack(o.Find(x => x.rayMiss));
             m_LastBounce = Unpack(o.Find(x => x.lastBounce));
+            m_AmbientProbeDimmer = Unpack(o.Find(x => x.ambientProbeDimmer));
         }
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "This defines the maximal travel distance of rays in meters.");
@@ -42,10 +45,13 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                 return;
             }
 
+            if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                HDRenderPipelineUI.DisplayRayTracingSupportBox();
+
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.assetSupportsRayTracing)
             {
-                PropertyField(m_Enable);
+                PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
 
                 if (m_Enable.overrideState.boolValue && m_Enable.value.boolValue)
                 {
@@ -60,6 +66,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                             EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
                             PropertyField(m_RayMiss);
                             PropertyField(m_LastBounce);
+                            PropertyField(m_AmbientProbeDimmer);
                         }
                     }
                 }

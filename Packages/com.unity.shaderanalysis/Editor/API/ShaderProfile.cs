@@ -5,10 +5,16 @@ namespace UnityEditor.ShaderAnalysis
     /// <summary>Common shader profiles.</summary>
     public enum ShaderProfile
     {
+        /// <summary>The target entry point is a vertex shader.</summary>
+        VertexProgram,
+        /// <summary>The target entry point is a hull shader.</summary>
+        HullProgram,
+        /// <summary>The target entry point is a domain shader.</summary>
+        DomainProgram,
         /// <summary>The target entry point is a pixel shader.</summary>
         PixelProgram,
         /// <summary>The target entry point is a compute shader.</summary>
-        ComputeProgram
+        ComputeProgram,
     }
 
     /// <summary>Shader API targets</summary>

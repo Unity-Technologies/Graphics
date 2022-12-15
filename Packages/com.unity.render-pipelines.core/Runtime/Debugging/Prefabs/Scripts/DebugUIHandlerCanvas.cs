@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.UI
     /// <summary>
     /// DebugUIHandler for canvas widget.
     /// </summary>
+    [CoreRPHelpURL("Rendering-Debugger")]
     public class DebugUIHandlerCanvas : MonoBehaviour
     {
         int m_DebugTreeState;

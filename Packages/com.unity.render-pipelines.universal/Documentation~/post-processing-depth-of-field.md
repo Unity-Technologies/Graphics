@@ -19,7 +19,7 @@ The Universal Render Pipeline (URP) has two depth of field modes:
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Mode**     | Use this drop-down to select the mode that URP uses to set the focus for the depth of field effect.<br />&#8226; **Off**: Select this option to disable depth of field.<br />&#8226; **Gaussian**: Select this option to use the faster but more limited depth of field mode.<br />&#8226; **Bokeh**: Select this option to use the Bokeh-based depth of field mode. |
+| **Mode**     | Use this drop-down to select the mode that URP uses to set the focus for the depth of field effect.<ul><li>**Off**: Select this option to disable depth of field.</li><li>**Gaussian**: Select this option to use the faster but more limited depth of field mode.</li><li>**Bokeh**: Select this option to use the Bokeh-based depth of field mode.</li></ul> |
 
 ### Gaussian Depth of Field
 

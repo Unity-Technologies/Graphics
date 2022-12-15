@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine.Serialization;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -32,10 +33,21 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings,
     }
 
+    /// <summary>
+    /// Options to control the renderer override.
+    /// This enum is no longer in use.
+    /// </summary>
     //[Obsolete("Renderer override is no longer used, renderers are referenced by index on the pipeline asset.")]
     public enum RendererOverrideOption
     {
+        /// <summary>
+        /// Use this to choose a custom override.
+        /// </summary>
         Custom,
+
+        /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
         UsePipelineSettings,
     }
 
@@ -66,7 +78,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
         SubpixelMorphologicalAntiAliasing,
-        //TemporalAntialiasing
+
+#if URP_EXPERIMENTAL_TAA_ENABLE
+        /// <summary>
+        /// Use this to have a temporal anti-aliasing pass rendered when resolving camera to screen.
+        /// </summary>
+        [InspectorName("Temporal Anti-aliasing (TAA)")]
+        TemporalAntiAliasing,
+#endif
     }
 
     /// <summary>
@@ -277,6 +296,9 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Class containing various additional camera data used by URP.
+    /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
@@ -313,6 +335,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClearDepth = true;
         [SerializeField] bool m_AllowXRRendering = true;
 
+        [SerializeField] bool m_UseScreenCoordOverride;
+        [SerializeField] Vector4 m_ScreenSizeOverride;
+        [SerializeField] Vector4 m_ScreenCoordScaleBias;
+
         [NonSerialized] Camera m_Camera;
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -323,6 +349,17 @@ namespace UnityEngine.Rendering.Universal
 
         [HideInInspector] [SerializeField] float m_Version = 2;
 
+        // These persist over multiple frames
+        [NonSerialized] MotionVectorsPersistentData m_MotionVectorsPersistentData = new MotionVectorsPersistentData();
+        [NonSerialized] TaaPersistentData m_TaaPersistentData = new TaaPersistentData();
+
+#if URP_EXPERIMENTAL_TAA_ENABLE
+        [NonSerialized] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
+#endif
+
+        /// <summary>
+        /// The serialized version of the class. Used for upgrading.
+        /// </summary>
         public float version => m_Version;
 
         static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
@@ -559,12 +596,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the current volume stack used by this camera.
         /// </summary>
-        VolumeStack m_VolumeStack = null;
         public VolumeStack volumeStack
         {
             get => m_VolumeStack;
             set => m_VolumeStack = value;
         }
+        VolumeStack m_VolumeStack = null;
 
         /// <summary>
         /// Returns true if this camera should render post-processing.
@@ -595,6 +632,38 @@ namespace UnityEngine.Rendering.Universal
             set => m_AntialiasingQuality = value;
         }
 
+#if URP_EXPERIMENTAL_TAA_ENABLE
+        internal ref TemporalAA.Settings taaSettings
+        {
+            get { return ref m_TaaSettings; }
+        }
+#endif
+
+        /// <summary>
+        /// Temporal Anti-aliasing buffers and data that persists over a frame.
+        /// </summary>
+        internal TaaPersistentData taaPersistentData => m_TaaPersistentData;
+
+        /// <summary>
+        /// Motion data that persists over a frame.
+        /// </summary>
+        internal MotionVectorsPersistentData motionVectorsPersistentData => m_MotionVectorsPersistentData;
+
+#if URP_EXPERIMENTAL_TAA_ENABLE
+        /// <summary>
+        /// Reset post-process history.
+        /// </summary>
+        public bool resetHistory
+        {
+            get => m_TaaSettings.resetHistoryFrames != 0;
+            set
+            {
+                m_TaaSettings.resetHistoryFrames += value ? 1 : 0;
+                m_MotionVectorsPersistentData.Reset();
+            }
+        }
+#endif
+
         /// <summary>
         /// Returns true if this camera should automatically replace NaN/Inf in shaders by a black pixel to avoid breaking some effects.
         /// </summary>
@@ -622,6 +691,33 @@ namespace UnityEngine.Rendering.Universal
             set => m_AllowXRRendering = value;
         }
 
+        /// <summary>
+        /// Returns true if the camera uses Screen Coordinates Override.
+        /// </summary>
+        public bool useScreenCoordOverride
+        {
+            get => m_UseScreenCoordOverride;
+            set => m_UseScreenCoordOverride = value;
+        }
+
+        /// <summary>
+        /// Screen size used when Screen Coordinates Override is active.
+        /// </summary>
+        public Vector4 screenSizeOverride
+        {
+            get => m_ScreenSizeOverride;
+            set => m_ScreenSizeOverride = value;
+        }
+
+        /// <summary>
+        /// Transform applied to screen coordinates when Screen Coordinates Override is active.
+        /// </summary>
+        public Vector4 screenCoordScaleBias
+        {
+            get => m_ScreenCoordScaleBias;
+            set => m_ScreenCoordScaleBias = value;
+        }
+
         /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
@@ -634,6 +730,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_RequiresDepthTextureOption = (m_RequiresDepthTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
                 m_RequiresOpaqueTextureOption = (m_RequiresColorTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
+                m_Version = 2;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void OnValidate()
+        {
+            if (m_CameraType == CameraRenderType.Overlay && m_Camera != null)
+            {
+                m_Camera.clearFlags = CameraClearFlags.Nothing;
             }
         }
 

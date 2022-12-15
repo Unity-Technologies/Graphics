@@ -1,0 +1,95 @@
+
+        Pass
+        {
+            Name "IndirectDXR"
+            Tags{ "LightMode" = "IndirectDXR" }
+
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma raytracing surface_shader
+            #pragma skip_variants INSTANCING_ON
+
+            // Global includes
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
+            // Define the shader pass
+            #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
+
+            // We are in a ray tracing pass, we can only support low shadows
+            #define SHADOW_LOW
+
+            // Need to override the macros for ray tracing
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            // Shader variables
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+
+            // VFX includes
+            ${VFXIncludeRP("VFXLitVaryings.template")}
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/RayTracingInputStructure.template")}
+            ${VFXHDRPLitVaryingsMacros}
+            ${VFXPerPassInclude}
+            ${VFXIncludeRP("VFXLit.template")}
+
+            // Needs to be included after the VFX includes
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/IntersectionFunctions.template")}
+
+            // Lighting and material includes
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RayTracingProcedural.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/EvaluateRayTracingIndirect.hlsl"
+
+            // Graph functions
+            ${VFXGeneratedBlockFunction}
+
+            // Include to evaluate the material data
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/EvaluateMaterialData.template")}
+
+            [shader("closesthit")]
+            void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+            {
+                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
+                // Compute the distance of the ray
+                rayIntersection.t = RayTCurrent();
+
+                // Evaluate the view direction
+                float3 viewWS = -WorldRayDirection();
+
+                // Evaluate the position
+                float3 positionRWS = WorldRayOrigin() + rayIntersection.t * WorldRayDirection();
+
+                // Evaluate the position input
+                PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, positionRWS);
+
+                // Output structures
+                SurfaceData surfaceData = (SurfaceData)0;
+                BuiltinData builtinData = (BuiltinData)0;
+                BSDFData bsdfData = (BSDFData)0;
+                PreLightData preLightData = (PreLightData)0;
+                float velocity = 0.0f;
+
+                // Evaluate all the required material data
+                EvaluateLitMaterialData(posInput, attributeData, surfaceData, builtinData, bsdfData, preLightData, velocity);
+
+                // Evaluate the lighting
+                EvaluateIndirectRayTracingLighting(preLightData, posInput, bsdfData, builtinData, viewWS, positionRWS, rayIntersection);
+
+                // Apply fog attenuation
+                ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.t, rayIntersection.color, true);
+            }
+
+            // Inject the intersection shader
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/IntersectionShader.template")}
+            ENDHLSL
+        }

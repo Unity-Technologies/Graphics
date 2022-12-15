@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: EyeDiff
   m_EditorClassIdentifier: 
   profile:
-    scatteringDistance: {r: 0.41509432, g: 0.2956568, b: 0.2956568, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.5334998, b: 0.5334998, a: 1}
+    scatteringDistanceMultiplier: 0.55418354
     transmissionTint: {r: 0.5754717, g: 0.21102285, b: 0.2035867, a: 1}
     texturingMode: 0
     transmissionMode: 1
@@ -21,4 +22,4 @@ MonoBehaviour:
     worldScale: 1
     ior: 1.339
     hash: 1079760189
-  m_Version: 1
+  m_Version: 2

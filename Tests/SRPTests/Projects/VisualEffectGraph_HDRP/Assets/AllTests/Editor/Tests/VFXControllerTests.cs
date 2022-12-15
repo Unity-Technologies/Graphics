@@ -1,17 +1,20 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
-using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.VFX.UI;
 using System.IO;
-using UnityEditor.VFX.Block.Test;
-using UnityEngine.UIElements;
+using System.Linq;
+
+using NUnit.Framework;
+
+using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
+using UnityEngine.VFX;
+
+using UnityEditor.VFX.Block;
+using UnityEditor.VFX.Block.Test;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.Test
 {
@@ -27,8 +30,10 @@ namespace UnityEditor.VFX.Test
 
         const string testAssetMainSubgraph = "Assets/TmpTests/VFXGraphSubGraph_Main.vfx";
         const string testSubgraphSubOperatorAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfxoperator";
+        const string testSubgraphBlockAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfxblock";
 
         private int m_StartUndoGroupId;
+        private string testAssetRandomFileName;
 
         [SetUp]
         public void CreateTestAsset()
@@ -52,6 +57,12 @@ namespace UnityEditor.VFX.Test
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
 
+        [OneTimeSetUp]
+        public void Init()
+        {
+            VFXTestCommon.CloseAllUnecessaryWindows();
+        }
+
         [TearDown]
         public void DestroyTestAsset()
         {
@@ -62,6 +73,11 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(testSubgraphAssetName);
             AssetDatabase.DeleteAsset(testSubgraphSubAssetName);
             AssetDatabase.DeleteAsset(testSubgraphSubOperatorAssetName);
+            AssetDatabase.DeleteAsset(testSubgraphBlockAssetName);
+            if (!string.IsNullOrEmpty(testAssetRandomFileName))
+            {
+                AssetDatabase.DeleteAsset(testAssetRandomFileName);
+            }
         }
 
         #pragma warning disable 0414
@@ -342,17 +358,17 @@ namespace UnityEditor.VFX.Test
             var inlineOperatorController = allController.OfType<VFXOperatorController>().FirstOrDefault();
             inlineOperator.SetSettingValue("m_Type", (SerializableType)typeof(Position));
 
-            Assert.AreEqual(inlineOperator.inputSlots[0].space, VFXCoordinateSpace.Local);
-            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.Local);
+            Assert.AreEqual(inlineOperator.inputSlots[0].space, VFXSpace.Local);
+            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXSpace.Local);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
 
             Undo.IncrementCurrentGroup();
-            inlineOperator.inputSlots[0].space = VFXCoordinateSpace.World;
-            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.World);
+            inlineOperator.inputSlots[0].space = VFXSpace.World;
+            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXSpace.World);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
 
             Undo.PerformUndo(); //Should go back to local
-            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXCoordinateSpace.Local);
+            Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].space, VFXSpace.Local);
             Assert.AreEqual((inlineOperatorController.model as VFXInlineOperator).inputSlots[0].GetSpaceTransformationType(), SpaceableType.Position);
         }
 
@@ -922,8 +938,8 @@ namespace UnityEditor.VFX.Test
 
             var systemNames = view.controller.graph.systemNames;
             var names = new List<string>();
-            foreach (var system in spawners)
-                names.Add(systemNames.GetUniqueSystemName(system));
+            foreach (var spawner in spawners)
+                names.Add(systemNames.GetUniqueSystemName(spawner.GetData()));
 
             Assert.IsTrue(names.Where(name => !string.IsNullOrEmpty(name)).Distinct().Count() == count, "Some spawners have the same name or are null or empty.");
 
@@ -998,7 +1014,7 @@ namespace UnityEditor.VFX.Test
             VisualEffectAsset asset = VisualEffectAssetEditorUtility.CreateNewAsset(testAssetMainSubgraph);
             VisualEffectResource resource = asset.GetResource();
             window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph), null);
-            
+
             var viewController = VFXViewController.GetController(VisualEffectResource.GetResourceAtPath(testAssetMainSubgraph));
 
             var graph = viewController.graph;
@@ -1088,7 +1104,7 @@ namespace UnityEditor.VFX.Test
             var otherParamName = "programatically_new_name_test";
             newParam.SetSettingValue("m_ExposedName", otherParamName);
             viewController.ApplyChanges();
-            
+
             resource.WriteAsset();
 
             yield return null;
@@ -1115,7 +1131,7 @@ namespace UnityEditor.VFX.Test
             }
             yield return null;
 
-            //Removing old slots, shouldn't get unexpected removed 
+            //Removing old slots, shouldn't get unexpected removed
             {
                 File.WriteAllText(testSubgraphSubOperatorAssetName, oneOutputState);
                 AssetDatabase.Refresh();
@@ -1154,6 +1170,93 @@ namespace UnityEditor.VFX.Test
 
             for (int i = 0; i < 16; ++i)
                 yield return null;
+        }
+
+        [UnityTest][Description("(Non regression test for Jira case UUM-2272")]
+        public IEnumerator ConvertToSubgraphOperator_AfterCopyPaste()
+        {
+            testAssetRandomFileName = $"Assets/TmpTests/random_{Guid.NewGuid()}.vfx";
+            // Create default VFX Graph
+            var templateString = File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            File.WriteAllText(testAssetRandomFileName, templateString);
+            AssetDatabase.ImportAsset(testAssetRandomFileName);
+
+            // Open this vfx the same way it would be done by a user
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+
+            var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
+            var viewController = window.graphView.controller;
+            Assert.IsNotNull(viewController);
+            viewController.ApplyChanges();
+            yield return null;
+            window.graphView.ExecuteCommand(ExecuteCommandEvent.GetPooled("SelectAll"));
+            window.graphView.CopySelectionCallback();
+            window.graphView.PasteCallback();
+            yield return null;
+
+            var addOperator = ScriptableObject.CreateInstance<Operator.Add>();
+            viewController.graph.AddChild(addOperator);
+            viewController.ApplyChanges();
+            yield return null;
+
+            VFXConvertSubgraph.ConvertToSubgraphOperator(window.graphView, window.graphView.Query<VFXOperatorUI>().ToList().Select(t => t.controller), Rect.zero, testSubgraphSubOperatorAssetName);
+            yield return null;
+
+            window.graphView.controller = null;
+        }
+
+        [UnityTest][Description("(Non regression test for FB case #1419176")]
+        public IEnumerator Rename_Asset_Dont_Lose_Subgraph()
+        {
+            testAssetRandomFileName = $"Assets/TmpTests/random_{Guid.NewGuid()}.vfx";
+            // Create default VFX Graph
+            var templateString = File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            File.WriteAllText(testAssetRandomFileName, templateString);
+            AssetDatabase.ImportAsset(testAssetRandomFileName);
+
+            // Open this vfx the same way it would be done by a user
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+
+            var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null); //Should not be needed, without, viewController is null on Yamato. See UUM-11596.
+            var viewController = window.graphView.controller;
+            Assert.IsNotNull(viewController);
+
+            // Convert the first set attribute block into a subgraph block
+            var initializeContext = viewController.graph.children.OfType<VFXBasicInitialize>().Single();
+            var setAttributeBlock = initializeContext.children.OfType<SetAttribute>().First();
+            var controller = viewController.GetNodeController(setAttributeBlock, 0);
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, new [] { controller }, Rect.zero, testSubgraphBlockAssetName);
+            viewController.ApplyChanges();
+
+            var subGraphBlock = window.graphView.controller.AllSlotContainerControllers
+                .Select(x => x.model)
+                .OfType<VFXSubgraphBlock>()
+                .Single();
+            Assert.IsNotNull(subGraphBlock.subgraph);
+
+            // Rename the asset
+            var newFileName = $"zz-random_{Guid.NewGuid()}.vfx";
+            var result = AssetDatabase.RenameAsset(testAssetRandomFileName, newFileName);
+            Assert.IsEmpty(result);
+            testAssetRandomFileName = $"Assets/TmpTests/{newFileName}";
+
+            yield return null;
+            yield return null;
+
+            // Check the subgraph is still properly referenced
+            subGraphBlock = window.graphView.controller.AllSlotContainerControllers
+                .Select(x => x.model)
+                .OfType<VFXSubgraphBlock>()
+                .Single();
+            Assert.IsNotNull(subGraphBlock.subgraph);
+
+            window.Close();
+
+            yield return null;
         }
     }
 }

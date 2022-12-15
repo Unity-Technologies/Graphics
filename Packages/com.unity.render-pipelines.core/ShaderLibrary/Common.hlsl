@@ -66,6 +66,53 @@
 // The function of the shader library are stateless, no uniform declare in it.
 // Any function that require an explicit precision, use float or half qualifier, when the function can support both, it use real (see below)
 // If a function require to have both a half and a float version, then both need to be explicitly define
+
+///
+/// Hardware Support for Wave Operations
+///
+
+// Support for wave operations is intentionally limited to the compute shader stage in order to make this functionality available to a wider range of hardware.
+#if defined(SHADER_STAGE_COMPUTE)
+    //
+    // Platform Support
+    //
+    // Platforms may indicate support for wave operations at compile-time.
+    // Shaders on these platforms may not always be compiled with a compiler that supports wave operations.
+    // To simplify usage, we check for a supported compiler here before indicating that wave operations are supported.
+    #if ((defined(UNITY_PLATFORM_SUPPORTS_WAVE_32) || defined(UNITY_PLATFORM_SUPPORTS_WAVE_64)) && (defined(UNITY_COMPILER_DXC) || defined(SHADER_API_PSSL)))
+        #if defined(UNITY_PLATFORM_SUPPORTS_WAVE_32)
+            #define UNITY_HW_WAVE_SIZE 32
+        #elif defined(UNITY_PLATFORM_SUPPORTS_WAVE_64)
+            #define UNITY_HW_WAVE_SIZE 64
+        #endif
+
+        #define UNITY_PLATFORM_SUPPORTS_WAVE 1
+    //
+    // Device Support
+    //
+    // Devices may indicate support for wave operations at run-time.
+    // Shaders compiled with these defines are always compiled with a compiler that supports wave operations.
+    #elif (defined(UNITY_DEVICE_SUPPORTS_WAVE_ANY) || defined(UNITY_DEVICE_SUPPORTS_WAVE_8) || defined(UNITY_DEVICE_SUPPORTS_WAVE_16) || defined(UNITY_DEVICE_SUPPORTS_WAVE_32) || defined(UNITY_DEVICE_SUPPORTS_WAVE_64) || defined(UNITY_DEVICE_SUPPORTS_WAVE_128))
+        #if defined(UNITY_DEVICE_SUPPORTS_WAVE_8)
+            #define UNITY_HW_WAVE_SIZE 8
+        #elif defined(UNITY_DEVICE_SUPPORTS_WAVE_16)
+            #define UNITY_HW_WAVE_SIZE 16
+        #elif defined(UNITY_DEVICE_SUPPORTS_WAVE_32)
+            #define UNITY_HW_WAVE_SIZE 32
+        #elif defined(UNITY_DEVICE_SUPPORTS_WAVE_64)
+            #define UNITY_HW_WAVE_SIZE 64
+        #elif defined(UNITY_DEVICE_SUPPORTS_WAVE_128)
+            #define UNITY_HW_WAVE_SIZE 128
+        #endif
+
+        #define UNITY_DEVICE_SUPPORTS_WAVE 1
+    #endif
+
+    #if (defined(UNITY_PLATFORM_SUPPORTS_WAVE) || defined(UNITY_DEVICE_SUPPORTS_WAVE))
+        #define UNITY_HW_SUPPORTS_WAVE 1
+    #endif
+#endif
+
 #ifndef real
 
 // The including shader should define whether half
@@ -299,8 +346,8 @@
 #define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNCTION(LODDitheringTransition)
 #endif
 
-// On everything but GCN consoles or DXC compiled shaders we error on cross-lane operations
-#if !defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(UNITY_COMPILER_DXC)
+#if !defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(UNITY_COMPILER_DXC) && !defined(UNITY_HW_SUPPORTS_WAVE)
+// Intercept wave functions when they aren't supported to provide better error messages
 #define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAllTrue)
 #define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAnyTrue)
 #define WaveGetLaneIndex ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneIndex)
@@ -421,11 +468,10 @@ TEMPLATE_3_REAL(Avg3, a, b, c, return (a + b + c) * 0.33333333)
 
     float QuadReadAcrossDiagonal(float value, int2 screenPos)
     {
-        float dX = ddx_fine(value);
-        float dY = ddy_fine(value);
         float2 quadDir = GetQuadOffset(screenPos);
+        float dX = ddx_fine(value);
         float X = value - (dX * quadDir.x);
-        return X - (ddy_fine(value) * quadDir.y);
+        return X - (ddy_fine(X) * quadDir.y);
     }
 #endif
 
@@ -901,45 +947,92 @@ uint GetMipCount(TEXTURE2D_PARAM(tex, smp))
 // ----------------------------------------------------------------------------
 
 // DXC no longer supports DX9-style HLSL syntax for sampler2D, tex2D and the like.
-// These are emulated for backwards compatibilit using our own small structs and functions which manually combine samplers and textures.
+// These are emulated for backwards compatibility using our own small structs and functions which manually combine samplers and textures.
 #if defined(UNITY_COMPILER_DXC) && !defined(DXC_SAMPLER_COMPATIBILITY)
 #define DXC_SAMPLER_COMPATIBILITY 1
-struct sampler1D            { Texture1D t; SamplerState s; };
-struct sampler2D            { Texture2D t; SamplerState s; };
-struct sampler3D            { Texture3D t; SamplerState s; };
-struct samplerCUBE          { TextureCube t; SamplerState s; };
 
-float4 tex1D(sampler1D x, float v)              { return x.t.Sample(x.s, v); }
-float4 tex2D(sampler2D x, float2 v)             { return x.t.Sample(x.s, v); }
-float4 tex3D(sampler3D x, float3 v)             { return x.t.Sample(x.s, v); }
-float4 texCUBE(samplerCUBE x, float3 v)         { return x.t.Sample(x.s, v); }
+// On DXC platforms which don't care about explicit sampler precison we want the emulated types to work directly e.g without needing to redefine 'sampler2D' to 'sampler2D_f'
+#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH)
+    #define sampler1D_f sampler1D
+    #define sampler2D_f sampler2D
+    #define sampler3D_f sampler3D
+    #define samplerCUBE_f samplerCUBE
+#endif
 
-float4 tex1Dbias(sampler1D x, in float4 t)              { return x.t.SampleBias(x.s, t.x, t.w); }
-float4 tex2Dbias(sampler2D x, in float4 t)              { return x.t.SampleBias(x.s, t.xy, t.w); }
-float4 tex3Dbias(sampler3D x, in float4 t)              { return x.t.SampleBias(x.s, t.xyz, t.w); }
-float4 texCUBEbias(samplerCUBE x, in float4 t)          { return x.t.SampleBias(x.s, t.xyz, t.w); }
+struct sampler1D_f      { Texture1D<float4> t; SamplerState s; };
+struct sampler2D_f      { Texture2D<float4> t; SamplerState s; };
+struct sampler3D_f      { Texture3D<float4> t; SamplerState s; };
+struct samplerCUBE_f    { TextureCube<float4> t; SamplerState s; };
 
-float4 tex1Dlod(sampler1D x, in float4 t)           { return x.t.SampleLevel(x.s, t.x, t.w); }
-float4 tex2Dlod(sampler2D x, in float4 t)           { return x.t.SampleLevel(x.s, t.xy, t.w); }
-float4 tex3Dlod(sampler3D x, in float4 t)           { return x.t.SampleLevel(x.s, t.xyz, t.w); }
-float4 texCUBElod(samplerCUBE x, in float4 t)       { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+float4 tex1D(sampler1D_f x, float v)        { return x.t.Sample(x.s, v); }
+float4 tex2D(sampler2D_f x, float2 v)       { return x.t.Sample(x.s, v); }
+float4 tex3D(sampler3D_f x, float3 v)       { return x.t.Sample(x.s, v); }
+float4 texCUBE(samplerCUBE_f x, float3 v)   { return x.t.Sample(x.s, v); }
 
-float4 tex1Dgrad(sampler1D x, float t, float dx, float dy)              { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 tex2Dgrad(sampler2D x, float2 t, float2 dx, float2 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 tex3Dgrad(sampler3D x, float3 t, float3 dx, float3 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 texCUBEgrad(samplerCUBE x, float3 t, float3 dx, float3 dy)       { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex1Dbias(sampler1D_f x, in float4 t)        { return x.t.SampleBias(x.s, t.x, t.w); }
+float4 tex2Dbias(sampler2D_f x, in float4 t)        { return x.t.SampleBias(x.s, t.xy, t.w); }
+float4 tex3Dbias(sampler3D_f x, in float4 t)        { return x.t.SampleBias(x.s, t.xyz, t.w); }
+float4 texCUBEbias(samplerCUBE_f x, in float4 t)    { return x.t.SampleBias(x.s, t.xyz, t.w); }
 
-float4 tex1D(sampler1D x, float t, float dx, float dy)              { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 tex2D(sampler2D x, float2 t, float2 dx, float2 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 tex3D(sampler3D x, float3 t, float3 dx, float3 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
-float4 texCUBE(samplerCUBE x, float3 t, float3 dx, float3 dy)       { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex1Dlod(sampler1D_f x, in float4 t)     { return x.t.SampleLevel(x.s, t.x, t.w); }
+float4 tex2Dlod(sampler2D_f x, in float4 t)     { return x.t.SampleLevel(x.s, t.xy, t.w); }
+float4 tex3Dlod(sampler3D_f x, in float4 t)     { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+float4 texCUBElod(samplerCUBE_f x, in float4 t) { return x.t.SampleLevel(x.s, t.xyz, t.w); }
 
-float4 tex1Dproj(sampler1D s, in float2 t)              { return tex1D(s, t.x / t.y); }
-float4 tex1Dproj(sampler1D s, in float4 t)              { return tex1D(s, t.x / t.w); }
-float4 tex2Dproj(sampler2D s, in float3 t)              { return tex2D(s, t.xy / t.z); }
-float4 tex2Dproj(sampler2D s, in float4 t)              { return tex2D(s, t.xy / t.w); }
-float4 tex3Dproj(sampler3D s, in float4 t)              { return tex3D(s, t.xyz / t.w); }
-float4 texCUBEproj(samplerCUBE s, in float4 t)          { return texCUBE(s, t.xyz / t.w); }
+float4 tex1Dgrad(sampler1D_f x, float t, float dx, float dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex2Dgrad(sampler2D_f x, float2 t, float2 dx, float2 dy)     { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex3Dgrad(sampler3D_f x, float3 t, float3 dx, float3 dy)     { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 texCUBEgrad(samplerCUBE_f x, float3 t, float3 dx, float3 dy) { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+float4 tex1D(sampler1D_f x, float t, float dx, float dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex2D(sampler2D_f x, float2 t, float2 dx, float2 dy)     { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex3D(sampler3D_f x, float3 t, float3 dx, float3 dy)     { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 texCUBE(samplerCUBE_f x, float3 t, float3 dx, float3 dy) { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+float4 tex1Dproj(sampler1D_f s, in float2 t)        { return tex1D(s, t.x / t.y); }
+float4 tex1Dproj(sampler1D_f s, in float4 t)        { return tex1D(s, t.x / t.w); }
+float4 tex2Dproj(sampler2D_f s, in float3 t)        { return tex2D(s, t.xy / t.z); }
+float4 tex2Dproj(sampler2D_f s, in float4 t)        { return tex2D(s, t.xy / t.w); }
+float4 tex3Dproj(sampler3D_f s, in float4 t)        { return tex3D(s, t.xyz / t.w); }
+float4 texCUBEproj(samplerCUBE_f s, in float4 t)    { return texCUBE(s, t.xyz / t.w); }
+
+// Half precision emulated samplers used instead the sampler.*_half unity types
+struct sampler1D_h      { Texture1D<min16float4> t; SamplerState s; };
+struct sampler2D_h      { Texture2D<min16float4> t; SamplerState s; };
+struct sampler3D_h      { Texture3D<min16float4> t; SamplerState s; };
+struct samplerCUBE_h    { TextureCube<min16float4> t; SamplerState s; };
+
+min16float4 tex1D(sampler1D_h x, float v)       { return x.t.Sample(x.s, v); }
+min16float4 tex2D(sampler2D_h x, float2 v)      { return x.t.Sample(x.s, v); }
+min16float4 tex3D(sampler3D_h x, float3 v)      { return x.t.Sample(x.s, v); }
+min16float4 texCUBE(samplerCUBE_h x, float3 v)  { return x.t.Sample(x.s, v); }
+
+min16float4 tex1Dbias(sampler1D_h x, in float4 t)       { return x.t.SampleBias(x.s, t.x, t.w); }
+min16float4 tex2Dbias(sampler2D_h x, in float4 t)       { return x.t.SampleBias(x.s, t.xy, t.w); }
+min16float4 tex3Dbias(sampler3D_h x, in float4 t)       { return x.t.SampleBias(x.s, t.xyz, t.w); }
+min16float4 texCUBEbias(samplerCUBE_h x, in float4 t)   { return x.t.SampleBias(x.s, t.xyz, t.w); }
+
+min16float4 tex1Dlod(sampler1D_h x, in float4 t)        { return x.t.SampleLevel(x.s, t.x, t.w); }
+min16float4 tex2Dlod(sampler2D_h x, in float4 t)        { return x.t.SampleLevel(x.s, t.xy, t.w); }
+min16float4 tex3Dlod(sampler3D_h x, in float4 t)        { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+min16float4 texCUBElod(samplerCUBE_h x, in float4 t)    { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+
+min16float4 tex1Dgrad(sampler1D_h x, float t, float dx, float dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 tex2Dgrad(sampler2D_h x, float2 t, float2 dx, float2 dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 tex3Dgrad(sampler3D_h x, float3 t, float3 dx, float3 dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 texCUBEgrad(samplerCUBE_h x, float3 t, float3 dx, float3 dy)    { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+min16float4 tex1D(sampler1D_h x, float t, float dx, float dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 tex2D(sampler2D_h x, float2 t, float2 dx, float2 dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 tex3D(sampler3D_h x, float3 t, float3 dx, float3 dy)        { return x.t.SampleGrad(x.s, t, dx, dy); }
+min16float4 texCUBE(samplerCUBE_h x, float3 t, float3 dx, float3 dy)    { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+min16float4 tex1Dproj(sampler1D_h s, in float2 t)       { return tex1D(s, t.x / t.y); }
+min16float4 tex1Dproj(sampler1D_h s, in float4 t)       { return tex1D(s, t.x / t.w); }
+min16float4 tex2Dproj(sampler2D_h s, in float3 t)       { return tex2D(s, t.xy / t.z); }
+min16float4 tex2Dproj(sampler2D_h s, in float4 t)       { return tex2D(s, t.xy / t.w); }
+min16float4 tex3Dproj(sampler3D_h s, in float4 t)       { return tex3D(s, t.xyz / t.w); }
+min16float4 texCUBEproj(samplerCUBE_h s, in float4 t)   { return texCUBE(s, t.xyz / t.w); }
 #endif
 
 float2 DirectionToLatLongCoordinate(float3 unDir)
@@ -1375,7 +1468,11 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
 {
     // note: the triangle vertex position coordinates are x2 so the returned UV coordinates are in range -1, 1 on the screen.
     float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
-    return float4(uv * 2.0 - 1.0, z, 1.0);
+    float4 pos = float4(uv * 2.0 - 1.0, z, 1.0);
+#ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    pos = ApplyPretransformRotation(pos);
+#endif
+    return pos;
 }
 
 
@@ -1408,7 +1505,11 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
     uint botBit = (vertexID & 1);
     float x = topBit;
     float y = 1 - (topBit + botBit) & 1; // produces 1 for indices 0,3 and 0 for 1,2
-    return float4(x, y, z, 1.0);
+    float4 pos = float4(x, y, z, 1.0);
+#ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    pos = ApplyPretransformRotation(pos);
+#endif
+    return pos;
 }
 
 #if !defined(SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
@@ -1455,5 +1556,40 @@ TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
 #if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
+
+float2 RepeatOctahedralUV(float u, float v)
+{
+    float2 uv;
+
+    if (u < 0.0f)
+    {
+        if (v < 0.0f)
+            uv = float2(1.0f + u, 1.0f + v);
+        else if (v < 1.0f)
+            uv = float2(-u, 1.0f - v);
+        else
+            uv = float2(1.0f + u, v - 1.0f);
+    }
+    else if (u < 1.0f)
+    {
+        if (v < 0.0f)
+            uv = float2(1.0f - u, -v);
+        else if (v < 1.0f)
+            uv = float2(u, v);
+        else
+            uv = float2(1.0f - u, 2.0f - v);
+    }
+    else
+    {
+        if (v < 0.0f)
+            uv = float2(u - 1.0f, 1.0f + v);
+        else if (v < 1.0f)
+            uv = float2(2.0f - u, 1.0f - v);
+        else
+            uv = float2(u - 1.0f, v - 1.0f);
+    }
+
+    return uv;
+}
 
 #endif // UNITY_COMMON_INCLUDED

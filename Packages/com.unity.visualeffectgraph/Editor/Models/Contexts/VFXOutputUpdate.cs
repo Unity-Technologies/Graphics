@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
 using static UnityEditor.VFX.VFXSortingUtility;
 
 namespace UnityEditor.VFX
@@ -20,6 +21,7 @@ namespace UnityEditor.VFX
             Sort = 1 << 5 | Culling,
             CameraSort = 1 << 6 | Sort,
             FrustumCulling = 1 << 7 | IndirectDraw,
+            FillRaytracingAABB = 1 << 8,
         }
 
         public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) { }
@@ -130,9 +132,14 @@ namespace UnityEditor.VFX
                         Debug.LogError("CurrentFrameIndex isn't reachable in encapsulatedOutput for motionVector");
                 }
 
-                //Since it's a compute shader without renderer associated, these entries aren't automatically sent
-                expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "unity_ObjectToWorld", -1);
-                expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
+                var localSpace = ((VFXDataParticle)GetData()).space == VFXSpace.Local;
+                if (localSpace)
+                {
+                    //Since it's a compute shader without renderer associated, these entries aren't automatically sent
+                    expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "localToWorld", -1);
+                    expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
+                }
+
                 if (m_Output.HasCustomSortingCriterion())
                 {
                     var sortKeyExp = m_Output.inputSlots.First(s => s.name == "sortKey").GetExpression();
@@ -167,21 +174,10 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
+                foreach (var attribute in VFXAttribute.AllAttributeAffectingAABB)
+                    yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
 
                 if (HasFeature(Features.MultiMesh))
                     yield return new VFXAttributeInfo(VFXAttribute.MeshIndex, VFXAttributeMode.Read);
@@ -202,6 +198,9 @@ namespace UnityEditor.VFX
             {
                 foreach (var d in base.additionalDefines)
                     yield return d;
+
+                // Output Update need to handle local to world matrix for each instance
+                yield return "HAVE_VFX_MODIFICATION";
 
                 yield return "INDIRECT_BUFFER_COUNT " + bufferCount;
 
@@ -226,6 +225,20 @@ namespace UnityEditor.VFX
                     yield return "VFX_FEATURE_FRUSTUM_CULL";
                 if (output.HasStrips(false))
                     yield return "HAS_STRIPS";
+                if (HasFeature(Features.FillRaytracingAABB))
+                {
+                    foreach (var define in output.rayTracingDefines)
+                        yield return define;
+                }
+            }
+        }
+
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                if (HasFeature(Features.FillRaytracingAABB))
+                    yield return new VFXMapping("contextComputesAabb", 1);
             }
         }
 

@@ -185,7 +185,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get
             {
@@ -298,14 +298,6 @@ namespace UnityEditor.VFX.UI
         public override Bounds GetGizmoBounds(VisualEffect component)
         {
             return m_ParentController.GetGizmoBounds(component);
-        }
-
-        public override bool gizmoNeedsComponent
-        {
-            get
-            {
-                return m_ParentController.gizmoNeedsComponent;
-            }
         }
 
         public override int id

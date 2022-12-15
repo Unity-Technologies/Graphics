@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering
     /// An Asset which holds a set of settings to use with a <see cref="Volume"/>.
     /// </summary>
     [CoreRPHelpURL("Volume-Profile", "com.unity.render-pipelines.high-definition")]
+    [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/VolumeProfile Icon.asset")]
     public sealed class VolumeProfile : ScriptableObject
     {
         /// <summary>
@@ -16,6 +17,7 @@ namespace UnityEngine.Rendering
         public List<VolumeComponent> components = new List<VolumeComponent>();
 
         /// <summary>
+        /// **Note**: For Internal Use Only<br/>
         /// A dirty check used to redraw the profile inspector when something has changed. This is
         /// currently only used in the editor.
         /// </summary>

@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new EditorGUI.DisabledScope(!hd.currentPlatformRenderPipelineSettings.supportLightLayers))
                 {
-                    PropertyFieldWithoutToggle(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, EditorGUIUtility.TrTextContent("Light Layer", "Specifies the Light Layer the Reflection Probe uses to capture its view of the Scene. The Probe only uses Lights on the Light Layer you specify."), displayedFields.probe,
+                    PropertyFieldWithoutToggle(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, EditorGUIUtility.TrTextContent("Rendering Layer Mask", "This Reflection Probe only affects Renderers with a matching Rendering Layer Mask.\nThis is only available when Light Layers are enabled."), displayedFields.probe,
                         (property, label) => EditorGUILayout.PropertyField(property, label)
                     );
                 }
@@ -88,7 +88,15 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var scalableSetting = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.planarReflectionResolution;
                 serialized.resolutionScalable.LevelAndEnumGUILayout<PlanarReflectionAtlasResolution>(
-                    EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar probe camera."), scalableSetting, null
+                    EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the planar reflection probe camera."), scalableSetting, null
+                );
+            }
+
+            if (((int)ProbeSettingsFields.cubeResolution & (int)displayedFields.probe) != 0)
+            {
+                var scalableSetting = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.cubeReflectionResolution;
+                serialized.cubeResolution.LevelAndEnumGUILayout<CubeReflectionResolution>(
+                    EditorGUIUtility.TrTextContent("Resolution", "Sets the resolution for the reflection probe camera."), scalableSetting, null
                 );
             }
 

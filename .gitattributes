@@ -1,55 +1,393 @@
 * text=auto eol=lf
 
-# Unity assets are always serialized using lf endings
-LightingData.asset binary
-*.unitypackage filter=lfs diff=lfs merge=lfs -text
-*.[pP][sS][dD] filter=lfs diff=lfs merge=lfs -text
-*.[jJ][pP][gG] filter=lfs diff=lfs merge=lfs -text
-*.[pP][nN][gG] filter=lfs diff=lfs merge=lfs -text
-*.[gG][iI][fF] filter=lfs diff=lfs merge=lfs -text
-*.[bB][mM][pP] filter=lfs diff=lfs merge=lfs -text
-*.[tT][gG][aA] filter=lfs diff=lfs merge=lfs -text
-*.[tT][iI][fF][fF] filter=lfs diff=lfs merge=lfs -text
-*.[tT][iI][fF] filter=lfs diff=lfs merge=lfs -text
-*.[iI][fF][fF] filter=lfs diff=lfs merge=lfs -text
-*.[pP][iI][cC][tT] filter=lfs diff=lfs merge=lfs -text
-*.[dD][dD][sS] filter=lfs diff=lfs merge=lfs -text
-*.[xX][cC][fF] filter=lfs diff=lfs merge=lfs -text
-*.[mM][pP]3 filter=lfs diff=lfs merge=lfs -text
-*.[oO][gG][gG] filter=lfs diff=lfs merge=lfs -text
-*.[wW][aA][vV] filter=lfs diff=lfs merge=lfs -text
-*.[aA][iI][fF][fF] filter=lfs diff=lfs merge=lfs -text
-*.[aA][iI][fF] filter=lfs diff=lfs merge=lfs -text
-*.[mM][oO][dD] filter=lfs diff=lfs merge=lfs -text
-*.[iI][tT][tT] filter=lfs diff=lfs merge=lfs -text
-*.[sS]3[mM] filter=lfs diff=lfs merge=lfs -text
-*.[xX][mM] filter=lfs diff=lfs merge=lfs -text
-*.[mM][oO][vV] filter=lfs diff=lfs merge=lfs -text
-*.[aA][vV][iI] filter=lfs diff=lfs merge=lfs -text
-*.[aA][sS][fF] filter=lfs diff=lfs merge=lfs -text
-*.[mM][pP][gG] filter=lfs diff=lfs merge=lfs -text
-*.[mM][pP][eE][gG] filter=lfs diff=lfs merge=lfs -text
-*.[mM][pP]4 filter=lfs diff=lfs merge=lfs -text
-*.[fF][bB][xX] filter=lfs diff=lfs merge=lfs -text
-*.[oO][bB][jJ] filter=lfs diff=lfs merge=lfs -text
-*.[mM][aA][xX] filter=lfs diff=lfs merge=lfs -text
-*.[bB][lL][eE][nN][dD] filter=lfs diff=lfs merge=lfs -text
-*.[dD][aA][eE] filter=lfs diff=lfs merge=lfs -text
-*.[mM][bB] filter=lfs diff=lfs merge=lfs -text
-*.[mM][aA] filter=lfs diff=lfs merge=lfs -text
-*.3[dD][sS] filter=lfs diff=lfs merge=lfs -text
-*.[dD][fF][xX] filter=lfs diff=lfs merge=lfs -text
-*.[cC]4[dD] filter=lfs diff=lfs merge=lfs -text
-*.[lL][wW][oO] filter=lfs diff=lfs merge=lfs -text
-*.[lL][wW][oO]2 filter=lfs diff=lfs merge=lfs -text
-*.[aA][bB][cC] filter=lfs diff=lfs merge=lfs -text
-*.3[dD][mM] filter=lfs diff=lfs merge=lfs -text
-*.[dD][lL][lL] filter=lfs diff=lfs merge=lfs -text
-*.[pP][dD][bB] filter=lfs diff=lfs merge=lfs -text
-*.[mM][dD][bB] filter=lfs diff=lfs merge=lfs -text
+# EOL
+
+*.py eol=lf
+*.pl eol=lf
+*.pm eol=lf
+*.t eol=lf
+*.it eol=lf
+*.h eol=lf
+*.cpp eol=lf
+*.cs eol=lf
+*.c eol=lf
+*.txt eol=lf
+*.bindings eol=lf
+*.sh eol=lf
+*.jam eol=lf
+*.as eol=lf
+*.boo eol=lf
+*.java eol=lf
+*.js eol=lf
+Makefile eol=lf
+*.shader eol=lf
+*.cginc eol=lf
+*.glslinc eol=lf
+*.meta eol=lf
+*.mm eol=lf
+*.md eol=lf
+Runtime/Export/common_* eol=lf
+Repositories.ini eol=lf
+.hgignore eol=lf
+
+# vs can handle these as lf, but really wants them as crlf
+*.vcproj eol=crlf
+*.vcxproj eol=crlf
+*.vcxproj.filters eol=crlf
+*.csproj eol=crlf
+*.props eol=crlf
+*.targets eol=crlf
+*.sln eol=crlf
+*.sln.template eol=crlf
+*.bat eol=crlf
+*.cmd eol=crlf
+*.xaml eol=crlf
+
+# the templating parser will actually fail on lf, inexplicably setting every #line directive as '1'
+*.tt eol=crlf
+*.t4 eol=crlf
+*.ttinclude eol=crlf
+
+# LFS
+
+# archives and well-known binary formats
 *.[zZ][iI][pP] filter=lfs diff=lfs merge=lfs -text
 *.7[zZ] filter=lfs diff=lfs merge=lfs -text
+*.[zZ]7 filter=lfs diff=lfs merge=lfs -text
+*.[tT][gG][zZ] filter=lfs diff=lfs merge=lfs -text
 *.[gG][zZ] filter=lfs diff=lfs merge=lfs -text
-*.[rR][aA][rR] filter=lfs diff=lfs merge=lfs -text
-*.[tT][aA][rR] filter=lfs diff=lfs merge=lfs -text
-**/ShaderGraph/Assets/TestbedAssets/Textures/Texture2DArray/*.asset filter=lfs diff=lfs merge=lfs -text
+*.[jJ][aA][rR] filter=lfs diff=lfs merge=lfs -text
+*.[nN][uU][pP][kK][gG] filter=lfs diff=lfs merge=lfs -text
+*.[eE][gG][gG] filter=lfs diff=lfs merge=lfs -text
+*.[aA][pP][kK] filter=lfs diff=lfs merge=lfs -text
+*.[mM][sS][iI] filter=lfs diff=lfs merge=lfs -text
+*.[aA][rR][cC] filter=lfs diff=lfs merge=lfs -text
+
+# executables and libraries
+*.[aA] filter=lfs diff=lfs merge=lfs -text
+*.[oO] filter=lfs diff=lfs merge=lfs -text
+*.[sS][oO] filter=lfs diff=lfs merge=lfs -text
+*.[bB][iI][nN] filter=lfs diff=lfs merge=lfs -text
+*.[dD][lL][lL] filter=lfs diff=lfs merge=lfs -text
+*.[oO][bB][jJ] filter=lfs diff=lfs merge=lfs -text
+*.[dD][yY][lL][iI][bB] filter=lfs diff=lfs merge=lfs -text
+*.[lL][iI][bB] filter=lfs diff=lfs merge=lfs -text
+*.[eE][xX][eE] filter=lfs diff=lfs merge=lfs -text
+
+# specific binaries in the unity codebase
+js filter=lfs diff=lfs merge=lfs -text
+p4 filter=lfs diff=lfs merge=lfs -text
+p4d filter=lfs diff=lfs merge=lfs -text
+flex filter=lfs diff=lfs merge=lfs -text
+bison filter=lfs diff=lfs merge=lfs -text
+distcc filter=lfs diff=lfs merge=lfs -text
+distccd filter=lfs diff=lfs merge=lfs -text
+gdbserver filter=lfs diff=lfs merge=lfs -text
+fastzip_darwin filter=lfs diff=lfs merge=lfs -text
+ProxyServer filter=lfs diff=lfs merge=lfs -text
+node filter=lfs diff=lfs merge=lfs -text
+usymtool filter=lfs diff=lfs merge=lfs -text
+libtool filter=lfs diff=lfs merge=lfs -text
+optool filter=lfs diff=lfs merge=lfs -text
+Cg filter=lfs diff=lfs merge=lfs -text
+PVRTexTool filter=lfs diff=lfs merge=lfs -text
+PVRTexToolCL filter=lfs diff=lfs merge=lfs -text
+PVRTexToolCLI filter=lfs diff=lfs merge=lfs -text
+iproxy filter=lfs diff=lfs merge=lfs -text
+7za filter=lfs diff=lfs merge=lfs -text
+yasm filter=lfs diff=lfs merge=lfs -text
+nasm filter=lfs diff=lfs merge=lfs -text
+lzma filter=lfs diff=lfs merge=lfs -text
+lzma-linux32 filter=lfs diff=lfs merge=lfs -text
+unity_web_d3d filter=lfs diff=lfs merge=lfs -text
+unity_web_gl filter=lfs diff=lfs merge=lfs -text
+Everyplay filter=lfs diff=lfs merge=lfs -text
+UnityAds filter=lfs diff=lfs merge=lfs -text
+usym_upload filter=lfs diff=lfs merge=lfs -text
+eng.cube.size filter=lfs diff=lfs merge=lfs -text
+eng.cube.nn filter=lfs diff=lfs merge=lfs -text
+ispc_osx filter=lfs diff=lfs merge=lfs -text
+dump_syms filter=lfs diff=lfs merge=lfs -text
+astcenc_linux filter=lfs diff=lfs merge=lfs -text
+astcenc_osx filter=lfs diff=lfs merge=lfs -text
+convert filter=lfs diff=lfs merge=lfs -text
+convert_linux filter=lfs diff=lfs merge=lfs -text
+etcpack2_linux filter=lfs diff=lfs merge=lfs -text
+arm-eabi-gdb.dist filter=lfs diff=lfs merge=lfs -text
+arm-eabi-gdb filter=lfs diff=lfs merge=lfs -text
+build-wrapper-linux-x86-64 filter=lfs diff=lfs merge=lfs -text
+build-wrapper-linux-x86-32 filter=lfs diff=lfs merge=lfs -text
+build-wrapper-macosx-x86 filter=lfs diff=lfs merge=lfs -text
+AudioPluginDemo filter=lfs diff=lfs merge=lfs -text
+re2c filter=lfs diff=lfs merge=lfs -text
+ios-deploy filter=lfs diff=lfs merge=lfs -text
+mobiledevice filter=lfs diff=lfs merge=lfs -text
+AssetBundles filter=lfs diff=lfs merge=lfs -text
+Unity4XC filter=lfs diff=lfs merge=lfs -text
+lemon filter=lfs diff=lfs merge=lfs -text
+etcpack filter=lfs diff=lfs merge=lfs -text
+etcpack2 filter=lfs diff=lfs merge=lfs -text
+enabundle filter=lfs diff=lfs merge=lfs -text
+assetDatabase3 filter=lfs diff=lfs merge=lfs -text
+MasterServer filter=lfs diff=lfs merge=lfs -text
+Facilitator filter=lfs diff=lfs merge=lfs -text
+RenderingPlugin filter=lfs diff=lfs merge=lfs -text
+Unitron filter=lfs diff=lfs merge=lfs -text
+DotMacKit filter=lfs diff=lfs merge=lfs -text
+ImageComparer filter=lfs diff=lfs merge=lfs -text
+GameKit filter=lfs diff=lfs merge=lfs -text
+OgreKit filter=lfs diff=lfs merge=lfs -text
+*.test-cache filter=lfs diff=lfs merge=lfs -text
+*.unitypackage filter=lfs diff=lfs merge=lfs -text
+Projects/VisualStudio/ipch/middleman-2afd44a3/unitywebpluginax-eba8f4d1.ipch filter=lfs diff=lfs merge=lfs -text
+Editor/Resources/Common/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs merge=lfs -text
+Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs merge=lfs -text
+
+#SRP
+**/BatchRendererGroup_HDRP/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_HDRP/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/BatchRendererGroup_URP/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/BuildInGraphicsTest_Foundation/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Foundation/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/BuiltInGraphicsTest_Lighting/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp-upgrade/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.urp/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/com.unity.testing.xr/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/HDRP_DXR_Tests/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/PostProcessing_Tests/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/SRP_SmokeTest/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/UniversalGfxTestStereo/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.bytes filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.cube filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.dds filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.exp filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.FBX filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+**/UniversalUpgradeTest/**/*.vfx filter=lfs diff=lfs merge=lfs -text
+
+**/com.unity.template-hd/Assets/Scenes/SampleScene/LightingData.asset filter=lfs diff=lfs merge=lfs -text
+**/HDRP_PerformanceTests/Assets/Scenes/Lighting/Cloud.asset filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/cloud2.asset filter=lfs diff=lfs merge=lfs -text
+**/HDRP_RuntimeTests/Assets/Scenes/002-HDMaterials/perlin.asset filter=lfs diff=lfs merge=lfs -text
+
+#GfxTests
+**/GfxTestProjectFolder/**/*.[hH][dD][rR] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[tT][gG][aA] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[pP][nN][gG] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[bB][mM][pP] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[tT][iI][fF] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[tT][tT][fF] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[jJ][pP][gG] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[jJ][pP][eE][gG] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[aA][sS][sS][eE][tT] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[fF][bB][xX] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[pP][sS][dD] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[sS][pP][mM] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[aA][aa][rR] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[cC][uU][bB][eE][mM][aA][pP] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[pP][rR][xX] filter=lfs diff=lfs merge=lfs -text
+**/GfxTestProjectFolder/**/*.[dD][fF][oO][nN][tT] filter=lfs diff=lfs merge=lfs -text

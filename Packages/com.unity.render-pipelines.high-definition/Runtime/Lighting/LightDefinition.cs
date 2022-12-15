@@ -260,6 +260,38 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 padding;
     };
 
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    unsafe struct EnvLightReflectionData
+    {
+        public const int s_MaxPlanarReflections = HDRenderPipeline.k_MaxPlanarReflectionsOnScreen;
+        public const int s_MaxCubeReflections = HDRenderPipeline.k_MaxCubeReflectionsOnScreen;
+
+        [HLSLArray(s_MaxPlanarReflections, typeof(Matrix4x4))]
+        public fixed float _PlanarCaptureVP[s_MaxPlanarReflections * 4 * 4];
+        [HLSLArray(s_MaxPlanarReflections, typeof(Vector4))]
+        public fixed float _PlanarCaptureForward[s_MaxPlanarReflections * 4];
+        [HLSLArray(s_MaxPlanarReflections, typeof(Vector4))]
+        public fixed float _PlanarScaleOffset[s_MaxPlanarReflections * 4];
+        [HLSLArray(s_MaxCubeReflections, typeof(Vector4))]
+        public fixed float _CubeScaleOffset[s_MaxCubeReflections * 4];
+    };
+
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    unsafe struct EnvLightReflectionDataRT
+    {
+        public const int s_MaxPlanarReflections = HDRenderPipeline.k_MaxPlanarReflectionsOnScreen;
+        public const int s_MaxCubeReflections = HDRenderPipeline.k_MaxCubeReflectionsOnScreen;
+
+        [HLSLArray(s_MaxPlanarReflections, typeof(Matrix4x4))]
+        public fixed float _PlanarCaptureVPRT[s_MaxPlanarReflections * 4 * 4];
+        [HLSLArray(s_MaxPlanarReflections, typeof(Vector4))]
+        public fixed float _PlanarCaptureForwardRT[s_MaxPlanarReflections * 4];
+        [HLSLArray(s_MaxPlanarReflections, typeof(Vector4))]
+        public fixed float _PlanarScaleOffsetRT[s_MaxPlanarReflections * 4];
+        [HLSLArray(s_MaxCubeReflections, typeof(Vector4))]
+        public fixed float _CubeScaleOffsetRT[s_MaxCubeReflections * 4];
+    };
+
     [GenerateHLSL]
     enum EnvCacheType
     {

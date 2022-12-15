@@ -147,17 +147,13 @@ namespace UnityEditor.VFX
                                 }
                                 else //VFXValueType.SkinnedMeshRenderer
                                 {
-                                    if (targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat
-                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat2
-                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat3
-                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat4
-                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererColor)
+                                    if (targetExpression is IVFXExpressionSampleSkinnedMesh skinnedMeshExpression)
                                     {
                                         var channelFormatAndDimensionAndStream = targetExpression.parents[2];
                                         channelFormatAndDimensionAndStream = Compile(channelFormatAndDimensionAndStream);
                                         if (!(channelFormatAndDimensionAndStream is VFXExpressionMeshChannelInfos))
                                             throw new InvalidOperationException("Unexpected type of expression in skinned mesh sampling : " + channelFormatAndDimensionAndStream);
-                                        input = new VFXExpressionVertexBufferFromSkinnedMeshRenderer(input, channelFormatAndDimensionAndStream);
+                                        input = new VFXExpressionVertexBufferFromSkinnedMeshRenderer(input, channelFormatAndDimensionAndStream, skinnedMeshExpression.frame);
                                     }
                                     else
                                     {

@@ -17,11 +17,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         const string k_ScreenPositionSlotName = "UV";
         const string k_OutputSlotName = "Output";
-        const string k_SamplerInputSlotName = "Sampler";
 
         const int k_ScreenPositionSlotId = 0;
         const int k_OutputSlotId = 2;
-        public const int k_SamplerInputSlotId = 3;
 
         public enum BufferType
         {
@@ -30,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MotionVectors,
             IsSky,
             PostProcessInput,
+            RenderingLayerMask,
         }
 
         [SerializeField]
@@ -52,11 +51,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Sample-Buffer");
 
+
+        public static List<HDSampleBufferNode> nodeList = new();
+
         public HDSampleBufferNode()
         {
             name = "HD Sample Buffer";
-            synonyms = new string[] { "normal", "motion vector", "smoothness", "postprocessinput", "blit", "issky" };
+            synonyms = new string[] { "normal", "motion vector", "smoothness", "postprocessinput", "issky" };
             UpdateNodeAfterDeserialization();
+
+            nodeList.Add(this);
+        }
+
+        ~HDSampleBufferNode()
+        {
+            nodeList.Remove(this);
         }
 
         public override bool hasPreview { get { return true; } }
@@ -67,7 +76,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new ScreenPositionMaterialSlot(k_ScreenPositionSlotId, k_ScreenPositionSlotName, k_ScreenPositionSlotName, ScreenSpaceType.Default));
-            AddSlot(new SamplerStateMaterialSlot(k_SamplerInputSlotId, k_SamplerInputSlotName, k_SamplerInputSlotName, SlotType.Input));
 
             switch (bufferType)
             {
@@ -91,12 +99,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     AddSlot(new ColorRGBAMaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Color.black, ShaderStageCapability.Fragment));
                     channelCount = 4;
                     break;
+                case BufferType.RenderingLayerMask:
+                    AddSlot(new Vector1MaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, 0, ShaderStageCapability.Fragment));
+                    channelCount = 1;
+                    break;
             }
 
             RemoveSlotsNameNotMatching(new[]
             {
                 k_ScreenPositionSlotId,
-                k_SamplerInputSlotId,
                 k_OutputSlotId,
             });
         }
@@ -117,10 +128,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         // Declare post process input here because the property collector don't support TEXTURE_X type
                         s.AppendLine($"TEXTURE2D_X({nameof(HDShaderIDs._CustomPostProcessInput)});");
-                        s.AppendLine($"SAMPLER(sampler{nameof(HDShaderIDs._CustomPostProcessInput)});");
                     }
 
-                    s.AppendLine("$precision{1} {0}($precision2 uv, SamplerState samplerState)", GetFunctionName(), channelCount);
+                    s.AppendLine("$precision{1} {0}($precision2 uv)", GetFunctionName(), channelCount);
                     using (s.BlockScope())
                     {
                         switch (bufferType)
@@ -150,6 +160,10 @@ namespace UnityEditor.Rendering.HighDefinition
                             case BufferType.PostProcessInput:
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
                                 s.AppendLine("return LOAD_TEXTURE2D_X_LOD(_CustomPostProcessInput, pixelCoords, 0);");
+                                break;
+                            case BufferType.RenderingLayerMask:
+                                s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
+                                s.AppendLine("return _EnableRenderingLayers ? UnpackMeshRenderingLayerMask(LOAD_TEXTURE2D_X_LOD(_RenderingLayerMaskTexture, pixelCoords, 0)) : 0;");
                                 break;
                             default:
                                 s.AppendLine("return 0.0;");
@@ -189,21 +203,47 @@ namespace UnityEditor.Rendering.HighDefinition
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             string uv = GetSlotValue(k_ScreenPositionSlotId, generationMode);
-            if (generationMode.IsPreview())
-            {
-                sb.AppendLine($"$precision{channelCount} {GetVariableNameForSlot(k_OutputSlotId)} = {GetFunctionName()}(IN.ScreenPosition.xy);");
-            }
-            else
-            {
-                var samplerSlot = FindInputSlot<MaterialSlot>(k_SamplerInputSlotId);
-                var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
-                var sampler = edgesSampler.Any() ? $"{GetSlotValue(k_SamplerInputSlotId, generationMode)}.samplerstate" : "s_linear_clamp_sampler";
-                sb.AppendLine($"$precision{channelCount} {GetVariableNameForSlot(k_OutputSlotId)} = {GetFunctionName()}({uv}.xy, {sampler});");
-            }
+            sb.AppendLine($"$precision{channelCount} {GetVariableNameForSlot(k_OutputSlotId)} = {GetFunctionName()}({uv}.xy);");
         }
 
         public bool RequiresDepthTexture(ShaderStageCapability stageCapability) => true;
         public bool RequiresNDCPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
+
+
+        static readonly ShaderMessage renderingLayerWarning = new ShaderMessage("Rendering Layer Mask Buffer is not enabled in the HDRP Asset. This will not work.", ShaderCompilerMessageSeverity.Warning);
+
+        public override void ValidateNode()
+        {
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer == false && bufferType == BufferType.RenderingLayerMask)
+                owner.messageManager?.AddOrAppendError(owner, objectId, renderingLayerWarning);
+        }
+
+        private void UpdateWarningBadge(bool readableBuffer)
+        {
+            if (owner == null) return;
+
+            if (!readableBuffer && bufferType == BufferType.RenderingLayerMask)
+                owner.messageManager?.AddOrAppendError(owner, objectId, renderingLayerWarning);
+            else
+                owner.ClearErrorsForNode(this);
+        }
+
+        internal static void OnRenderingLayerMaskBufferChange(bool readableBuffer)
+        {
+            foreach (var node in nodeList)
+            {
+                if (node != null)
+                    node.UpdateWarningBadge(readableBuffer);
+            }
+
+            EditorApplication.delayCall += () => {
+                foreach (var node in nodeList)
+                {
+                    if (node != null && node.owner?.owner != null)
+                        node.owner.owner.Validate();
+                }
+            };
+        }
     }
 }

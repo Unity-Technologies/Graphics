@@ -366,6 +366,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
 
                         GUI.enabled = true;
+
+                        var staticLightingSky = SkyManager.GetStaticLightingSky();
+                        if (staticLightingSky != null && staticLightingSky.profile != null)
+                        {
+                            var skyType = staticLightingSky.staticLightingSkyUniqueID == 0 ? "no Sky" : SkyManager.skyTypesDict[staticLightingSky.staticLightingSkyUniqueID].Name.ToString();
+                            var cloudType = staticLightingSky.staticLightingCloudsUniqueID == 0 ? "no Clouds" : SkyManager.cloudTypesDict[staticLightingSky.staticLightingCloudsUniqueID].Name.ToString();
+                            EditorGUILayout.HelpBox($"Static Lighting Sky uses {skyType} and {cloudType} of profile {staticLightingSky.profile.name}.", MessageType.Info);
+                        }
                         break;
                     }
                     case ProbeSettings.Mode.Realtime:
@@ -376,6 +384,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static void DrawSHNormalizationStatus(SerializedHDProbe serialized, Editor owner)
             {
+                if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightProbeSystem != RenderPipelineSettings.LightProbeSystem.ProbeVolumes)
+                    return;
+
                 const string kResolution = " Please ensure that probe positions are valid (not inside static geometry) then bake lighting to regenerate data.";
                 const string kMixedMode = "Unable to show normalization data validity when selecting probes with different modes.";
                 const string kMixedValidity = "Baked reflection probe normalization data is partially invalid." + kResolution;
@@ -426,9 +437,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         probe, ProbeSettings.Mode.Custom
                     );
 
-
                     HDBakedReflectionSystem.RenderAndWriteToFile(
-                        probe, assetPath, target, null,
+                        probe, assetPath, target,
                         out var cameraSettings, out var cameraPositionSettings
                     );
                     AssetDatabase.ImportAsset(assetPath);

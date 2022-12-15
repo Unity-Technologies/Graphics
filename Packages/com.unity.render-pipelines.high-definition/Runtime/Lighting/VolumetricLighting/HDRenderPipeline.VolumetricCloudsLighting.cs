@@ -5,35 +5,43 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        // Setup to match FORWARD_ECCENTRICITY in VolumetricCloudsUtilies.hlsl
+        // Kinda empirical because they are not using the same phase function
+        const float m_VolumetricCloudsAnisotropy = 0.7f;
+
         // Buffers required to evaluate the probe
-        internal ComputeBuffer m_CloudsProbeBuffer = null;
+        internal GraphicsBuffer m_CloudsDynamicProbeBuffer = null;
+        internal GraphicsBuffer m_CloudsStaticProbeBuffer = null;
 
         void InitializeVolumetricCloudsAmbientProbe()
         {
             // Buffer is stored packed to be used directly by shader code (27 coeffs in 7 float4)
             // Compute buffer storing the pre-convolved resulting SH For volumetric lighting. L2 SH => 9 float per component.
-            m_CloudsProbeBuffer = new ComputeBuffer(7, 16);
+            m_CloudsDynamicProbeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 7, 16);
+            m_CloudsStaticProbeBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 7, 16);
         }
 
         void ReleaseVolumetricCloudsAmbientProbe()
         {
-            CoreUtils.SafeRelease(m_CloudsProbeBuffer);
+            CoreUtils.SafeRelease(m_CloudsDynamicProbeBuffer);
+            CoreUtils.SafeRelease(m_CloudsStaticProbeBuffer);
         }
 
-        internal void PreRenderVolumetricClouds_AmbientProbe(RenderGraph renderGraph, HDCamera hdCamera)
+        internal GraphicsBuffer RenderVolumetricCloudsAmbientProbe(RenderGraph renderGraph, HDCamera hdCamera, SkyUpdateContext lightingSky, bool staticSky)
         {
-            if (hdCamera.lightingSky.skyRenderer != null)
-            {
-                VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-                using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.VolumetricCloudsAmbientProbe)))
-                {
-                    TextureHandle outputCubemap = renderGraph.CreateTexture(new TextureDesc(16, 16)
-                    { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
+            // Grab the volume settings
+            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
-                    outputCubemap = m_SkyManager.RenderSkyToCubemap(renderGraph, hdCamera.lightingSky, hdCamera, includeSunInBaking: false, renderCloudLayers: false, outputCubemap);
-                    m_SkyManager.UpdateAmbientProbe(renderGraph, outputCubemap, outputForClouds: true, null, null, m_CloudsProbeBuffer, new Vector4(settings.ambientLightProbeDimmer.value, 0.0f, 0.0f, 0.0f), null);
-                }
+            // If the clouds are enabled on this camera
+            GraphicsBuffer probeBuffer = staticSky ? m_CloudsStaticProbeBuffer : m_CloudsDynamicProbeBuffer;
+            if (HasVolumetricClouds(hdCamera, in settings) && lightingSky.skyRenderer != null)
+            {
+                // We include background clouds in the ambient probe because we assume they are located above the volumetric clouds (in the background) so they should block sky light
+                m_SkyManager.RenderSkyAmbientProbe(renderGraph, lightingSky, hdCamera, probeBuffer, renderBackgroundClouds: true, HDProfileId.VolumetricCloudsAmbientProbe,
+                    settings.ambientLightProbeDimmer.value, m_VolumetricCloudsAnisotropy);
             }
+
+            return probeBuffer;
         }
     }
 }

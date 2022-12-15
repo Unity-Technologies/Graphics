@@ -12,7 +12,7 @@ To create a new pipeline in Yamato, modify the Unified Test Runner (utr) command
 
 In the command line, add`--performance-project-id=ProjectName`. Replace `ProjectName` with the name of your project in the performance database.
 
-1. Add `--report-performance-data` in the command line to enable performance reporting. 
+1. Add `--report-performance-data` in the command line to enable performance reporting.
 
 Here's an example of a utr command line:
 

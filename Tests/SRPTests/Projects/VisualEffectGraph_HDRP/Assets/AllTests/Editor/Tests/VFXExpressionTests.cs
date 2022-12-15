@@ -303,6 +303,34 @@ namespace UnityEditor.VFX.Test
             Assert.AreNotEqual(exp0, exp3);
             Assert.AreNotEqual(exp0, exp4);
         }
+
+        [Test]
+        public void OuputExpression_From_SampleMesh_Velocity_Should_Be_Splitted_In_Two_SampleBuffer()
+        {
+            var sampleSkinnedMesh = ScriptableObject.CreateInstance<Operator.SampleMesh>();
+            sampleSkinnedMesh.SetSettingValue("source", Operator.SampleMesh.SourceType.SkinnedMeshRenderer);
+            sampleSkinnedMesh.SetSettingValue("output", Operator.SampleMesh.VertexAttributeFlag.Velocity);
+            sampleSkinnedMesh.SetSettingValue("skinnedTransform", Operator.SampleMesh.SkinnedRootTransform.ApplyLocalRootTransform);
+
+            var contextPatchingGPU = new VFXExpression.Context(VFXExpressionContextOption.GPUDataTransformation);
+            var sourceExpression = sampleSkinnedMesh.outputSlots[0].GetExpression();
+
+            contextPatchingGPU.RegisterExpression(sourceExpression);
+            contextPatchingGPU.Compile();
+            var endExpression = contextPatchingGPU.Compile(sourceExpression);
+
+            var beforeExpressions = new HashSet<VFXExpression>();
+            var afterExpressions = new HashSet<VFXExpression>();
+            VFXExpression.CollectParentExpressionRecursively(endExpression, afterExpressions);
+            VFXExpression.CollectParentExpressionRecursively(sourceExpression, beforeExpressions);
+
+            Assert.AreEqual(0, beforeExpressions.OfType<VFXExpressionVertexBufferFromSkinnedMeshRenderer>().Count());
+
+            var vertexBufferFromSkinnedRenderer = afterExpressions.OfType<VFXExpressionVertexBufferFromSkinnedMeshRenderer>().ToArray();
+            Assert.AreEqual(2, vertexBufferFromSkinnedRenderer.Count());
+            Assert.IsNotNull(vertexBufferFromSkinnedRenderer.FirstOrDefault(o => o.frame == VFXSkinnedMeshFrame.Current));
+            Assert.IsNotNull(vertexBufferFromSkinnedRenderer.FirstOrDefault(o => o.frame == VFXSkinnedMeshFrame.Previous));
+        }
     }
 }
 #endif

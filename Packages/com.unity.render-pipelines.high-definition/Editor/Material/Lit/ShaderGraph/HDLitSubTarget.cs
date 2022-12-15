@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // SubShader features
         protected override bool supportDistortion => true;
         protected override bool supportForward => false;
-        protected override bool supportPathtracing => true;
+        protected override bool supportPathtracing => !TargetsVFX();
         protected override bool requireSplitLighting => litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
 
         protected override SubShaderDescriptor GetSubShaderDescriptor()
@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetSubShaderDescriptor();
 
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly(TargetsVFX(), systemData.tessellation));
-            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation, systemData.debugSymbols));
             descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation));
             if (!systemData.tessellation) // Raytracing don't support tessellation neither VFX
                 descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
@@ -135,8 +135,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            bool hasTransmission = (litData.materialType == HDLitData.MaterialType.Translucent) || (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering && litData.sssTransmission);
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
-            bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
 
             // Vertex
             base.GetActiveBlocks(ref context);
@@ -168,8 +168,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(tangentBlock, litData.materialType == HDLitData.MaterialType.Anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy, litData.materialType == HDLitData.MaterialType.Anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering);
-            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness, ((litData.materialType == HDLitData.MaterialType.SubsurfaceScattering || litData.materialType == HDLitData.MaterialType.Translucent) &&
-                (litData.sssTransmission || litData.materialType == HDLitData.MaterialType.Translucent)) || hasRefraction);
+            context.AddBlock(HDBlockFields.SurfaceDescription.TransmissionMask, hasTransmission);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness, hasTransmission || hasRefraction);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering || litData.materialType == HDLitData.MaterialType.Translucent);
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceMask, litData.materialType == HDLitData.MaterialType.Iridescence);
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceThickness, litData.materialType == HDLitData.MaterialType.Iridescence);

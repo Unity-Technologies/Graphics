@@ -17,7 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Grab the kernels we need
             ComputeShader volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
-            m_ComputeShadowCloudsKernel = volumetricCloudsCS.FindKernel("ComputeVolumetricCloudsShadow");
+            ComputeShader volumetricCloudsTraceCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceCS;
+            m_ComputeShadowCloudsKernel = volumetricCloudsTraceCS.FindKernel("ComputeVolumetricCloudsShadow");
             m_FilterShadowCloudsKernel = volumetricCloudsCS.FindKernel("FilterVolumetricCloudsShadow");
         }
 
@@ -96,6 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
             {
                 CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.commonData.localClouds);
+                CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", false);
 
                 // Bind the constant buffer
                 ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
@@ -104,16 +106,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 int shadowTX = (parameters.commonData.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
                 int shadowTY = (parameters.commonData.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
                 // Input textures
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.commonData.cloudLutTexture);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.commonData.cloudLutTexture);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
 
                 // Output texture
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
 
                 // Evaluate the shadow
-                cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, shadowTX, shadowTY, 1);
+                cmd.DispatchCompute(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, shadowTX, shadowTY, 1);
 
                 // Given the low number of steps available and the absence of noise in the integration, we try to reduce the artifacts by doing two consecutive 3x3 blur passes.
                 // Filter the shadow
@@ -128,6 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Bump the texture version
                 shadowTexture.rt.IncrementUpdateCount();
+
+                CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
             }
         }
 

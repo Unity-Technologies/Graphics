@@ -4,11 +4,11 @@ namespace UnityEngine.VFX.Utility
 {
     [AddComponentMenu("VFX/Property Binders/Position Binder")]
     [VFXBinder("Transform/Position")]
-    class VFXPositionBinder : VFXBinderBase
+    class VFXPositionBinder : VFXSpaceableBinder
     {
         public string Property { get { return (string)m_Property; } set { m_Property = value; } }
 
-        [VFXPropertyBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3"), SerializeField, UnityEngine.Serialization.FormerlySerializedAs("m_Parameter")]
+        [VFXPropertyBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3"), SerializeField]
         protected ExposedProperty m_Property = "Position";
         public Transform Target = null;
 
@@ -19,7 +19,8 @@ namespace UnityEngine.VFX.Utility
 
         public override void UpdateBinding(VisualEffect component)
         {
-            component.SetVector3(m_Property, Target.transform.position);
+            var position = ApplySpacePosition(component, m_Property, Target.transform.position);
+            component.SetVector3(m_Property, position);
         }
 
         public override string ToString()

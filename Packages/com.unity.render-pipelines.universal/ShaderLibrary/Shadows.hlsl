@@ -167,11 +167,6 @@ ShadowSamplingData GetAdditionalLightShadowSamplingData(int index)
     return shadowSamplingData;
 }
 
-ShadowSamplingData GetAdditionalLightShadowSamplingData()
-{
-    return GetAdditionalLightShadowSamplingData(0);
-}
-
 // ShadowParams
 // x: ShadowStrength
 // y: 1.0 if shadow is soft, 0.0 otherwise

@@ -1,0 +1,96 @@
+﻿
+        Pass
+        {
+            Name "VisibilityDXR"
+            Tags{ "LightMode" = "VisibilityDXR" }
+
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma raytracing surface_shader
+            #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
+            #pragma skip_variants INSTANCING_ON
+
+
+            // Global includes
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
+            // Define the shader pass
+            #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
+
+            // Need to override the macros for ray tracing
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            // Shader variables
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+
+            // VFX includes
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/RayTracingInputStructure.template")}
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/CommonOutput.template")}
+            ${VFXPerPassInclude}
+
+            // Needs to be included after the VFX includes
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/IntersectionFunctions.template")}
+
+            // Material includes
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RayTracingProcedural.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+            ${VFXGeneratedBlockFunction}
+
+            // Include to evaluate the material data
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/EvaluateMaterialData.template")}
+
+            [shader("closesthit")]
+            void ClosestHit(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+            {
+                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
+                // Compute the distance of the ray
+                rayIntersection.t = RayTCurrent();
+
+                // Read the material data
+                float4 color = 0.0;
+                float velocity = 0.0;
+                EvaluateUnlitMaterialData(attributeData, color, velocity);
+                rayIntersection.velocity = velocity;
+            }
+
+            [shader("anyhit")]
+            void AnyHitVisibility(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+            {
+                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
+                // Compute the distance of the ray
+                rayIntersection.t = RayTCurrent();
+
+                // Read the material data
+                float4 color = 0.0;
+                float velocity = 0.0;
+                EvaluateUnlitMaterialData(attributeData, color, velocity);
+
+            #if defined(TRANSPARENT_COLOR_SHADOW) && defined(_SURFACE_TYPE_TRANSPARENT)
+                // Override the veloctity for this value
+                rayIntersection.velocity = velocity;
+
+                // Adjust the color based on the transmittance or opacity
+                rayIntersection.color *= (1.0 - color.a);
+
+                // Ignore to move to the following intersections
+                IgnoreHit();
+            #else
+                // If this fella is opaque, then we need to stop
+                rayIntersection.color = float3(0.0, 0.0, 0.0);
+                AcceptHitAndEndSearch();
+            #endif
+            }
+
+            // Inject the intersection shader
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/IntersectionShader.template")}
+            ENDHLSL
+        }

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -40,7 +40,7 @@ public class MaterialCreator : MonoBehaviour
         Transform nodesXform = GameObject.Find("Nodes").transform;
 
         IEnumerable<Material> matsInScene = nodesXform.GetComponentsInChildren<Renderer>().Select(r => r.sharedMaterial);
-        
+
         HashSet<Material> matSet = new HashSet<Material>(matsInScene);
 
         IEnumerable<Material> matsInSelection = Selection.objects.Where(m => m is Material).Cast<Material>();
@@ -70,7 +70,7 @@ public class MaterialCreator : MonoBehaviour
                 go.transform.position = new Vector3(x, 0, z);
                 go.GetComponent<MeshRenderer>().sharedMaterial = m;
                 go.transform.SetParent(tempContainer.transform, true);
-                
+
                 ++x;
 
                 if(x > dim)

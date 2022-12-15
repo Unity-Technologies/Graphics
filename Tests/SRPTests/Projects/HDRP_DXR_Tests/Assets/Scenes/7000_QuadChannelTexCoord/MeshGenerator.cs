@@ -24,22 +24,22 @@ class MeshGenerator : MonoBehaviour
             new Vector4(0, 1, 0, 1),
             new Vector4(1, 1, 1, 1)
         };
-		
-		var uvs_1 = new [] {
+
+        var uvs_1 = new [] {
             new Vector4(0, 0, 0, 0),
             new Vector4(0.66f, 0, 0.66f, 0),
             new Vector4(0, 0.66f, 0, 0.66f),
             new Vector4(0.66f, 0.66f, 0.66f, 0.66f)
         };
-		
-		var uvs_2 = new [] {
+
+        var uvs_2 = new [] {
             new Vector4(0, 0, 0, 0),
             new Vector4(0.33f, 0, 0.33f, 0),
             new Vector4(0, 0.33f, 0, 0.33f),
             new Vector4(0.33f, 0.33f, 0.33f, 0.33f)
         };
-		
-		var uvs_3 = new [] {
+
+        var uvs_3 = new [] {
             new Vector4(0, 0, 0, 0),
             new Vector4(0.16f, 0, 0.16f, 0),
             new Vector4(0, 0.16f, 0, 0.16f),
@@ -52,9 +52,9 @@ class MeshGenerator : MonoBehaviour
         mesh.SetVertices(vertices);
         mesh.SetNormals(normals);
         mesh.SetUVs(0, uvs_0);
-		mesh.SetUVs(1, uvs_1);
-		mesh.SetUVs(2, uvs_2);
-		mesh.SetUVs(3, uvs_3);
+        mesh.SetUVs(1, uvs_1);
+        mesh.SetUVs(2, uvs_2);
+        mesh.SetUVs(3, uvs_3);
         mesh.SetIndices(indices, MeshTopology.Triangles, 0);
 
         GetComponent<MeshFilter>().sharedMesh = mesh;

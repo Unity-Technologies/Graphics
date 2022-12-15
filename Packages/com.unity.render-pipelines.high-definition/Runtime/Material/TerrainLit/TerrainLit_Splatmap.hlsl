@@ -112,8 +112,14 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
         masks[i] = NullMask(i);                                                                                 \
     }
 
+    // Derivatives are not available for ray tracing for now
+#if defined(SHADER_STAGE_RAY_TRACING)
+    float2 dxuv = 0;
+    float2 dyuv = 0;
+#else
     float2 dxuv = ddx(splatBaseUV);
     float2 dyuv = ddy(splatBaseUV);
+#endif
 
     float2 blendUV0 = (controlUV.xy * (_Control0_TexelSize.zw - 1.0f) + 0.5f) * _Control0_TexelSize.xy;
     float4 blendMasks0 = SAMPLE_TEXTURE2D(_Control0, sampler_Control0, blendUV0);

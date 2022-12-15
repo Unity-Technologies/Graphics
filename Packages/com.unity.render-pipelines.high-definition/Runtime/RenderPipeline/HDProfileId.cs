@@ -2,6 +2,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // HDRP Profile Id
+    // - You can use [HideInDebugUI] attribute to hide a given id from the Detailed Stats section of Rendering Debugger.
     internal enum HDProfileId
     {
         CopyDepthBuffer,
@@ -66,15 +68,18 @@ namespace UnityEngine.Rendering.HighDefinition
         DisplayCookieAtlas,
         RenderWireFrame,
         ConvolveReflectionProbe,
+        ConvertReflectionProbe,
         ConvolvePlanarReflectionProbe,
+        UpdateReflectionProbeAtlas,
+        BlitTextureToReflectionProbeAtlas,
+        DisplayReflectionProbeAtlas,
         PreIntegradeWardCookTorrance,
         FilterCubemapCharlie,
         FilterCubemapGGX,
-        DisplayPlanarReflectionProbeAtlas,
         AreaLightCookieConvolution,
-        DisplayLocalVolumetricFogAtlas,
 
         UpdateSkyEnvironmentConvolution,
+        BackgroundCloudsAmbientProbe,
         RenderSkyToCubemap,
         UpdateSkyAmbientProbe,
         PreRenderSky,
@@ -95,15 +100,21 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudsTrace,
         VolumetricCloudsReproject,
         VolumetricCloudsPreUpscale,
-        VolumetricCloudsUpscaleAndCombine,
+        VolumetricCloudsUpscale,
+        VolumetricCloudsCombine,
         VolumetricCloudsShadow,
         VolumetricCloudMapGeneration,
         VolumetricCloudsAmbientProbe,
 
         // Water surface
+        WaterSurfaceUpdate,
         WaterSurfaceSimulation,
+        WaterSurfaceDeformation,
+        WaterSurfaceCaustics,
+        WaterExclusion,
         WaterSurfaceRenderingGBuffer,
-        WaterSurfaceRenderingSSR,
+        WaterSurfaceRenderingMaskDebug,
+        WaterSurfacePrepareLighting,
         WaterSurfaceRenderingDeferred,
         WaterSurfaceRenderingUnderWater,
 
@@ -124,6 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,
         RaytracingComposeAmbientOcclusion,
+        RaytracingClearHistoryAmbientOcclusion,
         // RT Shadows
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
@@ -167,6 +179,10 @@ namespace UnityEngine.Rendering.HighDefinition
         SortVisibleLights,
         BuildVisibleLightEntities,
         ProcessShadows,
+        CalculateLightDataTextureInfo,
+        CalculateShadowIndices,
+        UpdateDirectionalShadowData,
+        EditorOnlyDebugSelectedLightShadow,
 
         // Profile sampler for shadow
         RenderShadowMaps,
@@ -247,10 +263,12 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPostProcessAfterPPBlurs,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
+        Sharpening,
         ContrastAdaptiveSharpen,
         EdgeAdaptiveSpatialUpsampling,
         PrepareProbeVolumeList,
         ProbeVolumeDebug,
+        CustomPassBufferClearDebug,
 
         AOVExecute,
         AOVOutput,

@@ -1,4 +1,4 @@
-
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging2D.hlsl"
 
@@ -7,7 +7,9 @@ half4 _RendererColor;
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
+    input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
     output = BuildVaryings(input);
+    output.color *= _RendererColor;
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
@@ -18,13 +20,19 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
 
-    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
-    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+    SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
 #ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
     half4 color = surfaceDescription.SpriteColor;
 #else
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
+#endif
+
+    if (color.a == 0.0)
+        discard;
+
+#if ALPHA_CLIP_THRESHOLD
+    clip(color.a - surfaceDescription.AlphaClipThreshold);
 #endif
 
     #if defined(DEBUG_DISPLAY)
@@ -42,6 +50,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     }
     #endif
 
-    color *= unpacked.color * _RendererColor;
+#ifndef HAVE_VFX_MODIFICATION
+    color *= unpacked.color * unity_SpriteColor;
+#endif
+
     return color;
 }

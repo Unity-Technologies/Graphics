@@ -20,6 +20,28 @@ namespace UnityEditor.VFX.Test
         static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
         static readonly string tempFileFormatPlayable = tempBasePath + "vfx_{0}.playable";
 
+        public static void CloseAllUnecessaryWindows()
+        {
+            //See UUM-14622: AssetImport during inspector rendering is creating instabilities
+            while (EditorWindow.HasOpenInstances<InspectorWindow>())
+                EditorWindow.GetWindow<InspectorWindow>().Close(); // Panel:Repaint => Editor:IsAppropriateFileOpenForEdit => Destroying GameObjects immediately is not permitted
+            while (EditorWindow.HasOpenInstances<ProjectBrowser>())
+                EditorWindow.GetWindow<ProjectBrowser>().Close(); //ProjectBrowser:OnGUI => OnDidAddComponent from HDAdditionalLightData => Send Message is forbidden
+        }
+
+        //Emulate function because VisualEffectUtility.GetSpawnerState has been removed
+        //Prefer usage of GetSpawnSystemInfo for new implementation
+        public static VFXSpawnerState GetSpawnerState(VisualEffect vfx, uint index)
+        {
+            var spawnerList = new List<string>();
+            vfx.GetSystemNames(spawnerList);
+
+            if (index >= spawnerList.Count)
+                throw new IndexOutOfRangeException();
+
+            return vfx.GetSpawnSystemInfo(spawnerList[(int)index]);
+        }
+
         public static VFXGraph CopyTemporaryGraph(string path)
         {
             var guid = System.Guid.NewGuid().ToString();
@@ -62,7 +84,7 @@ namespace UnityEditor.VFX.Test
         {
             if (Directory.Exists(tempBasePath))
             {
-                foreach (string file in System.IO.Directory.GetFiles(tempBasePath))
+                foreach (var file in Directory.EnumerateFiles(tempBasePath, "*.*", SearchOption.AllDirectories))
                 {
                     try
                     {
@@ -72,6 +94,19 @@ namespace UnityEditor.VFX.Test
                     {
                     }
                 }
+
+                foreach (var directory in Directory.EnumerateDirectories(tempBasePath))
+                {
+                    try
+                    {
+                        Directory.Delete(directory);
+                    }
+                    catch (System.Exception)
+                    {
+                    }
+                }
+
+                Directory.Delete(tempBasePath);
             }
         }
 
@@ -106,12 +141,11 @@ namespace UnityEditor.VFX.Test
 
         internal static void CreateSystems(VFXView view, VFXViewController viewController, int count, int offset, string name = null)
         {
-            Func<int, VFXContextController> fnContextController = delegate(int i)
+            VFXContextController GetContextController(VFXContext context)
             {
                 viewController.ApplyChanges();
-                var controller = viewController.allChildren.OfType<VFXContextController>().Cast<VFXContextController>().ToArray();
-                return controller[i];
-            };
+                return viewController.allChildren.OfType<VFXContextController>().Single(x => x.model == context);
+            }
 
             var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Init"));
             var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.StartsWith("Output Particle Quad"));
@@ -120,7 +154,7 @@ namespace UnityEditor.VFX.Test
                 var output = viewController.AddVFXContext(new Vector2(2 * i, 2 * i), contextOutputDesc);
                 var init = viewController.AddVFXContext(new Vector2(i, i), contextInitializeDesc);
 
-                var flowEdge = new VFXFlowEdgeController(fnContextController(2 * i + offset).flowInputAnchors.FirstOrDefault(), fnContextController(2 * i + offset + 1).flowOutputAnchors.FirstOrDefault());
+                var flowEdge = new VFXFlowEdgeController(GetContextController(output).flowInputAnchors.FirstOrDefault(), GetContextController(init).flowOutputAnchors.FirstOrDefault());
                 viewController.AddElement(flowEdge);
             }
 

@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
         Toggle m_SupportVFXToggle;
+        Toggle m_SupportComputeForVertexSetupToggle;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -69,6 +70,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_ActiveSubTarget = value;
         }
 
+        public bool supportComputeForVertexSetup
+        {
+            get => m_SupportComputeForVertexSetup;
+        }
+
         [SerializeField]
         List<JsonData<JsonObject>> m_Datas = new List<JsonData<JsonObject>>();
 
@@ -77,6 +83,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         bool m_SupportVFX;
+
+        [SerializeField]
+        bool m_SupportComputeForVertexSetup;
 
         private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
         {
@@ -176,6 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return;
 
             // Core properties
+            var graphValidation = context.graphValidation;
             m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
             context.AddProperty("Material", m_SubTargetField, (evt) =>
             {
@@ -192,6 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
                 ProcessSubTargetDatas(m_ActiveSubTarget.value);
                 onChange();
+                graphValidation();
             });
 
             // SubTarget properties
@@ -225,6 +236,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     });
                 }
             }
+
+            // TODO: Disable these right before merging PR and remove this comment.
+
+            m_SupportComputeForVertexSetupToggle = new Toggle("") { value = m_SupportComputeForVertexSetup };
+            context.AddProperty("Support Compute for Vertex Setup", "", 0, m_SupportComputeForVertexSetupToggle, (evt) =>
+            {
+                m_SupportComputeForVertexSetup = m_SupportComputeForVertexSetupToggle.value;
+                onChange();
+            });
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -672,8 +692,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
         };
 
-        // Motion vector require positionRWS.
-        public static FieldCollection BasicMotionVector = new FieldCollection()
+        // positionRWS required by GetSurfaceAndBuiltinData.
+        public static FieldCollection BasicSurfaceData = new FieldCollection()
         {
             Basic,
             HDStructFields.FragInputs.positionRWS,
@@ -728,6 +748,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static readonly string stencilRefDistortionVec = "[_StencilRefDistortionVec]";
             public static readonly string stencilWriteMaskDistortionVec = "[_StencilWriteMaskDistortionVec]";
         }
+
+        public static readonly string vtFeedbackBlendState = "Blend 1 SrcAlpha OneMinusSrcAlpha";
 
         public static RenderStateCollection Meta = new RenderStateCollection
         {
@@ -792,6 +814,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection TransparentBackface = new RenderStateCollection
         {
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
+            { RenderState.Blend(vtFeedbackBlendState) },
             { RenderState.Cull(Cull.Front) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestTransparent) },
@@ -825,6 +848,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection Forward = new RenderStateCollection
         {
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
+            { RenderState.Blend(vtFeedbackBlendState) },
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
@@ -878,7 +902,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Raytracing("surface_shader") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS5}) },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.GameCoreXboxSeries, Platform.PS5}) },
+        };
+
+        public static PragmaCollection BasicKernel = new PragmaCollection
+        {
+            { Pragma.Kernel("Kernel") },
         };
 
         // Here are the Pragma Collection we can add on top of the Basic one
@@ -1035,6 +1064,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassRaytracingVisbility = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl";
         public const string kPassRaytracingForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl";
         public const string kPassRaytracingGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl";
+        public const string kPassRaytracingDebug = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingDebug.hlsl";
         public const string kPassPathTracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl";
         public const string kPassRaytracingSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingSubSurface.hlsl";
 
@@ -1127,13 +1157,29 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static KeywordDescriptor WriteDecalBuffer = new KeywordDescriptor()
+        public static KeywordDescriptor WriteDecalBufferDepthOnly = new KeywordDescriptor()
         {
-            displayName = "Write Decal Buffer",
-            referenceName = "WRITE_DECAL_BUFFER",
+            displayName = "Write Decal Buffer (Depth Only)",
+            referenceName = "WRITE",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Decal Buffer", referenceName = "DECAL_BUFFER" },
+                new KeywordEntry() { displayName = "Rendering Layer", referenceName = "RENDERING_LAYER" },
+            },
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static KeywordDescriptor WriteDecalBufferMotionVector = new KeywordDescriptor()
+        {
+            displayName = "Write Decal Buffer (Motion Vector)",
+            referenceName = "WRITE_DECAL_BUFFER_AND_RENDERING_LAYER",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor DebugDisplay = new KeywordDescriptor()
@@ -1218,10 +1264,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static KeywordDescriptor LightLayers = new KeywordDescriptor()
+        public static KeywordDescriptor RenderingLayers = new KeywordDescriptor()
         {
-            displayName = "Light Layers",
-            referenceName = "LIGHT_LAYERS",
+            displayName = "Rendering Layers",
+            referenceName = "RENDERING_LAYERS",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -1304,8 +1350,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 new KeywordEntry() { displayName = "Low", referenceName = "LOW" },
                 new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
-                new KeywordEntry() { displayName = "High", referenceName = "HIGH" },
-                new KeywordEntry() { displayName = "VeryHigh", referenceName = "VERY_HIGH" },
+                new KeywordEntry() { displayName = "High", referenceName = "HIGH" }
+            },
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static KeywordDescriptor AreaShadow = new KeywordDescriptor()
+        {
+            displayName = "AreaShadow",
+            referenceName = "AREA_SHADOW",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
+                new KeywordEntry() { displayName = "High", referenceName = "HIGH" }
             },
             stages = KeywordShaderStage.Fragment,
         };

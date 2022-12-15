@@ -11,7 +11,7 @@ VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX11_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -79,7 +79,7 @@ VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX11_Standalone_PerformanceTests_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -147,7 +147,7 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX11_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -181,7 +181,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX11_playmode_XR_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -215,7 +215,7 @@ VFX_HDRP_Win_DX11_playmode_PerformanceTests_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX11_playmode_PerformanceTests_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -282,7 +282,7 @@ VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX11_editmode_PerformanceTests_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -316,7 +316,7 @@ VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -384,7 +384,7 @@ VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_Standalone_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -452,7 +452,7 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -486,7 +486,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -520,7 +520,7 @@ VFX_HDRP_Win_DX11_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_playmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -587,7 +587,7 @@ VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_editmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win-10:v0.0.8-1149381
         flavor: b1.xlarge
         model: rtx2080
     variables:

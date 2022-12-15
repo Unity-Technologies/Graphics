@@ -85,12 +85,13 @@ MonoBehaviour:
   decalLayerName7: 
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
-  diffusionProfileSettingsList: []
+  m_ObsoleteDiffusionProfileSettingsList: []
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 0
   supportRuntimeDebugDisplay: 1
+  autoRegisterDiffusionProfiles: 0
   apvScenesBounds:
     serializedBounds: []
     serializedHasVolumes: []
-  m_Version: 3
+  m_Version: 5

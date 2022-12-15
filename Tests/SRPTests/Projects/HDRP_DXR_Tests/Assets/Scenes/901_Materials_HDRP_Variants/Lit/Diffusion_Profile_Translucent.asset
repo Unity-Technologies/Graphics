@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2686e09ec7aef44bad2843e4416f057, type: 3}
   m_Name: Diffusion_Profile_Translucent
   m_EditorClassIdentifier: 
-  m_Version: 1
   profile:
-    scatteringDistance: {r: 173.5742, g: 173.5742, b: 173.5742, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.7490196, b: 0.7490196, a: 1}
+    scatteringDistanceMultiplier: 231.7352
     transmissionTint: {r: 1, g: 0, b: 0, a: 1}
     texturingMode: 0
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 50}
     worldScale: 1
     ior: 2
-    hash: 1077137666
+    hash: 1079960850
+  m_Version: 2

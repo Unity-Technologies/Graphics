@@ -104,7 +104,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -117,7 +117,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -369,23 +369,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f6fd535518f5540b4bcc3099582f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  infinite: 1
-  highFrequencyBands: 1
-  geometryType: 0
-  geometry: {fileID: 0}
+  m_Version: 1
+  decalLayerMask: 1
+  lightLayerMask: 1
+  surfaceType: 0
+  geometryType: 3
+  meshRenderers: []
+  timeMultiplier: 0
   cpuSimulation: 0
   cpuFullResolution: 0
-  cpuEvaluateAllBands: 0
-  waterMaxPatchSize: 500
-  amplitude: {x: 1, y: 1, z: 1, w: 1}
-  choppiness: 1
-  timeMultiplier: 0
+  cpuEvaluateRipples: 0
   customMaterial: {fileID: 0}
-  waterSmoothness: 0.95
+  startSmoothness: 0.95
+  endSmoothness: 0.85
+  smoothnessFadeStart: 100
+  smoothnessFadeDistance: 500
   refractionColor: {r: 0.6509804, g: 0.06226745, b: 0, a: 1}
   maxRefractionDistance: 1
   absorptionDistance: 5
   scatteringColor: {r: 0, g: 0.2509804, b: 0.04894894, a: 1}
+  ambientScattering: 0.1
   heightScattering: 0.5
   displacementScattering: 0.5
   directLightTipScattering: 0.5
@@ -393,24 +396,16 @@ MonoBehaviour:
   caustics: 1
   causticsIntensity: 1
   causticsPlaneBlendDistance: 1
-  causticsAlgorithm: 0
   causticsResolution: 512
   causticsBand: 2
-  virtualPlaneDistance: 10
-  causticsTiling: 1.5
-  causticsSpeed: 0
+  virtualPlaneDistance: 5
+  foam: 1
   simulationFoamAmount: 0
   simulationFoamDrag: 0.5
   simulationFoamSmoothness: 0
   foamMask: {fileID: 0}
   foamMaskExtent: {x: 100, y: 100}
   foamMaskOffset: {x: 0, y: 0}
-  waterMask: {fileID: 0}
-  waterMaskExtent: {x: 100, y: 100}
-  waterMaskOffset: {x: 0, y: 0}
-  windOrientation: 0
-  windSpeed: 80
-  windAffectCurrent: 0.2
   windFoamCurve:
     serializedVersion: 2
     m_Curve:
@@ -453,14 +448,61 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  decalLayerMask: 1
-  lightLayerMask: 1
+  foamTexture: {fileID: 0}
+  foamTextureTiling: 0.2
+  renderingLayerMask: 257
+  debugMode: 0
+  waterMaskDebugMode: 0
+  waterCurrentDebugMode: 0
+  currentDebugMultiplier: 1
   underWater: 1
   volumeBounds: {fileID: 0}
   volumeDepth: 50
+  volumeHeight: 0
   volumePrority: 0
-  transitionSize: 0.1
-  absorbtionDistanceMultiplier: 5
+  absorptionDistanceMultiplier: 2.5
+  colorPyramidOffset: 1
+  underWaterAmbientProbeContribution: 1
+  underWaterScatteringColorMode: 0
+  underWaterScatteringColor: {r: 0, g: 0.27, b: 0.23, a: 1}
+  largeCurrentSpeedValue: 0
+  largeCurrentMap: {fileID: 0}
+  largeCurrentRegionExtent: {x: 100, y: 100}
+  largeCurrentRegionOffset: {x: 0, y: 0}
+  largeCurrentMapInfluence: 1
+  ripplesCurrentSpeedValue: 0
+  ripplesCurrentMap: {fileID: 0}
+  ripplesCurrentRegionExtent: {x: 100, y: 100}
+  ripplesCurrentRegionOffset: {x: 0, y: 0}
+  ripplesCurrentMapInfluence: 1
+  deformation: 0
+  deformationRes: 512
+  deformationAreaSize: {x: 200, y: 200}
+  deformationAreaOffset: {x: 0, y: 0}
+  repetitionSize: 500
+  largeOrientationValue: 0
+  largeWindSpeed: 30
+  largeChaos: 0.8
+  largeBand0Multiplier: 1
+  largeBand0FadeToggle: 1
+  largeBand0FadeStart: 1500
+  largeBand0FadeDistance: 3000
+  largeBand1Multiplier: 1
+  largeBand1FadeToggle: 1
+  largeBand1FadeStart: 300
+  largeBand1FadeDistance: 800
+  ripples: 1
+  ripplesMotionMode: 0
+  ripplesOrientationValue: 0
+  ripplesWindSpeed: 8
+  ripplesChaos: 0.8
+  ripplesFadeToggle: 1
+  ripplesFadeStart: 50
+  ripplesFadeDistance: 200
+  waterMask: {fileID: 0}
+  waterMaskRemap: {x: 0, y: 1}
+  waterMaskExtent: {x: 100, y: 100}
+  waterMaskOffset: {x: 0, y: 0}
 --- !u!4 &720309074
 Transform:
   m_ObjectHideFlags: 0
@@ -498,7 +540,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -5
+      value: -0.14
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -540,7 +582,7 @@ PrefabInstance:
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_Version
-      value: 8
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -574,6 +616,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: d455e3a808e84934fae5908923994839,
         type: 2}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
@@ -604,9 +647,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1454973175}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1454973177

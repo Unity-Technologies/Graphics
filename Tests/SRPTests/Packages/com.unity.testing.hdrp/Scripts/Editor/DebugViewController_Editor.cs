@@ -56,8 +56,8 @@ public class DebugViewController_Editor : Editor
                     s_lightingFullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("Fullscreen Debug Mode"), s_lightingFullScreenDebugMode.intValue, DebugDisplaySettings.lightingFullScreenDebugStrings, DebugDisplaySettings.lightingFullScreenDebugValues);
                     if ((FullScreenDebugMode)s_lightingFullScreenDebugMode.intValue == FullScreenDebugMode.RayTracingAccelerationStructure)
                     {
-                        s_lightingFullScreenDebugRTASView.intValue = EditorGUILayout.IntPopup(new GUIContent("Ray Tracing Acceleration Structure Debug View"), s_lightingFullScreenDebugRTASView.intValue, DebugDisplaySettings.lightingFullScreenRTASDebugViewStrings, DebugDisplaySettings.lightingFullScreenRTASDebugViewValues);
-                        s_lightingFullScreenDebugRTASMode.intValue = EditorGUILayout.IntPopup(new GUIContent("Ray Tracing Acceleration Structure Debug Mode"), s_lightingFullScreenDebugRTASMode.intValue, DebugDisplaySettings.lightingFullScreenRTASDebugModeStrings, DebugDisplaySettings.lightingFullScreenRTASDebugModeValues);
+                        s_lightingFullScreenDebugRTASView.intValue = (int) (RTASDebugView) EditorGUILayout.EnumPopup(new GUIContent("Ray Tracing Acceleration Structure Debug View"), (RTASDebugView)s_lightingFullScreenDebugRTASView.intValue);
+                        s_lightingFullScreenDebugRTASMode.intValue = (int) (RTASDebugMode) EditorGUILayout.EnumPopup(new GUIContent("Ray Tracing Acceleration Structure Debug Mode"), (RTASDebugMode)s_lightingFullScreenDebugRTASMode.intValue);
                     }
                     break;
 

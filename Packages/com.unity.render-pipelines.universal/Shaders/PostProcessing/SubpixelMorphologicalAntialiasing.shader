@@ -9,7 +9,6 @@ Shader "Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing"
     HLSLINCLUDE
 
         #pragma multi_compile_local _SMAA_PRESET_LOW _SMAA_PRESET_MEDIUM _SMAA_PRESET_HIGH
-        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
         #pragma exclude_renderers gles
 
     ENDHLSL

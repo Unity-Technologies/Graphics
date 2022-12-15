@@ -12,6 +12,8 @@ Ray-Traced Ambient Occlusion is a ray tracing feature in the High Definition Ren
 
 For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
+To troubleshoot this effect, HDRP provides an Ambient Occlusion [Debug Mode](Ray-Tracing-Debug.md) and a Ray Tracing Acceleration Structure [Debug Mode](Ray-Tracing-Debug.md) in Lighting Full Screen Debug Mode.
+
 ## Using Ray-Traced Ambient Occlusion
 
 Because this feature is an alternative to the [Ambient Occlusion](Override-Ambient-Occlusion.md) Volume Override, the initial setup is very similar.  To setup ray traced ambient occlusion, first follow the [Enabling Ambient Occlusion](Override-Ambient-Occlusion.md#enabling-ambient-occlusion) and [Using Ambient Occlusion](Override-Ambient-Occlusion.md#using-ambient-occlusion) steps. After you setup the Ambient Occlusion override, to make it use ray tracing:

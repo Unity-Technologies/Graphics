@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
 
 // Typedefs for the in-engine RendererList API (to avoid conflicts with the experimental version)
-using CoreRendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using CoreRendererList = UnityEngine.Rendering.RendererList;
 using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
@@ -40,10 +40,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     internal struct RendererListResource
     {
-        public CoreRendererListDesc desc;
+        public RendererListParams desc;
         public CoreRendererList rendererList;
 
-        internal RendererListResource(in CoreRendererListDesc desc)
+        internal RendererListResource(in RendererListParams desc)
         {
             this.desc = desc;
             this.rendererList = new CoreRendererList(); // Invalid by default

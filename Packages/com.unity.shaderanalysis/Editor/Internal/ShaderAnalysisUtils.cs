@@ -373,9 +373,6 @@ namespace UnityEditor.ShaderAnalysis.Internal
             return diff;
         }
 
-        public const string DefineFragment = "SHADER_STAGE_FRAGMENT=1";
-        public const string DefineCompute = "SHADER_STAGE_COMPUTE=1";
-
         public static ShaderCompilerOptions DefaultCompileOptions(
             IEnumerable<string> defines, string entry, DirectoryInfo sourceDir, string shaderModel = null
         )

@@ -42,7 +42,7 @@ The **Environment (HDRP)** section is at the top and has two settings that you c
 | ----------------------- | ------------------------------------------------------------ |
 | **Profile**             | A [Volume Profile](Volume-Profile.md) for the sky. This Volume Profile must include at least one Sky Volume override. The interaction between the Volume Profile and the Scene's dominant directional light may affect the visual characteristics of baked light in the Scene. |
 | **Static Lighting Sky** | The sky to use for the indirect ambient light simulation. The drop-down only contains sky types that the **Profile** includes. For example, if the **Profile** includes a **Gradient Sky** Volume override, you can select **Gradient Sky** from this drop-down.<br/>You can only edit this setting if you assign a Volume Profile to the **Profile** field. |
-| **Static Lighting Clouds** | The clouds to use for the indirect ambient light simulation. The drop-down only contains cloud types that the **Profile** includes.<br/>You can only edit this setting if you assign a Volume Profile to the **Profile** field. |
+| **Static Lighting Background Clouds** | The background clouds to use for the indirect ambient light simulation. The drop-down only contains cloud types that the **Profile** includes.<br/>You can only edit this setting if you assign a Volume Profile to the **Profile** field. |
 | **Static Lighting Volumetric Clouds** | Enable this option to include Volumetric Clouds in the indirect ambient light simulation. |
 
 

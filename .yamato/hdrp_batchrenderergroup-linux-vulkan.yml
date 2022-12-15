@@ -11,7 +11,7 @@ HDRP_BatchRendererGroup_Linux_Vulkan_playmode_mono_Linear_trunk:
     name: HDRP_BatchRendererGroup on Linux_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -49,7 +49,7 @@ HDRP_BatchRendererGroup_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: HDRP_BatchRendererGroup on Linux_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -81,7 +81,7 @@ Build_HDRP_BatchRendererGroup_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build HDRP_BatchRendererGroup on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -122,7 +122,7 @@ HDRP_BatchRendererGroup_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP_BatchRendererGroup on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -160,7 +160,7 @@ HDRP_BatchRendererGroup_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP_BatchRendererGroup on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'
@@ -192,7 +192,7 @@ Build_HDRP_BatchRendererGroup_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISIO
     name: Build HDRP_BatchRendererGroup on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v2.0.0-947723
         flavor: b1.large
     variables:
         CACHE_ARGS: '{{cache.flags}}'

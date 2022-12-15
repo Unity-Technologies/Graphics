@@ -11,7 +11,7 @@ Shader "Hidden/MaterialPropertiesTest"
         floatProperty4_PerRenderer("property4", Float) = 4.0
         vectorProperty("property5", Vector) = (5.1,5.2,5.3,5.4)
     }
-  
+
     SubShader
     {
         Pass

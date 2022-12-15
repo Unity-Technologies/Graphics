@@ -55,5 +55,10 @@ namespace UnityEditor.ShaderAnalysis
             progress = Math.Max(0, Math.Min(1, progress));
             m_Job.SetProgress(progress * (m_End - m_Start) + m_Start, message);
         }
+
+        internal void Fail()
+        {
+            m_Job.Fail();
+        }
     }
 }

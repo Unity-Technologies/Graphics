@@ -4,7 +4,7 @@ nightly_katana_abv_validate:
   name: Validate Katana ABV
   agent:
     type: Unity::VM
-    image: slough-ops/ubuntu-18.04-base:latest
+    image: slough-ops/ubuntu-18.04-base:v0.3.8-1078233
     flavor: b1.medium
   variables:
     MANIFEST: .copycat/graphics.json
@@ -17,16 +17,12 @@ nightly_katana_abv_validate:
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
     - python3 ../gfx-sdet-tools/scripts/srp_test_references_updater.py --srp-version $SRP_VERSION --destination-folder ../destination
     - copycat katana "../destination/$MANIFEST"
-  triggers:
-    recurring:
-      - branch: master
-        frequency: daily
 
 vendor:
   name: Vendor graphics (and create PR)
   agent:
     type: Unity::VM
-    image: slough-ops/ubuntu-18.04-base:latest
+    image: slough-ops/ubuntu-18.04-base:v0.3.8-1078233
     flavor: b1.medium
   variables:
     MANIFEST: .copycat/graphics.json

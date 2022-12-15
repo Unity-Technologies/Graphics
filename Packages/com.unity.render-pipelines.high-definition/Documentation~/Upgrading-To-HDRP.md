@@ -1,4 +1,4 @@
-# Converting a Project from the Built-in Renderer to the High Definition Render Pipeline
+# Upgrading to HDRP from the built-in render pipeline
 
 The High Definition Render Pipeline (HDRP) uses a new set of [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and [lighting units](Physical-Light-Units.md), both of which are incompatible with the Built-in Renderer. To upgrade a Unity Project to HDRP, you must first convert all your [Materials](#MaterialConversion) and Shaders, then adjust individual [Light](#LightAdjustment) settings accordingly.
 

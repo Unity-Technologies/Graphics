@@ -46,6 +46,7 @@ namespace UnityEditor.VFX.UI
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kParamChanged &&
+                cause != VFXModel.InvalidationCause.kExpressionValueInvalidated &&
                 cause != VFXModel.InvalidationCause.kEnableChanged)
             {
                 ExpressionGraphDirtyParamOnly = false;
@@ -53,7 +54,7 @@ namespace UnityEditor.VFX.UI
             }
 
             ExpressionGraphDirty = true;
-            ExpressionGraphDirtyParamOnly = cause == VFXModel.InvalidationCause.kParamChanged;
+            ExpressionGraphDirtyParamOnly = cause == VFXModel.InvalidationCause.kParamChanged || cause == VFXModel.InvalidationCause.kExpressionValueInvalidated;
         }
 
         private void CreateExpressionContext(bool forceRecreation)

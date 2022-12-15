@@ -1,0 +1,101 @@
+
+        Pass
+        {
+            Name "GBufferDXR"
+            Tags{ "LightMode" = "GBufferDXR" }
+
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma raytracing surface_shader
+            #pragma multi_compile _ MINIMAL_GBUFFER
+            #pragma skip_variants INSTANCING_ON
+
+            // Global includes
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
+            // Define the shader pass
+            #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
+
+            // Need to override the macros for ray tracing
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            // Shader variables
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
+
+            // VFX includes
+            ${VFXIncludeRP("VFXLitVaryings.template")}
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/RayTracingInputStructure.template")}
+            ${VFXHDRPLitVaryingsMacros}
+            ${VFXPerPassInclude}
+            ${VFXIncludeRP("VFXLit.template")}
+
+            // Needs to be included after the VFX includes
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/IntersectionFunctions.template")}
+
+            // Lighting and material includes
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RayTracingProcedural.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+
+
+            // Graph functions
+            ${VFXGeneratedBlockFunction}
+
+            // Include to evaluate the material data
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/EvaluateMaterialData.template")}
+
+            [shader("closesthit")]
+            void ClosestHit(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+            {
+                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
+                // Compute the distance of the ray
+                rayIntersectionGbuffer.t = RayTCurrent();
+
+                // Evaluate the view direction
+                float3 viewWS = -WorldRayDirection();
+
+                // Evaluate the position
+                float3 positionRWS = WorldRayOrigin() + rayIntersectionGbuffer.t * WorldRayDirection();
+
+                // Evaluate the position input
+                PositionInputs posInput = GetPositionInput(0, _ScreenSize.zw, positionRWS);
+
+                // Output structures
+                SurfaceData surfaceData = (SurfaceData)0;
+                BuiltinData builtinData = (BuiltinData)0;
+                BSDFData bsdfData = (BSDFData)0;
+                PreLightData preLightData = (PreLightData)0;
+                float velocity = 0.0f;
+
+                // Evaluate all the required material data
+                EvaluateLitMaterialData(posInput, attributeData, surfaceData, builtinData, bsdfData, preLightData, velocity);
+
+                // First we pack the data into the standard bsdf data
+                StandardBSDFData standardLitData;
+                ZERO_INITIALIZE(StandardBSDFData, standardLitData);
+                FitToStandardLit(bsdfData, builtinData, posInput.positionSS, standardLitData);
+
+            #ifdef MINIMAL_GBUFFER
+                // Override all the parameters that we do not require for our minimal lit version
+                standardLitData.specularOcclusion = 1.0;
+                standardLitData.normalWS = bsdfData.normalWS;
+                standardLitData.coatMask = 0.0;
+                standardLitData.emissiveAndBaked = builtinData.emissiveColor;
+            #endif
+
+                // Then export it to the gbuffer
+                EncodeIntoStandardGBuffer(standardLitData, rayIntersectionGbuffer.gbuffer0, rayIntersectionGbuffer.gbuffer1, rayIntersectionGbuffer.gbuffer2, rayIntersectionGbuffer.gbuffer3);
+                rayIntersectionGbuffer.t = standardLitData.isUnlit != 0 ? RAY_TRACING_DISTANCE_FLAG_UNLIT : RayTCurrent();
+            }
+
+            // Inject the intersection shader
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/IntersectionShader.template")}
+            ENDHLSL
+        }

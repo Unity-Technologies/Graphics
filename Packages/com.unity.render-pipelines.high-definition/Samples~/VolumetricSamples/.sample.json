@@ -1,0 +1,5 @@
+{
+    "displayName":"Volumetric Samples",
+    "description": "Adds a set of 3D texture, procedural noises and Fog Volume Shadergraph to your project. You can assign them to the local Volumetric Fog's Mask input."
+    "createSeparatePackage": false
+}

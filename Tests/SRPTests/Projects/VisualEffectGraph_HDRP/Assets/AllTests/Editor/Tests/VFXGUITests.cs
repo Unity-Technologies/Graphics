@@ -1,27 +1,41 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
-using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
-using UnityEngine.TestTools;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+
+using NUnit.Framework;
+
+using UnityEngine;
+using UnityEngine.TestTools;
+using System.Reflection;
 using UnityEditor.VFX.UI;
 using UnityEditor.VFX.Block.Test;
-using System.IO;
+using UnityEngine.UIElements;
+using UnityEngine.VFX;
+using UnityEditor.VFX.Block;
+using UnityEditor.VFX.Operator;
+
+using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
     public class VFXGUITests
     {
+        const string TempDirectoryName = "Assets/TmpTests";
+
+        [OneTimeSetUp]
+        public void Init()
+        {
+            VFXTestCommon.CloseAllUnecessaryWindows();
+        }
+
         [OneTimeTearDown]
         public void DestroyTestAssets()
         {
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.Close();
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
@@ -30,30 +44,32 @@ namespace UnityEditor.VFX.Test
         {
             var viewController = StartEditTestAsset();
 
-            var eventContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Event).First();
+            var allContexts = VFXLibrary.GetContexts().ToArray();
+            var eventContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Event);
             var eventContext = viewController.AddVFXContext(new Vector2(300, 100), eventContextDesc);
 
-            var spawnerContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Spawner).First();
+            var spawnerContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Spawner);
             var spawnerContext = viewController.AddVFXContext(new Vector2(300, 100), spawnerContextDesc);
 
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Init).First();
+            var initContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Init);
             var initContext = viewController.AddVFXContext(new Vector2(300, 100), initContextDesc);
 
-            var updateContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Update).First();
+            var updateContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Update);
             var updateContext = viewController.AddVFXContext(new Vector2(300, 1000), updateContextDesc);
 
-            var outputContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.Output && t.model.name.Contains("Particle")).First();
+            var outputContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Output && t.model.name.Contains("Particle"));
             var outputContext = viewController.AddVFXContext(new Vector2(300, 2000), outputContextDesc);
 
             viewController.ApplyChanges();
 
-            var contextControllers = new List<VFXContextController>();
+            var contextControllers = new List<VFXContextController>(5);
 
-            contextControllers.Add(viewController.allChildren.OfType<VFXContextController>().First(t => t.model == eventContext) as VFXContextController);
-            contextControllers.Add(viewController.allChildren.OfType<VFXContextController>().First(t => t.model == spawnerContext) as VFXContextController);
-            contextControllers.Add(viewController.allChildren.OfType<VFXContextController>().First(t => t.model == initContext) as VFXContextController);
-            contextControllers.Add(viewController.allChildren.OfType<VFXContextController>().First(t => t.model == updateContext) as VFXContextController);
-            contextControllers.Add(viewController.allChildren.OfType<VFXContextController>().First(t => t.model == outputContext) as VFXContextController);
+            var allContextControllers = viewController.allChildren.OfType<VFXContextController>().ToArray();
+            contextControllers.Add(allContextControllers.First(t => t.model == eventContext));
+            contextControllers.Add(allContextControllers.First(t => t.model == spawnerContext));
+            contextControllers.Add(allContextControllers.First(t => t.model == initContext));
+            contextControllers.Add(allContextControllers.First(t => t.model == updateContext));
+            contextControllers.Add(allContextControllers.First(t => t.model == outputContext));
 
             CreateFlowEdges(viewController, contextControllers); ;
         }
@@ -69,7 +85,7 @@ namespace UnityEditor.VFX.Test
             viewController.ApplyChanges();
         }
 
-        void CreateDataEdges(VFXViewController viewController, VFXContextController updateContext, List<VFXParameter> parameters)
+        void CreateDataEdges(VFXViewController viewController, VFXContextController updateContext, IEnumerable<VFXParameter> parameters)
         {
             viewController.ApplyChanges();
             foreach (var param in parameters)
@@ -129,9 +145,9 @@ namespace UnityEditor.VFX.Test
         //[UnityTest] Not really a test but helper to profile the controller invalidation.
         public IEnumerator ExperimentCreateAllBlocksTiming([ValueSource(nameof(kApplyChange))] bool applyChanges, [ValueSource(nameof(kApplyChange))] bool blocks)
         {
-            var referenceBlock = VFXLibrary.GetBlocks().Where(t => t.model is Block.KillSphere).First();
-            var referenceOperator = VFXLibrary.GetOperators().Where(t => t.model is Operator.DistanceToSphere).First();
-            var referenceContext = VFXLibrary.GetContexts().Where(t => t.model is VFXBasicUpdate).First();
+            var referenceBlock = VFXLibrary.GetBlocks().First(t => t.model is KillSphere);
+            var referenceOperator = VFXLibrary.GetOperators().First(t => t.model is DistanceToSphere);
+            var referenceContext = VFXLibrary.GetContexts().First(t => t.model is VFXBasicUpdate);
 
             var param = new CreateAllBlockParam()
             {
@@ -204,7 +220,7 @@ namespace UnityEditor.VFX.Test
             //if (applyChanges) //Needed for retrieving the following contextController
             viewController.ApplyChanges();
 
-            var contextController = viewController.nodes.Where(t => t is VFXContextController ctxController && ctxController.model == newContext).First() as VFXContextController;
+            var contextController = viewController.nodes.OfType<VFXContextController>().First(x => x.model == newContext);
             foreach (var block in blocks)
             {
                 var newBlock = block.CreateInstance();
@@ -221,21 +237,20 @@ namespace UnityEditor.VFX.Test
             if (type == VFXContextType.Output)
             {
                 //Exception: VFXStaticMeshOutput doesn't accept any block, fallback on VFXPlanarPrimitiveOutput
-                destContext = VFXLibrary.GetContexts().Where(t => t.model is VFXPlanarPrimitiveOutput).First();
+                destContext = VFXLibrary.GetContexts().First(t => t.model is VFXPlanarPrimitiveOutput);
             }
             else
             {
-                destContext = VFXLibrary.GetContexts().Where(t => t.model.contextType == type).First();
+                destContext = VFXLibrary.GetContexts().First(t => t.model.contextType == type);
             }
 
-            var allBlocks = VFXLibrary.GetBlocks().Where(t => t.AcceptParent(destContext.model));
-
-            var batchCount = (uint)Math.Ceiling((double)allBlocks.Count() / kMaximumBlockPerContext);
+            var allBlocks = GetAllBlocks(true, x => x.AcceptParent(destContext.model));
+            var batchCount = (uint)Math.Ceiling((double)allBlocks.Length / kMaximumBlockPerContext);
             for (var batch = 0u; batch < batchCount; batch++)
             {
                 yield return new CreateAllBlockParam()
                 {
-                    name = string.Format("{0}_Batch_{1}", type, batch.ToString()),
+                    name = $"{type}_Batch_{batch.ToString()}",
                     destContext = destContext,
                     blocks = allBlocks.Skip((int)batch * (int)kMaximumBlockPerContext).Take((int)kMaximumBlockPerContext)
                 };
@@ -244,7 +259,7 @@ namespace UnityEditor.VFX.Test
 
         static IEnumerable<CreateAllBlockParam> GenerateCreateBlockParams(IEnumerable<VFXContextType> types)
         {
-            return types.SelectMany(t => GenerateCreateBlockParams(t));
+            return types.SelectMany(GenerateCreateBlockParams);
         }
 
         static readonly CreateAllBlockParam[] kCreateAllBlockParam = GenerateCreateBlockParams(new []
@@ -278,24 +293,26 @@ namespace UnityEditor.VFX.Test
             var newContext = viewController.AddVFXContext(new Vector2(300, 2000), context);
             viewController.ApplyChanges();
 
-            var contextController = viewController.nodes.Where(t => t is VFXContextController && (t as VFXContextController).model == newContext).First() as VFXContextController;
+            var contextController = viewController.nodes
+                .OfType<VFXContextController>()
+                .First(x =>  x.model == newContext);
             Assert.AreEqual(contextController.model, newContext);
 
             // Adding every block compatible with an init context
-            var newBlocks  = new List<VFXBlock>();
-            foreach (var block in blocks)
+            var newBlocks = blocks.Select(x =>
             {
-                var newBlock = block.CreateInstance();
+                var newBlock = x.CreateInstance();
                 contextController.AddBlock(0, newBlock);
-                newBlocks.Add(newBlock);
-            }
+                return newBlock;
+            }).ToArray();
+            Debug.Log($"Number of blocks = {newBlocks.Length}");
 
             viewController.ApplyChanges();
 
             //We are expecting the same list from block controllers than initial block model
-            var intersection = contextController.blockControllers.Select(x => x.model).Intersect(newBlocks);
-            Assert.AreEqual(newBlocks.Count, intersection.Count());
-            Assert.AreEqual(newBlocks.Count, contextController.blockControllers.Count());
+            var intersection = contextController.blockControllers.Select(x => x.model).Intersect(newBlocks).ToArray();
+            Assert.AreEqual(newBlocks.Length, intersection.Length);
+            Assert.AreEqual(newBlocks.Length, contextController.blockControllers.Count);
 
             return contextController;
         }
@@ -305,14 +322,15 @@ namespace UnityEditor.VFX.Test
         {
             var viewController = StartEditTestAsset();
 
-            var initContextDesc = VFXLibrary.GetContexts().Where(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType)).First();
+            var initContextDesc = VFXLibrary.GetContexts().First(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType));
 
             var newContext = viewController.AddVFXContext(new Vector2(300, 100), initContextDesc);
             viewController.ApplyChanges();
 
-            Assert.AreEqual(viewController.allChildren.Where(t => t is VFXContextController).Count(), 1);
+            var allChildContextControllers = viewController.allChildren.OfType<VFXContextController>().ToArray();
+            Assert.AreEqual(1, allChildContextControllers.Length);
 
-            var contextController = viewController.allChildren.Where(t => t is VFXContextController).First() as VFXContextController;
+            var contextController = allChildContextControllers.First();
 
             Assert.AreEqual(contextController.model, newContext);
 
@@ -326,37 +344,41 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(newBlock is AllType);
             viewController.ApplyChanges();
 
-            Assert.AreEqual(contextController.blockControllers.Where(t => t.model == newBlock).Count(), 1);
+            var blockControllerWithModel = contextController.blockControllers.Where(x => x.model == newBlock).ToArray();
+            Assert.AreEqual(1, blockControllerWithModel.Length);
 
-            var blockController = contextController.blockControllers.Where(t => t.model == newBlock).First();
+            var blockController = blockControllerWithModel.Single();
 
             Assert.NotNull(blockController);
 
-            Assert.NotZero(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).name == "aVector3").Count());
+            var vector3InputControllers = blockController.inputPorts
+                .OfType<VFXContextDataInputAnchorController>()
+                .Where(x => x.name == "aVector3").ToArray();
+            Assert.AreEqual(1, vector3InputControllers.Length);
 
             VFXSlot slot = blockController.model.inputSlots.First(t => t.name == "aVector3");
 
 
-            var aVector3Controller = blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).name == "aVector3").First() as VFXContextDataInputAnchorController;
+            var aVector3Controller = vector3InputControllers.Single();
 
-            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.x").Count(), 1);
-            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").Count(), 1);
-            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.z").Count(), 1);
+            Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.x"));
+            Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.y"));
+            Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.z"));
 
             aVector3Controller.ExpandPath();
             viewController.ApplyChanges();
 
-            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.x").Count(), 1);
-            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").Count(), 1);
-            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.z").Count(), 1);
+            Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.x"));
+            Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.y"));
+            Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.z"));
 
 
             aVector3Controller.RetractPath();
             viewController.ApplyChanges();
 
-            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.x").Count(), 1);
-            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").Count(), 1);
-            Assert.AreEqual(blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.z").Count(), 1);
+            Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.x"));
+            Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.y"));
+            Assert.AreEqual(1, blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().Count(x => x.path == "aVector3.z"));
 
             aVector3Controller.SetPropertyValue(new Vector3(1.2f, 3.4f, 5.6f));
 
@@ -365,7 +387,7 @@ namespace UnityEditor.VFX.Test
             aVector3Controller.ExpandPath();
             viewController.ApplyChanges();
 
-            var vector3yController = blockController.inputPorts.Where(t => t is VFXContextDataInputAnchorController && (t as VFXContextDataInputAnchorController).path == "aVector3.y").First() as VFXContextDataInputAnchorController;
+            var vector3yController = blockController.inputPorts.OfType<VFXContextDataInputAnchorController>().First(x => x.path == "aVector3.y");
 
             vector3yController.SetPropertyValue(7.8f);
 
@@ -376,7 +398,7 @@ namespace UnityEditor.VFX.Test
         public void CreateAllOperatorsTest()
         {
             var viewController = StartEditTestAsset();
-            CreateAllOperators(viewController);
+            Assert.DoesNotThrow(() =>CreateAllOperators(viewController));
         }
 
         [UnityTest]
@@ -384,7 +406,7 @@ namespace UnityEditor.VFX.Test
         {
             var viewController = StartEditTestAsset();
 
-            var builtInItem = VFXLibrary.GetOperators().Where(t => typeof(VFXDynamicBuiltInParameter).IsAssignableFrom(t.modelType)).First();
+            var builtInItem = VFXLibrary.GetOperators().First(t => typeof(VFXDynamicBuiltInParameter).IsAssignableFrom(t.modelType));
 
             var builtIn = viewController.AddVFXOperator(Vector2.zero, builtInItem);
 
@@ -412,39 +434,25 @@ namespace UnityEditor.VFX.Test
 
         }
 
-        List<VFXOperator> CreateAllOperators(VFXViewController viewController)
+        VFXOperator[] CreateAllOperators(VFXViewController viewController)
         {
-            var operators = new List<VFXOperator>();
-
-            int cpt = 0;
-            foreach (var op in VFXLibrary.GetOperators())
-            {
-                operators.Add(viewController.AddVFXOperator(new Vector2(700, 150 * cpt), op));
-                ++cpt;
-            }
-
-            return operators;
+            return VFXLibrary.GetOperators()
+                .Select((x, i) => viewController.AddVFXOperator(new Vector2(700, 150 * i), x))
+                .ToArray();
         }
 
-        List<VFXParameter> CreateAllParameters(VFXViewController viewController)
+        VFXParameter[] CreateAllParameters(VFXViewController viewController)
         {
-            var parameters = new List<VFXParameter>();
-
-            int cpt = 0;
-            foreach (var param in VFXLibrary.GetParameters())
-            {
-                parameters.Add(viewController.AddVFXParameter(new Vector2(-400, 150 * cpt), param));
-                ++cpt;
-            }
-
-            return parameters;
+            return VFXLibrary.GetParameters()
+                .Select((x, i) => viewController.AddVFXParameter(new Vector2(-400, 150 * i), x))
+                .ToArray();
         }
 
         [Test]
         public void CreateAllParametersTest()
         {
             var viewController = StartEditTestAsset();
-            CreateAllParameters(viewController);
+            Assert.DoesNotThrow(() => CreateAllParameters(viewController));
         }
 
         public static readonly bool[] Create_Simple_Graph_Then_Remove_Edget_Between_Init_And_Update_TestCase = { true, false };
@@ -480,14 +488,458 @@ namespace UnityEditor.VFX.Test
             window.LoadAsset(graph.GetResource().asset, null);
 
             //update.UnlinkFrom(init); //Doesn't reproduce the issue
-            var allFlowEdges = window.graphView.controller.allChildren.OfType<VFXFlowEdgeController>().ToArray();
-            var flowEdgeToDelete = allFlowEdges.Where(o => o.output.context.model.contextType == VFXContextType.Init && o.input.context.model.contextType == VFXContextType.Update).ToArray();
+            var flowEdgeToDelete = window.graphView.controller.allChildren
+                .OfType<VFXFlowEdgeController>()
+                .Where(o => o.output.context.model.contextType == VFXContextType.Init && o.input.context.model.contextType == VFXContextType.Update)
+                .ToArray();
             Assert.AreEqual(1u, flowEdgeToDelete.Length);
             window.graphView.controller.Remove(flowEdgeToDelete);
             window.graphView.controller.NotifyUpdate(); //<= This function will indirectly try to access system name before update (called by VFXView.Update
             yield return null;
 
             window.autoCompile = bckpAutoCompile;
+        }
+
+        [UnityTest]
+        public IEnumerator Check_Focus_On_Clear_Selection_When_Node_Is_Selected()
+        {
+            // Prepare
+            var vfxController = StartEditTestAsset();
+            var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
+
+            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc);
+            vfxController.ApplyChanges();
+
+            var sphereNode = window.graphView.GetAllNodes().Single(x => x.controller.model == sphereOperator);
+            window.graphView.AddToSelection(sphereNode);
+            window.graphView.Focus();
+            // Wait one frame for selection to apply (in the inspector)
+            yield return null;
+
+            // Check the focus is in the graph (so that "space" shortcut will work)
+            Assert.True(window.graphView.HasFocus());
+
+            // This is what could mess up with focus
+            window.graphView.ClearSelection();
+
+            // VFX graph must keep the focus
+            yield return null;
+            Assert.True(window.graphView.HasFocus());
+        }
+
+        [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-16190")]
+        public IEnumerator Check_VFXNodeProvider_Listing_SkinnedMeshSampling_From_SkinnedMeshRenderer()
+        {
+            var vfxController = StartEditTestAsset();
+
+            var op = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            op.SetSettingValue("m_Type", (SerializableType)typeof(SkinnedMeshRenderer));
+
+            var inlineSkinnedMeshRendererDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.model is VFXInlineOperator && o.name == VFXTypeExtension.UserFriendlyName(typeof(SkinnedMeshRenderer)));
+            Assert.IsNotNull(inlineSkinnedMeshRendererDesc);
+            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var skinnedMeshInlineOperator = vfxController.AddVFXOperator(new Vector2(4, 4), inlineSkinnedMeshRendererDesc);
+
+            vfxController.ApplyChanges();
+            yield return null;
+
+            var skinnedMeshInlineUI = window.graphView.GetAllNodes().FirstOrDefault(o => o.controller.model == skinnedMeshInlineOperator);
+            Assert.IsNotNull(skinnedMeshInlineUI);
+
+            var dataAnchor = skinnedMeshInlineUI.outputContainer.Children().OfType<VFXDataAnchor>().FirstOrDefault();
+            Assert.IsNotNull(dataAnchor);
+
+            var nodeProvider = dataAnchor.BuildNodeProviderForInternalTest(vfxController, new[] { typeof(VFXOperator) });
+            var descriptors = nodeProvider.GetDescriptorsForInternalTest().ToArray();
+            Assert.IsNotEmpty(descriptors);
+
+            var operatorDescriptors = descriptors.Select(o => o.modelDescriptor).OfType<VFXModelDescriptor<VFXOperator>>().ToArray();
+            Assert.IsNotEmpty(operatorDescriptors);
+
+            var skinnedMeshSampleDescriptor = operatorDescriptors.Where(o => o.model is Operator.SampleMesh).ToArray();
+            Assert.AreEqual(1u, skinnedMeshSampleDescriptor.Length);
+            Assert.IsTrue(skinnedMeshSampleDescriptor[0].name.Contains("Skin"));
+        }
+
+        [UnityTest]
+        public IEnumerator Check_Focus_On_Clear_Selection_When_No_Selection()
+        {
+            // Prepare
+            var vfxController = StartEditTestAsset();
+            var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
+
+            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var sphereOperator = vfxController.AddVFXOperator(new Vector2(4, 4), sphereOperatorDesc);
+            vfxController.ApplyChanges();
+
+            // Check the focus is in the graph (so that "space" shortcut will work)
+            window.graphView.Focus();
+            Assert.True(window.graphView.HasFocus());
+
+            // This is what could mess up with focus
+            window.graphView.ClearSelection();
+
+            // VFX graph must keep the focus
+            yield return null;
+            Assert.True(window.graphView.HasFocus());
+        }
+
+        [Ignore("Open Subgraph in new tab feature has been removed")]
+        [UnityTest]
+        [Description("When a subgraph is opened in another tab, then a new tab is created loaded with that subgraph")]
+        public IEnumerator Open_Subgraph_In_Other_Tab()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should open a new tab
+            var subgraphController = GetSubgraphBlocks(window).Single();
+
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, true);
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+        }
+
+        [Ignore("Open Subgraph in new tab feature has been removed")]
+        [UnityTest]
+        [Description("When a subgraph is opened in another tab and that no-asset is opened, then no new tab is created and the tab with no-asset is loaded with that subgraph")]
+        public IEnumerator Open_Subgraph_In_Other_Tab_When_No_Asset_Is_Opened()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Open no asset window
+            var noAssetWindow = VFXViewWindow.GetWindow((VisualEffectResource)null, true);
+
+            // Get the subgraph block model and enter inside, it should open in the no asset tab
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, true);
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+        }
+
+        [Ignore("Open Subgraph in new tab feature has been removed")]
+        [UnityTest]
+        [Description("When a subgraph is opened in another tab but that subgraph is already opened, then no new tab is created and the tab with that subgraph is focused")]
+        public IEnumerator Open_Subgraph_In_Other_Tab_When_Its_Already_Opened()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            // Open created subgraph
+            AssetDatabase.ImportAsset(subgraphFileName);
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subgraphFileName);
+            VFXViewWindow.GetWindow(vfx.GetOrCreateResource(), true);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, true);
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+        }
+
+        [UnityTest]
+        [Description("When a subgraph is entered in-place but that subgraph is already opened, then current tab is left unchanged and the tab with that subgraph is focused")]
+        public IEnumerator Open_Subgraph_In_Same_Tab_When_Its_Already_Opened()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+            var graphTitle = window.titleContent.text;
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            // Open created subgraph
+            AssetDatabase.ImportAsset(subgraphFileName);
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraph>(subgraphFileName);
+            var subgraphWindow = VFXViewWindow.GetWindow(vfx.GetOrCreateResource(), true);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(graphTitle, window.titleContent.text);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), subgraphWindow.titleContent.text);
+        }
+
+        [UnityTest]
+        [Description("When a subgraph is entered in-place no other tab should be created")]
+        public IEnumerator Open_Subgraph_In_Same_Tab()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+        }
+
+        [UnityTest, Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-14696")]
+        [Description("When a subgraph is entered in-place a back button is available and allow to reload original graph in that same tab")]
+        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+            var originalTitle = window.titleContent.text;
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+            Assert.AreEqual(true, window.CanPopResource());
+
+            // Go back to original graph
+            window.PopResource();
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(originalTitle, window.titleContent.text);
+        }
+
+        [UnityTest]
+        [Description("If we go back to original graph but that graph is already opened, then the current tab is left unchanged and the focus is given to the opened graph window")]
+        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back_And_Original_Graph_Is_Opened()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+            var originalTitle = window.titleContent.text;
+            var originalResource = window.displayedResource;
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+
+            // Open the original resource
+            var originalWindow = VFXViewWindow.GetWindow(originalResource, true);
+            originalWindow.LoadResource(originalResource);
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+
+            // Go back to original graph
+            window.PopResource();
+
+            yield return null;
+
+            Assert.AreEqual(2, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(originalTitle, originalWindow.titleContent.text);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+        }
+
+        [UnityTest]
+        [Description("When a subgraph has been entered, and the original graph has been deleted, then the current tab cannot go back anymore")]
+        public IEnumerator Open_Subgraph_In_Same_Tab_And_Go_Back_And_Original_Graph_Is_Deleted()
+        {
+            // Prepare
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            var window = CreateGraphWithSubgraph();
+            var originalGraphPath = AssetDatabase.GetAssetPath(window.displayedResource);
+
+            yield return null;
+
+            // Get Set Lifetime node and convert it to subgraph block
+            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
+            VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
+
+            yield return null;
+
+            // Get the subgraph block model and enter inside, it should not open new tab, but focus on existing one
+            var subgraphController = GetSubgraphBlocks(window).Single();
+            EnterSubgraphByReflection(window.graphView, subgraphController.model, false);
+
+            yield return null;
+
+            Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count);
+            Assert.AreEqual(Path.GetFileNameWithoutExtension(subgraphFileName), window.titleContent.text);
+
+            // Delete the original resource
+            AssetDatabase.DeleteAsset(originalGraphPath);
+
+            // Go back to original graph
+            yield return null;
+
+            Assert.AreEqual(false, window.CanPopResource());
+        }
+
+        private void EnterSubgraphByReflection(VFXView vfxView, VFXBlock model, bool newTab)
+        {
+            var enterSubgraphMethod = vfxView.GetType().GetMethod("EnterSubgraph", BindingFlags.Instance|BindingFlags.NonPublic);
+            Assert.NotNull(enterSubgraphMethod, "Trying to access `EnterSubgraph` method by reflection, but failed");
+            enterSubgraphMethod.Invoke(vfxView, new object[] { model, newTab });
+        }
+
+        private VFXViewWindow CreateGraphWithSubgraph()
+        {
+            //Create a new vfx based on the usual template
+            System.IO.Directory.CreateDirectory(TempDirectoryName);
+            var templateString = System.IO.File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            var fileName = TempDirectoryName + $"/{GUID.Generate()}.vfx";
+            System.IO.File.WriteAllText(fileName, templateString);
+            AssetDatabase.ImportAsset(fileName);
+
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(fileName);
+            VFXViewWindow window = VFXViewWindow.GetWindow(vfx, true);
+            window.LoadResource(vfx.GetOrCreateResource());
+
+            return window;
+        }
+
+        private IEnumerable<VFXBlockController> GetBlocks(VFXViewWindow window, string namePattern)
+        {
+            return window.graphView.Query<VFXContextUI>()
+                .ToList()
+                .Single(x => x.controller.model is VFXBasicInitialize)
+                .controller.allChildren
+                .OfType<VFXBlockController>()
+                .Where(x => x.model.name.Contains(namePattern));
+        }
+
+        private IEnumerable<VFXBlockController> GetSubgraphBlocks(VFXViewWindow window)
+        {
+            return window.graphView.Query<VFXContextUI>()
+                .ToList()
+                .Single(x => x.controller.model is VFXBasicInitialize)
+                .controller.allChildren
+                .OfType<VFXBlockController>()
+                .Where(x => x.model is VFXSubgraphBlock);
+        }
+
+        [UnityTest]
+        public IEnumerator Check_Delayed_Field_Correctly_Saved()
+        {
+            // Prepare
+            var vfxController = StartEditTestAsset();
+            var initializeContextDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name == "Initialize Particle");
+
+            var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
+            var initializeContext = vfxController.AddVFXContext(new Vector2(4, 4), initializeContextDesc) as VFXBasicInitialize;
+            vfxController.ApplyChanges();
+            yield return null;
+
+            var initializeNode = window.graphView.GetAllContexts().Single(x => x.controller.model is VFXBasicInitialize);
+            var capacityField = initializeNode.Q<LongField>();
+            Assert.AreEqual(128, capacityField.value);
+            Assert.AreEqual(128u, (uint)initializeContext.GetSetting("capacity").value);
+
+            // Act
+            capacityField.Focus();
+            capacityField.value = 2 * capacityField.value;
+            capacityField.Blur();
+            window.graphView.OnSave();
+            yield return null;
+
+            // Assert
+            Assert.AreEqual(256, capacityField.value);
+            Assert.AreEqual(256u, (uint)initializeContext.GetSetting("capacity").value);
+        }
+
+        private static VFXModelDescriptor<VFXBlock>[] GetAllBlocks(bool filterOut, Predicate<VFXModelDescriptor<VFXBlock>> predicate)
+        {
+            if (filterOut)
+            {
+                return VFXLibrary.GetBlocks()
+                    .Where(x => predicate(x))
+                    .GroupBy(x => x.category)
+                    .Select(x => x.First())
+                    .ToArray();
+            }
+            else
+            {
+                return VFXLibrary.GetBlocks()
+                    .Where(x => predicate(x))
+                    .ToArray();
+            }
         }
     }
 }
