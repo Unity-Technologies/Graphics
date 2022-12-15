@@ -1035,9 +1035,8 @@ namespace UnityEngine.Rendering.PostProcessing
             foreach (var root in roots)
             {
                 queue.Enqueue(root.transform);
-                var comp = root.GetComponent<T>();
-
-                if (comp != null)
+                
+                if (root.TryGetComponent<T>(out var comp))
                     yield return comp;
             }
 
@@ -1046,9 +1045,8 @@ namespace UnityEngine.Rendering.PostProcessing
                 foreach (Transform child in queue.Dequeue())
                 {
                     queue.Enqueue(child);
-                    var comp = child.GetComponent<T>();
-
-                    if (comp != null)
+                    
+                    if (child.TryGetComponent<T>(out var comp))
                         yield return comp;
                 }
             }

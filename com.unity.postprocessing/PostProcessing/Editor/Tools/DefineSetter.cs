@@ -16,8 +16,7 @@ namespace UnityEditor.Rendering.PostProcessing
 #if UNITY_2021_3_OR_NEWER
             var targets = Enum.GetValues(typeof(NamedBuildTarget))
                 .Cast<NamedBuildTarget>()
-                .Where(x => x != NamedBuildTarget.Unknown)
-                .Where(x => !IsObsolete(x));
+                .Where(x => x != NamedBuildTarget.Unknown && !IsObsolete(x));
 #else
             var targets = Enum.GetValues(typeof(BuildTargetGroup))
                 .Cast<BuildTargetGroup>()
