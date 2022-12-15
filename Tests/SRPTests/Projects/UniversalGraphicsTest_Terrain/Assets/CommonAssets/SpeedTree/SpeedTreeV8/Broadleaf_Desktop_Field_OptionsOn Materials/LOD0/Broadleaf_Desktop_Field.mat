@@ -75,7 +75,7 @@ Material:
     - _AlphaClipThreshold: 0.33
     - _BillboardKwToggle: 0
     - _BillboardShadowFade: 0.5
-    - _Glossiness: 0.5
+    - _Glossiness: 1
     - _HueVariationKwToggle: 1
     - _Metallic: 0
     - _NormalMapKwToggle: 1
