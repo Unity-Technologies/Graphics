@@ -192,10 +192,9 @@ MonoBehaviour:
   diffusionProfiles:
     m_OverrideState: 1
     m_Value:
-    - {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
-    - {fileID: 11400000, guid: 26bdddf49760c61438938733f07fa2a2, type: 2}
+    - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
+    - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
     - {fileID: 11400000, guid: 5a9a2dc462c7bde4f86d0615a19c2c72, type: 2}
-    - {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
 --- !u!114 &-2223948172287066284
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -987,7 +986,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   perceptualBlending:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   shadows:
     m_OverrideState: 0
