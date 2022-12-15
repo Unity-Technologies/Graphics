@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - 3rd Person controller camera properties were adjusted. Its basically now closer.
 - Default quality levels changed for consoles
 - Bloom scattering reduction to 0.4
+- Removes the local duplicated Diffusion Profiles (Skin & Foliage) to rely on those provided in HDRP package
+
+### Fixed
+- Fixed an issue with IET layout
 
 ## [15.1.1] - 2022-11-09
 
