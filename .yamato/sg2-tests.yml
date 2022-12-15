@@ -1,76 +1,99 @@
-projects:
-  - name: Shader Graph 2
-    path: ShaderGraphPlayground # path to the test project (expected to be at the root of Graphics)
-    winpath: ShaderGraphPlayground
-    testproject: ShaderGraphPlayground
-    branches_exp: (?:^|.+\/)sg2\/.+ # expression to use for branches PR trigger
-platforms:
-  # - id: osx
-  #   configname: editor-osx
-  #   name: MacEditor 64-bit
-  #   agenttype: Unity::VM::osx
-  #   image: slough-ops/macos-11-xcode:v0.0.1-973582
-  #   flavor: m1.mac
-  #   dependency: .yamato/build-maceditor-64-bit.yml
-  - id: win
-    configname: editor-win
-    name: WindowsEditor 64-bit
-    agenttype: Unity::VM
-    image: build-system/unity-windows-10:v10-1046278
-    flavor: b1.xlarge
-    dependency: .yamato/build-windowseditor-64-bit-nosigning.yml
-coverage_meta:
-  COVERAGE_PKG_VER: 1.2.0-exp.5
-  CODECOV_WIN: Tools/CodeCoverage/codecov.bat
-  CODECOV_MAC_LINUX: Tools/CodeCoverage/codecov
-  COVREPORT_WIN: Tools/CodeCoverage/covreport.bat
-  COVREPORT_MAC_LINUX: Tools/CodeCoverage/covreport
-
----
-
-{% for project in projects %}
-{{project.name}}_pr_trigger:
-  name: {{project.name}} - PR Tests Trigger
-  triggers:
-    expression: pull_request.source match "{{ project.branches_exp }}" AND NOT pull_request.draft # this trigger the job on pull request exclusively on specific branches
-    cancel_old_ci: true
-  dependencies:
-    {% for platform in platforms %}
-      - .yamato/sg2-tests.yml#{{project.name}}_{{platform.configname}}_editormode
-    {% endfor %}
-{% endfor %}
-
-{% for project in projects %}
-{% for platform in platforms %}
-{{project.name}}_{{platform.configname}}_editormode:
-  name: {{project.name}} Tests - {{platform.name}} - EditorMode
+ShaderGraph2_Win64:
+  name: ShaderGraph2 Tests - Win64
   agent:
-    type: {{platform.agenttype}}
-    image: {{platform.image}}
-    flavor: {{platform.flavor}}
-  dependencies:
-    - {{platform.dependency}}
+    type: Unity::VM
+    image: sdet/gamecode_win10:stable
+    flavor: b1.large
+  variables:
+    UTR_VERSION: "current"
+    TEST_FILTER: .*
+    EDITOR_BRANCH: "gtf/staging"
   commands:
-  {% if platform.id == "win" %}
-  #setup
-    - command: NetSh Advfirewall set allprofiles state off
-    - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      retries: 2
-  #execute tests
-  #  - command: perl utr.pl --suite=editor --artifacts_path=%CD%\build\ReportedArtifacts\ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=%CD%/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:%CD%/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
-  {% else %}
-    - command: chmod -R +x .
-    - command: perl utr.pl --suite=editor --artifacts_path=$PWD/build/ReportedArtifacts/ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=$PWD/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:$PWD/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
-  {% endif %}
+    -  command: NetSh Advfirewall set allprofiles state off
+    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+       retries: 2
   artifacts:
-    CodeCoverageReport:
-      paths:
-        - CodeCoverageReport/**
-    CodeCoverageResults:
-      paths:
-        - CodeCoverageResults/**
     logs:
       paths:
-        - build/ReportedArtifacts/**
-{% endfor %}
-{% endfor %}
+        -  "**/test-results/**"
+        -  "ShaderGraphPlayground/Logs/*.log"
+  dependencies:
+    -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+       rerun: on_new_revision
+
+# projects:
+#   - name: ShaderGraph2
+#     path: ShaderGraphPlayground # path to the test project (expected to be at the root of Graphics)
+#     winpath: ShaderGraphPlayground
+#     testproject: ShaderGraphPlayground
+#     branches_exp: (?:^|.+\/)sg2\/.+ # expression to use for branches PR trigger
+# platforms:
+#   - id: osx
+#     configname: editor-osx
+#     name: MacEditor 64-bit
+#     agenttype: Unity::VM::osx
+#     image: slough-ops/macos-11-xcode:v0.0.1-973582
+#     flavor: m1.mac
+#     dependency: .yamato/build-maceditor-64-bit.yml
+#   - id: win
+#     configname: editor-win
+#     name: WindowsEditor 64-bit
+#     agenttype: Unity::VM
+#     image: build-system/unity-windows-10:v10-1046278
+#     flavor: b1.xlarge
+#     dependency: .yamato/build-windowseditor-64-bit-nosigning.yml
+# coverage_meta:
+#   COVERAGE_PKG_VER: 1.2.0-exp.5
+#   CODECOV_WIN: Tools/CodeCoverage/codecov.bat
+#   CODECOV_MAC_LINUX: Tools/CodeCoverage/codecov
+#   COVREPORT_WIN: Tools/CodeCoverage/covreport.bat
+#   COVREPORT_MAC_LINUX: Tools/CodeCoverage/covreport
+
+# ---
+
+# {% for project in projects %}
+# {{project.name}}_pr_trigger:
+#   name: {{project.name}} - PR Tests Trigger
+#   triggers:
+#     expression: pull_request.source match "{{ project.branches_exp }}" AND NOT pull_request.draft # this trigger the job on pull request exclusively on specific branches
+#     cancel_old_ci: true
+#   dependencies:
+#     {% for platform in platforms %}
+#       - .yamato/sg2-tests.yml#{{project.name}}_{{platform.configname}}_editormode
+#     {% endfor %}
+# {% endfor %}
+
+# {% for project in projects %}
+# {% for platform in platforms %}
+# {{project.name}}_{{platform.configname}}:
+#   name: {{project.name}} Tests - {{platform.name}} - EditorMode
+#   agent:
+#     type: {{platform.agenttype}}
+#     image: {{platform.image}}
+#     flavor: {{platform.flavor}}
+#   dependencies:
+#     - {{platform.dependency}}
+#   commands:
+#   {% if platform.id == "win" %}
+#   #setup
+#     - command: NetSh Advfirewall set allprofiles state off
+#     - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+#       retries: 2
+#   #execute tests
+#   #  - command: perl utr.pl --suite=editor --artifacts_path=%CD%\build\ReportedArtifacts\ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=%CD%/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:%CD%/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
+#   {% else %}
+#     # - command: chmod -R +x .
+#     # - command: perl utr.pl --suite=editor --artifacts_path=$PWD/build/ReportedArtifacts/ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=$PWD/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:$PWD/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
+#   {% endif %}
+#   artifacts:
+#     CodeCoverageReport:
+#       paths:
+#         - CodeCoverageReport/**
+#     CodeCoverageResults:
+#       paths:
+#         - CodeCoverageResults/**
+#     logs:
+#       paths:
+#         - build/ReportedArtifacts/**
+# {% endfor %}
+# {% endfor %}
