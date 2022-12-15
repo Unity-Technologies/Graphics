@@ -5,13 +5,13 @@ projects:
     testproject: ShaderGraphPlayground
     branches_exp: (?:^|.+\/)sg2\/.+ # expression to use for branches PR trigger
 platforms:
-  - id: osx
-    configname: editor-osx
-    name: MacEditor 64-bit
-    agenttype: Unity::VM::osx
-    image: slough-ops/macos-11-xcode:v0.0.1-973582
-    flavor: m1.mac
-    dependency: .yamato/build-maceditor-64-bit.yml
+  # - id: osx
+  #   configname: editor-osx
+  #   name: MacEditor 64-bit
+  #   agenttype: Unity::VM::osx
+  #   image: slough-ops/macos-11-xcode:v0.0.1-973582
+  #   flavor: m1.mac
+  #   dependency: .yamato/build-maceditor-64-bit.yml
   - id: win
     configname: editor-win
     name: WindowsEditor 64-bit
@@ -51,12 +51,16 @@ coverage_meta:
   dependencies:
     - {{platform.dependency}}
   commands:
-  #execute tests
   {% if platform.id == "win" %}
-    - perl utr.pl --suite=editor --artifacts_path=%CD%\build\ReportedArtifacts\ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=%CD%/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:%CD%/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
+  #setup
+    - command: NetSh Advfirewall set allprofiles state off
+    - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      retries: 2
+  #execute tests
+  #  - command: perl utr.pl --suite=editor --artifacts_path=%CD%\build\ReportedArtifacts\ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=%CD%/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:%CD%/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
   {% else %}
-    - chmod -R +x .
-    - perl utr.pl --suite=editor --artifacts_path=$PWD/build/ReportedArtifacts/ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=$PWD/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:$PWD/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
+    - command: chmod -R +x .
+    - command: perl utr.pl --suite=editor --artifacts_path=$PWD/build/ReportedArtifacts/ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=$PWD/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:$PWD/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
   {% endif %}
   artifacts:
     CodeCoverageReport:
