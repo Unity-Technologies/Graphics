@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     if (portViewModel.Options is {Count: > 0})
                     {
-                        return BuildReferableDropdownEditor(builder, (SGNodeModel)graphDataPort.owner, portViewModel);
+                        return BuildPortOptionsEditor(builder, (SGNodeModel)graphDataPort.owner, portViewModel);
                     }
 
                     break;
@@ -82,9 +82,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return builder.BuildDefaultConstantEditor(constants);
         }
 
-        static BaseModelPropertyField BuildReferableDropdownEditor(ConstantEditorBuilder builder, SGNodeModel nodeModel, SGPortViewModel viewModel)
+        static BaseModelPropertyField BuildPortOptionsEditor(ConstantEditorBuilder builder, SGNodeModel nodeModel, SGPortViewModel viewModel)
         {
-            return new ReferableDropdownPropertyField(builder.CommandTarget, nodeModel, viewModel.Name, viewModel.Options);
+            return new PortOptionsPropertyField(builder.CommandTarget, nodeModel, viewModel.Name, viewModel.Options);
         }
 
         static BaseModelPropertyField BuildColorConstantEditor(ConstantEditorBuilder builder, IEnumerable<GraphTypeConstant> constants, string propertyName, string label, string tooltip, bool hdr = false)

@@ -8,13 +8,13 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class ReferableDropdownPropertyField : BaseModelPropertyField
+    class PortOptionsPropertyField : BaseModelPropertyField
     {
         readonly DropdownField m_DropdownField;
         readonly string m_PortName;
         readonly SGNodeModel m_NodeModel;
 
-        public ReferableDropdownPropertyField(ICommandTarget commandTarget, SGNodeModel nodeModel, string portName, IReadOnlyList<(string, object)> options)
+        public PortOptionsPropertyField(ICommandTarget commandTarget, SGNodeModel nodeModel, string portName, IReadOnlyList<(string, object)> options)
             : base(commandTarget)
         {
             m_NodeModel = nodeModel;
@@ -25,9 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_DropdownField.index = 0;
             m_DropdownField.RegisterValueChangedCallback(e =>
             {
-                var newOption = options.First(t => t.Item1.Equals(e.newValue));
-                if (newOption.Item2 is not ReferenceValueDescriptor desc) return;
-                CommandTarget.Dispatch(new SetReferableDropdownCommand(m_NodeModel, m_PortName, desc));
+                CommandTarget.Dispatch(new SetPortOptionCommand(m_NodeModel, m_PortName, m_DropdownField.index));
             });
 
             Add(m_DropdownField);
@@ -35,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void UpdateDisplayedValue()
         {
-            var desc = m_NodeModel.GetReferableDropdown(m_PortName);
+            var desc = m_NodeModel.GetCurrentPortOption(m_PortName);
             if (desc < 0) return;
 
             m_DropdownField.SetValueWithoutNotify(m_DropdownField.choices[desc]);

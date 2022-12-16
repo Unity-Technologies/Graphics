@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (portViewModel.Options is {Count: > 0})
             {
-                return new ReferableDropdownPart("sg-dropdown", GraphElementModel, this, ussClassName, portViewModel.Name);
+                return new StaticPortOptionsPart("sg-dropdown", GraphElementModel, this, ussClassName, portViewModel.Name);
             }
 
             if (portViewModel.IsMatrix)

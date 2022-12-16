@@ -67,8 +67,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoStateComponent,
                 graphModelStateComponent);
 
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, SetReferableDropdownCommand>(
-                SetReferableDropdownCommand.DefaultCommandHandler,
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, SetPortOptionCommand>(
+                SetPortOptionCommand.DefaultCommandHandler,
                 undoStateComponent,
                 graphModelStateComponent,
                 previewUpdateDispatcher);

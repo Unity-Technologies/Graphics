@@ -231,15 +231,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
             DefineNode();
         }
 
-        public void SetReferableDropdown(string portName, ReferenceValueDescriptor desc)
+        /// <summary>
+        /// Sets a port's value from its parameter descriptor's Options list.
+        /// </summary>
+        /// <param name="portName">Port name.</param>
+        /// <param name="optionIndex">Index of the Option in the port's parameter descriptor to use.</param>
+        public void SetPortOption(string portName, int optionIndex)
         {
             if (!TryGetNodeHandler(out var handler)) return;
-            var port = handler.GetPort(portName);
+            var parameterInfo = GetViewModel().GetParameterInfo(portName);
+            var (_, optionValue) = parameterInfo.Options[optionIndex];
 
-            var existing = GetReferableDropdown(portName);
+            if (optionValue is not ReferenceValueDescriptor desc)
+            {
+                Debug.LogError("SetPortOption not implemented for options that are not ReferenceValueDescriptors");
+                return;
+            }
+
+            var port = handler.GetPort(portName);
+            var existing = GetCurrentPortOption(portName);
             if (existing != -1)
             {
-                if (GetViewModel().GetParameterInfo(portName).Options[existing].Item2 is ReferenceValueDescriptor existingDesc)
+                var (_, existingValue) = parameterInfo.Options[existing];
+                if (existingValue is ReferenceValueDescriptor existingDesc)
                 {
                     graphHandler.graphDelta.RemoveDefaultConnection(existingDesc.ContextName, port.ID, registry.Registry);
                 }
@@ -249,19 +263,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphHandler.ReconcretizeNode(graphDataName);
         }
 
-        public int GetReferableDropdown(string portName)
+        /// <summary>
+        /// Gets the currently selected option for the given port.
+        /// </summary>
+        /// <param name="portName">Port name.</param>
+        /// <returns>Index into the Options list for the given port, or -1 if there are no options or no option is selected.</returns>
+        public int GetCurrentPortOption(string portName)
         {
             var paramInfo = GetViewModel().GetParameterInfo(portName);
-            if (!existsInGraphData) return 0;
+            if (!existsInGraphData) return 0;  // default to first option
 
             if (!TryGetNodeHandler(out var handler)) return -1;
             var port = handler.GetPort(portName);
+
             var connection = graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID);
             if (connection == null) return -1;
 
             for (var i = 0; i < paramInfo.Options.Count; i++)
             {
-                var (name, value) = paramInfo.Options[i];
+                var (_, value) = paramInfo.Options[i];
                 if (value is not ReferenceValueDescriptor desc) continue;
                 if (connection == desc.ContextName) return i;
             }

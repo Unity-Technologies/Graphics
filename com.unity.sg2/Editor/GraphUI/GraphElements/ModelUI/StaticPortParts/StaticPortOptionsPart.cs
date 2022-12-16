@@ -3,18 +3,20 @@ using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class ReferableDropdownPart : SingleFieldPart<DropdownField, string>
+    // Non-static port options are handled by PortOptionsPropertyField.
+    class StaticPortOptionsPart : SingleFieldPart<DropdownField, string>
     {
         protected override string UXMLTemplateName => "StaticPortParts/DropdownPart";
         protected override string FieldName => "sg-dropdown";
 
         List<(string, object)> m_Options;
 
-        public ReferableDropdownPart(
+        public StaticPortOptionsPart(
             string name,
             GraphElementModel model,
             ModelView ownerElement,
@@ -37,18 +39,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void OnFieldValueChanged(ChangeEvent<string> change)
         {
             if (m_Model is not SGNodeModel sgNodeModel) return;
-
-            var newOption = m_Options.First(t => t.Item1.Equals(change.newValue));
-            if (newOption.Item2 is not ReferenceValueDescriptor desc) return;
-            m_OwnerElement.RootView.Dispatch(new SetReferableDropdownCommand(sgNodeModel, m_PortName, desc));
-
+            m_OwnerElement.RootView.Dispatch(new SetPortOptionCommand(sgNodeModel, m_PortName, m_Field.index));
         }
 
         protected override void UpdatePartFromPortReader(PortHandler reader)
         {
             if (m_Model is not SGNodeModel sgNodeModel) return;
 
-            var desc = sgNodeModel.GetReferableDropdown(m_PortName);
+            var desc = sgNodeModel.GetCurrentPortOption(m_PortName);
             if (desc < 0) return;
 
             m_Field.SetValueWithoutNotify(m_Field.choices[desc]);
