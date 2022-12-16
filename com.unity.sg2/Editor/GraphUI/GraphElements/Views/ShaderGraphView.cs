@@ -137,5 +137,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             UpdateChangedModels(changedModels.ToHashSet(), false, new List<GraphElement>());
         }
+
+        /// <inheritdoc />
+        public override void BuildOptionMenu(GenericMenu menu)
+        {
+            if (Unsupported.IsDeveloperMode())
+            {
+                menu.AddItem(new GUIContent("Check Blackboard Sanity"), false, () =>
+                {
+                    (GraphModel as SGGraphModel).CheckBlackboardSanity();
+                });
+
+                menu.AddSeparator("");
+            }
+
+            base.BuildOptionMenu(menu);
+        }
     }
 }

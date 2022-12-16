@@ -352,7 +352,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     // don't do this, we should have a fixed way of pathing into a port's type information as opposed to its header/port data.
                     // For now, we'll fail to find the property, fall back to the port's body, which will parse it's subfields and populate constants appropriately.
                     // Not sure how that's going to work for data that's from a connection!
-                    constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
+                    constant.BindTo(nodeId.LocalPath, portReader.LocalID);
                 }
 
                 if (isInput)
@@ -360,7 +360,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     var newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
-                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
+                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).BindTo(nodeReader.ID.LocalPath, portReader.LocalID);
                 }
                 else
                     this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);

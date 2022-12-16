@@ -15,20 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     class SamplerStateTypeConstant : BaseShaderGraphConstant
     {
-        protected override void StoreValueForCopy()
-        {
-            storedValue = (SamplerStateData)GetValue();
-        }
-
-        public override object GetStoredValueForCopy()
-        {
-            return storedValue;
-        }
-
-        [SerializeField]
-        SamplerStateData storedValue;
-
-        override protected object GetValue()
+        protected override object GetValue()
         {
             return new SamplerStateData {
             filter = SamplerStateType.GetFilter(GetField()),
@@ -37,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             aniso = SamplerStateType.GetAniso(GetField()) };
         }
 
-        override protected void SetValue(object value)
+        protected override void SetValue(object value)
         {
             var smp = (SamplerStateData)value;
             SamplerStateType.SetFilter(GetField(), smp.filter);
@@ -46,9 +33,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             SamplerStateType.SetAniso(GetField(), smp.aniso);
     }
 
-        override public object DefaultValue => Activator.CreateInstance(Type);
-        override public Type Type => typeof(SamplerStateData);
-        override public TypeHandle GetTypeHandle() => ShaderGraphExampleTypes.SamplerStateTypeHandle;
+        public override object DefaultValue => new SamplerStateData();
+
+        public override Type Type => typeof(SamplerStateData);
+
+        public override TypeHandle GetTypeHandle() => ShaderGraphExampleTypes.SamplerStateTypeHandle;
     }
 
 }

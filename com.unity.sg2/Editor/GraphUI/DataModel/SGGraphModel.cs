@@ -524,100 +524,57 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return ((NodeModel)nodeModel).OutputsById.FirstOrDefault(input => input.Key == portID).Value;
         }
 
+        /// <inheritdoc />
         public override TDeclType DuplicateGraphVariableDeclaration<TDeclType>(TDeclType sourceModel, bool keepGuid = false)
         {
-            var sourceDataVariable = sourceModel as SGVariableDeclarationModel;
-            Assert.IsNotNull(sourceDataVariable);
+            var newDecl = base.DuplicateGraphVariableDeclaration(sourceModel, keepGuid);
 
-            var sourceShaderGraphConstant = sourceDataVariable.InitializationModel as BaseShaderGraphConstant;
-            Assert.IsNotNull(sourceShaderGraphConstant);
-
-            var copiedVariable = sourceDataVariable.Clone();
-            // Only assign new guids if there is a conflict,
-            // this handles the case of a variable node being copied over to a graph where its source blackboard item doesn't exist yet
-            // the blackboard item will be duplicated, but if a new guid gets the assigned that variable node now is invalid
-            if (VariableDeclarations.Any(declarationModel => declarationModel.Guid == sourceDataVariable.Guid))
-                copiedVariable.AssignNewGuid();
-            else
-                copiedVariable.SetGuid(sourceDataVariable.Guid);
-
-            /* Init variable declaration model */
-            InitVariableDeclarationModel(
-                copiedVariable,
-                copiedVariable.DataType,
-                sourceDataVariable.Title,
-                sourceDataVariable.Modifiers,
-                sourceDataVariable.IsExposed,
-                copiedVariable.InitializationModel,
-                copiedVariable.Guid,
-                null);
-
-            /* Init variable constant value */
-            if (copiedVariable.InitializationModel is BaseShaderGraphConstant baseShaderGraphConstant)
+            if (newDecl is SGVariableDeclarationModel graphDataVar)
             {
-                copiedVariable.CreateInitializationValue();
-                copiedVariable.InitializationModel.ObjectValue = baseShaderGraphConstant.GetStoredValueForCopy();
+                graphDataVar.graphDataName = "_" + graphDataVar.Guid;
+                if (graphDataVar.InitializationModel is BaseShaderGraphConstant c)
+                {
+                    // Unbind the BaseShaderGraphConstant from the sourceModel
+                    c.BindTo(null, null);
+                }
+                AddVariableDeclarationEntry(graphDataVar);
             }
 
-            AddVariableDeclaration(copiedVariable);
-
-            if (sourceModel.ParentGroup != null && sourceModel.ParentGroup.GraphModel == this)
-                sourceModel.ParentGroup.InsertItem(copiedVariable, -1);
-            else
-            {
-                var section = GetSectionModel(Stencil.GetVariableSection(copiedVariable));
-                section.InsertItem(copiedVariable, -1);
-            }
-
-            return (TDeclType)((VariableDeclarationModel)copiedVariable);
+            return newDecl;
         }
 
+        /// <inheritdoc />
         protected override VariableDeclarationModel InstantiateVariableDeclaration(
-            Type variableTypeToCreate,
-            TypeHandle variableDataType,
-            string variableName,
-            ModifierFlags modifierFlags,
-            bool isExposed,
-            Constant initializationModel,
-            SerializableGUID guid,
-            Action<VariableDeclarationModel, Constant> initializationCallback = null
-        )
+            Type variableTypeToCreate, TypeHandle variableDataType, string variableName, ModifierFlags modifierFlags,
+            bool isExposed, Constant initializationModel, SerializableGUID guid, Action<VariableDeclarationModel, Constant> initializationCallback = null)
         {
-            if (variableTypeToCreate != typeof(SGVariableDeclarationModel))
+            var decl = base.InstantiateVariableDeclaration(variableTypeToCreate, variableDataType,
+                variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
+
+            if (decl is GraphDataVariableDeclarationModel graphDataVar)
             {
-                return base.InstantiateVariableDeclaration(variableTypeToCreate, variableDataType, variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
+                graphDataVar.contextNodeName = BlackboardContextName;
+                graphDataVar.graphDataName = "_" + decl.Guid;;
+
+                AddVariableDeclarationEntry(graphDataVar);
             }
 
-            var graphDataVar = new SGVariableDeclarationModel();
-            return InitVariableDeclarationModel(graphDataVar, variableDataType, variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
+            return decl;
         }
 
-        VariableDeclarationModel InitVariableDeclarationModel(
-            SGVariableDeclarationModel graphDataVar,
-            TypeHandle variableDataType,
-            string variableName,
-            ModifierFlags modifierFlags,
-            bool isExposed,
-            Constant initializationModel,
-            SerializableGUID guid,
-            Action<VariableDeclarationModel, Constant> initializationCallback)
+        void AddVariableDeclarationEntry(SGVariableDeclarationModel declarationModel)
         {
-            // If the guid starts with a number, it will produce an invalid identifier in HLSL.
-            var fieldName = "_" + graphDataVar.Guid;
-            var displayName = GenerateGraphVariableDeclarationUniqueName(variableName);
-
-            var propertyContext = GraphHandler.GetNode(BlackboardContextName);
+            var propertyContext = GraphHandler.GetNode(declarationModel.contextNodeName);
             Debug.Assert(propertyContext != null, "Material property context was missing from graph when initializing a variable declaration");
 
-            isExposed &= ((ShaderGraphStencil)Stencil).IsExposable(variableDataType);
             ContextBuilder.AddReferableEntry(
                 propertyContext,
-                variableDataType.GetBackingDescriptor(),
-                fieldName,
+                declarationModel.DataType.GetBackingDescriptor(),
+                declarationModel.graphDataName,
                 GraphHandler.registry,
-                isExposed ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
-                source: isExposed ? ContextEntryEnumTags.DataSource.Global : ContextEntryEnumTags.DataSource.Constant,
-                displayName: displayName);
+                declarationModel.IsExposed ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded,
+                source: declarationModel.IsExposed ? ContextEntryEnumTags.DataSource.Global : ContextEntryEnumTags.DataSource.Constant,
+                displayName: declarationModel.Title);
 
             try
             {
@@ -628,20 +585,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 Debug.LogException(e);
             }
 
-            graphDataVar.contextNodeName = BlackboardContextName;
-            graphDataVar.graphDataName = fieldName;
+            if (declarationModel.InitializationModel is BaseShaderGraphConstant c)
+            {
+                // If declarationModel already has an InitializationModel, rebind it to the new entry and copy its value.
 
-            if (guid.Valid)
-                graphDataVar.SetGuid(guid);
-            graphDataVar.GraphModel = this;
-            graphDataVar.DataType = variableDataType;
-            graphDataVar.Title = displayName;
-            graphDataVar.IsExposed = isExposed;
-            graphDataVar.Modifiers = modifierFlags;
+                bool isBound = c.IsBound;
+                var value = c.IsBound ? c.ObjectValue : null;
 
-            initializationCallback?.Invoke(graphDataVar, initializationModel);
+                c.BindTo(declarationModel.contextNodeName, declarationModel.graphDataName);
 
-            return graphDataVar;
+                if (isBound)
+                    c.ObjectValue = value;
+            }
         }
 
         // TODO: (Sai) Would it be better to have a way to gather any variable nodes
@@ -762,5 +717,43 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         protected override Type GetVariableDeclarationType() => typeof(SGVariableDeclarationModel);
+
+        internal void CheckBlackboardSanity()
+        {
+            Debug.Log("++++++++ Checking that CLDS Blackboard context node matches what we have in SGGraphModel");
+
+            var contextNode = GraphHandler.GetNode(BlackboardContextName);
+            Debug.Assert(contextNode != null, "Can't find CLDS blackboard node.");
+            Debug.Log("-- CLDS Blackboard Ports:");
+            foreach (var port in contextNode.GetPorts())
+            {
+                var f = port.GetTypeField();
+                if (f != null)
+                {
+                    var data = GraphTypeHelpers.GetFieldValue(f, null);
+                    Debug.Log($"    {port.ID.LocalPath} : {data}");
+                }
+                else
+                {
+                    Debug.Log($"    {port.ID.LocalPath} : no data source");
+                }
+            }
+            Debug.Log("-- End CLDS Blackboard Ports");
+
+            Debug.Log("-- SGGraphModel GraphDataVariableDeclarationModels");
+            Debug.Assert(VariableDeclarations.Count == VariableDeclarations.OfType<GraphDataVariableDeclarationModel>().Count(), "Found VariableDeclarations of unexpected type.");
+            foreach (var v in VariableDeclarations.OfType<GraphDataVariableDeclarationModel>())
+            {
+                Debug.Log($"    {v.DisplayTitle} (GUID: {v.Guid}) : {v.InitializationModel.ObjectValue}");
+
+                Debug.Assert(BlackboardContextName == v.contextNodeName, $"Unexpected contextNodeName {v.contextNodeName}");
+                Debug.Assert("_" + v.Guid == v.graphDataName, $"Guid {"_" + v.Guid} does not match graphDataName {v.graphDataName}");
+                Debug.Assert((v.InitializationModel as BaseShaderGraphConstant).PortName == v.graphDataName, $"Variable {v.graphDataName} linked to wrong CLDS constant {(v.InitializationModel as BaseShaderGraphConstant).PortName}");
+                Debug.Assert(contextNode.GetPort(v.graphDataName) != null, $"Variable {v.DisplayTitle}:{v.graphDataName} not found on blackboard context node.");
+            }
+            Debug.Log("-- End SGGraphModel GraphDataVariableDeclarationModels");
+
+            Debug.Log("++++++++ Done checking graph sanity");
+        }
     }
 }

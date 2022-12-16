@@ -9,26 +9,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         // TODO: (Sai) When Gradients have support for assigning values from the Gradient Editor,
         // revisit their duplication to ensure values are copied over
-        protected override void StoreValueForCopy()
-        {
-            var currentGradientValue = GetValue();
-            if(currentGradientValue != null)
-                storedValue = (Gradient)currentGradientValue;
-        }
 
-        public override object GetStoredValueForCopy()
-        {
-            return storedValue;
-        }
+        protected override object GetValue() => GradientTypeHelpers.GetGradient(GetField());
 
-        [SerializeField]
-        Gradient storedValue;
+        protected override void SetValue(object value) => GradientTypeHelpers.SetGradient(GetField(), (Gradient)value);
 
-        override protected object GetValue() => GradientTypeHelpers.GetGradient(GetField());
-        override protected void SetValue(object value) => GradientTypeHelpers.SetGradient(GetField(), (Gradient)value);
-        override public object DefaultValue => Activator.CreateInstance(Type);
-        override public Type Type => typeof(Gradient);
-        override public TypeHandle GetTypeHandle() => ShaderGraphExampleTypes.GradientTypeHandle;
+        public override object DefaultValue => new Gradient();
+
+        public override Type Type => typeof(Gradient);
+
+        public override TypeHandle GetTypeHandle() => ShaderGraphExampleTypes.GradientTypeHandle;
     }
-
 }

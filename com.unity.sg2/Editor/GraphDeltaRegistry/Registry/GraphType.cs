@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
+using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.Defs;
-using System.Collections;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
@@ -267,6 +267,32 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 GetAsVec4(field, 3)
             );
 
+        public static object GetFieldValue(FieldHandler field, object defaultValue)
+        {
+            switch (GetHeight(field))
+            {
+                case GraphType.Height.Four: return GetAsMat4(field);
+                case GraphType.Height.Three: return GetAsMat3(field);
+                case GraphType.Height.Two: return GetAsMat2(field);
+            }
+
+            switch (GetLength(field))
+            {
+                case GraphType.Length.One:
+                    switch (GetPrimitive(field))
+                    {
+                        case GraphType.Primitive.Int: return GetAsInt(field);
+                        case GraphType.Primitive.Bool: return GetAsBool(field);
+                        case GraphType.Primitive.Float:
+                        default: return GetAsFloat(field);
+                    }
+                case GraphType.Length.Two: return GetAsVec2(field);
+                case GraphType.Length.Three: return GetAsVec3(field);
+                case GraphType.Length.Four: return GetAsVec4(field);
+                default: return defaultValue;
+            }
+        }
+
         public static void SetComponent(FieldHandler field, int idx, float val)
         {
             var sub = field.GetSubField<float>(GraphType.kC(idx)) ?? field.AddSubField(GraphType.kC(idx), val, true);
@@ -341,6 +367,52 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     return false;
             }
             return true;
+        }
+
+        public static void SetFieldValue(FieldHandler field, object value)
+        {
+            switch (GetHeight(field))
+            {
+                case GraphType.Height.Four:
+                    SetAsMat4(field, (Matrix4x4)value);
+                    return;
+                case GraphType.Height.Three:
+                    SetAsMat3(field, (Matrix4x4)value);
+                    return;
+                case GraphType.Height.Two:
+                    SetAsMat2(field, (Matrix4x4)value);
+                    return;
+            }
+
+            switch (GetLength(field))
+            {
+                case GraphType.Length.One:
+                    switch (GetPrimitive(field))
+                    {
+                        case GraphType.Primitive.Int:
+                            SetAsInt(field, Convert.ToInt32(value));
+                            break;
+                        case GraphType.Primitive.Bool:
+                            SetAsBool(field, Convert.ToBoolean(value));
+                            break;
+                        case GraphType.Primitive.Float:
+                        default:
+                            SetAsFloat(field, Convert.ToSingle(value));
+                            break;
+                    }
+
+                    break;
+
+                case GraphType.Length.Two:
+                    SetAsVec2(field, (Vector2)value);
+                    break;
+                case GraphType.Length.Three:
+                    SetAsVec3(field, (Vector3)value);
+                    break;
+                case GraphType.Length.Four:
+                    SetAsVec4(field, (Vector4)value);
+                    break;
+            }
         }
     }
 

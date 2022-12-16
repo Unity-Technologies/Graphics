@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    [Serializable]
     class SGVariableDeclarationModel : VariableDeclarationModel
     {
         [SerializeField]
@@ -34,17 +35,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_GraphDataName = value;
         }
 
-        SGGraphModel graphModel => GraphModel as SGGraphModel;
+        SGGraphModel sgGraphModel => GraphModel as SGGraphModel;
 
-        internal PortHandler ContextEntry => graphModel.GraphHandler
-            .GetNode(contextNodeName)
-            .GetPort(graphDataName);
+        internal PortHandler ContextEntry
+        {
+            get
+            {
+                if (contextNodeName == null || graphDataName == null)
+                    return null;
+
+                return sgGraphModel?.GraphHandler?
+                    .GetNode(contextNodeName)
+                    .GetPort(graphDataName);
+            }
+        }
 
         /// <summary>
         /// Returns true if this variable declaration's data type is exposable according to the stencil,
         /// false otherwise.
         /// </summary>
-        public bool IsExposable => ((ShaderGraphStencil)graphModel?.Stencil)?.IsExposable(DataType) ?? false;
+        public bool IsExposable => ((ShaderGraphStencil)sgGraphModel?.Stencil)?.IsExposable(DataType) ?? false;
 
         public override bool IsExposed
         {
@@ -55,9 +65,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return false;
                 }
 
-                return ContextEntry
-                    .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
-                    .GetData() == ContextEntryEnumTags.PropertyBlockUsage.Included;
+                var field = ContextEntry?.GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage);
+                return field != null ? field.GetData() == ContextEntryEnumTags.PropertyBlockUsage.Included : base.IsExposed;
             }
             set
             {
@@ -66,9 +75,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     value = false;
                 }
 
-                ContextEntry
-                    .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)
+                ContextEntry?
+                    .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)?
                     .SetData(value ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded);
+
+                base.IsExposed = value;
             }
         }
 
@@ -87,12 +98,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            if (GraphModel?.Stencil?.GetConstantType(DataType) != null)
+            base.CreateInitializationValue();
+
+            if (GraphModel.Stencil?.GetConstantType(DataType) != null)
             {
-                InitializationModel = GraphModel.Stencil.CreateConstantValue(DataType);
                 if (InitializationModel is BaseShaderGraphConstant cldsConstant)
                 {
-                    cldsConstant.Initialize(graphModel, contextNodeName, graphDataName);
+                    // PF TODO: This should be done in an override of set_InitializationModel.
+                    //          Then, should we de-initialize the old InitializationModel ?
+                    cldsConstant.BindTo(contextNodeName, graphDataName);
                 }
 
                 if (DataType == ShaderGraphExampleTypes.Matrix2 ||
@@ -150,6 +164,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 yield return VariableSettings.shaderDeclaration;
             }
+        }
+
+        /// <inheritdoc />
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+
+            base.IsExposed = IsExposed;
+        }
+
+        public override void OnAfterPaste()
+        {
+            (InitializationModel as BaseShaderGraphConstant).BindTo(contextNodeName, graphDataName);
+            base.OnAfterPaste();
         }
     }
 }
