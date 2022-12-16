@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var input = this.AddDataInputPort(ContextEntryName, type);
             if (input.EmbeddedValue is BaseShaderGraphConstant sgConstant)
             {
-                sgConstant.Initialize((SGGraphModel) GraphModel, graphDataContext.graphDataName, ContextEntryName);
+                sgConstant.BindTo(graphDataContext.graphDataName, ContextEntryName);
             }
         }
 

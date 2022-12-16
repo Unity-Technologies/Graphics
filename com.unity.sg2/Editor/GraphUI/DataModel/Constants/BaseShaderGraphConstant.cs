@@ -8,28 +8,34 @@ using Unity.GraphToolsFoundation;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [Serializable]
-    abstract class BaseShaderGraphConstant : Constant, ISerializationCallbackReceiver
+    abstract class BaseShaderGraphConstant : Constant, ICopyPasteCallbackReceiver
     {
-        [SerializeReference]
-        protected SGGraphModel graphModel;
         [SerializeField]
         protected string nodeName;
+
         [SerializeField]
         protected string portName;
+
+        [SerializeReference]
+        object m_CopyPasteData;
+
+        SGGraphModel graphModel => OwnerModel?.GraphModel as SGGraphModel;
+
         GraphHandler graphHandler => graphModel.GraphHandler;
 
         // TODO: shouldn't need to special case if we're a searcher preview.
         NodeHandler nodeHandler => graphHandler?.GetNode(nodeName)
             ?? graphModel.RegistryInstance.DefaultTopologies.GetNode(nodeName);
 
-        public bool IsInitialized => !string.IsNullOrEmpty(nodeName) && graphHandler != null && nodeHandler != null;
-        public FieldHandler GetField()
+        public bool IsBound => !string.IsNullOrEmpty(nodeName) && !string.IsNullOrEmpty(portName) && graphHandler != null && nodeHandler != null;
+
+        protected FieldHandler GetField()
         {
-            if (!IsInitialized) return null;
+            if (!IsBound) return null;
             try
             {
                 var portReader = nodeHandler.GetPort(portName);
-                var typeField = portReader.GetTypeField();
+                var typeField = portReader?.GetTypeField();
                 return typeField;
             }
             catch (Exception e)
@@ -38,28 +44,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return null;
             }
         }
-        public string NodeName => nodeName;
-        public string PortName => portName;
-        public void Initialize(SGGraphModel graphModel, string nodeName, string portName)
-        {
-            if (!IsInitialized)
-            {
-                this.graphModel = graphModel;
-                this.nodeName = nodeName;
-                this.portName = portName;
-            }
 
-            var storedValue = GetStoredValueForCopy();
-            // If when initializing this port we find that the value type has changed, refresh stored value
-            if(storedValue?.GetType() != ObjectValue?.GetType())
-                StoreValueForCopy();
-        }
+        public string NodeName => nodeName;
+
+        public string PortName => portName;
 
         public override object ObjectValue
         {
-            get => IsInitialized ? GetValue() : DefaultValue;
-            set {
-                if (IsInitialized)
+            get
+            {
+                Debug.Assert(graphModel != null);
+                Debug.Assert(IsBound);
+
+                return IsBound ? GetValue() : DefaultValue;
+            }
+            set
+            {
+                Debug.Assert(graphModel != null);
+                Debug.Assert(IsBound);
+
+                if (IsBound)
                 {
                     OwnerModel?.GraphModel?.CurrentGraphChangeDescription?.AddChangedModel(OwnerModel, ChangeHint.Data);
                     SetValue(value);
@@ -67,53 +71,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        // TODO: Do this in CLDS instead
-        abstract protected void StoreValueForCopy();
-        abstract public object GetStoredValueForCopy();
+        public void BindTo(string nodeName, string portName)
+        {
+            this.nodeName = nodeName;
+            this.portName = portName;
+        }
 
-        abstract protected object GetValue();
-        abstract protected void SetValue(object value);
+        protected abstract object GetValue();
+
+        protected abstract void SetValue(object value);
 
         public override void Initialize(TypeHandle constantTypeHandle) { }
 
         public override Constant Clone()
         {
             var copy = (BaseShaderGraphConstant)Activator.CreateInstance(GetType());
-            copy.Initialize(graphModel, nodeName, portName);
-            var storedValue = GetStoredValueForCopy();
-            copy.ObjectValue = storedValue;
+            copy.BindTo(nodeName, portName);
             return copy;
         }
 
-        bool HasBackingVariableBeenDeleted()
+        /// <inheritdoc />
+        public void OnBeforeCopy()
         {
-            if (graphModel is null) return false;
-
-            foreach (var model in graphModel.VariableDeclarations)
-            {
-                // If we can find a variable that is tied to this constant, we're fine!
-                if (model is SGVariableDeclarationModel variableDeclarationModel
-                && variableDeclarationModel.graphDataName == portName)
-                {
-                    return false;
-                }
-            }
-
-            // If we get to here, this constant has been orphaned and someone's maintaining a leaky reference
-            return true;
+            m_CopyPasteData = ObjectValue;
         }
 
-        public void OnBeforeSerialize()
+        /// <inheritdoc />
+        public void OnAfterPaste()
         {
-            // TODO: (Sai) this is a memory leak of some sort
-            // TODO: the owning variable gets deleted so someone else is maintaining a reference
-            if (nodeName == graphModel?.BlackboardContextName && HasBackingVariableBeenDeleted())
-                return;
-            StoreValueForCopy();
-        }
-
-        public void OnAfterDeserialize()
-        {
+            ObjectValue = m_CopyPasteData;
+            m_CopyPasteData = null;
         }
     }
 }

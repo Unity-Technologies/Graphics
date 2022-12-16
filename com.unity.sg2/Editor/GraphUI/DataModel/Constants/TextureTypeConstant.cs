@@ -8,46 +8,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class TextureTypeConstant : BaseShaderGraphConstant
     {
-        protected override void StoreValueForCopy()
-        {
-            var currentTexture = GetValue();
-            if (currentTexture != null)
-            {
-                var textureObject = (Texture)currentTexture;
-                var texturePath = AssetDatabase.GetAssetPath(textureObject.GetInstanceID());
-                textureAssetGuid = AssetDatabase.GUIDFromAssetPath(texturePath).ToString();
-            }
-        }
-
-        public override object GetStoredValueForCopy()
-        {
-            if (!String.IsNullOrEmpty(textureAssetGuid))
-            {
-                var assetPath = AssetDatabase.GUIDToAssetPath(textureAssetGuid);
-                var textureObject = AssetDatabase.LoadAssetAtPath<Texture>(assetPath);
-                return textureObject;
-            }
-
-            return null;
-        }
-
-        [SerializeField]
-        string textureAssetGuid;
-
-        override protected object GetValue() => BaseTextureType.GetTextureAsset(GetField());
-        override protected void SetValue(object value) => BaseTextureType.SetTextureAsset(GetField(), (Texture)value);
-        override public object DefaultValue => null;
+        protected override object GetValue() => BaseTextureType.GetTextureAsset(GetField());
+        protected override void SetValue(object value) => BaseTextureType.SetTextureAsset(GetField(), (Texture)value);
+        public override object DefaultValue => null;
 
         public void SetTextureType(BaseTextureType.TextureType textype)
             => BaseTextureType.SetTextureType(GetField(), textype);
+
         public BaseTextureType.TextureType GetTextureType()
             => BaseTextureType.GetTextureType(GetField());
 
-        override public Type Type
+        public override Type Type
         {
             get
             {
-                if (!IsInitialized)
+                if (!IsBound)
                     return typeof(Texture);
                 switch (GetTextureType())
                 {
@@ -59,7 +34,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
         }
-        override public TypeHandle GetTypeHandle()
+
+        public override TypeHandle GetTypeHandle()
         {
             switch (GetTextureType())
             {
