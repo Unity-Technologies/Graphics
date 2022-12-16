@@ -1,3 +1,22 @@
+# {% for project in projects %}
+# {{project.name}}_pr_trigger:
+#   name: {{project.name}} - PR Tests Trigger
+#   triggers:
+#     expression: pull_request.source match "{{ project.branches_exp }}" AND NOT pull_request.draft # this trigger the job on pull request exclusively on specific branches
+#     cancel_old_ci: true
+#   dependencies:
+#     {% for platform in platforms %}
+#       - .yamato/sg2-tests.yml#{{project.name}}_{{platform.configname}}_editormode
+#     {% endfor %}
+# {% endfor %}
+
+ShaderGraph2_Win_pr_trigger:
+  name: ShaderGraph2 - PR Tests Trigger
+  triggers:
+    expression: pull_request.source match "(?:^|.+\/)sg2\/.+" AND NOT pull_request.draft # this trigger the job on pull request exclusively on specific branches
+    cancel_old_ci: true
+  dependencies:
+    - .yamato/sg2-tests.yml#ShaderGraph2_Win64
 ShaderGraph2_Win64:
   name: ShaderGraph2 Tests - Win64
   agent:
