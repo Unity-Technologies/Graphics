@@ -423,7 +423,9 @@ namespace UnityEngine.Rendering.Universal
                     break;
 
                 case DecalTechnique.DBuffer:
-                    m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
+                    // the RenderPassEvent needs to be RenderPassEvent.AfterRenderingPrePasses + 1, so we are sure that if depth priming is enabled
+                    // this copy happens after the primed depth is copied, so the depth texture is available
+                    m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses + 1, m_CopyDepthMaterial);
                     m_DecalDrawDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
                     m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem, m_Settings.decalLayers);
 
