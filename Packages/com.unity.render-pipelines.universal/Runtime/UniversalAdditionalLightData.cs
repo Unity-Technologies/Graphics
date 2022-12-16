@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
     public class UniversalAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
         // Version 0 means serialized data before the version field.
-        [SerializeField] int m_Version = 2;
+        [SerializeField] int m_Version = 3;
         internal int version
         {
             get => m_Version;
@@ -215,7 +215,7 @@ namespace UnityEngine.Rendering.Universal
             get => m_SoftShadowQuality;
             set => m_SoftShadowQuality = value;
         }
-        [SerializeField] private SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.Medium;
+        [SerializeField] private SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.UsePipelineSettings;
 
         /// <inheritdoc/>
         public void OnBeforeSerialize()
@@ -232,6 +232,13 @@ namespace UnityEngine.Rendering.Universal
                 m_ShadowRenderingLayers = (uint)m_ShadowLayerMask;
 #pragma warning restore 618 // Obsolete warning
                 m_Version = 2;
+            }
+
+            if (m_Version < 3)
+            {
+                // SoftShadowQuality.UsePipelineSettings added at index 0. Bump existing serialized values by 1. e.g. Low(0) -> Low(1).
+                m_SoftShadowQuality = (SoftShadowQuality)(Math.Clamp((int)m_SoftShadowQuality + 1, 0, (int)SoftShadowQuality.High));
+                m_Version = 3;
             }
         }
     }

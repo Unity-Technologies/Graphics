@@ -39,6 +39,12 @@ namespace UnityEngine.Rendering.Universal
     public enum SoftShadowQuality
     {
         /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
+        [InspectorName("Use settings from Render Pipeline Asset")]
+        UsePipelineSettings,
+
+        /// <summary>
         /// Low quality soft shadows. Recommended for mobile. 4 PCF sample filtering.
         /// </summary>
         Low,
@@ -525,6 +531,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SoftShadowsSupported = false;
         [SerializeField] bool m_ConservativeEnclosingSphere = false;
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
+        [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.Medium;
 
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
@@ -1373,6 +1380,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_SoftShadowsSupported; }
             internal set { m_SoftShadowsSupported = value; }
+        }
+
+        /// <summary>
+        /// Light default Soft Shadow Quality.
+        /// </summary>
+        internal SoftShadowQuality softShadowQuality
+        {
+            get { return m_SoftShadowQuality; }
+            set { m_SoftShadowQuality = value; }
         }
 
         /// <summary>

@@ -527,5 +527,19 @@ namespace UnityEngine.Rendering.Universal
             // Apply texture scale and offset to save a MAD in shader.
             return textureScaleAndBias * worldToShadow;
         }
+
+        internal static float SoftShadowQualityToShaderProperty(Light light, bool softShadowsEnabled)
+        {
+            float softShadows = softShadowsEnabled ? 1.0f : 0.0f;
+            if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+            {
+                var softShadowQuality = (additionalLightData.softShadowQuality == SoftShadowQuality.UsePipelineSettings)
+                    ? UniversalRenderPipeline.asset?.softShadowQuality
+                    : additionalLightData.softShadowQuality;
+                softShadows *= Math.Max((int)softShadowQuality, (int)SoftShadowQuality.Low);
+            }
+
+            return softShadows;
+        }
     }
 }

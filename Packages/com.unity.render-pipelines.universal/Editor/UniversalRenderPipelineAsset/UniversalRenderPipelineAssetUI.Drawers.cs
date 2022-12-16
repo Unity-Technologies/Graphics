@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -358,8 +359,32 @@ namespace UnityEditor.Rendering.Universal
             serialized.shadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, serialized.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
             serialized.shadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, serialized.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
             EditorGUILayout.PropertyField(serialized.softShadowsSupportedProp, Styles.supportsSoftShadows);
+            if (serialized.softShadowsSupportedProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                    DrawShadowsSoftShadowQuality(serialized, ownerEditor);
+                EditorGUI.indentLevel--;
+            }
 
             EditorGUI.indentLevel--;
+        }
+
+        static void DrawShadowsSoftShadowQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
+        {
+            int selectedAssetSoftShadowQuality = serialized.softShadowQualityProp.intValue;
+            Rect r = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(r, Styles.softShadowsQuality, serialized.softShadowQualityProp);
+            {
+                using (var checkScope = new EditorGUI.ChangeCheckScope())
+                {
+                    selectedAssetSoftShadowQuality = EditorGUI.IntPopup(r, Styles.softShadowsQuality, selectedAssetSoftShadowQuality, Styles.softShadowsQualityAssetOptions, Styles.softShadowsQualityAssetValues);
+                    if (checkScope.changed)
+                    {
+                        serialized.softShadowQualityProp.intValue = Math.Clamp(selectedAssetSoftShadowQuality, (int)SoftShadowQuality.Low, (int)SoftShadowQuality.High);
+                    }
+                }
+            }
+            EditorGUI.EndProperty();
         }
 
         static void DrawShadowsAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
