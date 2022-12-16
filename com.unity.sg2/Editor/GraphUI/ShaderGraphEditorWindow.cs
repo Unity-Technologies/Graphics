@@ -39,10 +39,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal GraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
 
-        // This Flag gets set when the editor window is closed with the graph still in a dirty state,
-        // letting various sub-systems and the user know on window re-open that the graph is still dirty
-        bool m_WasWindowCloseCancelledInDirtyState;
-
         // This flag gets set by tests to close the editor window directly without prompts to save the dirty asset
         internal bool shouldCloseWindowNoPrompt = false;
 
@@ -78,19 +74,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDisable()
         {
-            if (!shouldCloseWindowNoPrompt && !PromptSaveIfDirtyOnQuit())
-            {
-                // User does not want to close the window.
-                // We can't stop the close from this code path though..
-                // All we can do is open a new window and transfer our data to the new one to avoid losing it
-                var shaderGraphEditorWindow = ShowGraphInExistingOrNewWindow<ShaderGraphEditorWindow>(Asset);
-
-                // Set this flag in order to let anything that would clear the dirty state know that graph is still dirty
-                shaderGraphEditorWindow.m_WasWindowCloseCancelledInDirtyState = true;
-            }
-
             Cleanup();
-
             base.OnDisable();
         }
 

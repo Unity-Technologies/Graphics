@@ -204,8 +204,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void Cleanup()
         {
-            m_PreviewHandlerInstance.Cleanup();
-            m_DirtyNodes.Clear();
+            m_PreviewHandlerInstance?.Cleanup();
+            m_DirtyNodes?.Clear();
         }
 
         public void NotifyNodePreviewExpanded(string nodeName)
