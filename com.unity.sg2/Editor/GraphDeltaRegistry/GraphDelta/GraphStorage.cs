@@ -75,9 +75,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             this.m_input = input;
         }
 
-        public bool Equals(ContextConnection obj)
+        public bool Equals(ContextConnection other)
         {
-            return obj != null && Context.Equals(obj.Context) && Input.Equals(obj.Input);
+            return other != null && Context.Equals(other.Context) && Input.Equals(other.Input);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ContextConnection c && Equals(c);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Context, Input);
         }
     }
 
