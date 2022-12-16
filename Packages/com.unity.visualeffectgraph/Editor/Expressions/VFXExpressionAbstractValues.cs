@@ -21,27 +21,27 @@ namespace UnityEditor.VFX
 
         static public VFXValue<int> Constant(Texture2D value)
         {
-            return new VFXTexture2DValue(value.GetInstanceID(), Mode.Constant);
+            return new VFXTexture2DValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
         }
 
         static public VFXValue<int> Constant(Texture3D value)
         {
-            return new VFXTexture3DValue(value.GetInstanceID(), Mode.Constant);
+            return new VFXTexture3DValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
         }
 
         static public VFXValue<int> Constant(Cubemap value)
         {
-            return new VFXTextureCubeValue(value.GetInstanceID(), Mode.Constant);
+            return new VFXTextureCubeValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
         }
 
         static public VFXValue<int> Constant(Texture2DArray value)
         {
-            return new VFXTexture2DArrayValue(value.GetInstanceID(), Mode.Constant);
+            return new VFXTexture2DArrayValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
         }
 
         static public VFXValue<int> Constant(CubemapArray value)
         {
-            return new VFXTextureCubeArrayValue(value.GetInstanceID(), Mode.Constant);
+            return new VFXTextureCubeArrayValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
         }
 
         static public VFXValue<int> Constant(CameraBuffer value)

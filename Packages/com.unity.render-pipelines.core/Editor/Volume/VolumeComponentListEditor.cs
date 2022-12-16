@@ -119,7 +119,6 @@ namespace UnityEditor.Rendering
             var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
             editor.inspector = m_BaseEditor;
             editor.Init();
-            editor.DetermineVisibility();
 
             if (forceOpen)
                 editor.expanded = true;
@@ -130,11 +129,13 @@ namespace UnityEditor.Rendering
                 m_Editors[index] = editor;
         }
 
-        void DetermineEditorsVisibility(RenderPipelineAsset previous, RenderPipelineAsset next)
+        void DetermineEditorsVisibility()
         {
+            var currentRenderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+            var currentRenderPipelineType = RenderPipelineManager.currentPipeline?.GetType();
             foreach (var editor in m_Editors)
             {
-                editor.DetermineVisibility();
+                editor.DetermineVisibility(currentRenderPipelineAssetType, currentRenderPipelineType);
             }
         }
 
@@ -142,7 +143,6 @@ namespace UnityEditor.Rendering
 
         void ClearEditors()
         {
-            RenderPipelineManager.activeRenderPipelineAssetChanged -= DetermineEditorsVisibility;
             if (m_Editors?.Any() ?? false)
             {
                 // Disable all editors first
@@ -170,7 +170,6 @@ namespace UnityEditor.Rendering
                 CreateEditor(components[i], m_ComponentsProperty.GetArrayElementAtIndex(i));
 
             m_CurrentHashCode = asset.GetComponentListHashCode();
-            RenderPipelineManager.activeRenderPipelineAssetChanged += DetermineEditorsVisibility;
         }
 
         /// <summary>
@@ -199,8 +198,10 @@ namespace UnityEditor.Rendering
                 asset.isDirty = false;
             }
 
+            DetermineEditorsVisibility();
+
             bool isEditable = !VersionControl.Provider.isActive
-                || AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible);
+                              || AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible);
 
             using (new EditorGUI.DisabledScope(!isEditable))
             {

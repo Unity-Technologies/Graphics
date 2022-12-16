@@ -1,7 +1,7 @@
 #ifndef UNITY_COMMON_INCLUDED
 #define UNITY_COMMON_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -235,8 +235,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLCore.hlsl"
 #elif defined(SHADER_API_GLES3)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES3.hlsl"
-#elif defined(SHADER_API_GLES)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES2.hlsl"
 #else
 #error unsupported shader api
 #endif
@@ -321,30 +319,25 @@
 #endif
 
 // ----------------------------------------------------------------------------
-// Global Constant buffers API definitions
+// Global resources API definitions for Ray Tracing
 // ----------------------------------------------------------------------------
 #if (SHADER_STAGE_RAY_TRACING && UNITY_RAY_TRACING_GLOBAL_RESOURCES)
     #define GLOBAL_RESOURCE(type, name, reg) type name : register(reg, space1);
     #define GLOBAL_CBUFFER_START(name, reg) cbuffer name : register(reg, space1) {
+    #define GLOBAL_TEXTURE2D(name, reg) TEXTURE2D(name) : register(reg, space1)
+    #define GLOBAL_TEXTURE2D_ARRAY(name, reg) TEXTURE2D_ARRAY(name) : register(reg, space1)
+    #define GLOBAL_TEXTURECUBE_ARRAY(name, reg) TEXTURECUBE_ARRAY(name) : register(reg, space1)
 #else
     #define GLOBAL_RESOURCE(type, name, reg) type name;
     #define GLOBAL_CBUFFER_START(name, reg) CBUFFER_START(name)
+    #define GLOBAL_TEXTURE2D(name, reg) TEXTURE2D(name)
+    #define GLOBAL_TEXTURE2D_ARRAY(name, reg) TEXTURE2D_ARRAY(name)
+    #define GLOBAL_TEXTURECUBE_ARRAY(name, reg) TEXTURECUBE_ARRAY(name)
 #endif
 
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------
-
-// Error on GLES2 undefined functions
-#ifdef SHADER_API_GLES
-#define BitFieldExtract ERROR_ON_UNSUPPORTED_FUNCTION(BitFieldExtract)
-#define IsBitSet ERROR_ON_UNSUPPORTED_FUNCTION(IsBitSet)
-#define SetBit ERROR_ON_UNSUPPORTED_FUNCTION(SetBit)
-#define ClearBit ERROR_ON_UNSUPPORTED_FUNCTION(ClearBit)
-#define ToggleBit ERROR_ON_UNSUPPORTED_FUNCTION(ToggleBit)
-#define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNCTION(FastMulBySignOfNegZero)
-#define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNCTION(LODDitheringTransition)
-#endif
 
 #if !defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(UNITY_COMPILER_DXC) && !defined(UNITY_HW_SUPPORTS_WAVE)
 // Intercept wave functions when they aren't supported to provide better error messages
@@ -360,6 +353,7 @@
 #define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitAnd)
 #define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitOr)
 #define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
+#define WaveIsHelperLane ERROR_ON_UNSUPPORTED_FUNCTION(WaveIsHelperLane)
 #endif
 
 #if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
@@ -369,8 +363,6 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonDeprecated.hlsl"
-
-#if !defined(SHADER_API_GLES)
 
 #ifndef INTRINSIC_BITFIELD_EXTRACT
 // Unsigned integer bit field extraction.
@@ -424,7 +416,6 @@ void ToggleBit(inout uint data, uint offset)
 {
     data ^= 1u << offset;
 }
-#endif
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument's value must be the same across all lanes of the wave.
@@ -536,7 +527,6 @@ float CubeMapFaceID(float3 dir)
 }
 #endif // INTRINSIC_CUBEMAP_FACE_ID
 
-#if !defined(SHADER_API_GLES)
 // Intrinsic isnan can't be used because it require /Gic to be enabled on fxc that we can't do. So use AnyIsNan instead
 bool IsNaN(float x)
 {
@@ -597,8 +587,6 @@ float SanitizePositiveFinite(float x)
 {
     return IsPositiveFinite(x) ? x : 0;
 }
-
-#endif
 
 // ----------------------------------------------------------------------------
 // Common math functions
@@ -742,7 +730,6 @@ half Max_half() { return HALF_MAX; }
 // See the comment about FastSign() below.
 float CopySign(float x, float s, bool ignoreNegZero = true)
 {
-#if !defined(SHADER_API_GLES)
     if (ignoreNegZero)
     {
         return (s >= 0) ? abs(x) : -abs(x);
@@ -753,9 +740,6 @@ float CopySign(float x, float s, bool ignoreNegZero = true)
         uint signBit = negZero & asuint(s);
         return asfloat(BitFieldInsert(negZero, signBit, asuint(x)));
     }
-#else
-    return (s >= 0) ? abs(x) : -abs(x);
-#endif
 }
 
 // Returns -1 for negative numbers and 1 for positive numbers.
@@ -879,6 +863,11 @@ float4x4 Inverse(float4x4 m)
     ret[3][3] = (n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33) * idet;
 
     return ret;
+}
+
+float Remap(float origFrom, float origTo, float targetFrom, float targetTo, float value)
+{
+    return lerp(targetFrom, targetTo, (value - origFrom) / (origTo - origFrom));
 }
 
 // ----------------------------------------------------------------------------
@@ -1371,7 +1360,7 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 // Terrain/Brush heightmap encoding/decoding
 // ----------------------------------------------------------------------------
 
-#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
+#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES3)
 
 // For the built-in target this is already a defined symbol
 #ifndef BUILTIN_TARGET_API
@@ -1512,7 +1501,7 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
     return pos;
 }
 
-#if !defined(SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
+#if !defined(SHADER_STAGE_RAY_TRACING)
 
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
@@ -1553,7 +1542,7 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
 TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace)))
             {
                 // Ray-march the clouds for this frame
+                CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", parameters.commonData.simplePreset);
                 CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", parameters.commonData.cloudsCB._PhysicallyBasedSun == 1);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.renderKernel, HDShaderIDs._MaxZMaskTexture, maxZMask);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.renderKernel, HDShaderIDs._VolumetricCloudsSourceDepth, depthPyramid);
@@ -100,6 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.DispatchCompute(parameters.commonData.volumetricCloudsTraceCS, parameters.renderKernel, finalTX, finalTY, parameters.viewCount);
                 CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
+                CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", false);
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscale)))

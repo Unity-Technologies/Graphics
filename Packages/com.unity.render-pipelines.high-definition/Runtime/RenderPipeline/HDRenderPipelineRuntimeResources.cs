@@ -49,6 +49,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader probeVolumeDebugShader;
             [Reload("Runtime/Debug/ProbeVolumeFragmentationDebug.shader")]
             public Shader probeVolumeFragmentationDebugShader;
+            [Reload("Runtime/Debug/ProbeVolumeSamplingDebug.shader")]
+            public Shader probeVolumeSamplingDebugShader;
+            [Reload("Runtime/Debug/ProbeVolumeSamplingDebugPositionNormal.compute")]
+            public ComputeShader probeVolumeSamplingDebugComputeShader;
             [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
             public Shader probeVolumeOffsetDebugShader;
             [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
@@ -140,6 +144,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/ShaderLibrary/BlitColorAndDepth.shader")]
             public Shader blitColorAndDepthPS;
 
+            [Reload("Runtime/Core/CoreResources/ClearBuffer2D.compute")]
+            public ComputeShader clearBuffer2D;
+
             [Reload("Runtime/ShaderLibrary/DownsampleDepth.shader")]
             public Shader downsampleDepthPS;
             [Reload("Runtime/ShaderLibrary/UpsampleTransparent.shader")]
@@ -217,6 +224,35 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader waterDeformationPS;
             [Reload("Runtime/Water/Shaders/WaterDeformation.compute")]
             public ComputeShader waterDeformationCS;
+            [Reload("Runtime/Water/Shaders/WaterFoam.shader")]
+            public Shader waterFoamPS;
+            [Reload("Runtime/Water/Shaders/WaterFoam.compute")]
+            public ComputeShader waterFoamCS;
+
+            // Line Rendering
+            // NOTE: Move this to Core SRP once a 'core resource' concept exists.
+            [Reload("Runtime/RenderPipeline/LineRendering/Kernels/StagePrepare.compute")]
+            public ComputeShader lineStagePrepareCS;
+            [Reload("Runtime/RenderPipeline/LineRendering/Kernels/StageSetupSegment.compute")]
+            public ComputeShader lineStageSetupSegmentCS;
+            [Reload("Runtime/RenderPipeline/LineRendering/Kernels/StageShadingSetup.compute")]
+            public ComputeShader lineStageShadingSetupCS;
+            [Reload("Runtime/RenderPipeline/LineRendering/Kernels/StageRasterBin.compute")]
+            public ComputeShader lineStageRasterBinCS;
+            [Reload("Runtime/RenderPipeline/LineRendering/Kernels/StageWorkQueue.compute")]
+            public ComputeShader lineStageWorkQueueCS;
+            [Reload("Runtime/RenderPipeline/LineRendering/Kernels/StageRasterFine.compute")]
+            public ComputeShader lineStageRasterFineCS;
+            [Reload("Runtime/RenderPipeline/LineRendering/CompositeLines.shader")]
+            public Shader lineCompositePS;
+
+            // Prefix Sum
+            [Reload("Runtime/Utilities/GPUPrefixSum/GPUPrefixSum.compute")]
+            public ComputeShader gpuPrefixSumCS;
+
+            // Copy
+            [Reload("Runtime/Utilities/GPUSort/GPUSort.compute")]
+            public ComputeShader gpuSortCS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -274,6 +310,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Decal
             [Reload("Runtime/Material/Decal/DecalNormalBuffer.shader")]
             public Shader decalNormalBufferPS;
+
+            // Compute Thickness
+            [Reload("Runtime/RenderPipeline/ShaderPass/ComputeThickness.shader")]
+            public Shader ComputeThicknessPS;
 
             // Ambient occlusion
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAO.compute")]
@@ -373,6 +413,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader sharpeningCS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
             public Shader lensFlareDataDrivenPS;
+            [Reload("Runtime/PostProcessing/Shaders/LensFlareScreenSpace.shader")]
+            public Shader lensFlareScreenSpacePS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareMergeOcclusionDataDriven.compute")]
             public ComputeShader lensFlareMergeOcclusionCS;
             [Reload("Runtime/PostProcessing/Shaders/DLSSBiasColorMask.shader")]
@@ -505,8 +547,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture3D perlinNoise32RGB;
 
             // Water textures
-            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamSurface.png")]
-            public Texture2D foamSurface;
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamMask.png")]
+            public Texture2D foamMask;
 
             // Post-processing
             [Reload(new[]
@@ -533,6 +575,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultCloudMap.png")]
             public Texture2D defaultCloudMap;
+
+            // APV Sampling debug
+            [Reload("Runtime/RenderPipelineResources/Texture/APV/NumbersDisplayTex.png")]
+            public Texture2D numbersDisplayTex;
         }
 
         [Serializable, ReloadGroup]
@@ -557,6 +603,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh emissiveQuadMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/Sphere.fbx")]
             public Mesh sphereMesh;
+
+            // APV Sampling debug
+            [Reload("Runtime/RenderPipelineResources/Mesh/ProbeSamplingDebugMesh.fbx")]
+            public Mesh probeSamplingDebugMesh;
         }
 
         public ShaderResources shaders;

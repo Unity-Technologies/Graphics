@@ -164,7 +164,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	o.VFX_VARYING_NORMAL = normalFlip * normalWS;
 	#endif
 	#ifdef VFX_VARYING_TANGENT
-	o.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));
+	o.VFX_VARYING_TANGENT.xyz = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));
 	#endif
 	#ifdef VFX_VARYING_BENTFACTORS
 	${VFXLoadParameter:{normalBendingFactor}}

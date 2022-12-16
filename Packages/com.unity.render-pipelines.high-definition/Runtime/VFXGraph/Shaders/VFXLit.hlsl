@@ -101,7 +101,11 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     #endif
 
     #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && defined(VFX_VARYING_EMISSIVE_GRADIENT)
-        builtinData.emissiveColor = SampleGradient(i.VFX_VARYING_EMISSIVE_GRADIENT, SampleTexture(VFX_SAMPLER(negativeAxesLightMap),uvData).a).rgb;
+        float emissiveChannel = SampleTexture(VFX_SAMPLER(negativeAxesLightmap),uvData).a;
+        #if defined(VFX_VARYING_EMISSIVE_CHANNEL_SCALE)
+            emissiveChannel *= i.VFX_VARYING_EMISSIVE_CHANNEL_SCALE;
+        #endif
+        builtinData.emissiveColor = SampleGradient(i.VFX_VARYING_EMISSIVE_GRADIENT, emissiveChannel).rgb;
         #if defined(VFX_VARYING_EMISSIVE_MULTIPLIER)
             builtinData.emissiveColor *= i.VFX_VARYING_EMISSIVE_MULTIPLIER;
         #endif
@@ -109,7 +113,9 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
             builtinData.emissiveColor *= lerp(GetInverseCurrentExposureMultiplier(),1.0f,i.VFX_VARYING_EXPOSUREWEIGHT);
         #endif
     #endif
+
     builtinData.emissiveColor *= opacity;
+
     #if defined(SHADER_STAGE_RAY_TRACING)
     PostInitBuiltinData(-WorldRayDirection(),posInputs,surfaceData, builtinData);
     #else
@@ -121,7 +127,7 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
 
 #ifndef VFX_SHADERGRAPH
 
-SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfileHash, out float opacity)
+SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfileHash, bool frontFace, out float opacity)
 {
     SurfaceData surfaceData = (SurfaceData)0;
 
@@ -147,17 +153,48 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #endif
 
     #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-        surfaceData.rigRTBk = SampleTexture(VFX_SAMPLER(positiveAxesLightMap),uvData).rgb;
-        surfaceData.rigLBtF = SampleTexture(VFX_SAMPLER(negativeAxesLightMap),uvData).rgb;
-        #ifdef VFX_VARYING_TANGENT
-            surfaceData.tangentWS = i.VFX_VARYING_TANGENT.xyz;
-        #else
-            surfaceData.tangentWS = float3(1,0,0);
+        surfaceData.absorptionRange = 1.0f;
+        #ifdef VFX_VARYING_ABSORPTIONRANGE
+        surfaceData.absorptionRange = i.VFX_VARYING_ABSORPTIONRANGE;
         #endif
-        color.a *= SampleTexture(VFX_SAMPLER(positiveAxesLightMap),uvData).a;
-        #ifndef IS_OPAQUE_PARTICLE
+        surfaceData.rigRTBk = SampleTexture(VFX_SAMPLER(positiveAxesLightmap),uvData).rgb;
+        surfaceData.rigLBtF = SampleTexture(VFX_SAMPLER(negativeAxesLightmap),uvData).rgb;
+        #if VFX_STRIPS_SWAP_UV
+            SixWaySwapUV(surfaceData.rigRTBk, surfaceData.rigLBtF);
+        #endif
+        float mapAlpha = SampleTexture(VFX_SAMPLER(positiveAxesLightmap),uvData).a;
+        color.a *= SampleTexture(VFX_SAMPLER(positiveAxesLightmap),uvData).a;
+        #if VFX_SIX_WAY_REMAP
+            #if VFX_BLENDMODE_PREMULTIPLY
+                surfaceData.rigRTBk /= (mapAlpha + VFX_EPSILON);
+                surfaceData.rigLBtF /= (mapAlpha + VFX_EPSILON);
+            #endif
+            #if defined(VFX_VARYING_LIGHTMAP_REMAP_RANGES)
+                float4 remapRanges = i.VFX_VARYING_LIGHTMAP_REMAP_RANGES;
+                RemapLightMapsRangesFrom(surfaceData.rigRTBk, surfaceData.rigLBtF, mapAlpha, remapRanges);
+            #endif
+            #if defined(VFX_VARYING_LIGHTMAP_REMAP_CONTROLS)
+                float2 lightmapControls = i.VFX_VARYING_LIGHTMAP_REMAP_CONTROLS;
+                RemapLightMaps(surfaceData.rigRTBk, surfaceData.rigLBtF, lightmapControls);
+            #elif defined(VFX_VARYING_LIGHTMAP_REMAP_CURVE)
+                float4 remapCurve = i.VFX_VARYING_LIGHTMAP_REMAP_CURVE;
+                RemapLightMaps(surfaceData.rigRTBk, surfaceData.rigLBtF, remapCurve);
+            #endif
+            #if defined(VFX_VARYING_LIGHTMAP_REMAP_RANGES)
+                RemapLightMapsRangesTo(surfaceData.rigRTBk, surfaceData.rigLBtF, mapAlpha, remapRanges);
+            #endif
+            #if VFX_BLENDMODE_PREMULTIPLY
+                surfaceData.rigRTBk *= (mapAlpha + VFX_EPSILON);
+                surfaceData.rigLBtF *= (mapAlpha + VFX_EPSILON);
+            #endif
+        #endif
+        float invEnergy = INV_PI;
+        surfaceData.rigRTBk *= invEnergy;
+        surfaceData.rigLBtF *= invEnergy;
+        #if VFX_SIX_WAY_USE_ALPHA_REMAP
             color.a = SampleCurve(i.VFX_VARYING_ALPHA_REMAP, color.a);
         #endif
+
         #if defined(VFX_VARYING_BAKE_DIFFUSE_LIGHTING) && defined(VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING)
             surfaceData.bakeDiffuseLighting0 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0];
             surfaceData.bakeDiffuseLighting1 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[1];
@@ -167,13 +204,24 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
             surfaceData.backBakeDiffuseLighting1 = i.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[1];
             surfaceData.backBakeDiffuseLighting2 = i.VFX_VARYING_BACK_BAKE_DIFFUSE_LIGHTING[2];
         #endif
+
+        #ifdef VFX_VARYING_TANGENT
+        float signBitangent = frontFace ? 1.0f : -1.0f;
+        surfaceData.tangentWS = float4(i.VFX_VARYING_TANGENT.xyz,signBitangent);
+        #else
+        surfaceData.tangentWS = float4(1,0,0,1);
+        #endif
+
+    surfaceData.baseColor.a = mapAlpha;
+
     #endif
 
-    color.a *= VFXGetSoftParticleFade(i);
+    color = VFXApplySoftParticleFade(i, color);
     #if !defined(SHADER_STAGE_RAY_TRACING)
     VFXClipFragmentColor(color.a, i);
     #endif
-    surfaceData.baseColor = saturate(color.rgb);
+
+    surfaceData.baseColor.rgb = saturate(color.rgb);
 
     #if IS_OPAQUE_PARTICLE
     opacity = 1.0f;

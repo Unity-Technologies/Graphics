@@ -1,8 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 {
     HLSLINCLUDE
-        #pragma exclude_renderers gles
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -35,13 +33,8 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#if SHADER_API_GLES
-            float4 pos = input.positionOS;
-            float2 uv  = input.uv;
-#else
             float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
             float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
-#endif
 
             output.positionCS  = pos;
             output.texcoord.xy = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;

@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 if(isClosed)
-                { 
+                {
                     int lastEdgeIndex = 2 * vertexCount;
                     indices[lastEdgeIndex - 1] = 0;
                 }
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
 
             float trimEdge = ShadowShapeProvider2DUtility.GetTrimEdgeFromBounds(spriteShapeRenderer.bounds, k_InitialTrim);
             persistantShadowShape.SetDefaultTrim(trimEdge);
-            
+
             UpdateShadows(spriteShapeController, persistantShadowShape);
         }
 

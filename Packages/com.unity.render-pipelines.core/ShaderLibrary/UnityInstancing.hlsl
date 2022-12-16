@@ -232,6 +232,7 @@
     #define UNITY_TRANSFER_INSTANCE_ID(input, output)   output.instanceID = UNITY_GET_INSTANCE_ID(input)
 #elif defined(SHADER_STAGE_RAY_TRACING)
     #define DEFAULT_UNITY_SETUP_INSTANCE_ID
+    #define UNITY_TRANSFER_INSTANCE_ID(input, output)
 #else
     #define DEFAULT_UNITY_SETUP_INSTANCE_ID(input)
     #define UNITY_TRANSFER_INSTANCE_ID(input, output)
@@ -252,7 +253,11 @@
     #ifdef UNITY_FORCE_MAX_INSTANCE_COUNT
         #define UNITY_INSTANCED_ARRAY_SIZE  UNITY_FORCE_MAX_INSTANCE_COUNT
     #elif defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
-        #define UNITY_INSTANCED_ARRAY_SIZE  2 // minimum array size that ensures dynamic indexing
+        #ifdef UNITY_DOTS_INSTANCING_ENABLED
+            #define UNITY_INSTANCED_ARRAY_SIZE  4 // in BRG, minimal indexed size is 4 ( because of encoding some data in the first 4 elements )
+        #else
+            #define UNITY_INSTANCED_ARRAY_SIZE  2 // minimum array size that ensures dynamic indexing
+        #endif
     #elif defined(UNITY_MAX_INSTANCE_COUNT)
         #define UNITY_INSTANCED_ARRAY_SIZE  UNITY_MAX_INSTANCE_COUNT
     #else
@@ -275,7 +280,8 @@
         #define UNITY_SETUP_INSTANCE_ID(input) {\
             DEFAULT_UNITY_SETUP_INSTANCE_ID(input);\
             SetupDOTSVisibleInstancingData();\
-            UNITY_SETUP_DOTS_SH_COEFFS; }
+            UNITY_SETUP_DOTS_SH_COEFFS;\
+            UNITY_SETUP_DOTS_RENDER_BOUNDS; }
     #endif
 
 #else

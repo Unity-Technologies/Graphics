@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
         const int AlwaysDrawDynamicShadowsFlagsIndex = 1;
         const int UpdateUponLightMovementFlagsIndex = 2;
 
+        public HDLightType lightType;
         public float shadowNearPlane;
         public float normalBias;
         public float shapeHeight;
@@ -154,6 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Set(HDAdditionalLightData additionalLightData)
         {
+            lightType = additionalLightData.type;
             shadowNearPlane = additionalLightData.shadowNearPlane;
             normalBias = additionalLightData.normalBias;
             shapeHeight = additionalLightData.shapeHeight;
@@ -518,7 +520,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [BurstCompile]
         private struct GetDataIndicesFromHDLightRenderEntitiesHashmapJob : IJob
         {
-            [ReadOnly] public NativeHashMap<int, HDLightRenderEntity> lightEntityLookups;
+            [ReadOnly] public NativeParallelHashMap<int, HDLightRenderEntity> lightEntityLookups;
             [ReadOnly] public NativeArray<LightEntityInfo> lightEntityStorage;
             [WriteOnly] public NativeList<int> dataIndices;
 
@@ -537,19 +539,19 @@ namespace UnityEngine.Rendering.HighDefinition
             GetDataIndicesFromHDLightRenderEntitiesArrayJob getDataIndicesJob = new GetDataIndicesFromHDLightRenderEntitiesArrayJob()
             {
                 lightEntityLookups = inLightEntities,
-                lightEntityStorage = m_LightEntities,
+                lightEntityStorage = m_LightEntities.AsArray(),
                 dataIndices = outDataIndices
             };
 
             getDataIndicesJob.Run();
         }
 
-        public void GetDataIndicesFromEntities(NativeHashMap<int, HDLightRenderEntity> inLightEntities, NativeList<int> outDataIndices)
+        public void GetDataIndicesFromEntities(NativeParallelHashMap<int, HDLightRenderEntity> inLightEntities, NativeList<int> outDataIndices)
         {
             GetDataIndicesFromHDLightRenderEntitiesHashmapJob getDataIndicesJob = new GetDataIndicesFromHDLightRenderEntitiesHashmapJob()
             {
                 lightEntityLookups = inLightEntities,
-                lightEntityStorage = m_LightEntities,
+                lightEntityStorage = m_LightEntities.AsArray(),
                 dataIndices = outDataIndices
             };
 

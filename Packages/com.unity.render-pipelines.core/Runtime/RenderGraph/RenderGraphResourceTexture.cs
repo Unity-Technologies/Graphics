@@ -20,9 +20,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
-        internal ResourceHandle fallBackResource;
+        private bool builtin;
 
-        internal TextureHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared); fallBackResource = s_NullHandle.handle; }
+        internal TextureHandle(int handle, bool shared = false, bool builtin = false)
+        {
+            this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared);
+            this.builtin = builtin;
+        }
 
         /// <summary>
         /// Cast to RenderTargetIdentifier
@@ -59,10 +63,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool IsValid() => handle.IsValid();
 
         /// <summary>
-        /// Sets the fallback resource
+        /// Return true if the handle is a builtin handle managed by RenderGraph internally.
         /// </summary>
-        /// <param name="texture">The texture handle to set as the fallback</param>
-        public void SetFallBackResource(TextureHandle texture) { fallBackResource = texture.handle; }
+        /// <returns>True if the handle is a builtin handle.</returns>
+        internal bool IsBuiltin() => this.builtin;
     }
 
     /// <summary>
@@ -150,6 +154,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         ///<summary>Determines whether the texture will fallback to a black texture if it is read without ever writing to it.</summary>
         public bool fallBackToBlackTexture;
+        ///<summary>
+        ///If all passes writing to a texture are culled by Dynamic Render Pass Culling, it will automatically fallback to a similar preallocated texture.\n
+        ///Set this to false to force the allocation.
+        ///</summary>
+        public bool disableFallBackToImportedTexture;
 
         // Initial state. Those should not be used in the hash
         ///<summary>Texture needs to be cleared on first use.</summary>

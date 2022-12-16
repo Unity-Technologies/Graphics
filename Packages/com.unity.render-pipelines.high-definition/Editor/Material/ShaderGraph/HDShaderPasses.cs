@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    static class HDShaderPasses
+    static partial class HDShaderPasses
     {
         public static StructCollection GenerateStructs(StructCollection input, bool useVFX, bool useTessellation)
         {

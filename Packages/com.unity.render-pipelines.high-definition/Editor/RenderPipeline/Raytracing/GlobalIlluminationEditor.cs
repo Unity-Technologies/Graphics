@@ -172,7 +172,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Reflection, "m_RenderPipelineSettings.supportSSGI");
+                    HDRenderPipelineUI.ExpandableGroup.Lighting,
+                    HDRenderPipelineUI.ExpandableLighting.Reflection, "m_RenderPipelineSettings.supportSSGI");
                 return;
             }
 
@@ -199,12 +200,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_LayerMask);
                     PropertyField(m_TextureLodBias);
 
-                    using (new IndentLevelScope())
+                    if (showAdditionalProperties)
                     {
-                        EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
-                        PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
-                        PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
-                        PropertyField(m_AmbientProbeDimmer);
+                        using (new IndentLevelScope())
+                        {
+                            EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                            PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
+                            PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                            PropertyField(m_AmbientProbeDimmer);
+                        }
                     }
 
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
@@ -240,7 +244,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             RayTracingQualityModeGUI();
                         else
                             HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error,
-                            HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportedRayTracingMode");
+                            HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportedRayTracingMode");
                     }
                     else
                     {

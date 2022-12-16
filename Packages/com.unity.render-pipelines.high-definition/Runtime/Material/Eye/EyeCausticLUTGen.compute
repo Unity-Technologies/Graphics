@@ -54,10 +54,12 @@ float fresnelDiel(float eta, float cosTheta)
 
     if (temp < 0.f)
         return 1.f;
-
-    float g = sqrt(temp);
-    return 0.5f * pow((g - c) / max(g + c, 0.00001f), 2) *
-        (1 + pow(((g + c) * c - 1.f) / ((g - c) * c + 1.f), 2));
+    else
+    {
+        float g = sqrt(temp);
+        return 0.5f * pow((g - c) / max(g + c, 0.00001f), 2) *
+            (1 + pow(((g + c) * c - 1.f) / ((g - c) * c + 1.f), 2));
+    }
 }
 
 float ApplyExtraMargin(float u)
@@ -158,25 +160,29 @@ float RaySphereIntersect(float3 sphereC, float sphereRad, float3 pos, float3 dir
     float d = dot(dir, postoSphere);
 
     float d2 = dot(postoSphere, postoSphere) - d * d;
-    if (d2 > sphereRad * sphereRad) return T_RAY_MISSED;
-
-    float s = sqrt(sphereRad * sphereRad - d2);
-    float t1 = d - s;
-    float t2 = d + s;
-
-    float t = T_RAY_MISSED;
-
-    if (t1 >= 0)
+    if (d2 > sphereRad * sphereRad)
+        return T_RAY_MISSED;
+    else
     {
-        t = t1;
-    }
 
-    if (t2 >= 0 && t2 < t)
-    {
-        t = t2;
-    }
+        float s = sqrt(sphereRad * sphereRad - d2);
+        float t1 = d - s;
+        float t2 = d + s;
 
-    return t;
+        float t = T_RAY_MISSED;
+
+        if (t1 >= 0)
+        {
+            t = t1;
+        }
+
+        if (t2 >= 0 && t2 < t)
+        {
+            t = t2;
+        }
+
+        return t;
+    }
 }
 
 float EvaluateCorneaHeightField(float2 xy)
@@ -226,40 +232,44 @@ float RayIntersectCornea(float3 pos, float3 dir)
     {
         return T_RAY_MISSED;
     }
-
-    if ((pos + dir * sphereT).y < 0)
+    else
     {
-        return T_RAY_MISSED;
-    }
 
-
-    //walk heightfield (simple function for now) and check for interaction
-    float rayStep = DISTANCE_EPSILON;
-    float distanceEpsilon = DISTANCE_EPSILON;
-    float t = sphereT;
-    while (true)
-    {
-        float3 currentPos = pos + t * dir;
-
-        if (currentPos.y < 0)
-            break;
-
-        float height = EvaluateCorneaHeightField(currentPos.xz);
-        if (abs(height - currentPos.y) < distanceEpsilon)
+        if ((pos + dir * sphereT).y < 0)
         {
-            //TODO: do more accurate hit pos between this and previous pos. For now just return this
-            return t;
+            return T_RAY_MISSED;
         }
-
-        t += rayStep;
-
-        if (dot(currentPos, currentPos) > CORNEA_RADIUS * CORNEA_RADIUS)
+        else
         {
-            break;
+            //walk heightfield (simple function for now) and check for interaction
+            float rayStep = DISTANCE_EPSILON;
+            float distanceEpsilon = DISTANCE_EPSILON;
+            float t = sphereT;
+            while (true)
+            {
+                float3 currentPos = pos + t * dir;
+
+                if (currentPos.y < 0)
+                    break;
+
+                float height = EvaluateCorneaHeightField(currentPos.xz);
+                if (abs(height - currentPos.y) < distanceEpsilon)
+                {
+                    //TODO: do more accurate hit pos between this and previous pos. For now just return this
+                    return t;
+                }
+
+                t += rayStep;
+
+                if (dot(currentPos, currentPos) > CORNEA_RADIUS * CORNEA_RADIUS)
+                {
+                    break;
+                }
+            }
+
+            return T_RAY_MISSED;
         }
     }
-
-    return T_RAY_MISSED;
 }
 
 bool EvaluateAndSampleRayCorneaIntersection(float rand, float3 rayPos, float3 rayDir, bool insideCornea, out float3 newDir,
@@ -320,16 +330,19 @@ float RayIntersectIris(float3 pos, float3 dir)
 
     //ray-plane
     float d = dot(-irisNormal, dir);
+
+    float res = T_RAY_MISSED;
     if (d > 1e-6)
     {
         float t = dot(pos, irisNormal) / d;
         if (t >= 0)
         {
 
-            return t;
+            res = t;
         }
     }
-    return T_RAY_MISSED;
+
+    return res;
 }
 
 float EvaluateIrisIntersection(float3 rayDir)

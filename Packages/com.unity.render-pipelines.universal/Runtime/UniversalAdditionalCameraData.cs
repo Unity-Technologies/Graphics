@@ -79,13 +79,11 @@ namespace UnityEngine.Rendering.Universal
         [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
         SubpixelMorphologicalAntiAliasing,
 
-#if URP_EXPERIMENTAL_TAA_ENABLE
         /// <summary>
         /// Use this to have a temporal anti-aliasing pass rendered when resolving camera to screen.
         /// </summary>
         [InspectorName("Temporal Anti-aliasing (TAA)")]
         TemporalAntiAliasing,
-#endif
     }
 
     /// <summary>
@@ -353,9 +351,7 @@ namespace UnityEngine.Rendering.Universal
         [NonSerialized] MotionVectorsPersistentData m_MotionVectorsPersistentData = new MotionVectorsPersistentData();
         [NonSerialized] TaaPersistentData m_TaaPersistentData = new TaaPersistentData();
 
-#if URP_EXPERIMENTAL_TAA_ENABLE
-        [NonSerialized] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
-#endif
+        [SerializeField] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
 
         /// <summary>
         /// The serialized version of the class. Used for upgrading.
@@ -632,12 +628,10 @@ namespace UnityEngine.Rendering.Universal
             set => m_AntialiasingQuality = value;
         }
 
-#if URP_EXPERIMENTAL_TAA_ENABLE
         internal ref TemporalAA.Settings taaSettings
         {
             get { return ref m_TaaSettings; }
         }
-#endif
 
         /// <summary>
         /// Temporal Anti-aliasing buffers and data that persists over a frame.
@@ -649,7 +643,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal MotionVectorsPersistentData motionVectorsPersistentData => m_MotionVectorsPersistentData;
 
-#if URP_EXPERIMENTAL_TAA_ENABLE
         /// <summary>
         /// Reset post-process history.
         /// </summary>
@@ -662,7 +655,6 @@ namespace UnityEngine.Rendering.Universal
                 m_MotionVectorsPersistentData.Reset();
             }
         }
-#endif
 
         /// <summary>
         /// Returns true if this camera should automatically replace NaN/Inf in shaders by a black pixel to avoid breaking some effects.

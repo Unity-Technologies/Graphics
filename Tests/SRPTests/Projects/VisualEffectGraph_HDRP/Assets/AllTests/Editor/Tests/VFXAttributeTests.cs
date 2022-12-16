@@ -1,12 +1,14 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using NUnit.Framework;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using UnityEditor.VFX.Block;
+using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
-
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.Test
 {
@@ -55,6 +57,19 @@ namespace UnityEditor.VFX.Test
         private VFXAttribute Attrib1 = new VFXAttribute("attrib1", VFXValueType.Float);
         private VFXAttribute Attrib2 = new VFXAttribute("attrib2", VFXValueType.Float2);
         private VFXAttribute Attrib3 = new VFXAttribute("attrib3", VFXValueType.Float3);
+
+        [SetUp]
+        public void Setup()
+        {
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
+            VFXTestCommon.DeleteAllTemporaryGraph();
+        }
 
         private void TestAttributes(Action<VFXGraph> init, Action<VFXData> test)
         {
@@ -183,6 +198,66 @@ namespace UnityEditor.VFX.Test
             setAttribute.SetSettingValue("Random", Block.RandomMode.Uniform);
 
             Assert.IsFalse(setAttribute.attributes.Any(o => o.attrib.name == VFXAttribute.Seed.name));
+        }
+
+        [TestCase("name with space", true)]
+        [TestCase("1startWithNumber", true)]
+        [TestCase("Special*Character", true)]
+        [TestCase("ValidName", false)]
+        public void SetCustomAttribute_Name_Validation(string name, bool shouldRaiseError)
+        {
+            CheckCustomAttributeName<SetCustomAttribute>(name, shouldRaiseError);
+        }
+
+        [TestCase("name with space", true)]
+        [TestCase("1startWithNumber", true)]
+        [TestCase("Special*Character", true)]
+        [TestCase("ValidName", false)]
+        public void GetCustomAttribute_Name_Validation(string name, bool shouldRaiseError)
+        {
+            CheckCustomAttributeName<GetCustomAttribute>(name, shouldRaiseError);
+        }
+
+        private void CheckCustomAttributeName<T>(string name, bool shouldRaiseError) where T : VFXModel
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var window = VFXViewWindow.GetWindow(graph, true);
+            window.LoadResource(graph.visualEffectResource);
+            VFXModel modelWithError = null;
+            window.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) =>
+            {
+                Assert.IsNull(modelWithError, "The error seems to have been raise more than once");
+                if (errorType == VFXErrorType.Error)
+                {
+                    modelWithError = model;
+                }
+            };
+
+
+            var customAttributeNode = ScriptableObject.CreateInstance<T>();
+            customAttributeNode.SetSettingValue("attribute", name);
+            if (customAttributeNode is VFXOperator)
+            {
+                graph.AddChild(customAttributeNode);
+            }
+            else
+            {
+                var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+                updateContext.AddChild(customAttributeNode);
+                graph.AddChild(updateContext);
+            }
+
+            customAttributeNode.RefreshErrors();
+
+            Assert.AreEqual(shouldRaiseError, customAttributeNode == modelWithError);
+            if (shouldRaiseError)
+            {
+                Assert.AreEqual(customAttributeNode, modelWithError, $"A custom attribute with a name like '{name}' must raised an error feedback");
+            }
+            else
+            {
+                Assert.IsNull(modelWithError, $"A custom attribute name like '{name}' should not raise any error feedback");
+            }
         }
     }
 }

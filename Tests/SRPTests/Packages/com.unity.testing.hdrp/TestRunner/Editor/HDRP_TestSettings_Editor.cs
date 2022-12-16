@@ -98,7 +98,7 @@ public class HDRP_TestSettings_Editor : Editor
 
         if (GUILayout.Button("Fix Texts"))
         {
-            TextMeshPixelSize[] texts = FindObjectsOfType<TextMeshPixelSize>();
+            TextMeshPixelSize[] texts = FindObjectsByType<TextMeshPixelSize>(FindObjectsSortMode.InstanceID);
             foreach (TextMeshPixelSize text in texts)
             {
                 text.CorrectPosition();

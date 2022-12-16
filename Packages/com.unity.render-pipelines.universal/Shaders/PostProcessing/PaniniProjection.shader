@@ -1,9 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/PaniniProjection"
 {
     HLSLINCLUDE
-
-        #pragma exclude_renderers gles
-
         #pragma multi_compile_local _GENERIC _UNIT_DISTANCE
 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

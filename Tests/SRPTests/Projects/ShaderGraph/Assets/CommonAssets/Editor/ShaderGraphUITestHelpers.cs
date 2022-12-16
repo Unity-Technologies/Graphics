@@ -51,12 +51,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             EditorWindow parentWindow,
             VisualElement elementToNotify)
         {
-            var deleteCommand = new ExecuteCommandEvent();
-            deleteCommand.SetNonPrivateProperty("commandName", "Delete");
             if (parentWindow is MaterialGraphEditWindow materialGraphEditWindow)
             {
                 var graphView = materialGraphEditWindow.graphEditorView.graphView;
-                graphView.InvokePrivateFunc("OnExecuteCommand", new object[]{ deleteCommand });
+                graphView?.DeleteSelection();
             }
         }
 

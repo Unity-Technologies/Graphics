@@ -84,7 +84,7 @@ Shader "Hidden/ShadowProjected2D"
             half4 frag(Varyings i) : SV_Target
             {
                 half2 mappedUV;
-                
+
                 float value = 1-saturate(abs(i.shadow.x) / i.shadow.y);
                 mappedUV.x = value;
                 mappedUV.y = _ShadowSoftnessFalloffIntensity;

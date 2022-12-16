@@ -1,7 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/Bloom"
 {
     HLSLINCLUDE
-        #pragma exclude_renderers gles
         #pragma multi_compile_local _ _USE_RGBM
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -151,7 +150,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         {
             half3 highMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv));
 
-        #if _BLOOM_HQ && !defined(SHADER_API_GLES)
+        #if _BLOOM_HQ
             half3 lowMip = DecodeHDR(SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_SourceTexLowMip, sampler_LinearClamp), uv, _SourceTexLowMip_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex));
         #else
             half3 lowMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTexLowMip, sampler_LinearClamp, uv));
@@ -184,6 +183,8 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
                 #pragma fragment FragPrefilter
                 #pragma multi_compile_local _ _BLOOM_HQ
                 #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+                // Foveated rendering currently not supported in dxc on metal
+                #pragma never_use_dxc metal
             ENDHLSL
         }
 

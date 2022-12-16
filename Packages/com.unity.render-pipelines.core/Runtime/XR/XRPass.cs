@@ -214,6 +214,11 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public void StartSinglePass(RasterCommandBuffer cmd)
+        {
+            StartSinglePass(cmd.m_WrappedCommandBuffer);
+        }
+
         /// <summary>
         /// Queue up render commands to disable single-pass techniques.
         /// </summary>
@@ -237,6 +242,16 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+
+        /// <summary>
+        /// Queue up render commands to disable single-pass techniques.
+        /// </summary>
+        /// <param name="cmd"></param>
+        public void StopSinglePass(RasterCommandBuffer cmd)
+        {
+            StopSinglePass(cmd.m_WrappedCommandBuffer);
+        }
+
         /// <summary>
         /// Returns true if the pass was setup with expected mesh and material.
         /// </summary>
@@ -252,6 +267,10 @@ namespace UnityEngine.Experimental.Rendering
         public void RenderOcclusionMesh(CommandBuffer cmd)
         {
             m_OcclusionMesh.RenderOcclusionMesh(cmd);
+        }
+        public void RenderOcclusionMesh(RasterCommandBuffer cmd)
+        {
+            m_OcclusionMesh.RenderOcclusionMesh(cmd.m_WrappedCommandBuffer);
         }
 
         /// <summary>

@@ -213,6 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace)))
             {
                 // Ray-march the clouds for this frame
+                CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", parameters.commonData.simplePreset);
                 CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", parameters.commonData.cloudsCB._PhysicallyBasedSun == 1);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.renderKernel, HDShaderIDs._MaxZMaskTexture, maxZMask);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.renderKernel, HDShaderIDs._VolumetricCloudsSourceDepth, intermediateDepthBuffer0);
@@ -228,6 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.DispatchCompute(parameters.commonData.volumetricCloudsTraceCS, parameters.renderKernel, traceTX, traceTY, parameters.viewCount);
                 CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
+                CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", false);
             }
 
             // We only reproject for realtime clouds
@@ -281,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Reset all the multi-compiles
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
-            CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_DETAILS", false);
+            CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", false);
         }
 
         class VolumetricCloudsAccumulationData

@@ -4,6 +4,7 @@ Shader "Hidden/Light2D-Point"
     {
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [Enum(UnityEngine.Rendering.CompareFunction)] _HandleZTest ("_HandleZTest", Int) = 4
     }
 
     SubShader
@@ -14,6 +15,7 @@ Shader "Hidden/Light2D-Point"
         {
             Blend [_SrcBlend][_DstBlend]
             ZWrite Off
+            ZTest [_HandleZTest]
             Cull Off
 
             HLSLPROGRAM
@@ -23,6 +25,11 @@ Shader "Hidden/Light2D-Point"
             #pragma multi_compile_local LIGHT_QUALITY_FAST __
             #pragma multi_compile_local USE_NORMAL_MAP __
             #pragma multi_compile_local USE_ADDITIVE_BLENDING __
+            #pragma multi_compile_local USE_VOLUMETRIC __
+            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_0 __
+            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_1 __
+            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_2 __
+            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_3 __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
@@ -67,6 +74,9 @@ Shader "Hidden/Light2D-Point"
             half        _InnerRadiusMult;           // 1-0 where 1 is the value at the center and 0 is the value at the outer radius
             half        _InverseHDREmulationScale;
             half        _IsFullSpotlight;
+#if USE_VOLUMETRIC
+            half        _VolumeOpacity;
+#endif
 
             Varyings vert(Attributes input)
             {
@@ -89,7 +99,7 @@ Shader "Hidden/Light2D-Point"
                 return output;
             }
 
-            half4 frag(Varyings input) : SV_Target
+            FragmentOutput frag(Varyings input)
             {
                 half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
@@ -112,16 +122,22 @@ Shader "Hidden/Light2D-Point"
                 half4 lightColor = _LightColor;
 #endif
 
-#if USE_ADDITIVE_BLENDING
+#if USE_ADDITIVE_BLENDING || USE_VOLUMETRIC
                 lightColor *= attenuation;
 #else
                 lightColor.a = attenuation;
 #endif
 
                 APPLY_NORMALS_LIGHTING(input, lightColor);
-                APPLY_SHADOWS(input, lightColor, _ShadowIntensity);
 
-                return lightColor * _InverseHDREmulationScale;
+#if USE_VOLUMETRIC
+                APPLY_SHADOWS(input, lightColor, _ShadowVolumeIntensity);
+                lightColor *= _VolumeOpacity;
+#else
+                APPLY_SHADOWS(input, lightColor, _ShadowIntensity);
+#endif
+
+                return ToFragmentOutput(lightColor * _InverseHDREmulationScale);
             }
             ENDHLSL
         }

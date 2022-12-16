@@ -29,6 +29,10 @@ namespace UnityEditor.Rendering.Universal
                     s_PostProcessingWarningShown = true;
                 });
 
+            private static readonly CED.IDrawer DisabledPostProcessingAAWarningDrawer = CED.Conditional(
+                (serialized, owner) => !serialized.renderPostProcessing.boolValue && (AntialiasingMode)serialized.antialiasing.intValue != AntialiasingMode.None,
+                (serialized, owner) => EditorGUILayout.HelpBox(Styles.disabledPostprocessingAntiAliasWarning, MessageType.Warning));
+
             private static readonly CED.IDrawer PostProcessingStopNaNsWarningDrawer = CED.Conditional(
                 (serialized, owner) => !s_PostProcessingWarningShown && IsAnyRendererHasPostProcessingEnabled(serialized, UniversalRenderPipeline.asset) && serialized.stopNaNs.boolValue,
                 (serialized, owner) =>
@@ -55,6 +59,7 @@ namespace UnityEditor.Rendering.Universal
                     DrawerRenderingAntialiasing
                     ),
                 PostProcessingAAWarningDrawer,
+                DisabledPostProcessingAAWarningDrawer,
                 CED.Conditional(
                     (serialized, owner) => !serialized.antialiasing.hasMultipleDifferentValues,
                     CED.Group(
@@ -66,14 +71,12 @@ namespace UnityEditor.Rendering.Universal
                                 CED.Group(
                                     DrawerRenderingSMAAQuality
                                 )),
-#if URP_EXPERIMENTAL_TAA_ENABLE
                             CED.Conditional(
                                 (serialized, owner) => (AntialiasingMode)serialized.antialiasing.intValue ==
                                 AntialiasingMode.TemporalAntiAliasing,
                                 CED.Group(
                                     DrawerRenderingTAAQuality
                                 ))
-#endif
                         }
                     )
                     ),
@@ -81,10 +84,6 @@ namespace UnityEditor.Rendering.Universal
                     CameraUI.Rendering.Drawer_Rendering_StopNaNs
                     ),
                 PostProcessingStopNaNsWarningDrawer,
-                CED.Conditional(
-                    (serialized, owner) => serialized.stopNaNs.boolValue && CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2),
-                    (serialized, owner) => EditorGUILayout.HelpBox(Styles.stopNaNsMessage, MessageType.Warning)
-                    ),
                 CED.Group(
                     CameraUI.Rendering.Drawer_Rendering_Dithering
                     ),
@@ -116,21 +115,26 @@ namespace UnityEditor.Rendering.Universal
 
             static Rendering()
             {
-                Drawer = CED.FoldoutGroup(
+                Drawer = CED.AdditionalPropertiesFoldoutGroup(
                     CameraUI.Rendering.Styles.header,
                     Expandable.Rendering,
                     k_ExpandedState,
-                    FoldoutOption.Indent,
-                    (serialized, owner) => s_PostProcessingWarningShown = false,
+                    ExpandableAdditional.Rendering,
+                    k_ExpandedAdditionalState,
                     CED.Group(
-                        DrawerRenderingRenderer
+                        CED.Group(
+                            DrawerRenderingRenderer
                         ),
-                    BaseCameraRenderTypeDrawer,
-                    OverlayCameraRenderTypeDrawer,
-                    CED.Group(
-                        CameraUI.Rendering.Drawer_Rendering_CullingMask,
-                        CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
-                    )
+                        BaseCameraRenderTypeDrawer,
+                        OverlayCameraRenderTypeDrawer,
+                        CED.Group(
+                            CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                            CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+                        )
+                    ),
+                    CED.noop,
+                    FoldoutOption.Indent,
+                    (serialized, owner) => s_PostProcessingWarningShown = false
                 );
 
                 DrawerPreset = CED.FoldoutGroup(
@@ -205,6 +209,9 @@ namespace UnityEditor.Rendering.Universal
                         p.antialiasing.intValue = selectedValue;
                 }
                 EditorGUI.EndProperty();
+
+                if (PlayerSettings.useHDRDisplay && (AntialiasingMode)p.antialiasing.intValue == AntialiasingMode.FastApproximateAntialiasing)
+                    EditorGUILayout.HelpBox(Styles.unsupportedFXAAWithHDROutputWarning, MessageType.Warning);
             }
 
             static void DrawerRenderingClearDepth(UniversalRenderPipelineSerializedCamera p, Editor owner)
@@ -220,37 +227,49 @@ namespace UnityEditor.Rendering.Universal
             static void DrawerRenderingSMAAQuality(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.antialiasingQuality, Styles.antialiasingQuality);
-
-                if (CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2))
-                    EditorGUILayout.HelpBox(Styles.SMAANotSupported, MessageType.Warning);
             }
 
-#if URP_EXPERIMENTAL_TAA_ENABLE
             static void DrawerRenderingTAAQuality(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
-                var urpCamEditor = owner as UniversalRenderPipelineCameraEditor;
-                if (urpCamEditor?.camera?.TryGetComponent<UniversalAdditionalCameraData>(out var urpAddCamData) != null)
+                EditorGUILayout.PropertyField(p.taaQuality, Styles.antialiasingQuality);
+
                 {
-                    ref var taa = ref urpAddCamData.taaSettings;
+                    // FSR overrides TAA CAS settings. Disable this setting when FSR is enabled.
+                    bool disableSharpnessControl = UniversalRenderPipeline.asset != null ?
+                        (UniversalRenderPipeline.asset.upscalingFilter == UpscalingFilterSelection.FSR) : false;
+                    using var disable = new EditorGUI.DisabledScope(disableSharpnessControl);
 
-                    var result = (TemporalAAQuality)EditorGUILayout.EnumPopup(Styles.antialiasingQuality, taa.quality);
-                    if(result != taa.quality)
-                        taa.quality = result;
+                    EditorGUILayout.Slider(p.taaContrastAdaptiveSharpening, 0.0f, 1.0f, Styles.taaContrastAdaptiveSharpening);
+                }
 
-                    taa.frameInfluence = EditorGUILayout.Slider( "Frame Influence", taa.frameInfluence, 0, 1);
+                bool additionalPropertiesVisible = k_ExpandedState[Expandable.Rendering] && k_ExpandedAdditionalState[ExpandableAdditional.Rendering];
+                if (additionalPropertiesVisible)
+                {
+                    p.taaFrameInfluence.floatValue = 1.0f - EditorGUILayout.Slider(Styles.taaBaseBlendFactor, 1.0f - p.taaFrameInfluence.floatValue, 0.6f, 0.98f);
+                    EditorGUILayout.Slider(p.taaJitterScale, 0.0f, 1.0f, Styles.taaJitterScale);
+                    EditorGUILayout.Slider(p.taaMipBias, -0.5f, 0.0f, Styles.taaMipBias);
 
-                    // Add a button to reset history if we are in developer mode
-                    if (EditorPrefs.GetBool("DeveloperMode"))
+                    if(p.taaQuality.intValue >= (int)TemporalAAQuality.Medium)
+                        EditorGUILayout.Slider(p.taaVarianceClampScale, 0.6f, 1.2f, Styles.taaVarianceClampScale);
+
+                    bool isEditorInDeveloperMode = EditorPrefs.GetBool("DeveloperMode");
+                    if (isEditorInDeveloperMode)
                     {
-                        var rect = GUILayoutUtility.GetRect(Styles.taaResetHistory, GUIStyle.none);
-                        rect.x = rect.x + 32;
-                        rect.width = rect.width - 32;
-                        if (GUI.Button(rect, Styles.taaResetHistory))
-                            taa.resetHistoryFrames += 2; // XR both eyes
+                        UniversalRenderPipelineCameraEditor urpCamEditor = owner as UniversalRenderPipelineCameraEditor;
+                        if (urpCamEditor != null && urpCamEditor.camera != null &&
+                            urpCamEditor.camera.TryGetComponent<UniversalAdditionalCameraData>(out var urpAddCamData))
+                        {
+                            ref var taa = ref urpAddCamData.taaSettings;
+                            var rect = GUILayoutUtility.GetRect(Styles.taaResetHistory, GUIStyle.none);
+                            rect.x = rect.x + 32;
+                            rect.width = rect.width - 32;
+                            rect.height += 4; // avoid clipping the label.
+                            if (GUI.Button(rect, Styles.taaResetHistory))
+                                taa.resetHistoryFrames += 2; // XR both eyes
+                        }
                     }
                 }
             }
-#endif
 
             static void DrawerRenderingRenderPostProcessing(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {

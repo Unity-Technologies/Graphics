@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering
             if (command.context is not Component component)
                 return;
 
-            //If the user agree to remove component, everything is removed in the current selection. 
+            //If the user agree to remove component, everything is removed in the current selection.
             //So other components will not trigger this (contextual menu implementation check component existance)
             //But if the user chose to cancel, we need to skip the prompt for a certain amount of component given by the selection size.
             if (ShouldPrompt())

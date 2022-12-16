@@ -165,7 +165,7 @@ namespace UnityEditor.VFX
                 set
                 {
                     if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                        s_Instance = FindFirstObjectByType<VFXResources>();
                     if (s_Instance != null)
                         s_Instance.userTemplateDirectory = value;
                 }

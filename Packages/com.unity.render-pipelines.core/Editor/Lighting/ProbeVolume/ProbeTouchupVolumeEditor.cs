@@ -141,6 +141,13 @@ namespace UnityEditor.Rendering
                     }
 
                 }
+                else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.InvalidateProbes)
+                {
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Update Probe Validity", "Update the validity of probes falling within probe adjustment volumes."), EditorStyles.miniButton))
+                    {
+                        ProbeGIBaking.RecomputeValidityAfterBake();
+                    }
+                }
             }
 
             internal static Bounds GetBounds(SerializedProbeTouchupVolume serialized, Editor owner)
@@ -159,11 +166,6 @@ namespace UnityEditor.Rendering
                 {
                     EditorGUILayout.HelpBox("Changing the intensity of probe data is a delicate operation that can lead to inconsistencies in the lighting, hence the feature is to be used sparingly.", MessageType.Info, wide: true);
                     EditorGUILayout.PropertyField(serialized.intensityScale);
-
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Update Probe Validity", "Update the validity of probes falling within the probe touchup volume."), EditorStyles.miniButton))
-                    {
-                        ProbeGIBaking.RecomputeValidityAfterBake();
-                    }
                 }
             }
 
@@ -212,8 +214,8 @@ namespace UnityEditor.Rendering
 
         public override void OnInspectorGUI()
         {
-            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+            var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+            if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
             {
                 serializedObject.Update();
 

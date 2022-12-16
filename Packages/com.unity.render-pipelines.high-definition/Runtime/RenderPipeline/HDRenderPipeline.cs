@@ -123,6 +123,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = -1;
         int m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = -1;
 
+        ComputeShader m_ClearBuffer2DCS { get { return defaultResources.shaders.clearBuffer2D; } }
+        int m_ClearBuffer2DKernel = -1;
+
         Material m_ApplyDistortionMaterial;
         Material m_FinalBlitWithOETF;
 
@@ -226,16 +229,26 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
+        static bool HDROutputActiveForCameraType(CameraType cameraType)
+        {
+            return HDROutputIsActive() && cameraType == CameraType.Game;
+        }
+
         static bool HDROutputIsActive()
         {
             // TODO: Until we can test it, disable on Mac.
-            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && HDROutputSettings.main.active;
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && HDROutputSettings.main.active;
         }
 
         void SetHDRState(HDCamera camera)
         {
+            if (camera.camera.cameraType == CameraType.Reflection) return; // Do nothing for reflection probes, they don't output to backbuffers.
 #if UNITY_EDITOR
             bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
+#else
+            bool hdrInPlayerSettings = true;
+#endif
+
             if (hdrInPlayerSettings && HDROutputSettings.main.available)
             {
                 if (camera.camera.cameraType != CameraType.Game)
@@ -243,7 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     HDROutputSettings.main.RequestHDRModeChange(true);
             }
-#endif
             // Make sure HDR auto tonemap is off
             if (HDROutputSettings.main.active)
             {
@@ -321,11 +333,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-#if UNITY_EDITOR
-            m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
-#else
             m_GlobalSettings = HDRenderPipelineGlobalSettings.instance;
-#endif
+
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 
@@ -344,12 +353,17 @@ namespace UnityEngine.Rendering.HighDefinition
             bool pipelineSupportsRayTracing = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
 
             m_RayTracingSupported = pipelineSupportsRayTracing && m_GlobalSettings.renderPipelineRayTracingResources != null;
+			
+            // In Editor we need to be freely available to select raytracing to create the resources, otherwise we get stuck in a situation in which we cannot create the resources, 
+            // hence why the following is done only in player
+#if !UNITY_EDITOR
             if (pipelineSupportsRayTracing && !m_RayTracingSupported)
             {
                 Debug.LogWarning("The asset supports ray tracing but the ray tracing resources are not included in the build. This can happen if the asset currently in use was not included in any quality setting for the current platform.");
                 // We need to modify the pipeline settings here because we use them to sanitize the frame settings.
                 m_Asset.TurnOffRayTracing();
             }
+#endif
 
             m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
             m_VFXRayTracingSupported = m_Asset.currentPlatformRenderPipelineSettings.supportVFXRayTracing && m_RayTracingSupported;
@@ -436,6 +450,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug");
             m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug");
 
+            m_ClearBuffer2DKernel = m_ClearBuffer2DCS.FindKernel("ClearBuffer2DMain");
+
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
@@ -480,6 +496,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     blendingMemoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeBlendingMemoryBudget,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     fragmentationDebugShader = defaultResources.shaders.probeVolumeFragmentationDebugShader,
+                    probeSamplingDebugShader = defaultResources.shaders.probeVolumeSamplingDebugShader,
+                    probeSamplingDebugMesh = defaultResources.assets.probeSamplingDebugMesh,
+                    probeSamplingDebugTexture = defaultResources.textures.numbersDisplayTex,
                     offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
                     scenarioBlendingShader = supportBlending ? defaultResources.shaders.probeVolumeBlendStatesCS : null,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
@@ -498,6 +517,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
             InitializeWaterSystem();
+            InitializeLineRendering();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettings.RegisterDebug();
@@ -649,7 +669,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 ,
                 autoDefaultReflectionProbeBaking = false
                 ,
-                rendersUIOverlay = true
+                rendersUIOverlay = true,
+                supportsHDR = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -847,6 +868,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseVolumetricClouds();
             CleanupSubsurfaceScattering();
             ReleaseWaterSystem();
+            CleanupLineRendering();
 
             // For debugging
             MousePositionDebug.instance.Cleanup();
@@ -974,6 +996,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Fog.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalSubsurface(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalDecal(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalComputeThickness(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, hdCamera);
             m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
@@ -1008,6 +1031,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ShaderVariablesGlobalCB._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
             m_ShaderVariablesGlobalCB._IndirectDiffuseMode = (int)GetIndirectDiffuseMode(hdCamera);
+            m_ShaderVariablesGlobalCB._ReflectionsMode = (int)GetReflectionsMode(hdCamera);
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
@@ -1048,7 +1072,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ScreenSpaceReflection screenSpaceReflection = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
             // Those are globally set parameters. The others are set per effect and will update the constant buffer as we render.
-            m_ShaderVariablesRayTracingCB._RaytracingRayBias = rayTracingSettings.rayBias.value;
+            m_ShaderVariablesRayTracingCB._RayTracingRayBias = rayTracingSettings.rayBias.value;
+            m_ShaderVariablesRayTracingCB._RayTracingDistantRayBias = rayTracingSettings.distantRayBias.value;
             m_ShaderVariablesRayTracingCB._RayCountEnabled = m_RayCountManager.RayCountIsEnabled();
             m_ShaderVariablesRayTracingCB._RaytracingCameraNearPlane = hdCamera.camera.nearClipPlane;
             m_ShaderVariablesRayTracingCB._RaytracingPixelSpreadAngle = GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
@@ -1886,11 +1911,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 CommandBufferPool.Release(commandBuffer);
             }
 
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
             {
                 HDDebugDisplaySettings.Instance.UpdateDisplayStats();
@@ -2018,7 +2045,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Flatten the render requests graph in an array that guarantee dependency constraints
                     FlattenRenderRequestGraph(renderRequests, renderRequestIndicesToRender);
 
-                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
+                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest)))
                     {
                         // Warm up the RTHandle system so that it gets init to the maximum resolution available (avoiding to call multiple resizes
                         // that can lead to high memory spike as the memory release is delayed while the creation is immediate).
@@ -2174,7 +2201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This call need to happen once per camera
                 // TODO: This can be wasteful for "compatible" cameras.
                 // We need to determine the minimum set of feature used by all the camera and build the minimum number of acceleration structures.
-                using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructure)))
+                using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructure)))
                 {
                     BuildRayTracingAccelerationStructure(hdCamera);
                 }
@@ -2196,7 +2223,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                     m_DebugDisplaySettings.UpdateCameraFreezeOptions();
+#endif
                     m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
                 }
 
@@ -2230,7 +2259,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 {
-                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CustomPassVolumeUpdate)))
+                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CustomPassVolumeUpdate)))
                         CustomPassVolume.Update(hdCamera);
                 }
 
@@ -2265,7 +2294,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Currently to know if you need shadow mask you need to go through all visible lights (of CullResult), check the LightBakingOutput struct and look at lightmapBakeType/mixedLightingMode. If one light have shadow mask bake mode, then you need shadow mask features (i.e extra Gbuffer).
                 // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
                 // So the first thing to do is to go through all the light: PrepareLightsForGPU
-                bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, m_CurrentDebugDisplaySettings, aovRequest);
+                bool enableBakeShadowMask = PrepareLightsForGPU(renderContext, cmd, hdCamera, cullingResults, hdProbeCullingResults, m_CurrentDebugDisplaySettings, aovRequest);
 
                 UpdateGlobalConstantBuffers(hdCamera, cmd);
 
@@ -2582,14 +2611,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     OverrideCullingForRayTracing(hdCamera, camera, ref cullingParams);
                 }
 
-                using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CullResultsCull)))
+                using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CullResultsCull)))
                 {
                     cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
                 }
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 {
-                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CustomPassCullResultsCull)))
+                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.CustomPassCullResultsCull)))
                     {
                         cullingResults.customPassCullingResults = CustomPassVolume.Cull(renderContext, hdCamera);
                     }
@@ -2600,7 +2629,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 {
-                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.DBufferPrepareDrawData)))
+                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.DBufferPrepareDrawData)))
                     {
                         DecalSystem.instance.EndCull(decalCullRequest, cullingResults.decalCullResults);
                     }
@@ -2743,6 +2772,18 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 cb._EnableDecals = 0;
+            }
+        }
+
+        void UpdateShaderVariablesGlobalComputeThickness(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        {
+            if (IsComputeThicknessNeeded(hdCamera))
+            {
+                cb._EnableComputeThickness = 1;
+            }
+            else
+            {
+                cb._EnableComputeThickness = 0;
             }
         }
 

@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("Destination for DownSample is too small, it needs to be at least half as big as source.");
             if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"DownSample is not supported with MSAA buffers");
-            
+
             // Apply an additional scale bias
 
             using (new ProfilingScope(ctx.cmd, downSampleSampler))
@@ -324,11 +324,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Prevent overriding multiple times in case of nested statements
             static int overrideCounter = 0;
             CustomPassInjectionPoint injectionPoint;
-            
+
             public OverrideRTHandleScale(in CustomPassContext ctx)
             {
                 injectionPoint = ctx.injectionPoint;
-                
+
                 // Lower side effects, technically the _RTHandleScale variable in the shader has a
                 // different value from C# side only in the after post process injection point.
                 if (injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     overrideCounter++;
                 }
             }
-            
+
             public void Dispose()
             {
                 if (injectionPoint == CustomPassInjectionPoint.AfterPostProcess)

@@ -112,3 +112,36 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Fail on Yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 17783bea5cb403942948935bef51f927, type: 3}
+    - {fileID: 102900000, guid: 3666dc8006745714997c368c4375f316, type: 3}
+    - {fileID: 102900000, guid: cad966ee513672648ba41246a9cf73a3, type: 3}
+    - {fileID: 102900000, guid: 29f2d1a08755be249a0739067a3a86ca, type: 3}
+    - {fileID: 102900000, guid: 0ab35aa39f371ab4c8d53b46c225d0a5, type: 3}
+    - {fileID: 102900000, guid: 1f55baf6eaf625e4fab7fa2e4228a3d0, type: 3}
+    - {fileID: 102900000, guid: 0bd00ddb543475c41bdd787c636d904f, type: 3}
+    - {fileID: 102900000, guid: 9f38d7cbc64ad534485db5107427e269, type: 3}
+    - {fileID: 102900000, guid: c163eeeb7af1c194590ab367fb84a376, type: 3}
+    - {fileID: 102900000, guid: 94394be5b934f2543b05529545e764f9, type: 3}
+    - {fileID: 102900000, guid: a8836a288e8e4ae49abdf5d23fedb3c8, type: 3}
+    - {fileID: 102900000, guid: 60e44083164c9624981e1911ec554d14, type: 3}
+    - {fileID: 102900000, guid: 7c5e1446f931c184aaa07d7dd2f03616, type: 3}
+    - {fileID: 102900000, guid: a3bbd23b214970c48b64c949a4bf476b, type: 3}
+    - {fileID: 102900000, guid: 99680d74d8a49be44bd19065fae3d569, type: 3}
+    - {fileID: 102900000, guid: a2a018bd807332e419183347eebc8a0c, type: 3}
+    - {fileID: 102900000, guid: f57e109fb28741a4297f1895438fff8d, type: 3}
+    - {fileID: 102900000, guid: 7f50fe57b3dd3c34988a18361fb72be8, type: 3}
+    - {fileID: 102900000, guid: f203d44025933174baacc2d0fe75d528, type: 3}
+    - {fileID: 102900000, guid: 9fc75d906f08e784ab1183b8153659f0, type: 3}
+    - {fileID: 102900000, guid: 02397f4078a0d654d8441ef84f750cc5, type: 3}
+    - {fileID: 102900000, guid: 59b393015a21d114d908a93adc455494, type: 3}
+    - {fileID: 102900000, guid: 80273b12646e091409e2665bd76196ff, type: 3}
+    - {fileID: 102900000, guid: 9a47aa07fa8a82341a976363fec6b1d2, type: 3}
+    - {fileID: 102900000, guid: 0aa69ee950a3fa049b5220e96247f794, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 42
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Unsupported

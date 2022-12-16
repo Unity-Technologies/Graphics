@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         Count
     }
 
-    internal struct ResourceHandle
+    internal struct ResourceHandle : IEquatable<ResourceHandle>
     {
         // Note on handles validity.
         // PassData classes used during render graph passes are pooled and because of that, when users don't fill them completely,
@@ -44,7 +44,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle(ResourceHandle h, int version)
         {
-            Debug.Assert(h.m_Version == -1);
             this.m_Value = h.m_Value;
             this.type = h.type;
             this.m_Version = version;
@@ -84,6 +83,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 return m_Version >= 0;
             }
         }
+
+        public bool Equals(ResourceHandle hdl)
+        {
+            return hdl.m_Value == this.m_Value && hdl.m_Version == this.m_Version;
+        }
     }
 
     class IRenderGraphResource
@@ -92,6 +96,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool shared;
         public bool sharedExplicitRelease;
         public bool requestFallBack;
+        public bool forceRelease;
         public uint writeCount;
         public int cachedHash;
         public int transientPassIndex;
@@ -109,6 +114,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             transientPassIndex = -1;
             sharedResourceLastFrameUsed = -1;
             requestFallBack = false;
+            forceRelease = false;
             writeCount = 0;
             version = 0;
 

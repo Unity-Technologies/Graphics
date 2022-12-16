@@ -20,7 +20,7 @@ class Renderer2DTests
         m_BaseCameraData = m_BaseObj.AddComponent<UniversalAdditionalCameraData>();
 
         m_BaseCamera.allowHDR = false;
-        m_BaseCameraData.SetRenderer(3);    // 2D Renderer. See the list of Renderers in CommonAssets/UniversalRPAsset.
+        m_BaseCameraData.SetRenderer(2);    // 2D Renderer. See the list of Renderers in CommonAssets/UniversalRPAsset.
         m_BaseCameraData.renderType = CameraRenderType.Base;
         m_BaseCameraData.renderPostProcessing = false;
 
@@ -29,7 +29,7 @@ class Renderer2DTests
         m_OverlayCameraData = m_OverlayObj.AddComponent<UniversalAdditionalCameraData>();
 
         m_OverlayCamera.allowHDR = false;
-        m_OverlayCameraData.SetRenderer(3);    // 2D Renderer. See the list of Renderers in CommonAssets/UniversalRPAsset.
+        m_OverlayCameraData.SetRenderer(2);    // 2D Renderer. See the list of Renderers in CommonAssets/UniversalRPAsset.
         m_OverlayCameraData.renderType = CameraRenderType.Overlay;
         m_OverlayCameraData.renderPostProcessing = false;
     }
@@ -94,6 +94,9 @@ class Renderer2DTests
 
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
         Renderer2D overlayRenderer = m_OverlayCameraData.scriptableRenderer as Renderer2D;
+
+        Assert.AreEqual(baseRenderer.m_ColorTextureHandle, overlayRenderer.m_ColorTextureHandle);
+        Assert.AreEqual(baseRenderer.m_DepthTextureHandle, overlayRenderer.m_DepthTextureHandle);
     }
 
     [Test]

@@ -155,6 +155,11 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="value">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
         public void SetKeyword(ComputeShader computeShader, ref LocalKeyword keyword, bool value)  { ThrowIfGlobalStateNotAllowed();  m_WrappedCommandBuffer.SetKeyword(computeShader, keyword, value); }
 
+        /// <summary>Wraps [SetViewProjectionMatrices](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewProjectionMatrices.html) on a CommandBuffer.</summary>
+        /// <param name="view">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewProjectionMatrices.html)</param>
+        /// <param name="proj">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewProjectionMatrices.html)</param>
+        public void SetViewProjectionMatrices(Matrix4x4 view, Matrix4x4 proj)  {  m_WrappedCommandBuffer.SetViewProjectionMatrices(view, proj); }
+
         /// <summary>Wraps [SetGlobalDepthBias](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalDepthBias.html) on a CommandBuffer.</summary>
         /// <param name="bias">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalDepthBias.html)</param>
         /// <param name="slopeBias">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalDepthBias.html)</param>
@@ -227,6 +232,14 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>Wraps [ConfigureFoveatedRendering](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ConfigureFoveatedRendering.html) on a CommandBuffer.</summary>
         /// <param name="platformData">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ConfigureFoveatedRendering.html)</param>
         public void ConfigureFoveatedRendering(IntPtr platformData)  { ThrowIfGlobalStateNotAllowed();  m_WrappedCommandBuffer.ConfigureFoveatedRendering(platformData); }
+
+        /// <summary>Wraps [SetupCameraProperties](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetupCameraProperties.html) on a CommandBuffer.</summary>
+        /// <param name="camera">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetupCameraProperties.html)</param>
+        public void SetupCameraProperties(Camera camera)  {  m_WrappedCommandBuffer.SetupCameraProperties(camera); }
+
+        /// <summary>Wraps [InvokeOnRenderObjectCallbacks](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.InvokeOnRenderObjectCallbacks.html) on a CommandBuffer.</summary>
+
+        public void InvokeOnRenderObjectCallbacks()  {  m_WrappedCommandBuffer.InvokeOnRenderObjectCallbacks(); }
 
         /// <summary>Wraps [DrawMesh](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMesh.html) on a CommandBuffer.</summary>
         /// <param name="mesh">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMesh.html)</param>

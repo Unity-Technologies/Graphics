@@ -1,4 +1,5 @@
 {
+  "enableLockFile": false,
   "disableProjectUpdate": true,
   "dependencies": {
     "com.unity.ide.rider": "3.0.15",
@@ -49,7 +50,8 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+    "com.unity.testframework.graphics": "7.11.0-exp.1"
   },
   "testables": [
     "com.unity.testing.visualeffectgraph",

@@ -55,7 +55,7 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
 
 #ifndef VFX_SHADERGRAPH
 
-float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
+float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, bool frontFace)
 {
     SurfaceData surfaceData;
     BuiltinData builtinData;
@@ -63,7 +63,7 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
     PreLightData preLightData;
 
     uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
-    VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
+    VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData, frontFace, tileIndex);
 
     float3 posRWS = VFXGetPositionRWS(i);
     PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);

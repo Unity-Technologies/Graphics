@@ -111,6 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
         WaterSurfaceSimulation,
         WaterSurfaceDeformation,
         WaterSurfaceCaustics,
+        WaterSurfaceFoam,
         WaterExclusion,
         WaterSurfaceRenderingGBuffer,
         WaterSurfaceRenderingMaskDebug,
@@ -179,6 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SortVisibleLights,
         BuildVisibleLightEntities,
         ProcessShadows,
+        ComputeShadowCullingSplits,
         CalculateLightDataTextureInfo,
         CalculateShadowIndices,
         UpdateDirectionalShadowData,
@@ -207,6 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumeUpdate,
         CustomPassVolumeUpdate,
         OffscreenUIRendering,
+        ComputeThickness,
 
         // XR
         XRMirrorView,
@@ -217,6 +220,10 @@ namespace UnityEngine.Rendering.HighDefinition
         DownsampleDepth,
         LowResTransparent,
         UpsampleLowResTransparent,
+
+        // Line Rendering
+        LineRenderingSetup,
+        LineRenderingComposite,
 
         // Post-processing
         AlphaCopy,
@@ -238,6 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldGatherNear,
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
+        LensFlareScreenSpace,
         LensFlareDataDriven,
         LensFlareComputeOcclusionDataDriven,
         LensFlareMergeOcclusionDataDriven,

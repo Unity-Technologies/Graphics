@@ -206,7 +206,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Material ID
         MaterialProperty materialID = null;
         MaterialProperty transmissionEnable = null;
-        const string kTransmissionEnable = "_TransmissionEnable";
 
         // Coat mask
         MaterialProperty coatMask = null;

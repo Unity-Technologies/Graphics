@@ -10,10 +10,13 @@ void Frag(PackedVaryingsToPS packedInput,
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
-    if (_WaterDebugMode == WATERDEBUGMODE_FOAM_MASK)
+    // World space position of the fragment
+    float3 transformedPosAWS = GetAbsolutePositionWS(input.positionRWS);
+
+    if (_WaterDebugMode == WATERDEBUGMODE_SIMULATION_FOAM_MASK)
     {
         float2 maskUV = EvaluateFoamMaskUV(input.texCoord0.xy);
-        float foamMask = SAMPLE_TEXTURE2D(_FoamMask, sampler_FoamMask, maskUV).x;
+        float foamMask = SAMPLE_TEXTURE2D(_SimulationFoamMask, sampler_SimulationFoamMask, maskUV).x;
         outGBuffer0 = float4(foamMask, foamMask, foamMask, 1.0);
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_WATER_MASK)
@@ -52,7 +55,7 @@ void Frag(PackedVaryingsToPS packedInput,
         if (_WaterDeformationExtent.x > 0.0)
         {
             // Define the sampling coordinates
-            float2 deformationUV = (GetAbsolutePositionWS(input.positionRWS).xz - _WaterDeformationCenter) / _WaterDeformationExtent + 0.5;
+            float2 deformationUV = (transformedPosAWS.xz - _WaterDeformationCenter) / _WaterDeformationExtent + 0.5;
 
             // Sample the deformation region
             float verticalDeformation = SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, deformationUV, 0);
@@ -67,6 +70,16 @@ void Frag(PackedVaryingsToPS packedInput,
         {
             outGBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
         }
+    }
+    else if (_WaterDebugMode == WATERDEBUGMODE_FOAM)
+    {
+        WaterAdditionalData waterAdditionalData;
+        EvaluateWaterAdditionalData(input.texCoord0.xyy, input.positionRWS, float3(0, 1, 0), waterAdditionalData);
+
+        float2 foamUV = EvaluateFoamUV(transformedPosAWS.xz);
+        float foamRegionMask = all(foamUV > 0.0) && all(foamUV < 1.0) ? 1.0 : 0.0;
+        float targetFoam = _WaterFoamDebugMode == 0 ? waterAdditionalData.surfaceFoam : waterAdditionalData.deepFoam;
+        outGBuffer0 = float4(targetFoam, targetFoam, foamRegionMask, 1.0);
     }
     else
     {

@@ -166,6 +166,12 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
             volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
             volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
+
+            // Camera was potentially Reset() so we need to reset timers on the renderers.
+            if (visualSky != null)
+                visualSky.Reset();
+            if (lightingSky != null && visualSky != lightingSky)
+                lightingSky.Reset();
         }
 
         /// <summary>
@@ -417,11 +423,16 @@ namespace UnityEngine.Rendering.HighDefinition
             get { return m_AdditionalCameraData != null ? m_AdditionalCameraData.clearDepth : camera.clearFlags != CameraClearFlags.Nothing; }
         }
 
+        internal bool CameraIsSceneFiltering()
+        {
+            return CoreUtils.IsSceneFilteringEnabled() && camera.cameraType == CameraType.SceneView;
+        }
+
         internal HDAdditionalCameraData.ClearColorMode clearColorMode
         {
             get
             {
-                if (CoreUtils.IsSceneFilteringEnabled() && camera.cameraType == CameraType.SceneView)
+                if (CameraIsSceneFiltering())
                     return HDAdditionalCameraData.ClearColorMode.Color;
 
                 if (m_AdditionalCameraData != null)
@@ -1814,7 +1825,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (volumeAnchor == null)
                 volumeAnchor = camera.transform;
 
-            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.VolumeUpdate)))
+            using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.VolumeUpdate)))
             {
                 VolumeManager.instance.Update(volumeStack, volumeAnchor, volumeLayerMask);
             }

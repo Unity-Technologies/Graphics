@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", false, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, -1 /*data.opaqueLayerMask*/, m_DefaultStencilState, 0 /*stencilData.stencilReference*/);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial, null);
 
             m_CameraColor = RTHandles.Alloc("_CameraColor", "_CameraColor");
             m_CameraDepth = RTHandles.Alloc("_CameraDepth", "_CameraDepth");

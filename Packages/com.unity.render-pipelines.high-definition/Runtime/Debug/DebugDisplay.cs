@@ -135,8 +135,14 @@ namespace UnityEngine.Rendering.HighDefinition
         VertexDensity,
         /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
         RequestedVirtualTextureTiles,
-        /// <summary>Black background to visualize the Lens Flare</summary>
+        /// <summary>Black background to visualize the Lens Flare Data Driven</summary>
         LensFlareDataDriven,
+        /// <summary>Black background to visualize the Lens Flare Screen Space</summary>
+        LensFlareScreenSpace,
+        /// <summary>Thickness Computed with 'ComputeThickness' pass</summary>
+        ComputeThickness,
+        /// <summary>Display Line Renderer Debug Modes.</summary>
+        HighQualityLines,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -236,8 +242,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_MaterialFullScreenDebugValues = null;
 
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
-        static GUIContent[] s_CameraNamesStrings = null;
-        static int[] s_CameraNamesValues = null;
+        static GUIContent[] s_CameraNamesStrings = { new ("No Visible Camera") };
+        static int[] s_CameraNamesValues = { 0 };
 
         static bool needsRefreshingCameraFreezeList = true;
 
@@ -304,13 +310,21 @@ namespace UnityEngine.Rendering.HighDefinition
             internal RTASDebugMode rtasDebugMode = RTASDebugMode.InstanceID;
             internal VolumetricCloudsDebug volumetricCloudDebug = VolumetricCloudsDebug.Lighting;
 
+            /// <summary>Thickness Layer Index from ComputeThicknessPass.</summary>
+            public uint computeThicknessLayerIndex = 0;
+            /// <summary>Thickness Overlap Count from ComputeThicknessPass.</summary>
+            public bool computeThicknessShowOverlapCount = false;
+            /// <summary>Thickness Scale used for visualization.</summary>
+            public float computeThicknessScale = 1.0f;
+
             /// <summary>Minimum length a motion vector needs to be to be displayed in the debug display. Unit is pixels.</summary>
             public float minMotionVectorLength = 0.0f;
             /// <summary>The scale to apply to motion vector lengths (in Normalized Device Coordinates) to be applied before display.</summary>
             public float motionVecVisualizationScale = 40.0f;
             /// <summary>Whether to visualize motion vector intensity as heat map or greyscale (if off).</summary>
             public bool motionVecIntensityHeat = false;
-
+            /// <summary>The debug mode used for high quality line rendering.</summary>
+            public LineRendering.DebugMode lineRenderingDebugMode = LineRendering.DebugMode.SegmentsPerTile;
 
             // TODO: The only reason this exist is because of Material/Engine debug enums
             // They have repeating values, which caused issues when iterating through the enum, thus the need for explicit indices
@@ -339,6 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int rtasDebugViewEnumIndex;
             internal int rtasDebugModeEnumIndex;
             internal int volumetricCloudsDebugModeEnumIndex;
+            internal int lineRenderingDebugModeEnumIndex;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -411,13 +426,10 @@ namespace UnityEngine.Rendering.HighDefinition
             FillFullScreenDebugEnum(ref s_MaterialFullScreenDebugStrings, ref s_MaterialFullScreenDebugValues, FullScreenDebugMode.MinMaterialFullScreenDebug, FullScreenDebugMode.MaxMaterialFullScreenDebug);
 
             var device = SystemInfo.graphicsDeviceType;
-            if (device == GraphicsDeviceType.Metal)
+            if (device == GraphicsDeviceType.Metal || device == GraphicsDeviceType.PlayStation4 || device == GraphicsDeviceType.PlayStation5 || device == GraphicsDeviceType.PlayStation5NGGC)
             {
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.VertexDensity).ToArray();
-            }
-            if (device == GraphicsDeviceType.Metal || device == GraphicsDeviceType.PlayStation4 || device == GraphicsDeviceType.PlayStation5 || device == GraphicsDeviceType.PlayStation5NGGC)
-            {
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
             }
@@ -1501,6 +1513,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip MaxQuadCost = new() { name = "Max Quad Cost", tooltip = "The scale of the quad mode overdraw heat map." };
             public static readonly NameAndTooltip MaxVertexDensity = new() { name = "Max Vertex Density", tooltip = "The scale of the vertex density mode overdraw heat map." };
 
+            public static readonly NameAndTooltip ComputeThicknessLayerIndex = new() { name = "Layer Mask", tooltip = "Layer Mask Index from 'ComputeThickness' pass." };
+            public static readonly NameAndTooltip ComputeThicknessShowOverlapCount = new() { name = "Show Overlap Count", tooltip = "Overlap Count from 'ComputeThickness' pass." };
+            public static readonly NameAndTooltip ComputeThicknessScale = new() { name = "Thickness Scale", tooltip = "Thickness Scale for visualization." };
+
             // Mipmaps
             public static readonly NameAndTooltip MipMaps = new() { name = "Mip Maps", tooltip = "Use the drop-down to select a mipmap property to debug." };
             public static readonly NameAndTooltip TerrainTexture = new() { name = "Terrain Texture", tooltip = "Use the drop-down to select the terrain Texture to debug the mipmap for." };
@@ -1517,6 +1533,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip FalseColorRangeThreshold3 = new() { name = "Range Threshold 3", tooltip = "Set the split for the intensity range." };
 
             public static readonly NameAndTooltip FreezeCameraForCulling = new() { name = "Freeze Camera For Culling", tooltip = "Use the drop-down to select a Camera to freeze in order to check its culling. To check if the Camera's culling works correctly, freeze the Camera and move occluders around it." };
+            public static readonly NameAndTooltip HighQualityLineRenderingMode = new() { name = "High Quality Line Rendering Mode", tooltip = "" };
 
             // Monitors
             public static readonly NameAndTooltip MonitorsSize        = new() { name = "Size"       , tooltip = "Sets the size ratio of the displayed monitors" };
@@ -1573,6 +1590,19 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 widgetList.Add(new DebugUI.Container
                 {
+                    isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.ComputeThickness,
+                    children =
+                    {
+                        new DebugUI.UIntField { nameAndTooltip = RenderingStrings.ComputeThicknessLayerIndex, getter = () => data.computeThicknessLayerIndex, setter = value => data.computeThicknessLayerIndex = value, min = () => 0, max = () => 31},
+                        new DebugUI.BoolField { nameAndTooltip = RenderingStrings.ComputeThicknessShowOverlapCount, getter = () => data.computeThicknessShowOverlapCount, setter = value => data.computeThicknessShowOverlapCount = value},
+                        new DebugUI.FloatField { nameAndTooltip = RenderingStrings.ComputeThicknessScale, getter = () => data.computeThicknessScale, setter = value => data.computeThicknessScale = value, min = () => 0}
+                    }
+                });
+            }
+
+            {
+                widgetList.Add(new DebugUI.Container
+                {
                     isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.MotionVectors || data.fullScreenDebugMode != FullScreenDebugMode.MotionVectorsIntensity),
                     children =
                     {
@@ -1589,6 +1619,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 });
 
+            }
+
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                   isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.HighQualityLines),
+                   children =
+                   {
+                       new DebugUI.EnumField{ nameAndTooltip = RenderingStrings.HighQualityLineRenderingMode, getter = () => (int)data.lineRenderingDebugMode, setter = value => data.lineRenderingDebugMode = (LineRendering.DebugMode)value, autoEnum = typeof(LineRendering.DebugMode), getIndex = () => data.lineRenderingDebugModeEnumIndex, setIndex = value => data.lineRenderingDebugModeEnumIndex = value },
+                   }
+                });
             }
 
             widgetList.AddRange(new DebugUI.Widget[]

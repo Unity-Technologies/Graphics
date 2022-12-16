@@ -40,6 +40,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, buffers.screenspaceShadowBuffer);
         }
 
+        static void BindGlobalThicknessBuffers(TextureHandle thicknessTexture, GraphicsBuffer thicknessReindexMap, CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._ThicknessTexture, thicknessTexture);
+            cmd.SetGlobalBuffer(HDShaderIDs._ThicknessReindexMap, thicknessReindexMap);
+        }
+
         static void BindDefaultTexturesLightingBuffers(RenderGraphDefaultResources defaultResources, CommandBuffer cmd)
         {
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, defaultResources.blackTextureXR);
@@ -1103,18 +1109,42 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle lightingTexture;
             public TextureHandle ssrAccumPrev;
             public TextureHandle clearCoatMask;
+
             public BufferHandle coarseStencilBuffer;
+
             public BlueNoise blueNoise;
             public HDCamera hdCamera;
+
+            public ComputeShader clearBuffer2DCS;
+            public int clearBuffer2DKernel;
+
+            public bool useAsync;
+
             public float frameIndex;
             public float roughnessBiasFactor;
             public float speedRejection;
             public float speedRejectionFactor;
+
             public bool debugDisplaySpeed;
             public bool enableWorldSmoothRejection;
             public bool smoothSpeedRejection;
             public bool motionVectorFromSurface;
             public bool motionVectorFromHit;
+        }
+
+        static void ClearColorBuffer2D(RenderSSRPassData data, CommandBuffer cmd, TextureHandle rt, Color clearColor, bool async)
+        {
+            if (!async)
+            {
+                CoreUtils.SetRenderTarget(cmd, rt, ClearFlag.Color, clearColor);
+            }
+            else
+            {
+                cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccum);
+                cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, clearColor);
+                cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
+                cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+            }
         }
 
         void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, bool isTransparent, ref ShaderVariablesScreenSpaceReflection cb)
@@ -1203,7 +1233,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
-                    builder.EnableAsyncCompute(hdCamera.frameSettings.SSRRunsAsync());
+                    bool useAsync = hdCamera.frameSettings.SSRRunsAsync();
+                    builder.EnableAsyncCompute(useAsync);
 
                     hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
 
@@ -1274,6 +1305,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.motionVectorFromSurface = volumeSettings.speedSurfaceOnly.value;
                     passData.motionVectorFromHit = volumeSettings.speedTargetOnly.value;
 
+                    passData.clearBuffer2DCS = m_ClearBuffer2DCS;
+                    passData.clearBuffer2DKernel = m_ClearBuffer2DKernel;
+                    passData.useAsync = useAsync;
+
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
@@ -1302,9 +1337,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             else
                             {
                                 if (data.accumNeedClear || data.debugDisplaySpeed)
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
+                                    ClearColorBuffer2D(data, ctx.cmd, data.ssrAccum, Color.clear, data.useAsync);
                                 if (data.previousAccumNeedClear || data.debugDisplaySpeed)
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+                                    ClearColorBuffer2D(data, ctx.cmd, data.ssrAccumPrev, Color.clear, data.useAsync);
 
                                 ctx.cmd.DisableShaderKeyword("SSR_APPROX");
                             }
@@ -1362,8 +1397,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 if (!data.validColorPyramid)
                                 {
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+                                    ClearColorBuffer2D(data, ctx.cmd, data.ssrAccum, Color.clear, data.useAsync);
+                                    ClearColorBuffer2D(data, ctx.cmd, data.ssrAccumPrev, Color.clear, data.useAsync);
                                 }
                                 else
                                 {

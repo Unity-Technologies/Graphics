@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // TODO remove every occurrence of ShadowSplitData in function parameters when we'll have scriptable culling
     static class HDShadowUtils
     {
+        public const int k_MaxShadowSplitCount = 6;
         public const float k_MinShadowNearPlane = 0.01f;
         public const float k_MaxShadowNearPlane = 10.0f;
 
@@ -90,28 +91,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return math.transpose(gpuProjectionMatrix);
         }
 
-        public static void ExtractDirectionalLightData(VisibleLight visibleLight, Vector2 viewportSize, uint cascadeIndex, int cascadeCount, float[] cascadeRatios, float nearPlaneOffset, CullingResults cullResults, int lightIndex,
+        public static void ExtractDirectionalLightData(Vector2 viewportSize, uint cascadeIndex, int cascadeCount, Vector3 cascadeRatios, float nearPlaneOffset, CullingResults cullResults, int lightIndex,
             out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjectionMatrix, out Vector4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
-            Vector4 lightDir;
-
             Debug.Assert((uint)viewportSize.x == (uint)viewportSize.y, "Currently the cascaded shadow mapping code requires square cascades.");
+
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
             splitData.cullingPlaneCount = 0;
+            splitData.shadowCascadeBlendCullingFactor = .6f; // This used to be fixed to .6f, but is now configureable.
 
-            // This used to be fixed to .6f, but is now configureable.
-            splitData.shadowCascadeBlendCullingFactor = .6f;
-
-            // get lightDir
-            lightDir = visibleLight.GetForward();
             // TODO: At some point this logic should be moved to C#, then the parameters cullResults and lightIndex can be removed as well
             //       For directional lights shadow data is extracted from the cullResults, so that needs to be somehow provided here.
             //       Check ScriptableShadowsUtility.cpp ComputeDirectionalShadowMatricesAndCullingPrimitives(...) for details.
-            Vector3 ratios = new Vector3();
-            for (int i = 0, cnt = cascadeRatios.Length < 3 ? cascadeRatios.Length : 3; i < cnt; i++)
-                ratios[i] = cascadeRatios[i];
-            cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, (int)cascadeIndex, cascadeCount, ratios, (int)viewportSize.x, nearPlaneOffset, out view, out projection, out splitData);
+            cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, (int)cascadeIndex, cascadeCount, cascadeRatios, (int)viewportSize.x, nearPlaneOffset, out view, out projection, out splitData);
+
             // and the compound (deviceProjection will potentially inverse-Z)
             deviceProjectionMatrix = GL.GetGPUProjectionMatrix(projection, false);
             deviceProjection = new Vector4(deviceProjectionMatrix.m00, deviceProjectionMatrix.m11, deviceProjectionMatrix.m22, deviceProjectionMatrix.m23);

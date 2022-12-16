@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering.Universal
                 public static readonly ProfilingSampler initializeRenderingData = new ProfilingSampler($"{k_Name}.{nameof(InitializeRenderingData)}");
                 public static readonly ProfilingSampler initializeShadowData = new ProfilingSampler($"{k_Name}.{nameof(InitializeShadowData)}");
                 public static readonly ProfilingSampler initializeLightData = new ProfilingSampler($"{k_Name}.{nameof(InitializeLightData)}");
+                public static readonly ProfilingSampler buildAdditionalLightsShadowAtlasLayout = new ProfilingSampler($"{k_Name}.{nameof(BuildAdditionalLightsShadowAtlasLayout)}");
                 public static readonly ProfilingSampler getPerObjectLightFlags = new ProfilingSampler($"{k_Name}.{nameof(GetPerObjectLightFlags)}");
                 public static readonly ProfilingSampler getMainLightIndex = new ProfilingSampler($"{k_Name}.{nameof(GetMainLightIndex)}");
                 public static readonly ProfilingSampler setupPerFrameShaderConstants = new ProfilingSampler($"{k_Name}.{nameof(SetupPerFrameShaderConstants)}");
@@ -123,9 +124,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public static int maxPerObjectLights
         {
-            // No support to bitfield mask and int[] in gles2. Can't index fast more than 4 lights.
-            // Check Lighting.hlsl for more details.
-            get => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ? 4 : 8;
+            get => 8;
         }
 
         // These limits have to match same limits in Input.hlsl
@@ -142,11 +141,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Must match: Input.hlsl, MAX_VISIBLE_LIGHTS
                 bool isMobile = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
-                if (isMobile && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30)))
+                if (isMobile && (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30))
                     return k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45;
 
                 // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
-                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
                     ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
@@ -155,6 +154,7 @@ namespace UnityEngine.Rendering.Universal
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
         internal static int maxZBinWords => 1024 * 4;
         internal static int maxTileWords => (maxVisibleAdditionalLights <= 32 ? 1024 : 4096) * 4;
+        internal static int maxVisibleReflectionProbes => Math.Min(maxVisibleAdditionalLights, 64);
 
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
@@ -191,12 +191,10 @@ namespace UnityEngine.Rendering.Universal
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             pipelineAsset = asset;
-#if UNITY_EDITOR
-            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-#else
+
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
-#endif
-            SetSupportedRenderingFeatures();
+
+            SetSupportedRenderingFeatures(pipelineAsset);
 
             // Initial state of the RTHandle system.
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
@@ -271,6 +269,7 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
 
             DisposeAdditionalCameraData();
+            AdditionalLightsShadowAtlasLayout.ClearStaticCaches();
         }
 
         // If the URP gets destroyed, we must clean up all the added URP specific camera data and
@@ -306,20 +305,27 @@ namespace UnityEngine.Rendering.Universal
 #if RENDER_GRAPH_ENABLED
             useRenderGraph = asset.enableRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
 #else
-            useRenderGraph = RenderGraphGraphicsAutomatedTests.enabled;
+            if (RenderGraphGraphicsAutomatedTests.enabled)
+                asset.enableRenderGraph = useRenderGraph = true;
 #endif
+
+            SetHDRState(cameras);
+
+            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            // for performance reasons otherwise we render UI overlay after all camera
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
-            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
+            using var profScope = new ProfilingScope(ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
 
 #if UNITY_2021_1_OR_NEWER
-            using (new ProfilingScope(null, Profiling.Pipeline.beginContextRendering))
+            using (new ProfilingScope(Profiling.Pipeline.beginContextRendering))
             {
                 BeginContextRendering(renderContext, cameras);
             }
 #else
-            using (new ProfilingScope(null, Profiling.Pipeline.beginFrameRendering))
+            using (new ProfilingScope(Profiling.Pipeline.beginFrameRendering))
             {
                 BeginFrameRendering(renderContext, cameras);
             }
@@ -361,7 +367,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                    using (new ProfilingScope(Profiling.Pipeline.beginCameraRendering))
                     {
                         BeginCameraRendering(renderContext, camera);
                     }
@@ -373,7 +379,7 @@ namespace UnityEngine.Rendering.Universal
 
                     RenderSingleCameraInternal(renderContext, camera);
 
-                    using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                    using (new ProfilingScope(Profiling.Pipeline.endCameraRendering))
                     {
                         EndCameraRendering(renderContext, camera);
                     }
@@ -383,12 +389,12 @@ namespace UnityEngine.Rendering.Universal
             s_RenderGraph.EndFrame();
 
 #if UNITY_2021_1_OR_NEWER
-            using (new ProfilingScope(null, Profiling.Pipeline.endContextRendering))
+            using (new ProfilingScope(Profiling.Pipeline.endContextRendering))
             {
                 EndContextRendering(renderContext, cameras);
             }
 #else
-            using (new ProfilingScope(null, Profiling.Pipeline.endFrameRendering))
+            using (new ProfilingScope(Profiling.Pipeline.endFrameRendering))
             {
                 EndFrameRendering(renderContext, cameras);
             }
@@ -589,7 +595,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Clear(cameraData.renderType);
 
-                using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
+                using (new ProfilingScope(Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
                     renderer.OnPreCullRenderPasses(in cameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
@@ -607,18 +613,11 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.camera.targetTexture != null && cameraData.cameraType != CameraType.Preview)
                     ScriptableRenderContext.EmitGeometryForCamera(camera);
 
-                var cullResults = context.Cull(ref cullingParameters);
-                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, cmd, out var renderingData);
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                if (asset.useAdaptivePerformance)
-                    ApplyAdaptivePerformance(ref renderingData);
-#endif
-
                 // Update camera motion tracking (prev matrices) from cameraData.
                 // Called and updated only once, as the same camera can be rendered multiple times.
                 // NOTE: Tracks only the current (this) camera, not shadow views or any other offscreen views.
                 // NOTE: Shared between both Execute and Render (RG) paths.
-                if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
                     additionalCameraData.motionVectorsPersistentData.Update(ref cameraData);
 
                 // Update TAA persistent data based on cameraData. Most importantly resize the history render targets.
@@ -629,29 +628,40 @@ namespace UnityEngine.Rendering.Universal
 
                 RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
 
+                // Do NOT use cameraData after 'InitializeRenderingData'. CameraData state may diverge otherwise.
+                // RenderingData takes a copy of the CameraData.
+                var cullResults = context.Cull(ref cullingParameters);
+                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, cmd, out var renderingData);
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+                if (asset.useAdaptivePerformance)
+                    ApplyAdaptivePerformance(ref renderingData);
+#endif
+
+                InitializeMainLightShadowResolution(ref renderingData.shadowData);
+                renderingData.shadowAtlasLayout = BuildAdditionalLightsShadowAtlasLayout(ref renderingData.lightData, ref renderingData.shadowData, ref renderingData.cameraData);
+                renderingData.visibleLightsShadowCullingInfos = ShadowCulling.CullShadowCasters(ref context, ref renderingData.shadowData, ref renderingData.shadowAtlasLayout, ref cullResults);
+
                 renderer.AddRenderPasses(ref renderingData);
 
                 if (useRenderGraph)
                 {
                     RecordAndExecuteRenderGraph(s_RenderGraph, context, ref renderingData);
-                    renderer.FinishRenderGraphRendering(context, ref renderingData);
+                    renderer.FinishRenderGraphRendering(ref renderingData);
                 }
                 else
                 {
-                    using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
+                    using (new ProfilingScope(Profiling.Pipeline.Renderer.setup))
                         renderer.Setup(context, ref renderingData);
 
                     // Timing scope inside
                     renderer.Execute(context, ref renderingData);
                 }
-
-                CleanupLightData(ref renderingData.lightData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
 
-            using (new ProfilingScope(null, Profiling.Pipeline.Context.submit))
+            using (new ProfilingScope(Profiling.Pipeline.Context.submit))
             {
                 if (renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
                 {
@@ -673,7 +683,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to render.</param>
         static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
         {
-            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.RenderCameraStack));
+            using var profScope = new ProfilingScope(ProfilingSampler.Get(URPProfileId.RenderCameraStack));
 
             baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
 
@@ -688,6 +698,8 @@ namespace UnityEngine.Rendering.Universal
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
+
+            int rendererCount = asset.m_RendererDataList.Length;
 
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not
@@ -712,6 +724,15 @@ namespace UnityEngine.Rendering.Universal
                     if (currCamera.isActiveAndEnabled)
                     {
                         currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
+
+                        for (int j = 0; j < rendererCount; ++j)
+                        {
+                            var currRenderer = asset.GetRenderer(j);
+                            if (!currRenderer.hasReleasedRTs && currRenderer != renderer && currRenderer != data.scriptableRenderer)
+                            {
+                                currRenderer.ReleaseRenderTargets();
+                            }
+                        }
 
                         // Checking if the base and the overlay camera is of the same renderer type.
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
@@ -750,9 +771,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Post-processing not supported in GLES2.
-            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
             // Prepare XR rendering
@@ -771,7 +789,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
 
-                using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                using (new ProfilingScope(Profiling.Pipeline.beginCameraRendering))
                 {
                     BeginCameraRendering(context, baseCamera);
                 }
@@ -809,8 +827,20 @@ namespace UnityEngine.Rendering.Universal
                 // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
                 baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
 
+                if (!isStackedRendering)
+                {
+                    for (int i = 0; i < rendererCount; ++i)
+                    {
+                        var currRenderer = asset.GetRenderer(i);
+                        if (baseCameraData.renderer != null && !currRenderer.hasReleasedRTs && baseCameraData.renderer != currRenderer)
+                        {
+                            currRenderer.ReleaseRenderTargets();
+                        }
+                    }
+                }
+
                 RenderSingleCamera(context, ref baseCameraData, anyPostProcessingEnabled);
-                using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                using (new ProfilingScope(Profiling.Pipeline.endCameraRendering))
                 {
                     EndCameraRendering(context, baseCamera);
                 }
@@ -838,7 +868,7 @@ namespace UnityEngine.Rendering.Universal
 
                             UpdateCameraStereoMatrices(currAdditionalCameraData.camera, xrPass);
 
-                            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                            using (new ProfilingScope(Profiling.Pipeline.beginCameraRendering))
                             {
                                 BeginCameraRendering(context, currCamera);
                             }
@@ -855,7 +885,7 @@ namespace UnityEngine.Rendering.Universal
 
                             RenderSingleCamera(context, ref overlayCameraData, anyPostProcessingEnabled);
 
-                            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                            using (new ProfilingScope(Profiling.Pipeline.endCameraRendering))
                             {
                                 EndCameraRendering(context, currCamera);
                             }
@@ -913,7 +943,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
-            using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
+            using var profScope = new ProfilingScope(ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
 
             // We update the volume framework for:
             // * All cameras in the editor when not in playmode
@@ -980,7 +1010,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        static void SetSupportedRenderingFeatures()
+        static void SetSupportedRenderingFeatures(UniversalRenderPipelineAsset pipelineAsset)
         {
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
@@ -1000,11 +1030,13 @@ namespace UnityEngine.Rendering.Universal
             };
             SceneViewDrawMode.SetupDrawMode();
 #endif
+
+            SupportedRenderingFeatures.active.supportsHDR = pipelineAsset.supportsHDR;
         }
 
         static void InitializeCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, out CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeCameraData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeCameraData);
 
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
@@ -1029,9 +1061,9 @@ namespace UnityEngine.Rendering.Universal
 
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
 
-            // Render scale is not intended to affect the scene view so override the scale to 1.0 when it's rendered.
-            bool isSceneViewCamera = (camera.cameraType == CameraType.SceneView);
-            float renderScale = isSceneViewCamera ? 1.0f : cameraData.renderScale;
+            // Render scale is not intended to affect the scene or preview cameras so override the scale to 1.0 when it's rendered.
+            bool isSceneOrPreviewCamera = camera.cameraType == CameraType.SceneView || cameraData.cameraType == CameraType.Preview;
+            float renderScale = isSceneOrPreviewCamera ? 1.0f : cameraData.renderScale;
 
             cameraData.hdrColorBufferPrecision = asset ? asset.hdrColorBufferPrecision : HDRColorBufferPrecision._32Bits;
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, renderScale,
@@ -1047,7 +1079,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Camera data to initialize setttings.</param>
         static void InitializeStackedCameraData(Camera baseCamera, UniversalAdditionalCameraData baseAdditionalCameraData, ref CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeStackedCameraData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeStackedCameraData);
 
             var settings = asset;
             cameraData.targetTexture = baseCamera.targetTexture;
@@ -1150,7 +1182,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">Settings to be initilized.</param>
         static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, ref CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeAdditionalCameraData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeAdditionalCameraData);
 
             var settings = asset;
 
@@ -1197,9 +1229,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.screenCoordScaleBias = Vector2.one;
             }
 
-            // Disables post if GLes2
-            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-
             cameraData.requiresDepthTexture |= isSceneViewCamera;
             cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(ref cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
@@ -1212,22 +1241,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresOpaqueTexture = false;
             }
 
-#if URP_EXPERIMENTAL_TAA_ENABLE
-            // NOTE: depends on XR modifications of cameraTargetDescriptor.
+            // NOTE: TAA depends on XR modifications of cameraTargetDescriptor.
             if (additionalCameraData != null)
-            {
-                // Initialize shared TAA target desc.
-                ref var desc = ref cameraData.cameraTargetDescriptor;
-                cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
-                cameraData.taaPersistentData.Init(desc.width, desc.height, desc.volumeDepth, desc.graphicsFormat, desc.vrUsage, desc.dimension);
-
-                ref var taaSettings = ref additionalCameraData.taaSettings;
-                cameraData.taaSettings = taaSettings;
-
-                // Decrease history clear counter. Typically clear is only 1 frame, but can be many for XR multipass eyes!
-                taaSettings.resetHistoryFrames -= taaSettings.resetHistoryFrames > 0 ? 1 : 0;
-            }
-#endif
+                UpdateTemporalAAData(ref cameraData, additionalCameraData);
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
 
@@ -1243,6 +1259,10 @@ namespace UnityEngine.Rendering.Universal
                 float newCotangent = cotangent / cameraData.aspectRatio;
                 projectionMatrix.m00 = newCotangent;
             }
+
+            // TAA debug settings
+            // Affects the jitter set just below. Do not move.
+            ApplyTaaRenderingDebugOverrides(ref cameraData.taaSettings);
 
             // Depends on the cameraTargetDesc, size and MSAA also XR modifications of those.
             Matrix4x4 jitterMat = TemporalAA.CalculateJitterMatrix(ref cameraData);
@@ -1265,7 +1285,7 @@ namespace UnityEngine.Rendering.Universal
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
             bool anyPostProcessingEnabled, CommandBuffer cmd, out RenderingData renderingData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeRenderingData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeRenderingData);
 
             var visibleLights = cullResults.visibleLights;
 
@@ -1305,16 +1325,22 @@ namespace UnityEngine.Rendering.Universal
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             InitializePostProcessingData(settings, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
-            renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount, ((settings.scriptableRendererData as UniversalRendererData)?.renderingMode ?? RenderingMode.Forward) == RenderingMode.ForwardPlus);
+            var isForwardPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
+            renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount, isForwardPlus);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
             renderingData.commandBuffer = cmd;
+
+            // Those two fields must be initialized using ShadowData, which can be modified right after this function (InitializeRenderingData) by ApplyAdaptivePerformance.
+            // Their initializations is thus deferred to a later point when ShadowData is fully initialized.
+            renderingData.shadowAtlasLayout = default;
+            renderingData.visibleLightsShadowCullingInfos = default;
 
             CheckAndApplyDebugSettings(ref renderingData);
         }
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeShadowData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeShadowData);
 
             m_ShadowBiasData.Clear();
             m_ShadowResolutionData.Clear();
@@ -1359,8 +1385,7 @@ namespace UnityEngine.Rendering.Universal
             shadowData.requiresScreenSpaceShadowResolve = false;
 #pragma warning restore 0618
 
-            // On GLES2 we strip the cascade keywords from the lighting shaders, so for consistency we force disable the cascades here too
-            shadowData.mainLightShadowCascadesCount = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ? 1 : settings.shadowCascadeCount;
+            shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = settings.mainLightShadowmapResolution;
 
@@ -1393,6 +1418,20 @@ namespace UnityEngine.Rendering.Universal
             // This will be setup in AdditionalLightsShadowCasterPass.
             shadowData.isKeywordAdditionalLightShadowsEnabled = false;
             shadowData.isKeywordSoftShadowsEnabled = false;
+
+            // Those fields must be setup after ApplyAdaptivePerformance is called on RenderingData.
+            // This is because this function can currently modify mainLightShadowmapWidth, mainLightShadowmapHeight and mainLightShadowCascadesCount.
+            // All three parameters are needed to compute those fields, so their initialization is deferred to InitializeMainLightShadowResolution.
+            shadowData.mainLightShadowResolution = 0;
+            shadowData.mainLightRenderTargetWidth = 0;
+            shadowData.mainLightRenderTargetHeight = 0;
+        }
+
+        static void InitializeMainLightShadowResolution(ref ShadowData shadowData)
+        {
+            shadowData.mainLightShadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(shadowData.mainLightShadowmapWidth, shadowData.mainLightShadowmapHeight, shadowData.mainLightShadowCascadesCount);
+            shadowData.mainLightRenderTargetWidth = shadowData.mainLightShadowmapWidth;
+            shadowData.mainLightRenderTargetHeight = (shadowData.mainLightShadowCascadesCount == 2) ? shadowData.mainLightShadowmapHeight >> 1 : shadowData.mainLightShadowmapHeight;
         }
 
         static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
@@ -1401,13 +1440,16 @@ namespace UnityEngine.Rendering.Universal
                 ? settings.colorGradingMode
                 : ColorGradingMode.LowDynamicRange;
 
+            if (HDROutputIsActive())
+                postProcessingData.gradingMode = ColorGradingMode.HighDynamicRange;
+
             postProcessingData.lutSize = settings.colorGradingLutSize;
             postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
         }
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeLightData);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.initializeLightData);
 
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
@@ -1434,16 +1476,42 @@ namespace UnityEngine.Rendering.Universal
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
-            lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.Temp);
-            for (var i = 0; i < lightData.originalIndices.Length; i++)
+        }
+
+        private static void ApplyTaaRenderingDebugOverrides(ref TemporalAA.Settings taaSettings)
+        {
+            var debugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
+            DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
+            switch (renderingSettings.taaDebugMode)
             {
-                lightData.originalIndices[i] = i;
+                case DebugDisplaySettingsRendering.TaaDebugMode.ShowClampedHistory:
+                    taaSettings.frameInfluence = 0;
+                    break;
+
+                case DebugDisplaySettingsRendering.TaaDebugMode.ShowRawFrame:
+                    taaSettings.frameInfluence = 1;
+                    break;
+
+                case DebugDisplaySettingsRendering.TaaDebugMode.ShowRawFrameNoJitter:
+                    taaSettings.frameInfluence = 1;
+                    taaSettings.jitterScale = 0;
+                    break;
             }
         }
 
-        static void CleanupLightData(ref LightData lightData)
+        private static void UpdateTemporalAAData(ref CameraData cameraData, UniversalAdditionalCameraData additionalCameraData)
         {
-            lightData.originalIndices.Dispose();
+            // Initialize shared TAA target desc.
+            ref var desc = ref cameraData.cameraTargetDescriptor;
+            cameraData.taaPersistentData = additionalCameraData.taaPersistentData;
+            cameraData.taaPersistentData.Init(desc.width, desc.height, desc.volumeDepth, desc.graphicsFormat, desc.vrUsage, desc.dimension);
+
+            // Update TAA settings
+            ref var taaSettings = ref additionalCameraData.taaSettings;
+            cameraData.taaSettings = taaSettings;
+
+            // Decrease history clear counter. Typically clear is only 1 frame, but can be many for XR multipass eyes!
+            taaSettings.resetHistoryFrames -= taaSettings.resetHistoryFrames > 0 ? 1 : 0;
         }
 
         private static void UpdateTemporalAATargets(ref CameraData cameraData)
@@ -1487,16 +1555,19 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static PerObjectData GetPerObjectLightFlags(int additionalLightsCount, bool clustering)
+        static PerObjectData GetPerObjectLightFlags(int additionalLightsCount, bool isForwardPlus)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.getPerObjectLightFlags);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.getPerObjectLightFlags);
 
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
+            var configuration = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
-            if (additionalLightsCount > 0 && !clustering)
+            if (!isForwardPlus)
             {
-                configuration |= PerObjectData.LightData;
+                configuration |= PerObjectData.ReflectionProbes | PerObjectData.LightData;
+            }
 
+            if (additionalLightsCount > 0 && !isForwardPlus)
+            {
                 // In this case we also need per-object indices (unity_LightIndices)
                 if (!RenderingUtils.useStructuredBuffer)
                     configuration |= PerObjectData.LightIndices;
@@ -1508,7 +1579,7 @@ namespace UnityEngine.Rendering.Universal
         // Main Light is always a directional light
         static int GetMainLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.getMainLightIndex);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.getMainLightIndex);
 
             int totalVisibleLights = visibleLights.Length;
 
@@ -1549,7 +1620,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void SetupPerFrameShaderConstants()
         {
-            using var profScope = new ProfilingScope(null, Profiling.Pipeline.setupPerFrameShaderConstants);
+            using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerFrameShaderConstants);
 
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
@@ -1558,8 +1629,8 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
 
             // Used as fallback cubemap for reflections
-            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
             Shader.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
+            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
 
             // Ambient
             Shader.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
@@ -1623,7 +1694,8 @@ namespace UnityEngine.Rendering.Universal
             ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
 
             // Fall back to the automatic filter if FSR was selected, but isn't supported on the current platform
-            if ((selection == UpscalingFilterSelection.FSR) && !FSRUtils.IsSupported())
+            // TODO: Investigate how to make FSR work with HDR output.
+            if ((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported() || HDROutputIsActive()))
             {
                 selection = UpscalingFilterSelection.Auto;
             }
@@ -1678,6 +1750,114 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return filter;
+        }
+
+        /// <summary>
+        /// Checks if the hardware (main display and platform) and the render pipeline support HDR.
+        /// </summary>
+        /// <returns>True if the main display and platform support HDR and HDR output is enabled on the platform.</returns>
+        internal static bool HDROutputIsActive()
+        {
+            bool hdrOutputSupported = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && asset.supportsHDR;
+            bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
+            // TODO: Until we can test it, disable for mobile
+            return !Application.isMobilePlatform && hdrOutputSupported && hdrOutputActive;
+        }
+
+        /// <summary>
+        /// Configures the render pipeline to render to HDR output or disables HDR output.
+        /// </summary>
+#if UNITY_2021_1_OR_NEWER
+        static void SetHDRState(List<Camera> cameras)
+#else
+        static void SetHDRState(Camera[] cameras)
+#endif
+        {
+            bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
+
+            // If the pipeline doesn't support HDR rendering, output to SDR.
+            bool supportsSwitchingHDR = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
+            bool switchHDRToSDR = supportsSwitchingHDR && !asset.supportsHDR && hdrOutputActive;
+            if (switchHDRToSDR)
+            {
+                HDROutputSettings.main.RequestHDRModeChange(false);
+            }
+
+#if UNITY_EDITOR
+            bool requestedHDRModeChange = false;
+
+            // Automatically switch to HDR in the editor if it's available
+            if (supportsSwitchingHDR && asset.supportsHDR && PlayerSettings.useHDRDisplay && HDROutputSettings.main.available)
+            {
+#if UNITY_2021_1_OR_NEWER
+                int cameraCount = cameras.Count;
+#else
+                int cameraCount = cameras.Length;
+#endif
+                if (cameraCount > 0 && cameras[0].cameraType != CameraType.Game)
+                {
+                    requestedHDRModeChange = hdrOutputActive;
+                    HDROutputSettings.main.RequestHDRModeChange(false);
+                }
+                else
+                {
+                    requestedHDRModeChange = !hdrOutputActive;
+                    HDROutputSettings.main.RequestHDRModeChange(true);
+                }
+            }
+
+            if (requestedHDRModeChange || switchHDRToSDR)
+            {
+                // Repaint scene views and game views so the HDR mode request is applied
+                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+            }
+#endif
+
+            // Make sure HDR auto tonemap is off if the URP is handling it
+            if (hdrOutputActive)
+            {
+                HDROutputSettings.main.automaticHDRTonemapping = false;
+            }
+        }
+
+        internal static void GetHDROutputLuminanceParameters(Tonemapping tonemapping, out Vector4 hdrOutputParameters)
+        {
+            float minNits = HDROutputSettings.main.minToneMapLuminance;
+            float maxNits = HDROutputSettings.main.maxToneMapLuminance;
+            float paperWhite = HDROutputSettings.main.paperWhiteNits;
+            ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
+
+            if (!tonemapping.detectPaperWhite.value)
+            {
+                paperWhite = tonemapping.paperWhite.value;
+            }
+            if (!tonemapping.detectBrightnessLimits.value)
+            {
+                minNits = tonemapping.minNits.value;
+                maxNits = tonemapping.maxNits.value;
+            }
+
+            hdrOutputParameters = new Vector4(minNits, maxNits, paperWhite, (int)colorPrimaries);
+        }
+
+        internal static void GetHDROutputGradingParameters(Tonemapping tonemapping, out Vector4 hdrOutputParameters)
+        {
+            int eetfMode = 0;
+            float hueShift = 0.0f;
+
+            switch (tonemapping.mode.value)
+            {
+                case TonemappingMode.Neutral:
+                    eetfMode = (int)tonemapping.neutralHDRRangeReductionMode.value;
+                    hueShift = tonemapping.hueShiftAmount.value;
+                    break;
+
+                case TonemappingMode.ACES:
+                    eetfMode = (int)tonemapping.acesPreset.value;
+                    break;
+            }
+
+            hdrOutputParameters = new Vector4(eetfMode, hueShift, 0.0f, 0.0f);
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
@@ -1772,6 +1952,12 @@ namespace UnityEngine.Rendering.Universal
             /// Target texture slice
             /// </summary>
             public int slice = 0;
+        }
+
+        static AdditionalLightsShadowAtlasLayout BuildAdditionalLightsShadowAtlasLayout(ref LightData lightData, ref ShadowData shadowData, ref CameraData cameraData)
+        {
+            using var profScope = new ProfilingScope(Profiling.Pipeline.buildAdditionalLightsShadowAtlasLayout);
+            return new AdditionalLightsShadowAtlasLayout(ref lightData, ref shadowData, ref cameraData);
         }
     }
 }

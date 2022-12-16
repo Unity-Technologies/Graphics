@@ -98,6 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.commonData.localClouds);
                 CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", false);
+                CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", parameters.commonData.simplePreset);
 
                 // Bind the constant buffer
                 ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
@@ -132,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowTexture.rt.IncrementUpdateCount();
 
                 CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
+                CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", false);
             }
         }
 

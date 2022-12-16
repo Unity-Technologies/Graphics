@@ -31,6 +31,28 @@ namespace UnityEditor.VFX.UI
         ShortcutHandler m_ShortcutHandler;
         VisualEffect m_pendingAttachment;
 
+        static VFXViewWindow()
+        {
+            EditorApplication.wantsToQuit += OnQuitting;
+        }
+
+        static bool OnQuitting()
+        {
+            VFXAnalytics.GetInstance().OnQuitApplication();
+
+#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
+            foreach (var window in GetAllWindows().ToList())
+            {
+                if (window.graphView != null)
+                {
+                    window.graphView.controller = null;
+                }
+            }
+#endif
+
+            return true;
+        }
+
         void OnEnable()
         {
             s_VFXWindows.Add(this);
@@ -298,10 +320,6 @@ namespace UnityEditor.VFX.UI
                 rootVisualElement.AddManipulator(m_ShortcutHandler);
             }
 
-#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
-            EditorApplication.wantsToQuit += Quitting_Workaround;
-#endif
-
             if (graphView?.controller == null && m_DisplayedResource != null)
             {
                 LoadResource(m_DisplayedResource);
@@ -315,25 +333,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
-        private bool Quitting_Workaround()
-        {
-            if (graphView != null)
-                graphView.controller = null;
-            return true;
-        }
-
-#endif
-
         protected void OnDestroy()
         {
             s_VFXWindows.Remove(this);
-#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
-            EditorApplication.wantsToQuit -= Quitting_Workaround;
-#endif
 
             if (graphView != null)
             {
+                if (graphView.controller != null)
+                    VFXAnalytics.GetInstance().OnGraphClosed(graphView);
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.Dispose();

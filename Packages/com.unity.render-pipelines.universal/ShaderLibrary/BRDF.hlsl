@@ -27,11 +27,7 @@ struct BRDFData
 
 half ReflectivitySpecular(half3 specular)
 {
-#if defined(SHADER_API_GLES)
-    return specular.r; // Red channel - because most metals are either monochrome or with redish/yellowish tint
-#else
     return Max3(specular.r, specular.g, specular.b);
-#endif
 }
 
 half OneMinusReflectivityMetallic(half metallic)

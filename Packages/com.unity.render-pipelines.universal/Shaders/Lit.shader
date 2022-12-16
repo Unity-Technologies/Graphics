@@ -239,8 +239,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma target 4.5
 
             // Deferred Rendering Path does not support the OpenGL-based graphics API:
-            // Desktop OpenGL, OpenGL ES 2.0, OpenGL ES 3.0, WebGL 1.0, WebGL 2.0.
-            #pragma exclude_renderers gles gles3 glcore
+            // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
+            #pragma exclude_renderers gles3 glcore
 
             // -------------------------------------
             // Shader Stages

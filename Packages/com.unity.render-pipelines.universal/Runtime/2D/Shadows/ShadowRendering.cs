@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.Universal
             #if UNITY_EDITOR
                 return SceneVisibilityManager.instance == null ? true : !SceneVisibilityManager.instance.IsHidden(shadowCaster.gameObject);
             #else
-                return true;        
+                return true;
             #endif
         }
 
@@ -306,12 +306,8 @@ namespace UnityEngine.Rendering.Universal
                 if (ShadowCasterIsVisible(shadowCaster) && shadowCaster.castingOption == ShadowCaster2D.ShadowCastingOptions.CastShadow)
                 {
                     Renderer renderer = GetRendererFromCaster(shadowCaster, light, layerToRender);
-                    int numberOfMaterials = renderer != null ? shadowCaster.spriteMaterialCount : 1;
-                    for (int materialIndex = 0; materialIndex < numberOfMaterials; materialIndex++)
-                    {
-                        SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
-                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedUnshadowMaterial, materialIndex, 1);
-                    }
+                    SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
+                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedUnshadowMaterial, 0, 1);
                 }
             }
 
@@ -399,7 +395,7 @@ namespace UnityEngine.Rendering.Universal
                                     // Draw the projected shadows for the shadow caster group. Only writes the composite stencil bit
                                     RenderProjectedShadows(cmdBuffer, layerToRender, light, shadowCasters, projectedShadowMaterial, 0);
 
-                                    // Render self shadowing or non self shadowing 
+                                    // Render self shadowing or non self shadowing
                                     RenderSelfShadowOption(cmdBuffer, layerToRender, light, shadowCasters, projectedUnshadowMaterial, spriteShadowMaterial, spriteUnshadowMaterial, geometryShadowMaterial, geometryUnshadowMaterial);
                                 }
                             }

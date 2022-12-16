@@ -160,8 +160,8 @@ public unsafe class BRGSetup : MonoBehaviour
         uint kBRGBufferAlignment = 16;
         if (UseConstantBuffer)
         {
-            kBRGBufferMaxWindowSize = (uint)(SystemInfo.maxConstantBufferSize);
-            kBRGBufferAlignment = (uint)SystemInfo.constantBufferOffsetAlignment;
+            kBRGBufferMaxWindowSize = (uint)(BatchRendererGroup.GetConstantBufferMaxWindowSize());
+            kBRGBufferAlignment = (uint)(BatchRendererGroup.GetConstantBufferOffsetAlignment());
         }
 
         m_Globals = new GraphicsBuffer(GraphicsBuffer.Target.Constant,

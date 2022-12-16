@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering
 
         internal static List<ProbeVolume> GetProbeVolumeList()
         {
-            var fullPvList = GameObject.FindObjectsOfType<ProbeVolume>();
+            var fullPvList = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
             List<ProbeVolume> usedPVList;
 
             if (isBakingSceneSubset)
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering
 
             ProbeReferenceVolume.instance.Clear();
 
-            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            var probeVolumes = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
             foreach (var probeVolume in probeVolumes)
                 probeVolume.OnLightingDataAssetCleared();
         }
@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering
                 var scene = SceneManager.GetSceneAt(i);
                 if (!scene.isLoaded)
                     continue;
-                sceneData.OnSceneSaved(scene); // We need to perform the same actions we do when the scene is saved.
+                sceneData.OnSceneSaving(scene); // We need to perform the same actions we do when the scene is saved.
                 if (sceneData.GetBakingSetForScene(scene) != activeSet && sceneData.SceneHasProbeVolumes(scene))
                 {
                     Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
@@ -489,7 +489,6 @@ namespace UnityEngine.Rendering
             if (pvList.Count == 0) return; // We have no probe volumes.
 
             CachePVHashes(pvList);
-            ProbeReferenceVolume.instance.checksDuringBakeAction = CheckPVChanges;
 
             currentBakingState = BakingStage.Started;
 
@@ -808,7 +807,7 @@ namespace UnityEngine.Rendering
             var virtualOffsets = m_BakingBatch.virtualOffsets;
 
             // This is slow, but we should have very little amount of touchup volumes.
-            var touchupVolumes = GameObject.FindObjectsOfType<ProbeTouchupVolume>();
+            var touchupVolumes = GameObject.FindObjectsByType<ProbeTouchupVolume>(FindObjectsSortMode.InstanceID);
             var touchupVolumesAndBounds = new List<(ProbeReferenceVolume.Volume obb, Bounds aabb, ProbeTouchupVolume touchupVolume)>(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
             {
@@ -1089,11 +1088,7 @@ namespace UnityEngine.Rendering
             // Mark old bakes as out of date if needed
             ProbeVolumeLightingTab.instance?.UpdateScenarioStatuses(ProbeReferenceVolume.instance.lightingScenario);
 
-            // We are done with baking so we reset the partial bake scene list.
-            partialBakeSceneList = null;
-
             currentBakingState = BakingStage.OnBakeCompletedFinished;
-
         }
 
         static void AnalyzeBrickForIndirectionEntries(ref BakingCell cell)
@@ -1808,7 +1803,9 @@ namespace UnityEngine.Rendering
         public static void OnBakeCompletedCleanup()
         {
             Lightmapping.bakeCompleted -= OnBakeCompletedCleanup;
+
             ProbeReferenceVolume.instance.checksDuringBakeAction = null;
+            partialBakeSceneList = null;
 
             if (currentBakingState != BakingStage.OnBakeCompletedFinished && currentBakingState != BakingStage.OnBakeCompletedStarted)
             {
@@ -1830,6 +1827,7 @@ namespace UnityEngine.Rendering
         public static void RunPlacement()
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            ProbeReferenceVolume.instance.checksDuringBakeAction = CheckPVChanges;
             AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
             Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
 

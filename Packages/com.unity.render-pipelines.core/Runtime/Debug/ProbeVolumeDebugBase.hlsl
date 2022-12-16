@@ -6,6 +6,8 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeReferenceVolume.Debug.cs.hlsl"
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
 uniform int _ShadingMode;
 uniform float _ExposureCompensation;
 uniform float _ProbeSize;
@@ -16,6 +18,15 @@ uniform int _MaxAllowedSubdiv;
 uniform int _MinAllowedSubdiv;
 uniform float _ValidityThreshold;
 uniform float _OffsetSize;
+
+// Sampling Position Debug
+uniform bool _DebugProbeVolumeSampling = false;
+StructuredBuffer<float4> _positionNormalBuffer;
+uniform float4 _DebugArrowColor; // arrow color for position and normal debug
+uniform float4 _DebugLocator01Color; // locator color for final sampling position debug
+uniform float4 _DebugLocator02Color; // locator color for normal and view bias sampling position debug
+uniform bool _ForceDebugNormalViewBias; // additional locator to debug Normal Bias and View Bias without AntiLeak Reduction Mode
+uniform sampler2D _NumbersTex;
 
 UNITY_INSTANCING_BUFFER_START(Props)
     UNITY_DEFINE_INSTANCED_PROP(float, _Validity)
@@ -30,6 +41,8 @@ struct appdata
 {
     float4 vertex : POSITION;
     float3 normal : NORMAL;
+    float4 color  : COLOR0;
+    float2 texCoord : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -37,14 +50,149 @@ struct v2f
 {
     float4 vertex : SV_POSITION;
     float3 normal : TEXCOORD1;
+    float4 color  : COLOR0;
+    float2 texCoord : TEXCOORD0;
+    float2 samplingFactor_ValidityWeight : TEXCOORD2; // stores sampling factor (for Probe Sampling Debug view) and validity weight
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 void DoCull(inout v2f o)
 {
-    o.vertex = float4(0, 0, 0, 0);
-    o.normal = float3(0, 0, 0);
+    ZERO_INITIALIZE(v2f, o);
+    o.samplingFactor_ValidityWeight = float2(0.0f, 1.0f);
 }
+
+// snappedProbePosition_WS : worldspace position of main probe (a corner of the 8 probes cube)
+// samplingPosition_WS : worldspace sampling position after applying 'NormalBias' and 'ViewBias' and 'ValidityAndNormalBased Leak Reduction'
+// normalizedOffset : normalized offset between sampling position and snappedProbePosition
+void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosition_WS, out float3 samplingPosition_WS, out float3 samplingPositionNoAntiLeak_WS, out float probeDistance, out float3 normalizedOffset, out float validityWeights[8])
+{
+    float3 cameraPosition_WS = _WorldSpaceCameraPos;
+    float3 viewDir_WS = normalize(cameraPosition_WS - posWS);
+
+    APVResources apvRes = FillAPVResources();
+    float3 uvw;
+    uint subdiv;
+    float3 biasedPosWS;
+    bool valid = TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir_WS, uvw, subdiv, biasedPosWS);
+
+    probeDistance = ProbeDistance(subdiv);
+    snappedProbePosition_WS = GetSnappedProbePosition(biasedPosWS, subdiv);
+    samplingPositionNoAntiLeak_WS = biasedPosWS;
+
+    WarpUVWLeakReduction(apvRes, posWS, normalWS, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
+
+    if (_LeakReductionParams.x != 0)
+    {
+        samplingPosition_WS = snappedProbePosition_WS + (normalizedOffset*probeDistance);
+    }
+    else
+    {
+        normalizedOffset = (biasedPosWS - snappedProbePosition_WS) / probeDistance;
+        samplingPosition_WS = biasedPosWS;
+    }
+
+}
+
+// Return probe sampling weight
+float ComputeSamplingFactor(float3 probePosition_WS, float3 snappedProbePosition_WS, float3 normalizedOffset, float probeDistance)
+{
+    float samplingFactor = 0.0f;
+
+    if (distance(snappedProbePosition_WS, probePosition_WS) < 0.0001f)
+    {
+        samplingFactor = (1.0f-normalizedOffset.x) * (1.0f-normalizedOffset.y) * (1.0f-normalizedOffset.z);
+    }
+
+    else if (distance(snappedProbePosition_WS, probePosition_WS + float3(-1.0f, 0.0f, 0.0f)*probeDistance) < 0.0001f)
+    {
+        samplingFactor = (normalizedOffset.x) * (1.0f-normalizedOffset.y) * (1.0f-normalizedOffset.z);
+    }
+
+    else if (distance(snappedProbePosition_WS, probePosition_WS + float3(-1.0f, -1.0f, 0.0f)*probeDistance) < 0.0001f)
+    {
+        samplingFactor = (normalizedOffset.x) * (normalizedOffset.y) * (1.0f-normalizedOffset.z);
+    }
+
+    else if (distance(snappedProbePosition_WS, probePosition_WS + float3(0.0f, -1.0f, 0.0f)*probeDistance) < 0.0001f)
+    {
+        samplingFactor = (1.0f-normalizedOffset.x) * (normalizedOffset.y) * (1.0f-normalizedOffset.z);
+    }
+
+    else if (distance(snappedProbePosition_WS, probePosition_WS + float3(-1.0f, 0.0f, -1.0f)*probeDistance) < 0.0001f)
+    {
+        samplingFactor = (normalizedOffset.x) * (1.0f-normalizedOffset.y) * (normalizedOffset.z);
+    }
+
+    else if (distance(snappedProbePosition_WS, probePosition_WS + float3(0.0f, 0.0f, -1.0f)*probeDistance) < 0.0001f)
+    {
+        samplingFactor = (1.0f-normalizedOffset.x) * (1.0f-normalizedOffset.y) * (normalizedOffset.z);
+    }
+
+    else if (distance(snappedProbePosition_WS, probePosition_WS + float3(-1.0f, -1.0f, -1.0f)*probeDistance) < 0.0001f)
+    {
+        samplingFactor = (normalizedOffset.x) * (normalizedOffset.y) * (normalizedOffset.z);
+    }
+
+    else if (distance(snappedProbePosition_WS, probePosition_WS + float3(0.0f, -1.0f, -1.0f)*probeDistance) < 0.0001f)
+    {
+        samplingFactor = (1.0f-normalizedOffset.x) * (normalizedOffset.y) * (normalizedOffset.z);
+    }
+
+    return samplingFactor;
+}
+
+// Sample a texture with numbers at the right place depending on a number input
+half4 SampleCharacter(int input, float2 texCoord) // Samples _NumbersTex to get given character
+{
+    // texture is divided in 16 parts and contains following characters : '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'  (+ empty space)
+    float2 uv = float2((texCoord.x + input) / 16.0f, texCoord.y);
+    half4 color = tex2D(_NumbersTex, uv);
+    return color;
+}
+
+// Writes a floating number with two decimals using a texture with numbers.
+// Use to debug probe sampling weights with text
+half4 WriteFractNumber(float input, float2 texCoord)
+{
+    // using 4 characters
+    float i = 4.0f;
+
+    // 0.00X
+    int n3_value = floor(frac(input * 100.0f) * 10.0f);
+    int n2_add = 0;
+    if (n3_value >= 5) {n2_add = 1;}
+
+    // 0.0X
+    int n2_value = floor(frac(input * 10.0f) * 10.0f);
+    n2_value += n2_add;
+    int n1_add = 0;
+    if (n2_value >= 10) {n2_value -= 10; n1_add = 1;}
+
+    // 0.X
+    int n1_value = floor(frac(input) * 10.0f);
+    n1_value += n1_add;
+    int n0_add = 0;
+    if (n1_value >= 10) {n1_value -= 10; n0_add = 1;}
+
+    // X
+    int n0_value = floor(input);
+    n0_value += n0_add;
+
+    float2 n0_uv = float2(clamp(texCoord.x*i - 0.0f, 0.0f, 1.0f), texCoord.y);
+    float2 dot_uv = float2(clamp(texCoord.x*i - 1.0f, 0.0f, 1.0f), texCoord.y);
+    float2 n1_uv = float2(clamp(texCoord.x*i - 2.0f, 0.0f, 1.0f), texCoord.y);
+    float2 n2_uv = float2(clamp(texCoord.x*i - 3.0f, 0.0f, 1.0f), texCoord.y);
+
+    half4 n0 = SampleCharacter(n0_value, n0_uv);
+    half4 dot = SampleCharacter(10, dot_uv);
+    half4 n1 = SampleCharacter(n1_value, n1_uv);
+    half4 n2 = SampleCharacter(n2_value, n2_uv);
+
+    return n0 * dot * n1 * n2;
+}
+
+
 
 // Finer culling, degenerate the vertices of the debug element if it lies over the max distance.
 // Coarser culling has already happened on CPU.
@@ -53,13 +201,14 @@ bool ShouldCull(inout v2f o)
     float4 position = float4(UNITY_MATRIX_M._m03_m13_m23, 1);
     int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
 
-    if(distance(position.xyz, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
+    bool shouldCull = false;
+    if (distance(position.xyz, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
     {
         DoCull(o);
-        return true;
+        shouldCull = true;
     }
 
-    return false;
+    return shouldCull;
 }
 
 float3 EvalL1(float3 L0, float3 L1_R, float3 L1_G, float3 L1_B, float3 N)

@@ -1,18 +1,17 @@
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-
-using UnityEditor.VFX;
+using System.IO;
+using System.Collections.ObjectModel;
 
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
+using UnityEditor.VFX.UI;
+
 using Object = UnityEngine.Object;
-using System.IO;
-using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX
 {
@@ -1006,7 +1005,7 @@ namespace UnityEditor.VFX
             m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
         }
 
-        public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
+        public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation, VFXAnalytics analytics)
         {
             // Early out in case: (Not even displaying the popup)
             if (m_Graph.children.Count() < 1 ||         // Graph is empty
@@ -1232,6 +1231,8 @@ namespace UnityEditor.VFX
             {
                 var error = $"Unity cannot compile the VisualEffectAsset at path \"{assetPath}\" because of the following exception:\n{e}";
                 Debug.LogError(error);
+                analytics?.OnCompilationError(e);
+
                 CleanRuntimeData();
             }
             finally

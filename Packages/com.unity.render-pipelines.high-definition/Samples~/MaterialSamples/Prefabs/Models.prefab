@@ -1013,13 +1013,13 @@ MonoBehaviour:
 
 
     - Recursive
-    Rendering has access to the real geometry, so Planar and Sphere Refraction Models
-    will have the same result.
+    Rendering has access to the actual thickness and real geometry of the object.
+    So until Max Depth is reached, the Thickness material property is ignored and
+    Planar and Sphere Refraction Models have the same result.
 
-    - Recursive Rendering accounts for the actual
-    thickness of the objects, the material property is ignored.
-
-'
+    - When Max Depth
+    is reached, Recursive Rendering fallbacks to regular Refraction Models using
+    the Thickness material property.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

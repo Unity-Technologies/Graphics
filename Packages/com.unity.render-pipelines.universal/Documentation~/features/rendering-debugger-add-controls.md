@@ -12,7 +12,7 @@ To create a widget and add it to a new panel, do the following:
 4. Create a panel using [DebugUI.instance.GetPanel](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@15.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_GetPanel_System_String_System_Boolean_System_Int32_System_Boolean_).
 5. Add the widget to an array.
 6. Add the widget array to the list of children in the panel.
- 
+
 If you add 2 or more widgets to the array, the panel displays the widgets in the same order as the array.
 
 The following code sample creates and adds a widget that enables or disables the main directional light:
@@ -58,7 +58,7 @@ public class CustomDebugPanel : MonoBehaviour
         panel.children.Add(widgetList.ToArray());
     }
 
-    // Remove the custom panel if the GameObject is disabled 
+    // Remove the custom panel if the GameObject is disabled
     void OnDisable()
     {
         DebugManager.instance.RemovePanel("My Custom Panel");

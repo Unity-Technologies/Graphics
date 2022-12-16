@@ -357,10 +357,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public override void Destroy()
+        public override void Dispose()
         {
+            if (m_SgBlackboardField == null)
+                return;
+
+            base.Dispose();
             Cleanup();
-            BlackboardItemView.RemoveFromHierarchy();
+            BlackboardItemView.Dispose();
+            m_SgBlackboardField.Dispose();
+
+            m_BlackboardRowView = null;
+            m_SgBlackboardField = null;
         }
     }
 }

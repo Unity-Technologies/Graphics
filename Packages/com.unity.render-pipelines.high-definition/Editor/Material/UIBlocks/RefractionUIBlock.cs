@@ -98,10 +98,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             if (thicknessMap[0].textureValue == null)
                             {
                                 materialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
-                                ++EditorGUI.indentLevel;
                                 materialEditor.ShaderProperty(thickness[0], Styles.refractionThicknessText);
                                 thickness[0].floatValue = Mathf.Max(thickness[0].floatValue, 0);
-                                --EditorGUI.indentLevel;
                             }
                             else
                             {
@@ -119,10 +117,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (transmittanceColorMap != null)
                         {
                             materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
-                            ++EditorGUI.indentLevel;
                             materialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
                             atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
-                            --EditorGUI.indentLevel;
                         }
                     }
                     break;

@@ -402,33 +402,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
-#if UNITY_EDITOR
-        // Defaults for renderer features that are not dependent on other settings.
-        // These are the filter rules if no such renderer features are present.
-
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
-
-        // TODO: decal settings needs some rework before we can filter DBufferMRT/DecalNormalBlend.
-        // Atm the setup depends on the technique but settings are present for both at the same time.
-        //[ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.DBufferMRT1, ShaderKeywordStrings.DBufferMRT2, ShaderKeywordStrings.DBufferMRT3})]
-        //[ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.DecalNormalBlendLow, ShaderKeywordStrings.DecalNormalBlendMedium, ShaderKeywordStrings.DecalNormalBlendHigh})]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DecalLayers)]
-        private const bool k_RendererFeatureDefaults = true;
-
-        // Platform specific filtering overrides
-
-        [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES2)]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.LightLayers)]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.RenderPassEnabled)]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.MainLightShadowCascades, ShaderKeywordStrings.MainLightShadowScreen})]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings._DETAIL_MULX2, ShaderKeywordStrings._DETAIL_SCALED})]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings._CLEARCOAT, ShaderKeywordStrings._CLEARCOATMAP})]
-        private const bool k_GLES2Defaults = true;
-
-        [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES2, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.WriteRenderingLayers)]
-        private const bool k_CommonGLDefaults = true;
-#endif
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
@@ -462,9 +435,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
 
 #if UNITY_EDITOR // multi_compile_fragment _ LOD_FADE_CROSSFADE
-        // TODO: Add RenderPipelineGlobalSettings to filter data hierarchy and select both variants based on
-        // stripUnusedLODCrossFadeVariants. Then we can try removing here based on this setting.
-        // [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LOD_FADE_CROSSFADE)]
+        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LOD_FADE_CROSSFADE)]
 #endif
         [SerializeField] bool m_EnableLODCrossFade = true;
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
@@ -556,7 +527,6 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         // multi_compile_fragment _ _LIGHT_LAYERS
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.LightLayers)]
-        // TODO: Filtering WriteRenderingLayers requires different filter triggers for different passes (i.e. per-pass filter attributes)
 #endif
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
@@ -727,6 +697,18 @@ namespace UnityEngine.Rendering.Universal
 #else
             m_RendererDataList[0] = null;
             return m_RendererDataList[0];
+#endif
+        }
+
+        /// <summary>
+        /// Ensures Global Settings are ready and registered into GraphicsSettings
+        /// </summary>
+        protected override void EnsureGlobalSettings()
+        {
+            base.EnsureGlobalSettings();
+
+#if UNITY_EDITOR
+            UniversalRenderPipelineGlobalSettings.Ensure();
 #endif
         }
 

@@ -1,5 +1,4 @@
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using static UnityEngine.Rendering.HighDefinition.WaterSurface;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -26,10 +25,18 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.largeCurrentMapInfluence = 1.0f;
             waterSurface.largeBand0Multiplier = 1.0f;
             waterSurface.largeBand1Multiplier = 1.0f;
+
             // Fade
-            waterSurface.largeBand0FadeToggle = true;
+            waterSurface.largeBand0FadeMode = FadeMode.Automatic;
+            waterSurface.largeBand1FadeMode = FadeMode.Automatic;
+            waterSurface.ripplesFadeMode = FadeMode.Automatic;
+
             waterSurface.largeBand0FadeStart = 1500.0f;
             waterSurface.largeBand0FadeDistance = 3000.0f;
+            waterSurface.largeBand1FadeStart = 300.0f;
+            waterSurface.largeBand1FadeDistance = 800.0f;
+            waterSurface.ripplesFadeStart = 50.0f;
+            waterSurface.ripplesFadeDistance = 200.0f;
 
             // Ripples
             waterSurface.ripples = true;
@@ -53,12 +60,16 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.directLightTipScattering = 0.6f;
             waterSurface.directLightBodyScattering = 0.5f;
 
-            // Foam
+            waterSurface.foam = true;
+            waterSurface.foamResolution = WaterSurface.WaterFoamResolution.Resolution512;
+            waterSurface.foamAreaSize.Set(200f, 200f);
+            waterSurface.foamAreaOffset.Set(0, 0);
+            waterSurface.foamTextureTiling = 0.15f;
+            waterSurface.foamSmoothness = 1.0f;
+            waterSurface.simulationFoam = true;
             waterSurface.simulationFoamAmount = 0.2f;
-            waterSurface.simulationFoamDrag = 0.0f;
-            waterSurface.simulationFoamSmoothness = 1.0f;
-            waterSurface.foamTexture = null;
-            waterSurface.foamMask = null;
+            waterSurface.simulationFoamMask = null;
+            waterSurface.simulationFoamWindCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));
 
             // Caustics
             waterSurface.caustics = false;
@@ -69,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Set the various parameters
             waterSurface.surfaceType = WaterSurfaceType.River;
-            waterSurface.geometryType = WaterGeometryType.Quad;
+            waterSurface.geometryType = WaterGeometryType.InstancedQuads;
             waterSurface.cpuSimulation = false;
             waterSurface.timeMultiplier = 1.0f;
             waterSurface.waterMask = null;
@@ -88,9 +99,14 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.largeBand1Multiplier = 1.0f;
 
             // Fade
-            waterSurface.largeBand0FadeToggle = true;
+            waterSurface.largeBand0FadeMode = FadeMode.Automatic;
+            waterSurface.ripplesFadeMode = FadeMode.Automatic;
+
             waterSurface.largeBand0FadeStart = 150.0f;
             waterSurface.largeBand0FadeDistance = 300.0f;
+            waterSurface.ripplesFadeStart = 50.0f;
+            waterSurface.ripplesFadeDistance = 200.0f;
+
             // Ripples
             waterSurface.ripples = true;
             waterSurface.ripplesWindSpeed = 8.0f;
@@ -130,6 +146,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Make the time multiplier a bit slower
             waterSurface.timeMultiplier = 0.8f;
             waterSurface.waterMask = null;
+
+            // Fade
+            waterSurface.ripplesFadeMode = FadeMode.Automatic;
+            waterSurface.ripplesFadeStart = 50.0f;
+            waterSurface.ripplesFadeDistance = 200.0f;
 
             // Ripples
             waterSurface.ripplesWindSpeed = 5.0f;

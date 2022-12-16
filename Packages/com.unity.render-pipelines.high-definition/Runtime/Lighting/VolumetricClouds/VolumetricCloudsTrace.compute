@@ -9,6 +9,7 @@
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
 #pragma multi_compile _ CLOUDS_MICRO_EROSION
+#pragma multi_compile _ CLOUDS_SIMPLE_PRESET
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -105,9 +106,14 @@ CloudRay BuildRay(uint2 intermediateCoord, float integrationNoise)
 }
 
 [numthreads(8, 8, 1)]
-void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, int groupIndex : SV_GroupIndex)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(traceCoord.z);
+
+    // If we can, load the cloud lut into the LDS
+    #if defined(CLOUDS_SIMPLE_PRESET)
+    LoadCloudLutToLDS(groupIndex);
+    #endif
 
     // If this is bigger than the trace size, we are done
     if (any(traceCoord.xy >= uint2(_TraceScreenSize.xy)))
@@ -174,9 +180,14 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
 RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);
 
 [numthreads(8, 8, 1)]
-void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, int groupIndex : SV_GroupIndex)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(currentCoords.z);
+
+    // If we can, load the cloud lut into the LDS
+    #if defined(CLOUDS_SIMPLE_PRESET)
+    LoadCloudLutToLDS(groupIndex);
+    #endif
 
     if (currentCoords.x == 0 || currentCoords.y == 0 || ((int)currentCoords.x) == (_ShadowCookieResolution - 1) || ((int)currentCoords.y) == (_ShadowCookieResolution - 1))
     {

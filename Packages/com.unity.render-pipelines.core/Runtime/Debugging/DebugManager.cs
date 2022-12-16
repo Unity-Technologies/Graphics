@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering
         {
             if (m_RootUIPersistentCanvas == null)
             {
-                var uiManager = UnityObject.FindObjectOfType<DebugUIHandlerPersistentCanvas>();
+                var uiManager = UnityObject.FindFirstObjectByType<DebugUIHandlerPersistentCanvas>();
 
                 if (uiManager == null)
                 {

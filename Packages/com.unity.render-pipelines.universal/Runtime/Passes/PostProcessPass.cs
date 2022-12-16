@@ -31,6 +31,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_EdgeStencilTexture;
         RTHandle m_TempTarget;
         RTHandle m_TempTarget2;
+        RTHandle m_StreakTmpTexture;
+        RTHandle m_StreakTmpTexture2;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -43,6 +45,7 @@ namespace UnityEngine.Rendering.Universal
         // Builtin effects settings
         DepthOfField m_DepthOfField;
         MotionBlur m_MotionBlur;
+        ScreenSpaceLensFlare m_LensFlareScreenSpace;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
         LensDistortion m_LensDistortion;
@@ -77,7 +80,8 @@ namespace UnityEngine.Rendering.Universal
 
         // Some Android devices do not support sRGB backbuffer
         // We need to do the conversion manually on those
-        bool m_EnableSRGBConversionIfNeeded;
+        // Also if HDR output is active
+        bool m_EnableColorEncodingIfNeeded;
 
         // Use Fast conversions between SRGB and Linear
         bool m_UseFastSRGBLinearConversion;
@@ -200,6 +204,8 @@ namespace UnityEngine.Rendering.Universal
             m_EdgeStencilTexture?.Release();
             m_TempTarget?.Release();
             m_TempTarget2?.Release();
+            m_StreakTmpTexture?.Release();
+            m_StreakTmpTexture2?.Release();
         }
 
         /// <summary>
@@ -211,9 +217,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="depth"></param>
         /// <param name="internalLut"></param>
         /// <param name="hasFinalPass"></param>
-        /// <param name="enableSRGBConversion"></param>
-        /// <param name="hasExternalPostPasses"></param>
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, in RTHandle motionVectors, bool hasFinalPass, bool enableSRGBConversion)
+        /// <param name="enableColorEncoding"></param>
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, in RTHandle motionVectors, bool hasFinalPass, bool enableColorEncoding)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
@@ -224,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
             m_MotionVectors = motionVectors;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
-            m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
+            m_EnableColorEncodingIfNeeded = enableColorEncoding;
             m_ResolveToScreen = resolveToScreen;
             m_Destination = k_CameraTarget;
             m_UseSwapBuffer = true;
@@ -239,9 +244,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="depth"></param>
         /// <param name="internalLut"></param>
         /// <param name="hasFinalPass"></param>
-        /// <param name="enableSRGBConversion"></param>
-        /// <param name="hasExternalPostPasses"></param>
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        /// <param name="enableColorEncoding"></param>
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableColorEncoding)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
@@ -252,7 +256,7 @@ namespace UnityEngine.Rendering.Universal
             m_InternalLut = internalLut;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
-            m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
+            m_EnableColorEncodingIfNeeded = enableColorEncoding;
             m_UseSwapBuffer = false;
         }
 
@@ -261,14 +265,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="source"></param>
         /// <param name="useSwapBuffer"></param>
-        /// <param name="hasExternalPostPasses"></param>
-        public void SetupFinalPass(in RTHandle source, bool useSwapBuffer = false)
+        /// <param name="enableColorEncoding"></param>
+        public void SetupFinalPass(in RTHandle source, bool useSwapBuffer = false, bool enableColorEncoding = true)
         {
             m_Source = source;
             m_Destination = k_CameraTarget;
             m_IsFinalPass = true;
             m_HasFinalPass = false;
-            m_EnableSRGBConversionIfNeeded = true;
+            m_EnableColorEncodingIfNeeded = enableColorEncoding;
             m_UseSwapBuffer = useSwapBuffer;
         }
 
@@ -292,6 +296,7 @@ namespace UnityEngine.Rendering.Universal
             var stack = VolumeManager.instance.stack;
             m_DepthOfField = stack.GetComponent<DepthOfField>();
             m_MotionBlur = stack.GetComponent<MotionBlur>();
+            m_LensFlareScreenSpace = stack.GetComponent<ScreenSpaceLensFlare>();
             m_PaniniProjection = stack.GetComponent<PaniniProjection>();
             m_Bloom = stack.GetComponent<Bloom>();
             m_LensDistortion = stack.GetComponent<LensDistortion>();
@@ -345,7 +350,14 @@ namespace UnityEngine.Rendering.Universal
 
         bool RequireSRGBConversionBlitToBackBuffer(ref CameraData cameraData)
         {
-            return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
+            return cameraData.requireSrgbConversion && m_EnableColorEncodingIfNeeded;
+        }
+
+        bool RequireHDROutput(ref CameraData cameraData)
+        {
+            // If capturing, don't convert to HDR.
+            // If not last in the stack, don't convert to HDR.
+            return cameraData.isHDROutputActive && cameraData.captureActions == null;
         }
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
@@ -357,10 +369,11 @@ namespace UnityEngine.Rendering.Universal
             //Check amount of swaps we have to do
             //We blit back and forth without msaa until the last blit.
             bool useStopNan = cameraData.isStopNaNEnabled && m_Materials.stopNaN != null;
-            bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            bool useSubPixeMorpAA = cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing;
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
             bool useDepthOfField = m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null;
             bool useLensFlare = !LensFlareCommonSRP.Instance.IsEmpty();
+            bool useLensFlareScreenSpace = m_LensFlareScreenSpace.IsActive();
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
@@ -368,10 +381,8 @@ namespace UnityEngine.Rendering.Universal
             // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
             // to tweaking the value here.
             bool useTemporalAA = cameraData.IsTemporalAAEnabled();
-#if URP_EXPERIMENTAL_TAA_ENABLE
             if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
                 TemporalAA.ValidateAndWarn(ref cameraData);
-#endif
 
             int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useTemporalAA ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
 
@@ -466,6 +477,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
                 {
+
                     TemporalAA.ExecutePass(cmd, m_Materials.temporalAntialiasing, ref cameraData, source, destination, m_MotionVectors.rt);
                     Swap(ref renderer);
                 }
@@ -493,30 +505,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Lens Flare
-            if (useLensFlare)
-            {
-                bool usePanini;
-                float paniniDistance;
-                float paniniCropToFit;
-                if (m_PaniniProjection.IsActive())
-                {
-                    usePanini = true;
-                    paniniDistance = m_PaniniProjection.distance.value;
-                    paniniCropToFit = m_PaniniProjection.cropToFit.value;
-                }
-                else
-                {
-                    usePanini = false;
-                    paniniDistance = 1.0f;
-                    paniniCropToFit = 1.0f;
-                }
-
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
-                {
-                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
-                }
-            }
 
             // Combined post-processing stack
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.UberPostProcess)))
@@ -526,10 +514,49 @@ namespace UnityEngine.Rendering.Universal
 
                 // Bloom goes first
                 bool bloomActive = m_Bloom.IsActive();
-                if (bloomActive)
+                bool lensFlareScreenSpaceActive = m_LensFlareScreenSpace.IsActive();
+
+                // We need to still do the bloom pass if lens flare screen space is active because it uses _Bloom_Texture.
+                if (bloomActive || lensFlareScreenSpaceActive)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.Bloom)))
                         SetupBloom(cmd, GetSource(), m_Materials.uber);
+                }
+
+                // Lens Flare Screen Space
+                if (useLensFlareScreenSpace)
+                {
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
+                    {
+                        // We clamp the bloomMip value to avoid picking a mip that doesn't exist, since in URP you can set the number of maxIteration of the bloomPass.
+                        int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
+                        DoLensFlareScreenSpace(cameraData.camera, cmd, GetSource(), m_BloomMipUp[maxBloomMip]);
+                    }
+                }
+
+                 // Lens Flare
+                if (useLensFlare)
+                {
+                    bool usePanini;
+                    float paniniDistance;
+                    float paniniCropToFit;
+                    if (m_PaniniProjection.IsActive())
+                    {
+                        usePanini = true;
+                        paniniDistance = m_PaniniProjection.distance.value;
+                        paniniCropToFit = m_PaniniProjection.cropToFit.value;
+                    }
+                    else
+                    {
+                        usePanini = false;
+                        paniniDistance = 1.0f;
+                        paniniCropToFit = 1.0f;
+                    }
+
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+                    {
+                        DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
+                    }
                 }
 
                 // Setup other effects constants
@@ -545,12 +572,23 @@ namespace UnityEngine.Rendering.Universal
                 if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
+                bool requireHDROutput = RequireHDROutput(ref cameraData);
+                if (requireHDROutput)
+                {
+                    // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
+                    // Otherwise encoding will happen in the final post process pass or the final blit pass
+                    HDROutputUtils.Operation hdrOperation = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                    SetupHDROutput(m_Materials.uber, hdrOperation);
+                }
+
                 if (m_UseFastSRGBLinearConversion)
                 {
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
-                GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
+                DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
+                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
                 // Done with Uber, blit it
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
@@ -578,7 +616,8 @@ namespace UnityEngine.Rendering.Universal
                         destination = renderer.GetCameraColorFrontBuffer(cmd);
                     }
                     Blitter.BlitCameraTexture(cmd, GetSource(), destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
-                    renderer.SwapColorBuffer(cmd);
+                    renderer.ConfigureCameraColorTarget(destination);
+                    Swap(ref renderer);
                 }
                 // TODO: Implement swapbuffer in 2DRenderer so we can remove this
                 // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
@@ -592,14 +631,22 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else if (m_ResolveToScreen)
                 {
-                    // Create RTHandle alias to use RTHandle apis
-                    RenderTargetIdentifier cameraTarget = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
-                    if (m_CameraTargetHandle != cameraTarget)
+                    if (resolveToDebugScreen)
                     {
-                        m_CameraTargetHandle?.Release();
-                        m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                        debugHandler.BlitTextureToDebugScreenTexture(cmd, GetSource(), m_Materials.uber, 0);
                     }
-                    RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                    else
+                    {
+                        // Create RTHandle alias to use RTHandle apis
+                        RenderTargetIdentifier cameraTarget = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
+                        if (m_CameraTargetHandle != cameraTarget)
+                        {
+                            m_CameraTargetHandle?.Release();
+                            m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                        }
+                        RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                        renderer.ConfigureCameraColorTarget(m_CameraTargetHandle);
+                    }
                 }
             }
         }
@@ -893,12 +940,82 @@ namespace UnityEngine.Rendering.Universal
 
         #endregion
 
+        #region LensFlareScreenSpace
+
+        void DoLensFlareScreenSpace(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RTHandle bloomTexture)
+        {
+            cmd.SetGlobalTexture(ShaderConstants._LensFlareScreenSpaceBloomTexture, bloomTexture);
+
+            int ratio = (int)m_LensFlareScreenSpace.resolution.value;
+
+            int width = Mathf.Max(1, (int)m_Descriptor.width / ratio);
+            int height = Mathf.Max(1, (int)m_Descriptor.height / ratio);
+            var desc = GetCompatibleDescriptor(width, height, m_DefaultHDRFormat);
+
+            if (m_LensFlareScreenSpace.IsStreaksActive())
+            {
+                RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture");
+                RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture2, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture2");
+            }
+
+            LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
+                m_Materials.lensFlareScreenSpace,
+                camera,
+                (float)m_Descriptor.width,
+                (float)m_Descriptor.height,
+                m_LensFlareScreenSpace.tintColor.value,
+                bloomTexture,
+                null, // We don't have any spectral LUT in URP
+                m_StreakTmpTexture,
+                m_StreakTmpTexture2,
+                new Vector4(
+                    m_LensFlareScreenSpace.intensity.value,
+                    m_LensFlareScreenSpace.firstFlareIntensity.value,
+                    m_LensFlareScreenSpace.secondaryFlareIntensity.value,
+                    m_LensFlareScreenSpace.warpedFlareIntensity.value),
+                new Vector4(
+                    Mathf.Pow(m_LensFlareScreenSpace.vignetteEffect.value, 0.25f),
+                    m_LensFlareScreenSpace.startingPosition.value,
+                    m_LensFlareScreenSpace.scale.value,
+                    0), // Free slot, not used
+                new Vector4(
+                    m_LensFlareScreenSpace.samples.value,
+                    m_LensFlareScreenSpace.sampleDimmer.value,
+                    m_LensFlareScreenSpace.chromaticAbberationIntensity.value / 20f,
+                    0), // No need to pass a chromatic aberration sample count, hardcoded at 3 in shader
+                new Vector4(
+                    m_LensFlareScreenSpace.streaksIntensity.value,
+                    m_LensFlareScreenSpace.streaksLength.value * 10,
+                    m_LensFlareScreenSpace.streaksOrientation.value / 90f,
+                    m_LensFlareScreenSpace.streaksThreshold.value),
+                new Vector4(
+                    ratio,
+                    1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.x,
+                    1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.y,
+                    0), // Free slot, not used
+                cmd,
+                source,
+                ShaderConstants._LensFlareScreenSpaceBloomTexture,
+                0, // No identifiers for SpectralLut Texture
+                ShaderConstants._LensFlareScreenSpaceStreakTex,
+                ShaderConstants._LensFlareScreenSpaceMipLevel,
+                ShaderConstants._LensFlareScreenSpaceTintColor,
+                ShaderConstants._LensFlareScreenSpaceParams1,
+                ShaderConstants._LensFlareScreenSpaceParams2,
+                ShaderConstants._LensFlareScreenSpaceParams3,
+                ShaderConstants._LensFlareScreenSpaceParams4,
+                ShaderConstants._LensFlareScreenSpaceParams5,
+                false);
+        }
+
+        #endregion
+
         #region Motion Blur
 
-        public static readonly int kShaderPropertyId_ViewProjM = Shader.PropertyToID("_ViewProjM");
-        public static readonly int kShaderPropertyId_PrevViewProjM = Shader.PropertyToID("_PrevViewProjM");
-        public static readonly int kShaderPropertyId_ViewProjMStereo = Shader.PropertyToID("_ViewProjMStereo");
-        public static readonly int kShaderPropertyId_PrevViewProjMStereo = Shader.PropertyToID("_PrevViewProjMStereo");
+        internal static readonly int k_ShaderPropertyId_ViewProjM = Shader.PropertyToID("_ViewProjM");
+        internal static readonly int k_ShaderPropertyId_PrevViewProjM = Shader.PropertyToID("_PrevViewProjM");
+        internal static readonly int k_ShaderPropertyId_ViewProjMStereo = Shader.PropertyToID("_ViewProjMStereo");
+        internal static readonly int k_ShaderPropertyId_PrevViewProjMStereo = Shader.PropertyToID("_PrevViewProjMStereo");
 
         internal static void UpdateMotionBlurMatrices(ref Material material, Camera camera, XRPass xr)
         {
@@ -913,8 +1030,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled && xr.singlePassEnabled)
             {
-                material.SetMatrixArray(kShaderPropertyId_PrevViewProjMStereo, motionData.previousViewProjectionStereo);
-                material.SetMatrixArray(kShaderPropertyId_ViewProjMStereo, motionData.viewProjectionStereo);
+                material.SetMatrixArray(k_ShaderPropertyId_PrevViewProjMStereo, motionData.previousViewProjectionStereo);
+                material.SetMatrixArray(k_ShaderPropertyId_ViewProjMStereo, motionData.viewProjectionStereo);
             }
             else
 #endif
@@ -926,8 +1043,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 // TODO: These should be part of URP main matrix set. For now, we set them here for motion vector rendering.
-                material.SetMatrix(kShaderPropertyId_PrevViewProjM, motionData.previousViewProjectionStereo[viewProjMIdx]);
-                material.SetMatrix(kShaderPropertyId_ViewProjM, motionData.viewProjectionStereo[viewProjMIdx]);
+                material.SetMatrix(k_ShaderPropertyId_PrevViewProjM, motionData.previousViewProjectionStereo[viewProjMIdx]);
+                material.SetMatrix(k_ShaderPropertyId_ViewProjM, motionData.viewProjectionStereo[viewProjMIdx]);
             }
         }
 
@@ -1261,7 +1378,8 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupGrain(ref CameraData cameraData, Material material)
         {
-            if (!m_HasFinalPass && m_FilmGrain.IsActive())
+            // TODO: Investigate how to make grain work with HDR output.
+            if (!m_HasFinalPass && m_FilmGrain.IsActive() && !cameraData.isHDROutputActive)
             {
                 material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
                 PostProcessUtils.ConfigureFilmGrain(
@@ -1279,7 +1397,8 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupDithering(ref CameraData cameraData, Material material)
         {
-            if (!m_HasFinalPass && cameraData.isDitheringEnabled)
+            // TODO: Investigate how to make dithering work with HDR output.
+            if (!m_HasFinalPass && cameraData.isDitheringEnabled && !cameraData.isHDROutputActive)
             {
                 material.EnableKeyword(ShaderKeywordStrings.Dithering);
                 m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
@@ -1291,6 +1410,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        #endregion
+
+#region HDR Output
+        void SetupHDROutput(Material material, HDROutputUtils.Operation hdrOperations)
+        {
+            Vector4 hdrOutputLuminanceParams;
+            UniversalRenderPipeline.GetHDROutputLuminanceParameters(m_Tonemapping, out hdrOutputLuminanceParams);
+            material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
+
+            HDROutputUtils.ConfigureHDROutput(material, HDROutputSettings.main.displayColorGamut, hdrOperations);
+        }
 #endregion
 
 #region Final pass
@@ -1309,7 +1439,21 @@ namespace UnityEngine.Rendering.Universal
             if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
+            bool requireHDROutput = RequireHDROutput(ref cameraData);
+            if (requireHDROutput)
+            {
+                // If there is a final post process pass, it's always the final pass so do color encoding
+                HDROutputUtils.Operation hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                // If the color space conversion wasn't applied by the uber pass, do it here
+                if (!cameraData.postProcessEnabled)
+                    hdrOperations |= HDROutputUtils.Operation.ColorConversion;
+
+                SetupHDROutput(material, hdrOperations);
+            }
+
+            DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
+            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass && !resolveToDebugScreen);
 
             if (m_UseSwapBuffer)
                 m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
@@ -1318,13 +1462,19 @@ namespace UnityEngine.Rendering.Universal
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
+            // TODO: Investigate how to make FXAA work with HDR output.
+            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) && !cameraData.isHDROutputActive;
+
+            // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
+            bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
+
+            // Reuse RCAS pass as an optional standalone post sharpening pass for TAA.
+            // This avoids the cost of EASU and is available for other upscaling options.
+            // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
+            bool isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !isFsrEnabled;
 
             if (cameraData.imageScalingMode != ImageScalingMode.None)
             {
-                // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
-                bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
-
                 // When FXAA is enabled in scaled renders, we execute it in a separate blit since it's not designed to be used in
                 // situations where the input and output resolutions do not match.
                 // When FSR is active, we always need an additional pass since it has a very particular color encoding requirement.
@@ -1374,7 +1524,9 @@ namespace UnityEngine.Rendering.Universal
                         {
                             case ImageUpscalingFilter.Point:
                             {
-                                material.EnableKeyword(ShaderKeywordStrings.PointSampling);
+                                // TAA post sharpening is an RCAS pass, avoid overriding it with point sampling.
+                                if(!isTaaSharpeningEnabled)
+                                    material.EnableKeyword(ShaderKeywordStrings.PointSampling);
                                 break;
                             }
 
@@ -1428,6 +1580,9 @@ namespace UnityEngine.Rendering.Universal
                         // In the downscaling case, we don't perform any sort of filter override logic since we always want linear filtering
                         // and it's already the default option in the shader.
 
+                        // Also disable TAA post sharpening pass when downscaling.
+                        isTaaSharpeningEnabled = false;
+
                         break;
                     }
                 }
@@ -1438,22 +1593,30 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.Fxaa);
             }
 
-
-            // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
-            // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-                cameraTarget = cameraData.xr.renderTarget;
-#endif
-
-            // Create RTHandle alias to use RTHandle apis
-            if (m_CameraTargetHandle != cameraTarget)
+            // Reuse RCAS as a standalone sharpening filter for TAA.
+            // If FSR is enabled then it overrides the TAA setting and we skip it.
+            if(isTaaSharpeningEnabled)
             {
-                m_CameraTargetHandle?.Release();
-                m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                FSRUtils.SetRcasConstantsLinear(cmd, cameraData.taaSettings.contrastAdaptiveSharpening);
             }
-            RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+
+            var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
+
+            if (resolveToDebugScreen)
+            {
+                debugHandler.BlitTextureToDebugScreenTexture(cmd, sourceTex, material, 0);
+            }
+            else
+            {
+                // Create RTHandle alias to use RTHandle apis
+                if (m_CameraTargetHandle != cameraTarget)
+                {
+                    m_CameraTargetHandle?.Release();
+                    m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                }
+                RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+            }
         }
 
 #endregion
@@ -1475,6 +1638,7 @@ namespace UnityEngine.Rendering.Universal
             public readonly Material uber;
             public readonly Material finalPass;
             public readonly Material lensFlareDataDriven;
+            public readonly Material lensFlareScreenSpace;
 
             public MaterialLibrary(PostProcessData data)
             {
@@ -1491,6 +1655,7 @@ namespace UnityEngine.Rendering.Universal
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
+                lensFlareScreenSpace = Load(data.shaders.LensFlareScreenSpacePS);
             }
 
             Material Load(Shader shader)
@@ -1581,6 +1746,16 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _FlareData3 = Shader.PropertyToID("_FlareData3");
             public static readonly int _FlareData4 = Shader.PropertyToID("_FlareData4");
             public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
+
+            public static readonly int _LensFlareScreenSpaceBloomTexture = Shader.PropertyToID("_BloomTexture");
+            public static readonly int _LensFlareScreenSpaceStreakTex = Shader.PropertyToID("_LensFlareScreenSpaceStreakTex");
+            public static readonly int _LensFlareScreenSpaceMipLevel = Shader.PropertyToID("_LensFlareScreenSpaceMipLevel");
+            public static readonly int _LensFlareScreenSpaceTintColor = Shader.PropertyToID("_LensFlareScreenSpaceTintColor");
+            public static readonly int _LensFlareScreenSpaceParams1 = Shader.PropertyToID("_LensFlareScreenSpaceParams1");
+            public static readonly int _LensFlareScreenSpaceParams2 = Shader.PropertyToID("_LensFlareScreenSpaceParams2");
+            public static readonly int _LensFlareScreenSpaceParams3 = Shader.PropertyToID("_LensFlareScreenSpaceParams3");
+            public static readonly int _LensFlareScreenSpaceParams4 = Shader.PropertyToID("_LensFlareScreenSpaceParams4");
+            public static readonly int _LensFlareScreenSpaceParams5 = Shader.PropertyToID("_LensFlareScreenSpaceParams5");
 
             public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
 

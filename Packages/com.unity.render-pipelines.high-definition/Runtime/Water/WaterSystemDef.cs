@@ -224,7 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The water surface is rendered in debug mode, displaying the foam mask.
         /// </summary>
-        FoamMask = 2,
+        SimulationFoamMask = 2,
 
         /// <summary>
         /// The water surface is rendered in debug mode, displaying the current texture.
@@ -234,7 +234,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The water surface is rendered in debug mode, displaying the deformation area.
         /// </summary>
-        Deformation = 4
+        Deformation = 4,
+
+        /// <summary>
+        /// The water surface is rendered in debug mode, displaying the foam area.
+        /// </summary>
+        Foam = 5
     }
 
     /// <summary>
@@ -278,11 +283,38 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// Defines the possible resolution for the deformation atlas size.
+    /// Controls which foam is displayed in the debug mode.
     /// </summary>
     [GenerateHLSL(PackingRules.Exact)]
-    public enum WaterDeformationAtlasSize
+    public enum WaterFoamDebugMode
     {
+        /// <summary>
+        /// The surface foam is displayed in gray scale.
+        /// </summary>
+        SurfaceFoam = 0,
+
+        /// <summary>
+        /// The deep foam is displayed in gray scale.
+        /// </summary>
+        DeepFoam = 1,
+    }
+
+    /// <summary>
+    /// Defines the possible resolution for the water required atlas size.
+    /// </summary>
+    [GenerateHLSL(PackingRules.Exact)]
+    public enum WaterAtlasSize
+    {
+        /// <summary>
+        /// The deformation atlas size will be 64x64
+        /// </summary>
+        AtlasSize64 = 64,
+
+        /// <summary>
+        /// The deformation atlas size will be 128x128
+        /// </summary>
+        AtlasSize128 = 128,
+
         /// <summary>
         /// The deformation atlas size will be 256x256
         /// </summary>
@@ -359,22 +391,22 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _PatchDirectionDampener;
         public Vector4 _PatchAmplitudeMultiplier;
         public Vector4 _PatchCurrentSpeed;
-        public Vector4 _PatchFadeStart;
-        public Vector4 _PatchFadeDistance;
-        public Vector4 _PatchFadeValue;
+        public Vector4 _PatchFadeA;
+        public Vector4 _PatchFadeB;
 
         // Per group data
         public float2 _GroupOrientation;
-        public Vector2 _PaddingW0;
+        public int _PaddingW0;
+        public int _WaterFoamRegionResolution;
 
-        // Smoothness of the simulation foam
-        public float _SimulationFoamSmoothness;
-        // Controls the amount of drag of the simulation foam
-        public float _JacobianDrag;
+        // Smoothness of the foam
+        public float _FoamSmoothness;
+        // Controls the fade multiplier of the foam
+        public float _FoamPersistenceMultiplier;
         // Amount of surface foam
         public float _SimulationFoamAmount;
-        // Padding
-        public float _PaddingW1;
+        // Foam Intensity
+        public float _SimulationFoamIntensity;
 
         // Amount of choppiness
         public float _Choppiness;
@@ -390,7 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Tiling parameter of the foam texture
         public float _FoamTilling;
         // Attenuation of the foam due to the wind
-        public float _WindFoamAttenuation;
+        public float _SimulationFoamWindAttenuation;
 
         // Color applied to the surfaces that are through the refraction
         public Vector4 _TransparencyColor;
@@ -408,11 +440,26 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _DeepFoamColor;
 
         public float _OutScatteringCoefficient;
-        public float _FoamSmoothness;
+        public float _PaddingW2;
         public float _HeightBasedScattering;
         public float _WaterSmoothness;
 
         public Vector4 _FoamJacobianLambda;
+
+        // Scale of the water mask
+        public Vector2 _WaterMaskScale;
+        // Offset of the water mask
+        public Vector2 _WaterMaskOffset;
+
+        // Scale of the foam mask
+        public Vector2 _SimulationFoamMaskScale;
+        // Offset of the foam mask
+        public Vector2 _SimulationFoamMaskOffset;
+
+        // Size of the foam region
+        public Vector2 _FoamRegionScale;
+        // Center of the foam region
+        public Vector2 _FoamRegionOffset;
 
         // Offsets used to guarantee the coherence between the different simulation resolutions
         public int _WaterRefSimRes;
@@ -438,8 +485,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Number of water patches that need to be rendered
         public uint _NumWaterPatches;
 
-        // Intensity of the foam
-        public float _FoamIntensity;
+        // Padding
+        public float _PaddingWR0;
         // Intensity of the water caustics
         public float _CausticsIntensity;
         // Current Map Influence
@@ -449,16 +496,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _Group0CurrentRegionScaleOffset;
         // Scale & offset of the ripples
         public Vector4 _Group1CurrentRegionScaleOffset;
-
-        // Scale of the water mask
-        public Vector2 _WaterMaskScale;
-        // Offset of the water mask
-        public Vector2 _WaterMaskOffset;
-
-        // Scale of the foam mask
-        public Vector2 _FoamMaskScale;
-        // Offset of the foam mask
-        public Vector2 _FoamMaskOffset;
 
         // Blend distance
         public float _CausticsPlaneBlendDistance;
@@ -508,15 +545,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _OutScatteringCoeff;
         // Vertical transition size of the water
         public float _WaterTransitionSize;
-        // Padding
+        // Under water ambient probe contribution
         public float _UnderWaterAmbientProbeContribution;
 
-        // Tile Count at for the water line evaluation
-        public uint _WaterLineTileCountX;
-        public uint _WaterLineTileCountY;
-        // Padding
-        public float _PaddingUW1;
-        public float _PaddingUW2;
+        // Screen bounds projected on up and right vector in screenspace
+        public float4 _BoundsSS;
+
+        // Screen space up direction of the water surface
+        public float _UpDirectionX;
+        public float _UpDirectionY;
+
+        // Water Line buffer stride for XR
+        public float _BufferStride;
+
+        public float _Padding;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -530,35 +572,49 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _WaterDeformationResolution;
     }
 
-    // This structure holds all the information that can be requested during the deferred water lighting
     [GenerateHLSL(PackingRules.Exact, false)]
     struct WaterDeformerData
     {
-        // Region of the deformer
         public float2 regionSize;
-        // The type of the deformer
         public int type;
-        // Amplitude of the deformer
         public float amplitude;
 
-        // Position of the deformer
         public Vector3 position;
-        // Rotation of the deformer
         public float rotation;
 
         public float2 blendRegion;
-        public float waveLength;
-        public int cubicBlend;
+        public float2 breakingRange;
 
         public float bowWaveElevation;
-        public float peakLocation;
+        public float waveLength;
         public int waveRepetition;
         public float waveSpeed;
 
         public float waveOffset;
-        public float padding0;
-        public float padding1;
-        public float padding2;
+        public int cubicBlend;
+        public float deepFoamDimmer;
+        public float surfaceFoamDimmer;
+
+        public float2 deepFoamRange;
+        public float2 padding3;
+
+        // Scale and offset used to read in the texture atlas
+        public Vector4 scaleOffset;
+    }
+
+    [GenerateHLSL(PackingRules.Exact, false)]
+    struct WaterGeneratorData
+    {
+        public Vector3 position;
+        public float rotation;
+
+        public float2 regionSize;
+        public int type;
+        public int padding0;
+
+        public float2 padding1;
+        public float deepFoamDimmer;
+        public float surfaceFoamDimmer;
 
         // Scale and offset used to read in the texture atlas
         public Vector4 scaleOffset;
@@ -578,5 +634,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _WaterMaskDebugMode;
         public int _WaterCurrentDebugMode;
         public float _CurrentDebugMultiplier;
+
+        public int _WaterFoamDebugMode;
+        public int _PaddingWDbg0;
+        public int _PaddingWDbg1;
+        public int _PaddingWDbg2;
     }
 }

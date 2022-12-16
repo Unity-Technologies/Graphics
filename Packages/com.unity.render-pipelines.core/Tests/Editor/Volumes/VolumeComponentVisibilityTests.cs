@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Rendering;
@@ -93,12 +93,21 @@ namespace UnityEngine.Rendering.Tests
         [Test, TestCaseSource(nameof(s_TestCaseDataGetItem))]
         public bool DetermineVisibilityMethodTests(Type volumeComponentType, Type renderPipelineAssetType)
         {
+            //Arrange
             SetupRenderPipeline(renderPipelineAssetType);
-
             var component = (VolumeComponent)ScriptableObject.CreateInstance(volumeComponentType);
             var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
-            editor.DetermineVisibility();
-            return editor.visible;
+            editor.Init();
+
+            //Act
+            editor.DetermineVisibility(renderPipelineAssetType, RenderPipelineManager.currentPipeline?.GetType());
+            bool visible = editor.visible;
+
+            ScriptableObject.DestroyImmediate(editor);
+            ScriptableObject.DestroyImmediate(component);
+
+            //Assert
+            return visible;
         }
     }
 }

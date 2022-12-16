@@ -18,7 +18,7 @@ public class SmokeGraphicsTests
         yield return null;
 
         var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        var settings = Object.FindObjectOfType<SmokeGraphicsTestSettings>();
+        var settings = Object.FindFirstObjectByType<SmokeGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find GraphicsTestSettings");
 
         for (int i = 0; i < settings.WaitFrames; i++)

@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class HDLightingWindowEnvironmentSectionEditor : LightingWindowEnvironmentSection
     {
         class Styles
@@ -107,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
             //Perhaps it is an old scene. Search everywhere
             if (result == null)
             {
-                var candidates = GameObject.FindObjectsOfType<StaticLightingSky>().Where(sls => sls.gameObject.scene == scene);
+                var candidates = GameObject.FindObjectsByType<StaticLightingSky>(FindObjectsSortMode.InstanceID).Where(sls => sls.gameObject.scene == scene);
                 if (candidates.Count() > 0)
                     result = candidates.First();
             }

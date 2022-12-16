@@ -50,6 +50,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             yield return PostProcessSubShader(SubShaders.Decal);
         }
 
+        protected override IEnumerable<KernelDescriptor> EnumerateKernels()
+        {
+            yield break;
+        }
+
         public override bool IsNodeAllowedBySubTarget(Type nodeType)
         {
             return nodeType != typeof(SampleVirtualTextureNode) && base.IsNodeAllowedBySubTarget(nodeType);

@@ -28,6 +28,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 9
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
@@ -43,6 +44,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
@@ -58,6 +60,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
@@ -106,11 +109,11 @@ MonoBehaviour:
   lensAttenuationMode: 0
   colorGradingSpace: 1
   m_ObsoleteDiffusionProfileSettingsList: []
+  specularFade: 0
   rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 1
-  supportRuntimeDebugDisplay: 0
   autoRegisterDiffusionProfiles: 0
   apvScenesData:
     m_ObsoleteSerializedBakingSets: []
@@ -122,10 +125,10 @@ MonoBehaviour:
     serializedHasVolumes:
     - sceneGUID: 5028fc98db6fe304c90852113dca5b00
       hasProbeVolumes: 1
-    serializedBakingSets:
-    - {fileID: 11400000, guid: c5b7fcbfc6aa87e458cb1c1893973b7c, type: 2}
-    - {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
+    bakingSets: []
     m_LightingScenario: Scenario 1
-  m_Version: 6
+  m_Version: 7
   m_ShaderVariantLogLevel: 0
+  m_SupportRuntimeDebugDisplay: 0
   m_ExportShaderVariants: 1
+  m_StripDebugVariants: 1

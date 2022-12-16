@@ -3,6 +3,7 @@
 
 // Include the IndirectDiffuseMode enum
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflection.cs.hlsl"
 
 // Ambient Probe is preconvolved with clamped cosinus
 // In case we use a diffuse power, we have to edit the coefficients to change the convolution
@@ -162,19 +163,25 @@ void SampleBakedGI(
     uint renderingLayers,
     float2 uvStaticLightmap,
     float2 uvDynamicLightmap,
+    bool needToIncludeAPV,
     out float3 bakeDiffuseLighting,
     out float3 backBakeDiffuseLighting)
 {
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
 
-    // Check if we have SSGI/RTGI/Mixed enabled in which case we don't want to read Lightmaps/Lightprobe at all.
-    // This behavior only apply to opaque Materials as Transparent one don't receive SSGI/RTGI/Mixed lighting.
+    // If we have SSGI/RTGI enabled in which case we don't want to read Lightmaps/Lightprobe at all.
+    // If we have Mixed RTR or GI enabled, we need to have the lightmap exported in the case of the gbuffer as they will be consumed and will be used if the pixel is ray marched.
+    // This behavior only applies to opaque Materials as Transparent one don't receive SSGI/RTGI/Mixed lighting.
     // The check need to be here to work with both regular shader and shader graph
     // Note: With Probe volume the code is skip in the lightloop if any of those effects is enabled
     // We prevent to read GI only if we are not raytrace pass that are used to fill the RTGI/Mixed buffer need to be executed normaly
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER)
-    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
+    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
+#if (SHADERPASS == SHADERPASS_GBUFER)
+        && _IndirectDiffuseMode != INDIRECTDIFFUSEMODE_MIXED && _ReflectionsMode != REFLECTIONSMODE_MIXED
+#endif
+        )
         return;
 #endif
 
@@ -182,20 +189,38 @@ void SampleBakedGI(
 
 #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
     EvaluateLightmap(positionRWS, normalWS, backNormalWS, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLighting);
+#elif (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    if (needToIncludeAPV)
+    {
+        EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInputs.positionWS), normalWS, backNormalWS, GetWorldSpaceNormalizeViewDir(posInputs.positionWS), 0.0, bakeDiffuseLighting, backBakeDiffuseLighting);
+    }
 #elif !(defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)) // With APV if we aren't a lightmap we do nothing. We will default to Ambient Probe in lightloop code if APV is disabled
     EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
 
     // We only want to apply the ray tracing ambient probe dimmer on the ambient probe
     // and legacy light probes (and obviously only in the ray tracing shaders).
-    #if defined(SHADER_STAGE_RAY_TRACING)
-        bakeDiffuseLighting *= _RayTracingAmbientProbeDimmer;
-        backBakeDiffuseLighting *= _RayTracingAmbientProbeDimmer;
-    #endif
+#if defined(SHADER_STAGE_RAY_TRACING)
+    bakeDiffuseLighting *= _RayTracingAmbientProbeDimmer;
+    backBakeDiffuseLighting *= _RayTracingAmbientProbeDimmer;
+#endif
 #endif
 }
 
-// Function signature exposed in a shader graph node, to keep
-float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
+void SampleBakedGI(
+    PositionInputs posInputs,
+    float3 normalWS,
+    float3 backNormalWS,
+    uint renderingLayers,
+    float2 uvStaticLightmap,
+    float2 uvDynamicLightmap,
+    out float3 bakeDiffuseLighting,
+    out float3 backBakeDiffuseLighting)
+{
+    bool needToIncludeAPV = false;
+    SampleBakedGI(posInputs, normalWS, backNormalWS, renderingLayers, uvStaticLightmap, uvDynamicLightmap, needToIncludeAPV, bakeDiffuseLighting, backBakeDiffuseLighting);
+}
+
+float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool needToIncludeAPV = false)
 {
     // Need PositionInputs for indexing probe volume clusters, but they are not availbile from the current SampleBakedGI() function signature.
     // Reconstruct.
@@ -207,7 +232,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     const float3 backNormalWSUnused = 0.0;
     float3 bakeDiffuseLighting;
     float3 backBakeDiffuseLightingUnused;
-    SampleBakedGI(posInputs, normalWS, backNormalWSUnused, renderingLayers, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLightingUnused);
+    SampleBakedGI(posInputs, normalWS, backNormalWSUnused, renderingLayers, uvStaticLightmap, uvDynamicLightmap, needToIncludeAPV, bakeDiffuseLighting, backBakeDiffuseLightingUnused);
 
     return bakeDiffuseLighting;
 }

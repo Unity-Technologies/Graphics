@@ -171,6 +171,8 @@ bool IsFastPath(uint lightStart, out uint lightStartLane0)
 #endif
 }
 
+#define NEED_TO_CHECK_HELPER_LANE defined(INTRINSIC_WAVE_ACTIVE_ALL_ANY) && defined(SHADER_API_GAMECORE)
+
 // This function scalarize an index accross all lanes. To be effecient it must be used in the context
 // of the scalarization of a loop. It is to use with IsFastPath so it can optimize the number of
 // element to load, which is optimal when all the lanes are contained into a tile.
@@ -179,6 +181,11 @@ uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
 {
     uint s_elementIdx = v_elementIdx;
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
+#if NEED_TO_CHECK_HELPER_LANE
+    if (WaveIsHelperLane()) return -1;
+#endif
+
     if (fastPath)
     {
         // s_elementIdx by construction is scalar if fast path, however the compiler seems to insist to move it in a vector register after a WaveReadLaneFirst inside the  if (s_elementIdx != -1) branch.

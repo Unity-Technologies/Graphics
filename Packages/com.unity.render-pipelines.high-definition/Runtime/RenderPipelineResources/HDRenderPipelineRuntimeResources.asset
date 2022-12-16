@@ -39,6 +39,10 @@ MonoBehaviour:
       type: 3}
     probeVolumeFragmentationDebugShader: {fileID: 4800000, guid: 3a80877c579b9144ebdcc6d923bca303,
       type: 3}
+    probeVolumeSamplingDebugShader: {fileID: 4800000, guid: bf54e6528c79a224e96346799064c393,
+      type: 3}
+    probeVolumeSamplingDebugComputeShader: {fileID: 7200000, guid: 22de19bc461f84742857dd64c56b0397,
+      type: 3}
     probeVolumeOffsetDebugShader: {fileID: 4800000, guid: db8bd7436dc2c5f4c92655307d198381,
       type: 3}
     probeVolumeBlendStatesCS: {fileID: 7200000, guid: a3f7b8c99de28a94684cb1daebeccf5d,
@@ -101,6 +105,7 @@ MonoBehaviour:
     blitPS: {fileID: 4800000, guid: e22fc1942c664490980b8793dd4a163d, type: 3}
     blitColorAndDepthPS: {fileID: 4800000, guid: b22ad378c678348729d3a3f981b9f270,
       type: 3}
+    clearBuffer2D: {fileID: 7200000, guid: fa9b66253270e9c47a67ae142f669eb4, type: 3}
     downsampleDepthPS: {fileID: 4800000, guid: 67d6171b0acc6554aad48c845ec7e67f, type: 3}
     upsampleTransparentPS: {fileID: 4800000, guid: 2ad7ce40f0dbaf64dadef1f58d8524d3,
       type: 3}
@@ -158,6 +163,23 @@ MonoBehaviour:
       type: 3}
     waterDeformationCS: {fileID: 7200000, guid: 9b8063fa5834d4243bfca8c68a92d9f1,
       type: 3}
+    waterFoamPS: {fileID: 4800000, guid: cf863cbd7bbd44a43b414caed214ba29, type: 3}
+    waterFoamCS: {fileID: 7200000, guid: 0d16d14b783e65f4d81dbcece2bd0ef9, type: 3}
+    lineStagePrepareCS: {fileID: 7200000, guid: 53231d98bbe64477aacc1adc14ba2619,
+      type: 3}
+    lineStageSetupSegmentCS: {fileID: 7200000, guid: 028836c66d494d8d94e1b2ca7d5382ae,
+      type: 3}
+    lineStageShadingSetupCS: {fileID: 7200000, guid: fefde0fac988da24a93bc2d8d6e0a0a1,
+      type: 3}
+    lineStageRasterBinCS: {fileID: 7200000, guid: 17d1e3e43f0e4c878b40b52848a58a77,
+      type: 3}
+    lineStageWorkQueueCS: {fileID: 7200000, guid: dae4ea8aeff24b16be3f0b2948e0acc5,
+      type: 3}
+    lineStageRasterFineCS: {fileID: 7200000, guid: 8691ac13e67d457abb92eca75e88e995,
+      type: 3}
+    lineCompositePS: {fileID: 4800000, guid: 8d9fbe0862434a2298748d335b9abea5, type: 3}
+    gpuPrefixSumCS: {fileID: 7200000, guid: 76fcf27f72d24907b1846939a7a2d83f, type: 3}
+    gpuSortCS: {fileID: 7200000, guid: e485b8d649234276ababbd36fcec8c1a, type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad,
       type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0,
@@ -194,6 +216,8 @@ MonoBehaviour:
     momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
     shadowBlitPS: {fileID: 4800000, guid: ca059f1af4587a24b9a9eed3b66cff0f, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a,
+      type: 3}
+    ComputeThicknessPS: {fileID: 4800000, guid: 4d2c6daf0d4968748bb5b82d5016fdea,
       type: 3}
     GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}
     GTAOSpatialDenoiseCS: {fileID: 7200000, guid: 2cb33c21587d12b4388d7866ab6c65f6,
@@ -264,16 +288,12 @@ MonoBehaviour:
     temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179,
       type: 3}
     sharpeningCS: {fileID: 7200000, guid: 667941138a753f447bad3bf94052f590, type: 3}
-    lensFlareDataDrivenPS: {fileID: 4800000, guid: 85330b3de0cfebc4ba78b2d61b1a2899,
-      type: 3}
-    lensFlareMergeOcclusionCS: {fileID: 7200000, guid: 07492750f384d9a4da9aaf5d2feeed4a,
-      type: 3}
-    DLSSBiasColorMaskPS: {fileID: 4800000, guid: 017a05924c0b0484ca29717ed0c60343,
-      type: 3}
-    compositeUIAndOETFApplyPS: {fileID: 4800000, guid: 08b7ad21d2b8e9142b730b22d7355821,
-      type: 3}
-    dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd,
-      type: 3}
+    lensFlareDataDrivenPS: {fileID: 4800000, guid: 85330b3de0cfebc4ba78b2d61b1a2899, type: 3}
+    lensFlareScreenSpacePS: {fileID: 4800000, guid: 97abfc9f0525e1849b417eaae10f0329, type: 3}
+    lensFlareMergeOcclusionCS: {fileID: 7200000, guid: 07492750f384d9a4da9aaf5d2feeed4a, type: 3}
+    DLSSBiasColorMaskPS: {fileID: 4800000, guid: 017a05924c0b0484ca29717ed0c60343, type: 3}
+    compositeUIAndOETFApplyPS: {fileID: 4800000, guid: 08b7ad21d2b8e9142b730b22d7355821, type: 3}
+    dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd, type: 3}
     dofGatherCS: {fileID: 7200000, guid: 1e6b16a7970a1494db74b1d3d007d1cc, type: 3}
     dofCoCMinMaxCS: {fileID: 7200000, guid: c70dd492c3d2fe94589d6ca8d4e37915, type: 3}
     dofMinMaxDilateCS: {fileID: 7200000, guid: 757a3f81b35177b44b2b178909b49172, type: 3}
@@ -388,7 +408,7 @@ MonoBehaviour:
       type: 3}
     worleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2, type: 3}
     perlinNoise32RGB: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915, type: 3}
-    foamSurface: {fileID: 2800000, guid: bebd18275f6180c42a61a4365589d43a, type: 3}
+    foamMask: {fileID: 2800000, guid: ca1d72d84c34dba4390eab4c86e62f62, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}
@@ -404,6 +424,7 @@ MonoBehaviour:
     SMAAAreaTex: {fileID: 2800000, guid: 92e0d85ab4eca874098e7fcf6f8f674e, type: 3}
     defaultHDRISky: {fileID: 8900000, guid: 8253d41e6e8b11a4cbe77a4f8f82934d, type: 3}
     defaultCloudMap: {fileID: 2800000, guid: 57a33fc2476a01644865bfde5f06e2f4, type: 3}
+    numbersDisplayTex: {fileID: 2800000, guid: 73fe53b428c5b3440b7e87ee830b608a, type: 3}
   shaderGraphs:
     objectIDPS: {fileID: -6465566751694194690, guid: 89daf81f8e8f6634da726cbca859ca38,
       type: 3}
@@ -416,4 +437,6 @@ MonoBehaviour:
       type: 3}
     emissiveQuadMesh: {fileID: 4300000, guid: 1d5a8595286f94f4bb54171d49f473c3, type: 3}
     sphereMesh: {fileID: 4300000, guid: 9e0af751bc36ea146940ba245193e28c, type: 3}
+    probeSamplingDebugMesh: {fileID: -3555484719484374845, guid: 20be25aac4e22ee49a7db76fb3df6de2,
+      type: 3}
   m_Version: 4

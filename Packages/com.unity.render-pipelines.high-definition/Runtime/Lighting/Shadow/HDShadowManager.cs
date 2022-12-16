@@ -111,6 +111,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float cascadeBorders[4];
     }
 
+    struct HDShadowCullingSplit
+    {
+        public Matrix4x4 view;
+        public Matrix4x4 deviceProjectionMatrix;
+        public Matrix4x4 deviceProjectionYFlip; // Use the y flipped device projection matrix as light projection matrix
+        public Matrix4x4 projection;
+        public Matrix4x4 invViewProjection;
+        public Vector4 deviceProjection;
+        public Vector4 cullingSphere;
+        public Vector2 viewportSize;
+        public float forwardOffset;
+    }
+
     internal struct HDShadowRequestHandle
     {
         public HDShadowRequestSetHandle setHandle;
@@ -163,20 +176,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private const int ShadowMapTypeIndex = 0;
         private const int BatchCullingProjectionTypeIndex = 1;
 
-        // TODO: Remove these field once scriptable culling is here (currently required by ScriptableRenderContext.DrawShadows)
-        public ShadowSplitData splitData;
-        // end
-
+        public HDShadowCullingSplit cullingSplit;
         public HDShadowData cachedShadowData;
-
-        public Matrix4x4            view;
-        // Use the y flipped device projection matrix as light projection matrix
-        public Matrix4x4 deviceProjectionYFlip;
         public Matrix4x4 shadowToWorld;
-
-        public Vector4 deviceProjection;
         public Vector4 zBufferParam;
-
         public Vector4 evsmParams;
         // Warning: these viewport fields are updated by ProcessShadowRequests and are invalid before
         public Rect dynamicAtlasViewport;
@@ -270,43 +273,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void InitDefault()
         {
-            view = default;
-
-            deviceProjectionYFlip = default;
-            deviceProjection = default;
+            cullingSplit = default;
             shadowToWorld = default;
             position = default;
             zBufferParam = default;
-
             dynamicAtlasViewport = default;
             cachedAtlasViewport = default;
             zClip = default;
-
-
             shadowMapType = ShadowMapType.PunctualAtlas;
-
-
             lightIndex = default;
-            splitData = default;
-
             normalBias = default;
             worldTexelSize = default;
             slopeBias = default;
-
             shadowSoftness = default;
             blockerSampleCount = default;
             filterSampleCount = default;
             minFilterSize = default;
-
             kernelSize = default;
-
             evsmParams = default;
-
             shouldUseCachedShadowData = default;
             shouldRenderCachedComponent = default;
-
             cachedShadowData = default;
-
             isInCachedAtlas = default;
             isMixedCached = default;
             isValid = true;
@@ -517,14 +504,14 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct HDCachedShadowAtlasDataForShadowRequestUpdateJob
     {
         [WriteOnly] public NativeList<HDShadowRequestHandle> shadowRequests;
-        public NativeHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> placedShadows;
-        public NativeHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> shadowsPendingRendering;
-        [WriteOnly] public NativeHashMap<int, int> shadowsWithValidData;                            // Shadows that have been placed and rendered at least once (OnDemand shadows are not rendered unless requested explicitly). It is a dictionary for fast access by shadow index.
-        [ReadOnly] public NativeHashMap<int, HDLightRenderEntity> registeredLightDataPendingPlacement;
-        [ReadOnly] public NativeHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> recordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
+        public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> placedShadows;
+        public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> shadowsPendingRendering;
+        [WriteOnly] public NativeParallelHashMap<int, int> shadowsWithValidData;                            // Shadows that have been placed and rendered at least once (OnDemand shadows are not rendered unless requested explicitly). It is a dictionary for fast access by shadow index.
+        [ReadOnly] public NativeParallelHashMap<int, HDLightRenderEntity> registeredLightDataPendingPlacement;
+        [ReadOnly] public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedShadowRecord> recordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
         // but they lost their spot (e.g. post defrag). They don't have a light associated anymore if not by index, so we keep a separate collection.
 
-        public NativeHashMap<int, HDCachedShadowAtlas.CachedTransform> transformCaches;
+        public NativeParallelHashMap<int, HDCachedShadowAtlas.CachedTransform> transformCaches;
         [ReadOnly] public NativeList<HDCachedShadowAtlas.CachedShadowRecord> tempListForPlacement;
         internal bool LightIsPendingPlacement(int lightIdxForCachedShadows)
         {
@@ -913,8 +900,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDShadowData data = new HDShadowData();
 
-            var view = shadowRequest.view;
-            data.proj = shadowRequest.deviceProjection;
+            var view = shadowRequest.cullingSplit.view;
+            data.proj = shadowRequest.cullingSplit.deviceProjection;
             data.pos = shadowRequest.position;
             data.rot0 = new Vector3(view.m00, view.m01, view.m02);
             data.rot1 = new Vector3(view.m10, view.m11, view.m12);
@@ -956,11 +943,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return ((Vector4*)sphereCascadesBuffer)[index];
             }
-        }
-
-        public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams, float maxShadowDistance)
-        {
-            cullingParams.shadowDistance = Mathf.Min(maxShadowDistance, cullingParams.shadowDistance);
         }
 
         public unsafe void LayoutShadowMaps(LightingDebugSettings lightingDebugSettings)

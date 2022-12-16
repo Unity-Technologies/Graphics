@@ -28,7 +28,7 @@ public class ManualRTASManager : MonoBehaviour
     void Update()
     {
         HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline is HDRenderPipeline ? (HDRenderPipeline)RenderPipelineManager.currentPipeline : null;
-        if (hdrp != null)
+        if (hdrp != null && rtas != null)
         {
             // Get the HDCamera for the current camera
             var hdCamera = HDCamera.GetOrCreate(GetComponent<Camera>());
@@ -36,12 +36,8 @@ public class ManualRTASManager : MonoBehaviour
             // Evaluate the effect params
             HDEffectsParameters hdEffectParams = HDRenderPipeline.EvaluateEffectsParameters(hdCamera, true, false);
 
-            // Clear the rtas from the previous frame
-            if (rtas != null)
-                rtas.Dispose();
-
-            // Create the RTAS
-            rtas = new RayTracingAccelerationStructure();
+            // Clear the contents of rtas from the previous frame
+            rtas.ClearInstances();
 
             // Add all the objects individually
             int numGameObjects = gameObjects.Count;
@@ -54,6 +50,12 @@ public class ManualRTASManager : MonoBehaviour
             // Assign it to the camera
             hdCamera.rayTracingAccelerationStructure = rtas;
         }
+    }
+
+    void Start()
+    {
+        if (rtas == null)
+            rtas = new RayTracingAccelerationStructure();
     }
 
     void OnDestroy()
@@ -69,6 +71,7 @@ public class ManualRTASManager : MonoBehaviour
 | **Property**             | **Description**                                              |
 | ------------------------ | ------------------------------------------------------------ |
 | **Ray Bias** | Specifies the bias value HDRP applies when casting rays for all effects. This value should remain unchained unless your scene scale is significantly smaller or larger than average. |
+| **Distant Ray Bias** | Specifies the Ray Bias value used when the distance between the pixel and the camera is close to the far plane. Between the near and far plane the Ray Bias and Distant Ray Bias are interpolated linearly. This does not affect Path Tracing or Recursive Rendering. This value can be increased to mitigate Ray Tracing z-fighting issues at a distance. |
 | **Extend Shadow Culling** | Extends the sets of GameObjects that HDRP includes in shadow maps for more accurate shadows in ray traced effects. For Directional lights, cascades are not extended, but additional objects may appear in the cascades.|
 | **Extend Camera Culling** | Extends the sets of GameObjects that HDRP includes in the rendering. This is a way to force skinned mesh animations for GameObjects that are not in the frustum. |
 | **Directional Shadow Ray Length** | Controls the maximal ray length for ray traced directional shadows. |

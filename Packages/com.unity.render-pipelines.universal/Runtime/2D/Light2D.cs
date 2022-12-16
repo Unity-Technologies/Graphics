@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     ///
     [ExecuteAlways, DisallowMultipleComponent]
-    [MovedFrom(false, "UnityEngine.Experimental.Rendering.Universal", "com.unity.render-pipelines.universal")]
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal", "Unity.RenderPipelines.Universal.Runtime")]
     [AddComponentMenu("Rendering/2D/Light 2D")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     public sealed partial class Light2D : Light2DBase, ISerializationCallbackReceiver

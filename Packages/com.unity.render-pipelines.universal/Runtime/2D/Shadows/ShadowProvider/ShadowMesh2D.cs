@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
         public  BoundingSphere boundingSphere { get => m_BoundingSphere; }
         public  EdgeProcessing edgeProcessing { get { return m_EdgeProcessing; } set { m_EdgeProcessing = value; } }
         public float trimEdge { get { return m_TrimEdge; } set { m_TrimEdge = value; } }
-        
+
         static internal void DuplicateShadowMesh(Mesh source, out Mesh dest)
         {
             // This is not gc tested as this generates garbage

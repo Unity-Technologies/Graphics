@@ -4,11 +4,13 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 
 ## Directional Light Surface Texture
 
-When you use Physically Based Sky, you can assign a surface Texture to Directional lights in the **Celestial Body** section. The orientation of the texture was incorrect, in HDRP 14 it is fixed by flipping UVs on the x axis.
+When you use a Physically Based Sky, you can assign a surface texture to Directional lights in the **Celestial Body** section.
+
+HDRP 14 flips the UVs on the X axis to correct this texture's orientation.
 
 ## XR
 
-From HDRP 14.x, when you use XR Motion Blur is disabled by default. To change this behaviour:
+From 14.x, HDRP disables Motion Blur by default when you use XR. To change this behaviour:
 
 1. Open the [HDRP asset](HDRP-Asset.md).
 2. Find the **XR** section.
@@ -26,23 +28,27 @@ HDRP 14.x makes the following changes to Materials:
 
 HDRP 14.x introduces the following Refraction behavior:
 
-- When you upgrade a project, refractive GameObjects that are not in range of a Reflection Probe use the bounding box of that GameObject to approximate Refraction.
-- Objects that use a transparent Material and a Refraction Model use high quality refraction by default.
+- When you upgrade a project, refractive GameObjects use their own bounding boxes to approximate Refraction if they are not in range of a Reflection Probe.
+- GameObjects that use a transparent Material and a **Refraction Model** use high quality refraction by default.
+- The **Box** Refraction Model is now called **Planar** to indicate the kind of surface you should use this model on.
 
 ## Cloud Layer
 
-HDRP 14 changes the raymarching algorithm to improve scattering, and to give more consistent results when you change the number of steps. Depending on your lighting conditions, you might have to tweak the **Density** and **Exposure** sliders to get the same result as earlier HDRP versions.
+HDRP 14.x changes the raymarching algorithm to improve scattering, and to provide more consistent results when you change the number of steps.
 
-### Decal Projectors
+Depending on your lighting conditions, you might have to tweak the **Density** and **Exposure** sliders to get the same results as earlier HDRP versions.
 
-HDRP 14.x improves the precision of the Decal Projector's **Angle Fade** property. This means that when you upgrade your project, Decal Projectors that use angle fade might appear differently.
+## Decal Projectors
 
-## Local Volumetric Fog
+HDRP 14.x improves the precision of the Decal Projector's **Angle Fade** property. This means that when you upgrade your project, Decal Projectors that use **Angle Fade** may produce different visual results.
 
-The local volumetric fog system was completely rewritten to improve the performances, flexibility and artistic workflow.
+## Reflection Probe Atlas
 
-This update removes the limit regarding the size of the 3D texture in the local volumetric fog mask value. A change was also made in the voxelization algorithm causing slightly different look on local volumetric fogs that can be corrected by increasing a bit the blend distance.
+HDRP 14.x combines the planar and cube reflection probe textures into the same 2D texture atlas. This texture atlas previously contained only planar reflection probe textures.
 
-Also, note that the 3D texture atlas storing the fog mask textures is gone, and with it, the 3D texture copy executed each time the source texture was changed.
+When HDRP automatically upgrades a project, it adjusts the atlas memory allocation so that the planar and cube reflection probes fit.
 
-Additionally, because the 3D atlas was removed, HDRP doesn't automatically generates mipmaps for your 3D textures anymore. This can cause texture aliasing when the volume is small on the screen, to fix that, please enable mipmaps on your 3D textures.
+Unity might display a "No more space in Reflection Probe Atlas" error. To fix this error:
+
+- Open the [HDRP Asset](HDRP-Asset.md).
+- Increase the **Reflection 2D Atlas Size** value.

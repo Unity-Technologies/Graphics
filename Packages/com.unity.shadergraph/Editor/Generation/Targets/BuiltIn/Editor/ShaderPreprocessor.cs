@@ -110,7 +110,9 @@ namespace UnityEditor.Rendering.BuiltIn
 
         bool IsShaderGraphShader(Shader shader, ShaderSnippetData snippetData)
         {
-            var shaderGraphTag = shader.FindSubshaderTagValue((int)snippetData.pass.SubshaderIndex, m_ShaderGraphShaderTag);
+            var shaderData = ShaderUtil.GetShaderData(shader);
+            var serializedSubShader = shaderData.GetSerializedSubshader((int)snippetData.pass.SubshaderIndex);
+            var shaderGraphTag = serializedSubShader.FindTagValue(m_ShaderGraphShaderTag);
             if (shaderGraphTag == ShaderTagId.none)
                 return false;
             return true;
@@ -226,18 +228,6 @@ namespace UnityEditor.Rendering.BuiltIn
                 !(compilerData.shaderKeywordSet.IsEnabled(m_Lightmap) ||
                   compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)))
                 return true;
-
-            // As GLES2 has low amount of registers, we strip:
-            if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
-            {
-                // Cascade shadows
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
-                    return true;
-
-                // Screen space shadows
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
-                    return true;
-            }
 
             // Editor visualization is only used in scene view debug modes.
             if (compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization))

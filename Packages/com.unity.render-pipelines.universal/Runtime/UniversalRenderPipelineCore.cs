@@ -11,7 +11,10 @@ namespace UnityEngine.Rendering.Universal
 {
     static class NativeArrayExtensions
     {
-        public static unsafe ref readonly T UnsafeElementAt<T>(this NativeArray<T> array, int index) where T : struct
+        /// <summary>
+        /// IMPORTANT: Make sure you do not write to the value! There are no checks for this!
+        /// </summary>
+        public static unsafe ref T UnsafeElementAt<T>(this NativeArray<T> array, int index) where T : struct
         {
             return ref UnsafeUtility.ArrayElementAsRef<T>(array.GetUnsafeReadOnlyPtr(), index);
         }
@@ -80,6 +83,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct RenderingData
     {
+        internal NativeArray<URPLightShadowCullingInfos> visibleLightsShadowCullingInfos;
+        internal AdditionalLightsShadowAtlasLayout shadowAtlasLayout;
         internal CommandBuffer commandBuffer;
 
         /// <summary>
@@ -159,8 +164,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public NativeArray<VisibleLight> visibleLights;
 
-        internal NativeArray<int> originalIndices;
-
         /// <summary>
         /// True if additional lights should be shaded in vertex shader, otherwise additional lights will be shaded per pixel.
         /// </summary>
@@ -219,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Helper function to populate builtin stereo matricies as well as URP stereo matricies
-        internal void PushBuiltinShaderConstantsXR(CommandBuffer cmd, bool renderIntoTexture)
+        internal void PushBuiltinShaderConstantsXR(RasterCommandBuffer cmd, bool renderIntoTexture)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
@@ -412,6 +415,18 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
 
+        internal bool resolveToScreen => targetTexture == null && resolveFinalTarget && (cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
+
+        /// <summary>
+        /// True if the Camera should output to an HDR display.
+        /// </summary>
+        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && isHdrEnabled && resolveToScreen;
+
+        /// <summary>
+        /// True if the Camera should render overlay UI.
+        /// </summary>
+        public bool rendersOverlayUI => SupportedRenderingFeatures.active.rendersUIOverlay && resolveToScreen;
+
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
@@ -468,7 +483,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsTemporalAAEnabled()
         {
-            #if URP_EXPERIMENTAL_TAA_ENABLE
             UniversalAdditionalCameraData additionalCameraData;
             camera.TryGetComponent(out additionalCameraData);
 
@@ -476,10 +490,8 @@ namespace UnityEngine.Rendering.Universal
                    && (taaPersistentData != null)                                                                                     // Initialized
                    && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
                    && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
-                   && !camera.allowDynamicResolution;                                                                                 // No Dynamic Resolution
-            #else
-            return false;
-            #endif
+                   && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
+                   && postProcessEnabled;                                                                                             // No Postprocessing
         }
 
         /// <summary>
@@ -683,6 +695,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
+        internal int mainLightShadowResolution;
+        internal int mainLightRenderTargetWidth;
+        internal int mainLightRenderTargetHeight;
     }
 
     /// <summary>
@@ -849,6 +864,10 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly int renderingLayerMaxInt = Shader.PropertyToID("_RenderingLayerMaxInt");
         public static readonly int renderingLayerRcpMaxInt = Shader.PropertyToID("_RenderingLayerRcpMaxInt");
+
+        public static readonly int overlayUITexture = Shader.PropertyToID("_OverlayUITexture");
+        public static readonly int hdrOutputLuminanceParams = Shader.PropertyToID("_HDROutputLuminanceParams");
+        public static readonly int hdrOutputGradingParams = Shader.PropertyToID("_HDROutputGradingParams");
     }
 
     /// <summary>
@@ -1123,6 +1142,15 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for foveated rendering. </summary>
         public const string FoveatedRenderingNonUniformRaster = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER";
+
+        /// <summary> Keyword used for disabling Texture 2D Arrays. </summary>
+        public const string DisableTexture2DXArray = "DISABLE_TEXTURE2D_X_ARRAY";
+
+        /// <summary> Keyword used for Single Slice Blits. </summary>
+        public const string BlitSingleSlice = "BLIT_SINGLE_SLICE";
+
+        /// <summary> Keyword used for rendering a combined mesh for XR. </summary>
+        public const string XROcclusionMeshCombined = "XR_OCCLUSION_MESH_COMBINED";
 
         /// <summary> Keyword used for applying scale and bias. </summary>
         public const string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
@@ -1587,10 +1615,12 @@ namespace UnityEngine.Rendering.Universal
         CopyDepth,
         DepthNormalPrepass,
         DepthPrepass,
+        UpdateReflectionProbeAtlas,
 
         // DrawObjectsPass
         DrawOpaqueObjects,
         DrawTransparentObjects,
+        DrawScreenSpaceUI,
 
         // RenderObjectsPass
         //RenderObjects,
@@ -1612,6 +1642,7 @@ namespace UnityEngine.Rendering.Universal
         UberPostProcess,
         Bloom,
         LensFlareDataDriven,
+        LensFlareScreenSpace,
         MotionVectors,
         DrawFullscreen,
 

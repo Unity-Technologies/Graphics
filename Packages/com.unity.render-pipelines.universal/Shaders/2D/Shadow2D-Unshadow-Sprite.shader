@@ -78,11 +78,11 @@ Shader "Hidden/Shadow2DUnshadowSprite"
             Stencil
             {
                 Ref       0
-                Comp      Always  
+                Comp      Always
                 Pass      Replace
             }
 
-            Blend   One One
+            Blend   One Zero
             BlendOp Add
             Cull Off
             ZWrite Off

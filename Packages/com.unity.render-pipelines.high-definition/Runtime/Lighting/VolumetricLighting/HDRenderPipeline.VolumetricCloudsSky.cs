@@ -130,6 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", passData.commonData.microErosion);
 
             // Ray-march the clouds for this frame
+            CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", passData.commonData.simplePreset);
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", passData.commonData.cloudsCB._PhysicallyBasedSun == 1);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._MaxZMaskTexture, passData.maxZMask);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._Worley128RGBA, passData.commonData.worley128RGBA);
@@ -144,6 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.DispatchCompute(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, traceTX, traceTY, 1);
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
+            CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", false);
 
             mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer);
             CoreUtils.SetRenderTarget(cmd, passData.output, ClearFlag.None, miplevel: 2, cubemapFace: passData.cubemapFace);
@@ -253,6 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.Push(cmd, passData.commonData.cloudsCB, passData.commonData.volumetricCloudsTraceCS, HDShaderIDs._ShaderVariablesClouds);
 
             // Ray-march the clouds for this frame
+            CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", passData.commonData.simplePreset);
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", passData.commonData.cloudsCB._PhysicallyBasedSun == 1);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._MaxZMaskTexture, passData.maxZMask);
             cmd.SetComputeTextureParam(passData.commonData.volumetricCloudsTraceCS, passData.renderKernel, HDShaderIDs._Worley128RGBA, passData.commonData.worley128RGBA);
@@ -270,6 +273,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Reset the multi compile
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
+            CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", false);
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {

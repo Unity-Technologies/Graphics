@@ -14,7 +14,6 @@ namespace UnityEditor.VFX
         private static readonly float kAuthoringPrewarmMaxTimeMax = 60.0f;
 
         private static bool m_Loaded = false;
-        private static bool m_GenerateOutputContextWithShaderGraph;
         private static bool m_DisplayExperimentalOperator = false;
         private static bool m_AllowShaderExternalization = false;
         private static bool m_DisplayExtraDebugInfo = false;
@@ -25,15 +24,7 @@ namespace UnityEditor.VFX
         private static bool m_InstancingEnabled = true;
         private static int m_AuthoringPrewarmStepCountPerSeconds = kAuthoringPrewarmStepCountPerSecondsDefault;
         private static float m_AuthoringPrewarmMaxTime = kAuthoringPrewarmMaxTimeDefault;
-
-        public static bool generateOutputContextWithShaderGraph
-        {
-            get
-            {
-                LoadIfNeeded();
-                return m_GenerateOutputContextWithShaderGraph;
-            }
-        }
+        private static bool m_VisualEffectTargetListed = false;
 
         public static bool displayExperimentalOperator
         {
@@ -115,6 +106,15 @@ namespace UnityEditor.VFX
                 return m_AuthoringPrewarmMaxTime;
             }
         }
+        
+        public static bool visualEffectTargetListed
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_VisualEffectTargetListed;
+            }
+        }
 
         public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
         public const string extraDebugInfoKey = "VFX.ExtraDebugInfo";
@@ -126,12 +126,12 @@ namespace UnityEditor.VFX
         public const string instancingEnabledKey = "VFX.InstancingEnabled";
         public const string authoringPrewarmStepCountPerSecondsKey = "VFX.AuthoringPrewarmStepCountPerSeconds";
         public const string authoringPrewarmMaxTimeKey = "VFX.AuthoringPrewarmMaxTimeKey";
+        public const string visualEffectTargetListedKey = UnityEditor.ShaderGraph.VFXTarget.kVisualEffectTargetListedKey;
 
         private static void LoadIfNeeded()
         {
             if (!m_Loaded)
             {
-                m_GenerateOutputContextWithShaderGraph = true;
                 m_DisplayExperimentalOperator = EditorPrefs.GetBool(experimentalOperatorKey, false);
                 m_DisplayExtraDebugInfo = EditorPrefs.GetBool(extraDebugInfoKey, false);
                 m_ForceEditionCompilation = EditorPrefs.GetBool(forceEditionCompilationKey, false);
@@ -146,6 +146,8 @@ namespace UnityEditor.VFX
 
                 m_AuthoringPrewarmMaxTime = EditorPrefs.GetFloat(authoringPrewarmMaxTimeKey, kAuthoringPrewarmMaxTimeDefault);
                 m_AuthoringPrewarmMaxTime = Mathf.Clamp(m_AuthoringPrewarmMaxTime, 0.0f, kAuthoringPrewarmMaxTimeMax);
+                
+                m_VisualEffectTargetListed = EditorPrefs.GetBool(visualEffectTargetListedKey, false);
 
                 m_Loaded = true;
             }
@@ -168,7 +170,6 @@ namespace UnityEditor.VFX
                 using (new SettingsWindow.GUIScope())
                 {
                     LoadIfNeeded();
-                    m_GenerateOutputContextWithShaderGraph = EditorGUILayout.Toggle(new GUIContent("Improved Shader Graph Generation", "When enabled, any shadergraph shaders can be assigned to Visual Effect outputs as long as ‘Support VFX Graph’ is enabled in the ShaderGraph’s Graph Inspector."), m_GenerateOutputContextWithShaderGraph);
                     m_DisplayExperimentalOperator = EditorGUILayout.Toggle(new GUIContent("Experimental Operators/Blocks", "When enabled, operators and blocks which are still in an experimental state become available to use within the Visual Effect Graph."), m_DisplayExperimentalOperator);
                     m_DisplayExtraDebugInfo = EditorGUILayout.Toggle(new GUIContent("Show Additional Debug info", "When enabled, additional information becomes available in the inspector when selecting blocks, such as the attributes they use and their shader code."), m_DisplayExtraDebugInfo);
                     m_AdvancedLogs = EditorGUILayout.Toggle(new GUIContent("Verbose Mode for compilation", "When enabled, additional information about the data, expressions, and generated shaders is displayed in the console whenever a graph is compiled."), m_AdvancedLogs);
@@ -202,7 +203,7 @@ namespace UnityEditor.VFX
 #endif
 
                     m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorGUILayout.EnumPopup(new GUIContent("Main Camera fallback", "Specifies the camera source for MainCamera Operators and Blocks to use when in the editor."), m_CameraBuffersFallback);
-
+                    m_VisualEffectTargetListed = EditorGUILayout.Toggle(new GUIContent("Show Target in Shader Graph (deprecated)", "When enabled, the Visual Effect Target is listed in Active Targets dropdown in Shader Graph."), m_VisualEffectTargetListed);
                     var userTemplateDirectory = EditorGUILayout.DelayedTextField(new GUIContent("User Systems", "Directory for user-generated VFX templates (e.g. Assets/VFX/Templates)"), VFXResources.defaultResources.userTemplateDirectory);
 
                     m_AuthoringPrewarmStepCountPerSeconds = EditorGUILayout.IntField(new GUIContent("Authoring Prewarm Step Count Per Second", "Specifies the step count per second for prewarming during VFX authoring. High values may impact performance."), m_AuthoringPrewarmStepCountPerSeconds);
@@ -218,12 +219,14 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetInt(cameraBuffersFallbackKey, (int)m_CameraBuffersFallback);
                         EditorPrefs.SetBool(multithreadUpdateEnabledKey, m_MultithreadUpdateEnabled);
                         EditorPrefs.SetBool(instancingEnabledKey, m_InstancingEnabled);
-
+                        
                         m_AuthoringPrewarmStepCountPerSeconds = Mathf.Clamp(m_AuthoringPrewarmStepCountPerSeconds, 0, kAuthoringPrewarmStepCountPerSecondsMax);
                         EditorPrefs.SetInt(authoringPrewarmStepCountPerSecondsKey, m_AuthoringPrewarmStepCountPerSeconds);
 
                         m_AuthoringPrewarmMaxTime = Mathf.Clamp(m_AuthoringPrewarmMaxTime, 0.0f, kAuthoringPrewarmMaxTimeMax);
                         EditorPrefs.SetFloat(authoringPrewarmMaxTimeKey, m_AuthoringPrewarmMaxTime);
+                        
+                        EditorPrefs.SetBool(visualEffectTargetListedKey, m_VisualEffectTargetListed);
 
                         userTemplateDirectory = userTemplateDirectory.Replace('\\', '/');
                         userTemplateDirectory = userTemplateDirectory.TrimEnd(new char[] { '/' });

@@ -15,9 +15,13 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class MaterialModificationProcessor : AssetModificationProcessor
     {
+        static readonly string s_ShaderGraphExtensionMeta = $".{ShaderGraphImporter.Extension}.meta";
+        static readonly string s_ShaderGraphExtension = $".{ShaderGraphImporter.Extension}";
+        const string k_MaterialExtension = ".mat";
+
         static void OnWillCreateAsset(string asset)
         {
-            if (asset.ToLowerInvariant().EndsWith(".mat"))
+            if (asset.HasExtension(k_MaterialExtension))
             {
                 MaterialPostprocessor.s_CreatedAssets.Add(asset);
                 return;
@@ -42,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // should be idempotent.
             // In other words, there shouldn't be anything to checkout for the .shadergraph per se.
             //
-            if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}.meta"))
+            if (asset.HasExtension(s_ShaderGraphExtensionMeta))
             {
                 var sgPath = System.IO.Path.ChangeExtension(asset, null);
                 var importer = AssetImporter.GetAtPath(sgPath);
@@ -55,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Like stated above, doesnt happen:
-            if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
+            if (asset.HasExtension(s_ShaderGraphExtension))
             {
                 MaterialPostprocessor.s_CreatedAssets.Add(asset);
                 return;
@@ -345,6 +349,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        static readonly string s_ShaderGraphExtensionMeta = $".{ShaderGraphImporter.Extension}.meta";
+        static readonly string s_ShaderGraphExtension = $".{ShaderGraphImporter.Extension}";
+        const string k_MaterialExtension = ".mat";
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var asset in importedAssets)
@@ -360,7 +368,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
-                if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
+                if (asset.HasExtension(s_ShaderGraphExtension))
                 {
                     bool justCreated = s_CreatedAssets.Contains(asset);
 
@@ -376,8 +384,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     continue;
                 }
 
-                // Materials (.mat) post processing:
-                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
+                // Materials (.mat) post processing
+                if (!asset.HasExtension(k_MaterialExtension))
                     continue;
 
                 if (material == null)

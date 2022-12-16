@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
         Toggle m_SupportVFXToggle;
-        Toggle m_SupportComputeForVertexSetupToggle;
+        Toggle m_SupportLineRenderingToggle;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -70,9 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_ActiveSubTarget = value;
         }
 
-        public bool supportComputeForVertexSetup
+        public bool supportLineRendering
         {
-            get => m_SupportComputeForVertexSetup;
+            get => m_SupportLineRendering;
         }
 
         [SerializeField]
@@ -85,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         bool m_SupportVFX;
 
         [SerializeField]
-        bool m_SupportComputeForVertexSetup;
+        bool m_SupportLineRendering;
 
         private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
         {
@@ -220,29 +220,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
 
-            if (VFXViewPreference.generateOutputContextWithShaderGraph)
+            // VFX Support
+            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+            else
             {
-                // VFX Support
-                if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
-                    context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
-                else
+                m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                const string k_VFXToggleTooltip = "When enabled, this shader can be assigned to a compatible Visual Effect Graph output.";
+                context.AddProperty("Support VFX Graph", k_VFXToggleTooltip, 0, m_SupportVFXToggle, (evt) =>
                 {
-                    m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
-                    const string k_VFXToggleTooltip = "When enabled, this shader can be assigned to a compatible Visual Effect Graph output.";
-                    context.AddProperty("Support VFX Graph", k_VFXToggleTooltip, 0, m_SupportVFXToggle, (evt) =>
-                    {
-                        m_SupportVFX = m_SupportVFXToggle.value;
-                        onChange();
-                    });
-                }
+                    m_SupportVFX = m_SupportVFXToggle.value;
+                    onChange();
+                });
             }
 
-            // TODO: Disable these right before merging PR and remove this comment.
-
-            m_SupportComputeForVertexSetupToggle = new Toggle("") { value = m_SupportComputeForVertexSetup };
-            context.AddProperty("Support Compute for Vertex Setup", "", 0, m_SupportComputeForVertexSetupToggle, (evt) =>
+            m_SupportLineRenderingToggle = new Toggle("") { value = m_SupportLineRendering };
+            context.AddProperty("Support High Quality Line Rendering", "", 0, m_SupportLineRenderingToggle, (evt) =>
             {
-                m_SupportComputeForVertexSetup = m_SupportComputeForVertexSetupToggle.value;
+                m_SupportLineRendering = m_SupportLineRenderingToggle.value;
                 onChange();
             });
         }
@@ -862,6 +857,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 Pass = "Replace",
             }) },
         };
+
+        public static RenderStateCollection LineRendering = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull("Off") },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.ZTest("Always") },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = Uniforms.stencilWriteMask,
+                Ref = Uniforms.stencilRef,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
     }
     #endregion
 
@@ -1157,20 +1167,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static KeywordDescriptor WriteDecalBufferDepthOnly = new KeywordDescriptor()
-        {
-            displayName = "Write Decal Buffer (Depth Only)",
-            referenceName = "WRITE",
-            type = KeywordType.Enum,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            entries = new KeywordEntry[]
-            {
-                new KeywordEntry() { displayName = "Decal Buffer", referenceName = "DECAL_BUFFER" },
-                new KeywordEntry() { displayName = "Rendering Layer", referenceName = "RENDERING_LAYER" },
-            },
-            stages = KeywordShaderStage.Fragment,
-        };
+        // ShaderGraph doesn't support unnamed keyword _ for enums so we have to hack it using a PragmaDescriptor
+        public static PragmaDescriptor WriteDecalBufferDepthOnlyAsPragma = new PragmaDescriptor() { value = "multi_compile_fragment _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER" };
 
         public static KeywordDescriptor WriteDecalBufferMotionVector = new KeywordDescriptor()
         {
@@ -1636,6 +1634,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             referenceName = "EDITOR_VISUALIZATION",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor ForceEnableTransparent = new KeywordDescriptor
+        {
+            displayName = "Force Enable Transparent",
+            referenceName = "_SURFACE_TYPE_TRANSPARENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor LineRenderingOffscreenShading = new KeywordDescriptor
+        {
+            displayName = "Line Rendering Offscreen Shading",
+            referenceName = "LINE_RENDERING_OFFSCREEN_SHADING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Global,
         };
     }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
@@ -25,6 +26,7 @@ namespace UnityEditor.Rendering
         }
 
         Editor m_Editor;
+        SupportedOnRenderPipelineAttribute m_SupportedOnRenderPipeline;
         RenderPipelineGlobalSettings renderPipelineSettings => GraphicsSettings.GetSettingsForRenderPipeline<TRenderPipeline>();
 
         /// <summary>
@@ -34,6 +36,7 @@ namespace UnityEditor.Rendering
         public RenderPipelineGlobalSettingsProvider(string v)
             : base(v, SettingsScope.Project)
         {
+            m_SupportedOnRenderPipeline = GetType().GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
         }
 
         /// <summary>
@@ -99,6 +102,12 @@ namespace UnityEditor.Rendering
         /// <param name="searchContext">The search content</param>
         public override void OnGUI(string searchContext)
         {
+            if (m_SupportedOnRenderPipeline is { isSupportedOnCurrentPipeline: false })
+            {
+                EditorGUILayout.HelpBox("These settings are currently not available due to the active Render Pipeline.", MessageType.Warning);
+                return;
+            }
+
             using (new SettingsProviderGUIScope())
             {
                 if (renderPipelineSettings == null)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -1437,10 +1438,10 @@ namespace UnityEngine.Rendering.HighDefinition
         void LightLoopUpdateCullingParameters(ref ScriptableCullingParameters cullingParams, HDCamera hdCamera)
         {
             var shadowMaxDistance = hdCamera.volumeStack.GetComponent<HDShadowSettings>().maxShadowDistance.value;
-            m_ShadowManager.UpdateCullingParameters(ref cullingParams, shadowMaxDistance);
 
             // In HDRP we don't need per object light/probe info so we disable the native code that handles it.
             cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+            cullingParams.shadowDistance = Mathf.Min(shadowMaxDistance, cullingParams.shadowDistance);
         }
 
         internal static bool IsBakedShadowMaskLight(Light light)
@@ -1548,8 +1549,53 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        private static void CullShadowCasters(ScriptableRenderContext renderContext,
+            in HDShadowInitParameters hdShadowInitParams,
+            HDShadowManager shadowManager,
+            HDCamera hdCamera,
+            HDProcessedVisibleLightsBuilder processedVisibleLights,
+            in CullingResults cullingResult)
+        {
+            HDLightRenderDatabase lightRenderDatabase = HDLightRenderDatabase.instance;
+
+            HDShadowRequestDatabase shadowRequestDatabase = HDShadowRequestDatabase.instance;
+            if (!shadowRequestDatabase.IsCreated)
+                return;
+
+            HDShadowSettings shadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
+            if (shadowSettings == null)
+                return;
+
+            int shadowLightCount = processedVisibleLights.shadowLightCount;
+            if (shadowLightCount == 0)
+                return;
+
+            NativeArray<LightShadowCasterCullingInfo> perLightShadowCullingInfos = new NativeArray<LightShadowCasterCullingInfo>(cullingResult.visibleLights.Length, Allocator.TempJob);
+            NativeArray<ShadowSplitData> splitBuffer = new NativeArray<ShadowSplitData>(shadowLightCount * HDShadowUtils.k_MaxShadowSplitCount, Allocator.TempJob);
+            int totalSplitCount;
+
+            HDShadowCullingUtils.ComputeCullingSplits(hdShadowInitParams,
+                lightRenderDatabase,
+                shadowRequestDatabase,
+                shadowManager,
+                shadowSettings,
+                cullingResult,
+                processedVisibleLights,
+                perLightShadowCullingInfos,
+                splitBuffer,
+                out totalSplitCount);
+
+            ShadowCastersCullingInfos cullingInfos = default;
+            cullingInfos.splitBuffer = splitBuffer.GetSubArray(0, totalSplitCount);
+            cullingInfos.perLightInfos = perLightShadowCullingInfos;
+            renderContext.CullShadowCasters(cullingResult, cullingInfos);
+
+            splitBuffer.Dispose();
+            perLightShadowCullingInfos.Dispose();
+        }
+
         // Compute data that will be used during the light loop for a particular light.
-        void PreprocessVisibleLights(CommandBuffer cmd, HDCamera hdCamera, in CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
+        void PreprocessVisibleLights(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, in CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProcessVisibleLights)))
             {
@@ -1563,6 +1609,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     aovRequest,
                     lightLoopSettings,
                     m_CurrentDebugDisplaySettings);
+
+                CullShadowCasters(renderContext, m_ShadowInitParameters, m_ShadowManager, hdCamera, m_ProcessedLightsBuilder, cullResults);
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProcessDirectionalAndCookies)))
                 {
@@ -1851,7 +1899,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Return true if BakedShadowMask are enabled
-        bool PrepareLightsForGPU(
+        bool PrepareLightsForGPU(ScriptableRenderContext renderContext,
             CommandBuffer cmd,
             HDCamera hdCamera,
             CullingResults cullResults,
@@ -1905,7 +1953,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0)
                 {
-                    PreprocessVisibleLights(cmd, hdCamera, cullResults, debugDisplaySettings, aovRequest);
+                    PreprocessVisibleLights(renderContext, cmd, hdCamera, cullResults, debugDisplaySettings, aovRequest);
 
                     // In case ray tracing supported and a light cluster is built, we need to make sure to reserve all the cookie slots we need
                     if (m_RayTracingSupported)

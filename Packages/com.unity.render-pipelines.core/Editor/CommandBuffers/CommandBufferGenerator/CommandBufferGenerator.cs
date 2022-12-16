@@ -50,7 +50,10 @@ namespace UnityEditor.Rendering
                 "SetGlobalDepthBias",
                 "BeginSample",
                 "EndSample",
-                "IncrementUpdateCount"
+                "IncrementUpdateCount",
+                "SetViewProjectionMatrices",
+                "SetupCameraProperties",
+                "InvokeOnRenderObjectCallbacks"
             };
 
         // Functions for compute only
@@ -107,6 +110,24 @@ namespace UnityEditor.Rendering
                 new FunctionInfo("ConfigureFoveatedRendering", "", true)
             };
 
+        // Fuctions for lowlevel (warpper around Commandbuffer) only
+        static List<FunctionInfo> lowlevelFunctions = new List<FunctionInfo> {
+                "DrawMesh",
+                "DrawRenderer",
+                "DrawRendererList",
+                "DrawProcedural",
+                "DrawProceduralIndirect",
+                "DrawMeshInstanced",
+                "DrawMeshInstancedProcedural",
+                "DrawMeshInstancedIndirect",
+                "DrawOcclusionMesh",
+                new FunctionInfo("SetInstanceMultiplier", "", true),
+                "ClearRenderTarget",
+                new FunctionInfo("SetFoveatedRenderingMode", "", true),
+                new FunctionInfo("ConfigureFoveatedRendering", "", true),
+                "SetRenderTarget",
+                "Clear"
+            };
         // Generated file header
         static string preamble =
 @"
@@ -125,7 +146,7 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 // ""Edit/Rendering/Generate Core CommandBuffers"" menu option.
 // This will generate the new command buffer C# files in the project root.
 //
-// Note that wile automated,this doesn't mean you won't have to think. Please consider any new methods on the command
+// Note that while automated,this doesn't mean you won't have to think. Please consider any new methods on the command
 // buffer if they are safe to be executed on the async compute queue or not, if they can be executed inside a
 // native render pass or not,... and add the function to the appropriate lists in CommandBufferGenerator.cs in the
 // com.unity.render-pipelines.core\Editor\CommandBuffers\CommandBufferGenerator\CommandBufferGenerator.cs.
@@ -419,10 +440,11 @@ namespace UnityEngine.Experimental.Rendering
             GenerateCommandBufferType("IBaseCommandBuffer", "This interface declares functions shared by several command buffer types.", "", true, baseFunctions);
             GenerateCommandBufferType("IRasterCommandBuffer", "This interface declares functions that are specific to a rasterization command buffer.", ": IBaseCommandBuffer", true, rasterFunctions);
             GenerateCommandBufferType("IComputeCommandBuffer", "This interface declares functions that are specific to a compute command buffer.", ": IBaseCommandBuffer", true, computeFunctions);
+            GenerateCommandBufferType("ILowLevelCommandBuffer", "This interface declares functions that are specific to a lowlevel command buffer.", ": IBaseCommandBuffer", true, lowlevelFunctions);
 
             GenerateCommandBufferType("RasterCommandBuffer", "A command buffer that is used with a rasterization render graph pass.", "BaseCommandBuffer, IRasterCommandBuffer", false, baseFunctions.Concat(rasterFunctions));
             GenerateCommandBufferType("ComputeCommandBuffer",  "A command buffer that is used with a compute render graph pass.", "BaseCommandBuffer, IComputeCommandBuffer", false, baseFunctions.Concat(computeFunctions));
-
+            GenerateCommandBufferType("LowLevelCommandBuffer", "A command buffer that is used with a lowlevel render graph pass.", "BaseCommandBuffer, ILowLevelCommandBuffer", false, baseFunctions.Concat(lowlevelFunctions));
         }
     }
 }

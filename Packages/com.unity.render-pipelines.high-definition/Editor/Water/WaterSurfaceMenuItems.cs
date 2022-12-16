@@ -26,8 +26,7 @@ namespace UnityEditor.Rendering
             // Create the holding game object
             var go = CoreEditorUtils.CreateGameObject("River", menuCommand.context);
 
-            // Place it at origin and set its scale
-            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+            // Set a default scale
             go.transform.localScale = new Vector3(150.0f, 1.0f, 20.0f);
 
             // Add the water surface component
@@ -41,8 +40,7 @@ namespace UnityEditor.Rendering
             // Create the holding game object
             var go = CoreEditorUtils.CreateGameObject("Pool", menuCommand.context);
 
-            // Place it at origin and set its scale
-            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+            // Set a default scale
             go.transform.localScale = new Vector3(10.0f, 1.0f, 10.0f);
 
             // Add the water surface component
@@ -121,12 +119,11 @@ namespace UnityEditor.Rendering
             go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
 
             // Add the water surface component
-            var waterDeformer = go.AddComponent<ProceduralWaterDeformer>();
+            var waterDeformer = go.AddComponent<WaterDeformer>();
 
             // Set the parameters
-            waterDeformer.type = ProceduralWaterDeformerType.Sphere;
-            waterDeformer.amplitude = 1.0f;
-            waterDeformer.regionSize = new Vector2(10.0f, 10.0f);
+            waterDeformer.type = WaterDeformerType.Sphere;
+            WaterDeformerPresets.ApplyWaterSphereDeformerPreset(waterDeformer);
         }
 
         [MenuItem("GameObject/Water/Deformer/Box", priority = 14)]
@@ -137,17 +134,14 @@ namespace UnityEditor.Rendering
             go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
 
             // Add the water surface component
-            var waterDeformer = go.AddComponent<ProceduralWaterDeformer>();
+            var waterDeformer = go.AddComponent<WaterDeformer>();
 
             // Set the parameters
-            waterDeformer.type = ProceduralWaterDeformerType.Box;
-            waterDeformer.regionSize = new Vector2(5.0f, 5.0f);
-            waterDeformer.boxBlend = new Vector2(2.0f, 1.0f);
-            waterDeformer.amplitude = -1f;
-            waterDeformer.cubicBlend = true;
+            waterDeformer.type = WaterDeformerType.Box;
+            WaterDeformerPresets.ApplyWaterBoxDeformerPreset(waterDeformer);
         }
 
-        [MenuItem("GameObject/Water/Deformer/Wave", priority = 14)]
+        [MenuItem("GameObject/Water/Deformer/Shore Wave", priority = 14)]
         static void CreateWaterWaveDeformer(MenuCommand menuCommand)
         {
             // Create the holding game object
@@ -155,15 +149,11 @@ namespace UnityEditor.Rendering
             go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
 
             // Add the water surface component
-            var waterDeformer = go.AddComponent<ProceduralWaterDeformer>();
+            var waterDeformer = go.AddComponent<WaterDeformer>();
 
             // Set the parameters
-            waterDeformer.type = ProceduralWaterDeformerType.SineWave;
-            waterDeformer.regionSize = new Vector2(40.0f, 10.0f);
-            waterDeformer.amplitude = 1.0f;
-            waterDeformer.waveLength = 2.0f;
-            waterDeformer.waveRepetition = 10;
-            waterDeformer.waveSpeed = 12.0f;
+            waterDeformer.type = WaterDeformerType.ShoreWave;
+            WaterDeformerPresets.ApplyWaterShoreWaveDeformerPreset(waterDeformer);
         }
 
         [MenuItem("GameObject/Water/Deformer/Bow Wave", priority = 14)]
@@ -174,13 +164,11 @@ namespace UnityEditor.Rendering
             go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
 
             // Add the water surface component
-            var waterDeformer = go.AddComponent<ProceduralWaterDeformer>();
+            var waterDeformer = go.AddComponent<WaterDeformer>();
 
             // Set the parameters
-            waterDeformer.type = ProceduralWaterDeformerType.BowWave;
-            waterDeformer.regionSize = new Vector2(3.5f, 10.0f);
-            waterDeformer.amplitude = -0.5f;
-            waterDeformer.bowWaveElevation = 0.2f;
+            waterDeformer.type = WaterDeformerType.BowWave;
+            WaterDeformerPresets.ApplyWaterBowWaveDeformerPreset(waterDeformer);
         }
 
         [MenuItem("GameObject/Water/Deformer/Texture", priority = 14)]
@@ -191,12 +179,25 @@ namespace UnityEditor.Rendering
             go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
 
             // Add the water surface component
-            var waterDeformer = go.AddComponent<TextureWaterDeformer>();
+            var waterDeformer = go.AddComponent<WaterDeformer>();
 
             // Set the parameters
-            waterDeformer.regionSize = new Vector2(10f, 10.0f);
-            waterDeformer.amplitude = 0.5f;
-            waterDeformer.texture = null;
+            waterDeformer.type = WaterDeformerType.Texture;
+            WaterDeformerPresets.ApplyWaterTextureDeformerPreset(waterDeformer);
+        }
+
+        [MenuItem("GameObject/Water/Foam Generator", priority = 14)]
+        static void CreateFoamGenerator(MenuCommand menuCommand)
+        {
+            // Create the holding game object
+            var go = CoreEditorUtils.CreateGameObject("Water Foam Generator", menuCommand.context);
+            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+
+            // Add the water surface component
+            var foamGenerator = go.AddComponent<WaterFoamGenerator>();
+
+            // Set the parameters
+            foamGenerator.regionSize = new Vector2(10f, 10.0f);
         }
     }
 }

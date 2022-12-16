@@ -74,6 +74,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         }
 
+        protected override IEnumerable<KernelDescriptor> EnumerateKernels()
+        {
+            if (target.supportLineRendering)
+            {
+                yield return PostProcessKernel(HDShaderKernels.LineRenderingVertexSetup(supportLighting));
+
+                // TODO: We need to do a bit more work to get offscreen shading in compute working.
+                // We do it in a shader pass for now in HairPasses.OffscreenShading.
+                // yield return PostProcessKernel(HDShaderKernels.GenerateOffscreenShading());
+            }
+        }
+
         protected virtual SubShaderDescriptor GetSubShaderDescriptor()
         {
             return new SubShaderDescriptor
@@ -115,6 +127,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 if (supportDistortion)
                     passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentDistortion, true));
+
+                if (target.supportLineRendering)
+                    passes.Add(HDShaderPasses.LineRenderingOffscreenShadingPass(supportLighting));
 
                 passes.Add(HDShaderPasses.GenerateFullScreenDebug(TargetsVFX(), systemData.tessellation));
 
@@ -246,6 +261,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             context.AddField(HDFields.TessellationFactor, systemData.tessellation);
             context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);
+            context.AddField(HDFields.LineWidth, target.supportLineRendering);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -287,6 +303,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
             context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
+
+            context.AddBlock(HDBlockFields.SurfaceDescription.LineWidth, target.supportLineRendering);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)

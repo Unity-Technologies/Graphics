@@ -169,5 +169,20 @@ namespace UnityEngine.Rendering.Universal
 
             return s_LayerBatches;
         }
+
+        public static void GetFilterSettings(ref Renderer2DData rendererData, ref LayerBatch layerBatch, short cameraSortingLayerBoundsIndex, out FilteringSettings filterSettings)
+        {
+            filterSettings = new FilteringSettings();
+            filterSettings.renderQueueRange = RenderQueueRange.all;
+            filterSettings.layerMask = -1;
+            filterSettings.renderingLayerMask = 0xFFFFFFFF;
+
+            short upperBound = layerBatch.layerRange.upperBound;
+
+            if (rendererData.useCameraSortingLayerTexture && cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound)
+                upperBound = cameraSortingLayerBoundsIndex;
+
+            filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, upperBound);
+        }
     }
 }

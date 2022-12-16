@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox(Styles.currentAssetDoesNotSupportSSAO, MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportSSAO");
+                    HDRenderPipelineUI.ExpandableGroup.Lighting, "m_RenderPipelineSettings.supportSSAO");
                 return;
             }
 

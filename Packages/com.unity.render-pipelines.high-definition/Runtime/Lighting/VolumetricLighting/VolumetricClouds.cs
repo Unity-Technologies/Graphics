@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -304,7 +305,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the weather preset in Simple mode.
         /// </summary>
-        public CloudPresetsParameter cloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
+        public CloudPresets cloudPreset
+        {
+            get
+            {
+                return m_CloudPreset.value;
+            }
+            set
+            {
+                m_CloudPreset.value = value;
+                ApplyCurrentCloudPreset();
+            }
+        }
+        [SerializeField, FormerlySerializedAs("cloudPreset")]
+        private CloudPresetsParameter m_CloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
 
         /// <summary>
         /// Specifies the lower cloud layer distribution in the advanced mode.
@@ -582,6 +596,140 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the shadow opacity when outside the area covered by the volumetric clouds shadow.")]
         [AdditionalProperty]
         public ClampedFloatParameter shadowOpacityFallback = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
+
+        void ApplyCurrentCloudPreset()
+        {
+            // Apply the currently set preset
+            bool microDetails = cloudSimpleMode == CloudSimpleMode.Quality;
+            switch (cloudPreset)
+            {
+                case VolumetricClouds.CloudPresets.Sparse:
+                {
+                    densityMultiplier.value = 0.4f;
+                    if (microDetails)
+                    {
+                        shapeFactor.value = 0.925f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.85f;
+                        erosionScale.value = 75.0f;
+                        microErosionFactor.value = 0.65f;
+                        microErosionScale.value = 300.0f;
+                    }
+                    else
+                    {
+                        shapeFactor.value = 0.95f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.8f;
+                        erosionScale.value = 107.0f;
+                    }
+
+                    // Curves
+                    densityCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.75f, 1.0f), new Keyframe(1.0f, 0.0f));
+                    erosionCurve.value = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    ambientOcclusionCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.5f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    bottomAltitude.value = 3000.0f;
+                    altitudeRange.value = 1000.0f;
+                }
+                break;
+                case VolumetricClouds.CloudPresets.Cloudy:
+                {
+                    densityMultiplier.value = 0.4f;
+
+                    if (microDetails)
+                    {
+                        shapeFactor.value = 0.875f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.9f;
+                        erosionScale.value = 75.0f;
+                        microErosionFactor.value = 0.65f;
+                        microErosionScale.value = 300.0f;
+                    }
+                    else
+                    {
+                        shapeFactor.value = 0.9f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.8f;
+                        erosionScale.value = 107.0f;
+                    }
+
+                    // Curves
+                    densityCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.15f, 1.0f), new Keyframe(1.0f, 0.1f));
+                    erosionCurve.value = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    ambientOcclusionCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.25f, 0.4f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    bottomAltitude.value = 1200.0f;
+                    altitudeRange.value = 2000.0f;
+                }
+                break;
+                case VolumetricClouds.CloudPresets.Overcast:
+                {
+                    densityMultiplier.value = 0.3f;
+
+                    if (microDetails)
+                    {
+                        shapeFactor.value = 0.45f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.7f;
+                        erosionScale.value = 75.0f;
+                        microErosionFactor.value = 0.5f;
+                        microErosionScale.value = 300.0f;
+                    }
+                    else
+                    {
+                        shapeFactor.value = 0.5f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.5f;
+                        erosionScale.value = 107.0f;
+                    }
+
+                    // Curves
+                    densityCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.05f, 1.0f), new Keyframe(0.9f, 0.0f), new Keyframe(1.0f, 0.0f));
+                    erosionCurve.value = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.1f, 0.9f), new Keyframe(1.0f, 1.0f));
+                    ambientOcclusionCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    bottomAltitude.value = 1500.0f;
+                    altitudeRange.value = 2500.0f;
+                }
+                break;
+                case VolumetricClouds.CloudPresets.Stormy:
+                {
+                    densityMultiplier.value = 0.35f;
+
+                    if (microDetails)
+                    {
+                        shapeFactor.value = 0.825f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.9f;
+                        erosionScale.value = 75.0f;
+                        microErosionFactor.value = 0.6f;
+                        microErosionScale.value = 300.0f;
+                    }
+                    else
+                    {
+                        shapeFactor.value = 0.85f;
+                        shapeScale.value = 5.0f;
+                        erosionFactor.value = 0.75f;
+                        erosionScale.value = 107.0f;
+                    }
+
+                    // Curves
+                    densityCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.037f, 1.0f), new Keyframe(0.6f, 1.0f), new Keyframe(1.0f, 0.0f));
+                    erosionCurve.value = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.05f, 0.8f), new Keyframe(0.2438f, 0.9498f), new Keyframe(0.5f, 1.0f), new Keyframe(0.93f, 0.9268f), new Keyframe(1.0f, 1.0f));
+                    ambientOcclusionCurve.value = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.1f, 0.4f), new Keyframe(1.0f, 0.0f));
+
+                    // Layer properties
+                    bottomAltitude.value = 1000.0f;
+                    altitudeRange.value = 5000.0f;
+                }
+                break;
+                default:
+                    break;
+            }
+        }
 
         VolumetricClouds()
         {

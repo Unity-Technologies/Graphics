@@ -50,6 +50,18 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Ensures Global Settings are ready and registered into GraphicsSettings
+        /// </summary>
+        protected override void EnsureGlobalSettings()
+        {
+            base.EnsureGlobalSettings();
+
+#if UNITY_EDITOR
+            HDRenderPipelineGlobalSettings.Ensure();
+#endif
+        }
+
+        /// <summary>
         /// CreatePipeline implementation.
         /// </summary>
         /// <returns>A new HDRenderPipeline instance.</returns>

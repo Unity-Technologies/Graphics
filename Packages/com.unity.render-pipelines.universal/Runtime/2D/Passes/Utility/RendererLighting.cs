@@ -8,12 +8,13 @@ namespace UnityEngine.Rendering.Universal
     {
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Draw Normals");
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
-        private static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+        public static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
         private static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
         private static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         private static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
         private static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
         private static readonly string k_UseAdditiveBlendingKeyword = "USE_ADDITIVE_BLENDING";
+        private static readonly string k_UseVolumetric = "USE_VOLUMETRIC";
 
         private static readonly string[] k_UseBlendStyleKeywords =
         {
@@ -42,6 +43,14 @@ namespace UnityEngine.Rendering.Universal
             Shader.PropertyToID("_ShapeLightInvertedFilter1"),
             Shader.PropertyToID("_ShapeLightInvertedFilter2"),
             Shader.PropertyToID("_ShapeLightInvertedFilter3")
+        };
+
+        public static readonly string[] k_ShapeLightTextureIDs =
+        {
+            "_ShapeLightTexture0",
+            "_ShapeLightTexture1",
+            "_ShapeLightTexture2",
+            "_ShapeLightTexture3"
         };
 
         private static GraphicsFormat s_RenderTextureFormatToUse = GraphicsFormat.R8G8B8A8_UNorm;
@@ -149,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword(keyword);
         }
 
-        public static void DisableAllKeywords(this IRenderPass2D pass, CommandBuffer cmd)
+        public static void DisableAllKeywords(CommandBuffer cmd)
         {
             foreach (var keyword in k_UseBlendStyleKeywords)
             {
@@ -253,10 +262,10 @@ namespace UnityEngine.Rendering.Universal
                         if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                             cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
-                        SetGeneralLightShaderGlobals(pass, cmd, light);
+                        SetGeneralLightShaderGlobals(cmd, light);
 
                         if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
-                            SetPointLightShaderGlobals(pass, cmd, light);
+                            SetPointLightShaderGlobals(pass.rendererData, cmd, light);
 
                         // Light code could be combined...
                         if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
@@ -370,11 +379,11 @@ namespace UnityEngine.Rendering.Universal
                         if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                             cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
-                        SetGeneralLightShaderGlobals(pass, cmd, light);
+                        SetGeneralLightShaderGlobals(cmd, light);
 
                         // Is this needed
                         if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
-                            SetPointLightShaderGlobals(pass, cmd, light);
+                            SetPointLightShaderGlobals(pass.rendererData, cmd, light);
 
                         // Could be combined...
                         if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
@@ -399,11 +408,11 @@ namespace UnityEngine.Rendering.Universal
             doesLightAtIndexHaveShadows.Dispose();
         }
 
-        public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmd)
+        public static void SetShapeLightShaderGlobals(Renderer2DData rendererData, CommandBuffer cmd)
         {
-            for (var i = 0; i < pass.rendererData.lightBlendStyles.Length; i++)
+            for (var i = 0; i < rendererData.lightBlendStyles.Length; i++)
             {
-                var blendStyle = pass.rendererData.lightBlendStyles[i];
+                var blendStyle = rendererData.lightBlendStyles[i];
                 if (i >= k_BlendFactorsPropIDs.Length)
                     break;
 
@@ -412,7 +421,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalVector(k_InvertedFilterPropIDs[i], blendStyle.maskTextureChannelFilter.inverted);
             }
 
-            cmd.SetGlobalTexture(k_FalloffLookupID, pass.rendererData.fallOffLookup);
+            cmd.SetGlobalTexture(k_FalloffLookupID, rendererData.fallOffLookup);
         }
 
         private static float GetNormalizedInnerRadius(Light2D light)
@@ -437,13 +446,13 @@ namespace UnityEngine.Rendering.Universal
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
         }
 
-        private static void SetGeneralLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
+        public static void SetGeneralLightShaderGlobals(CommandBuffer cmd, Light2D light)
         {
             float intensity = light.intensity * light.color.a;
             Color color = intensity * light.color;
             color.a = 1.0f;
 
-            float volumeIntensity = light.volumeIntensity;
+            float volumeIntensity = light.volumetricEnabled ? light.volumeIntensity : 1.0f;
 
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
             cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
@@ -452,7 +461,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalFloat(k_VolumeOpacityID, volumeIntensity);
         }
 
-        private static void SetPointLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
+        public static void SetPointLightShaderGlobals(Renderer2DData rendererData, CommandBuffer cmd, Light2D light)
         {
             // This is used for the lookup texture
             GetScaledLightInvMatrix(light, out var lightInverseMatrix);
@@ -468,7 +477,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalFloat(k_OuterAngleID, outerAngle);
             cmd.SetGlobalFloat(k_InnerAngleMultID, 1 / (outerAngle - innerAngle));
             cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
-            cmd.SetGlobalTexture(k_FalloffLookupID, pass.rendererData.fallOffLookup);
+            cmd.SetGlobalTexture(k_FalloffLookupID, rendererData.fallOffLookup);
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
             cmd.SetGlobalFloat(k_ShadowSoftnessFalloffIntensityID, light.shadowSoftnessFalloffIntensity);
             cmd.SetGlobalFloat(k_IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
@@ -545,7 +554,6 @@ namespace UnityEngine.Rendering.Universal
 
             ShadowCasterGroup2DManager.CacheValues();
 
-
             var blendStyles = pass.rendererData.lightBlendStyles;
 
             for (var i = 0; i < blendStyles.Length; ++i)
@@ -619,14 +627,11 @@ namespace UnityEngine.Rendering.Universal
         private static Material CreateLightMaterial(Renderer2DData rendererData, Light2D light, bool isVolume)
         {
             var isPoint = light.isPointLight;
-            Material material;
 
-            if (isVolume)
-                material = CoreUtils.CreateEngineMaterial(isPoint ? rendererData.pointLightVolumeShader : rendererData.shapeLightVolumeShader);
-            else
+            Material material = CoreUtils.CreateEngineMaterial(isPoint ? rendererData.pointLightShader : rendererData.shapeLightShader);
+
+            if (!isVolume)
             {
-                material = CoreUtils.CreateEngineMaterial(isPoint ? rendererData.pointLightShader : rendererData.shapeLightShader);
-
                 if (light.overlapOperation == Light2D.OverlapOperation.Additive)
                 {
                     SetBlendModes(material, BlendMode.One, BlendMode.One);
@@ -634,6 +639,18 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                     SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
+            }
+            else
+            {
+                material.EnableKeyword(k_UseVolumetric);
+
+                if (light.lightType == Light2D.LightType.Point)
+                    SetBlendModes(material, BlendMode.One, BlendMode.One);
+                else
+                {
+                    material.SetInt("_HandleZTest", (int)CompareFunction.Disabled);
+                    SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.One);
+                }
             }
 
             if (light.lightType == Light2D.LightType.Sprite)
@@ -651,7 +668,7 @@ namespace UnityEngine.Rendering.Universal
             return material;
         }
 
-        private static Material GetLightMaterial(this Renderer2DData rendererData, Light2D light, bool isVolume)
+        public static Material GetLightMaterial(this Renderer2DData rendererData, Light2D light, bool isVolume)
         {
             var materialIndex = GetLightMaterialIndex(light, isVolume);
 

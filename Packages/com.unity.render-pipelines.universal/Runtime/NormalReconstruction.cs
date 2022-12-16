@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
@@ -13,7 +15,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="cmd">Command Buffer used for properties setup.</param>
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
-        public static void SetupProperties(CommandBuffer cmd, in CameraData cameraData)
+        public static void SetupProperties(CommandBuffer cmd, in CameraData cameraData) { SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), cameraData); }
+        internal static void SetupProperties(RasterCommandBuffer cmd, in CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             int eyeCount = cameraData.xr.enabled && cameraData.xr.singlePassEnabled ? 2 : 1;

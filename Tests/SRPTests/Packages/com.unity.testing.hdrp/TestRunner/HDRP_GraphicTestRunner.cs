@@ -40,9 +40,9 @@ public class HDRP_GraphicTestRunner
         for (int i = 0; i < 5; ++i)
             yield return new WaitForEndOfFrame();
 
-        settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
+        settings = GameObject.FindFirstObjectByType<HDRP_TestSettings>();
         camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
+        if (camera == null) camera = GameObject.FindFirstObjectByType<Camera>();
         if (camera == null)
         {
             Assert.Fail("Missing camera for graphic tests.");
@@ -85,9 +85,9 @@ public class HDRP_GraphicTestRunner
             yield return new WaitForEndOfFrame();
 
         // Need to retrieve objects again after scene reload.
-        settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
+        settings = GameObject.FindFirstObjectByType<HDRP_TestSettings>();
         camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
+        if (camera == null) camera = GameObject.FindFirstObjectByType<Camera>();
         if (camera == null)
         {
             Assert.Fail("Missing camera for graphic tests.");
@@ -97,7 +97,7 @@ public class HDRP_GraphicTestRunner
         HDCamera hdCamera = HDCamera.GetOrCreate(camera);
 
         //We need to get all the cameras to set accumulation in all of them for tests that uses multiple cameras
-        cameras = GameObject.FindObjectsOfType<Camera>();
+        cameras = GameObject.FindObjectsByType<Camera>(FindObjectsSortMode.InstanceID);
 
         //Grab the HDCameras
         hdCameras = new HDCamera[cameras.Length];
@@ -136,7 +136,7 @@ public class HDRP_GraphicTestRunner
             settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
 
             // Increase number of volumetric slices to compensate for initial half-resolution due to XR single-pass optimization
-            foreach (var volume in GameObject.FindObjectsOfType<Volume>())
+            foreach (var volume in GameObject.FindObjectsByType<Volume>(FindObjectsSortMode.InstanceID))
             {
                 if (volume.profile.TryGet<Fog>(out Fog fog))
                     fog.volumeSliceCount.value *= 2;
@@ -194,7 +194,7 @@ public class HDRP_GraphicTestRunner
         for (int i = 0; i < waitFrames; ++i)
             yield return new WaitForEndOfFrame();
 
-        var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
+        var settingsSG = (GameObject.FindFirstObjectByType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
             // Standard Test

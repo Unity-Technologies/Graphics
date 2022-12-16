@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -109,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderConstants._Grain_TilingParams, tilingParams);
         }
 
-        internal static void SetSourceSize(CommandBuffer cmd, RTHandle source)
+        internal static void SetSourceSize(RasterCommandBuffer cmd, RTHandle source)
         {
             float width = source.rt.width;
             float height = source.rt.height;
@@ -119,6 +121,11 @@ namespace UnityEngine.Rendering.Universal
                 height *= ScalableBufferManager.heightScaleFactor;
             }
             cmd.SetGlobalVector(ShaderConstants._SourceSize, new Vector4(width, height, 1.0f / width, 1.0f / height));
+        }
+
+        internal static void SetSourceSize(CommandBuffer cmd, RTHandle source)
+        {
+            SetSourceSize(CommandBufferHelpers.GetRasterCommandBuffer(cmd), source);
         }
 
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)

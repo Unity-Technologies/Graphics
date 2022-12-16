@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -145,16 +146,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                 source = renderingData.cameraData.renderer.cameraColorTargetHandle;
             }
 
+            bool xrEnabled = renderingData.cameraData.xr.enabled;
+            bool disableFoveatedRenderingForPass = xrEnabled && renderingData.cameraData.xr.supportsFoveatedRendering;
             ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
-            ExecutePass(m_PassData, source, destination, ref renderingData.commandBuffer, renderingData.cameraData.xr.enabled);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, source, renderingData.cameraData.xr.enabled, disableFoveatedRenderingForPass);
         }
 
-        private static void ExecutePass(PassData passData, RTHandle source, RTHandle destination, ref CommandBuffer cmd, bool useDrawProceduralBlit)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source,  bool useDrawProceduralBlit,  bool disableFoveatedRenderingForPass)
         {
             var samplingMaterial = passData.samplingMaterial;
             var copyColorMaterial = passData.copyColorMaterial;
             var downsamplingMethod = passData.downsamplingMethod;
             var sampleOffsetShaderHandle = passData.sampleOffsetShaderHandle;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (disableFoveatedRenderingForPass)
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+#endif
 
             if (samplingMaterial == null)
             {
@@ -166,20 +174,22 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
+                Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+
                 switch (downsamplingMethod)
                 {
                     case Downsampling.None:
-                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, copyColorMaterial, 0);
+                        Blitter.BlitTexture(cmd, source, viewportScale, copyColorMaterial, 0);
                         break;
                     case Downsampling._2xBilinear:
-                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, copyColorMaterial, 1);
+                        Blitter.BlitTexture(cmd, source, viewportScale, copyColorMaterial, 1);
                         break;
                     case Downsampling._4xBox:
                         samplingMaterial.SetFloat(sampleOffsetShaderHandle, 2);
-                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, samplingMaterial, 0);
+                        Blitter.BlitTexture(cmd, source, viewportScale, samplingMaterial, 0);
                         break;
                     case Downsampling._4xBilinear:
-                        Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, copyColorMaterial, 1);
+                        Blitter.BlitTexture(cmd, source, viewportScale, copyColorMaterial, 1);
                         break;
                 }
             }
@@ -191,7 +201,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle destination;
             // internal RenderingData renderingData;
             internal bool useProceduralBlit;
-            internal CommandBuffer cmd;
+            internal bool disableFoveatedRenderingForPass;
             internal Material samplingMaterial;
             internal Material copyColorMaterial;
             internal Downsampling downsamplingMethod;
@@ -202,16 +212,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_DownsamplingMethod = downsampling;
 
-            using (var builder = renderGraph.AddRenderPass<PassData>("Copy Color", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Copy Color", out var passData, base.profilingSampler))
             {
                 RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
                 ConfigureDescriptor(downsampling, ref descriptor, out var filterMode);
 
                 destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_CameraOpaqueTexture", true, filterMode);
-                passData.destination = builder.UseColorBuffer(destination, 0);
-                passData.source = builder.ReadTexture(source);
-                passData.cmd = renderingData.commandBuffer;
+                passData.destination = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.useProceduralBlit = renderingData.cameraData.xr.enabled;
+                passData.disableFoveatedRenderingForPass = renderingData.cameraData.xr.enabled && renderingData.cameraData.xr.supportsFoveatedRendering;
                 passData.samplingMaterial = m_SamplingMaterial;
                 passData.copyColorMaterial = m_CopyColorMaterial;
                 passData.downsamplingMethod = m_DownsamplingMethod;
@@ -220,9 +230,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(data, data.source, data.destination, ref data.cmd, data.useProceduralBlit);
+                    ExecutePass(context.cmd, data, data.source, data.useProceduralBlit,  data.disableFoveatedRenderingForPass);
                 });
             }
 

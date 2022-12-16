@@ -801,7 +801,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PragmaCollection GBuffer = new PragmaCollection
             {
                 { Pragma.Target(ShaderModel.Target45) }, // MRT4
-                { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+                { Pragma.ExcludeRenderers(new[] { Platform.GLES3, Platform.GLCore }) },
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
@@ -812,7 +812,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PragmaCollection MultipleRenderTargets = new PragmaCollection
             {
                 { Pragma.Target(ShaderModel.Target45) }, // MRT4
-                { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+                { Pragma.ExcludeRenderers(new[] { Platform.GLES3, Platform.GLCore }) },
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
@@ -1009,6 +1009,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.ForwardPlus },
+                { CoreKeywordDescriptors.FoveatedRendering },
                 { Descriptors.DecalsNormalBlend },
                 { Descriptors.DecalLayers },
             };

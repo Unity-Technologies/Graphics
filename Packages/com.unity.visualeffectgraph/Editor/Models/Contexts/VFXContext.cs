@@ -57,6 +57,8 @@ namespace UnityEditor.VFX
 
     internal class VFXContext : VFXSlotContainerModel<VFXGraph, VFXBlock>, IVFXDataGetter
     {
+        public const int kMaxFlowCount = 10;
+
         protected static string RenderPipeTemplate(string fileName)
         {
             return VFXLibrary.currentSRPBinder.templatePath + "/Templates/" + fileName;

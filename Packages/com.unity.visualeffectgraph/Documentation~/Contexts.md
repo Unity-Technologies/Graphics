@@ -110,7 +110,7 @@ Initialize Contexts generate new particles based on **SpawnEvent** Data, which U
 
 For example: If a Spawn Context states that the effect should create 200 new particles, the Initialize Context processes its Blocks for all 200 new particles.
 
-To customize **Initialize **Contexts, you can add compatible **Blocks** to them.
+To customize **Initialize** Contexts, you can add compatible **Blocks** to them.
 
 Initialize Contexts are the entry point of new systems. As such, they display the following information and configuration details in their header:
 

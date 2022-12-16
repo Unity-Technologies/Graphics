@@ -134,8 +134,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int GBufferNormalSmoothnessIndex { get { return 2; } }
         internal int GBufferLightingIndex { get { return 3; } }
         internal int GbufferDepthIndex { get { return UseRenderPass ? GBufferLightingIndex + 1 : -1; } }
-        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + 1 : -1; } }
-        internal int GBufferRenderingLayers { get { return UseRenderingLayers ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + 1 : -1; } }
+        internal int GBufferRenderingLayers { get { return UseRenderingLayers ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + 1 : -1; } }
+        // Shadow Mask can change at runtime. Because of this it needs to come after the non-changing buffers.
+        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + (UseRenderingLayers ? 1 : 0) + 1 : -1; } }
         // Color buffer count (not including dephStencil).
         internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
 
@@ -248,9 +249,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
             // They can also only be called from main thread!
-            DeferredConfig.IsOpenGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
-                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
-                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+            DeferredConfig.IsOpenGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 
             // Cachre result for DX10 platform too. Same reasons as above.
             DeferredConfig.IsDX10 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 && SystemInfo.graphicsShaderLevel <= 40;
@@ -318,7 +317,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, this.UseRenderPass && renderingData.cameraData.cameraType == CameraType.Game);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, UseLightLayers);
 
-                    RenderingLayerUtils.SetupProperties(cmd, RenderingLayerMaskSize);
+                    RenderingLayerUtils.SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), RenderingLayerMaskSize);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -536,7 +535,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return block;
         }
 
-        internal void ClearStencilPartial(CommandBuffer cmd)
+        internal void ClearStencilPartial(RasterCommandBuffer cmd)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
@@ -547,7 +546,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData)
+        internal void ExecuteDeferredPass(RasterCommandBuffer cmd, ref RenderingData renderingData)
         {
             // Workaround for bug.
             // When changing the URP asset settings (ex: shadow cascade resolution), all ScriptableRenderers are recreated but
@@ -556,7 +555,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_StencilDeferredPasses[0] < 0)
                 InitStencilDeferredMaterial();
 
-            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ProfilingDeferredPass))
             {
                 // This does 2 things:
@@ -571,12 +569,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (!HasStencilLightsOfType(LightType.Directional))
                     RenderSSAOBeforeShading(cmd, ref renderingData);
 
-                RenderStencilLights(context, cmd, ref renderingData);
+                RenderStencilLights(cmd, ref renderingData);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, false);
 
                 // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
-                RenderFog(context, cmd, ref renderingData);
+                RenderFog(cmd, ref renderingData);
             }
 
             // Restore shader keywords
@@ -610,7 +608,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalInt(ShaderConstants._MainLightLayerMask, (int)lightLayerMask);
         }
 
-        void SetupMatrixConstants(CommandBuffer cmd, ref RenderingData renderingData)
+        void SetupMatrixConstants(RasterCommandBuffer cmd, ref RenderingData renderingData)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
 
@@ -713,7 +711,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return m_stencilVisLightOffsets[(int)type] != k_InvalidLightOffset;
         }
 
-        void RenderStencilLights(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        void RenderStencilLights(RasterCommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_stencilVisLights.Length == 0)
                 return;
@@ -741,7 +739,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
-        void RenderStencilDirectionalLights(CommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
+        void RenderStencilDirectionalLights(RasterCommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
@@ -811,7 +809,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
         }
 
-        void RenderStencilPointLights(CommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights)
+        void RenderStencilPointLights(RasterCommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights)
         {
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
@@ -880,7 +878,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
         }
 
-        void RenderStencilSpotLights(CommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights)
+        void RenderStencilSpotLights(RasterCommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights)
         {
             if (m_HemisphereMesh == null)
                 m_HemisphereMesh = CreateHemisphereMesh();
@@ -951,7 +949,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }
 
-        void RenderSSAOBeforeShading(CommandBuffer cmd, ref RenderingData renderingData)
+        void RenderSSAOBeforeShading(RasterCommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
@@ -959,7 +957,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.SSAOOnly]);
         }
 
-        void RenderFog(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        void RenderFog(RasterCommandBuffer cmd, ref RenderingData renderingData)
         {
             // Legacy fog does not work in orthographic mode.
             if (!RenderSettings.fog || renderingData.cameraData.camera.orthographic)

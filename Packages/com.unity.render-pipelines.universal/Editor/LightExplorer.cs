@@ -8,7 +8,7 @@ namespace UnityEditor
     /// <summary>
     /// Editor script for the Lighting Explorer.
     /// </summary>
-    [LightingExplorerExtensionAttribute(typeof(UniversalRenderPipelineAsset))]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class LightExplorer : DefaultLightingExplorerExtension
     {
         private static class Styles

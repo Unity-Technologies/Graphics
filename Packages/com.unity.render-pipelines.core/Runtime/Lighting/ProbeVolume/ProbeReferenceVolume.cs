@@ -33,6 +33,18 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Shader probeDebugShader;
         /// <summary>
+        /// The shader used to visualize the way probes are sampled for a single pixel in the debug view.
+        /// </summary>
+        public Shader probeSamplingDebugShader;
+        /// <summary>
+        /// The debug texture used to display probe weight in the debug view.
+        /// </summary>
+        public Texture probeSamplingDebugTexture;
+        /// <summary>
+        /// The debug mesh used to visualize the way probes are sampled for a single pixel in the debug view.
+        /// </summary>
+        public Mesh probeSamplingDebugMesh;
+        /// <summary>
         /// The shader used to visualize probes virtual offset in the debug view.
         /// </summary>
         public Shader offsetDebugShader;
@@ -657,7 +669,7 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             if (sceneData != null)
-                UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
+                UnityEditor.SceneManagement.EditorSceneManager.sceneSaving += sceneData.OnSceneSaving;
             AdditionalGIBakeRequestsManager.instance.Init();
 #endif
             m_EnabledBySRP = true;
@@ -698,6 +710,8 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             AdditionalGIBakeRequestsManager.instance.Cleanup();
+            if (sceneData != null)
+                UnityEditor.SceneManagement.EditorSceneManager.sceneSaving -= sceneData.OnSceneSaving;
 #endif
 
             if (!m_IsInitialized)

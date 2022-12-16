@@ -69,6 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [SurfaceDataAttributes("VT Packed Feedback", precision: FieldPrecision.Real, preprocessor: "defined(UNITY_VIRTUAL_TEXTURING)")]
             public Vector4 vtPackedFeedback;
+
+            [SurfaceDataAttributes("Line Width", precision: FieldPrecision.Real, preprocessor: "defined(LINE_RENDERING_OFFSCREEN_SHADING)")]
+            public float lineWidth;
         };
 
         //-----------------------------------------------------------------------------

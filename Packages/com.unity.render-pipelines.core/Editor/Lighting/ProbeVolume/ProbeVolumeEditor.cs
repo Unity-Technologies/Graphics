@@ -55,10 +55,10 @@ namespace UnityEditor.Rendering
                 drawInspector = false;
             }
 
-            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
-                if (renderPipelineAsset == null || renderPipelineAsset.GetType().Name != "HDRenderPipelineAsset")
+                var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+                if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
                 {
                     EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
                 }
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering
         protected void OnSceneGUI()
         {
             ProbeVolume probeVolume = target as ProbeVolume;
-            if (probeVolume.globalVolume)
+            if (probeVolume.mode != ProbeVolume.Mode.Local)
                 return;
 
             //important: if the origin of the handle's space move along the handle,

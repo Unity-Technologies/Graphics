@@ -972,7 +972,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         }
 
         static public CompositionManager GetInstance() =>
-            s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType<CompositionManager>(true));
+            s_CompositorInstance ?? (s_CompositorInstance = FindFirstObjectByType<CompositionManager>(FindObjectsInactive.Include));
 
         static public Vector4 GetAlphaScaleAndBiasForCamera(HDCamera hdCamera)
         {

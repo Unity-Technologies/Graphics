@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -9,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
         Low,
         Medium,
         High,
+        VeryHigh
     }
 
     // Temporal AA data that persists over a frame. (per camera)
@@ -25,9 +27,19 @@ namespace UnityEngine.Rendering.Universal
         RenderTextureDescriptor m_RtDesc;
         RTHandle m_AccumulationTexture;
         RTHandle m_AccumulationTexture2;
+        int m_LastAccumUpdateFrameIndex;
+        int m_LastAccumUpdateFrameIndex2;
 
         public RenderTextureDescriptor rtd => m_RtDesc;
         public RTHandle accumulationTexture(int index) => index != 0 ? m_AccumulationTexture2 : m_AccumulationTexture;
+        public int GetLastAccumFrameIndex(int index) => index != 0 ? m_LastAccumUpdateFrameIndex2 : m_LastAccumUpdateFrameIndex;
+        public void SetLastAccumFrameIndex(int index, int value)
+        {
+            if (index != 0)
+                m_LastAccumUpdateFrameIndex2 = value;
+            else
+                m_LastAccumUpdateFrameIndex = value;
+        }
 
         public TaaPersistentData()
         {
@@ -114,6 +126,8 @@ namespace UnityEngine.Rendering.Universal
             m_AccumulationTexture2?.Release();
             m_AccumulationTexture = null;
             m_AccumulationTexture2 = null;
+            m_LastAccumUpdateFrameIndex = -1;
+            m_LastAccumUpdateFrameIndex2 = -1;
         }
 
     };
@@ -123,26 +137,39 @@ namespace UnityEngine.Rendering.Universal
     {
         static internal class ShaderConstants
         {
-            public static readonly int _TaaFrameInfluence = Shader.PropertyToID("_TaaFrameInfluence");
             public static readonly int _TaaAccumulationTex = Shader.PropertyToID("_TaaAccumulationTex");
             public static readonly int _TaaMotionVectorTex = Shader.PropertyToID("_TaaMotionVectorTex");
+
+            public static readonly int _TaaFilterWeights   = Shader.PropertyToID("_TaaFilterWeights");
+
+            public static readonly int _TaaFrameInfluence     = Shader.PropertyToID("_TaaFrameInfluence");
+            public static readonly int _TaaVarianceClampScale = Shader.PropertyToID("_TaaVarianceClampScale");
         }
 
+        [Serializable]
         internal struct Settings
         {
             public TemporalAAQuality quality;
-            public int resetHistoryFrames;  // Number of frames the history is reset. 0 no reset, 1 normal reset, 2 XR reset, -1 infinite (toggle on)
-
             public float frameInfluence;
+            public float jitterScale;
+            public float mipBias;
+            public float varianceClampScale;
+            public float contrastAdaptiveSharpening;
+
+            [NonSerialized] public int resetHistoryFrames;  // Number of frames the history is reset. 0 no reset, 1 normal reset, 2 XR reset, -1 infinite (toggle on)
 
             public static Settings Create()
             {
                 Settings s;
 
-                s.quality            = TemporalAAQuality.Medium;
-                s.resetHistoryFrames = 0;
+                s.quality                    = TemporalAAQuality.High;
+                s.frameInfluence             = 0.1f;
+                s.jitterScale                = 1.0f;
+                s.mipBias                    = 0.0f;
+                s.varianceClampScale         = 0.9f;
+                s.contrastAdaptiveSharpening = 0.0f; // Disabled
 
-                s.frameInfluence     = 0.05f;
+                s.resetHistoryFrames = 0;
 
                 return s;
             }
@@ -159,8 +186,9 @@ namespace UnityEngine.Rendering.Universal
 
                 float actualWidth = cameraData.pixelWidth;
                 float actualHeight = cameraData.pixelHeight;
+                float jitterScale = cameraData.taaSettings.jitterScale;
 
-                var jitter = CalculateJitter(taaFrameIndex);
+                var jitter = CalculateJitter(taaFrameIndex) * jitterScale;
 
                 float offsetX = jitter.x * (2.0f / actualWidth);
                 float offsetY = jitter.y * (2.0f / actualHeight);
@@ -181,57 +209,134 @@ namespace UnityEngine.Rendering.Universal
             return new Vector2(jitterX, jitterY);
         }
 
-        static internal void ValidateAndWarn(ref CameraData cameraData)
+        private static readonly Vector2[] taaFilterOffsets = new Vector2[]
         {
+            new Vector2(0.0f, 0.0f),
+
+            new Vector2(0.0f, 1.0f),
+            new Vector2(1.0f, 0.0f),
+            new Vector2(-1.0f, 0.0f),
+            new Vector2(0.0f, -1.0f),
+
+            new Vector2(-1.0f, 1.0f),
+            new Vector2(1.0f, -1.0f),
+            new Vector2(1.0f, 1.0f),
+            new Vector2(-1.0f, -1.0f)
+        };
+
+        private static readonly float[] taaFilterWeights = new float[taaFilterOffsets.Length + 1];
+
+        static internal float[] CalculateFilterWeights(float jitterScale)
+        {
+            // Based on HDRP
+            // Precompute weights used for the Blackman-Harris filter.
+            float totalWeight = 0;
+            for (int i = 0; i < 9; ++i)
+            {
+                Vector2 jitter = CalculateJitter(Time.frameCount) * jitterScale;
+                // The rendered frame (pixel grid) is already jittered.
+                // We sample 3x3 neighbors with int offsets, but weight the samples
+                // relative to the distance to the non-jittered pixel center.
+                // From the POV of offset[0] at (0,0), the original pixel center is at (-jitter.x, -jitter.y).
+                float x = taaFilterOffsets[i].x - jitter.x;
+                float y = taaFilterOffsets[i].y - jitter.y;
+                float d2 = (x * x + y * y);
+
+                taaFilterWeights[i] = Mathf.Exp((-0.5f / (0.22f)) * d2);
+                totalWeight += taaFilterWeights[i];
+            }
+
+            // Normalize weights.
+            for (int i = 0; i < 9; ++i)
+            {
+                taaFilterWeights[i] /= totalWeight;
+            }
+
+            return taaFilterWeights;
+        }
+
+        static internal string ValidateAndWarn(ref CameraData cameraData)
+        {
+            string warning = null;
+
             if (cameraData.taaPersistentData == null)
             {
-                Debug.LogWarning("Disabling TAA due to invalid persistent data.");
+                warning = "Disabling TAA due to invalid persistent data.";
             }
 
-            if (cameraData.cameraTargetDescriptor.msaaSamples != 1)
+            if (warning == null && cameraData.cameraTargetDescriptor.msaaSamples != 1)
             {
-                if(cameraData.xr != null && cameraData.xr.enabled)
-                    Debug.LogWarning("Disabling TAA because MSAA is on. MSAA must be disabled globally for all cameras in XR mode.");
+                if (cameraData.xr != null && cameraData.xr.enabled)
+                    warning = "Disabling TAA because MSAA is on. MSAA must be disabled globally for all cameras in XR mode.";
                 else
-                    Debug.LogWarning("Disabling TAA because MSAA is on.");
+                    warning = "Disabling TAA because MSAA is on.";
             }
 
-            if(cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+            if(warning == null && cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
             {
                 if (additionalCameraData.renderType == CameraRenderType.Overlay ||
                     additionalCameraData.cameraStack.Count > 0)
                 {
-                    Debug.LogWarning("Disabling TAA because camera is stacked.");
+                    warning = "Disabling TAA because camera is stacked.";
                 }
             }
 
-            if(cameraData.camera.allowDynamicResolution)
-                Debug.LogWarning("Disabling TAA because camera has dynamic resolution enabled. You can use a constant render scale instead.");
+            if (warning == null && cameraData.camera.allowDynamicResolution)
+                warning = "Disabling TAA because camera has dynamic resolution enabled. You can use a constant render scale instead.";
 
+            if(warning == null && !cameraData.postProcessEnabled)
+                warning = "Disabling TAA because camera has post-processing disabled.";
+
+            const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
+            if(Time.frameCount % warningThrottleFrames == 0)
+                Debug.LogWarning(warning);
+
+            return warning;
         }
 
         internal static void ExecutePass(CommandBuffer cmd, Material taaMaterial, ref CameraData cameraData, RTHandle source, RTHandle destination, RenderTexture motionVectors)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
             {
-                ref var taa = ref cameraData.taaSettings;
-
                 int multipassId = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 multipassId = cameraData.xr.multipassId;
 #endif
 
+                bool isNewFrame = cameraData.taaPersistentData.GetLastAccumFrameIndex(multipassId) != Time.frameCount;
+
+                RTHandle taaHistoryAccumulationTex = cameraData.taaPersistentData.accumulationTexture(multipassId);
+                taaMaterial.SetTexture(ShaderConstants._TaaAccumulationTex, taaHistoryAccumulationTex);
+
+                // On frame rerender or pause, stop all motion using a black motion texture.
+                // This is done to avoid blurring the Taa resolve due to motion and Taa history mismatch.
+                //
+                // Taa history copy is in sync with motion vectors and Time.frameCount, but we updated the TAA history
+                // for the next frame, as we did not know that we're going render this frame again.
+                // We would need history double buffering to solve this properly, but at the cost of memory.
+                //
+                // Frame #1: MotionVectors.Update: #1 Prev: #-1, Taa.Execute: #1 Prev: #-1, Taa.CopyHistory: #1 Prev: #-1
+                // Frame #2: MotionVectors.Update: #2 Prev: #1, Taa.Execute: #2 Prev #1, Taa.CopyHistory: #2
+                // <pause or render frame #2 again>
+                // Frame #2: MotionVectors.Update: #2, Taa.Execute: #2 prev #2   (Ooops! Incorrect history for frame #2!)
+                taaMaterial.SetTexture(ShaderConstants._TaaMotionVectorTex, isNewFrame ? motionVectors : Texture2D.blackTexture);
+
+                ref var taa = ref cameraData.taaSettings;
                 float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
-
                 taaMaterial.SetFloat(ShaderConstants._TaaFrameInfluence, taaInfluence);
-                taaMaterial.SetTexture(ShaderConstants._TaaAccumulationTex, cameraData.taaPersistentData.accumulationTexture(multipassId));
-                taaMaterial.SetTexture(ShaderConstants._TaaMotionVectorTex, motionVectors);
+                taaMaterial.SetFloat(ShaderConstants._TaaVarianceClampScale, taa.varianceClampScale);
 
-                int kHistoryCopyPass = (int)TemporalAAQuality.High + 1;
+                if(taa.quality == TemporalAAQuality.VeryHigh)
+                    taaMaterial.SetFloatArray(ShaderConstants._TaaFilterWeights, CalculateFilterWeights(taa.jitterScale));
 
                 Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, (int)taa.quality);
-                var history = cameraData.taaPersistentData.accumulationTexture(multipassId);
-                Blitter.BlitCameraTexture(cmd, destination, history, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, kHistoryCopyPass);
+
+                if (isNewFrame)
+                {
+                    int kHistoryCopyPass = taaMaterial.shader.passCount - 1;
+                    Blitter.BlitCameraTexture(cmd, destination, taaHistoryAccumulationTex, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, kHistoryCopyPass);
+                    cameraData.taaPersistentData.SetLastAccumFrameIndex(multipassId, Time.frameCount);
+                }
             }
         }
 
@@ -246,57 +351,81 @@ namespace UnityEngine.Rendering.Universal
             internal Material material;
             internal int passIndex;
 
-            internal float taaInfluence;
+            internal float taaFrameInfluence;
+            internal float taaVarianceClampScale;
+            internal float[] taaFilterWeights;
         }
 
-        internal static void Render(RenderGraph renderGraph, Material taaMaterial, ref CameraData cameraData, ref TextureHandle srcColor, ref TextureHandle srcDepth, ref TextureHandle srcMotionVectors, ref TextureHandle dst)
+        internal static void Render(RenderGraph renderGraph, Material taaMaterial, ref CameraData cameraData, ref TextureHandle srcColor, ref TextureHandle srcDepth, ref TextureHandle srcMotionVectors, ref TextureHandle dstColor)
         {
-            ref var taa = ref cameraData.taaSettings;
-            float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
-
             int multipassId = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
             multipassId = cameraData.xr.multipassId;
 #endif
+
+            ref var taa = ref cameraData.taaSettings;
+
+            bool isNewFrame = cameraData.taaPersistentData.GetLastAccumFrameIndex(multipassId) != Time.frameCount;
+            float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
+
             TextureHandle srcAccumulation = renderGraph.ImportTexture(cameraData.taaPersistentData.accumulationTexture(multipassId));
 
-            using (var builder = renderGraph.AddRenderPass<TaaPassData>("Temporal Anti-aliasing", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAA)))
+            // On frame rerender or pause, stop all motion using a black motion texture.
+            // This is done to avoid blurring the Taa resolve due to motion and Taa history mismatch.
+            // The TAA history was updated for the next frame, as we did not know yet that we're going render this frame again.
+            // We would need to keep the both the current and previous history (double buffering) in order to resolve
+            // either this frame (again) or the next frame correctly, but it would cost more memory.
+            TextureHandle activeMotionVectors = isNewFrame ? srcMotionVectors : renderGraph.defaultResources.blackTexture;
+
+            using (var builder = renderGraph.AddRasterRenderPass<TaaPassData>("Temporal Anti-aliasing", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAA)))
             {
-                passData.dstTex = builder.UseColorBuffer(dst, 0);
-                passData.srcColorTex = builder.ReadTexture(srcColor);
-                passData.srcDepthTex = builder.ReadTexture(srcDepth);
-                passData.srcMotionVectorTex = builder.ReadTexture(srcMotionVectors);
-                passData.srcTaaAccumTex = builder.ReadTexture(srcAccumulation);
+                passData.dstTex = builder.UseTextureFragment(dstColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.srcColorTex = builder.UseTexture(srcColor, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.srcDepthTex = builder.UseTexture(srcDepth, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.srcMotionVectorTex = builder.UseTexture(activeMotionVectors, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.srcTaaAccumTex = builder.UseTexture(srcAccumulation, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 passData.material = taaMaterial;
                 passData.passIndex = (int)taa.quality;
 
-                passData.taaInfluence = taaInfluence;
+                passData.taaFrameInfluence = taaInfluence;
+                passData.taaVarianceClampScale = taa.varianceClampScale;
 
-                builder.SetRenderFunc((TaaPassData data, RenderGraphContext context) =>
+                if(taa.quality == TemporalAAQuality.VeryHigh)
+                    passData.taaFilterWeights = CalculateFilterWeights(taa.jitterScale);
+                else
+                    passData.taaFilterWeights = null;
+
+                builder.SetRenderFunc((TaaPassData data, RasterGraphContext context) =>
                 {
-                    data.material.SetFloat(ShaderConstants._TaaFrameInfluence, data.taaInfluence);
+                    data.material.SetFloat(ShaderConstants._TaaFrameInfluence, data.taaFrameInfluence);
+                    data.material.SetFloat(ShaderConstants._TaaVarianceClampScale, data.taaVarianceClampScale);
                     data.material.SetTexture(ShaderConstants._TaaAccumulationTex, data.srcTaaAccumTex);
                     data.material.SetTexture(ShaderConstants._TaaMotionVectorTex, data.srcMotionVectorTex);
                     data.material.SetTexture("_CameraDepthTexture", data.srcDepthTex); // TODO: Use a constant for the name.
+
+                    if(data.taaFilterWeights != null)
+                        data.material.SetFloatArray(ShaderConstants._TaaFilterWeights, data.taaFilterWeights);
 
                     Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex);
                 });
             }
 
-            int kHistoryCopyPass = (int)TemporalAAQuality.High + 1;
-            using (var builder = renderGraph.AddRenderPass<TaaPassData>("Temporal Anti-aliasing Copy History", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAACopyHistory)))
+            if (isNewFrame)
             {
-                passData.dstTex = builder.UseColorBuffer(srcAccumulation, 0);
-                passData.srcColorTex = builder.ReadTexture(dst);
-
-                passData.material = taaMaterial;
-                passData.passIndex = kHistoryCopyPass;
-
-                builder.SetRenderFunc((TaaPassData data, RenderGraphContext context) =>
+                int kHistoryCopyPass = taaMaterial.shader.passCount - 1;
+                using (var builder = renderGraph.AddRasterRenderPass<TaaPassData>("Temporal Anti-aliasing Copy History", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAACopyHistory)))
                 {
-                    Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex);
-                });
+                    passData.dstTex = builder.UseTextureFragment(srcAccumulation, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.srcColorTex = builder.UseTexture(dstColor, IBaseRenderGraphBuilder.AccessFlags.Read);   // Resolved color is the new history
+
+                    passData.material = taaMaterial;
+                    passData.passIndex = kHistoryCopyPass;
+
+                    builder.SetRenderFunc((TaaPassData data, RasterGraphContext context) => { Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex); });
+                }
+
+                cameraData.taaPersistentData.SetLastAccumFrameIndex(multipassId, Time.frameCount);
             }
         }
     }

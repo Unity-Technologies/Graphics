@@ -25,8 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public readonly GUIContent k_Deformation = EditorGUIUtility.TrTextContent("Enable", "Specifies if the water surfaces supports local deformations.");
         static public readonly GUIContent k_DeformationRes = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the deformation texture used to represent the deformation area.");
-        static public readonly GUIContent k_DeformationAreaSize = EditorGUIUtility.TrTextContent("Area Size", "Specified the size of the deformation area in meters.");
-        static public readonly GUIContent k_DeformationAreaOffset = EditorGUIUtility.TrTextContent("Area Offset", "Specified the offset of the deformation area in meters.");
+        static public readonly GUIContent k_DeformationAreaSize = EditorGUIUtility.TrTextContent("Area Size", "Sets the size of the deformation area in meters.");
+        static public readonly GUIContent k_DeformationAreaOffset = EditorGUIUtility.TrTextContent("Area Offset", "Sets the offset of the deformation area in meters.");
 
         static internal void WaterSurfaceDeformationSection(WaterSurfaceEditor serialized, Editor owner)
         {
@@ -35,14 +35,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportWater");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWater");
                 return;
             }
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWaterDeformation ?? false)
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support deformation for Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportWaterDeformation");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWaterDeformation");
                 return;
             }
 

@@ -1,7 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/UberPost"
 {
     HLSLINCLUDE
-        #pragma exclude_renderers gles
         #pragma multi_compile_local_fragment _ _DISTORTION
         #pragma multi_compile_local_fragment _ _CHROMATIC_ABERRATION
         #pragma multi_compile_local_fragment _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
@@ -11,12 +10,21 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_local_fragment _ _GAMMA_20 _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
         #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+        // Foveated rendering currently not supported in dxc on metal
+        #pragma never_use_dxc metal
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
+        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020
+        #pragma multi_compile_local_fragment _ HDR_ENCODING_LINEAR HDR_ENCODING_PQ
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"
+#if defined(HDR_ENCODING_LINEAR) || defined(HDR_ENCODING_PQ)
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
+#endif
+
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
@@ -36,6 +44,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         TEXTURE2D(_InternalLut);
         TEXTURE2D(_UserLut);
         TEXTURE2D(_BlueNoise_Texture);
+        TEXTURE2D_X(_OverlayUITexture);
 
         float4 _Lut_Params;
         float4 _UserLut_Params;
@@ -55,6 +64,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         float4 _Grain_TilingParams;
         float4 _Bloom_Texture_TexelSize;
         float4 _Dithering_Params;
+        float4 _HDROutputLuminanceParams;
 
         #define DistCenter              _Distortion_Params1.xy
         #define DistAxis                _Distortion_Params1.zw
@@ -95,6 +105,10 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
         #define DitheringScale          _Dithering_Params.xy
         #define DitheringOffset         _Dithering_Params.zw
+
+        #define MinNits                 _HDROutputLuminanceParams.x
+        #define MaxNits                 _HDROutputLuminanceParams.y
+        #define PaperWhite              _HDROutputLuminanceParams.z
 
         float2 DistortUV(float2 uv)
         {
@@ -166,7 +180,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                     uvBloom = RemapFoveatedRenderingDistort(uvBloom);
                 #endif
 
-                #if _BLOOM_HQ && !defined(SHADER_API_GLES)
+                #if _BLOOM_HQ
                 half4 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom), _Bloom_Texture_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex);
                 #else
                 half4 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom));
@@ -244,6 +258,14 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 // Assume color > 0 and prevent 0 - ditherNoise.
                 // Negative colors can cause problems if fed back to the postprocess via render to FP16 texture.
                 color = max(color, 0);
+            }
+            #endif
+
+            #ifdef HDR_ENCODING
+            {
+                float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
+                color.rgb = SceneUIComposition(uiSample, color.rgb, PaperWhite, MaxNits);
+                color.rgb = OETF(color.rgb);
             }
             #endif
 

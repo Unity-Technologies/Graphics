@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
-
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
@@ -106,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (pass.lightMode == HDShaderPassNames.s_MotionVectorsStr)
                 pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBufferMotionVector);
             else if (pass.IsDepthOrMV())
-                pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBufferDepthOnly);
+                pass.pragmas.Add(CoreKeywordDescriptors.WriteDecalBufferDepthOnlyAsPragma); // This is a pragma to workaround SG limitation
 
             if (pass.IsLightingOrMaterial())
             {
@@ -166,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CollectShaderProperties(collector, generationMode);
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData, requireSplitLighting, true);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData, requireSplitLighting, true, supportForward);
         }
 
         public override void ProcessPreviewMaterial(Material material)

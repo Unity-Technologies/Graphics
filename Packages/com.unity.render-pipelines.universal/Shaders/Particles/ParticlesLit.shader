@@ -146,6 +146,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             // -------------------------------------
             // Unity defined keywords
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
@@ -179,8 +180,8 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma target 4.5
 
             // Deferred Rendering Path does not support the OpenGL-based graphics API:
-            // Desktop OpenGL, OpenGL ES 2.0, OpenGL ES 3.0, WebGL 1.0, WebGL 2.0.
-            #pragma exclude_renderers gles gles3 glcore
+            // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
+            #pragma exclude_renderers gles3 glcore
 
             // -------------------------------------
             // Shader Stages
@@ -217,6 +218,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             // -------------------------------------
             // Unity defined keywords
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
 

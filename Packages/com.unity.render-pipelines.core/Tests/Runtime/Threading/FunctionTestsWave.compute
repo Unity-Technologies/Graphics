@@ -43,11 +43,10 @@
 //      For now, we avoid testing SM6 intrinsics on those platforms. Once the issues are resolved, this workaround should be removed to improve test coverage.
 //
 //      Issues:
-//          1. Unity's DXC logic for iOS isn't setting the proper SPIRV-Cross options for SIMDGroup functions, and the SPIRV-Cross version used by Unity has known bugs that break our tests.
-//          2. The BitXor, Product, and PrefixProduct SM6 implementations on GameCore Xbox One produce results that don't match other platforms or the emulation path.
-//          3. Yamato has an issue where it isn't updating the PSSL shader includes during tests and this prevents us from adding missing SM6 support and testing it in the same change.
-//          4. Unity does not currently check platform-specific shader requirements when compiling compute shaders. This causes it to compile shaders that contain wave intrinsics on GLES3, GLES2, and GLCore which isn't supported.
-#define ENABLE_SM6_WORKAROUND ((defined(SHADER_API_METAL) && defined(SHADER_API_MOBILE)) || defined(SHADER_API_GAMECORE_XBOXONE) || defined(SHADER_API_PSSL) || (defined(SHADER_API_GLES3) || defined(SHADER_API_GLES) || defined(SHADER_API_GLCORE)))
+//          1. The BitXor, Product, and PrefixProduct SM6 intrinsics fail to compile on Xbox One because they aren't supported.
+//             We could potentially emulate these if necessary, but they aren't particularly useful.
+//             For now, we just skip the native path tests on Xbox One.
+#define ENABLE_SM6_WORKAROUND (defined(SHADER_API_GAMECORE_XBOXONE) || defined(SHADER_API_XBOXONE))
 
 // Force emulation on whenever a specific wave size is provided
 #if defined(THREADING_WAVE_SIZE) || ENABLE_SM6_WORKAROUND
@@ -296,4 +295,3 @@ void kReadLaneFirst(Group group)
 
     _Output.Store(OUTPUT_ADDR, result);
 }
-

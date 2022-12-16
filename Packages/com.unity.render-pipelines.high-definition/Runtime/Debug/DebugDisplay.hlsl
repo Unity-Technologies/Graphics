@@ -100,7 +100,6 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
 {
     float3 outColor = originalColor;
 
-    // TEXTURE2D_ARGS macro required for gles2 compatibility (URP), sampler is not used.
     uint mipCount = GetMipCount(TEXTURE2D_ARGS(tex, s_point_clamp_sampler));
 
     switch (paramId)

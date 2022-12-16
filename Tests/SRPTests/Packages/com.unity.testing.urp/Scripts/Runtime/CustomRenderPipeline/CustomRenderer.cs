@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_ForwardLights.ProcessLights(ref renderingData);
+            m_ForwardLights.PreSetup(ref renderingData);
 
             TextureHandle mainShadowsTexture = TextureHandle.nullHandle;
             TextureHandle additionalShadowsTexture = TextureHandle.nullHandle;
@@ -57,10 +57,11 @@ namespace UnityEngine.Rendering.Universal
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, true);
 
             var targetHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
+            var depthHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
 
-            ClearTargetsPass.Render(renderGraph, targetHandle, targetHandle, renderingData.cameraData);
+            ClearTargetsPass.Render(renderGraph, targetHandle, depthHandle, renderingData.cameraData);
 
-            m_RenderOpaqueForwardPass.Render(renderGraph, targetHandle, targetHandle, mainShadowsTexture, additionalShadowsTexture, ref renderingData);
+            m_RenderOpaqueForwardPass.Render(renderGraph, targetHandle, depthHandle, mainShadowsTexture, additionalShadowsTexture, ref renderingData);
         }
 
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)

@@ -104,7 +104,9 @@ namespace UnityEditor.Rendering
             {
                 int hash = 13;
                 hash = hash * 23 + m_QueryPath.GetHashCode();
-                hash = hash * 23 + value.GetHashCode();
+                if (value != null)
+                    hash = hash * 23 + value.GetHashCode();
+
                 return hash;
             }
         }
@@ -178,7 +180,28 @@ namespace UnityEditor.Rendering
     /// Object Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.ObjectPopupField))]
-    public sealed class DebugStateObject : DebugState<UnityEngine.Object> { }
+    public sealed class DebugStateObject : DebugState<UnityEngine.Object>
+    {
+        /// <summary>
+        /// Returns the hash code of the Debug Item.
+        /// </summary>
+        /// <returns>Hash code of the Debug Item</returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 13;
+                hash = hash * 23 + m_QueryPath.GetHashCode();
+
+                if (value != null)
+                {
+                    hash = hash * 23 + value.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
 
     /// <summary>
     /// Flags Debug State.

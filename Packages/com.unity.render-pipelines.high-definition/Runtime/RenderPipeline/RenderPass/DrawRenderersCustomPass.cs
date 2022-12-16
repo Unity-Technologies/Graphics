@@ -250,7 +250,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Object.DestroyImmediate(overrideShaderMaterial);
             var renderCtx = ctx.renderContext;
-            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, renderCtx.CreateRendererList(result));
+            var rendererList = renderCtx.CreateRendererList(result);
+            bool opaque = renderQueueType == RenderQueueType.AllOpaque || renderQueueType == RenderQueueType.OpaqueAlphaTest || renderQueueType == RenderQueueType.OpaqueNoAlphaTest;
+            HDRenderPipeline.RenderForwardRendererList(ctx.hdCamera.frameSettings, rendererList, opaque, ctx.renderContext, ctx.cmd);
         }
 
         /// <summary>

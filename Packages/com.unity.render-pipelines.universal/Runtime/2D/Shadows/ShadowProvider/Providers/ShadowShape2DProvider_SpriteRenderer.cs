@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             if (spriteRenderer.drawMode != SpriteDrawMode.Simple)
             {
                 Sprite sprite = spriteRenderer.sprite;
-           
+
                 Vector2 srSize = spriteRenderer.size;
                 Vector3 pivot = new Vector2(srSize.x * sprite.pivot.x / sprite.rect.width, srSize.y * sprite.pivot.y / sprite.rect.height);
                 Rect rect = new Rect(-pivot, new Vector2(srSize.x, srSize.y));

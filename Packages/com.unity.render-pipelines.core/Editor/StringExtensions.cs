@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 
 namespace UnityEditor.Rendering
@@ -16,5 +17,14 @@ namespace UnityEditor.Rendering
         /// <param name="replacement">The replacement</param>
         /// <returns>The string with the invalid characters replaced</returns>
         public static string ReplaceInvalidFileNameCharacters(this string input, string replacement = "_") => k_InvalidRegEx.Replace(input, replacement);
+
+        /// <summary>
+        /// Checks if the given string ends with the given extension
+        /// </summary>
+        /// <param name="input">The input string</param>
+        /// <param name="extension">The extension</param>
+        /// <returns>True if the extension is found on the string path</returns>
+        public static bool HasExtension(this string input, string extension) =>
+            input.EndsWith(extension, StringComparison.OrdinalIgnoreCase);
     }
 }

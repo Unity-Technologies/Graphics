@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.allowColorGradingACESHDR = m_AllowColorGradingACESHDR;
 
             CoreUtils.SetRenderTarget(renderingData.commandBuffer, m_InternalLut, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-            ExecutePass(context, m_PassData, ref renderingData, m_InternalLut);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, ref renderingData, m_InternalLut);
         }
 
         private class PassData
@@ -118,9 +118,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle internalLut;
         }
 
-        private static void ExecutePass(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData, RTHandle internalLutTarget)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, ref RenderingData renderingData, RTHandle internalLutTarget)
         {
-            var cmd = renderingData.commandBuffer;
             var lutBuilderLdr = passData.lutBuilderLdr;
             var lutBuilderHdr = passData.lutBuilderHdr;
             var allowColorGradingACESHDR = passData.allowColorGradingACESHDR;
@@ -222,6 +221,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                         case TonemappingMode.ACES: material.EnableKeyword(allowColorGradingACESHDR ? ShaderKeywordStrings.TonemapACES : ShaderKeywordStrings.TonemapNeutral); break;
                         default: break; // None
                     }
+
+                    // HDR output is active
+                    if (renderingData.cameraData.isHDROutputActive)
+                    {
+                        Vector4 hdrOutputLuminanceParams;
+                        Vector4 hdrOutputGradingParams;
+                        UniversalRenderPipeline.GetHDROutputLuminanceParameters(tonemapping, out hdrOutputLuminanceParams);
+                        UniversalRenderPipeline.GetHDROutputGradingParameters(tonemapping, out hdrOutputGradingParams);
+
+                        material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
+                        material.SetVector(ShaderPropertyId.hdrOutputGradingParams, hdrOutputGradingParams);
+
+                        HDROutputUtils.ConfigureHDROutput(material, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorConversion);
+                    }
                 }
 
                 renderingData.cameraData.xr.StopSinglePass(cmd);
@@ -230,8 +243,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (renderingData.cameraData.xr.supportsFoveatedRendering)
                     cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
 
-                // Render the lut
-                Blitter.BlitCameraTexture(cmd, internalLutTarget, internalLutTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 0);
+                // Render the lut.
+                Blitter.BlitTexture(cmd, internalLutTarget, Vector2.one, material, 0);
 
                 renderingData.cameraData.xr.StartSinglePass(cmd);
             }
@@ -239,12 +252,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void Render(RenderGraph renderGraph, out TextureHandle internalColorLut, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Color Lut Pass", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Color Lut Pass", out var passData, base.profilingSampler))
             {
                 this.ConfigureDescriptor(in renderingData.postProcessingData, out var lutDesc, out var filterMode);
                 internalColorLut = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lutDesc, "_InternalGradingLut", true);
 
-                passData.internalLut = builder.UseColorBuffer(internalColorLut, 0);
+                passData.internalLut = builder.UseTextureFragment(internalColorLut, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.lutBuilderLdr = m_LutBuilderLdr;
                 passData.lutBuilderHdr = m_LutBuilderHdr;
                 passData.renderingData = renderingData;
@@ -253,9 +266,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.renderContext, data, ref data.renderingData, data.internalLut);
+                    ExecutePass(context.cmd, data, ref data.renderingData, data.internalLut);
                 });
 
                 return;

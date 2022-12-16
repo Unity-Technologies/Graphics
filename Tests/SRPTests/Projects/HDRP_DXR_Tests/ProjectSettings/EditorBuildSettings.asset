@@ -96,6 +96,9 @@ EditorBuildSettings:
     path: Assets/Scenes/112_Reflection_AlternativeSGNodes.unity
     guid: edc83a7fc32510c4fbee55fd4e37f143
   - enabled: 1
+    path: Assets/Scenes/113_ReflectionsBakedLightmaps.unity
+    guid: 81cd8c005b8d2cf41aa4ab19e3cd03b2
+  - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
   - enabled: 1

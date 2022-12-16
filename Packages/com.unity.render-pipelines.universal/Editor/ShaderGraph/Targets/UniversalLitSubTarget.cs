@@ -472,9 +472,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = pragmas,
-                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { keywords },
-                    includes = LitIncludes.Forward,
+                    defines = new DefineCollection { CoreDefines.UseFragmentFog },
+                    keywords = new KeywordCollection { keywords },
+                    includes = new IncludeCollection { LitIncludes.Forward },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -492,7 +492,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
-            // Deferred only in SM4.5, MRT not supported in GLES2
+            // Deferred only in SM4.5
             public static PassDescriptor GBuffer(UniversalTarget target, WorkflowMode workflowMode, bool blendModePreserveSpecular)
             {
                 var result = new PassDescriptor
@@ -519,9 +519,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = CorePragmas.GBuffer,
-                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { LitKeywords.GBuffer },
-                    includes = LitIncludes.GBuffer,
+                    defines = new DefineCollection { CoreDefines.UseFragmentFog },
+                    keywords = new KeywordCollection { LitKeywords.GBuffer },
+                    includes = new IncludeCollection { LitIncludes.GBuffer },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -636,8 +636,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() {  },
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    keywords = new KeywordCollection(),
+                    includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -676,8 +676,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { },
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    keywords = new KeywordCollection(),
+                    includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common

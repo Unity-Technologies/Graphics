@@ -61,6 +61,7 @@ public class Editmode_ParametricReflectionProbeTests
     }
 
     [TestCaseSource("GetReflectionProbeTestCases")]
+    [Ignore("This test is unstable. It will be fixed with this PR: https://github.cds.internal.unity3d.com/unity/unity/pull/16390")]
     public void RefProbeAPI(string settings, BakeAPI bakeAPI)
     {
         EditorSceneManager.OpenScene(sceneFileName, OpenSceneMode.Single);

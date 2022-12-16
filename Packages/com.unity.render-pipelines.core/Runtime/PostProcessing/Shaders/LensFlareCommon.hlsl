@@ -3,17 +3,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
-#if SHADER_API_GLES
-struct AttributesLensFlare
-{
-    float4 positionCS       : POSITION;
-    float2 uv               : TEXCOORD0;
-
-#ifndef FLARE_PREVIEW
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-#endif
-};
-#else
 struct AttributesLensFlare
 {
     uint vertexID : SV_VertexID;
@@ -22,7 +11,6 @@ struct AttributesLensFlare
     UNITY_VERTEX_INPUT_INSTANCE_ID
 #endif
 };
-#endif
 
 struct VaryingsLensFlare
 {
@@ -164,7 +152,7 @@ float GetOcclusion(float ratio)
         }
     }
 
-    contrib = SAMPLE_TEXTURE2D_X_LOD(_FlareOcclusionRemapTex, sampler_FlareOcclusionRemapTex, float2(saturate(contrib), 0.0f), 0).x;
+    contrib = SAMPLE_TEXTURE2D_LOD(_FlareOcclusionRemapTex, sampler_FlareOcclusionRemapTex, float2(saturate(contrib), 0.0f), 0).x;
     contrib = saturate(contrib);
 
     return contrib;
@@ -230,14 +218,9 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
     float screenRatio = screenParam.y / screenParam.x;
 #endif
 
-#if SHADER_API_GLES
-    float4 posPreScale = input.positionCS;
-    float2 uv = input.uv;
-#else
     float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID) - float4(1.0f, 1.0f, 0.0f, 0.0);
     float2 uv = GetQuadTexCoord(input.vertexID);
     uv.x = 1.0f - uv.x;
-#endif
 
     output.texcoord.xy = uv;
 

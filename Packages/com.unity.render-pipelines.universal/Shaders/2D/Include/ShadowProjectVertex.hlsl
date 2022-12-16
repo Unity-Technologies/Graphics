@@ -14,7 +14,7 @@ struct Varyings
 {
     float4 vertex      : SV_POSITION;
     float2 shadow      : TEXCOORD0;
-    
+
 };
 
 uniform float3 _LightPos;
@@ -70,7 +70,7 @@ float4 ProjectShadowVertexToWS(float2 vertex, float2 otherEndPt, float2 contract
     float3 avgLightDir = normalize(lightDir0 + lightDir1);
 
     float isSoftShadow = ToFloat(shadowType >= 1);
-    float isHardShadow = ToFloat(shadowType == 0); 
+    float isHardShadow = ToFloat(shadowType == 0);
 
     float isShadowVertex = saturate(isSoftShadow + isHardShadow);
 
@@ -103,7 +103,7 @@ Varyings ProjectShadow(Attributes v)
     float  shadowType = v.vertex.z;
     float2 position = v.vertex.xy;
     float  softShadowAngle = _SoftShadowAngle;
-    
+
     float4 positionWS = ProjectShadowVertexToWS(position, otherEndPt, contractDir, shadowType,  _LightPos, _ShadowModelScale, _ShadowModelMatrix, _ShadowModelInvMatrix, _ShadowContractionDistance, _ShadowRadius, softShadowAngle);
     o.vertex = mul(GetWorldToHClipMatrix(), positionWS);
     o.shadow = CalculateShadowValue(shadowType);

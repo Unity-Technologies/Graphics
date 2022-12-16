@@ -11,9 +11,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
 // Must match: UniversalRenderPipeline.maxVisibleAdditionalLights
-#if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES30))
+#if defined(SHADER_API_MOBILE) && defined(SHADER_API_GLES30)
     #define MAX_VISIBLE_LIGHTS 16
-#elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
+#elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
     #define MAX_VISIBLE_LIGHTS 32
 #else
     #define MAX_VISIBLE_LIGHTS 256
@@ -21,12 +21,18 @@
 
 // Match with values in UniversalRenderPipeline.cs
 #define MAX_ZBIN_VEC4S 1024
-#if MAX_VISIBLE_LIGHTS <= 32
+#if MAX_VISIBLE_LIGHTS <= 16
     #define MAX_LIGHTS_PER_TILE 32
     #define MAX_TILE_VEC4S 1024
+    #define MAX_REFLECTION_PROBES 16
+#elif MAX_VISIBLE_LIGHTS <= 32
+    #define MAX_LIGHTS_PER_TILE 32
+    #define MAX_TILE_VEC4S 1024
+    #define MAX_REFLECTION_PROBES 32
 #else
     #define MAX_LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
     #define MAX_TILE_VEC4S 4096
+    #define MAX_REFLECTION_PROBES 64
 #endif
 
 struct InputData
@@ -91,6 +97,7 @@ float2 _GlobalMipBias;
 float _AlphaToMaskAvailable;
 
 float4 _MainLightPosition;
+// In Forward+, .a stores whether the main light is using subtractive mixed mode.
 half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
 uint _MainLightLayerMask;
@@ -109,17 +116,20 @@ float4 _ScreenCoordScaleBias;
 float4 _ScreenSizeOverride;
 
 #if USE_FORWARD_PLUS
+float4 _FPParams0;
+float4 _FPParams1;
+
+#define URP_FP_ZBIN_SCALE (_FPParams0.x)
+#define URP_FP_ZBIN_OFFSET (_FPParams0.y)
+#define URP_FP_PROBES_BEGIN ((uint)_FPParams0.z)
 // Directional lights would be in all clusters, so they don't go into the cluster structure.
 // Instead, they are stored first in the light buffer.
-uint _AdditionalLightsDirectionalCount;
-// Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
-float2 _AdditionalLightsTileScale;
-uint _AdditionalLightsTileCountX;
-uint _AdditionalLightsWordsPerTile;
-float4 _AdditionalLightsParams0;
+#define URP_FP_DIRECTIONAL_LIGHTS_COUNT ((uint)_FPParams0.w)
 
-#define URP_ADDITIONAL_LIGHTS_ZBIN_SCALE _AdditionalLightsParams0.x
-#define URP_ADDITIONAL_LIGHTS_ZBIN_OFFSET _AdditionalLightsParams0.y
+// Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
+#define URP_FP_TILE_SCALE ((float2)_FPParams1.xy)
+#define URP_FP_TILE_COUNT_X ((uint)_FPParams1.z)
+#define URP_FP_WORDS_PER_TILE ((uint)_FPParams1.w)
 
 #endif
 
@@ -132,6 +142,7 @@ StructuredBuffer<int> _AdditionalLightsIndices;
 CBUFFER_START(AdditionalLights)
 #endif
 float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
+// In Forward+, .a stores whether the light is using subtractive mixed mode.
 half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
@@ -144,12 +155,29 @@ CBUFFER_END
 
 #if USE_FORWARD_PLUS
 
-CBUFFER_START(AdditionalLightsZBins)
-        float4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
+CBUFFER_START(urp_ZBinBuffer)
+        float4 urp_ZBins[MAX_ZBIN_VEC4S];
 CBUFFER_END
-CBUFFER_START(AdditionalLightsTiles)
-        float4 _AdditionalLightsTiles[MAX_TILE_VEC4S];
+CBUFFER_START(urp_TileBuffer)
+        float4 urp_Tiles[MAX_TILE_VEC4S];
 CBUFFER_END
+
+TEXTURE2D(urp_ReflProbes_Atlas);
+SAMPLER(samplerurp_ReflProbes_Atlas);
+float urp_ReflProbes_Count;
+
+#ifndef SHADER_API_GLES3
+CBUFFER_START(urp_ReflectionProbeBuffer)
+#endif
+half4 urp_ReflProbes_HDR[MAX_REFLECTION_PROBES];
+float4 urp_ReflProbes_BoxMax[MAX_REFLECTION_PROBES];          // w contains the blend distance
+float4 urp_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the importance
+float4 urp_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
+float4 urp_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
+#ifndef SHADER_API_GLES3
+CBUFFER_END
+#endif
+
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

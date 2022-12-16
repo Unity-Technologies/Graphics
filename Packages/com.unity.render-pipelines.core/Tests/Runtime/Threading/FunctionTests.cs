@@ -143,31 +143,33 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
 
     private static int[] GetBufferData(GraphicsBuffer buffer)
     {
-        // BUG: Async Readback seems to be broken on PlayStation.
-        //      Use the simpler GetData() path instead to work around the issue until it's fixed.
-        //
-        // Original Code:
-        /*
-        var cmdReadBack = CommandBufferPool.Get("Readback");
-
         int[] result = null;
-        cmdReadBack.RequestAsyncReadback(buffer, req =>
+
+        // The AsyncReadback API currently produces incorrect results on PlayStation 5.
+        // Fall back to the GetData API to avoid test failures until this is fixed.
+        bool useAsyncWorkaround = ((SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5) || (SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5NGGC));
+        if (!useAsyncWorkaround)
         {
-            if (req.done)
+            var cmdReadBack = CommandBufferPool.Get("Readback");
+
+            cmdReadBack.RequestAsyncReadback(buffer, req =>
             {
-                var data = req.GetData<int>();
-                result = data.ToArray();
-            }
-        });
-        cmdReadBack.WaitAllAsyncReadbackRequests();
+                if (req.done)
+                {
+                    var data = req.GetData<int>();
+                    result = data.ToArray();
+                }
+            });
+            cmdReadBack.WaitAllAsyncReadbackRequests();
 
-        Graphics.ExecuteCommandBuffer(cmdReadBack);
-        CommandBufferPool.Release(cmdReadBack);
-        */
-
-        // Workaround Code:
-        int[] result = new int[buffer.count];
-        buffer.GetData(result);
+            Graphics.ExecuteCommandBuffer(cmdReadBack);
+            CommandBufferPool.Release(cmdReadBack);
+        }
+        else
+        {
+            result = new int[buffer.count];
+            buffer.GetData(result);
+        }
 
         return result;
     }

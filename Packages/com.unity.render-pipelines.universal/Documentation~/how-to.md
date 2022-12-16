@@ -8,4 +8,4 @@ The section contains the following topics:
 
 - [How to create a custom rendering effect using the Render Objects Renderer Feature](containers/how-to-custom-effect-render-objects.md)
 
-- [How to create a custom post-processing effect](containers/post-processing-custom-effect-zero-code.md)
+- [How to create a custom post-processing effect](containers/post-processing-custom-effect-low-code.md)

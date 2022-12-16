@@ -19,7 +19,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 1265449290956637
-      data2: 4539628880729669656
+      data2: 4575658777260261400
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -120,42 +120,26 @@ MonoBehaviour:
   colorGradingSpace: 1
   m_ObsoleteDiffusionProfileSettingsList: []
   specularFade: 0
-  rendererListCulling: 0
+  rendererListCulling: 1
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 1
-  supportRuntimeDebugDisplay: 0
   autoRegisterDiffusionProfiles: 0
   apvScenesData:
-    serializedBounds: []
-    serializedHasVolumes: []
-    serializedProfiles: []
-    serializedBakeSettings: []
-    serializedBakingSets:
-    - name: Default
-      sceneGUIDs:
-      - fc784678bf952de4482e78aea61ccdc8
-      settings:
-        m_Version: 1
-        dilationSettings:
-          enableDilation: 1
-          dilationDistance: 1
-          dilationValidityThreshold: 0.25
-          dilationIterations: 1
-          squaredDistWeighting: 1
-        virtualOffsetSettings:
-          useVirtualOffset: 1
-          outOfGeoOffset: 0.01
-          searchMultiplier: 0.2
-          rayOriginBias: -0.001
-          maxHitsPerRay: 10
-          collisionMask:
-            serializedVersion: 2
-            m_Bits: 4294967291
-      profile: {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
-      lightingScenarios:
-      - Default
+    m_ObsoleteSerializedBakingSets: []
+    serializedBounds:
+    - sceneGUID: fc784678bf952de4482e78aea61ccdc8
+      bounds:
+        m_Center: {x: 0, y: 0, z: 0}
+        m_Extent: {x: 81, y: 81, z: 81}
+    serializedHasVolumes:
+    - sceneGUID: fc784678bf952de4482e78aea61ccdc8
+      hasProbeVolumes: 1
+    bakingSets:
+    - {fileID: 11400000, guid: 503bf6d995e8a4043ba60c02a674d0d3, type: 2}
     m_LightingScenario: Default
-  m_Version: 6
+  m_Version: 7
   m_ShaderVariantLogLevel: 0
+  m_SupportRuntimeDebugDisplay: 0
   m_ExportShaderVariants: 1
+  m_StripDebugVariants: 1

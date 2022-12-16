@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
         public DecalTechniqueOption technique = DecalTechniqueOption.Automatic;
         public float maxDrawDistance = 1000f;
 #if UNITY_EDITOR
-        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES2, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.SelectIf(true, overridePriority: true, keywordNames: ShaderKeywordStrings.DecalLayers)]
 #endif
         public bool decalLayers = false;
@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_DecalEntityManager = new DecalEntityManager();
 
-                var decalProjectors = GameObject.FindObjectsOfType<DecalProjector>();
+                var decalProjectors = GameObject.FindObjectsByType<DecalProjector>(FindObjectsSortMode.InstanceID);
                 foreach (var decalProjector in decalProjectors)
                 {
                     if (!decalProjector.isActiveAndEnabled || m_DecalEntityManager.IsValid(decalProjector.decalEntity))
@@ -303,12 +303,6 @@ namespace UnityEngine.Rendering.Universal
 
         private DecalTechnique GetTechnique(bool isDeferred)
         {
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2)
-            {
-                Debug.LogError("Decals are not supported with OpenGLES2.");
-                return DecalTechnique.Invalid;
-            }
-
             DecalTechnique technique = DecalTechnique.Invalid;
             switch (m_Settings.technique)
             {
@@ -425,7 +419,7 @@ namespace UnityEngine.Rendering.Universal
                 case DecalTechnique.DBuffer:
                     m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
                     m_DecalDrawDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
-                    
+
                     m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem, m_Settings.decalLayers);
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);

@@ -252,10 +252,10 @@ Planar reflection probes now use the same 2D texture cache. This means you can c
 ### Water System
 ![](Images/WaterSystem2022-2.png)
 
-In HDRP 14, we've introduced our first version of the Water System. This feature allows you to render highly realistic water surfaces and interact with them. Among the various features that this version includes:
+HDRP 14 introduces the Water System. This feature allows you to render highly realistic water surfaces and interact with them. Among the various features that this version includes:
+
 - A shader graph interaction for advanced visual customizations.
-- A mirrored simulation on the CPU for high fidelity game interactions.
-- Simulation based caustics.
-- Under water rendering.
+- A mirrored simulation on the CPU for high-fidelity game interactions.
+- Simulation-based caustics.
+- Underwater rendering.
 - Presets and intuitive controls.
-- and many more.

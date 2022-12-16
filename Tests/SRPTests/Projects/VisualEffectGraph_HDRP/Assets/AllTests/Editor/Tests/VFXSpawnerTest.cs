@@ -16,7 +16,6 @@ using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.Test
 {
-    [Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-14723")]
     public class VFXSpawnerTest : VFXPlayModeTest
     {
         [OneTimeTearDown]

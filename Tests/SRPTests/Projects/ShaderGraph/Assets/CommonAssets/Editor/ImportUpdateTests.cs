@@ -153,7 +153,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
                 bool isGL =
                     (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore) ||
-                    (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ||
                     (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3);
 
                 bool isOSX =

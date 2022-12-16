@@ -63,10 +63,13 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_MinSmoothness);
                         using (new IndentLevelScope())
                         {
-                            EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
-                            PropertyField(m_RayMiss);
-                            PropertyField(m_LastBounce);
-                            PropertyField(m_AmbientProbeDimmer);
+                            if (showAdditionalProperties)
+                            {
+                                EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                                PropertyField(m_RayMiss);
+                                PropertyField(m_LastBounce);
+                                PropertyField(m_AmbientProbeDimmer);
+                            }
                         }
                     }
                 }

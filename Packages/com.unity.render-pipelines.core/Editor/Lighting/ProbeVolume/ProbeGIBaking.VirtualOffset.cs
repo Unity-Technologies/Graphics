@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering
 
             // Scene may contain unwanted colliders (like Volumes for example)
             // So we disable any collider not attached to a MeshRenderer before doing the baking. Otherwise it will mess up with virtual offset and validity.
-            var colliderObjects = Object.FindObjectsOfType<Collider>(includeInactive: false);
+            var colliderObjects = Object.FindObjectsByType<Collider>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
             foreach (var collider in colliderObjects)
             {
                 if (collider.enabled && !collider.TryGetComponent<MeshRenderer>(out var _))
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering
             // Because we need to trigger physics update to update the physics search tree when adding new occluders
             // rigid bodies might end up triggering the simulation, which is something we do not want.  Therefore we force
             // them to be kinematic and therefore blocking the forces for being applied.
-            var rigidbodies = Object.FindObjectsOfType<Rigidbody>(includeInactive: false);
+            var rigidbodies = Object.FindObjectsByType<Rigidbody>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
             foreach (var rigidBody in rigidbodies)
             {
                 if (!rigidBody.isKinematic)
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering
             hasAppliers = false;
 
             Dictionary<int, TouchupsPerCell> cellToVolumes = new();
-            foreach (var touchup in Object.FindObjectsOfType<ProbeTouchupVolume>())
+            foreach (var touchup in Object.FindObjectsByType<ProbeTouchupVolume>(FindObjectsSortMode.InstanceID))
             {
                 if (!touchup.isActiveAndEnabled || (touchup.mode != ProbeTouchupVolume.Mode.ApplyVirtualOffset && touchup.mode != ProbeTouchupVolume.Mode.OverrideVirtualOffsetSettings))
                     continue;
@@ -572,7 +572,7 @@ namespace UnityEngine.Rendering
                         break;
 
                     var dotRaySurface = Vector3.Dot(outRay, hit.normal);
-                    if (dotRaySurface > 0f && IsNewBestHit(hit.distance, distance, dotRaySurface, dotSurface))
+                    if (IsNewBestHit(hit.distance, distance, dotRaySurface, dotSurface))
                     {
                         distance = hit.distance;
                         dotSurface = dotRaySurface;
@@ -592,11 +592,18 @@ namespace UnityEngine.Rendering
                     var outBoundRay = raycastCommands[cmdIdx++];
                     GetClosestColliderHit(hitIdx, outBoundRay.direction, maxHitsPerRay, out var distanceForDir, out var dotSurface);
 
-                    if (IsNewBestHit(distanceForDir, minDist, dotSurface, maxDotSurface))
+                    if (distanceForDir < float.MaxValue)
                     {
-                        outDirection = outBoundRay.direction;
-                        minDist = distanceForDir;
-                        maxDotSurface = dotSurface;
+                        // If any of the closest hit is outside, we are not inside geometry so we don't want to virtual offset.
+                        // TO VERIFY: Is this too harsh? Should we allow some level of hit of a front face?
+                        if (dotSurface < 0f) return Vector3.zero;
+
+                        if (IsNewBestHit(distanceForDir, minDist, dotSurface, maxDotSurface))
+                        {
+                            outDirection = outBoundRay.direction;
+                            minDist = distanceForDir;
+                            maxDotSurface = dotSurface;
+                        }
                     }
                 }
 

@@ -38,9 +38,7 @@ half4 _SSAOBlueNoiseParams;
 #define BlueNoiseOffset         _SSAOBlueNoiseParams.zw
 #endif
 
-#if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
-    static const int SAMPLE_COUNT = 3;
-#elif defined(_SAMPLE_COUNT_HIGH)
+#if defined(_SAMPLE_COUNT_HIGH)
     static const int SAMPLE_COUNT = 12;
 #elif defined(_SAMPLE_COUNT_MEDIUM)
     static const int SAMPLE_COUNT = 8;
@@ -364,7 +362,7 @@ half4 SSAO(Varyings input) : SV_Target
 
     // Normal for this fragment
     half3 normal_o = SampleNormal(uv, linearDepth_o, pixelDensity);
-    
+
     // View position for this fragment
     float3 vpos_o = ReconstructViewPos(uv, linearDepth_o);
 

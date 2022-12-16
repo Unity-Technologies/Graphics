@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowRequests = m_ShadowRequests;
                 passData.clearMaterial = m_ClearMaterial;
                 passData.debugClearAtlas = m_LightingDebugSettings.clearShadowAtlas;
-                passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0, BatchCullingProjectionType.Perspective);
+                passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
                 passData.shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
                 passData.isRenderingOnACache = m_IsACacheForShadows;
 
@@ -364,22 +364,20 @@ namespace UnityEngine.Rendering.HighDefinition
                                 CoreUtils.DrawFullScreen(ctx.cmd, data.clearMaterial, null, 0);
 
                             data.shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
-                            data.shadowDrawSettings.splitData = shadowRequest.splitData;
-                            data.shadowDrawSettings.projectionType = shadowRequest.projectionType;
 
                             // Setup matrices for shadow rendering:
-                            Matrix4x4 view = shadowRequest.view;
+                            Matrix4x4 view = shadowRequest.cullingSplit.view;
                             // For dynamic objects to be read in the same "space" as the cached ones we need to take cache translation delta in consideration.
                             // otherwise the dynamic objects won't stay attached to casters as camera moves.
                             if (mixedInDynamicAtlas && shadowRequest.shadowMapType == ShadowMapType.CascadedDirectional)
                             {
                                 view *= Matrix4x4.Translate(shadowRequest.cachedShadowData.cacheTranslationDelta);
                             }
-                            Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * view;
+                            Matrix4x4 viewProjection = shadowRequest.cullingSplit.deviceProjectionYFlip * view;
                             data.globalCBData._ViewMatrix = view;
                             data.globalCBData._InvViewMatrix = view.inverse;
-                            data.globalCBData._ProjMatrix = shadowRequest.deviceProjectionYFlip;
-                            data.globalCBData._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
+                            data.globalCBData._ProjMatrix = shadowRequest.cullingSplit.deviceProjectionYFlip;
+                            data.globalCBData._InvProjMatrix = shadowRequest.cullingSplit.deviceProjectionYFlip.inverse;
                             data.globalCBData._ViewProjMatrix = viewProjection;
                             data.globalCBData._InvViewProjMatrix = viewProjection.inverse;
                             data.globalCBData._SlopeScaleDepthBias = -shadowRequest.slopeBias;

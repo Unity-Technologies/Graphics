@@ -35,8 +35,14 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty waterSimulationResolution;
         public SerializedProperty supportWaterDeformation;
         public SerializedProperty deformationAtlasSize;
+        public SerializedProperty supportWaterFoam;
+        public SerializedProperty foamAtlasSize;
         public SerializedProperty supportWaterExclusion;
         public SerializedProperty waterCPUSimulation;
+
+        public SerializedProperty supportComputeThickness;
+        public SerializedProperty computeThicknessResolution;
+        public SerializedProperty computeThicknessLayerMask;
 
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportedLitShaderMode;
@@ -50,6 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportDecalLayers;
         public SerializedProperty supportSurfaceGradient;
         public SerializedProperty decalNormalBufferHP;
+        public SerializedProperty supportHighQualityLineRendering;
 
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
@@ -110,8 +117,14 @@ namespace UnityEditor.Rendering.HighDefinition
             waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
             supportWaterDeformation = root.Find((RenderPipelineSettings s) => s.supportWaterDeformation);
             deformationAtlasSize = root.Find((RenderPipelineSettings s) => s.deformationAtlasSize);
+            supportWaterFoam = root.Find((RenderPipelineSettings s) => s.supportWaterFoam);
+            foamAtlasSize = root.Find((RenderPipelineSettings s) => s.foamAtlasSize);
             supportWaterExclusion = root.Find((RenderPipelineSettings s) => s.supportWaterExclusion);
             waterCPUSimulation = root.Find((RenderPipelineSettings s) => s.waterCPUSimulation);
+
+            supportComputeThickness = root.Find((RenderPipelineSettings s) => s.supportComputeThickness);
+            computeThicknessResolution = root.Find((RenderPipelineSettings s) => s.computeThicknessResolution);
+            computeThicknessLayerMask = root.Find((RenderPipelineSettings s) => s.computeThicknessLayerMask);
 
             supportLightLayers = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             colorBufferFormat = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
@@ -145,6 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportRayTracing = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
             supportVFXRayTracing = root.Find((RenderPipelineSettings s) => s.supportVFXRayTracing);
             supportedRayTracingMode = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
+            supportHighQualityLineRendering = root.Find((RenderPipelineSettings s) => s.supportHighQualityLineRendering);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));

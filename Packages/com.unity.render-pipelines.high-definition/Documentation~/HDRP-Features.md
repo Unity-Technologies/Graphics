@@ -167,12 +167,19 @@ For more information, including the full list of light properties, see the [Ligh
 
 HDRP supports the Illuminating Engineering Society's (IES) file format for describing the distribution of light from a light source. HDRP supports the IES profile for Point, Spot (Cone, Pyramid, and Box), and rectangular Area [Lights](Light-Component.md). You can also mix the IES profile with [cookies](https://docs.unity3d.com/Manual/Cookies.html) and even use the profile and cookie mix for [light map baking](https://docs.unity3d.com/Manual/LightMode-Baked.html).
 
-### Lens Flare
+### Lens Flare Data Driven
 
 ![](Images/LensFlareSamples2.png)
 
 From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
 Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have multiple elements that you can control individually. HDRP also provides a [new asset](shared/lens-flare/lens-flare-asset.md) and a [new component](shared/lens-flare/lens-flare-component.md) which you can attach to any GameObject.
+
+### Lens Flare Screen Space
+
+![](Images/ScreenSpaceLensFlare-feature.png)
+
+To complete [Lens Flare Data Driven](shared/lens-flare/lens-flare-component.md), HDRP (and URP) 15.0 introduces a new Screen Space Lens Flare post-process override.
+This effect allows you to use what is on screen to create multiple types of flares based on the [Bloom](Post-Processing-Bloom.md) texture. This is especially useful for view-dependent bright spots (specular reflection, overexposed areas) which doesn't have a defined position in world space.
 
 ### Reflection probes
 
@@ -190,7 +197,7 @@ For more information, see [Planar Reflection Probe](Planar-Reflection-Probe.md).
 
 ### Screen-space reflection and refraction
 
-HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP.md#ScreenSpaceRefraction) documentation.
+HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP.md) documentation.
 
 ### Screen-space global illumination
 

@@ -5,7 +5,8 @@ Shader "Hidden/HDRP/CompositeUI"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma editor_sync_compilation
-        #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
+        #pragma multi_compile_local_fragment HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020
+        #pragma multi_compile_local_fragment HDR_ENCODING_LINEAR HDR_ENCODING_PQ
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -57,13 +58,14 @@ Shader "Hidden/HDRP/CompositeUI"
             float2 samplePos = input.positionCS.xy;
             if (_NeedsFlip)
             {
+                uv.y = _RTHandleScale.y - uv.y;
                 samplePos.y = _ScreenSize.y - samplePos.y;
             }
-            // We need to flip y
+
             float4 outColor = LOAD_TEXTURE2D_X(_InputTexture, samplePos.xy);
             // Apply AfterPostProcess target
             #if APPLY_AFTER_POST
-            float4 afterPostColor = LOAD_TEXTURE2D_X(_AfterPostProcessTexture, samplePos.xy);
+            float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, uv , 0);
             afterPostColor.rgb = ProcessUIForHDR(afterPostColor.rgb, _PaperWhite, _MaxNits);
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;

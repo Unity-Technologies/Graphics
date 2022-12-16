@@ -51,17 +51,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void InitializeForRendering(RenderGraph renderGraph)
         {
-            blackTexture = renderGraph.ImportTexture(m_BlackTexture2D);
-            whiteTexture = renderGraph.ImportTexture(m_WhiteTexture2D);
-            defaultShadowTexture = renderGraph.ImportTexture(m_ShadowTexture2D);
+            blackTexture = renderGraph.ImportTexture(m_BlackTexture2D, true);
+            whiteTexture = renderGraph.ImportTexture(m_WhiteTexture2D, true);
+            defaultShadowTexture = renderGraph.ImportTexture(m_ShadowTexture2D, true);
 
-            clearTextureXR = renderGraph.ImportTexture(TextureXR.GetClearTexture());
-            magentaTextureXR = renderGraph.ImportTexture(TextureXR.GetMagentaTexture());
+            clearTextureXR = renderGraph.ImportTexture(TextureXR.GetClearTexture(), true);
+            magentaTextureXR = renderGraph.ImportTexture(TextureXR.GetMagentaTexture(), true);
             blackTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
-            blackTextureArrayXR = renderGraph.ImportTexture(TextureXR.GetBlackTextureArray());
-            blackUIntTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackUIntTexture());
-            blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D());
-            whiteTextureXR = renderGraph.ImportTexture(TextureXR.GetWhiteTexture());
+            blackTextureArrayXR = renderGraph.ImportTexture(TextureXR.GetBlackTextureArray(), true);
+            blackUIntTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackUIntTexture(), true);
+            blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D(), true);
+            whiteTextureXR = renderGraph.ImportTexture(TextureXR.GetWhiteTexture(), true);
         }
     }
 }

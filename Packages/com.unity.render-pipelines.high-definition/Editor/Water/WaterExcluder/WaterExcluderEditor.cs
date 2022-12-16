@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
             M_Mesh = o.Find(x => x.m_InternalMesh);
         }
 
-        static public readonly GUIContent k_MeshText = EditorGUIUtility.TrTextContent("Mesh", "Specified the mesh filter used for the exclusion.");
+        static public readonly GUIContent k_MeshText = EditorGUIUtility.TrTextContent("Mesh", "Specifies the mesh filter used for the exclusion.");
 
         public override void OnInspectorGUI()
         {
@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support exclusion for Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportWaterExclusion");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWaterExclusion");
                 return;
             }
 

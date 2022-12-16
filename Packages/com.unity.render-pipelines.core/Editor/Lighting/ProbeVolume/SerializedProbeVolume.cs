@@ -2,7 +2,7 @@ namespace UnityEditor.Rendering
 {
     internal class SerializedProbeVolume
     {
-        internal SerializedProperty globalVolume;
+        internal SerializedProperty mode;
         internal SerializedProperty size;
         internal SerializedProperty fillEmptySpaces;
         internal SerializedProperty overridesSubdivision;
@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering
         {
             serializedObject = obj;
 
-            globalVolume = serializedObject.FindProperty("globalVolume");
+            mode = serializedObject.FindProperty("mode");
             size = serializedObject.FindProperty("size");
             objectLayerMask = serializedObject.FindProperty("objectLayerMask");
             minRendererVolumeSize = serializedObject.FindProperty("minRendererVolumeSize");

@@ -40,7 +40,7 @@ public class SimpleBRGExample : MonoBehaviour
     // These can be edited to test nonzero GLES buffer offsets.
     private int BufferSize(int bufferCount) => bufferCount * sizeof(int);
     private int BufferOffset => 0;
-    private int BufferWindowSize => UseConstantBuffer ? SystemInfo.maxConstantBufferSize : 0;
+    private int BufferWindowSize => UseConstantBuffer ? BatchRendererGroup.GetConstantBufferMaxWindowSize() : 0;
 
     // Unity provided shaders such as Universal Render Pipeline/Lit expect
     // unity_ObjectToWorld and unity_WorldToObject in a special packed 48 byte

@@ -33,8 +33,8 @@ public static class PerformanceTestUtils
     /// <returns></returns>
     public static PerformanceTestSceneSettings SetupTestScene(Vector2Int overrideCameraSize = default(Vector2Int))
     {
-        var sceneSettings = GameObject.FindObjectOfType<PerformanceTestSceneSettings>();
-        var camera = sceneSettings?.GetComponent<Camera>() ?? GameObject.FindObjectOfType<Camera>();
+        var sceneSettings = GameObject.FindFirstObjectByType<PerformanceTestSceneSettings>();
+        var camera = sceneSettings?.GetComponent<Camera>() ?? GameObject.FindFirstObjectByType<Camera>();
 
         if (overrideCameraSize != default(Vector2Int))
         {
@@ -61,7 +61,7 @@ public static class PerformanceTestUtils
     /// </summary>
     public static void CleanupTestSceneIfNeeded()
     {
-        var settings = GameObject.FindObjectOfType<PerformanceTestSceneSettings>();
+        var settings = GameObject.FindFirstObjectByType<PerformanceTestSceneSettings>();
 
         if (settings == null || settings.testCamera == null)
             return;

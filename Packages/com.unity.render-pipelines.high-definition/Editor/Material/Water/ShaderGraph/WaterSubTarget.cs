@@ -319,6 +319,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(StructFields.VertexDescriptionInputs.WorldSpacePosition);
             context.AddField(HDFields.GraphTessellation);
             context.AddField(HDFields.TessellationFactor);
+            context.AddField(StructFields.SurfaceDescriptionInputs.FaceSign);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
