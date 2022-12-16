@@ -5,18 +5,58 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [14.0.4] - 2022-11-04
+## [14.0.5] - 2022-12-12
+
+This version is compatible with Unity 2022.2.2f1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [14.0.4] - 2022-11-04
+
+This version is compatible with Unity 2022.2.0b15.
+
+### Added
+- Extension method to fetch the Render Pipeline assets from a BuildTarget.
+- New XRSystem API to allow SRPs override the XR built-in stereo matrices.
+
+### Changed
+- Improved performance of APV baking.
+- Allow setting order for panels on the rendering debugger.
+
+### Fixed
+- Fixed the reset of APV volume placement when using multi selection.
+- Fixed an issue so that APV dilated data not being written back to disk.
+- Fixed realtime subdivision so it culls empty cells.
+- Hid the warning on the reflection probe if you disable APV.
+- Fixed so that data isn't cleared for probes to be dilated into, to avoid bright colored splotches.
+- Fixed probes so that the max distance between then are respected.
+- Fixed uninitialized memory for virtual offset.
+- Fixed NaN when you bake high intensity lights.
+- Fixed the APV touchup volume test so it uses OBB instead of AABB.
+- Fixed null reference when you enable the Camera in a project with multiple SRPs installed.
+- Volume Component Editor Foldouts states are now stored by type instead of by position.
+- Fixed SerializedObjectNotCreatableException on Volume Component Editors.
+- Fixed null reference exception when settings null Render Pipeline Global settings on the Settings provider.
+- Fixed swapping Volume Component in a Volume profile with mixed pipeline Volume Components.
+- Default Volume Profile can now be recovered when it is being deleted from the project folder.
+- Fixed editor drawer for Value tuples in the Rendering Debugger.
+- Fixed an issue where FreeCamera would print an error when using old InputSystem.
+- Fixed missing subdivision label when looking at APV realtime subdivision preview.
+- Fixed shadow cascade editor so the snatches now appear and the gradient appearance is improved.
+- Fixed global probe volumes not fitting to all objects.
+- Fixed dropdowns for multiple editors.
 
 ## [14.0.3] - 2021-05-09
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2022.2.0a14.
 
+### Fixed
+- Added Shader Stripping Watcher so you get notifications when a Shader Variant is stripped.
 
 ## [14.0.2] - 2021-02-04
+
+This version is compatible with Unity 2022.2.0a9.
 
 ### Added
 - Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.

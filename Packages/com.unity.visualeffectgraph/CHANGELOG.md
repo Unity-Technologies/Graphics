@@ -5,17 +5,73 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [14.0.4] - 2022-11-04
+## [14.0.5] - 2022-12-12
+
+This version is compatible with Unity 2022.2.2f1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [14.0.4] - 2022-11-04
+
+This version is compatible with Unity 2022.2.0b15.
+
+### Changed
+- Sticky notes are no longer lost when you convert to block subgraph.
+- Made the input property label colors consistent.
+- Reduced the time taken by VFXGraph.CheckCompilationVersion that would previously potentially query all assets on every domain reload.
+- Reduced time taken by code generation when a VFX asset is imported.
+
+### Fixed
+- Fixed delayed property changes so they apply when you save.
+- Fixed resetting of needsComputeBounds.
+- Fixed so that output order changes in the inspector take effect even if the asset is not opened in VFX Graph editor.
+- Fixed the timeline behavior when wrapmode is set to loop in director.
+- Unexpected lossy scale evaluation on GPU.
+- Fixed an issue with Motion Vector target offset with Line Output.
+- Fixed an issue that caused an unexpected compilation failure with URP Lit Output.
+- Fixed an unexpected memory allocation in inspector preview when interacting with mouse while in pause.
+- Error thrown when entering a subgraph that is already opened.
+- Fixed position where VFX are created when VFX asset is dragged to Scene View.
+- Stop rendering VFX shadows when VFX are disabled in Scene View visibility menu.
+- Fixed single pass stereo rendering issue with SG integration due to uncorrectly setup instanceID.
+- Fixed NRE when the Vector2 is configured as a range, it was preventing Decal output context creation.
+- Updated non-deterministic test: InstancingBatch.
+- Fixed issues with light probes and instancing.
+- Fixed compilation error when using sorting in World space.
+- Fixed the **Preserve Specular Lighting** mode on non-Shader Graph lit outputs.
+- Fixed robustness issues with Collision with SDF.
+- Fixed an issue to avoid unnessary allocations in the SDF Baker by using Mesh Buffer API.
+- Fixed compilation errors with large graphs.
+- Enabled specifying the maximum point count in Attribute from Map blocks.
+- Exceptions about SystemNames were raised when leaving play mode if a new system had been added without saving.
+- Fixed an issue that values modified in spawner or init context automatically trigger a reinit of the attached VFX component.
+- Fixed unpredictable behavior in spawners using instancing with more than one instance.
+- Improved dragging and dropping of blocks when you want to change their order or move them to another context.
 
 ## [14.0.3] - 2021-05-09
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2022.2.0a14.
+
+### Changed
+- Fixed the OutputParticle context inspector content so it doesn't shift vertically when you resize the inspector panel.
+- Fixed so that the context name isn't lost when you convert to a different type.
+- Added a missing range slider for the blend property to the custom attribute blend block.
+- Fixed so the space property is carried over when copying/pasting a VFX property.
+
+### Fixed
+- Fixed Undo/Redo with Prefabs.
+- Fixed node input type so it doesn't change when you insert a new node on an edge.
+- Fixed so that when you duplicate Event Array elements, it creates linked instances of the elements.
+- Fixed the mixing of Vector4 & Color with SampleGraphicsBuffer within the same graph.
+- Fixed material inspector so it displays in outputs with shader graph.
+- Fixed a crash in DX12 that potentially affected other platforms when the GPU events systems had an incorrect order.
+- The VFX Graph gizmo can't be manipulated.
+- The VFX asset preview isn't animated by default anymore to save CPU usage.
 
 ## [14.0.2] - 2021-02-04
+
+This version is compatible with Unity 2022.2.0a9.
 
 ### Added
 - New Timeline Integration which supports scrubbing
