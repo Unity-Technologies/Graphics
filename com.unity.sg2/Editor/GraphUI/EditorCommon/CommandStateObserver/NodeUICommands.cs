@@ -2,6 +2,7 @@ using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using Unity.CommandStateObserver;
+using UnityEditor.ShaderGraph.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -102,6 +103,38 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             GradientTypeHelpers.SetGradient(portWriter.GetTypeField(), command.m_Value);
             previewUpdateDispatcher.OnLocalPropertyChanged(command.m_SGNodeModel.graphDataName, command.m_PortName, command.m_Value);
+
+            using var graphUpdater = graphViewState.UpdateScope;
+            graphUpdater.MarkChanged(command.m_SGNodeModel);
+        }
+    }
+
+    class SetPortOptionCommand : UndoableCommand
+    {
+        readonly SGNodeModel m_SGNodeModel;
+        readonly string m_PortName;
+        readonly int m_OptionIndex;
+
+        public SetPortOptionCommand(SGNodeModel sgNodeModel, string portName, int optionIndex)
+        {
+            m_SGNodeModel = sgNodeModel;
+            m_PortName = portName;
+            m_OptionIndex = optionIndex;
+        }
+
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
+            GraphModelStateComponent graphViewState,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
+            SetPortOptionCommand command)
+        {
+            using (var undoUpdater = undoState.UpdateScope)
+            {
+                undoUpdater.SaveState(graphViewState);
+            }
+
+            command.m_SGNodeModel.SetPortOption(command.m_PortName, command.m_OptionIndex);
+            previewUpdateDispatcher.OnListenerConnectionChanged(command.m_SGNodeModel.graphDataName);
 
             using var graphUpdater = graphViewState.UpdateScope;
             graphUpdater.MarkChanged(command.m_SGNodeModel);
