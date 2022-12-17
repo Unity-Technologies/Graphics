@@ -561,7 +561,9 @@ namespace UnityEngine.Rendering.Universal
                     m_DepthPrepass.Render(renderGraph, ref depthTarget, ref renderingData);
             }
 
-            if (useDepthPriming && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan || cameraData.cameraTargetDescriptor.msaaSamples == 1))
+            // depth priming still needs to copy depth because the prepass doesn't target anymore CameraDepthTexture
+            // TODO: this is unoptimal, investigate optimizations
+            if (useDepthPriming)
             {
                 TextureHandle depth = resources.GetTexture(UniversalResource.CameraDepth);
                 TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
