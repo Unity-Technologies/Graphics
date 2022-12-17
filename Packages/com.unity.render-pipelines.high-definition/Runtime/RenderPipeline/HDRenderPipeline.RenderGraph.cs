@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, hdCamera.depthBufferMipChainInfo);
 
-                    volumetricDensityBuffer = FogVolumeVoxelizationPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_VisibleVolumeBoundsBuffer);
+                    volumetricDensityBuffer = FogVolumeAndVFXVoxelizationPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_VisibleVolumeBoundsBuffer, cullingResults);
 
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
 

@@ -14,6 +14,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static readonly string k_ColorBlendOpProperty = "_FogVolumeColorBlendOp";
         internal static readonly string k_AlphaBlendOpProperty = "_FogVolumeAlphaBlendOp";
 
+        internal static readonly string k_SingleScatteringAlbedoProperty = "_FogVolumeSingleScatteringAlbedo";
+        internal static readonly string k_FogDistanceProperty = "_FogVolumeFogDistanceProperty";
+
         internal static void ComputeBlendParameters(LocalVolumetricFogBlendingMode mode, out BlendMode srcColorBlend,
             out BlendMode srcAlphaBlend, out BlendMode dstColorBlend, out BlendMode dstAlphaBlend,
             out BlendOp colorBlendOp, out BlendOp alphaBlendOp)
@@ -82,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             material.SetFloat(k_DstAlphaBlendProperty, (float)dstAlphaBlend);
             material.SetFloat(k_ColorBlendOpProperty, (float)colorBlendOp);
             material.SetFloat(k_AlphaBlendOpProperty, (float)alphaBlendOp);
+            material.SetFloat(k_BlendModeProperty, (float)mode);
         }
     }
 }

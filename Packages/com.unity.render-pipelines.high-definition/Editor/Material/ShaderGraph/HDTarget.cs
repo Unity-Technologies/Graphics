@@ -87,11 +87,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         bool m_SupportLineRendering;
 
-        private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
+        private static readonly List<Type> m_IncompatibleVFXSubTargets = new()
         {
             // Currently there is not support for VFX decals via HDRP master node.
             typeof(DecalSubTarget),
             typeof(HDFullscreenSubTarget),
+            typeof(FogVolumeSubTarget),
+        };
+
+        private static readonly List<Type> m_IncompatibleHQLineRenderingSubTargets = new()
+        {
+            typeof(FogVolumeSubTarget),
         };
 
         internal override bool ignoreCustomInterpolators => false;
@@ -234,12 +240,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 });
             }
 
-            m_SupportLineRenderingToggle = new Toggle("") { value = m_SupportLineRendering };
-            context.AddProperty("Support High Quality Line Rendering", "", 0, m_SupportLineRenderingToggle, (evt) =>
+            if (!m_IncompatibleHQLineRenderingSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
             {
-                m_SupportLineRendering = m_SupportLineRenderingToggle.value;
-                onChange();
-            });
+                m_SupportLineRenderingToggle = new Toggle("") { value = m_SupportLineRendering };
+                context.AddProperty("Support High Quality Line Rendering", "", 0, m_SupportLineRenderingToggle, (evt) =>
+                {
+                    m_SupportLineRendering = m_SupportLineRenderingToggle.value;
+                    onChange();
+                });
+            }
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -416,7 +425,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return false;
         }
 
-        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        public void ConfigureContextData(VFXContext context, VFXTaskCompiledData data)
         {
             if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
                 return;

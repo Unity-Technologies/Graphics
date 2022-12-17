@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // VFX Properties
         protected VFXContext m_ContextVFX = null;
-        protected VFXContextCompiledData m_ContextDataVFX;
+        protected VFXTaskCompiledData m_TaskDataVFX;
         protected bool TargetsVFX() => m_ContextVFX != null;
 
         protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
             if (TargetsVFX())
-                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
+                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_TaskDataVFX);
 
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
@@ -309,10 +309,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        public void ConfigureContextData(VFXContext context, VFXTaskCompiledData data)
         {
             m_ContextVFX = context;
-            m_ContextDataVFX = data;
+            m_TaskDataVFX = data;
         }
     }
 }

@@ -228,8 +228,9 @@ namespace UnityEngine.Rendering.HighDefinition
             LocalVolumetricFogEngineData data = param.ConvertToEngineData();
 
             // When volumetric fog is disabled, we don't want its color to affect the heightfog. So we pass neutral values here.
-            cb._HeightFogBaseScattering = enableVolumetrics ? data.scattering : Vector4.one * data.extinction;
-            cb._HeightFogBaseExtinction = data.extinction;
+            var extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(param.meanFreePath);
+            cb._HeightFogBaseScattering = enableVolumetrics ? data.scattering : Vector4.one * extinction;
+            cb._HeightFogBaseExtinction = extinction;
 
             float crBaseHeight = baseHeight.value;
 

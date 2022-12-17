@@ -143,7 +143,7 @@ if (index >= asuint(nbMax) - deadCount)
 #if USE_GEOMETRY_SHADER
 	return; // cull
 #else
-	o.pos.x = VFX_NAN;
+	o.VFX_VARYING_POSCS.x = VFX_NAN;
 	return o; // cull
 #endif
 }
@@ -159,7 +159,7 @@ ${VFXLoadAttributes:{alive}}
 #if !HAS_STRIPS
 if (!attributes.alive)
 {
-	o.pos.x = VFX_NAN;
+	o.VFX_VARYING_POSCS.x = VFX_NAN;
 	return o; // cull
 }
 #endif
@@ -444,14 +444,16 @@ VFXGetInstanceCurrentIndex(index);
 ${VFXEnd}
 
 ${VFXBegin:VFXDeclareAppendOutputIndirectBuffer}
-void AppendOutputBuffer(RWStructuredBuffer<IndirectOutputType> outputBuffer, IndirectOutputType output, uint instanceActiveIndex)
+void AppendOutputBuffer(RWStructuredBuffer<IndirectOutputType> outputBuffer, IndirectOutputType output, uint instanceActiveIndex, uint increment = 1)
 {
     uint indirectIndex;
+
 #if VFX_FEATURE_SORT
-    InterlockedAdd(outputBuffer[instanceActiveIndex].index, 1, indirectIndex);
+    InterlockedAdd(outputBuffer[instanceActiveIndex].index, increment, indirectIndex);
 #else
-    InterlockedAdd(outputBuffer[instanceActiveIndex], 1, indirectIndex);
+    InterlockedAdd(outputBuffer[instanceActiveIndex], increment, indirectIndex);
 #endif
+    indirectIndex /= increment;
     indirectIndex += instancingBatchSize + instanceActiveIndex * RAW_CAPACITY;
     outputBuffer[indirectIndex] = output;
 }

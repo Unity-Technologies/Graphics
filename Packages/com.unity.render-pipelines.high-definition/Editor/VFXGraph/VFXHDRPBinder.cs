@@ -170,14 +170,14 @@ namespace UnityEditor.VFX.HDRP
         // A key difference between Material Shader and VFX Shader generation is how surface properties are provided. Material Shaders
         // simply provide properties via UnityPerMaterial cbuffer. VFX expects these same properties to be computed in the vertex
         // stage (because we must evaluate them with the VFX blocks), and packed with the interpolators for the fragment stage.
-        static StructDescriptor AppendVFXInterpolator(StructDescriptor interpolator, VFXContext context, VFXContextCompiledData contextData)
+        static StructDescriptor AppendVFXInterpolator(StructDescriptor interpolator, VFXContext context, VFXTaskCompiledData taskData)
         {
             var fields = interpolator.fields.ToList();
 
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
 
             // Warning/TODO: FragmentParameters are created from the ShaderGraphVfxAsset.
             // We may ultimately need to move this handling of VFX Interpolators + SurfaceDescriptionFunction function signature directly into the SG Generator (since it knows about the exposed properties).
@@ -239,7 +239,7 @@ namespace UnityEditor.VFX.HDRP
         };
 
 
-        public override ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXContextCompiledData data)
+        public override ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXTaskCompiledData data)
         {
             return new ShaderGraphBinder
             {

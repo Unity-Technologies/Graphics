@@ -58,9 +58,9 @@ namespace UnityEditor.VFX.HDRP
                     yield return "transparentRenderQueue";
                     yield return "opaqueRenderQueue";
                 }
-                else if (owner.isBlendModeOpaque)
+                else if (owner.isBlendModeOpaque || owner is VFXVolumetricFogOutput)
                     yield return "transparentRenderQueue";
-                else
+                else if (owner is VFXVolumetricFogOutput)
                     yield return "opaqueRenderQueue";
             }
         }

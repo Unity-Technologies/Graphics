@@ -575,6 +575,8 @@ namespace UnityEngine.Rendering.HighDefinition
             LensFlareCommonSRP.Initialize();
 
             Hammersley.Initialize();
+
+            LocalVolumetricFogManager.manager.InitializeGraphicsBuffers();
         }
 
 #if UNITY_EDITOR
@@ -953,6 +955,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // we are detecting if we are in an OnValidate call and releasing the Singleton only if it is not the case.
             if (!m_Asset.isInOnValidateCall)
                 HDUtils.ReleaseComponentSingletons();
+
+            LocalVolumetricFogManager.manager.CleanupGraphicsBuffers();
         }
 
         void Resize(HDCamera hdCamera)
@@ -2304,6 +2308,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RayCountManager.SetRayCountEnabled((HDDebugDisplaySettings.Instance.displayStats.debugDisplayStats as HDDebugDisplayStats)?.countRays ?? false);
                     BuildRayTracingLightData(cmd, hdCamera);
                 }
+
+                // Update and bind Volumetric Lighting CBuffer
+                PrepareAndPushVolumetricCBufferForVFXUpdate(cmd, hdCamera);
 
                 // Configure all the keywords
                 ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);

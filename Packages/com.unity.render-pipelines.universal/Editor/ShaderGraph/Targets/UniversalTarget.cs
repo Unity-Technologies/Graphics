@@ -723,7 +723,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
 #if HAS_VFX_GRAPH
-        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        public void ConfigureContextData(VFXContext context, VFXTaskCompiledData data)
         {
             if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
                 return;

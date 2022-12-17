@@ -143,6 +143,25 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<string> fragmentParameters { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<string> vertexParameters { get { return Enumerable.Empty<string>(); } }
 
+        public virtual VFXContextCompiledData PrepareCompiledData()
+        {
+            var compiledData = new VFXContextCompiledData
+            {
+                tasks = new()
+                {
+                    new VFXTask
+                    {
+                        templatePath = codeGeneratorTemplate,
+                        type = taskType,
+                        shaderType = codeGeneratorCompute ? VFXTaskShaderType.ComputeShader : VFXTaskShaderType.Shader,
+                    }
+                },
+                buffers = new()
+            };
+
+            return compiledData;
+        }
+
         public virtual bool CanBeCompiled()
         {
             return m_Data != null && m_Data.CanBeCompiled();

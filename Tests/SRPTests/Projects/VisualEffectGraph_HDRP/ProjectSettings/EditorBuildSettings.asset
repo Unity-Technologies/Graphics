@@ -165,6 +165,9 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/HDRP_DebugSpecular.unity
     guid: 06b4f10c130ec1a41964b6ecccc099c0
   - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/HDRP_VolumetricOutput.unity
+    guid: 38e94aa06101372438fb6ef4b77732fe
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Collision.unity
     guid: e51caecb20798cf40ba0f8b8759d3e1b
   - enabled: 1
