@@ -216,6 +216,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
+        public string disableBatching
+        {
+            get
+            {
+                if (supportsLodCrossFade)
+                    return $"{UnityEditor.ShaderGraph.DisableBatching.LODFading}";
+                else
+                    return $"{UnityEditor.ShaderGraph.DisableBatching.False}";
+            }
+        }
+
         public SubTarget activeSubTarget
         {
             get => m_ActiveSubTarget.value;
