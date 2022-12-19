@@ -95,17 +95,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (texture.dimension == TextureDimension.Cube)
             {
-                // Last mip level should be at least 4 texels wide for the prober octahedral border.
-                textureSize = Mathf.Max(textureSize, 32);
-
-                // In theory we should multiply by sqrt(6) to match the area but we can't do that due to pow of two constraint.
-                // So for cube resolutions less than 512 we multiply by 4 as otherwise quality suffers.
-                // But for resolutions more or equal than 512 it is enough to multiply by 2 as the difference is barely noticeable.
-                if (textureSize < 512)
-                    textureSize *= 4;
-                else
-                    textureSize *= 2;
+                textureSize = GetReflectionProbeSizeInAtlas(textureSize);
             }
+
+            return textureSize;
+        }
+
+        public static int GetReflectionProbeSizeInAtlas(int textureSize)
+        {
+            // Last mip level should be at least 4 texels wide for the prober octahedral border.
+            textureSize = Mathf.Max(textureSize, 32);
+
+            // In theory we should multiply by sqrt(6) to match the area but we can't do that due to pow of two constraint.
+            // So for cube resolutions less than 512 we multiply by 4 as otherwise quality suffers.
+            // But for resolutions more or equal than 512 it is enough to multiply by 2 as the difference is barely noticeable.
+            if (textureSize < 512)
+                textureSize *= 4;
+            else
+                textureSize *= 2;
 
             return textureSize;
         }
