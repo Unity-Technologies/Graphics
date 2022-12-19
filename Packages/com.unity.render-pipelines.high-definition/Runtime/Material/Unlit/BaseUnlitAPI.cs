@@ -331,9 +331,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kTransparentDepthPrepassEnable))
             {
-                bool depthWriteEnable = (material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
-                bool ssrTransparent = material.HasProperty(kReceivesSSRTransparent) ? (material.GetFloat(kReceivesSSRTransparent) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent) : false;
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, depthWriteEnable || ssrTransparent);
+                bool isTransparent = material.GetSurfaceType() == SurfaceType.Transparent;
+                bool depthWriteEnable = material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f;
+                bool ssrTransparent = material.ReceiveSSRTransparent();
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, isTransparent && (depthWriteEnable || ssrTransparent));
             }
 
             if (material.HasProperty(kTransparentDepthPostpassEnable))

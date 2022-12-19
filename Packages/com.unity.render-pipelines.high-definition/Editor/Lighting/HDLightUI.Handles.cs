@@ -561,26 +561,26 @@ namespace UnityEditor.Rendering.HighDefinition
                         case SpotLightShape.Cone:
                             using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                             {
-                                Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * additionalData.innerSpotPercent01, light.range);
+                                Vector3 outerAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * additionalData.innerSpotPercent01, light.range);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = wireframeColorBehind;
-                                DrawSpotlightWireframe(outterAngleInnerAngleRange, shadowNearPlane);
+                                DrawSpotlightWireframe(outerAngleInnerAngleRange, shadowNearPlane);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = wireframeColorAbove;
-                                DrawSpotlightWireframe(outterAngleInnerAngleRange, shadowNearPlane);
+                                DrawSpotlightWireframe(outerAngleInnerAngleRange, shadowNearPlane);
                                 EditorGUI.BeginChangeCheck();
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                 Handles.color = handleColorBehind;
-                                outterAngleInnerAngleRange = DrawSpotlightHandle(outterAngleInnerAngleRange);
+                                outerAngleInnerAngleRange = DrawSpotlightHandle(outerAngleInnerAngleRange);
                                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                 Handles.color = handleColorAbove;
-                                outterAngleInnerAngleRange = DrawSpotlightHandle(outterAngleInnerAngleRange);
+                                outerAngleInnerAngleRange = DrawSpotlightHandle(outerAngleInnerAngleRange);
                                 if (EditorGUI.EndChangeCheck())
                                 {
                                     Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Cone Spot Light");
-                                    additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / Mathf.Max(0.1f, outterAngleInnerAngleRange.x);
-                                    light.spotAngle = outterAngleInnerAngleRange.x;
-                                    light.range = outterAngleInnerAngleRange.z;
+                                    additionalData.innerSpotPercent = 100f * outerAngleInnerAngleRange.y / Mathf.Max(0.1f, outerAngleInnerAngleRange.x);
+                                    light.spotAngle = outerAngleInnerAngleRange.x;
+                                    light.range = outerAngleInnerAngleRange.z;
                                 }
 
                                 // Handles.color reseted at end of scope

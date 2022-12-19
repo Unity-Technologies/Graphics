@@ -50,6 +50,13 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled the main light can be a shadow casting light.");
             public static GUIContent mainLightShadowmapResolutionText = EditorGUIUtility.TrTextContent("Shadow Resolution", "Resolution of the main light shadowmap texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the maximum shadows atlas resolution.");
 
+            // Probe volumes
+            public static readonly GUIContent lightProbeSystemContent = EditorGUIUtility.TrTextContent("Light Probe System", "What system to use for Light Probes.");
+            public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the 3D textures used to store lighting data from probes. Depth is fixed.");
+            public static readonly GUIContent probeVolumeBlendingMemoryBudget = EditorGUIUtility.TrTextContent("Scenario Blending Memory Budget", "Specify the width and height of 3D textures used while blending between lighting Scenarios. Depth is fixed.");
+            public static readonly GUIContent supportProbeVolumeStreaming = EditorGUIUtility.TrTextContent("Enable Streaming", "Enable steaming of Cells in the Probe Volume system.");
+            public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "The number of Spherical Harmonic bands used by Probe Volumes to store lighting data. Choosing L2 provides better quality but with higher memory and runtime costs.");
+
             // Additional lights
             public static GUIContent addditionalLightsRenderingModeText = EditorGUIUtility.TrTextContent("Additional Lights", "Additional lights support.");
             public static GUIContent perObjectLimit = EditorGUIUtility.TrTextContent("Per Object Limit", "Maximum amount of additional lights. These lights are sorted and culled per-object.");

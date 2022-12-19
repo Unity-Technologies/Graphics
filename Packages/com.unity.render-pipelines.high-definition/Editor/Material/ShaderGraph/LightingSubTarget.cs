@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (pass.lightMode == HDShaderPassNames.s_MotionVectorsStr)
                 pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBufferMotionVector);
             else if (pass.IsDepthOrMV())
-                pass.pragmas.Add(CoreKeywordDescriptors.WriteDecalBufferDepthOnlyAsPragma); // This is a pragma to workaround SG limitation
+                pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBufferDepthOnly);
 
             if (pass.IsLightingOrMaterial())
             {

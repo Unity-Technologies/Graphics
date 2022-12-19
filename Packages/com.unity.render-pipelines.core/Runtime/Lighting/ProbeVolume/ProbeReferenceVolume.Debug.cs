@@ -219,8 +219,52 @@ namespace UnityEngine.Rendering
             }
         }
 
+#if UNITY_EDITOR
+        static void SceneGUI(SceneView sceneView)
+        {
+            // APV debug needs to detect user keyboard and mouse position to update ProbeSamplingPositionDebug
+            Event e = Event.current;
+
+            if (e.control && !ProbeReferenceVolume.probeSamplingDebugData.shortcutPressed)
+                ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Always;
+
+            if (!e.control && ProbeReferenceVolume.probeSamplingDebugData.shortcutPressed)
+                ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Never;
+
+            ProbeReferenceVolume.probeSamplingDebugData.shortcutPressed = e.control;
+
+            if (e.clickCount > 0 && e.button == 0)
+            {
+                if (ProbeReferenceVolume.probeSamplingDebugData.shortcutPressed)
+                    ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Once;
+                else
+                    ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Never;
+            }
+
+            if (ProbeReferenceVolume.probeSamplingDebugData.update == ProbeSamplingDebugUpdate.Never)
+                return;
+
+            Vector2 screenCoordinates;
+
+            if (ProbeReferenceVolume.probeSamplingDebugData.forceScreenCenterCoordinates)
+                screenCoordinates = new Vector2(sceneView.camera.scaledPixelWidth / 2.0f, sceneView.camera.scaledPixelHeight / 2.0f);
+            else
+                screenCoordinates = HandleUtility.GUIPointToScreenPixelCoordinate(e.mousePosition);
+
+            if (screenCoordinates.x < 0 || screenCoordinates.x > sceneView.camera.scaledPixelWidth || screenCoordinates.y < 0 || screenCoordinates.y > sceneView.camera.scaledPixelHeight)
+                return;
+
+            ProbeReferenceVolume.probeSamplingDebugData.camera = sceneView.camera;
+            ProbeReferenceVolume.probeSamplingDebugData.coordinates = screenCoordinates;
+
+        }
+#endif
+
         void InitializeDebug(in ProbeVolumeSystemParameters parameters)
         {
+#if UNITY_EDITOR
+            SceneView.duringSceneGui += SceneGUI; // Used to get click and keyboard event on scene view for Probe Sampling Debug
+#endif
             if (parameters.supportsRuntimeDebug)
             {
                 m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
@@ -276,6 +320,7 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared -= OnClearLightingdata;
+            SceneView.duringSceneGui -= SceneGUI;
 #endif
         }
 
@@ -662,6 +707,7 @@ namespace UnityEngine.Rendering
                     {
                         var probeBuffer = debug.probeBuffers[i];
                         m_DebugMaterial.SetInt("_DebugProbeVolumeSampling", 0);
+                        m_DebugMaterial.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
                         Graphics.DrawMeshInstanced(debugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
 
@@ -671,7 +717,7 @@ namespace UnityEngine.Rendering
                         m_ProbeSamplingDebugMaterial02.SetInt("_DebugProbeVolumeSampling", 1);
                         props.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
                         m_ProbeSamplingDebugMaterial02.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
-                        Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_ProbeSamplingDebugMaterial02, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
+                        Graphics.DrawMeshInstanced(debugMesh, 0, m_ProbeSamplingDebugMaterial02, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
 
                     if (probeVolumeDebug.drawVirtualOffsetPush)

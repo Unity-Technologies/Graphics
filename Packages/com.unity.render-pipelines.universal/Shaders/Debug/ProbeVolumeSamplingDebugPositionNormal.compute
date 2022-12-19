@@ -1,0 +1,26 @@
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
+
+// Compute worldspace position and normal at given screenspace position and write it in the ResultBuffer
+#pragma kernel ComputePositionNormal
+
+RWStructuredBuffer<float4> _ResultBuffer;
+uniform float4 _positionSS; // screenspace position
+
+[numthreads(1,1,1)]
+void ComputePositionNormal (uint3 id : SV_DispatchThreadID)
+{
+    float  deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _positionSS.xy).r;
+
+    float2 positionNDC = _positionSS.xy *_ScreenSize.zw + (0.5 * _ScreenSize.zw);
+    float3 positionWS = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP);
+
+    float3 normalWS = LoadSceneNormals(_positionSS.xy);
+
+    _ResultBuffer[0] = float4(positionWS, 1.0f);
+    _ResultBuffer[1] = float4(normalWS, 0.0f);
+}

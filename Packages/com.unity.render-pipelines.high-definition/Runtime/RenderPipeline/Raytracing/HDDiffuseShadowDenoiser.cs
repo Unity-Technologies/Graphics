@@ -21,6 +21,12 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_BilateralFilterHSingleSpotKernel;
         int m_BilateralFilterVSingleSpotKernel;
 
+        int m_BilateralFilterHSinglePyramidKernel;
+        int m_BilateralFilterVSinglePyramidKernel;
+
+        int m_BilateralFilterHSingleBoxKernel;
+        int m_BilateralFilterVSingleBoxKernel;
+
         public HDDiffuseShadowDenoiser()
         {
         }
@@ -40,6 +46,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_BilateralFilterHSingleSpotKernel = m_ShadowDenoiser.FindKernel("BilateralFilterHSingleSpot");
             m_BilateralFilterVSingleSpotKernel = m_ShadowDenoiser.FindKernel("BilateralFilterVSingleSpot");
+
+            m_BilateralFilterHSinglePyramidKernel = m_ShadowDenoiser.FindKernel("BilateralFilterHSinglePyramid");
+            m_BilateralFilterVSinglePyramidKernel = m_ShadowDenoiser.FindKernel("BilateralFilterVSinglePyramid");
+
+            m_BilateralFilterHSingleBoxKernel = m_ShadowDenoiser.FindKernel("BilateralFilterHSingleBox");
+            m_BilateralFilterVSingleBoxKernel = m_ShadowDenoiser.FindKernel("BilateralFilterVSingleBox");
         }
 
         public void Release()
@@ -213,8 +225,35 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.properties.lightPosition -= hdCamera.camera.transform.position;
 
                 // Kernels
-                passData.bilateralHKernel = properties.isSpot ? m_BilateralFilterHSingleSpotKernel : m_BilateralFilterHSinglePointKernel;
-                passData.bilateralVKernel = properties.isSpot ? m_BilateralFilterVSingleSpotKernel : m_BilateralFilterVSinglePointKernel;
+
+                switch (properties.lightType)
+                {
+                    case GPULightType.Spot:
+                    {
+                        passData.bilateralHKernel = m_BilateralFilterHSingleSpotKernel;
+                        passData.bilateralVKernel = m_BilateralFilterVSingleSpotKernel;
+                    }
+                    break;
+                    case GPULightType.ProjectorPyramid:
+                    {
+                        passData.bilateralHKernel = m_BilateralFilterHSinglePyramidKernel;
+                        passData.bilateralVKernel = m_BilateralFilterVSinglePyramidKernel;
+                    }
+                    break;
+                    case GPULightType.ProjectorBox:
+                    {
+                        passData.bilateralHKernel = m_BilateralFilterHSingleBoxKernel;
+                        passData.bilateralVKernel = m_BilateralFilterVSingleBoxKernel;
+                    }
+                    break;
+                    case GPULightType.Point:
+                    default:
+                    {
+                        passData.bilateralHKernel = m_BilateralFilterHSinglePointKernel;
+                        passData.bilateralVKernel = m_BilateralFilterVSinglePointKernel;
+                    }
+                    break;
+                }
 
                 // Other parameters
                 passData.diffuseShadowDenoiserCS = m_ShadowDenoiser;
@@ -248,7 +287,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Bind input uniforms for both dispatches
                         ctx.cmd.SetComputeIntParam(data.diffuseShadowDenoiserCS, HDShaderIDs._RaytracingTargetLight, data.properties.lightIndex);
-                        ctx.cmd.SetComputeFloatParam(data.diffuseShadowDenoiserCS, HDShaderIDs._RaytracingLightAngle, data.properties.lightConeAngle);
+                        switch(properties.lightType)
+                        {
+                            case GPULightType.Spot:
+                            {
+                                ctx.cmd.SetComputeFloatParam(data.diffuseShadowDenoiserCS, HDShaderIDs._RaytracingLightAngle, data.properties.lightConeAngle);
+                            }
+                            break;
+                            case GPULightType.ProjectorPyramid:
+                            case GPULightType.ProjectorBox:
+                            {
+                                ctx.cmd.SetComputeFloatParam(data.diffuseShadowDenoiserCS, HDShaderIDs._RaytracingLightSizeX, data.properties.lightSizeX);
+                                ctx.cmd.SetComputeFloatParam(data.diffuseShadowDenoiserCS, HDShaderIDs._RaytracingLightSizeY, data.properties.lightSizeY);
+                            }
+                            break;
+                        }
                         ctx.cmd.SetComputeFloatParam(data.diffuseShadowDenoiserCS, HDShaderIDs._RaytracingLightRadius, data.properties.lightRadius);
                         ctx.cmd.SetComputeIntParam(data.diffuseShadowDenoiserCS, HDShaderIDs._DenoiserFilterRadius, data.properties.kernelSize);
                         ctx.cmd.SetComputeVectorParam(data.diffuseShadowDenoiserCS, HDShaderIDs._SphereLightPosition, data.properties.lightPosition);

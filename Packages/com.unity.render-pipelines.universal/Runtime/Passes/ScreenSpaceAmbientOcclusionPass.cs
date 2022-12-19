@@ -405,7 +405,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (data.cameraColor.IsValid())
                         PostProcessUtils.SetSourceSize(rgContext.cmd, data.cameraColor);
-                    
+
                     SetupKeywordsAndParameters(ref data, ref data.renderingData);
 
                     // We only want URP shaders to sample SSAO if After Opaque is disabled...

@@ -180,7 +180,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pass.keywords.Add(CoreKeywordDescriptors.WriteMsaaDepth);
 
             pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
-            pass.keywords.Add(CoreKeywordDescriptors.BlendMode);
             pass.keywords.Add(CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false));
             pass.keywords.Add(CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true));
             pass.keywords.Add(CoreKeywordDescriptors.ConservativeDepthOffset, new FieldCondition(HDFields.ConservativeDepthOffset, true));

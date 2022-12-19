@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
             {
                 var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
-                if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
+                if (renderPipelineAssetType != null && (renderPipelineAssetType.Name == "HDRenderPipelineAsset" || renderPipelineAssetType.Name == "UniversalRenderPipelineAsset"))
                 {
                     EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
                 }

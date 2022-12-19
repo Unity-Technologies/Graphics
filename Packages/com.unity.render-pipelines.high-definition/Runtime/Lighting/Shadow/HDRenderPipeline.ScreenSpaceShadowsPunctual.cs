@@ -6,11 +6,13 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal struct PunctualShadowProperties
     {
-        public bool isSpot;
+        public GPULightType lightType;
         public bool softShadow;
         public int lightIndex;
         public float lightRadius;
         public float lightConeAngle;
+        public float lightSizeX;
+        public float lightSizeY;
         public Vector3 lightPosition;
         public int kernelSize;
         public bool distanceBasedDenoiser;
@@ -135,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle distanceBuffer;
 
             PunctualShadowProperties props = new PunctualShadowProperties();
-            props.isSpot = lightData.lightType == GPULightType.Spot;
+            props.lightType = lightData.lightType;
             props.lightIndex = lightIndex;
             props.softShadow = additionalLightData.shapeRadius > 0.0 ? true : false;
             props.lightRadius = additionalLightData.shapeRadius;
@@ -143,6 +145,38 @@ namespace UnityEngine.Rendering.HighDefinition
             props.kernelSize = additionalLightData.filterSizeTraced;
             props.lightConeAngle = additionalLightData.legacyLight.spotAngle * (float)Math.PI / 180.0f;
             props.distanceBasedDenoiser = additionalLightData.distanceBasedFiltering;
+
+            switch (lightData.lightType)
+            {
+                case (GPULightType.ProjectorPyramid):
+                {
+                    float spotHalfAngleRadians = 0.5f * props.lightConeAngle;
+
+                    // Scale up one of the pyramind light angles based on aspect ratio
+                    // We reuse _RaytracingLightSizeX and _RaytracingLightSizeY for the pyramid angles here
+                    if (additionalLightData.aspectRatio < 1.0f)
+                    {
+                        float scaledLightAngle = 2.0f * Mathf.Atan(Mathf.Tan(spotHalfAngleRadians) / additionalLightData.aspectRatio);
+
+                        props.lightSizeX = props.lightConeAngle;
+                        props.lightSizeY = scaledLightAngle;
+                    }
+                    else
+                    {
+                        float scaledLightAngle = 2.0f * Mathf.Atan(Mathf.Tan(spotHalfAngleRadians) * additionalLightData.aspectRatio);
+
+                        props.lightSizeX = scaledLightAngle;
+                        props.lightSizeY = props.lightConeAngle;
+                    }
+                }
+                break;
+                default:
+                {
+                    props.lightSizeX = additionalLightData.shapeWidth;
+                    props.lightSizeY = additionalLightData.shapeHeight;
+                }
+                break;
+            }
 
             using (var builder = renderGraph.AddRenderPass<RTSPunctualTracePassData>("Punctual RT Shadow", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingLightShadow)))
             {
@@ -160,7 +194,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Kernels
                 passData.clearShadowKernel = m_ClearShadowTexture;
-                passData.shadowKernel = lightData.lightType == GPULightType.Point ? m_RaytracingPointShadowSample : m_RaytracingSpotShadowSample;
+                switch (lightData.lightType)
+                {
+                    case GPULightType.Point:
+                        passData.shadowKernel = m_RaytracingPointShadowSample; break;
+                    case GPULightType.Spot: // Cone
+                        passData.shadowKernel = m_RaytracingSpotShadowSample; break;
+                    case GPULightType.ProjectorPyramid:
+                        passData.shadowKernel = m_RaytracingProjectorPyramidShadowSample; break;
+                    case GPULightType.ProjectorBox:
+                        passData.shadowKernel = m_RaytracingProjectorBoxShadowSample; break;
+                    default:
+                        passData.shadowKernel = m_RaytracingSpotShadowSample; break;
+                }
 
                 // Grab the acceleration structure for the target camera
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
@@ -216,10 +262,21 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Define the shader pass to use for the reflection pass
                         ctx.cmd.SetRayTracingShaderPass(data.screenSpaceShadowRT, "VisibilityDXR");
 
+
+                        if (data.lightType == GPULightType.ProjectorBox ||
+                            data.lightType == GPULightType.ProjectorPyramid)
+                        {
+                            ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightSizeX, data.properties.lightSizeX);
+                            ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightSizeY, data.properties.lightSizeY);
+                        }
+
                         // Bind the light & sampling data
                         ctx.cmd.SetComputeIntParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingTargetLight, data.properties.lightIndex);
                         ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightRadius, data.properties.lightRadius);
-                        ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightAngle, data.properties.lightConeAngle);
+                        if (data.lightType == GPULightType.Spot)
+                        {
+                            ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightAngle, data.properties.lightConeAngle);
+                        }
 
                         // Loop through the samples of this frame
                         for (int sampleIdx = 0; sampleIdx < data.numShadowSamples; ++sampleIdx)

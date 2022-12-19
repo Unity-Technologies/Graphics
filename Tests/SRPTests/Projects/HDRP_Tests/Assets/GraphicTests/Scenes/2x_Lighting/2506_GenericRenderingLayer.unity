@@ -67,9 +67,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -1704,7 +1701,7 @@ PrefabInstance:
     - target: {fileID: 3172572448013233710, guid: 002aeb33ebf10b54cb2d5b9258b7f896,
         type: 3}
       propertyPath: m_RenderingPathCustomFrameSettings.msaaMode
-      value: 8
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3172572448013233710, guid: 002aeb33ebf10b54cb2d5b9258b7f896,
         type: 3}

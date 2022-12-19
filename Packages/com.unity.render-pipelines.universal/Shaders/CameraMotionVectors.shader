@@ -58,7 +58,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
             #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
                 // Non-uniform raster needs to keep the posNDC values in float to avoid additional conversions
                 // since uv remap functions use floats
-                #define POS_NDC_TYPE float2 
+                #define POS_NDC_TYPE float2
             #else
                 #define POS_NDC_TYPE half2
             #endif

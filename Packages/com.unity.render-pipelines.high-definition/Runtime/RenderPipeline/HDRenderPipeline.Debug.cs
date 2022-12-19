@@ -53,9 +53,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeDebug()
         {
-#if UNITY_EDITOR
-            SceneView.duringSceneGui += SceneGUI; // Used to get click and keyboard event on scene view for Probe Sampling Debug
-#endif
             m_ComputePositionNormal = defaultResources.shaders.probeVolumeSamplingDebugComputeShader;
             m_DebugViewMaterialGBuffer           = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewMaterialGBufferPS);
             m_DebugViewMaterialGBufferShadowMask = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewMaterialGBufferPS);
@@ -83,9 +80,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CleanupDebug()
         {
-#if UNITY_EDITOR
-            SceneView.duringSceneGui -= SceneGUI;
-#endif
             CoreUtils.Destroy(m_DebugViewMaterialGBuffer);
             CoreUtils.Destroy(m_DebugViewMaterialGBufferShadowMask);
             CoreUtils.Destroy(m_DebugDisplayLatlong);
@@ -115,47 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
             }
         }
-
-#if UNITY_EDITOR
-        static void SceneGUI(SceneView sceneView)
-        {
-            // APV debug needs to detect user keyboard and mouse position to update ProbeSamplingPositionDebug
-            Event e = Event.current;
-
-            if (e.control && !ProbeReferenceVolume.probeSamplingDebugData.shortcutPressed)
-                ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Always;
-
-            if (!e.control && ProbeReferenceVolume.probeSamplingDebugData.shortcutPressed)
-                ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Never;
-
-            ProbeReferenceVolume.probeSamplingDebugData.shortcutPressed = e.control;
-
-            if (e.clickCount > 0 && e.button == 0)
-            {
-                if (ProbeReferenceVolume.probeSamplingDebugData.shortcutPressed)
-                    ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Once;
-                else
-                    ProbeReferenceVolume.probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Never;
-            }
-
-            if (ProbeReferenceVolume.probeSamplingDebugData.update == ProbeSamplingDebugUpdate.Never)
-                return;
-
-            Vector2 screenCoordinates;
-
-            if (ProbeReferenceVolume.probeSamplingDebugData.forceScreenCenterCoordinates)
-                screenCoordinates = new Vector2(sceneView.camera.scaledPixelWidth / 2.0f, sceneView.camera.scaledPixelHeight / 2.0f);
-            else
-                screenCoordinates = HandleUtility.GUIPointToScreenPixelCoordinate(e.mousePosition);
-
-            if (screenCoordinates.x < 0 || screenCoordinates.x > sceneView.camera.scaledPixelWidth || screenCoordinates.y < 0 || screenCoordinates.y > sceneView.camera.scaledPixelHeight)
-                return;
-
-            ProbeReferenceVolume.probeSamplingDebugData.camera = sceneView.camera;
-            ProbeReferenceVolume.probeSamplingDebugData.coordinates = screenCoordinates;
-
-        }
-#endif
 
         bool NeedColorPickerDebug(DebugDisplaySettings debugSettings)
         {

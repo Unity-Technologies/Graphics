@@ -4,16 +4,13 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
 
     #pragma vertex Vert
 
-    //#pragma enable_d3d11_debug_symbols
     #pragma editor_sync_compilation
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+    //#pragma enable_d3d11_debug_symbols
 
-    #pragma multi_compile_local _ USE_CLOUD_MOTION
-    #pragma multi_compile_local _ USE_FLOWMAP
-    #pragma multi_compile_local _ USE_SECOND_CLOUD_LAYER
-    #pragma multi_compile_local _ USE_SECOND_CLOUD_MOTION
-    #pragma multi_compile_local _ USE_SECOND_FLOWMAP
+    #pragma multi_compile_local LAYER1_STATIC LAYER1_PROCEDURAL LAYER1_FLOWMAP
+    #pragma multi_compile_local LAYER2_OFF LAYER2_STATIC LAYER2_PROCEDURAL LAYER2_FLOWMAP
     #pragma multi_compile_local _ PHYSICALLY_BASED_SUN
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

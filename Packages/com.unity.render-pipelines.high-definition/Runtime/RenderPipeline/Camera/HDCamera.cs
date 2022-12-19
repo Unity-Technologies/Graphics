@@ -907,7 +907,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The condition inside controls whether we perform init/deinit or not.
                 HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
-                bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion) || frameSettings.IsEnabled(FrameSettingsField.Water);
+                bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
                 bool isHistoryColorPyramidRequired = IsSSREnabled(transparent: false) || IsSSREnabled(transparent: true) || IsSSGIEnabled();
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 

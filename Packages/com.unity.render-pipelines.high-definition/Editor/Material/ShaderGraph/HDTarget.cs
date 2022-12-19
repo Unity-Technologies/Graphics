@@ -92,11 +92,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Currently there is not support for VFX decals via HDRP master node.
             typeof(DecalSubTarget),
             typeof(HDFullscreenSubTarget),
+            typeof(WaterSubTarget),
             typeof(FogVolumeSubTarget),
         };
 
         private static readonly List<Type> m_IncompatibleHQLineRenderingSubTargets = new()
         {
+            typeof(WaterSubTarget),
             typeof(FogVolumeSubTarget),
         };
 
@@ -1176,8 +1178,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        // ShaderGraph doesn't support unnamed keyword _ for enums so we have to hack it using a PragmaDescriptor
-        public static PragmaDescriptor WriteDecalBufferDepthOnlyAsPragma = new PragmaDescriptor() { value = "multi_compile_fragment _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER" };
+        public static KeywordDescriptor WriteDecalBufferDepthOnly = new KeywordDescriptor()
+        {
+            displayName = "Write Decal Buffer (Depth Only)",
+            referenceName = "WRITE",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "Decal Buffer", referenceName = "DECAL_BUFFER" },
+                new KeywordEntry() { displayName = "Rendering Layer", referenceName = "RENDERING_LAYER" },
+            },
+            stages = KeywordShaderStage.Fragment,
+        };
 
         public static KeywordDescriptor WriteDecalBufferMotionVector = new KeywordDescriptor()
         {
@@ -1402,22 +1417,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-        };
-
-        public static KeywordDescriptor BlendMode = new KeywordDescriptor()
-        {
-            displayName = "Blend Mode",
-            referenceName = "_BLENDMODE",
-            type = KeywordType.Enum,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-            entries = new KeywordEntry[]
-            {
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
-                new KeywordEntry() { displayName = "Alpha", referenceName = "ALPHA" },
-                new KeywordEntry() { displayName = "Add", referenceName = "ADD" },
-                new KeywordEntry() { displayName = "PreMultiply", referenceName = "PRE_MULTIPLY" },
-            }
         };
 
         public static KeywordDescriptor FogOnTransparent = new KeywordDescriptor()

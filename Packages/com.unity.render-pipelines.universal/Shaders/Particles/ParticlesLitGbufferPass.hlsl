@@ -36,7 +36,15 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
 
     inputData.fogCoord = 0.0; // not used for deferred shading
     inputData.vertexLighting = half3(0.0h, 0.0h, 0.0h);
+#if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    inputData.bakedGI = SAMPLE_GI(input.vertexSH,
+        GetAbsolutePositionWS(inputData.positionWS),
+        inputData.normalWS,
+        inputData.viewDirectionWS,
+        inputData.positionCS.xy);
+#else
     inputData.bakedGI = SampleSHPixel(input.vertexSH, inputData.normalWS);
+#endif
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1);
 
@@ -72,7 +80,7 @@ VaryingsParticle ParticlesGBufferVertex(AttributesParticle input)
     output.viewDirWS = viewDirWS;
 #endif
 
-    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+    OUTPUT_SH(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
 
     output.positionWS.xyz = vertexInput.positionWS;
     output.clipPos = vertexInput.positionCS;

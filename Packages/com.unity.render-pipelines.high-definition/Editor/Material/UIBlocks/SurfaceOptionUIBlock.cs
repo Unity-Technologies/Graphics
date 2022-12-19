@@ -209,9 +209,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty depthOffsetEnable = null;
         MaterialProperty conservativeDepthOffsetEnable = null;
 
-        // Refraction (for show pre-refraction pass enum)
-        MaterialProperty refractionModel = null;
-
         MaterialProperty transparentZWrite = null;
         MaterialProperty stencilRef = null;
         MaterialProperty zTest = null;
@@ -363,8 +360,6 @@ namespace UnityEditor.Rendering.HighDefinition
             transparentCullMode = FindProperty(kTransparentCullMode);
             opaqueCullMode = FindProperty(kOpaqueCullMode);
             rayTracing = FindProperty(kRayTracing);
-
-            refractionModel = FindProperty(kRefractionModel);
 
             renderQueueProperty = materialEditor.serializedObject.FindProperty("m_CustomRenderQueue");
         }
@@ -627,7 +622,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool isMixedRenderQueue = surfaceType.hasMixedValue || renderQueueHasMultipleDifferentValue;
             bool showAfterPostProcessPass = (m_Features & Features.ShowAfterPostProcessPass) != 0;
-            bool showPreRefractionPass = refractionModel == null || refractionModel.floatValue == 0;
             bool showLowResolutionPass = true;
 
             EditorGUI.showMixedValue = isMixedRenderQueue;

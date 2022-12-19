@@ -539,6 +539,11 @@ namespace UnityEngine.Rendering.Universal
             if (m_RenderingLayerProvidesByDepthNormalPass)
                 renderPassInputs.requiresNormalsTexture = true;
 
+#if UNITY_EDITOR
+            if (m_ProbeVolumeDebugPass.NeedsNormal())
+                renderPassInputs.requiresNormalsTexture = true;
+#endif
+
             bool requiresDepthPrepass = RequireDepthPrepass(ref renderingData, renderPassInputs);
             bool requiresDepthCopyPass = !requiresDepthPrepass
                                          && (cameraData.requiresDepthTexture || cameraHasPostProcessingWithDepth || renderPassInputs.requiresDepthTexture)
@@ -660,6 +665,14 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Render(renderGraph, out cameraOpaqueTexture, in activeColor, downsamplingMethod, ref renderingData);
                 resources.SetTexture(UniversalResource.CameraOpaqueTexture, cameraOpaqueTexture);
             }
+
+#if UNITY_EDITOR
+            {
+                TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
+                TextureHandle cameraNormalsTexture = resources.GetTexture(UniversalResource.CameraNormalsTexture);
+                m_ProbeVolumeDebugPass.Render(renderGraph, ref renderingData, cameraDepthTexture, cameraNormalsTexture);
+            }
+#endif
 
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingSkybox, RenderPassEvent.BeforeRenderingTransparents);
 

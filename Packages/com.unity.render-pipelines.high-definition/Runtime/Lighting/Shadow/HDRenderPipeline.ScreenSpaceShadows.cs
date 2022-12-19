@@ -31,6 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Punctual shadow kernels
         int m_RaytracingPointShadowSample;
         int m_RaytracingSpotShadowSample;
+        int m_RaytracingProjectorPyramidShadowSample;
+        int m_RaytracingProjectorBoxShadowSample;
 
         // Area shadow kernels
         int m_AreaRaytracingShadowPrepassKernel;
@@ -199,6 +201,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RaytracingDirectionalShadowSample = m_ScreenSpaceShadowsCS.FindKernel("RaytracingDirectionalShadowSample");
                 m_RaytracingPointShadowSample = m_ScreenSpaceShadowsCS.FindKernel("RaytracingPointShadowSample");
                 m_RaytracingSpotShadowSample = m_ScreenSpaceShadowsCS.FindKernel("RaytracingSpotShadowSample");
+                m_RaytracingProjectorPyramidShadowSample = m_ScreenSpaceShadowsCS.FindKernel("RaytracingProjectorPyramidShadowSample");
+                m_RaytracingProjectorBoxShadowSample = m_ScreenSpaceShadowsCS.FindKernel("RaytracingProjectorBoxShadowSample");
+
 
                 // Area shadow kernels
                 m_AreaRaytracingShadowPrepassKernel = m_ScreenSpaceShadowsCS.FindKernel("RaytracingAreaShadowPrepass");
@@ -449,6 +454,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                     case GPULightType.Point:
                     case GPULightType.Spot:
+                    case GPULightType.ProjectorPyramid:
+                    case GPULightType.ProjectorBox:
                     {
                         RenderPunctualScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
                             prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer, rayCountTexture, screenSpaceShadowArray);

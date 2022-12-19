@@ -10,7 +10,7 @@ float dist(float3 vecA, float3 vecB)
     return length(res);
 }
 
-void SampleSphericalSphere(float3 spherePosition, float sphereRadius, float u, float v, float3 position, float3 normal, out float3 outPosition, out float outPDF)
+void SampleSphericalSphere(float3 spherePosition, float sphereRadius, float u, float v, float3 position, out float3 outPosition, out float outPDF)
 {
     // Compute coordinate system for sphere sampling.
     float3 wc = normalize(spherePosition - position);

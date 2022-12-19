@@ -353,8 +353,8 @@ namespace UnityEngine.Rendering.HighDefinition
             bool pipelineSupportsRayTracing = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
 
             m_RayTracingSupported = pipelineSupportsRayTracing && m_GlobalSettings.renderPipelineRayTracingResources != null;
-			
-            // In Editor we need to be freely available to select raytracing to create the resources, otherwise we get stuck in a situation in which we cannot create the resources, 
+
+            // In Editor we need to be freely available to select raytracing to create the resources, otherwise we get stuck in a situation in which we cannot create the resources,
             // hence why the following is done only in player
 #if !UNITY_EDITOR
             if (pipelineSupportsRayTracing && !m_RayTracingSupported)

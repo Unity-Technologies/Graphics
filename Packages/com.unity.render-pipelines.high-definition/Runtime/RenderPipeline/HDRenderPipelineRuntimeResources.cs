@@ -44,7 +44,23 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
             public ComputeShader clearDebugBufferCS;
 
+            [Reload("Runtime/Debug/DebugWaveform.shader")]
+            public Shader debugWaveformPS;
+            [Reload("Runtime/Debug/DebugWaveform.compute")]
+            public ComputeShader debugWaveformCS;
+            [Reload("Runtime/Debug/DebugVectorscope.shader")]
+            public Shader debugVectorscopePS;
+            [Reload("Runtime/Debug/DebugVectorscope.compute")]
+            public ComputeShader debugVectorscopeCS;
+
+            [Reload("Runtime/Lighting/VolumetricLighting/DebugLocalVolumetricFogAtlas.shader")]
+            public Shader debugLocalVolumetricFogAtlasPS;
+
             // APV
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
+            public ComputeShader probeVolumeBlendStatesCS;
+
+            // APV Debug
             [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
             public Shader probeVolumeDebugShader;
             [Reload("Runtime/Debug/ProbeVolumeFragmentationDebug.shader")]
@@ -55,35 +71,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader probeVolumeSamplingDebugComputeShader;
             [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
             public Shader probeVolumeOffsetDebugShader;
-            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
-            public ComputeShader probeVolumeBlendStatesCS;
-
-            [Reload("Runtime/Debug/DebugWaveform.shader")]
-            public Shader debugWaveformPS;
-            [Reload("Runtime/Debug/DebugWaveform.compute")]
-            public ComputeShader debugWaveformCS;
-
-            [Reload("Runtime/Debug/DebugVectorscope.shader")]
-            public Shader debugVectorscopePS;
-            [Reload("Runtime/Debug/DebugVectorscope.compute")]
-            public ComputeShader debugVectorscopeCS;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
             public Shader deferredPS;
-            [Reload("Runtime/RenderPipeline/RenderPass/ColorPyramidPS.Shader")]
-            public Shader colorPyramidPS;
-            [Reload("Runtime/RenderPipeline/RenderPass/DepthPyramid.compute")]
-            public ComputeShader depthPyramidCS;
-            [Reload("Runtime/RenderPipeline/RenderPass/GenerateMaxZ.compute")]
-            public ComputeShader maxZCS;
+            [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
+            public ComputeShader planarReflectionFilteringCS;
 
-            [Reload("Runtime/Core/CoreResources/GPUCopy.compute")]
-            public ComputeShader copyChannelCS;
+            // Lighting screen space
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute")]
+            public ComputeShader screenSpaceGlobalIlluminationCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflections.compute")]
             public ComputeShader screenSpaceReflectionsCS;
-            [Reload("Runtime/RenderPipeline/RenderPass/Distortion/ApplyDistortion.shader")]
-            public Shader applyDistortionPS;
 
             // Lighting tile pass
             [Reload("Runtime/Lighting/LightLoop/cleardispatchindirect.compute")]
@@ -106,8 +105,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildMaterialFlagsCS;
             [Reload("Runtime/Lighting/LightLoop/Deferred.compute")]
             public ComputeShader deferredCS;
-            [Reload("Runtime/Lighting/Shadow/ContactShadows.compute")]
-            public ComputeShader contactShadowCS;
+            [Reload("Runtime/Lighting/LightLoop/DeferredTile.shader")]
+            public Shader deferredTilePS;
+
+            // Volumetric Fog
             [Reload("Runtime/Lighting/VolumetricLighting/VolumeVoxelization.compute")]
             public ComputeShader volumeVoxelizationCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLighting.compute")]
@@ -115,11 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLightingFiltering.compute")]
             public ComputeShader volumetricLightingFilteringCS;
 
-            [Reload("Runtime/Lighting/LightLoop/DeferredTile.shader")]
-            public Shader deferredTilePS;
-            [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
-            public Shader screenSpaceShadowPS;
-
+            // SSS
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
             [Reload("Runtime/Material/SubsurfaceScattering/RandomDownsample.compute")]
@@ -127,12 +124,22 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Material/SubsurfaceScattering/CombineLighting.shader")]
             public Shader combineLightingPS;
 
-            [Reload("Runtime/Lighting/VolumetricLighting/DebugLocalVolumetricFogAtlas.shader")]
-            public Shader debugLocalVolumetricFogAtlasPS;
-
             // General
             [Reload("Runtime/RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader")]
             public Shader cameraMotionVectorsPS;
+            [Reload("Runtime/RenderPipeline/RenderPass/ColorPyramidPS.Shader")]
+            public Shader colorPyramidPS;
+            [Reload("Runtime/RenderPipeline/RenderPass/DepthPyramid.compute")]
+            public ComputeShader depthPyramidCS;
+            [Reload("Runtime/RenderPipeline/RenderPass/GenerateMaxZ.compute")]
+            public ComputeShader maxZCS;
+            [Reload("Runtime/RenderPipeline/RenderPass/Distortion/ApplyDistortion.shader")]
+            public Shader applyDistortionPS;
+            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassUtils.shader")]
+            public Shader customPassUtils;
+            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderersUtils.shader")]
+            public Shader customPassRenderersUtils;
+
             [Reload("Runtime/ShaderLibrary/ClearStencilBuffer.shader")]
             public Shader clearStencilBufferPS;
             [Reload("Runtime/ShaderLibrary/CopyStencilBuffer.shader")]
@@ -143,29 +150,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader blitPS;
             [Reload("Runtime/ShaderLibrary/BlitColorAndDepth.shader")]
             public Shader blitColorAndDepthPS;
-
-            [Reload("Runtime/Core/CoreResources/ClearBuffer2D.compute")]
-            public ComputeShader clearBuffer2D;
-
             [Reload("Runtime/ShaderLibrary/DownsampleDepth.shader")]
             public Shader downsampleDepthPS;
             [Reload("Runtime/ShaderLibrary/UpsampleTransparent.shader")]
             public Shader upsampleTransparentPS;
-
             [Reload("Runtime/ShaderLibrary/ResolveStencilBuffer.compute")]
             public ComputeShader resolveStencilCS;
 
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]
             public Shader blitCubemapPS;
-            [Reload("Runtime/Material/GGXConvolution/BuildProbabilityTables.compute")]
-            public ComputeShader buildProbabilityTablesCS;
-            [Reload("Runtime/Material/GGXConvolution/ComputeGgxIblSampleData.compute")]
-            public ComputeShader computeGgxIblSampleDataCS;
-            [Reload("Runtime/Material/GGXConvolution/GGXConvolve.shader")]
-            public Shader GGXConvolvePS;
-            [Reload("Runtime/Material/Fabric/CharlieConvolve.shader")]
-            public Shader charlieConvolvePS;
             [Reload("Runtime/Lighting/AtmosphericScattering/OpaqueAtmosphericScattering.shader")]
             public Shader opaqueAtmosphericScatteringPS;
             [Reload("Runtime/Sky/HDRISky/HDRISky.shader")]
@@ -184,8 +178,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader inScatteredRadiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
             public Shader physicallyBasedSkyPS;
-            [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
-            public ComputeShader planarReflectionFilteringCS;
             [Reload("Runtime/Sky/CloudSystem/CloudLayer/CloudLayer.shader")]
             public Shader cloudLayerPS;
             [Reload("Runtime/Sky/CloudSystem/CloudLayer/BakeCloudTexture.compute")]
@@ -271,21 +263,30 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumetricMaterialCS;
             [Reload("Runtime/Material/Eye/EyeCausticLUTGen.compute")]
             public ComputeShader eyeMaterialCS;
+            [Reload("Runtime/Material/LTCAreaLight/FilterAreaLightCookies.shader")]
+            public Shader filterAreaLightCookiesPS;
+            [Reload("Runtime/Material/GGXConvolution/BuildProbabilityTables.compute")]
+            public ComputeShader buildProbabilityTablesCS;
+            [Reload("Runtime/Material/GGXConvolution/ComputeGgxIblSampleData.compute")]
+            public ComputeShader computeGgxIblSampleDataCS;
+            [Reload("Runtime/Material/GGXConvolution/GGXConvolve.shader")]
+            public Shader GGXConvolvePS;
+            [Reload("Runtime/Material/Fabric/CharlieConvolve.shader")]
+            public Shader charlieConvolvePS;
+
             // Utilities / Core
+            [Reload("Runtime/Core/CoreResources/GPUCopy.compute")]
+            public ComputeShader copyChannelCS;
+            [Reload("Runtime/Core/CoreResources/ClearBuffer2D.compute")]
+            public ComputeShader clearBuffer2D;
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
             public ComputeShader encodeBC6HCS;
             [Reload("Runtime/Core/CoreResources/CubeToPano.shader")]
             public Shader cubeToPanoPS;
             [Reload("Runtime/Core/CoreResources/BlitCubeTextureFace.shader")]
             public Shader blitCubeTextureFacePS;
-            [Reload("Runtime/Material/LTCAreaLight/FilterAreaLightCookies.shader")]
-            public Shader filterAreaLightCookiesPS;
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
-            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassUtils.shader")]
-            public Shader customPassUtils;
-            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderersUtils.shader")]
-            public Shader customPassRenderersUtils;
             [Reload("Runtime/RenderPipeline/Utility/Texture3DAtlas.compute")]
             public ComputeShader texture3DAtlasCS;
 
@@ -296,6 +297,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader xrOcclusionMeshPS;
 
             // Shadow
+            [Reload("Runtime/Lighting/Shadow/ContactShadows.compute")]
+            public ComputeShader contactShadowCS;
+            [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
+            public Shader screenSpaceShadowPS;
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
             public Shader shadowClearPS;
             [Reload("Runtime/Lighting/Shadow/EVSMBlur.compute")]
@@ -326,9 +331,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader GTAOCopyHistoryCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOBlurAndUpsample.compute")]
             public ComputeShader GTAOBlurAndUpsample;
-
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute")]
-            public ComputeShader screenSpaceGlobalIlluminationCS;
 
             // MSAA Shaders
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/DepthValues.shader")]
@@ -490,9 +492,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class MaterialResources
         {
-            // Water Exclusion material
+            // Water
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
+            public Material waterMaterial;
             [Reload("Runtime/RenderPipelineResources/Material/MaterialWaterExclusion.mat")]
             public Material waterExclusionMaterial;
+
             [Reload("Runtime/RenderPipelineResources/Material/AreaLightViewer.mat")]
             public Material areaLightMaterial; // never referenced but required by area light mesh renderer, otherwise shader is stripped
         }

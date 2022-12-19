@@ -449,7 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, tileCount, tileCount, bandCount);
 
                 // Make sure the mip-maps are generated
-                currentWater.simulation.gpuBuffers.additionalDataBuffer.rt.GenerateMips();
+                currentWater.simulation.gpuBuffers.additionalDataBuffer.rt.Create();
+                cmd.GenerateMips(currentWater.simulation.gpuBuffers.additionalDataBuffer.rt);
             }
         }
 
@@ -484,7 +485,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DrawProcedural(m_CausticsGeometry, Matrix4x4.identity, m_CausticsMaterial, 0, MeshTopology.Triangles, WaterConsts.k_WaterCausticsMeshNumQuads * 6, 1, m_WaterMaterialPropertyBlock);
 
                 // Make sure the mip-maps are generated
-                currentWater.simulation.gpuBuffers.causticsBuffer.rt.GenerateMips();
+                currentWater.simulation.gpuBuffers.causticsBuffer.rt.Create();
+                cmd.GenerateMips(currentWater.simulation.gpuBuffers.causticsBuffer.rt);
             }
         }
     }

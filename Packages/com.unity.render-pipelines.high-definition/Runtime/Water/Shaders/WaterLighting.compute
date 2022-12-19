@@ -1,3 +1,6 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
+//#pragma enable_d3d11_debug_symbols
+
 #pragma kernel WaterClearIndirect
 #pragma kernel WaterClassifyTiles USE_INDIRECT VARIANT=NUM_WATER_VARIANTS
 #pragma kernel PrepareSSRIndirect USE_INDIRECT VARIANT=NUM_WATER_VARIANTS
@@ -34,10 +37,6 @@
 #define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
 #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
-
-// #pragma enable_d3d11_debug_symbols
-
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -48,7 +47,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Water/Water.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
 
 // Input textures of the kernels
 TEXTURE2D_X(_DepthTexture);

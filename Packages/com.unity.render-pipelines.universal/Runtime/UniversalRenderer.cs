@@ -115,6 +115,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 #if UNITY_EDITOR
         CopyDepthPass m_FinalDepthCopyPass;
+        ProbeVolumeDebugPass m_ProbeVolumeDebugPass;
 #endif
         DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
         DrawScreenSpaceUIPass m_DrawOverlayUIPass;
@@ -341,6 +342,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
+            m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, data.debugShaders.probeVolumeSamplingDebugComputeShader);
 #endif
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -569,6 +571,11 @@ namespace UnityEngine.Rendering.Universal
             // Enable depth normal prepass
             if (renderingLayerProvidesByDepthNormalPass)
                 renderPassInputs.requiresNormalsTexture = true;
+
+#if UNITY_EDITOR
+            if (m_ProbeVolumeDebugPass.NeedsNormal())
+                renderPassInputs.requiresNormalsTexture = true;
+#endif
 
             // TODO: investigate the order of call, had to change because of requiresRenderingLayer
             if (m_DeferredLights != null)
@@ -1079,7 +1086,11 @@ namespace UnityEngine.Rendering.Universal
                 m_MotionVectorPass.Setup(m_MotionVectorColor, m_MotionVectorDepth);
                 EnqueuePass(m_MotionVectorPass);
             }
-
+#if UNITY_EDITOR
+            // this needs to be before transparency
+            m_ProbeVolumeDebugPass.Setup(m_DepthTexture, m_NormalsTexture);
+            EnqueuePass(m_ProbeVolumeDebugPass);
+#endif
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif

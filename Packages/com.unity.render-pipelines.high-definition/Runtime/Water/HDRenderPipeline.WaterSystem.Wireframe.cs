@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If the water is disabled, no need to render
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water) || WaterSurface.instanceCount == 0)
+            if (!ShouldRenderWater(hdCamera))
                 return;
 
             // Copy the frustum data to the GPU (not done otherwise)

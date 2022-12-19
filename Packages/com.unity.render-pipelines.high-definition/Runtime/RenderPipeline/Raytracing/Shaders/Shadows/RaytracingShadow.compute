@@ -4,6 +4,8 @@
 
 #pragma kernel RaytracingPointShadowSample SEGMENT_SHADOW_SAMPLE=RaytracingPointShadowSample POINT_LIGHT
 #pragma kernel RaytracingSpotShadowSample SEGMENT_SHADOW_SAMPLE=RaytracingSpotShadowSample SPOT_LIGHT
+#pragma kernel RaytracingProjectorPyramidShadowSample SEGMENT_SHADOW_SAMPLE=RaytracingProjectorPyramidShadowSample PYRAMID_LIGHT
+#pragma kernel RaytracingProjectorBoxShadowSample
 
 #pragma kernel ClearShadowTexture
 
@@ -40,6 +42,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalSphere.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalCone.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalPyramid.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingMIS.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RayTracingShadowUtilities.hlsl"
 
@@ -518,6 +521,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, 1.0f);
 }
 
+// Used by Cone and Pyramid shaped Spot Lights
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
 void SEGMENT_SHADOW_SAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -579,6 +583,14 @@ void SEGMENT_SHADOW_SAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     }
     #endif
 
+    #if PYRAMID_LIGHT
+    if (!PositionInPyramidRange(lightData, _RaytracingLightSizeX, _RaytracingLightSizeY, posInput.positionWS, dist2))
+    {
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, POINT_BLACK_PDF);
+        return;
+    }
+    #endif
+
     // Compute the current sample index
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
 
@@ -593,9 +605,11 @@ void SEGMENT_SHADOW_SAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     if (_RaytracingLightRadius > 0.001)
     {
         #if POINT_LIGHT
-        SampleSphericalSphere(lightData.positionRWS, _RaytracingLightRadius, noiseValue.x, noiseValue.y, posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
+        SampleSphericalSphere(lightData.positionRWS, _RaytracingLightRadius, noiseValue.x, noiseValue.y, posInput.positionWS, lightPosition, samplePDF);
         #elif SPOT_LIGHT
-        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward, _RaytracingLightAngle, noiseValue.x, noiseValue.y, posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
+        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward, _RaytracingLightAngle, noiseValue.x, noiseValue.y, lightPosition, samplePDF);
+        #elif PYRAMID_LIGHT
+        SampleSphericalPyramid(lightData.positionRWS, _RaytracingLightRadius, lightData.forward, normalize(lightData.right), normalize(lightData.up), _RaytracingLightSizeX, _RaytracingLightSizeY, noiseValue.x, noiseValue.y, lightPosition, samplePDF);
         #endif
     }
     else
@@ -610,6 +624,62 @@ void SEGMENT_SHADOW_SAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
     // If the normal of this pixel cannot face the light, we invalidate it
     float finalPDF = dot(normalData.normalWS, rayDirection) > 0.0 ? samplePDF : POINT_BACK_FACE_PDF;
+
+    // Output the direction to the target uav
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, finalPDF);
+    _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
+}
+
+// Used by Box shaped Spot Lights
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
+void RaytracingProjectorBoxShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
+
+    // Read the depth value and if this is a background pixel, early exit
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, POINT_BLACK_PDF);
+        return;
+    }
+
+    // Read the stencil value, and if this is unlit, early exit.
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & STENCILUSAGE_IS_UNLIT) != 0)
+    {
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, POINT_WHITE_PDF);
+        return;
+    }
+
+    // Compute the position input structure
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord, normalData);
+
+    // Fetch the data of the area light
+    LightData lightData = _LightDatas[_RaytracingTargetLight];
+
+    // Compute the ray length and ray direction
+    // The ray length is the distance from the ray origin to the plane through the light origin perpendicular to the light direction
+    float3 rayDirection = normalize(-lightData.forward);
+    float rayLength = dot(lightData.positionRWS - posInput.positionWS, rayDirection);
+    float dist2 = rayLength * rayLength;
+
+    // If this pixel is beyond the range of the light, we invalidate it
+    if (!PositionInBoxRange(lightData, _RaytracingLightSizeX, _RaytracingLightSizeY, posInput.positionWS, dist2))
+    {
+        _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, POINT_BLACK_PDF);
+        return;
+    }
+
+    // If the normal of this pixel cannot face the light, we invalidate it
+    float finalPDF = dot(normalData.normalWS, rayDirection) > 0.0 ? 1.0f : POINT_BACK_FACE_PDF;
 
     // Output the direction to the target uav
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, finalPDF);

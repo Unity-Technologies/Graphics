@@ -164,6 +164,15 @@ namespace UnityEditor.Rendering.HighDefinition
         public static bool GetAddPrecomputedVelocity(this Material material)
             => material.HasProperty(kAddPrecomputedVelocity) ? material.GetInt(kAddPrecomputedVelocity) == 1 : false;
 
+        public static bool ReceiveSSRTransparent(this Material material)
+            => material.HasProperty(kReceivesSSRTransparent) ? material.GetFloat(kReceivesSSRTransparent) > 0.0f : false;
+
+        public static ScreenSpaceRefraction.RefractionModel GetRefractionModel(this Material material)
+        {
+            var canHaveRefraction = material.GetSurfaceType() == SurfaceType.Transparent && !k_RenderQueue_PreRefraction.Contains(material.renderQueue);
+            return canHaveRefraction && material.HasProperty(kRefractionModel) ? (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel) : ScreenSpaceRefraction.RefractionModel.None;
+        }
+
         public static void ResetMaterialCustomRenderQueue(this Material material)
         {
             // using GetOpaqueEquivalent / GetTransparentEquivalent allow to handle the case when we switch surfaceType

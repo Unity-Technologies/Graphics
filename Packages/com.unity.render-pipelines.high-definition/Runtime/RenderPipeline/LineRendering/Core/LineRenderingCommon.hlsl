@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRendering.Data.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/LineRendering/Core/LineRendering.Data.cs.hlsl"
 
 #define COUNTER_BIN_RECORD          0 << 2
 #define COUNTER_BIN_QUEUE_SIZE      1 << 2

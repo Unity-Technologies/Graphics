@@ -48,10 +48,19 @@ void InitializeInputData(Varyings input, out InputData inputData)
 
     inputData.fogCoord = input.LightingFog.a;
     inputData.vertexLighting = input.LightingFog.rgb;
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS.xyz);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
     inputData.positionWS = input.PositionWS;
+
+#if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    inputData.bakedGI = SAMPLE_GI(input.vertexSH,
+        GetAbsolutePositionWS(inputData.positionWS),
+        input.NormalWS.xyz,
+        GetWorldSpaceNormalizeViewDir(inputData.positionWS),
+        inputData.positionCS.xy);
+#else
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS.xyz);
+#endif
 
     #if defined(DEBUG_DISPLAY)
     inputData.uv = input.UV01;
@@ -131,7 +140,7 @@ Varyings TerrainLitVertex(Attributes input)
 
     // Vertex Lighting
     half3 NormalWS = input.NormalOS;
-    OUTPUT_SH(NormalWS, output.vertexSH);
+    OUTPUT_SH(vertexInput.positionWS, NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
     Light mainLight = GetMainLight();
     half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
     half3 diffuseColor = half3(0, 0, 0);

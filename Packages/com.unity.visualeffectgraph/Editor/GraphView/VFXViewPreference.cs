@@ -117,7 +117,7 @@ namespace UnityEditor.VFX
                 return m_AuthoringPrewarmMaxTime;
             }
         }
-        
+
         public static bool visualEffectTargetListed
         {
             get
@@ -159,7 +159,7 @@ namespace UnityEditor.VFX
 
                 m_AuthoringPrewarmMaxTime = EditorPrefs.GetFloat(authoringPrewarmMaxTimeKey, kAuthoringPrewarmMaxTimeDefault);
                 m_AuthoringPrewarmMaxTime = Mathf.Clamp(m_AuthoringPrewarmMaxTime, 0.0f, kAuthoringPrewarmMaxTimeMax);
-                
+
                 m_VisualEffectTargetListed = EditorPrefs.GetBool(visualEffectTargetListedKey, false);
 
                 m_Loaded = true;
@@ -248,13 +248,13 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetInt(cameraBuffersFallbackKey, (int)m_CameraBuffersFallback);
                         EditorPrefs.SetBool(multithreadUpdateEnabledKey, m_MultithreadUpdateEnabled);
                         EditorPrefs.SetBool(instancingEnabledKey, m_InstancingEnabled);
-                        
+
                         m_AuthoringPrewarmStepCountPerSeconds = Mathf.Clamp(m_AuthoringPrewarmStepCountPerSeconds, 0, kAuthoringPrewarmStepCountPerSecondsMax);
                         EditorPrefs.SetInt(authoringPrewarmStepCountPerSecondsKey, m_AuthoringPrewarmStepCountPerSeconds);
 
                         m_AuthoringPrewarmMaxTime = Mathf.Clamp(m_AuthoringPrewarmMaxTime, 0.0f, kAuthoringPrewarmMaxTimeMax);
                         EditorPrefs.SetFloat(authoringPrewarmMaxTimeKey, m_AuthoringPrewarmMaxTime);
-                        
+
                         EditorPrefs.SetBool(visualEffectTargetListedKey, m_VisualEffectTargetListed);
 
                         userTemplateDirectory = userTemplateDirectory.Replace('\\', '/');

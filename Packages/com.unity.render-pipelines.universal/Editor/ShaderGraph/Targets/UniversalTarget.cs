@@ -1540,6 +1540,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // Files that are included with #include_with_pragmas
         const string kDOTS = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl";
         const string kRenderingLayers = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl";
+        const string kProbeVolumes = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1559,6 +1560,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection WriteRenderLayersPregraph = new IncludeCollection
         {
             { kRenderingLayers, IncludeLocation.Pregraph, true },
+        };
+
+        public static readonly IncludeCollection ProbeVolumePregraph = new IncludeCollection
+        {
+            { kProbeVolumes, IncludeLocation.Pregraph, true },
         };
 
         public static readonly IncludeCollection ShaderGraphPregraph = new IncludeCollection

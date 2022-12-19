@@ -1646,7 +1646,8 @@ namespace UnityEngine.Rendering
             shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
             shaderVars._RcpPoolDim_Padding = new Vector4(1.0f / poolDim.x, 1.0f / poolDim.y, 1.0f / poolDim.z, 0.0f);
             shaderVars._Weight_MinLoadedCellInEntries = new Vector4(parameters.weight, minLoadedCellPos.x * entriesPerCell, minLoadedCellPos.y * entriesPerCell, minLoadedCellPos.z * entriesPerCell);
-            shaderVars._MaxLoadedCellInEntries_FrameIndex = new Vector4((maxLoadedCellPos.x + 1) * entriesPerCell - 1, (maxLoadedCellPos.y + 1) * entriesPerCell - 1, (maxLoadedCellPos.z + 1) * entriesPerCell - 1, parameters.frameIndexForNoise); shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
+            shaderVars._MaxLoadedCellInEntries_FrameIndex = new Vector4((maxLoadedCellPos.x + 1) * entriesPerCell - 1, (maxLoadedCellPos.y + 1) * entriesPerCell - 1, (maxLoadedCellPos.z + 1) * entriesPerCell - 1, parameters.frameIndexForNoise);
+            shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
 
             // TODO: Expose this somewhere UX visible? To discuss.
             shaderVars._NormalizationClamp_IndirectionEntryDim_Padding = new Vector4(parameters.reflNormalizationLowerClamp, parameters.reflNormalizationUpperClamp, GetEntrySize(), 0);

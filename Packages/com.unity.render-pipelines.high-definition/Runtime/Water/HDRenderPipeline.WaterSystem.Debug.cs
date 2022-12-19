@@ -10,9 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderWaterMaskDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
         {
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
+            if (!ShouldRenderWater(hdCamera))
                 return;
 
             if (waterGBuffer.debugRequired)

@@ -48,7 +48,7 @@
         // TODO: Implement density look up
         return uv;
     }
-    
+
     float2 RemapFoveatedRenderingPrevFrameDensity(float2 uv, bool yFlip = false)
     {
         // TODO : implement me to support eye tracking that can change the remap each frame
@@ -77,7 +77,7 @@
 
         return uv;
     }
-    
+
     float2 RemapFoveatedRenderingPrevFrameDistort(float2 uv, bool yFlip = false)
     {
         // TODO : implement me to support eye tracking that can change the remap each frame

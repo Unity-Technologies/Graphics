@@ -385,6 +385,18 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// The available Probe system used.
+    /// </summary>
+    public enum LightProbeSystem
+    {
+        /// <summary>The light probe group system.</summary>
+        [InspectorName("Light Probe Groups")]
+        LegacyLightProbes = 0,
+        /// <summary>Probe Volume system.</summary>
+        ProbeVolumes = 1,
+    }
+
+    /// <summary>
     /// The asset that contains the URP setting.
     /// You can use this asset as a graphics quality level.
     /// </summary>
@@ -434,6 +446,22 @@ namespace UnityEngine.Rendering.Universal
 #endif
         [SerializeField] bool m_EnableLODCrossFade = true;
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
+
+        // Probe volume settings
+#if UNITY_EDITOR
+        [ShaderKeywordFilter.RemoveIf(LightProbeSystem.LegacyLightProbes, keywordNames: "PROBE_VOLUMES_L1")]
+        [ShaderKeywordFilter.RemoveIf(LightProbeSystem.LegacyLightProbes, keywordNames: "PROBE_VOLUMES_L2")]
+        [ShaderKeywordFilter.RemoveIf(LightProbeSystem.ProbeVolumes, keywordNames: "PROBE_VOLUMES_OFF")]
+#endif
+        [SerializeField] LightProbeSystem m_LightProbeSystem = LightProbeSystem.LegacyLightProbes;
+        [SerializeField] ProbeVolumeTextureMemoryBudget m_ProbeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium;
+        [SerializeField] ProbeVolumeBlendingTextureMemoryBudget m_ProbeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow;
+        [SerializeField] bool m_SupportProbeVolumeStreaming = false;
+#if UNITY_EDITOR
+        [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL1, keywordNames: "PROBE_VOLUMES_L2")]
+        [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL2, keywordNames: "PROBE_VOLUMES_L1")]
+#endif
+        [SerializeField] ProbeVolumeSHBands m_ProbeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1;
 
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
@@ -1125,6 +1153,51 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_FsrSharpness; }
             set { m_FsrSharpness = value; }
+        }
+
+        /// <summary>
+        /// Determines what system to use.
+        /// </summary>
+        public LightProbeSystem lightProbeSystem
+        {
+            get { return m_LightProbeSystem; }
+            internal set { m_LightProbeSystem = value; }
+        }
+
+        /// <summary>
+        /// Probe Volume Memory Budget.
+        /// </summary>
+        public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget
+        {
+            get { return m_ProbeVolumeMemoryBudget; }
+            internal set { m_ProbeVolumeMemoryBudget = value; }
+        }
+
+        /// <summary>
+        /// Probe Volume Memory Budget for scenario blending.
+        /// </summary>
+        public ProbeVolumeBlendingTextureMemoryBudget probeVolumeBlendingMemoryBudget
+        {
+            get { return m_ProbeVolumeBlendingMemoryBudget; }
+            internal set { m_ProbeVolumeBlendingMemoryBudget = value; }
+        }
+
+        /// <summary>
+        /// Support Streaming for Probe Volumes.
+        /// </summary>
+        public bool supportProbeVolumeStreaming
+        {
+            get { return m_SupportProbeVolumeStreaming; }
+            internal set { m_SupportProbeVolumeStreaming = value; }
+        }
+
+        /// <summary>
+        /// Probe Volumes SH Bands.
+        /// </summary>
+        public ProbeVolumeSHBands probeVolumeSHBands
+        {
+            get { return m_ProbeVolumeSHBands; }
+            internal set { m_ProbeVolumeSHBands = value; }
         }
 
         /// <summary>
@@ -1922,6 +1995,22 @@ namespace UnityEngine.Rendering.Universal
             if (index == -1) index = m_DefaultRendererIndex;
             return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
         }
+
+        #region APV
+        // This is temporarily here until we have a core place to put it shared between pipelines.
+        [SerializeField]
+        internal ProbeVolumeSceneData apvScenesData;
+
+        internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
+        {
+            if (apvScenesData == null)
+                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
+
+            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
+            return apvScenesData;
+        }
+
+        #endregion
 
         /// <summary>
         /// Class containing texture resources used in URP.

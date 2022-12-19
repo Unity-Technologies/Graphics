@@ -1,7 +1,7 @@
 #pragma kernel Main
 #pragma kernel MainArgs
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRenderingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/LineRendering/Core/LineRenderingCommon.hlsl"
 
 #define THREADING_BLOCK_SIZE NUM_LANE_RASTER_BIN
 

@@ -35,7 +35,16 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
 
     inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     inputData.vertexLighting = half3(0.0h, 0.0h, 0.0h);
+#if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    inputData.bakedGI = SAMPLE_GI(input.vertexSH,
+        GetAbsolutePositionWS(inputData.positionWS),
+        inputData.normalWS,
+        inputData.viewDirectionWS,
+        input.clipPos.xy);
+#else
     inputData.bakedGI = SampleSHPixel(input.vertexSH, inputData.normalWS);
+#endif
+
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1);
 
@@ -75,7 +84,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     output.viewDirWS = viewDirWS;
 #endif
 
-    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+    OUTPUT_SH(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
 
     output.positionWS.xyz = vertexInput.positionWS;
     output.positionWS.w = fogFactor;

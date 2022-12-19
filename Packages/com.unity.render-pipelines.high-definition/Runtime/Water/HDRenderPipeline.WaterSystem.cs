@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the additional rendering data
             m_WaterMaterialPropertyBlock = new MaterialPropertyBlock();
-            m_InternalWaterMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterPS);
+            m_InternalWaterMaterial = defaultResources.materials.waterMaterial;
             InitializeInstancingData();
 
             // Water profile management
@@ -159,7 +159,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_WaterCameraFrustrumBuffer);
             CoreUtils.SafeRelease(m_WaterPatchDataBuffer);
             CoreUtils.SafeRelease(m_WaterIndirectDispatchBuffer);
-            CoreUtils.Destroy(m_InternalWaterMaterial);
 
             // Release the water profile array
             CoreUtils.SafeRelease(m_WaterProfileArrayGPU);
@@ -606,9 +605,6 @@ namespace UnityEngine.Rendering.HighDefinition
         struct WaterRenderingDeferredParameters
         {
             // Camera parameters
-            public int width;
-            public int height;
-            public int viewCount;
             public bool pbsActive;
 
             // Deferred Lighting
@@ -625,11 +621,6 @@ namespace UnityEngine.Rendering.HighDefinition
         WaterRenderingDeferredParameters PrepareWaterRenderingDeferredParameters(HDCamera hdCamera)
         {
             WaterRenderingDeferredParameters parameters = new WaterRenderingDeferredParameters();
-
-            // Keep track of the camera data
-            parameters.width = hdCamera.actualWidth;
-            parameters.height = hdCamera.actualHeight;
-            parameters.viewCount = hdCamera.viewCount;
 
             // Is the physically based sky active? (otherwise we need to bind some fall back textures)
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
@@ -871,7 +862,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderWaterSurfaceGBuffer(RenderGraph renderGraph, HDCamera hdCamera,
                                         WaterSurface currentWater, WaterRendering settings, int surfaceIdx, bool evaluateCameraPos,
                                         TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle depthPyramid, BufferHandle layeredOffsetsBuffer, BufferHandle logBaseBuffer,
-                                        TextureHandle WaterGbuffer0, TextureHandle WaterGbuffer1, TextureHandle WaterGbuffer2, TextureHandle WaterGbuffer3)
+                                        TextureHandle WaterGbuffer0, TextureHandle WaterGbuffer1, TextureHandle WaterGbuffer2, TextureHandle WaterGbuffer3, BufferHandle cameraHeightBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<WaterRenderingGBufferData>("Render Water Surface GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingGBuffer)))
             {
@@ -885,7 +876,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseColorBuffer(WaterGbuffer2, 2);
                 builder.UseColorBuffer(WaterGbuffer3, 3);
                 builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.heightBuffer = builder.WriteBuffer(renderGraph.ImportBuffer(m_WaterCameraHeightBuffer));
+                passData.heightBuffer = builder.WriteBuffer(cameraHeightBuffer);
 
                 // Import all the textures into the system
                 passData.displacementTexture = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.displacementBuffer);
@@ -978,6 +969,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // Indirect dispatch and tile data
             public BufferHandle indirectBuffer;
             public BufferHandle tileBuffer;
+
+            public BufferHandle cameraHeight;
+        }
+
+        bool ShouldRenderWater(HDCamera hdCamera)
+        {
+            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
+            return !(!settings.enable.value
+                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
+                || WaterSurface.instanceCount == 0);
         }
 
         WaterGBuffer RenderWaterGBuffer(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera,
@@ -995,11 +996,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int numWaterSurfaces = WaterSurface.instanceCount;
 
             // If the water is disabled, no need to render or simulate
-            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
-                || numWaterSurfaces == 0
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
+            if (!ShouldRenderWater(hdCamera))
             {
                 // Set the textures handles for the water gbuffer
                 outputGBuffer.waterGBuffer0 = renderGraph.defaultResources.blackTextureXR;
@@ -1010,6 +1007,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Evaluate the ambient probe for the frame
+            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
             m_WaterAmbientProbe = EvaluateWaterAmbientProbe(hdCamera, settings.ambientProbeDimmer.value);
 
             // Tile sizes
@@ -1050,6 +1048,7 @@ namespace UnityEngine.Rendering.HighDefinition
             outputGBuffer.waterGBuffer3 = WaterGbuffer3;
             outputGBuffer.indirectBuffer = indirectBuffer;
             outputGBuffer.tileBuffer = tileBuffer;
+            outputGBuffer.cameraHeight = renderGraph.ImportBuffer(m_WaterCameraHeightBuffer);
 
             for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
             {
@@ -1088,7 +1087,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render the water surface
                 RenderWaterSurfaceGBuffer(renderGraph, hdCamera, currentWater, settings, surfaceIdx, surfaceIdx == m_UnderWaterSurfaceIndex,
                                 depthBuffer, normalBuffer, depthPyramid, lightLists.perVoxelOffset, lightLists.perTileLogBaseTweak,
-                                WaterGbuffer0, WaterGbuffer1, WaterGbuffer2, WaterGbuffer3);
+                                WaterGbuffer0, WaterGbuffer1, WaterGbuffer2, WaterGbuffer3, outputGBuffer.cameraHeight);
             }
 
             // If no water surface wrote to the water gbuffer, we can exit right now.
@@ -1164,10 +1163,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If the water is disabled, no need to render or simulate
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
-                || numWaterSurfaces == 0
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
+            if (!ShouldRenderWater(hdCamera))
                 return;
 
             // Request all the gbuffer textures we will need
@@ -1198,6 +1194,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 name = msaa ? "WaterGBuffer3MSAA" : "WaterGBuffer3"
             });
 
+            BufferHandle cameraHeight = renderGraph.ImportBuffer(m_WaterCameraHeightBuffer);
+
             for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
             {
                 // Grab the current water surface
@@ -1214,7 +1212,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderWaterSurfaceGBuffer(renderGraph, hdCamera, currentWater, settings, surfaceIdx, false,
                     depthBuffer, renderGraph.defaultResources.blackTextureXR, renderGraph.defaultResources.blackTextureXR,
                     lightLists.perVoxelOffset, lightLists.perTileLogBaseTweak,
-                    WaterGbuffer0, colorBuffer, WaterGbuffer2, WaterGbuffer3);
+                    WaterGbuffer0, colorBuffer, WaterGbuffer2, WaterGbuffer3, cameraHeight);
             }
         }
 
@@ -1238,6 +1236,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Lighting textures/buffers
             public TextureHandle scatteringFallbackTexture;
             public TextureHandle volumetricLightingTexture;
+            public TextureHandle transparentSSRLighting;
             public BufferHandle perVoxelOffset;
             public BufferHandle perTileLogBaseTweak;
 
@@ -1248,20 +1247,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorBuffer;
         }
 
-        void RenderWaterLighting(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle colorPyramid, TextureHandle volumetricLightingTexture, WaterGBuffer waterGBuffer, in BuildGPULightListOutput lightLists)
+        void RenderWaterLighting(RenderGraph renderGraph, HDCamera hdCamera,
+            TextureHandle colorBuffer, TextureHandle depthBuffer,
+            TextureHandle volumetricLightingTexture, TextureHandle ssrLighting,
+            in WaterGBuffer waterGBuffer, in BuildGPULightListOutput lightLists)
         {
             // We do not render the deferred lighting if:
-            // - Water rendering is disabled on the volume.
-            // - The water frame settings is unchecked
-            // - There are no instances registered currently
-            // - Transparent objects are disabled in the frame settings
+            // - Water rendering is disabled.
             // - The water gbuffer was never written.
-            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
-                || WaterSurface.instanceCount == 0
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects)
-                || !waterGBuffer.valid)
+            if (!ShouldRenderWater(hdCamera) || !waterGBuffer.valid)
                 return;
 
             // Push the water profiles to the GPU for the deferred lighting pass
@@ -1285,6 +1279,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.waterSurfaceProfiles = builder.ReadBuffer(renderGraph.ImportBuffer(m_WaterProfileArrayGPU));
                 passData.scatteringFallbackTexture = renderGraph.defaultResources.blackTexture3DXR;
                 passData.volumetricLightingTexture = builder.ReadTexture(volumetricLightingTexture);
+                passData.transparentSSRLighting = builder.ReadTexture(ssrLighting);
                 passData.perVoxelOffset = builder.ReadBuffer(lightLists.perVoxelOffset);
                 passData.perTileLogBaseTweak = builder.ReadBuffer(lightLists.perTileLogBaseTweak);
 
@@ -1296,10 +1291,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (WaterRenderingDeferredData data, RenderGraphContext ctx) =>
                     {
-                        // Evaluate the dispatch parameters
-                        int tileX = (data.parameters.width + 7) / 8;
-                        int tileY = (data.parameters.height + 7) / 8;
-
                         // Make sure the constant buffer is pushed
                         ConstantBuffer.Push(ctx.cmd, data.parameters.waterRenderingCB, data.parameters.waterLighting, HDShaderIDs._ShaderVariablesWaterRendering);
 
@@ -1326,6 +1317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterSurfaceProfiles, data.waterSurfaceProfiles);
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
+                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
                             ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
                             ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
 

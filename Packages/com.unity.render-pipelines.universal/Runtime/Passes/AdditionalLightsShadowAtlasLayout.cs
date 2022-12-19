@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal
                     s_VisibleLightIndexToCameraSquareDistance[visibleLightIndex] = (cameraData.camera.transform.position - vl.light.transform.position).sqrMagnitude;
                 }
             }
-            
+
             if (s_SortedShadowResolutionRequests == null || s_SortedShadowResolutionRequests.Length < totalShadowResolutionRequestsCount)
                 s_SortedShadowResolutionRequests = new ShadowResolutionRequest[totalShadowResolutionRequestsCount];
 

@@ -241,6 +241,11 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         debugColor = CalculateDebugLightingComplexityColor(inputData, surfaceData);
         return true;
     }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_GLOBAL_ILLUMINATION)
+    {
+        debugColor = half4(inputData.bakedGI, surfaceData.alpha);
+        return true;
+    }
     else
     {
         debugColor = half4(0, 0, 0, 1);
@@ -256,6 +261,12 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
                 // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
                 #if defined(DYNAMICLIGHTMAP_ON)
                 inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.dynamicLightmapUV.xy, inputData.vertexSH, inputData.normalWS);
+                #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+                inputData.bakedGI = SAMPLE_GI(inputData.vertexSH,
+                    GetAbsolutePositionWS(inputData.positionWS),
+                    inputData.normalWS,
+                    inputData.viewDirectionWS,
+                    inputData.positionCS.xy);
                 #else
                 inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.vertexSH, inputData.normalWS);
                 #endif
@@ -276,6 +287,11 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         debugColor = CalculateDebugLightingComplexityColor(inputData, surfaceData);
         return true;
     }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_GLOBAL_ILLUMINATION)
+    {
+        debugColor = half4(inputData.bakedGI, surfaceData.alpha);
+        return true;
+    }
     else
     {
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
@@ -289,6 +305,12 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
                 // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
                 #if defined(DYNAMICLIGHTMAP_ON)
                 inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.dynamicLightmapUV.xy, inputData.vertexSH, inputData.normalWS);
+                #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+                inputData.bakedGI = SAMPLE_GI(inputData.vertexSH,
+                    GetAbsolutePositionWS(inputData.positionWS),
+                    inputData.normalWS,
+                    inputData.viewDirectionWS,
+                    inputData.positionCS.xy);
                 #else
                 inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.vertexSH, inputData.normalWS);
                 #endif

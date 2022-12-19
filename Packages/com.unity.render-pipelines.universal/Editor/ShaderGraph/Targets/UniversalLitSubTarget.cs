@@ -878,6 +878,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
                 { CoreIncludes.WriteRenderLayersPregraph },
+                { CoreIncludes.ProbeVolumePregraph },
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
@@ -893,6 +894,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
                 { CoreIncludes.WriteRenderLayersPregraph },
+                { CoreIncludes.ProbeVolumePregraph },
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },

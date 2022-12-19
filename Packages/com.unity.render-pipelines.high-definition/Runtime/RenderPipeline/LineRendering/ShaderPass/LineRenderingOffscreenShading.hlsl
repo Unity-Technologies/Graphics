@@ -1,7 +1,5 @@
-#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRenderingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/LineRendering/Core/LineRenderingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-
-
 
 ByteAddressBuffer _Vertex0RecordBuffer;
 ByteAddressBuffer _Vertex2RecordBuffer;

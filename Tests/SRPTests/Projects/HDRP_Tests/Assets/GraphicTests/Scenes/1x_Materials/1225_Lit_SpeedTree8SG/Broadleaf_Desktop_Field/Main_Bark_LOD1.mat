@@ -106,7 +106,7 @@ Material:
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _ForceForwardEmissive: 0
-    - _Glossiness: 1.0
+    - _Glossiness: 1
     - _HueVariationKwToggle: 1
     - _MaterialID: 5
     - _MaterialTypeMask: 32

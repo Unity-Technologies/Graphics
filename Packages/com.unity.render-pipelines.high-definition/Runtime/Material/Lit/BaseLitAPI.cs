@@ -80,12 +80,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (material.HasProperty(kRefractionModel))
             {
-                var refractionModelValue = (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel);
-                // We can't have refraction in pre-refraction queue and the material needs to be transparent
-                var canHaveRefraction = material.GetSurfaceType() == SurfaceType.Transparent && !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
-                CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Planar) && canHaveRefraction);
-                CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
-                CoreUtils.SetKeyword(material, "_REFRACTION_THIN", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
+                var refractionModel = material.GetRefractionModel();
+                CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", refractionModel == ScreenSpaceRefraction.RefractionModel.Planar);
+                CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere);
+                CoreUtils.SetKeyword(material, "_REFRACTION_THIN", refractionModel == ScreenSpaceRefraction.RefractionModel.Thin);
             }
         }
 
