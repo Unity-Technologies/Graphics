@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-2755194804778883085
+--- !u!114 &-6201567422593231166
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -21,7 +21,7 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.1
   scatter:
     m_OverrideState: 0
     m_Value: 0.7
@@ -29,11 +29,11 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   dirtTexture:
-    m_OverrideState: 0
-    m_Value: {fileID: 0}
+    m_OverrideState: 1
+    m_Value: {fileID: 2800000, guid: 2e42536d66cd28246a86522a588a9c36, type: 3}
   dirtIntensity:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 10
   anamorphic:
     m_OverrideState: 0
     m_Value: 1
@@ -59,7 +59,7 @@ MonoBehaviour:
   m_Name: Volume Profile
   m_EditorClassIdentifier: 
   components:
-  - {fileID: -2755194804778883085}
+  - {fileID: -6201567422593231166}
   - {fileID: 9013919007949843830}
 --- !u!114 &9013919007949843830
 MonoBehaviour:
@@ -76,7 +76,7 @@ MonoBehaviour:
   active: 1
   intensity:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 10
   tintColor:
     m_OverrideState: 1
     m_Value: {r: 0.4, g: 0.5, b: 0.5, a: 1}

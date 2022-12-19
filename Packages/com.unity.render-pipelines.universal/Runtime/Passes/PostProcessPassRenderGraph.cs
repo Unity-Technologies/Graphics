@@ -1069,13 +1069,14 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle streakTmpTexture;
             internal TextureHandle streakTmpTexture2;
             internal TextureHandle bloomTexture;
+            internal TextureHandle result;
             internal RenderTextureDescriptor sourceDescriptor;
             internal Camera camera;
             internal Material material;
             internal int downsample;
         }
 
-        public void RenderLensFlareScreenSpace(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData, TextureHandle bloomTexture)
+        public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData, TextureHandle bloomTexture)
         {
             var downsample = (int) m_LensFlareScreenSpace.resolution.value;
             int width = m_Descriptor.width / downsample;
@@ -1084,6 +1085,7 @@ namespace UnityEngine.Rendering.Universal
             var streakTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, width, height, m_DefaultHDRFormat);
             var streakTmpTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture", true, FilterMode.Bilinear);
             var streakTmpTexture2 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture2", true, FilterMode.Bilinear);
+            TextureHandle result = renderGraph.defaultResources.blackTextureXR;
 
             using (var builder = renderGraph.AddRenderPass<LensFlareScreenSpacePassData>("Lens Flare Screen Space Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareScreenSpace)))
             {
@@ -1092,11 +1094,14 @@ namespace UnityEngine.Rendering.Universal
                 passData.destinationTexture = builder.WriteTexture(destination);
                 passData.streakTmpTexture = builder.ReadWriteTexture(streakTmpTexture);
                 passData.streakTmpTexture2 = builder.ReadWriteTexture(streakTmpTexture2);
-                passData.bloomTexture = builder.ReadTexture(bloomTexture);
+                passData.bloomTexture = builder.ReadWriteTexture(bloomTexture);
                 passData.sourceDescriptor = m_Descriptor;
                 passData.camera = renderingData.cameraData.camera;
                 passData.material = m_Materials.lensFlareScreenSpace;
                 passData.downsample = downsample;
+                
+                passData.result = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = false, name = "Lens Flare Screen Space Result" }));
 
                 builder.SetRenderFunc((LensFlareScreenSpacePassData data, RenderGraphContext context) =>
                 {
@@ -1140,8 +1145,9 @@ namespace UnityEngine.Rendering.Universal
                             1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.y,
                             0), // Free slot, not used
                         cmd,
-                        data.destinationTexture,
+                        data.result,
                         ShaderConstants._LensFlareScreenSpaceBloomTexture,
+                        ShaderConstants._LensFlareScreenSpaceResultTexture,
                         0, // No identifiers for SpectralLut Texture
                         ShaderConstants._LensFlareScreenSpaceStreakTex,
                         ShaderConstants._LensFlareScreenSpaceMipLevel,
@@ -1153,8 +1159,7 @@ namespace UnityEngine.Rendering.Universal
                         ShaderConstants._LensFlareScreenSpaceParams5,
                         false);
                 });
-
-                return;
+                return passData.bloomTexture;   
             }
         }
 
@@ -1652,7 +1657,7 @@ namespace UnityEngine.Rendering.Universal
                     if (useLensFlareScreenSpace)
                     {
                         int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
-                        RenderLensFlareScreenSpace(renderGraph, in currentSource, ref renderingData, _BloomMipUp[maxBloomMip]);
+                        BloomTexture = RenderLensFlareScreenSpace(renderGraph, in currentSource, ref renderingData, _BloomMipUp[maxBloomMip]);
                     }
 
                     UberPostSetupBloomPass(renderGraph, in BloomTexture, m_Materials.uber);

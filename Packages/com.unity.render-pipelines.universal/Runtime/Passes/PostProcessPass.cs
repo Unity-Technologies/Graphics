@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_TempTarget2;
         RTHandle m_StreakTmpTexture;
         RTHandle m_StreakTmpTexture2;
+        RTHandle m_ScreenSpaceLensFlareResult;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -206,6 +207,7 @@ namespace UnityEngine.Rendering.Universal
             m_TempTarget2?.Release();
             m_StreakTmpTexture?.Release();
             m_StreakTmpTexture2?.Release();
+            m_ScreenSpaceLensFlareResult?.Release();
         }
 
         /// <summary>
@@ -957,7 +959,9 @@ namespace UnityEngine.Rendering.Universal
                 RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture");
                 RenderingUtils.ReAllocateIfNeeded(ref m_StreakTmpTexture2, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_StreakTmpTexture2");
             }
-
+            
+            RenderingUtils.ReAllocateIfNeeded(ref m_ScreenSpaceLensFlareResult, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_ScreenSpaceLensFlareResult");
+            
             LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
                 m_Materials.lensFlareScreenSpace,
                 camera,
@@ -994,8 +998,9 @@ namespace UnityEngine.Rendering.Universal
                     1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.y,
                     0), // Free slot, not used
                 cmd,
-                source,
+                m_ScreenSpaceLensFlareResult,
                 ShaderConstants._LensFlareScreenSpaceBloomTexture,
+                ShaderConstants._LensFlareScreenSpaceResultTexture,
                 0, // No identifiers for SpectralLut Texture
                 ShaderConstants._LensFlareScreenSpaceStreakTex,
                 ShaderConstants._LensFlareScreenSpaceMipLevel,
@@ -1006,6 +1011,8 @@ namespace UnityEngine.Rendering.Universal
                 ShaderConstants._LensFlareScreenSpaceParams4,
                 ShaderConstants._LensFlareScreenSpaceParams5,
                 false);
+                
+            cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, bloomTexture);
         }
 
         #endregion
@@ -1748,6 +1755,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
 
             public static readonly int _LensFlareScreenSpaceBloomTexture = Shader.PropertyToID("_BloomTexture");
+            public static readonly int _LensFlareScreenSpaceResultTexture = Shader.PropertyToID("_LensFlareScreenSpaceResultTexture");
             public static readonly int _LensFlareScreenSpaceStreakTex = Shader.PropertyToID("_LensFlareScreenSpaceStreakTex");
             public static readonly int _LensFlareScreenSpaceMipLevel = Shader.PropertyToID("_LensFlareScreenSpaceMipLevel");
             public static readonly int _LensFlareScreenSpaceTintColor = Shader.PropertyToID("_LensFlareScreenSpaceTintColor");

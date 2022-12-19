@@ -599,7 +599,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source, m_LensFlareScreenSpace.bloomMip.value, out screenSpaceLensFlareBloomMipTexture);
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph);
 
-                source = LensFlareScreenSpacePass(renderGraph, hdCamera, source, screenSpaceLensFlareBloomMipTexture);
+                bool lensFlareScreenSpace = m_LensFlareScreenSpace.IsActive() && m_LensFlareScreenSpaceFS;
+                if (lensFlareScreenSpace)
+                {
+                    bloomTexture = LensFlareScreenSpacePass(renderGraph, hdCamera, source, screenSpaceLensFlareBloomMipTexture);
+                }
 
                 source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture, taaEnabled);
 
@@ -3443,7 +3447,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public LensFlareScreenSpaceParameters parameters;
             public TextureHandle source;
             public TextureHandle bloomTexture;
-            public TextureHandle destination;
+            public TextureHandle result;
             public TextureHandle streakTmpTexture;
             public TextureHandle streakTmpTexture2;
             public HDCamera hdCamera;
@@ -3508,80 +3512,78 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle LensFlareScreenSpacePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle bloomTexture)
         {
-            bool lensFlareScreenSpace = m_LensFlareScreenSpace.IsActive() && m_LensFlareScreenSpaceFS;
+            TextureHandle result = renderGraph.defaultResources.blackTextureXR;
 
             int ratio = (int)m_LensFlareScreenSpace.resolution.value;
             Color tintColor = m_LensFlareScreenSpace.tintColor.value;
 
-            if (lensFlareScreenSpace)
+            using (var builder = renderGraph.AddRenderPass<LensFlareScreenSpaceData>("Lens Flare Screen Space", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareScreenSpace)))
             {
-                using (var builder = renderGraph.AddRenderPass<LensFlareScreenSpaceData>("Lens Flare Screen Space", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareScreenSpace)))
+                passData.source = builder.WriteTexture(source);
+                passData.parameters = PrepareLensFlareScreenSpaceParameters(ratio, tintColor);
+                passData.viewport = postProcessViewportSize;
+                passData.hdCamera = hdCamera;
+                passData.bloomTexture = builder.ReadWriteTexture(bloomTexture);
+
+                int width = Mathf.Max(1, passData.viewport.x / ratio);
+                int height = Mathf.Max(1, passData.viewport.y / ratio);
+
+                passData.result = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height, IsDynamicResUpscaleTargetEnabled(), true)
+                { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, useMipMap = false, name = "Lens Flare Screen Space Result" }));
+
+                // We don't allocate transient texture if streaksIntensity is zero.
+                if (m_LensFlareScreenSpace.IsStreaksActive())
                 {
-                    passData.source = builder.WriteTexture(source);
-                    passData.parameters = PrepareLensFlareScreenSpaceParameters(ratio, tintColor);
-                    passData.viewport = postProcessViewportSize;
-                    passData.hdCamera = hdCamera;
-                    passData.bloomTexture = builder.ReadTexture(bloomTexture);
+                    passData.streakTmpTexture = builder.CreateTransientTexture(new TextureDesc(width, height, IsDynamicResUpscaleTargetEnabled(), true)
+                    { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, clearBuffer = true, name = "Lens Flare Screen Space Streak Tmp" });
 
-                    int width = Mathf.Max(1, passData.viewport.x / ratio);
-                    int height = Mathf.Max(1, passData.viewport.y / ratio);
-
-                    // We don't allocate transient texture if streaksIntensity is zero.
-                    if (m_LensFlareScreenSpace.IsStreaksActive())
-                    {
-                        passData.streakTmpTexture = builder.CreateTransientTexture(new TextureDesc(width, height, IsDynamicResUpscaleTargetEnabled(), true)
-                        { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, clearBuffer = true, name = "Lens Flare Screen Space Streak Tmp" });
-
-                        passData.streakTmpTexture2 = builder.CreateTransientTexture(new TextureDesc(width, height, IsDynamicResUpscaleTargetEnabled(), true)
-                        { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, clearBuffer = true, name = "Lens Flare Screen Space Streak Tmp2" });
-                    }
-                    TextureHandle dest = GetPostprocessUpsampledOutputHandle(hdCamera, renderGraph, "Lens Flare Screen Space Destination");
-                    passData.destination = builder.WriteTexture(dest);
-
-                    builder.SetRenderFunc(
-                        (LensFlareScreenSpaceData data, RenderGraphContext ctx) =>
-                        {
-                            float width = (float)data.viewport.x;
-                            float height = (float)data.viewport.y;
-
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._BloomTexture, data.bloomTexture);
-
-                            LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
-                                data.parameters.lensFlareScreenSpaceShader,
-                                data.hdCamera.camera,
-                                width,
-                                height,
-                                data.parameters.tintColor,
-                                data.bloomTexture,
-                                data.parameters.lensFlareScreenSpaceSpectralLut,
-                                data.streakTmpTexture,
-                                data.streakTmpTexture2,
-                                data.parameters.lensFlareScreenSpaceParameters1,
-                                data.parameters.lensFlareScreenSpaceParameters2,
-                                data.parameters.lensFlareScreenSpaceParameters3,
-                                data.parameters.lensFlareScreenSpaceParameters4,
-                                data.parameters.lensFlareScreenSpaceParameters5,
-                                ctx.cmd,
-                                data.source,
-                                HDShaderIDs._BloomTexture,
-                                HDShaderIDs._LensFlareScreenSpaceSpectralLut,
-                                HDShaderIDs._LensFlareScreenSpaceStreakTex,
-                                HDShaderIDs._LensFlareScreenSpaceMipLevel,
-                                HDShaderIDs._LensFlareScreenSpaceTintColor,
-                                HDShaderIDs._LensFlareScreenSpaceParams1,
-                                HDShaderIDs._LensFlareScreenSpaceParams2,
-                                HDShaderIDs._LensFlareScreenSpaceParams3,
-                                HDShaderIDs._LensFlareScreenSpaceParams4,
-                                HDShaderIDs._LensFlareScreenSpaceParams5,
-                                data.parameters.debugView);
-                        });
-
-                    PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.LensFlareScreenSpace);
+                    passData.streakTmpTexture2 = builder.CreateTransientTexture(new TextureDesc(width, height, IsDynamicResUpscaleTargetEnabled(), true)
+                    { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, clearBuffer = true, name = "Lens Flare Screen Space Streak Tmp2" });
                 }
 
-            }
+                builder.SetRenderFunc(
+                    (LensFlareScreenSpaceData data, RenderGraphContext ctx) =>
+                    {
+                        float width = (float)data.viewport.x;
+                        float height = (float)data.viewport.y;
 
-            return source;
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._BloomTexture, data.bloomTexture);
+
+                        LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
+                            data.parameters.lensFlareScreenSpaceShader,
+                            data.hdCamera.camera,
+                            width,
+                            height,
+                            data.parameters.tintColor,
+                            data.bloomTexture,
+                            data.parameters.lensFlareScreenSpaceSpectralLut,
+                            data.streakTmpTexture,
+                            data.streakTmpTexture2,
+                            data.parameters.lensFlareScreenSpaceParameters1,
+                            data.parameters.lensFlareScreenSpaceParameters2,
+                            data.parameters.lensFlareScreenSpaceParameters3,
+                            data.parameters.lensFlareScreenSpaceParameters4,
+                            data.parameters.lensFlareScreenSpaceParameters5,
+                            ctx.cmd,
+                            data.result,
+                            HDShaderIDs._BloomTexture,
+                            HDShaderIDs._LensFlareScreenSpaceResultTexture,
+                            HDShaderIDs._LensFlareScreenSpaceSpectralLut,
+                            HDShaderIDs._LensFlareScreenSpaceStreakTex,
+                            HDShaderIDs._LensFlareScreenSpaceMipLevel,
+                            HDShaderIDs._LensFlareScreenSpaceTintColor,
+                            HDShaderIDs._LensFlareScreenSpaceParams1,
+                            HDShaderIDs._LensFlareScreenSpaceParams2,
+                            HDShaderIDs._LensFlareScreenSpaceParams3,
+                            HDShaderIDs._LensFlareScreenSpaceParams4,
+                            HDShaderIDs._LensFlareScreenSpaceParams5,
+                            data.parameters.debugView);
+                    });
+
+                PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.LensFlareScreenSpace);
+                result = passData.bloomTexture;
+            }
+            return result;
         }
 
         #endregion
@@ -4852,6 +4854,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var luma = ColorUtils.Luminance(tint);
             tint = luma > 0f ? tint * (1f / luma) : Color.white;
 
+            bool bloomEnabled = m_Bloom.IsActive() && m_BloomFS;
             var dirtTexture = m_Bloom.dirtTexture.value == null ? Texture2D.blackTexture : m_Bloom.dirtTexture.value;
             int dirtEnabled = m_Bloom.dirtTexture.value != null && m_Bloom.dirtIntensity.value > 0f ? 1 : 0;
             float dirtRatio = (float)dirtTexture.width / (float)dirtTexture.height;
@@ -4871,7 +4874,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             data.bloomDirtTexture = dirtTexture;
-            data.bloomParams = new Vector4(intensity, dirtIntensity, 1f, dirtEnabled);
+            data.bloomParams = new Vector4(intensity, dirtIntensity, bloomEnabled ? 1 : 0, dirtEnabled);
             data.bloomTint = (Vector4)tint;
             data.bloomDirtTileOffset = dirtTileOffset;
             data.bloomThreshold = GetBloomThresholdParams();
@@ -4903,13 +4906,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Texture spectralLut;
             public Vector4 chromaticAberrationParameters;
-
-            public Texture lensFlareScreenSpaceSpectralLut;
-            public Vector4 lensFlareScreenSpaceParameters1;
-            public Vector4 lensFlareScreenSpaceParameters2;
-            public Vector4 lensFlareScreenSpaceParameters3;
-            public Vector4 lensFlareScreenSpaceParameters4;
-            public Vector4 lensFlareScreenSpaceParameters5;
 
             public Vector4 vignetteParams1;
             public Vector4 vignetteParams2;

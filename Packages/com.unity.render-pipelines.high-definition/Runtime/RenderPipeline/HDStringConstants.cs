@@ -1048,6 +1048,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DistortionParams1 = Shader.PropertyToID("_DistortionParams1");
         public static readonly int _DistortionParams2 = Shader.PropertyToID("_DistortionParams2");
 
+        public static readonly int _LensFlareScreenSpaceResultTexture = Shader.PropertyToID("_LensFlareScreenSpaceResultTexture");
         public static readonly int _LensFlareScreenSpaceSpectralLut = Shader.PropertyToID("_LensFlareScreenSpaceSpectralLut");
         public static readonly int _LensFlareScreenSpaceStreakTex = Shader.PropertyToID("_LensFlareScreenSpaceStreakTex");
         public static readonly int _LensFlareScreenSpaceMipLevel = Shader.PropertyToID("_LensFlareScreenSpaceMipLevel");
