@@ -280,10 +280,13 @@ namespace UnityEditor.Rendering
 
             if (actualTarget.sharedProfile == null && m_Profile.objectReferenceValue != null)
             {
-                actualTarget.sharedProfile = (VolumeProfile)m_Profile.objectReferenceValue;
-                RefreshEffectListEditor(actualTarget.sharedProfile);
-                if(actualTarget.HasInstantiatedProfile())
-                    actualTarget.profile = null;
+                if (Event.current.type != EventType.Layout)
+                {
+                    actualTarget.sharedProfile = (VolumeProfile)m_Profile.objectReferenceValue;
+                    if (actualTarget.HasInstantiatedProfile())
+                        actualTarget.profile = null;
+                    RefreshEffectListEditor(actualTarget.sharedProfile);
+                }
             }
 
             serializedObject.ApplyModifiedProperties();
