@@ -1074,6 +1074,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static IncludeCollection DBuffer = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.DOTSPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { DecalPregraph },
@@ -1087,6 +1088,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static IncludeCollection ScreenSpace = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.DOTSPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { DecalPregraph },
@@ -1099,6 +1101,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static IncludeCollection GBuffer = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.DOTSPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kGBuffer, IncludeLocation.Pregraph },

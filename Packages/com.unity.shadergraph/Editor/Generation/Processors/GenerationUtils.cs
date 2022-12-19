@@ -704,7 +704,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (graphInputs == null || graphInputs.Count == 0)
                 {
-                    foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                    foreach (var prop in propertyCollector.properties.Where(x => x.shouldGeneratePropertyBlock))
                     {
                         prop.AppendPropertyBlockStrings(sb);
                     }
@@ -721,7 +721,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    var propertyInputs = propertyCollector.properties.Where(x => x.generatePropertyBlock).ToList();
+                    var propertyInputs = propertyCollector.properties.Where(x => x.shouldGeneratePropertyBlock).ToList();
                     var keywordInputs = keywordCollector.keywords.Where(x => x.generatePropertyBlock).ToList();
                     foreach (var input in graphInputs)
                     {
