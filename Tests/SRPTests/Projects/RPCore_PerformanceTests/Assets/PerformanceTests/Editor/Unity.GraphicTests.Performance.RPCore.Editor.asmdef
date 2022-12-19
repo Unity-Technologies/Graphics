@@ -1,0 +1,27 @@
+{
+    "name": "Unity.GraphicTests.Performance.RPCore.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Unity.PerformanceTesting",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Editor",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.GraphicTests.Performance.RPCore.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
