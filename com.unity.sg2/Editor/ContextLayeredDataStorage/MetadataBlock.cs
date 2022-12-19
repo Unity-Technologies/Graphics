@@ -5,6 +5,12 @@ using UnityEngine;
 namespace UnityEditor.ContextLayeredDataStorage
 {
     [Serializable]
+    struct DataBox<T>
+    {
+        public T data;
+    }
+
+    [Serializable]
     internal struct SerializedEntry
     {
         public string key;
@@ -25,12 +31,12 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public T GetMetadata<T>(string lookup)
         {
-            return (T)this[lookup];
+            return ((DataBox<T>)this[lookup]).data;
         }
 
         public void SetMetadata<T>(string lookup, T data)
         {
-            this[lookup] = data;
+            this[lookup] = new DataBox<T>() { data = data };
         }
 
         public void OnBeforeSerialize()
