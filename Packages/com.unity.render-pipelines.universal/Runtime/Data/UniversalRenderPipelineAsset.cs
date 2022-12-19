@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
-    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
+    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];

@@ -131,7 +131,8 @@ namespace UnityEditor.Rendering
             bool exportStrippedVariants = s_DefaultExport;
 
             // Check the current pipeline and check the shader variant settings
-            if (RenderPipelineManager.currentPipeline != null && RenderPipelineManager.currentPipeline.defaultSettings is IShaderVariantSettings shaderVariantSettings)
+            if (GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings) &&
+                settings is IShaderVariantSettings shaderVariantSettings)
             {
                 logStrippedVariants = shaderVariantSettings.shaderVariantLogLevel;
                 exportStrippedVariants = shaderVariantSettings.exportShaderVariants;
@@ -148,7 +149,8 @@ namespace UnityEditor.Rendering
 
             if (Debug.isDebugBuild)
             {
-                if (RenderPipelineManager.currentPipeline != null && RenderPipelineManager.currentPipeline.defaultSettings is IShaderVariantSettings shaderVariantSettings && shaderVariantSettings.stripDebugVariants)
+                if (GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings) &&
+                    settings is IShaderVariantSettings shaderVariantSettings && shaderVariantSettings.stripDebugVariants)
                     Debug.LogWarning("Stripping Runtime Debug Shader Variants, you won't be able to use some features of the Standalone Rendering Debugger.");
             }
         }
@@ -176,7 +178,8 @@ namespace UnityEditor.Rendering
         public ShaderStrippingReportLogger()
         {
             // Check the current pipeline and check the shader variant settings
-            if (RenderPipelineManager.currentPipeline != null && RenderPipelineManager.currentPipeline.defaultSettings is IShaderVariantSettings shaderVariantSettings)
+            if (GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings) &&
+                settings is IShaderVariantSettings shaderVariantSettings)
             {
                 m_IsLogEnabled = shaderVariantSettings.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled;
             }
