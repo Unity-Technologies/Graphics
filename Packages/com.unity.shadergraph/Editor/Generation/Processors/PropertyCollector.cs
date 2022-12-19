@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph
 
             if (instancedCount > 0)
             {
-                builder.AppendLine("#ifndef UNITY_INSTANCING_ENABLED");
+                builder.AppendLine("#if !defined(UNITY_INSTANCING_ENABLED)");
                 foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
                     h.AppendTo(builder);
                 builder.AppendLine("#endif");
@@ -202,19 +202,33 @@ namespace UnityEditor.ShaderGraph
             if (instancedCount > 0)
             {
 
-                builder.AppendLine("#ifdef UNITY_INSTANCING_ENABLED");
+                builder.AppendLine("#if defined(DOTS_INSTANCING_ON)");
                 builder.AppendLine("// DOTS instancing definitions");
-                builder.AppendLine("UNITY_INSTANCING_BUFFER_START(MaterialPropertyMetadata)");
+                builder.AppendLine("UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)");
+                foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
+                {
+                    var n = h.name;
+                    string type = h.GetValueTypeString();
+                    builder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP({type}, {n})");
+                }
+                builder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
+
+                builder.AppendLine("// DOTS instancing usage macros");
+                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var)");
+
+                builder.AppendLine("#elif defined(UNITY_INSTANCING_ENABLED)");
+                builder.AppendLine("// Unity instancing definitions");
+                builder.AppendLine("UNITY_INSTANCING_BUFFER_START(SGPerInstanceData)");
                 foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
                 {
                     var n = h.name;
                     string type = h.GetValueTypeString();
                     builder.AppendLine($"    UNITY_DEFINE_INSTANCED_PROP({type}, {n})");
                 }
-                builder.AppendLine("UNITY_INSTANCING_BUFFER_END(MaterialPropertyMetadata)");
+                builder.AppendLine("UNITY_INSTANCING_BUFFER_END(SGPerInstanceData)");
 
-                builder.AppendLine("// DOTS instancing usage macros");
-                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_INSTANCED_PROP(MaterialPropertyMetadata, var)");
+                builder.AppendLine("// Unity instancing usage macros");
+                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_INSTANCED_PROP(SGPerInstanceData, var)");
 
                 builder.AppendLine("#else");
                 builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
