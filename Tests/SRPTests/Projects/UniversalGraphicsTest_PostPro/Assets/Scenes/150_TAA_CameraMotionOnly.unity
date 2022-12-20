@@ -2093,7 +2093,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 2
+  m_Version: 3
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
   m_LightLayerMask: 1
@@ -2103,7 +2103,7 @@ MonoBehaviour:
   m_ShadowRenderingLayers: 1
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 1
+  m_SoftShadowQuality: 2
 --- !u!1 &1169856920
 GameObject:
   m_ObjectHideFlags: 0
@@ -3934,16 +3934,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 512
-    TargetHeight: 512
+    TargetWidth: 960
+    TargetHeight: 540
     PerPixelCorrectnessThreshold: 0
     PerPixelGammaThreshold: 0
     PerPixelAlphaThreshold: 0
+    RMSEThreshold: 0
     AverageCorrectnessThreshold: 0.0025
     IncorrectPixelsThreshold: 0
     UseHDR: 1
     UseBackBuffer: 1
-    ImageResolution: 0
+    ImageResolution: 3
     ActiveImageTests: 1
     ActivePixelTests: 0
   WaitFrames: 100

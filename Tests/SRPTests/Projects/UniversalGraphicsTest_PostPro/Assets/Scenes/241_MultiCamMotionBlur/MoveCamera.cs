@@ -18,6 +18,7 @@ public class MoveCamera : MonoBehaviour
     void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
     {
         var rot = transform.rotation;
+#if ENABLE_VR && ENABLE_VR_MODULE
         if (XRSettings.isDeviceActive)
         {
             toogle = !toogle;
@@ -26,6 +27,7 @@ public class MoveCamera : MonoBehaviour
             rot.eulerAngles += m_Rotate;
         }
         else
+#endif
         {
             transform.position += m_Direction;
             rot.eulerAngles += m_Rotate;

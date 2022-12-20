@@ -4094,7 +4094,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 2
+  m_Version: 3
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
   m_LightLayerMask: 1
@@ -6238,16 +6238,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 512
-    TargetHeight: 512
+    TargetWidth: 960
+    TargetHeight: 540
     PerPixelCorrectnessThreshold: 0
     PerPixelGammaThreshold: 0
     PerPixelAlphaThreshold: 0
-    AverageCorrectnessThreshold: 0.0015
+    RMSEThreshold: 0
+    AverageCorrectnessThreshold: 0.0012
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 1
-    ImageResolution: 0
+    ImageResolution: 3
     ActiveImageTests: 1
     ActivePixelTests: 1
   WaitFrames: 60
