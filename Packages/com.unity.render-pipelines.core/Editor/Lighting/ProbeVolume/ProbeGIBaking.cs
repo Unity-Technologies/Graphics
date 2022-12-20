@@ -1733,7 +1733,7 @@ namespace UnityEngine.Rendering
             Lightmapping.bakeCompleted -= OnBakeCompletedCleanup;
 
             ProbeReferenceVolume.instance.checksDuringBakeAction = null;
-            partialBakeSceneList = null;
+            partialBakeSceneList.Clear();
 
             if (currentBakingState != BakingStage.OnBakeCompletedFinished && currentBakingState != BakingStage.OnBakeCompletedStarted)
             {
