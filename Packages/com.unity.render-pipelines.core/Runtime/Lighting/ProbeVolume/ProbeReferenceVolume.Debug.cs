@@ -1,4 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEditor;
 
 namespace UnityEngine.Rendering
 {
@@ -38,7 +42,7 @@ namespace UnityEngine.Rendering
         Size
     }
 
-    class ProbeVolumeDebug
+    class ProbeVolumeDebug : IDebugData
     {
         public bool drawProbes;
         public bool drawBricks;
@@ -57,6 +61,34 @@ namespace UnityEngine.Rendering
         public float offsetSize = 0.025f;
         public bool freezeStreaming;
         public int otherStateIndex = 0;
+
+        public ProbeVolumeDebug()
+        {
+            Init();
+        }
+
+        void Init()
+        {
+            drawProbes = false;
+            drawBricks = false;
+            drawCells = false;
+            realtimeSubdivision = false;
+            subdivisionCellUpdatePerFrame = 4;
+            subdivisionDelayInSeconds = 1;
+            probeShading = DebugProbeShadingMode.SH;
+            probeSize = 0.3f;
+            subdivisionViewCullingDistance = 500.0f;
+            probeCullingDistance = 200.0f;
+            maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
+            minSubdivToVisualize = 0;
+            exposureCompensation = 0.0f;
+            drawVirtualOffsetPush = false;
+            offsetSize = 0.025f;
+            freezeStreaming = false;
+            otherStateIndex = 0;
+        }
+
+        public Action GetReset() => () => Init();
     }
 
     public partial class ProbeReferenceVolume
@@ -353,6 +385,9 @@ namespace UnityEngine.Rendering
                 var panel = DebugManager.instance.GetPanel(k_DebugPanelName, true);
                 panel.children.Add(m_DebugItems);
             }
+
+            DebugManager debugManager = DebugManager.instance;
+            debugManager.RegisterData(probeVolumeDebug);
         }
 
         void UnregisterDebug(bool destroyPanel)

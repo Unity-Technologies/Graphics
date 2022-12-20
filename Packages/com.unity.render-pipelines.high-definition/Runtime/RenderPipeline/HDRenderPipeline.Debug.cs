@@ -1084,7 +1084,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "HDR_xyMapping" }));
 
                 int gamut = 1;
-                if (HDROutputIsActive())
+                if (HDROutputActiveForCameraType(hdCamera.camera.cameraType))
                 {
                     if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
                         gamut = 1;
@@ -1137,7 +1137,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.debugHDRMaterial = m_DebugHDROutput;
                 passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
-                if (HDROutputIsActive())
+                if (HDROutputActiveForCameraType(hdCamera.camera.cameraType))
                     GetHDROutputParameters(hdCamera.volumeStack.GetComponent<Tonemapping>(), out passData.hdrOutputParams, out passData.hdrOutputParams2);
                 else
                     passData.hdrOutputParams.z = 1.0f;
