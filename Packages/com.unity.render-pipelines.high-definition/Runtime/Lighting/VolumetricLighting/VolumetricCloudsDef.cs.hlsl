@@ -39,7 +39,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float _ErosionScale;
     float _MicroErosionFactor;
     float _MicroErosionScale;
-    float _PaddingVC0;
+    float _CloudHistoryInvalidation;
     float2 _ShadowRegionSize;
     float4 _ScatteringTint;
     float4 _FinalScreenSize;

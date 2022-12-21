@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Multiplier to micro details tiling
         public float _MicroErosionScale;
-        public float _PaddingVC0;
+        public float _CloudHistoryInvalidation;
         // The size of the shadow region (meters)
         public Vector2 _ShadowRegionSize;
 
