@@ -1,15 +1,3 @@
-# {% for project in projects %}
-# {{project.name}}_pr_trigger:
-#   name: {{project.name}} - PR Tests Trigger
-#   triggers:
-#     expression: pull_request.source match "{{ project.branches_exp }}" AND NOT pull_request.draft # this trigger the job on pull request exclusively on specific branches
-#     cancel_old_ci: true
-#   dependencies:
-#     {% for platform in platforms %}
-#       - .yamato/sg2-tests.yml#{{project.name}}_{{platform.configname}}_editormode
-#     {% endfor %}
-# {% endfor %}
-
 ShaderGraph2_Win_pr_trigger:
   name: ShaderGraph2 - PR Tests Trigger
   triggers:
@@ -17,6 +5,7 @@ ShaderGraph2_Win_pr_trigger:
     cancel_old_ci: true
   dependencies:
     - .yamato/sg2-tests.yml#ShaderGraph2_Win64
+    - .yamato/sg2-tests.yml#ShaderGraph2_Mac
 ShaderGraph2_Win64:
   name: ShaderGraph2 Tests - Win64
   agent:
@@ -28,12 +17,15 @@ ShaderGraph2_Win64:
     TEST_FILTER: .*
     EDITOR_BRANCH: "gtf/staging"
   commands:
+    # disbale firewall profiles
     -  command: NetSh Advfirewall set allprofiles state off
-    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-       retries: 2
+    # download the Unity editor with unity-downloader-cli
     -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
        retries: 2
-    -  command: unity-downloader-cli -u gtf/staging -c editor --fast
+    -  command: unity-downloader-cli -u gtf/staging -c editor --fast --wait
+       retries: 2
+    # run the tests in the Unity test runner (utr)
+    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
        retries: 2
     -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground
   artifacts:
@@ -41,133 +33,33 @@ ShaderGraph2_Win64:
       paths:
         -  "**/test-results/**"
         -  "ShaderGraphPlayground/Logs/*.log"
-
-# ShaderFoundry_OSX_Metal_editmode_mono_Linear_trunk:
-#     name: ShaderFoundry on OSX_Metal_editmode_mono_Linear on version trunk
-#     agent:
-#         type: Unity::metal::macmini
-#         image: slough-ops/macos-10.14-xcode:stable
-#         flavor: m1.mac
-#     variables:
-#         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-#         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-#         CACHE_ARGS: '{{cache.flags}}'
-#         UTR_VERSION: "current"
-#         TEST_FILTER: .*
-#     commands:
-#       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-#          retries: 2
-#       -  chmod +x utr
-#       -  command: rsync -aq -e 'ssh -i ~/.ssh/id_rsa_macmini' --append --timeout=30 $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
-#          retries: 2
-#       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-#          retries: 2
-#       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-#          retries: 2
-#       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
-#          retries: 2
-#       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
-#       -  command: |5-
-#                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-#                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; GIT_BRANCH='$GIT_BRANCH' GIT_COMMIT_TIME='$GIT_COMMIT_TIME' GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL' GIT_REVISION='$GIT_REVISION' YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME' YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME' YAMATO_JOB_ID='$YAMATO_JOB_ID' YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID' YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME' ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderFoundry/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-metal" --extra-editor-arg="-playergraphicsapi=Metal" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/ShaderFoundry "
-#                 UTR_RESULT=$?
-#                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderFoundry/test-results/ TestProjects/ShaderFoundry
-#                 exit $UTR_RESULT
-#     after:
-#       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-#       -  command: find_instabilities || exit 0
-#     artifacts:
-#         logs:
-#             paths:
-#               -  "**/test-results/**"
-#               -  "TestProjects/ShaderFoundry/Logs/*.log"
-#     dependencies:
-#       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
-#          rerun: on_new_revision
-
-# ShaderGraph2_Mac:
-#   name: ShaderGraph2 Tests - Mac
-#   agent:
-#     type: Unity::metal::macmini
-#     image: slough-ops/macos-10.14-xcode:stable
-#     flavor: m1.mac
-#   variables:
-#     UTR_VERSION: "current"
-#     TEST_FILTER: .*
-#     EDITOR_BRANCH: "gtf/staging"
-#   commands:
-#     - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-#       retries: 2
-#     -  chmod +x utr
-
-  # dependencies:
-  #   -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
-  #      rerun: on_new_revision
-
-# projects:
-#   - name: ShaderGraph2
-#     path: ShaderGraphPlayground # path to the test project (expected to be at the root of Graphics)
-#     winpath: ShaderGraphPlayground
-#     testproject: ShaderGraphPlayground
-#     branches_exp: (?:^|.+\/)sg2\/.+ # expression to use for branches PR trigger
-# platforms:
-#   - id: osx
-#     configname: editor-osx
-#     name: MacEditor 64-bit
-#     agenttype: Unity::VM::osx
-#     image: slough-ops/macos-11-xcode:v0.0.1-973582
-#     flavor: m1.mac
-#     dependency: .yamato/build-maceditor-64-bit.yml
-#   - id: win
-#     configname: editor-win
-#     name: WindowsEditor 64-bit
-#     agenttype: Unity::VM
-#     image: build-system/unity-windows-10:v10-1046278
-#     flavor: b1.xlarge
-#     dependency: .yamato/build-windowseditor-64-bit-nosigning.yml
-# coverage_meta:
-#   COVERAGE_PKG_VER: 1.2.0-exp.5
-#   CODECOV_WIN: Tools/CodeCoverage/codecov.bat
-#   CODECOV_MAC_LINUX: Tools/CodeCoverage/codecov
-#   COVREPORT_WIN: Tools/CodeCoverage/covreport.bat
-#   COVREPORT_MAC_LINUX: Tools/CodeCoverage/covreport
-
-# ---
-
-# {% for project in projects %}
-# {{project.name}}_pr_trigger:
-#   name: {{project.name}} - PR Tests Trigger
-#   triggers:
-#     expression: pull_request.source match "{{ project.branches_exp }}" AND NOT pull_request.draft # this trigger the job on pull request exclusively on specific branches
-#     cancel_old_ci: true
-#   dependencies:
-#     {% for platform in platforms %}
-#       - .yamato/sg2-tests.yml#{{project.name}}_{{platform.configname}}_editormode
-#     {% endfor %}
-# {% endfor %}
-
-# {% for project in projects %}
-# {% for platform in platforms %}
-# {{project.name}}_{{platform.configname}}:
-#   name: {{project.name}} Tests - {{platform.name}} - EditorMode
-#   agent:
-#     type: {{platform.agenttype}}
-#     image: {{platform.image}}
-#     flavor: {{platform.flavor}}
-#   dependencies:
-#     - {{platform.dependency}}
-#   commands:
-#   {% if platform.id == "win" %}
-#   #setup
-#     - command: NetSh Advfirewall set allprofiles state off
-#     - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-#       retries: 2
-#   #execute tests
-#   #  - command: perl utr.pl --suite=editor --artifacts_path=%CD%\build\ReportedArtifacts\ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=%CD%/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:%CD%/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
-#   {% else %}
-#     # - command: chmod -R +x .
-#     # - command: perl utr.pl --suite=editor --artifacts_path=$PWD/build/ReportedArtifacts/ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=$PWD/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:$PWD/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
-#   {% endif %}
+ShaderGraph2_Mac:
+  name: ShaderGraph2 Tests - Mac
+  agent:
+    type: Unity::VM::osx
+    image: slough-ops/macos-11-xcode:v0.0.1-973582
+    flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CACHE_ARGS: '{{cache.flags}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      # download the Unity editor with unity-downloader-cli
+      -  command: pip3 install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: $(python3 -m site --user-base)/bin/unity-downloader-cli -u gtf/staging -c editor --fast --wait
+      # run the tests in Unity test runner (utr)
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+         retries: 2
+      -  command: chmod +x utr
+      -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground
+         retries: 2
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "ShaderGraphPlayground/Logs/*.log"
 #   artifacts:
 #     CodeCoverageReport:
 #       paths:
@@ -178,5 +70,12 @@ ShaderGraph2_Win64:
 #     logs:
 #       paths:
 #         - build/ReportedArtifacts/**
-# {% endfor %}
-# {% endfor %}
+# variables:
+#   UTR_VERSION: "current"
+#   TEST_FILTER: .*
+#   EDITOR_BRANCH: "gtf/staging"
+# commands:
+#   - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+#     retries: 2
+#   -  chmod +x utr
+      #-  command: perl utr.pl --suite=editor --artifacts_path=$PWD/build/ReportedArtifacts/ --testprojects={{ project.testproject }} --reruncount=2 --enable-code-coverage --coverage-pkg-version={{coverage_meta.COVERAGE_PKG_VER}} --coverage-results-path=$PWD/CodeCoverageResults --coverage-options="generateAdditionalMetrics;assemblyFilters:+Unity.GraphTools.Foundation*;pathStrippingPatterns:$PWD/{{project.path}}/Packages/;verbosity:warning;generateHtmlReport;"
