@@ -22,7 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
             DisableAutoRegistration,
             MoveDiffusionProfilesToVolume,
             GenericRenderingLayers,
-            SupportRuntimeDebugDisplayToStripRuntimeDebugShaders
+            SupportRuntimeDebugDisplayToStripRuntimeDebugShaders, 
+            EnableAmethystFeaturesByDefault, 
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -137,6 +138,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning disable 618 // Type or member is obsolete
                 data.stripDebugVariants = !data.m_SupportRuntimeDebugDisplay; // Inversion logic
 #pragma warning restore 618
+            }),
+            MigrationStep.New(Version.EnableAmethystFeaturesByDefault, (HDRenderPipelineGlobalSettings data) =>
+            {
+                FrameSettings.MigrateAmethystFeatures(ref data.m_RenderingPathDefaultCameraFrameSettings);
             })
         );
         bool IMigratableAsset.Migrate()
