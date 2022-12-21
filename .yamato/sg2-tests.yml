@@ -19,14 +19,15 @@ ShaderGraph2_Win64:
   commands:
     # disbale firewall profiles
     -  command: NetSh Advfirewall set allprofiles state off
+    # download the Unity test runner (utr)
+    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+       retries: 2
     # download the Unity editor with unity-downloader-cli
     -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
        retries: 2
     -  command: unity-downloader-cli -u gtf/staging -c editor --fast --wait
        retries: 2
-    # run the tests in the Unity test runner (utr)
-    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-       retries: 2
+    # run the tests
     -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground
   artifacts:
     logs:
