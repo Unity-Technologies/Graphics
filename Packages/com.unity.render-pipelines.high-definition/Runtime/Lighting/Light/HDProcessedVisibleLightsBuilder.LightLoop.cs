@@ -146,7 +146,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     int lightIndex = m_ShadowLightsDataIndices[i];
                     HDProcessedVisibleLight* entity = entitiesPtr + lightIndex;
+
                     if (defaultEntityDataIndex == entity->dataIndex)
+                        continue;
+
+                    if ((entity->shadowMapFlags & ShadowMapFlags.WillRenderShadowMap) == 0)
                         continue;
 
                     HDAdditionalLightData additionalLightData = HDLightRenderDatabase.instance.hdAdditionalLightData[entity->dataIndex];
