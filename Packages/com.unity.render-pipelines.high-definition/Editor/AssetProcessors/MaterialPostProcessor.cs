@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Rendering.Analytics;
+using UnityEditor.Rendering.HighDefinition.Analytics;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
@@ -75,69 +77,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static internal void ReimportAllMaterials()
         {
-            string[] guids = AssetDatabase.FindAssets("t:material", null);
-            // There can be several materials subAssets per guid ( ie : FBX files ), remove duplicate guids.
-            var distinctGuids = guids.Distinct();
-
-            int materialIdx = 0;
-            int totalMaterials = distinctGuids.Count();
-
-            try
-            {
-                AssetDatabase.StartAssetEditing();
-
-                foreach (var asset in distinctGuids)
-                {
-                    materialIdx++;
-                    var path = AssetDatabase.GUIDToAssetPath(asset);
-                    EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
-                    AssetDatabase.ImportAsset(path);
-                }
-            }
-            finally
-            {
-                // Ensure the AssetDatabase knows we're finished editing
-                AssetDatabase.StopAssetEditing();
-            }
-
-            UnityEditor.EditorUtility.ClearProgressBar();
-
+            AssetReimportUtils.ReimportAll<Material>(out var duration, out var numberOfAssetsReimported);
+            AssetReimporterAnalytic.Send<Material>(duration, numberOfAssetsReimported);
             MaterialPostprocessor.s_NeedsSavingAssets = true;
         }
 
         static internal void ReimportAllHDShaderGraphs()
         {
-            string[] guids = AssetDatabase.FindAssets("t:shader", null);
-            // There can be several materials subAssets per guid ( ie : FBX files ), remove duplicate guids.
-            var distinctGuids = guids.Distinct();
-
-            int shaderIdx = 0;
-            int totalShaders = distinctGuids.Count();
-
-            try
-            {
-                AssetDatabase.StartAssetEditing();
-
-                foreach (var asset in distinctGuids)
-                {
-                    shaderIdx++;
-                    var path = AssetDatabase.GUIDToAssetPath(asset);
-                    EditorUtility.DisplayProgressBar("HD ShaderGraph Upgrader re-import", string.Format("({0} of {1}) {2}", shaderIdx, totalShaders, path), (float)shaderIdx / (float)totalShaders);
-
-                    if (CheckHDShaderGraphVersionsForUpgrade(path))
-                    {
-                        AssetDatabase.ImportAsset(path);
-                    }
-                }
-            }
-            finally
-            {
-                // Ensure the AssetDatabase knows we're finished editing
-                AssetDatabase.StopAssetEditing();
-            }
-
-            UnityEditor.EditorUtility.ClearProgressBar();
-
+            AssetReimportUtils.ReimportAll<Shader>(out var duration, out var numberOfAssetsReimported, path => CheckHDShaderGraphVersionsForUpgrade(path));
+            AssetReimporterAnalytic.Send<Shader>(duration, numberOfAssetsReimported);
             MaterialPostprocessor.s_NeedsSavingAssets = true;
         }
 
