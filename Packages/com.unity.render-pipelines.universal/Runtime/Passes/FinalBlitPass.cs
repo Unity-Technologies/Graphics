@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
-        [Obsolete("Use RTHandles for colorHandle")]
+        [Obsolete("Use RTHandles for colorHandle")] // TODO OBSOLETE: need to fix the URP test failures when bumping
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
             if (m_Source?.nameID != colorHandle.Identifier())

@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.Universal
         /// The render target identifiers for color attachments.
         /// This is obsolete, use colorAttachmentHandles instead.
         /// </summary>
-        [Obsolete("Use colorAttachmentHandles")]
+        [Obsolete("Use colorAttachmentHandles")] // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         public RenderTargetIdentifier[] colorAttachments
         {
             get => m_ColorAttachmentIds;
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.Universal
         /// The render target identifier for color attachment.
         /// This is obsolete, use colorAttachmentHandle instead.
         /// </summary>
-        [Obsolete("Use colorAttachmentHandle")]
+        [Obsolete("Use colorAttachmentHandle")] // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         public RenderTargetIdentifier colorAttachment
         {
             get => m_ColorAttachmentIds[0];
@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
         /// The render target identifier for depth attachment.
         /// This is obsolete, use depthAttachmentHandle instead.
         /// </summary>
-        [Obsolete("Use depthAttachmentHandle")]
+        [Obsolete("Use depthAttachmentHandle")]  // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         public RenderTargetIdentifier depthAttachment
         {
             get => m_UsesRTHandles ? new RenderTargetIdentifier(m_DepthAttachment.nameID, 0, CubemapFace.Unknown, -1) : m_DepthAttachmentId;
@@ -471,7 +471,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")]
+        [Obsolete("Use RTHandles for colorAttachment and depthAttachment", true)]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
             m_DepthAttachmentId = depthAttachment;
@@ -500,7 +500,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachments">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete("Use RTHandles for colorAttachments and depthAttachment")]
+        [Obsolete("Use RTHandles for colorAttachments and depthAttachment", true)]
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
             m_UsesRTHandles = false;
@@ -552,7 +552,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete("Use RTHandle for colorAttachment")]
+        [Obsolete("Use RTHandle for colorAttachment", true)]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
             m_UsesRTHandles = false;
@@ -589,7 +589,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachments">Color attachment identifiers.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete("Use RTHandles for colorAttachments")]
+        [Obsolete("Use RTHandles for colorAttachments")] // TODO OBSOLETE: need to fix the URP test failures when bumping
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
             ConfigureTarget(colorAttachments, k_CameraTarget.nameID);
@@ -695,7 +695,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
         /// <seealso cref="ScriptableRenderer"/>
-        [Obsolete("Use RTHandles for source and destination")]
+        [Obsolete("Use RTHandles for source and destination", true)]
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
             ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);

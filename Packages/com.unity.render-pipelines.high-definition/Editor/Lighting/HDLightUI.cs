@@ -339,7 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             case SpotLightShape.Cone:
                                 // Cone spot projector
                                 EditorGUI.BeginChangeCheck();
-                                EditorGUILayout.Slider(serialized.settings.spotAngle, HDAdditionalLightData.k_MinSpotAngle, HDAdditionalLightData.k_MaxSpotAngle, s_Styles.outterAngle);
+                                EditorGUILayout.Slider(serialized.settings.spotAngle, HDAdditionalLightData.k_MinSpotAngle, HDAdditionalLightData.k_MaxSpotAngle, s_Styles.outerAngle);
                                 if (EditorGUI.EndChangeCheck())
                                 {
                                     serialized.customSpotLightShadowCone.floatValue = Math.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
@@ -1217,7 +1217,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (HDRenderPipeline.assetSupportsRayTracing && HDRenderPipeline.pipelineSupportsScreenSpaceShadows)
                 {
-                    bool isPunctual = lightType == HDLightType.Point || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone);
+                    bool isPunctual = lightType == HDLightType.Point || lightType == HDLightType.Spot;
                     if (isPunctual || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
                     {
                         using (new EditorGUI.DisabledScope(fullShadowMask))

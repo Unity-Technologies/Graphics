@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.Universal
             /// <see cref="CameraRenderType"/>
             /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
             /// </summary>
-            [Obsolete("cameraStacking has been deprecated use SupportedCameraRenderTypes() in ScriptableRenderer instead.", false)]
+            [Obsolete("cameraStacking has been deprecated use SupportedCameraRenderTypes() in ScriptableRenderer instead.", true)]
             public bool cameraStacking { get; set; } = false;
 
             /// <summary>
@@ -474,7 +474,7 @@ namespace UnityEngine.Rendering.Universal
         /// It's only valid to call cameraColorTarget in the scope of <c>ScriptableRenderPass</c>.
         /// <seealso cref="ScriptableRenderPass"/>.
         /// </summary>
-        [Obsolete("Use cameraColorTargetHandle")]
+        [Obsolete("Use cameraColorTargetHandle")] // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         public RenderTargetIdentifier cameraColorTarget
         {
             get
@@ -537,7 +537,7 @@ namespace UnityEngine.Rendering.Universal
         /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.
         /// <seealso cref="ScriptableRenderPass"/>.
         /// </summary>
-        [Obsolete("Use cameraDepthTargetHandle")]
+        [Obsolete("Use cameraDepthTargetHandle", true)]
         public RenderTargetIdentifier cameraDepthTarget
         {
             get
@@ -782,7 +782,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorTarget">Camera color target. Pass BuiltinRenderTextureType.CameraTarget if rendering to backbuffer.</param>
         /// <param name="depthTarget">Camera depth target. Pass BuiltinRenderTextureType.CameraTarget if color has depth or rendering to backbuffer.</param>
-        [Obsolete("Use RTHandles for colorTarget and depthTarget")]
+        [Obsolete("Use RTHandles for colorTarget and depthTarget")] // TODO OBSOLETE: need to fix the URP test failures when bumping
         public void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget)
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
@@ -800,7 +800,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTarget = new RTHandleRenderTargetIdentifierCompat { handle = depthTarget };
         }
 
-        [Obsolete("Use RTHandles for colorTarget, depthTarget and resolveTarget")]
+        [Obsolete("Use RTHandles for colorTarget, depthTarget and resolveTarget", true)]
         internal void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, RenderTargetIdentifier resolveTarget)
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
@@ -816,7 +816,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // This should be removed when early camera color target assignment is removed.
-        [Obsolete("Use RTHandle for colorTarget")]
+        [Obsolete("Use RTHandle for colorTarget", true)]
         internal void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
@@ -1883,7 +1883,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")]
+        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")] // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
@@ -1933,7 +1933,7 @@ namespace UnityEngine.Rendering.Universal
                     depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
-        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")]
+        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")] // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor, RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
@@ -2000,7 +2000,7 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
         }
 
-        [Obsolete("Use RTHandle for colorAttachment")]
+        [Obsolete("Use RTHandle for colorAttachment", true)]
         static void SetRenderTarget(CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -2021,7 +2021,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
-        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")]
+        [Obsolete("Use RTHandles for colorAttachment and depthAttachment", true)]
         static void SetRenderTarget(CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -2063,7 +2063,7 @@ namespace UnityEngine.Rendering.Universal
                     depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
         }
 
-        [Obsolete("Use RTHandles for colorAttachments and depthAttachment")]
+        [Obsolete("Use RTHandles for colorAttachments and depthAttachment")] // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments = colorAttachments;
@@ -2072,7 +2072,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetRenderTarget(cmd, colorAttachments, depthAttachment, clearFlag, clearColor);
         }
 
-        [Obsolete("Use RTHandle for colorAttachments")]
+        [Obsolete("Use RTHandle for colorAttachments")] // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachments, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments = colorAttachments;

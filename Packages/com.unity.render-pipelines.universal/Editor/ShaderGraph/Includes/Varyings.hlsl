@@ -172,7 +172,7 @@ Varyings BuildVaryings(Attributes input)
 #if defined(DYNAMICLIGHTMAP_ON)
     output.dynamicLightmapUV.xy = input.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
 #endif
-    OUTPUT_SH(normalWS, output.sh);
+    OUTPUT_SH(vertexInput.positionWS, normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.sh);
 #endif
 
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT

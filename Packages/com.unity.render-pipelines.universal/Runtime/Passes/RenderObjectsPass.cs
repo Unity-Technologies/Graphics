@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// </summary>
         /// <param name="writeEnabled">Sets whether it should write to depth or not.</param>
         /// <param name="function">The depth comparison function to use.</param>
-        [Obsolete("Use SetDepthState instead", false)]
+        [Obsolete("Use SetDepthState instead", true)]
         public void SetDetphState(bool writeEnabled, CompareFunction function = CompareFunction.Less)
         {
             SetDepthState(writeEnabled, function);

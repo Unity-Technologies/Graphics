@@ -114,24 +114,51 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, displayedName: "Depth Prepass within Deferred", positiveDependencies: new[] { LitShaderMode }, tooltip: "When enabled, HDRP processes a depth prepass for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.")]
         DepthPrepassWithDeferredRendering = 1,
         /// <summary>When enabled, HDRP clear GBuffers for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "Clear GBuffers", positiveDependencies: new[] { LitShaderMode }, customOrderInGroup: 2, tooltip: "When enabled, HDRP clear GBuffers for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.")]
+        [FrameSettingsField(0, displayedName: "Clear GBuffers", positiveDependencies: new[] { LitShaderMode }, customOrderInGroup: 0, tooltip: "When enabled, HDRP clear GBuffers for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.")]
         ClearGBuffers = 5,
         /// <summary>When enabled, Cameras using these Frame Settings calculate MSAA when they render the Scene. Set Lit Shader Mode to Forward to access this option.</summary>
         [Obsolete]
         MSAA = 31,
         /// <summary>Specify the level of MSAA used when rendering the Scene. Set Lit Shader Mode to Forward to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "MSAA Within Forward", type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MSAAMode), customOrderInGroup: 3, tooltip: "Specifies the MSAA mode for Cameras using these Frame Settings. Set Lit Shader Mode to Forward to access this option. Note that MSAA is disabled when using ray tracing.")]
+        [FrameSettingsField(0, displayedName: "MSAA Within Forward", type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MSAAMode), customOrderInGroup: 1, tooltip: "Specifies the MSAA mode for Cameras using these Frame Settings. Set Lit Shader Mode to Forward to access this option. Note that MSAA is disabled when using ray tracing.")]
         MSAAMode = 4,
         /// <summary>When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.</summary>
         [Obsolete]
-        [FrameSettingsField(0, displayedName: "Alpha To Mask", customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
+        [FrameSettingsField(0, displayedName: "Alpha To Mask", tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
         AlphaToMask = 56,
         /// <summary>When enabled, Cameras using these Frame Settings render opaque GameObjects.</summary>
-        [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render opaque GameObjects.")]
+        [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 2, tooltip: "When enabled, Cameras using these Frame Settings render opaque GameObjects.")]
         OpaqueObjects = 2,
+
         /// <summary>When enabled, Cameras using these Frame Settings render Transparent GameObjects.</summary>
-        [FrameSettingsField(0, autoName: TransparentObjects, customOrderInGroup: 5, tooltip: "When enabled, Cameras using these Frame Settings render Transparent GameObjects.")]
+        [FrameSettingsField(0, autoName: TransparentObjects, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings render Transparent GameObjects.")]
         TransparentObjects = 3,
+        /// <summary>When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.</summary>
+        [FrameSettingsField(0, autoName: TransparentPrepass, positiveDependencies: new[] { TransparentObjects }, customOrderInGroup: 3, tooltip: "When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.")]
+        TransparentPrepass = 8,
+        /// <summary>When enabled, HDRP processes a transparent postpass for Cameras using these Frame Settings.</summary>
+        [FrameSettingsField(0, autoName: TransparentPostpass, positiveDependencies: new[] { TransparentObjects }, customOrderInGroup: 3, tooltip: "When enabled, HDRP processes a transparent postpass for Cameras using these Frame Settings.")]
+        TransparentPostpass = 9,
+        /// <summary>When enabled, HDRP processes a transparent pass in a lower resolution for Cameras using these Frame Settings.</summary>
+        [FrameSettingsField(0, displayedName: "Low Resolution Transparent", positiveDependencies: new[] { TransparentObjects }, customOrderInGroup: 3, tooltip: "When enabled, HDRP processes a transparent pass in a lower resolution for Cameras using these Frame Settings.")]
+        LowResTransparent = 18,
+        /// <summary>When enabled, HDRP processes a refraction render pass for Cameras using these Frame Settings. This add a resolve of ColorBuffer after the drawing of opaque materials to be use for Refraction effect during transparent pass.</summary>
+        [FrameSettingsField(0, autoName: Refraction, positiveDependencies: new[] { TransparentObjects }, customOrderInGroup: 4, tooltip: "When enabled, HDRP processes a refraction render pass for Cameras using these Frame Settings. This add a resolve of ColorBuffer after the drawing of opaque materials to be use for Refraction effect during transparent pass.")]
+        Refraction = 13,
+        //NOTE: Obsoletes must follow the proper enums, otherwise the compiler occludes them.
+        /// <summary>When enabled, HDRP processes a refraction render pass for Cameras using these Frame Settings. This add a resolve of ColorBuffer after the drawing of opaque materials to be use for Refraction effect during transparent pass.</summary>
+        [Obsolete]
+        RoughRefraction = 13,
+        /// <summary>When enabled, Cameras using these Frame Settings render water surfaces.</summary>
+        [FrameSettingsField(0, autoName: Water, positiveDependencies: new[] { TransparentObjects, Refraction }, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render water surfaces.")]
+        Water = 99,
+        /// <summary>When enabled, Cameras using these Frame Settings will support water deformers.</summary>
+        [FrameSettingsField(0, autoName: WaterDeformation, positiveDependencies: new[] { TransparentObjects, Refraction, Water }, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings will support water deformers.")]
+        WaterDeformation = 102,
+        /// <summary>When enabled, Cameras using these Frame Settings will support water excluders.</summary>
+        [FrameSettingsField(0, autoName: WaterExclusion, positiveDependencies: new[] { TransparentObjects, Refraction, Water }, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings will support water excluders.")]
+        WaterExclusion = 101,
+
         /// <summary>When enabled, Cameras using these Frame Settings allow generation of Texture of Thickness per GameObject.layer.</summary>
         [FrameSettingsField(0, displayedName: "Compute Thickness", customOrderInGroup: 5, tooltip: "When enabled, Cameras using these Frame Settings compute Texture of thickness per Layer.")]
         ComputeThickness = 119,
@@ -142,17 +169,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: DecalLayers, customOrderInGroup: 6, positiveDependencies: new[] { Decals }, tooltip: "When enabled, Cameras that use these Frame Settings make use of DecalLayers (Depends on \"Decal Layers\" in current HDRP Asset).")]
         DecalLayers = 96,
         /// <summary>When enabled, Cameras that use these Frame Settings produce a buffer containing the Rendering Layer Mask of rendered meshes.</summary>
-        [FrameSettingsField(0, autoName: RenderingLayerMaskBuffer, customOrderInGroup: 5, tooltip: "When enabled, Cameras that use these Frame Settings produce a buffer containing the Rendering Layer Mask of rendered meshes.")]
+        [FrameSettingsField(0, autoName: RenderingLayerMaskBuffer, customOrderInGroup: 7, tooltip: "When enabled, Cameras that use these Frame Settings produce a buffer containing the Rendering Layer Mask of rendered meshes.")]
         RenderingLayerMaskBuffer = 50,
-        /// <summary>When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.</summary>
-        [FrameSettingsField(0, autoName: TransparentPrepass, customOrderInGroup: 7, tooltip: "When enabled, HDRP processes a transparent prepass for Cameras using these Frame Settings.")]
-        TransparentPrepass = 8,
-        /// <summary>When enabled, HDRP processes a transparent postpass for Cameras using these Frame Settings.</summary>
-        [FrameSettingsField(0, autoName: TransparentPostpass, customOrderInGroup: 8, tooltip: "When enabled, HDRP processes a transparent postpass for Cameras using these Frame Settings.")]
-        TransparentPostpass = 9,
-        /// <summary>When enabled, HDRP processes a transparent pass in a lower resolution for Cameras using these Frame Settings.</summary>
-        [FrameSettingsField(0, displayedName: "Low Resolution Transparent", customOrderInGroup: 9, tooltip: "When enabled, HDRP processes a transparent pass in a lower resolution for Cameras using these Frame Settings.")]
-        LowResTransparent = 18,
         /// <summary>When enabled, HDRP updates ray tracing for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Ray Tracing", customOrderInGroup: 10, tooltip: "When enabled, HDRP updates ray tracing for Cameras using these Frame Settings (Depends on \"Realtime RayTracing\" in current HDRP Asset).")]
         RayTracing = 92,
@@ -165,17 +183,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP can use virtual texturing.</summary>
         [FrameSettingsField(0, autoName: VirtualTexturing, customOrderInGroup: 105, tooltip: "Virtual Texturing needs to be enabled first in Project Settings > Player > Other Settings > Virtual Texturing.")]
         VirtualTexturing = 68,
-        /// <summary>When enabled, Cameras using these Frame Settings render water surfaces.</summary>
-        [FrameSettingsField(0, autoName: Water, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings render water surfaces.")]
-        Water = 99,
-
-
-        /// <summary>When enabled, .</summary>
-        [FrameSettingsField(0, autoName: WaterDeformation, positiveDependencies: new[] { Water }, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings will support water deformers.")]
-        WaterDeformation = 102,
-        /// <summary>When enabled, .</summary>
-        [FrameSettingsField(0, autoName: WaterExclusion, positiveDependencies: new[] { Water }, customOrderInGroup: 106, tooltip: "When enabled, Cameras using these Frame Settings will support water excluders.")]
-        WaterExclusion = 101,
         /// <summary>When enabled, HDRP renders line topology with high quality anti-aliasing and transparency.</summary>
         [FrameSettingsField(0, autoName: HighQualityLineRendering, customOrderInGroup: 109, tooltip: "When enabled, HDRP ")]
         HighQualityLineRendering = 103,
@@ -196,13 +203,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, displayedName: "Transparent Object Motion", positiveDependencies: new[] { MotionVectors }, customOrderInGroup: 14, tooltip: "When enabled, transparent GameObjects use Motion Vectors. You must also enable TransparentWritesVelocity for Materials that you want to use motion vectors with.")]
         TransparentsWriteMotionVector = 16,
 
-        /// <summary>When enabled, HDRP processes a refraction render pass for Cameras using these Frame Settings. This add a resolve of ColorBuffer after the drawing of opaque materials to be use for Refraction effect during transparent pass.</summary>
-        [FrameSettingsField(0, autoName: Refraction, customOrderInGroup: 15, tooltip: "When enabled, HDRP processes a refraction render pass for Cameras using these Frame Settings. This add a resolve of ColorBuffer after the drawing of opaque materials to be use for Refraction effect during transparent pass.")]
-        Refraction = 13,
-        //NOTE: Obsoletes must precede the proper enums, otherwise the compiler occludes them.
-        /// <summary>When enabled, HDRP processes a refraction render pass for Cameras using these Frame Settings. This add a resolve of ColorBuffer after the drawing of opaque materials to be use for Refraction effect during transparent pass.</summary>
-        [Obsolete]
-        RoughRefraction = 13,
         /// <summary>When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: Distortion, customOrderInGroup: 16, tooltip: "When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings (Depends on \"Distortion\" in current HDRP Asset).")]
         Distortion = 14,
@@ -911,14 +911,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // No recursive reflections
             bool ssr = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview && temporalAccumulationAllowed;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentSSR] &= ssr && renderPipelineSettings.supportSSRTransparent && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects] && renderPipelineSettings.supportTransparentDepthPrepass;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] &= !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects] && !preview;
             // Because the camera is shared between the faces of the reflection probes, we cannot allow effects that rely on the accumulation process
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds];
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] &= renderPipelineSettings.supportWater && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] && renderPipelineSettings.supportWater && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.WaterDeformation] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] && renderPipelineSettings.supportWaterDeformation;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.WaterExclusion] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Water] && renderPipelineSettings.supportWaterExclusion;
 
             // We must take care of the scene view fog flags in the editor

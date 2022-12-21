@@ -19,6 +19,11 @@ public class DebugViewController_Editor : Editor
 
     SerializedProperty s_lightlayers;
 
+    SerializedProperty s_lightingTileClusterDebugMode;
+    SerializedProperty s_lightingTileClusterCategory;
+    SerializedProperty s_lightingClusterDebugMode;
+    SerializedProperty s_lightingClusterDistance;
+
     public void OnEnable()
     {
         s_settingType = serializedObject.FindProperty("settingType");
@@ -30,6 +35,11 @@ public class DebugViewController_Editor : Editor
 
         s_lightingFullScreenDebugRTASView = serializedObject.FindProperty("lightingFullScreenDebugRTASView");
         s_lightingFullScreenDebugRTASMode = serializedObject.FindProperty("lightingFullScreenDebugRTASMode");
+
+        s_lightingTileClusterDebugMode = serializedObject.FindProperty("lightingTileClusterDebugMode");
+        s_lightingTileClusterCategory = serializedObject.FindProperty("lightingTileClusterCategory");
+        s_lightingClusterDebugMode = serializedObject.FindProperty("lightingClusterDebugMode");
+        s_lightingClusterDistance = serializedObject.FindProperty("lightingClusterDistance");
     }
 
     public override void OnInspectorGUI()
@@ -58,6 +68,23 @@ public class DebugViewController_Editor : Editor
                     {
                         s_lightingFullScreenDebugRTASView.intValue = (int) (RTASDebugView) EditorGUILayout.EnumPopup(new GUIContent("Ray Tracing Acceleration Structure Debug View"), (RTASDebugView)s_lightingFullScreenDebugRTASView.intValue);
                         s_lightingFullScreenDebugRTASMode.intValue = (int) (RTASDebugMode) EditorGUILayout.EnumPopup(new GUIContent("Ray Tracing Acceleration Structure Debug Mode"), (RTASDebugMode)s_lightingFullScreenDebugRTASMode.intValue);
+                    }
+
+                    s_lightingTileClusterDebugMode.intValue = (int) (TileClusterDebug) EditorGUILayout.EnumPopup(new GUIContent("Tile/Cluster Debug Mode"), (TileClusterDebug) s_lightingTileClusterDebugMode.intValue);
+                    // Choosing between Tile and Cluster mode
+                    if ((TileClusterDebug)s_lightingTileClusterDebugMode.intValue == TileClusterDebug.Cluster || (TileClusterDebug)s_lightingTileClusterDebugMode.intValue == TileClusterDebug.Tile)
+                    {
+                        s_lightingTileClusterCategory.intValue = (int) (TileClusterCategoryDebug) EditorGUILayout.EnumPopup(new GUIContent("Tile/Cluster Debug By Category"), (TileClusterCategoryDebug)s_lightingTileClusterCategory.intValue);
+                        // If we select cluster
+                        if ((TileClusterDebug)s_lightingTileClusterDebugMode.intValue == TileClusterDebug.Cluster)
+                        {
+                            s_lightingClusterDebugMode.intValue = (int) (ClusterDebugMode) EditorGUILayout.EnumPopup(new GUIContent("Cluster Debug Mode"), (ClusterDebugMode)s_lightingClusterDebugMode.intValue);
+                            // If we select Visualize Slice, we can set the distance
+                            if ((ClusterDebugMode)s_lightingClusterDebugMode.intValue == ClusterDebugMode.VisualizeSlice)
+                            {
+                                EditorGUILayout.IntSlider(s_lightingClusterDistance, 0, 100, new GUIContent("Cluster Distance"));
+                            }
+                        }
                     }
                     break;
 

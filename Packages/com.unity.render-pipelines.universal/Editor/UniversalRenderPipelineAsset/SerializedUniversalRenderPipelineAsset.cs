@@ -28,6 +28,12 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty mainLightShadowsSupportedProp { get; }
         public SerializedProperty mainLightShadowmapResolutionProp { get; }
 
+        internal SerializedProperty lightProbeSystem;
+        internal SerializedProperty probeVolumeTextureSize;
+        internal SerializedProperty probeVolumeBlendingTextureSize;
+        internal SerializedProperty supportProbeVolumeStreaming;
+        internal SerializedProperty probeVolumeSHBands;
+
         public SerializedProperty additionalLightsRenderingModeProp { get; }
         public SerializedProperty additionalLightsPerObjectLimitProp { get; }
         public SerializedProperty additionalLightShadowsSupportedProp { get; }
@@ -96,6 +102,12 @@ namespace UnityEditor.Rendering.Universal
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
             fsrOverrideSharpness = serializedObject.FindProperty("m_FsrOverrideSharpness");
             fsrSharpness = serializedObject.FindProperty("m_FsrSharpness");
+
+            lightProbeSystem = serializedObject.FindProperty("m_LightProbeSystem");
+            probeVolumeTextureSize = serializedObject.FindProperty("m_ProbeVolumeMemoryBudget");
+            probeVolumeBlendingTextureSize = serializedObject.FindProperty("m_ProbeVolumeBlendingMemoryBudget");
+            supportProbeVolumeStreaming = serializedObject.FindProperty("m_SupportProbeVolumeStreaming");
+            probeVolumeSHBands = serializedObject.FindProperty("m_ProbeVolumeSHBands");
 
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");

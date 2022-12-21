@@ -302,9 +302,12 @@ Pass
             float4 lightmapTexCoord2 = float4(0,0,0,0);
         #endif
 
+        float alpha = 1.0;
+        $SurfaceDescription.Alpha: alpha = surfaceDescription.Alpha;
+
         // Builtin Data
         // For back lighting we use the oposite vertex normal
-        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], lightmapTexCoord1, lightmapTexCoord2, builtinData);
+        InitBuiltinData(posInput, alpha, bentNormalWS, -fragInputs.tangentToWorld[2], lightmapTexCoord1, lightmapTexCoord2, builtinData);
 
         #else
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);

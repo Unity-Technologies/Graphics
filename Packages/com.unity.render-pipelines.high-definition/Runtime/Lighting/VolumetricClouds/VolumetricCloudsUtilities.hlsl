@@ -879,20 +879,4 @@ float EvaluateFinalTransmittance(float3 color, float transmittance)
     return luminance > 0.0 ? lerp(transmittance, resultLuminance / luminance, _ImprovedTransmittanceBlend) : transmittance;
 }
 
-float3 ApplyFastTonemapping(float3 input)
-{
-    if (_EnableFastToneMapping)
-        return input*rcp(input + 1.0);
-    else
-        return input;
-}
-
-float3 UnApplyFastTonemapping(float3 input)
-{
-    if (_EnableFastToneMapping)
-        return input*rcp(1.0 - input);
-    else
-        return input;
-}
-
 #endif // VOLUMETRIC_CLOUD_UTILITIES_H

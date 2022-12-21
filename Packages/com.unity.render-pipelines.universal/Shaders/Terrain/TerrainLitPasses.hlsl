@@ -96,6 +96,12 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
 
 #if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, inputData.normalWS);
+#elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    inputData.bakedGI = SAMPLE_GI(SH,
+        GetAbsolutePositionWS(inputData.positionWS),
+        inputData.normalWS,
+        inputData.viewDirectionWS,
+        inputData.positionCS.xy);
 #else
     inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, inputData.normalWS);
 #endif
@@ -267,7 +273,7 @@ Varyings SplatmapVert(Attributes v)
         o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
     #else
         o.normal = TransformObjectToWorldNormal(v.normalOS);
-        o.vertexSH = SampleSH(o.normal);
+        OUTPUT_SH(Attributes.positionWS, o.normal.xyz, GetWorldSpaceNormalizeViewDir(Attributes.positionWS), o.vertexSH);
     #endif
 
     half fogFactor = 0;

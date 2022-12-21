@@ -58,10 +58,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_PrimarySettings(SerializedLocalVolumetricFog serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
-            EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
+            var mode = (LocalVolumetricFogMaskMode)serialized.maskMode.intValue;
+            if (mode == LocalVolumetricFogMaskMode.Texture)
+            {
+                EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
+                EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
+            }
+
             EditorGUILayout.PropertyField(serialized.maskMode, Styles.s_MaskMode);
-            EditorGUILayout.PropertyField(serialized.blendingMode, Styles.s_BlendingModeLabel);
+            if (mode == LocalVolumetricFogMaskMode.Texture)
+                EditorGUILayout.PropertyField(serialized.blendingMode, Styles.s_BlendingModeLabel);
             EditorGUILayout.PropertyField(serialized.priority, Styles.s_PriorityLabel);
         }
 

@@ -198,7 +198,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool validShadow = false;
                     if (gpuLightType == GPULightType.Point
                         || gpuLightType == GPULightType.Rectangle
-                        || (gpuLightType == GPULightType.Spot && lightVolumeType == LightVolumeType.Cone))
+                        || gpuLightType == GPULightType.Spot
+                        || gpuLightType == GPULightType.ProjectorPyramid
+                        || gpuLightType == GPULightType.ProjectorBox)
                         validShadow = true;
 
                     if (validShadow)

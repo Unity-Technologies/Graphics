@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
     class HairAdvancedOptionsPropertyBlock : AdvancedOptionsPropertyBlock
     {
-        class Styles
+        new class Styles
         {
             public static GUIContent colorParameterization = new GUIContent("Color Mode", "Indicates the way the hair fiber cortex color is parameterized.");
             public static GUIContent geometryType = new GUIContent("Geometry Type", "Indicates the type of geometry being used to represent the hair, allowing the shading model to make informed approximations.");

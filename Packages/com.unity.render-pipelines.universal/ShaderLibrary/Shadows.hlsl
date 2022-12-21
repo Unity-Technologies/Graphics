@@ -45,7 +45,7 @@
 #define CALCULATE_BAKED_SHADOWS
 #endif
 
-SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
+TEXTURE2D_X(_ScreenSpaceShadowmapTexture);
 SAMPLER(sampler_ScreenSpaceShadowmapTexture);
 
 TEXTURE2D_SHADOW(_MainLightShadowmapTexture);

@@ -172,6 +172,8 @@ namespace UnityEngine.Rendering.Universal
         internal static RenderGraph s_RenderGraph;
         private static bool useRenderGraph;
 
+        internal bool apvIsEnabled = false;
+
         // Reference to the asset associated with the pipeline.
         // When a pipeline asset is switched in `GraphicsSettings`, the `UniversalRenderPipelineCore.asset` member
         // becomes unreliable for the purpose of pipeline and renderer clean-up in the `Dispose` call from
@@ -238,11 +240,42 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             QualitySettings.enableLODCrossFade = asset.enableLODCrossFade;
+
+            apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
+            SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
+            if (apvIsEnabled)
+            {
+                var pvr = ProbeReferenceVolume.instance;
+                var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
+                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
+                {
+                    memoryBudget = asset.probeVolumeMemoryBudget,
+                    blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
+                    probeDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeDebugShader,
+                    fragmentationDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeFragmentationDebugShader,
+                    probeSamplingDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeSamplingDebugShader,
+                    probeSamplingDebugMesh = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugMesh,
+                    probeSamplingDebugTexture = asset.scriptableRendererData.probeVolumeResources.probeSamplingDebugTexture,
+                    offsetDebugShader = asset.scriptableRendererData.probeVolumeResources.probeVolumeOffsetDebugShader,
+                    scenarioBlendingShader = null, // Disable this since it requires compute 'data.probeVolumeResources.probeVolumeBlendStatesCS,'
+                    sceneData = asset.GetOrCreateAPVSceneData(),
+                    shBands = asset.probeVolumeSHBands,
+                    supportsRuntimeDebug = Application.isEditor || !globalSettings.stripDebugVariants,
+                    supportStreaming = asset.supportProbeVolumeStreaming,
+                    supportScenarios = false
+                });
+                SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active URP Asset.";
+            }
         }
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            if (apvIsEnabled)
+            {
+                ProbeReferenceVolume.instance.Cleanup();
+            }
+
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettingsUI.UnregisterDebug();
 #endif
@@ -267,6 +300,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
+
+            ConstantBuffer.ReleaseAll();
 
             DisposeAdditionalCameraData();
             AdditionalLightsShadowAtlasLayout.ClearStaticCaches();
@@ -511,7 +546,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="context">Render context used to record commands during execution.</param>
         /// <param name="camera">Camera to render.</param>
         /// <seealso cref="ScriptableRenderContext"/>
-        [Obsolete("RenderSingleCamera is obsolete, please use RenderPipeline.SubmiteRenderRequest with UniversalRenderer.SingleCameraRequest as RequestData type", false)]
+        [Obsolete("RenderSingleCamera is obsolete, please use RenderPipeline.SubmiteRenderRequest with UniversalRenderer.SingleCameraRequest as RequestData type", true)]
         public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
         {
             RenderSingleCameraInternal(context, camera);
@@ -604,6 +639,20 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd); // Send all the commands enqueued so far in the CommandBuffer cmd, to the ScriptableRenderContext context
                 cmd.Clear();
 
+                bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
+                ProbeReferenceVolume.instance.SetEnableStateFromSRP(apvIsEnabled);
+                // We need to verify and flush any pending asset loading for probe volume.
+                if (apvIsEnabled && ProbeReferenceVolume.instance.isInitialized)
+                {
+                    ProbeReferenceVolume.instance.PerformPendingOperations();
+                    if (camera.cameraType != CameraType.Reflection &&
+                        camera.cameraType != CameraType.Preview)
+                    {
+                        // TODO: Move this to one call for all cameras
+                        ProbeReferenceVolume.instance.UpdateCellStreaming(cmd, camera);
+                    }
+                }
+
 #if UNITY_EDITOR
                 // Emit scene view UI
                 if (isSceneViewCamera)
@@ -612,6 +661,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 if (cameraData.camera.targetTexture != null && cameraData.cameraType != CameraType.Preview)
                     ScriptableRenderContext.EmitGeometryForCamera(camera);
+
+                // do AdaptiveProbeVolume stuff
+                if (apvIsEnabled)
+                    ProbeVolumeLighting.instance.BindAPVRuntimeResources(cmd, true);
+
+                // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
+                ProbeReferenceVolume.instance.RenderDebug(camera);
 
                 // Update camera motion tracking (prev matrices) from cameraData.
                 // Called and updated only once, as the same camera can be rendered multiple times.
@@ -1378,12 +1434,6 @@ namespace UnityEngine.Rendering.Universal
             shadowData.bias = m_ShadowBiasData;
             shadowData.resolution = m_ShadowResolutionData;
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
-
-            // We no longer use screen space shadows in URP.
-            // This change allows us to have particles & transparent objects receive shadows.
-#pragma warning disable 0618
-            shadowData.requiresScreenSpaceShadowResolve = false;
-#pragma warning restore 0618
 
             shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;

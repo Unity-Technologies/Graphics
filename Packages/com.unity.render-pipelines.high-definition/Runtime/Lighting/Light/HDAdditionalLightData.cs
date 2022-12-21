@@ -2376,7 +2376,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void OverrideShadowResolutionRequestsWithShadowCache(HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDLightType lightType)
         {
             int shadowRequestCount = GetShadowRequestCount(shadowSettings.cascadeShadowSplitCount.value, lightType);
-            
+
             for (int i = 0; i < shadowRequestCount; i++)
             {
                 int shadowRequestIndex = shadowRequestIndices[i];

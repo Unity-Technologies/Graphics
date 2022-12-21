@@ -53,14 +53,6 @@ float2 SampleCloudMap(float3 dir, int layer)
     return SAMPLE_TEXTURE2D_ARRAY_LOD(_CloudTexture, sampler_CloudTexture, coords, layer, 0).rg;
 }
 
-float3 RotationUp(float3 p, float2 cos_sin)
-{
-    float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
-    float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
-
-    return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
-}
-
 CloudLayerData GetCloudLayer(int index)
 {
     CloudLayerData layer;
@@ -70,9 +62,9 @@ CloudLayerData GetCloudLayer(int index)
 
     if (index == 0)
     {
-        #ifdef USE_CLOUD_MOTION
+        #ifndef LAYER1_STATIC
         layer.distort = true;
-        #ifdef USE_FLOWMAP
+        #ifdef LAYER1_FLOWMAP
         layer.use_flowmap = true;
         layer.flowmap = _FlowmapA;
         layer.flowmapSampler = sampler_FlowmapA;
@@ -81,9 +73,9 @@ CloudLayerData GetCloudLayer(int index)
     }
     else
     {
-        #ifdef USE_SECOND_CLOUD_MOTION
+        #ifndef LAYER2_STATIC
         layer.distort = true;
-        #ifdef USE_SECOND_FLOWMAP
+        #ifdef LAYER2_FLOWMAP
         layer.use_flowmap = true;
         layer.flowmap = _FlowmapB;
         layer.flowmapSampler = sampler_FlowmapB;
@@ -156,11 +148,11 @@ float4 RenderClouds(float3 dir)
 
     if (dir.y >= 0 || !_UpperHemisphere)
     {
-#ifndef DISABLE_MAIN_LAYER
+#ifndef LAYER1_OFF
         clouds = GetCloudLayerColor(dir, 0);
 #endif
 
-#ifdef USE_SECOND_CLOUD_LAYER
+#ifndef LAYER2_OFF
         float4 cloudsB = GetCloudLayerColor(dir, 1);
         clouds += cloudsB * (1-clouds.a);
 #endif

@@ -57,7 +57,10 @@ namespace UnityEditor.Rendering.Universal
         GBufferWriteRenderingLayers = (1L << 34),
         DepthNormalPassRenderingLayers = (1L << 35),
         LightCookies = (1L << 36),
-        HdrGrading = (1L << 37),
+        ProbeVolumeOff = (1L << 37),
+        ProbeVolumeL1 = (1L << 38),
+        ProbeVolumeL2 = (1L << 39),
+        HdrGrading = (1L << 40),
     }
 
     [Flags]
@@ -135,6 +138,9 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
         LocalKeyword m_ScreenCoordOverride;
+        LocalKeyword m_ProbeVolumesOff;
+        LocalKeyword m_ProbeVolumesL1;
+        LocalKeyword m_ProbeVolumesL2;
 
         Shader m_BokehDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/BokehDepthOfField");
         Shader m_GaussianDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/GaussianDepthOfField");
@@ -206,6 +212,10 @@ namespace UnityEditor.Rendering.Universal
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
 
             m_ScreenCoordOverride = TryGetLocalKeyword(shader, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE);
+
+            m_ProbeVolumesOff = TryGetLocalKeyword(shader, "PROBE_VOLUMES_OFF");
+            m_ProbeVolumesL1 = TryGetLocalKeyword(shader, "PROBE_VOLUMES_L1");
+            m_ProbeVolumesL2 = TryGetLocalKeyword(shader, "PROBE_VOLUMES_L2");
         }
 
         bool IsFeatureEnabled(ShaderFeatures featureMask, ShaderFeatures feature)
@@ -566,6 +576,12 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
+            if (stripTool.StripMultiCompileKeepOffVariant(
+                m_ProbeVolumesOff, ShaderFeatures.ProbeVolumeOff,
+                m_ProbeVolumesL1, ShaderFeatures.ProbeVolumeL1,
+                m_ProbeVolumesL2, ShaderFeatures.ProbeVolumeL2))
+                return true;
+
             return false;
         }
 
@@ -616,6 +632,11 @@ namespace UnityEditor.Rendering.Universal
             if (compilerData.shaderKeywordSet.IsEnabled(m_DirectionalLightmap) &&
                 !(compilerData.shaderKeywordSet.IsEnabled(m_Lightmap) ||
                   compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)))
+                return true;
+
+            // We can strip shaders where both lightmaps and probe volumes are enabled
+            if ((compilerData.shaderKeywordSet.IsEnabled(m_Lightmap) || compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)) &&
+                (compilerData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL1) || compilerData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL2)))
                 return true;
 
             // Editor visualization is only used in scene view debug modes.
@@ -1067,6 +1088,16 @@ namespace UnityEditor.Rendering.Universal
                     shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
                 }
             }
+
+            if (pipelineAsset.lightProbeSystem == LightProbeSystem.ProbeVolumes)
+            {
+                if (pipelineAsset.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1)
+                    shaderFeatures |= ShaderFeatures.ProbeVolumeL1;
+                if (pipelineAsset.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    shaderFeatures |= ShaderFeatures.ProbeVolumeL2;
+            }
+            else
+                shaderFeatures |= ShaderFeatures.ProbeVolumeOff;
 
             bool anyShadows = pipelineAsset.supportsMainLightShadows || (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
             if (pipelineAsset.supportsSoftShadows && anyShadows)

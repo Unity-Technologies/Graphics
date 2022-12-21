@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="source">Source render target.</param>
         /// <param name="destination">Destination render target.</param>
         /// <param name="downsampling">The downsampling method to use.</param>
-        [Obsolete("Use RTHandles for source and destination.")]
+        [Obsolete("Use RTHandles for source and destination.")] // TODO OBSOLETE: need to fix the URP test failures when bumping
         public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
         {
             this.source = RTHandles.Alloc(source);

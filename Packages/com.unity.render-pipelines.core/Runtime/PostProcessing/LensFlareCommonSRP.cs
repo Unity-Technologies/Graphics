@@ -1241,8 +1241,9 @@ namespace UnityEngine.Rendering
             Vector4 parameters4,
             Vector4 parameters5,
             Rendering.CommandBuffer cmd,
-            Rendering.RenderTargetIdentifier colorBuffer,
+            RTHandle result,
             int _BloomTexture,
+            int _LensFlareScreenSpaceResultTexture,
             int _LensFlareScreenSpaceSpectralLut,
             int _LensFlareScreenSpaceStreakTex,
             int _LensFlareScreenSpaceMipLevel,
@@ -1254,8 +1255,6 @@ namespace UnityEngine.Rendering
             int _LensFlareScreenSpaceParams5,
             bool debugView)
         {
-            Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
-
             cmd.SetViewport(new Rect() { width = actualWidth, height = actualHeight });
             if (debugView)
             {
@@ -1293,6 +1292,7 @@ namespace UnityEngine.Rendering
             int downSamplePass = 1;
             int upSamplePass = 2;
             int compositionPass = 3;
+            int writeToBloomPass = 4;
 
             // Setting the input textures
             cmd.SetGlobalTexture(_BloomTexture, bloomTexture);
@@ -1348,9 +1348,14 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalTexture(_LensFlareScreenSpaceStreakTex, even ? streakTextureTmp2 : streakTextureTmp);
             }
 
-            //Final Composition (Flares + Streaks)
-            Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
+            // Composition (Flares + Streaks)
+            Rendering.CoreUtils.SetRenderTarget(cmd, result);
             UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, compositionPass);
+
+            // Final pass, we add the result of the previous pass to the Bloom Texture.
+            cmd.SetGlobalTexture(_LensFlareScreenSpaceResultTexture, result);
+            Rendering.CoreUtils.SetRenderTarget(cmd, bloomTexture);
+            UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, writeToBloomPass);
         }
 
         #region Panini Projection

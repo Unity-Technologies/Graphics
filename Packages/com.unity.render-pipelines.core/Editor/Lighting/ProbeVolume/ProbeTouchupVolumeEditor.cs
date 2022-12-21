@@ -215,13 +215,13 @@ namespace UnityEditor.Rendering
         public override void OnInspectorGUI()
         {
             var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
-            if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
+            if (renderPipelineAssetType != null && (renderPipelineAssetType.Name == "HDRenderPipelineAsset" || renderPipelineAssetType.Name == "UniversalRenderPipelineAsset"))
             {
                 serializedObject.Update();
 
                 if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
                 {
-                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled on the used HDRP asset.", MessageType.Warning, wide: true);
+                    EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled on the used HDRP or URP asset.", MessageType.Warning, wide: true);
                     return;
                 }
 

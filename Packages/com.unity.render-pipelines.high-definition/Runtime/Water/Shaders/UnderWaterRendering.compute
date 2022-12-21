@@ -19,7 +19,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Water/Water.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
 
 TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X_UINT2(_StencilTexture);
@@ -158,7 +158,6 @@ void LinePropagation1D(uint3 currentCoord : SV_DispatchThreadID)
 
 // Input color value
 TEXTURE2D_X(_CameraColorTexture);
-TEXTURE2D_X_UINT(_WaterRegionTexture);
 
 // Output textures of the kernels
 RW_TEXTURE2D_X(float4, _CameraColorTextureRW);

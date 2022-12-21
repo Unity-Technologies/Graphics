@@ -106,37 +106,17 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-19027
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 730b87866923e784fb8f8eb057d3ddcb, type: 3}
-    - {fileID: 102900000, guid: edebe9dafa8a5764185b64def86b98a7, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-15406
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 3b35fafd77d2d4677aeb56ab2ba0f743, type: 3}
     - {fileID: 102900000, guid: 7ee1f814cdfbc448698426c3bca01456, type: 3}
     - {fileID: 102900000, guid: b0ed636683cdd4eeb813562e252fa9e4, type: 3}
     - {fileID: 102900000, guid: 000d60d91b3e24c929600ed2c96ef9af, type: 3}
     - {fileID: 102900000, guid: 6f86c8d18eceb4d64a47c435c0f69745, type: 3}
     ColorSpace: -1
-    BuildPlatform: 38
-    GraphicsDevice: 22
+    BuildPlatform: 2
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-12033  (Motion vectors broken ==
-      TAA is broken)
+    Reason: MacOS11 https://jira.unity3d.com/browse/UUM-19249
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 3b35fafd77d2d4677aeb56ab2ba0f743, type: 3}
@@ -159,8 +139,37 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 000d60d91b3e24c929600ed2c96ef9af, type: 3}
     - {fileID: 102900000, guid: 6f86c8d18eceb4d64a47c435c0f69745, type: 3}
     ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
+    BuildPlatform: 38
+    GraphicsDevice: 22
     XrSdk: 
     StereoModes: 0
-    Reason: MacOS11 https://jira.unity3d.com/browse/UUM-19249
+    Reason: https://jira.unity3d.com/browse/UUM-12033  (Motion vectors broken ==
+      TAA is broken)
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 06d3d04c77b97ba40969b415bc9a25dd, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: UUM-21181
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: UUM-19027
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 730b87866923e784fb8f8eb057d3ddcb, type: 3}
+    - {fileID: 102900000, guid: edebe9dafa8a5764185b64def86b98a7, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-15406

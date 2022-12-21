@@ -10,12 +10,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Water", "BlendNormal_Water (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Water", "BlendNormal_Water")]
     class BlendNormal_Water : AbstractMaterialNode, IGeneratesBodyCode
     {
         public BlendNormal_Water()
         {
-            name = "Blend Normal Water (Preview)";
+            name = "Blend Normal Water";
             UpdateNodeAfterDeserialization();
         }
 

@@ -261,8 +261,8 @@ namespace UnityEditor.VFX
                 return m_DefaultVectorField;
             }
         }
-        static Texture3D m_DefaultSignedDistanceField;
 
+        static Texture3D m_DefaultSignedDistanceField;
         public static Texture3D defaultSignedDistanceField
         {
             get
@@ -270,6 +270,17 @@ namespace UnityEditor.VFX
                 if (m_DefaultSignedDistanceField == null)
                     m_DefaultSignedDistanceField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/SignedDistanceField.asset");
                 return m_DefaultSignedDistanceField;
+            }
+        }
+
+        static Texture3D m_TileableGradientNoise;
+        public static Texture3D tileableGradientNoise
+        {
+            get
+            {
+                if (m_TileableGradientNoise == null)
+                    m_TileableGradientNoise = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/TileableGradientNoise.asset");
+                return m_TileableGradientNoise;
             }
         }
 

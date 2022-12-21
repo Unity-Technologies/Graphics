@@ -533,7 +533,7 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 </thead>
 <tbody>
 <tr>
-<td rowspan="10"><strong>Fullscreen Debug Mode</strong></td>
+<td rowspan="11"><strong>Fullscreen Debug Mode</strong></td>
 <td colspan="2">Use the drop-down to select a rendering mode to display as an overlay on the screen.</td>
 </tr>
 <tr>
@@ -567,6 +567,15 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 <tr>
 <td><strong>RequestedVirtualTextureTiles</strong></td>
 <td>Select this option to display what texture tile each pixel uses. Pixels that this debug view renders with the same color request the same texture tile to be streamed into video memory by the streaming virtual texturing system. This debug view is useful to see which areas of the screen use textures that the virtual texturing system steams into video memory. It can help to identify issues with the virtual texture streaming system.</td>
+</tr>
+<tr>
+<td><strong>Compute Thickness</strong></td>
+<td>Select this option to display thickness for each layer selected in the current HDRP Asset.<br/>
+Debug View Color Scale:<br/>
+* 🟠 Orange: Compute Thickness Feature not enabled<br/>
+* 🟣 Purple: Layer not used<br/>
+* 🔴 Red: Negative thickness, due to open meshes, flipped triangles or odd number of triangle of optical path.<br/>
+* ⚫ Grey: Thickness equal 0, Background, Z-Fight or no thickness computed for this pixel.</td>
 </tr>
 <tr>
 <td><strong>Max Pixel Cost</strong></td>

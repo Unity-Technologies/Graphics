@@ -8,8 +8,6 @@ To create a Custom Pass, add a Custom Pass Volume component to your scene using 
 
 ![](Images/Custom_Pass_Volume.png)
 
-
-
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | Mode            | Use the drop-down to select the method that Unity uses to determine whether this Custom Pass Volume can affect a Camera: <br />• **Global**: The Custom Pass Volume has no boundaries, and it can affect every Camera in the scene.<br />• **Local**: Allows you to specify boundaries for the Custom Pass Volume so that it only affects Cameras inside the boundaries. To set the boundaries, add a [Collider](https://docs.unity3d.com/Manual/CollidersOverview.html) to the Custom Pass Volume's GameObject. |
@@ -44,27 +42,54 @@ You can configure a full-screen Custom Pass in the **Custom Passes** panel using
 | FullScreen Material | The material this Custom Pass renders in your scene.         |
 | Pass Name           | Select the shader [Pass name](https://docs.unity3d.com/Manual/SL-Pass.html) that Unity uses to draw the full-screen quad. |
 
-### Creating a material to use with a full-screen Custom Pass
+## Create a material to use with a full-screen Custom Pass
 
-To use a full-screen Custom Pass, you need to create a shader for your Custom Pass to use in your scene. There is a specific shader type in Unity for full-screen Custom Passes. To create a compatible shader:
+To use a full-screen Custom Pass, you need to create a material for your Custom Pass to use. You can do this in one of the following ways: 
 
-1. Create a full-screen Custom Pass shader. To do this, go to **Assets >** **Create > Shader > HDRP > Custom FullScreen Pass.**
+- [Create a Material from a full-screen shader graph](#material-from-fullscreen-shadergraph).
+- [Create a Material from a full-screen Custom Pass shader](#material-from-fullscreen-custompass).
+
+<a name="material-from-fullscreen-shadergraph"></a>
+
+## Create a Material from a full-screen Shader graph
+
+HDRP includes the [Fullscreen Master stack](master-stack-fullscreen.md) to create a full-screen shader graph that you can use with a custom pass.
+
+To use a Fullscreen shader graph in a custom pass:
+
+1. Create a Fullscreen shader graph (Menu: **Assets** > **Create** > **Shader Graph** > **HDRP** > **Fullscreen Shader Graph**) or use one of the [Fullscreen Samples](fullscreen-shader.md#fullscreen-samples).
+2. Create a Material from the Fullscreen Shader Graph. In the **Project** window:
+   1. Right-click the Fullscreen Shader graph.
+   2. Select **Create** >  **Material.**
+3. Create a [Fullscreen Custom Pass](Custom-Pass-Creating.md#Full-Screen-Custom-Pass) and open it in the inspector.
+4. In the **Project** window, select the arrow next to the full-screen shader graph.
+5. Drag the FullScreen material to the **Fullscreen Material** field.
+
+**Important:** If you use a C# custom pass script that uses the `Blit()` function, you need to take extra steps to make the full screen shader work. For more information, see [Make a Fullscreen material Blit compatible](fullscreen-shader.md#fullscreen-blit-compatible).
+
+<a name="material-from-fullscreen-custompass"></a>
+
+## Create a Material from a full-screen Custom Pass shader
+
+HDRP includes a compatible shader for full-screen custom passes. To create and apply a full-screen shader:
+
+1. Create a full-screen Custom Pass shader. To do this, go to **Assets >** **Create > Shader > HDRP Custom FullScreen Pass.** 
 2. Go to the **Hierarchy** and right click on the **Custom FullScreen Pass** shader, then select **Create > Material.** Unity creates a new material with the prefix “FullScreen_”.
-3. In the Custom Pass component, Click **+** to create a Custom Pass and select **FullScreenCustomPass.**
+3. In the Custom Pass component, select **Add** (**+**) to create a Custom Pass and select **FullScreenCustomPass.**
 4. To assign this material to your **FullScreenCustomPass,** open the material picker using the icon at the right of the **FullScreen Material** box and select your “FullScreen_...” material.
-5. If you have multiple Custom Passes, select the **Pass Name** you would like this pass to use.
+5. If you have multiple shader passes, select the **Pass Name** you would like this pass to use.
 
-### Editing the Unity shader for a full-screen Custom Pass
+### Modify a full-screen Custom Pass shader in code
 
-When Unity creates a material for use with a full-screen Custom Pass, it adds default template code for a Unity shader.
+When Unity creates a material for use with a full-screen Custom Pass, it also creates default template code for a Unity shader.
 
 To edit the Unity shader:
 
 1. Select the material in the **Assets** window.
-2. Navigate to the **Inspector**
-3. Click **Open**.
+2. Navigate to the **Inspector**.
+3. Select **Open**.
 
-This Unity shader source file contains the following  `FullScreenPass` method. You can add custom shader code for your full-screen Custom Pass here:
+This Unity shader source file contains the `FullScreenPass` method where you can add custom shader code for your full-screen Custom Pass:
 
 ```c#
 float4 FullScreenPass(Varyings varyings) : SV_Target
@@ -86,16 +111,63 @@ float4 FullScreenPass(Varyings varyings) : SV_Target
 }
 ```
 
-The FullScreenPass method fetches the following input data:
+In your custom code, you can use the following inputs:
 
-- Depth
-- View direction
-- Position in world space
-- Color
+- `depth`, which is the depth of the fragment, as a float2.
+- `viewDirection` which is the view direction, as a float3.
+- `posInput` which is a struct that contains the world space position, as a float3.
+- `color`which is the RGBA color value, as a float4.
 
-The `FullScreenPass` method also contains the `_FadeValue` variable, which allows you to increase the strength of an effect as the Camera gets closer to the Custom Pass Volume. This variable only works on local Custom Pass Volumes that have a **Fade Radius** assigned.
+The `FullScreenPass` method also uses the `_FadeValue` variable, which allows you to increase the strength of an effect as the Camera gets closer to the Custom Pass Volume. This variable only works on local Custom Pass Volumes that have a **Fade Radius** value above 0.
 
 <a name="Draw-Renderers-Custom-Pass"></a>
+
+<a name="readwrite-color-buffer"></a>
+
+## Write to and read from a custom color buffer
+
+To create a full-screen material for a custom pass that uses the Camera color buffer, you need to read from and write to a custom color buffer. This is useful to create effects like blur, color correction or chromatic aberration.
+
+However, you can’t read and write to the same render target in a custom pass. This means you need to create two full-screen custom passes: 
+
+- [A custom pass that writes the Camera’s color buffer into a temporary (custom) color buffer.](#write-custom-buffer)
+- [A custom pass that reads from the temporary color buffer.](#read-custom-buffer)
+
+**Note**: If a custom pass adjusts the color of each pixel and not their position, then you can read and write to the color buffer in a single pass. To do this, write a [compute shader](https://docs.unity3d.com/Manual/class-ComputeShader.html) and dispatch it in a custom pass C# file. This method uses fewer resources on the GPU, but it is more complex.
+
+<a name="write-custom-buffer"></a>
+
+### Write to a custom color buffer
+
+To write to the custom color buffer in a full-screen custom pass:
+
+- Create a [full-screen Custom Pass](#Full-Screen-Custom-Pass).
+- Assign a Full Screen shader to the **Fullscreen Material** field. For example a shader graph that uses [HD Scene Color node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/HD-Scene-Color-Node.html) to write to the Base Color.
+- Enable **Fetch Color Buffer.**
+- Set the **Target Color Buffer** to **Custom**.
+
+<a name="read-custom-buffer"></a>
+
+### Read from the custom color buffer
+
+To create and assign  a full-screen shader graph that reads from the custom color buffer:
+
+1. [Create a new full-screen shader graph](fullscreen-shader.md#create-fullscreen-shadergraph).
+2. Press the Spacebar to open the **Create Node** window
+3. In the **Create Node** window, search for the **Custom Color Buffer** node
+4. Double-click the **Custom Color Buffer** node to create it in your shader graph.
+5. Connect the Output port of the **Custom Color Buffer** to the **Base Color** block in the **Fragment** context.
+6. In the Custom Pass Volume component that samples from the color buffer, select **Add** (**+**).
+7. Select **Full Screen Custom Pass.**
+8. In the **FullScreen Material** property, select the material picker (circle).
+9. Set the **Target Color Buffer** to **Camera**.
+10. Select the material that reads from the color buffer.
+
+This copies the contents of the custom color buffer to the Camera color buffer.
+
+![](Images/FS_CustomColorBuffer.png)
+
+For more information on how to modify a full-screen Shader Graph, see the [full-screen master stack](master-stack-fullscreen.md).
 
 ## Draw renderers Custom Pass
 

@@ -6,8 +6,6 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeReferenceVolume.Debug.cs.hlsl"
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
-
 uniform int _ShadingMode;
 uniform float _ExposureCompensation;
 uniform float _ProbeSize;
@@ -184,12 +182,14 @@ half4 WriteFractNumber(float input, float2 texCoord)
     float2 n1_uv = float2(clamp(texCoord.x*i - 2.0f, 0.0f, 1.0f), texCoord.y);
     float2 n2_uv = float2(clamp(texCoord.x*i - 3.0f, 0.0f, 1.0f), texCoord.y);
 
-    half4 n0 = SampleCharacter(n0_value, n0_uv);
-    half4 dot = SampleCharacter(10, dot_uv);
-    half4 n1 = SampleCharacter(n1_value, n1_uv);
-    half4 n2 = SampleCharacter(n2_value, n2_uv);
+    if (texCoord.x <= 0.25)
+        return SampleCharacter(n0_value, n0_uv);
+    if (texCoord.x <= 0.50)
+        return SampleCharacter(10, dot_uv);
+    if (texCoord.x <= 0.75)
+        return SampleCharacter(n1_value, n1_uv);
 
-    return n0 * dot * n1 * n2;
+    return SampleCharacter(n2_value, n2_uv);
 }
 
 

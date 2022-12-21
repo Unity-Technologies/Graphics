@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent zWriteEnableText = new GUIContent("Depth Write", "When enabled, transparent objects write to the depth buffer.");
             public static GUIContent transparentZTestText = new GUIContent("Depth Test", "Set the comparison function to use during the Z Testing.");
-            public static GUIContent rayTracingText = new GUIContent("Recursive Rendering (Preview)");
+            public static GUIContent rayTracingText = new GUIContent("Recursive Rendering");
             public static GUIContent rayTracingTextInfo = new GUIContent("When enabled, if you enabled ray tracing in your project and a recursive rendering volume override is active, Unity uses recursive rendering to render the GameObject.");
 
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
@@ -208,9 +208,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty depthOffsetEnable = null;
         MaterialProperty conservativeDepthOffsetEnable = null;
-
-        // Refraction (for show pre-refraction pass enum)
-        MaterialProperty refractionModel = null;
 
         MaterialProperty transparentZWrite = null;
         MaterialProperty stencilRef = null;
@@ -363,8 +360,6 @@ namespace UnityEditor.Rendering.HighDefinition
             transparentCullMode = FindProperty(kTransparentCullMode);
             opaqueCullMode = FindProperty(kOpaqueCullMode);
             rayTracing = FindProperty(kRayTracing);
-
-            refractionModel = FindProperty(kRefractionModel);
 
             renderQueueProperty = materialEditor.serializedObject.FindProperty("m_CustomRenderQueue");
         }
@@ -627,7 +622,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool isMixedRenderQueue = surfaceType.hasMixedValue || renderQueueHasMultipleDifferentValue;
             bool showAfterPostProcessPass = (m_Features & Features.ShowAfterPostProcessPass) != 0;
-            bool showPreRefractionPass = refractionModel == null || refractionModel.floatValue == 0;
             bool showLowResolutionPass = true;
 
             EditorGUI.showMixedValue = isMixedRenderQueue;

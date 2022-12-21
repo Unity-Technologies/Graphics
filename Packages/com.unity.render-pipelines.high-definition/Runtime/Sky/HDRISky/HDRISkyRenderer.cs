@@ -130,16 +130,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            bool useFptl = builtinParams.hdCamera.frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
+            CoreUtils.SetKeyword(m_SkyHDRIMaterial, "USE_FPTL_LIGHTLIST", useFptl);
+            CoreUtils.SetKeyword(m_SkyHDRIMaterial, "USE_CLUSTERED_LIGHTLIST", !useFptl);
+
+            CoreUtils.SetKeyword(m_SkyHDRIMaterial, "DISTORTION_PROCEDURAL", hdriSky.distortionMode.value == HDRISky.DistortionMode.Procedural);
+            CoreUtils.SetKeyword(m_SkyHDRIMaterial, "DISTORTION_FLOWMAP", hdriSky.distortionMode.value == HDRISky.DistortionMode.Flowmap);
+
             if (hdriSky.distortionMode.value != HDRISky.DistortionMode.None)
             {
-                m_SkyHDRIMaterial.EnableKeyword("SKY_MOTION");
                 if (hdriSky.distortionMode.value == HDRISky.DistortionMode.Flowmap)
-                {
-                    m_SkyHDRIMaterial.EnableKeyword("USE_FLOWMAP");
                     m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Flowmap, hdriSky.flowmap.value);
-                }
-                else
-                    m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
 
                 var hdCamera = builtinParams.hdCamera;
                 float rot = Mathf.Deg2Rad * (hdriSky.scrollOrientation.GetValue(hdCamera) - hdriSky.rotation.value);
@@ -151,8 +152,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 scrollFactor += hdCamera.animateMaterials ? hdriSky.scrollSpeed.GetValue(hdCamera) * (hdCamera.time - lastTime) * 0.01f : 0.0f;
                 lastTime = hdCamera.time;
             }
-            else
-                m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");
 
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));

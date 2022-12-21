@@ -156,9 +156,6 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, int groupIndex : SV_Gr
     // Evaluate the cloud transmittance
     VolumetricRayResult result = TraceVolumetricRay(ray);
 
-    // Apply a fast tonemap
-    result.inScattering = ApplyFastTonemapping(result.inScattering);
-
     // output the result
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float4(result.inScattering, result.transmittance);
 

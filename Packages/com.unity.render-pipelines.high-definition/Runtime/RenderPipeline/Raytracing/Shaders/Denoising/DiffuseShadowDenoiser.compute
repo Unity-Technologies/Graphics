@@ -12,6 +12,12 @@
 #pragma kernel BilateralFilterHSingleSpot               BILATERAL_FILTER=BilateralFilterHSingleSpot             SINGLE_CHANNEL SPOT_LIGHT
 #pragma kernel BilateralFilterVSingleSpot               BILATERAL_FILTER=BilateralFilterVSingleSpot             FINAL_PASS SINGLE_CHANNEL SPOT_LIGHT
 
+#pragma kernel BilateralFilterHSinglePyramid            BILATERAL_FILTER=BilateralFilterHSinglePyramid          SINGLE_CHANNEL PYRAMID_LIGHT
+#pragma kernel BilateralFilterVSinglePyramid            BILATERAL_FILTER=BilateralFilterVSinglePyramid          FINAL_PASS SINGLE_CHANNEL PYRAMID_LIGHT
+
+#pragma kernel BilateralFilterHSingleBox                BILATERAL_FILTER=BilateralFilterHSingleBox              SINGLE_CHANNEL BOX_LIGHT
+#pragma kernel BilateralFilterVSingleBox                BILATERAL_FILTER=BilateralFilterVSingleBox              FINAL_PASS SINGLE_CHANNEL BOX_LIGHT
+
 #pragma multi_compile _ DISTANCE_BASED_DENOISER
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -116,7 +122,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         const int2 passIncr = int2(0, 1);
     #endif
 
-#if SPOT_LIGHT || POINT_LIGHT
+#if SPOT_LIGHT || PYRAMID_LIGHT || BOX_LIGHT || POINT_LIGHT
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetLight];
 #endif
@@ -135,14 +141,24 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         // Compute the weight (skip computation for the center)
         float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
 
+    #if POINT_LIGHT
+        float dist2 = DistSqrToLight(lightData, tapData.position);
+        w = PositionInPointRange(lightData, dist2) ? w : 0.0;
+    #endif
+
     #if SPOT_LIGHT
         float dist2 = DistSqrToLight(lightData, tapData.position);
         w = PositionInSpotRange(lightData, _RaytracingLightAngle, tapData.position, dist2) ? w : 0.0;
     #endif
 
-    #if POINT_LIGHT
+    #if PYRAMID_LIGHT
         float dist2 = DistSqrToLight(lightData, tapData.position);
-        w = PositionInPointRange(lightData, dist2) ? w : 0.0;
+        w = PositionInPyramidRange(lightData, _RaytracingLightSizeX, _RaytracingLightSizeY, tapData.position, dist2) ? w : 0.0;
+    #endif
+
+    #if BOX_LIGHT
+        float dist2 = DistSqrToLight(lightData, tapData.position);
+        w = PositionInBoxRange(lightData, _RaytracingLightSizeX, _RaytracingLightSizeY, tapData.position, dist2) ? w : 0.0;
     #endif
 
         // Accumulate the color

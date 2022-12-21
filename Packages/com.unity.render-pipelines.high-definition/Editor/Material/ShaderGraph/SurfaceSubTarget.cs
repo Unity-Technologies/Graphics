@@ -31,6 +31,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderQueueType, systemData.sortPriority, systemData.alphaTest, false));
         }
 
+        protected override string disableBatchingTag
+        {
+            get => builtinData.supportLodCrossFade ? $"{UnityEditor.ShaderGraph.DisableBatching.LODFading}" : $"{UnityEditor.ShaderGraph.DisableBatching.False}";
+        }
+
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/ShaderPass.template";
 
         protected virtual bool supportForward => false;
@@ -175,7 +180,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pass.keywords.Add(CoreKeywordDescriptors.WriteMsaaDepth);
 
             pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
-            pass.keywords.Add(CoreKeywordDescriptors.BlendMode);
             pass.keywords.Add(CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false));
             pass.keywords.Add(CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true));
             pass.keywords.Add(CoreKeywordDescriptors.ConservativeDepthOffset, new FieldCondition(HDFields.ConservativeDepthOffset, true));

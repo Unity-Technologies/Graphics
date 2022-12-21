@@ -1972,6 +1972,7 @@ namespace UnityEngine.Rendering
 
                 profile.simplificationLevels = (int)Mathf.Log(data.asset.cellSizeInBricks, 3);
                 profile.minDistanceBetweenProbes = data.asset.minDistanceBetweenProbes;
+                globalBounds = data.asset.globalBounds;
                 return true;
             }
 

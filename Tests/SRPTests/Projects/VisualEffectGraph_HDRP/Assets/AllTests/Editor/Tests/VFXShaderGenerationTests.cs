@@ -139,6 +139,29 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void DebugSymbolsPragmaGeneration()
+        {
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            graph.AddChild(updateContext);
+
+            var contextCompiledData = new VFXTaskCompiledData()
+            {
+                gpuMapper = new VFXExpressionMapper(),
+                uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
+                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>())
+            };
+            var task = new VFXTask { templatePath = updateContext.codeGeneratorTemplate, type = updateContext.taskType };
+            HashSet<string> dependencies = new HashSet<string>();
+            var stringBuilderNoDebugSymbols = VFXCodeGenerator.Build(updateContext, task, VFXCompilationMode.Runtime, contextCompiledData, dependencies, false);
+            var stringBuilderDebugSymbols = VFXCodeGenerator.Build(updateContext, task, VFXCompilationMode.Runtime, contextCompiledData, dependencies, true);
+
+            const string debugSymbolStr = "#pragma enable_d3d11_debug_symbols";
+            Assert.IsFalse(stringBuilderNoDebugSymbols.ToString().Contains(debugSymbolStr));
+            Assert.IsTrue(stringBuilderDebugSymbols .ToString().Contains(debugSymbolStr));
+        }
+
+        [Test]
         public void DifferentSettingsGenerateDifferentFunction()
         {
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
@@ -152,14 +175,15 @@ namespace UnityEditor.VFX.Test
             updateContext.AddChild(blockA);
             updateContext.AddChild(blockB);
 
-            var contextCompiledData = new VFXContextCompiledData()
+            var contextCompiledData = new VFXTaskCompiledData()
             {
                 gpuMapper = new VFXExpressionMapper(),
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
                 graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>())
             };
             HashSet<string> dependencies = new HashSet<string>();
-            var stringBuilder = VFXCodeGenerator.Build(updateContext, VFXCompilationMode.Runtime, contextCompiledData, dependencies);
+            var task = new VFXTask { templatePath = updateContext.codeGeneratorTemplate, type = updateContext.taskType };
+            var stringBuilder = VFXCodeGenerator.Build(updateContext, task, VFXCompilationMode.Runtime, contextCompiledData, dependencies, false);
 
             var code = stringBuilder.ToString();
             Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[0]));

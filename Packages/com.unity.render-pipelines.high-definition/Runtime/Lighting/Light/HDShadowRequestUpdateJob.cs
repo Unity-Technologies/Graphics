@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (visibleLightsAndIndices.willRenderShadowMap)
                 {
                     HDShadowRequestSetHandle shadowRequestSetHandle = visibleLightsAndIndices.shadowRequestSetHandle;
-                    
+
                     for (int index = 0; index < visibleLightsAndIndices.splitCount; index++)
                     {
                         if (!visibleLightsAndIndices.isSplitValidArray[(uint)index])
@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < cachedDirectionalVisibleLightsAndIndices.Length; i++)
                 {
                     ref ShadowIndicesAndVisibleLightData shadowIndicesAndVisibleLightData = ref cachedDirectionalVisibleLightsAndIndices.ElementAt(i);
-                    
+
                     HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;
                     ShadowMapUpdateType cachedDirectionalUpdateType = HDAdditionalLightData.GetShadowUpdateType(HDLightType.Directional, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
 

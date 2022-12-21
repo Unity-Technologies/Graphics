@@ -44,7 +44,7 @@ float _Resolution;
 #define _SunDirection       _Params.xyz
 #define _UpperHemisphere    (_Params.w > 0)
 #define _Opacities          _Params1[data.index]
-#define _Rotation           _Params2[LAYER].x
+#define _Rotation(index)    _Params2[index].x
 #define _LightingSteps      _Params2[data.index].y
 #define _SigmaT             _Params2[data.index].z
 #define _Altitude           _Params2[data.index].w
@@ -53,6 +53,7 @@ struct LayerSamplingData
 {
     int index;
     float4 weights;
+    float3 sunDirection;
 
     TEXTURE2D(cloudMap);
     SAMPLER(sampler_cloudMap);
@@ -95,14 +96,6 @@ float SampleCloudMap(LayerSamplingData data, float2 uv)
     return clouds.r + clouds.g + clouds.b + clouds.a;
 }
 
-float3 RotationUp(float3 p, float2 cos_sin)
-{
-    float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
-    float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
-
-    return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
-}
-
 float GetDensity(LayerSamplingData data, float3 positionWS, float3 dir, float thickness)
 {
     float rangeStart, range;
@@ -124,7 +117,7 @@ float EvaluateSunLuminance(LayerSamplingData data, float3 positionWS, float phas
     const int _NumLightSteps = (int)_LightingSteps;
 
     float luminance = 0.0, extinction = 0.0;
-    float totalLightDistance = GetCloudVolumeIntersection_Light(data, positionWS, _SunDirection);
+    float totalLightDistance = GetCloudVolumeIntersection_Light(data, positionWS, data.sunDirection);
     totalLightDistance = clamp(totalLightDistance, 0, 500);
 
     // Compute the size of the current step
@@ -133,7 +126,7 @@ float EvaluateSunLuminance(LayerSamplingData data, float3 positionWS, float phas
     // Collect total density along light ray.
     for (int j = 1; j <= _NumLightSteps; j++)
     {
-        float3 currentSamplePointWS = positionWS + _SunDirection * stepSize * j;
+        float3 currentSamplePointWS = positionWS + data.sunDirection * stepSize * j;
         extinction += GetDensity(data, currentSamplePointWS);
     }
 
@@ -154,6 +147,7 @@ float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), floa
     data.cloudMap = cloudMap;
     data.sampler_cloudMap = sampler_cloudMap;
     data.weights = _Opacities / max(_Opacities.r + _Opacities.g + _Opacities.b + _Opacities.a, 1.0);
+    data.sunDirection = RotationUp(_SunDirection, float2(cos(_Rotation(index) * TWO_PI), sin(_Rotation(index) * TWO_PI)));
 
     const float opacity = SampleCloudMap(data, uv);
     float2 finalColor = opacity;
@@ -161,7 +155,7 @@ float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), floa
     if ((int)_LightingSteps != 0)
     {
         const float3 dir = InverseLatLong(uv, _UpperHemisphere);
-        const float cosAngle = dot(dir, _SunDirection);
+        const float cosAngle = dot(dir, data.sunDirection);
 
         float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES];
         for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
@@ -207,6 +201,6 @@ void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
         ComputeCloudLighting(_CloudMapB, sampler_CloudMapB, uv, LAYER);
 #endif
 
-    dispatchThreadId.x = frac(uv.x + _Rotation) / _Resolution;
+    dispatchThreadId.x = frac(uv.x + _Rotation(LAYER)) / _Resolution;
     _CloudTexture[dispatchThreadId] = cloudLayerColor;
 }

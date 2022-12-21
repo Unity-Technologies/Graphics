@@ -114,6 +114,8 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
+
             #pragma instancing_options procedural:ParticleInstancingSetup
 
             // -------------------------------------

@@ -427,6 +427,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBlending, renderingData.lightData.reflectionProbeBlending);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBoxProjection, renderingData.lightData.reflectionProbeBoxProjection);
 
+                var asset = UniversalRenderPipeline.asset;
+                bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
+                ProbeVolumeSHBands probeVolumeSHBands = asset.probeVolumeSHBands;
+
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_OFF", !apvIsEnabled);
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+
+                var stack = VolumeManager.instance.stack;
+
+                bool enableProbeVolumes = ProbeVolumeLighting.instance.UpdateShaderVariablesProbeVolumes(
+                    stack.GetComponent<ProbeVolumesOptions>(),
+                    renderingData.cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0,
+                    cmd);
+
                 bool lightLayers = renderingData.lightData.supportsLightLayers;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
 

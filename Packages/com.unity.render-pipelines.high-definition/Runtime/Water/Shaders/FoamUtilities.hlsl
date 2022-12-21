@@ -19,7 +19,7 @@ float SurfaceFoam(float2 _UV, float foamTime)
     float4 foamMasks = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, _UV * _FoamTilling);
     float microDistanceField = foamMasks.r;
     float temporalNoise = foamMasks.g;
-    float foamNoise = foamMasks.b;
+    float foamNoise = saturate(foamMasks.b);
     float macroDistanceField = foamMasks.a;
 
     foamTime = saturate(foamTime);

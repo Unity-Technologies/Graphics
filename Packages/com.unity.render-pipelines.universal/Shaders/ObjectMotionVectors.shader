@@ -82,7 +82,7 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
             #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
                 // Non-uniform raster needs to keep the posNDC values in float to avoid additional conversions
                 // since uv remap functions use floats
-                #define POS_NDC_TYPE float2 
+                #define POS_NDC_TYPE float2
             #else
                 #define POS_NDC_TYPE half2
             #endif
@@ -104,7 +104,7 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
                 // Calculate positions
                 float4 posCS = input.positionCSNoJitter;
                 float4 prevPosCS = input.previousPositionCSNoJitter;
-                
+
                 POS_NDC_TYPE posNDC = posCS.xy * rcp(posCS.w);
                 POS_NDC_TYPE prevPosNDC = prevPosCS.xy * rcp(prevPosCS.w);
 
@@ -112,7 +112,7 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
                     // Convert velocity from NDC space (-1..1) to screen UV 0..1 space since FoveatedRendering remap needs that range.
                     half2 posUV = RemapFoveatedRenderingResolve(posNDC * 0.5 + 0.5);
                     half2 prevPosUV = RemapFoveatedRenderingPrevFrameResolve(prevPosNDC * 0.5 + 0.5);
-                    
+
                     // Calculate forward velocity
                     half2 velocity = (posUV - prevPosUV);
                     #if UNITY_UV_STARTS_AT_TOP

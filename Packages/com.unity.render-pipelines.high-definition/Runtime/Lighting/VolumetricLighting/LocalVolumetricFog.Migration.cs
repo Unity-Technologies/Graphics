@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
             First,
             ScaleIndependent,
             FixUniformBlendDistanceToBeMetric,
+            ExposeMaterialBlendMode,
         }
 
         static readonly MigrationDescription<Version, LocalVolumetricFog> k_Migration = MigrationDescription.New(
@@ -39,7 +40,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 //when migrated prior to this fix, Local Volumetric Fog have to be manually set on advance mode.
                 data.parameters.m_EditorAdvancedFade = true;
             }),
-            MigrationStep.New(Version.FixUniformBlendDistanceToBeMetric, (LocalVolumetricFog data) => data.parameters.MigrateToFixUniformBlendDistanceToBeMetric())
+            MigrationStep.New(Version.FixUniformBlendDistanceToBeMetric, (LocalVolumetricFog data) => data.parameters.MigrateToFixUniformBlendDistanceToBeMetric()),
+            MigrationStep.New(Version.ExposeMaterialBlendMode, (LocalVolumetricFog data) =>
+            {
+                if (data.parameters.maskMode == LocalVolumetricFogMaskMode.Material)
+                {
+                    if (data.parameters.materialMask != null)
+                    {
+                        data.parameters.materialMask.SetColor(FogVolumeAPI.k_SingleScatteringAlbedoProperty, data.parameters.albedo);
+                        data.parameters.materialMask.SetFloat(FogVolumeAPI.k_FogDistanceProperty, data.parameters.meanFreePath);
+                        FogVolumeAPI.SetupFogVolumeBlendMode(data.parameters.materialMask, data.parameters.blendingMode);
+                    }
+                }
+            })
         );
 
         [SerializeField]

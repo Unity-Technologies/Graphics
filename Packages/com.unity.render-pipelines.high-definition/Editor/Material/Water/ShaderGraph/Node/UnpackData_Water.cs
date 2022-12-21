@@ -10,12 +10,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Water", "UnpackData_Water (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Water", "UnpackData_Water")]
     class UnpackData_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public UnpackData_Water()
         {
-            name = "Unpack Water Data (Preview)";
+            name = "Unpack Water Data";
             UpdateNodeAfterDeserialization();
         }
 

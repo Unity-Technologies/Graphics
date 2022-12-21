@@ -210,16 +210,6 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
-    - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-15980
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 069f595c511c463418479db2f730eec1, type: 3}
     ColorSpace: -1
     BuildPlatform: -2

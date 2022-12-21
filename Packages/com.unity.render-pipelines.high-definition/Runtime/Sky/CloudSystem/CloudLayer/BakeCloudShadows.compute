@@ -1,12 +1,8 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-
 //#pragma enable_d3d11_debug_symbols
-#pragma multi_compile_local _ DISABLE_MAIN_LAYER
-#pragma multi_compile_local _ USE_CLOUD_MOTION
-#pragma multi_compile_local _ USE_FLOWMAP
-#pragma multi_compile_local _ USE_SECOND_CLOUD_LAYER
-#pragma multi_compile_local _ USE_SECOND_CLOUD_MOTION
-#pragma multi_compile_local _ USE_SECOND_FLOWMAP
+
+#pragma multi_compile_local LAYER1_OFF LAYER1_STATIC LAYER1_PROCEDURAL LAYER1_FLOWMAP
+#pragma multi_compile_local LAYER2_OFF LAYER2_STATIC LAYER2_PROCEDURAL LAYER2_FLOWMAP
 
 #pragma kernel BakeCloudShadows KERNEL_NAME=BakeCloudShadows
 

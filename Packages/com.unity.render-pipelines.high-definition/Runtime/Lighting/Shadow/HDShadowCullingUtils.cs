@@ -259,6 +259,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             ++shadowRequestCount;
                         }
 
+                        if (shadowRequestCount == 0)
+                            continue;
+
                         ref ShadowIndicesAndVisibleLightData bufferElement = ref visibleLightsAndIndicesBufferPtr[lightIndex];
                         bufferElement.willRenderShadowMap = true;
                         bufferElement.additionalLightUpdateInfo = lightUpdateInfo;

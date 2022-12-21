@@ -566,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     dynamicSpotHDSplits = visibleLights.dynamicSpotHDSplits,
                     dynamicAreaRectangleHDSplits = visibleLights.dynamicAreaRectangleHDSplits,
                     dynamicDirectionalHDSplits = visibleLights.dynamicDirectionalHDSplits,
-                    
+
                     lightCounts = lightCounts,
                     shadowSettingsCascadeShadowSplitCount = shadowSettingsCascadeShadowSplitCount,
                     invalidIndex = invalidIndex,

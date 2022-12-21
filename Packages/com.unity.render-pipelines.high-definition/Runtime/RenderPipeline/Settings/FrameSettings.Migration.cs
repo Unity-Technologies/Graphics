@@ -456,5 +456,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.VirtualTexturing, true);
         }
+        
+        internal static void MigrateAmethystFeatures(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.Water, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.WaterDeformation, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.WaterExclusion, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ComputeThickness, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.LensFlareScreenSpace, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.HighQualityLineRendering, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.RaytracingVFX, true);
+        }
     }
 }

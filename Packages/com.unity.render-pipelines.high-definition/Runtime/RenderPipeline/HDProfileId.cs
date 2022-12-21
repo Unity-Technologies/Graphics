@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
         WaterSurfacePrepareLighting,
         WaterSurfaceRenderingDeferred,
         WaterSurfaceRenderingUnderWater,
+        WaterSurfaceRenderingWaterLine,
 
         // RT Cluster
         RaytracingBuildCluster,

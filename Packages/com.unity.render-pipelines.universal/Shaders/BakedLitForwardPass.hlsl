@@ -26,7 +26,7 @@ struct Varyings
     half4 tangentWS : TEXCOORD3;
     #endif
 
-    #if defined(DEBUG_DISPLAY)
+    #if defined(DEBUG_DISPLAY) || (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     float3 positionWS : TEXCOORD4;
     float3 viewDirWS : TEXCOORD5;
     #endif
@@ -60,7 +60,16 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.shadowCoord = float4(0, 0, 0, 0);
     inputData.fogCoord = input.uv0AndFogCoord.z;
     inputData.vertexLighting = half3(0, 0, 0);
+
+#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    inputData.bakedGI = SAMPLE_GI(input.vertexSH,
+        GetAbsolutePositionWS(input.positionWS),
+        inputData.normalWS,
+        input.viewDirWS,
+        input.positionCS.xy);
+#else
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
+#endif
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = half4(1, 1, 1, 1);
 
@@ -100,9 +109,9 @@ Varyings BakedLitForwardPassVertex(Attributes input)
     output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
     OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
-    OUTPUT_SH(output.normalWS, output.vertexSH);
+    OUTPUT_SH(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
 
-    #if defined(DEBUG_DISPLAY)
+    #if defined(DEBUG_DISPLAY) || (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     output.positionWS = vertexInput.positionWS;
     output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     #endif

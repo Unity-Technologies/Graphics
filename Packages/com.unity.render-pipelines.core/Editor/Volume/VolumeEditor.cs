@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor.Rendering.Analytics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -152,7 +153,13 @@ namespace UnityEditor.Rendering
             }
 
             EditorGUILayout.PropertyField(m_Weight);
-            EditorGUILayout.PropertyField(m_Priority);
+
+            bool priorityHasChanged = false;
+            using (var scope = new EditorGUI.ChangeCheckScope())
+            {
+                EditorGUILayout.PropertyField(m_Priority);
+                priorityHasChanged = scope.changed;
+            }
 
             bool assetHasChanged = false;
             bool showCopy = m_Profile.objectReferenceValue != null;
@@ -273,13 +280,22 @@ namespace UnityEditor.Rendering
 
             if (actualTarget.sharedProfile == null && m_Profile.objectReferenceValue != null)
             {
-                actualTarget.sharedProfile = (VolumeProfile)m_Profile.objectReferenceValue;
-                RefreshEffectListEditor(actualTarget.sharedProfile);
-                if(actualTarget.HasInstantiatedProfile())
-                    actualTarget.profile = null;
+                if (Event.current.type != EventType.Layout)
+                {
+                    actualTarget.sharedProfile = (VolumeProfile)m_Profile.objectReferenceValue;
+                    if (actualTarget.HasInstantiatedProfile())
+                        actualTarget.profile = null;
+                    RefreshEffectListEditor(actualTarget.sharedProfile);
+                }
             }
 
             serializedObject.ApplyModifiedProperties();
+
+            if (assetHasChanged)
+                VolumeProfileUsageAnalytic.Send(actualTarget, (VolumeProfile)m_Profile.objectReferenceValue);
+
+            if (priorityHasChanged)
+                VolumePriorityUsageAnalytic.Send(actualTarget);
 
             if (m_Profile.objectReferenceValue == null && actualTarget.HasInstantiatedProfile())
                 EditorGUILayout.HelpBox(Styles.noVolumeMessage, MessageType.Info);

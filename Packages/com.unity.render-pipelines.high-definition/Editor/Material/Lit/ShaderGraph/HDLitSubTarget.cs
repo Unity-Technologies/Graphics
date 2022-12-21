@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
                 new KeywordEntry() { displayName = "Plane", referenceName = "PLANE" },
                 new KeywordEntry() { displayName = "Sphere", referenceName = "SPHERE" },
                 new KeywordEntry() { displayName = "Thin", referenceName = "THIN" },

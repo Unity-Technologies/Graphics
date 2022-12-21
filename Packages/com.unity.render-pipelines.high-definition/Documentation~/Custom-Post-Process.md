@@ -1,24 +1,94 @@
-# Custom Post Process
+# Custom post-processing
 
-The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volumes](Volumes.md). A custom effect needs two files:
-* A **C# Custom Post Process**(C# file)
-* An associated **FullScreen Shader** (HLSL file).
+The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volumes](Volumes.md).
 
-You can generate a template of each file:
+## Create a custom post-processing effect
 
-* **C# Custom Post Process**: Right click in the Assets folder and select **Create** > **Rendering** > **HDRP C# Post Process Volume**.
+A custom post-processing effect requires the following files:
 
-* **FullScreen Shader**: Right click in the Assets folder and select **Create** > **Shader** > **HDRP** > **Post Process**.
+- A C# Custom Post Process Volume.
+- An associated full-screen shader. You can use a [shader file](https://docs.unity3d.com/Manual/SL-ShaderPrograms.html) or a [Fullscreen Shader Graph](master-stack-fullscreen.md).
 
-**Note**: By default, your custom effect doesn't run if you just add it to a Volume. You also need to add the effect to your Project's list of supported effects. (it's the same list used to order the effect, see the Effect Ordering section).
+HDRP includes a template of each file you need to set up custom post-processing. To generate each template:
 
-## Example
+- C# Custom Post Process Volume: Go to **Assets** > **Create** > **Rendering** and select **HDRP C# Post Process Volume**.
+
+- Full-screen shader: 
+  - To create a shader file, go to **Assets** > **Create** > **Shader** and select **HDRP** **Post Process**.
+  - To create a [Fullscreen Shader Graph](fullscreen-shader.md), go to **Assets** > **Create** > **Shader Graph** > **HDRP** and select **Fullscreen Shader Graph**.
+
+This creates each template file in the **Project** window in the **Assets** folder.
+
+<a name="apply-custom-postprocess"></a>
+
+## Apply a custom post-processing effect 
+
+For HDRP to recognize a custom post-processing effect in your project, assign it in the Global Settings:
+
+1. Go to **Edit** > **Project Settings** > **Graphics** and select the [**HDRP Global Settings**](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Default-Settings-Window.html) tab.
+2. Scroll down until you find the **Custom Post Process Orders** section. This section contains a list for each injection point.
+3. In the **After Post Process** field, select **Add** (**+**).
+4. Select the name of the custom post-processing you want to apply.
+
+This also allows you to control the execution order of the post-processing effects in your scene. For more information, see [Order custom post-processing effects](#EffectOrdering).
+
+To apply a custom post-processing effect in your scene, set up a volume component: 
+
+1. Create a Volume component (Menu: **GameObject** > **Volume**).
+2. Select the Volume in the Hierarchy menu.
+3. In the Profile field, select the volume profile picker (circle) to add an existing volume profile, or select **New** to create a new volume profile. 
+4. In the Inspector, select **Add Override.**
+5. In the dropdown, search for the name of the Custom Post Process Volume script and select it.
+
+For a full script example you can use, see [Custom post-processing example scripts](#custom-postprocessing-example).
+
+<a name="EffectOrdering"></a>
+
+## Order custom post-processing effects
+
+HDRP allows you to customize the order of your custom post-processing effects at each stage in the rendering process. These stages are called injection points.
+
+To determine the injection points in which your effect can appear, change the enum in the following line in the C# Custom Post Process Volume:
+
+```c#
+public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
+```
+
+For more information on which enums you can use, see [CustomPostProcessInjectionPoint](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/api/UnityEngine.Rendering.HighDefinition.CustomPostProcessInjectionPoint.html).
+
+To order your custom post-processing effects:
+
+1. Go to **Edit** > **Project Settings** > **Graphics** and select the [**HDRP Global Settings**](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Default-Settings-Window.html) tab.
+2. Scroll down until you find the **Custom Post Process Orders** section. This section contains a field for each injection point.
+3. Select the **Add** (**+**) icon to add an effect to an injection point field.
+
+To change the order HDRP executes multiple post-processing effects within an injection point, move them up or down in this list. HDRP executes the effects in order from top to bottom.
+
+## Set the full-screen shader in the post-processing script
+
+You can use HDRP’s [Fullscreen Master Stack](master-stack-fullscreen.md) to create a full-screen shader that you can use in a custom post-processing effect. This means you don’t need to write any shader code.
+
+To use a full-screen shader with a custom post-processing volume: 
+
+1. In the **Project** window, select the full-screen shader graph to view it in the Inspector. 
+2. Find the name and subcategory of the fullscreen shader. For example **`ShaderGraphs/Fullscreen_PostProcess`**
+3. In the **Project** window, double-click the custom post-processing volume script to open it in a script editor. 
+4. In the custom post-processing volume script, find the following line that defines the name and subcategory of the shader the volume uses: 
+```c#
+ const string kShaderName = "Hidden/Shader/NewPostProcessVolume";
+```
+5. Replace `Hidden/Shader/NewPostProcessVolume` with the name and subcategory of the fullscreen shader you want to use in this custom post-processing effect. For example:
+```c#
+const string kShaderName = "ShaderGraphs/Fullscreen_PostProcess";
+```
+
+<a name="custom-postprocessing-example"></a>
+
+## Custom post-processing example scripts
 
 This example shows you how to create a **grayscale** effect. To get started:
 
-1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create** > **Rendering** > **HDRP C# Post Process Volume**) and call it **GrayScale**.
-
-**Note**: Because of how serialization works in Unity, the file name and the class name must be identical or Unity doesn't serialize it properly.
+1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create** > **Rendering** > **HDRP C# Post Process Volume**) and call it **GrayScale**. **Note**: Because of how serialization works in Unity, the file name and the class name must be identical or Unity doesn't serialize it correctly.
 
 2. Copy the example code from the [GrayScale C# script section](#CSharp) into your **C# Post Process Volume**.
 
@@ -85,7 +155,7 @@ This example code uses a `ClampedFloatParameter` that you can clamp to a range. 
 
 HDRP calls the `IsActive()` function before the `Render` function to process the effect. If this function returns `false`, HDRP doesn't process the effect. It's good practice to check every property configuration where the effect either breaks or doesn'thing. In this example, `IsActive()` makes sure that HDRP can find the `GrayScale.shader` and that the intensity is greater than 0.
 
-The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently five injection points:
+The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. Choose from the following injection points:
 
 * **AfterOpaqueAndSky**
 
@@ -100,9 +170,7 @@ The **injectionPoint** override allows you to specify where in the pipeline HDRP
 The following diagram gives more information on where HDRP injects custom post-process passes:
 ![](Images/HDRP-frame-graph-diagram.png)
 
-
-
-**Note**: When you enable [Temporal anti-aliasing (TAA)](Anti-Aliasing.md#TAA), HDRP applies TAA between the injection points **BeforeTAA** and **beforePostProcess**. When you use [Depth Of Field](Post-Processing-Depth-of-Field.md) and enable its **Physically Based** property, HDRP performs a second TAA pass to perform temporal accumulation for this effect.
+**Note**: When you enable [Temporal antialiasing (TAA)](Anti-Aliasing.md#TAA), HDRP applies TAA between the injection points **BeforeTAA** and **beforePostProcess**. When you use [Depth Of Field](Post-Processing-Depth-of-Field.md) and enable its **Physically Based** property, HDRP performs a second TAA pass to perform temporal accumulation for this effect.
 
 The `Setup`, `Render`, and `Cleanup` functions allocate, use, and release the resources that the effect needs. The only resource that the above script example uses is a single Material. This example creates the Material in `Setup` and, in `Cleanup`, uses `CoreUtils.Destroy()` to release the Material.
 
@@ -223,34 +291,6 @@ By default, the Shader template provides you with the following inputs:
 | _InputTexture| The source Texture. The GrayScale C# script passes this to the Shader. |
 | _Intensity| The intensity of the effect. The GrayScale C# script passes this to the Shader. |
 
-
-
-<a name="EffectOrdering"></a>
-
-## Effect ordering
-
-HDRP allows you to customize the order of your custom post-processing effect at each injection point. To order your effects:
-
-1. Go to **Edit** > **Project Settings** > **Graphics** and select the [HDRP Global Settings](Default-Settings-Window.md) tab.
-
-2. Scroll down until you find the **Custom Post Process Orders** section. This section contains three lists, one for each injection point.
-
-3. Add your custom effects to these lists so that HDRP can render them.
-
-![](Images/CustomPostProcess1.png)
-
-HDRP processes effects from the top of the list to the bottom and the order of execution for each list is:
-
-1. After Opaque And Sky.
-
-2. Before TAA.
-
-3. Before Post Process.
-
-4. After Post Process Blurs.
-
-5. After Post Process.
-
 <a name="CustomEditor"></a>
 
 ## Custom editor
@@ -327,9 +367,9 @@ If your effect doesn't display correctly:
 
 * In the Volume that contains your post process, make sure that it has a high enough priority and that your Camera is inside its bounds.
 
-* Check that your shader doesn't contain any **clip()** instructions, that the blend mode is set to Off and the output alpha is always 1.
+* Check that your shader doesn't contain any **clip()** instructions, that the blend mode is **Off** and the output alpha has a value of 1.
 
-* If your effect doesn't work with dynamic resolution, use the _PostProcessScreenSize constant to make it fit the size of the screen correctly. You only need to do this when you use dynamic resolution scaling (DRS), and you need normal / velocity and color.
+* If your effect doesn't work with dynamic resolution, use the `_PostProcessScreenSize` constant to make it fit the size of the screen. You only need to do this when  you also need normal or velocity and color.
 
 ## Known issues and limitations
 

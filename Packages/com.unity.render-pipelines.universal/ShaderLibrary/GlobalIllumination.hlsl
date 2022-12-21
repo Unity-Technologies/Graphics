@@ -6,6 +6,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+#endif
 #if USE_FORWARD_PLUS
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #endif
@@ -65,6 +68,50 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 
     // Default: Evaluate SH fully per-pixel
     return SampleSH(normalWS);
+}
+
+// APV Prove volume
+// Vertex and Mixed both use Vertex sampling
+
+#if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir)
+{
+#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+    half3 bakedGI;
+    // The screen space position is used for noise, which is irrelevant when doing vertex sampling
+    float2 positionSS = float2(0, 0);
+    EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+    return bakedGI;
+#else
+    return half3(0, 0, 0);
+#endif
+}
+
+half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir, in float2 positionSS)
+{
+#if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+    return vertexValue;
+#elif defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+    half3 bakedGI;
+    EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+#ifdef UNITY_COLORSPACE_GAMMA
+    bakedGI = LinearToSRGB(bakedGI);
+#endif
+
+    return bakedGI;
+#else
+    return half3(0, 0, 0);
+#endif
+}
+#endif
+
+half3 SampleProbeSHVertex(in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir)
+{
+#if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    return SampleProbeVolumeVertex(absolutePositionWS, normalWS, viewDir);
+#else
+    return SampleSHVertex(normalWS);
+#endif
 }
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED)
@@ -134,6 +181,8 @@ half3 SampleLightmap(float2 staticLightmapUV, half3 normalWS)
 #define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(0, dynamicLmName, normalWSName)
 #elif defined(LIGHTMAP_ON)
 #define SAMPLE_GI(staticLmName, shName, normalWSName) SampleLightmap(staticLmName, 0, normalWSName)
+#elif defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+#define SAMPLE_GI(shName, absolutePositionWS, normalWS, viewDir, positionSS) SampleProbeVolumePixel(shName, absolutePositionWS, normalWS, viewDir, positionSS)
 #else
 #define SAMPLE_GI(staticLmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif

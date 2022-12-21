@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             All = ~0
         }
 
-        class Styles
+        internal partial class Styles
         {
             public static GUIContent overrideBakedGI = new GUIContent("Override Baked GI", "When enabled, inputs to override the current GI are exposed on the master node.");
             public static GUIContent supportLodCrossFade = new GUIContent("Support LOD CrossFade", "When enabled, allow to use the animated transition for LOD feature on this material.");

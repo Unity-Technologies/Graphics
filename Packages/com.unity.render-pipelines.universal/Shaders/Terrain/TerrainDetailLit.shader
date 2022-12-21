@@ -33,6 +33,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
             #pragma multi_compile_fog
             #pragma multi_compile _ DEBUG_DISPLAY
 
@@ -67,6 +68,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
@@ -95,6 +97,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
                 float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
                 half3   NormalWS        : TEXCOORD5; // World Space Normal
+                float3  PositionWS      : TEXCOORD6;
                 float4  PositionCS      : SV_POSITION; // Clip Position
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -121,7 +124,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 // Vertex Lighting
                 output.NormalWS = TransformObjectToWorldNormal(input.NormalOS).xyz;
-                OUTPUT_SH(output.NormalWS, output.vertexSH);
+
+                OUTPUT_SH(vertexInput.positionWS, output.NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
 
                 Light mainLight = GetMainLight();
                 half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
@@ -140,6 +144,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 // Fog factor
                 output.LightingFog.w = ComputeFogFactor(output.PositionCS.z);
 
+                output.PositionWS = vertexInput.positionWS;
+
                 return output;
             }
 
@@ -148,7 +154,16 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+#if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+                half3 bakedGI = SAMPLE_GI(input.vertexSH,
+                    GetAbsolutePositionWS(input.PositionWS),
+                    input.NormalWS.xyz,
+                    GetWorldSpaceNormalizeViewDir(input.PositionWS),
+                    input.PositionCS.xy);
+#else
                 half3 bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS);
+#endif
+
                 half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);

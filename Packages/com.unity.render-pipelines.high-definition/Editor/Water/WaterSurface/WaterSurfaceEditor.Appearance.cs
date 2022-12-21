@@ -132,13 +132,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Make sure they don't already exist
             var sgPath = folderName + "/" + surfaceName + ".shadergraph";
-            var matPath = folderName + "/" + surfaceName + ".mat";
             // First check if the shader graph or the materials exist if they do we stop right away with a message.
             var sg = AssetDatabase.LoadAssetAtPath<Shader>(sgPath);
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
-            if (sg != null || mat != null)
+            if (sg != null)
             {
-                Debug.LogWarning("A previously existing water shader or material has already been created in the " + folderName +" folder.");
+                Debug.LogWarning("A water shader or material has already been created in the " + folderName +" folder.");
                 return null;
             }
 
@@ -150,13 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return null;
             }
 
-            // Create the new material
-            var newSG = AssetDatabase.LoadAssetAtPath<Shader>(sgPath);
-            Material newMaterial = new Material(newSG);
-            AssetDatabase.CreateAsset(newMaterial, matPath);
-
-            Debug.Log("The new shader graph and material have been created in the " + folderName + " folder.");
-            return newMaterial;
+            return AssetDatabase.LoadAssetAtPath<Material>(sgPath);
         }
 
         static internal void WaterCustomMaterialField(WaterSurfaceEditor serialized, Editor owner)

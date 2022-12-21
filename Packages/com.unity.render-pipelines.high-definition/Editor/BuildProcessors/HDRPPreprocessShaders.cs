@@ -23,6 +23,16 @@ namespace UnityEditor.Rendering.HighDefinition
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
 
+            // Remove water if disabled
+            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportWater)
+            {
+                if (shader == hdrpAsset.renderPipelineResources.shaders.waterCausticsPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.waterFoamPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.waterPS ||
+                    shader == hdrpAsset.renderPipelineResources.materials.waterExclusionMaterial.shader)
+                    return true;
+            }
+
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             bool isScenePickingPass = snippet.passName == "ScenePickingPass";
@@ -72,21 +82,64 @@ namespace UnityEditor.Rendering.HighDefinition
             // We also don't want it in release build.
             // However our AOV API rely on several debug display shader. In case AOV API is requested at runtime (like for the Graphics Compositor)
             // we allow user to make explicit request for it and it bypass other request
-            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
+            if (m_StripDebugVariants && !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
             {
-                if (m_StripDebugVariants && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                if (shader == hdrpAsset.renderPipelineResources.shaders.debugDisplayLatlongPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugViewMaterialGBufferPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugViewTilesPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugFullScreenPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugColorPickerPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugExposurePS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugHDRPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugLightVolumePS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugBlitQuad ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugViewVirtualTexturingBlit ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugWaveformPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugVectorscopePS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.debugLocalVolumetricFogAtlasPS)
+                    return true;
+
+                if (inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                    return true;
+            }
+
+            // Remove APV debug if disabled
+            if (m_StripDebugVariants || !hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            {
+                if (shader == hdrpAsset.renderPipelineResources.shaders.probeVolumeDebugShader ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.probeVolumeFragmentationDebugShader ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.probeVolumeSamplingDebugShader ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.probeVolumeOffsetDebugShader)
                     return true;
             }
 
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
                 return true;
 
+            if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            {
+                if (shader == hdrpAsset.renderPipelineResources.shaders.deferredPS ||
+                    shader == hdrpAsset.renderPipelineResources.shaders.deferredTilePS)
+                    return true;
+            }
+
             if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
                 return true;
 
-            // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
-            if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
-                return true;
+            if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
+            {
+                if (shader == hdrpAsset.renderPipelineResources.shaders.combineLightingPS)
+                    return true;
+                // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
+                if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering))
+                    return true;
+            }
+
+            if (!hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.supportFabricConvolution)
+            {
+                if (shader == hdrpAsset.renderPipelineResources.shaders.charlieConvolvePS)
+                    return true;
+            }
 
             if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
             {
@@ -134,6 +187,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (inputData.shaderKeywordSet.IsEnabled(areaShadowVariant.Value))
                         return true;
             }
+
+            if (!shadowInitParams.supportScreenSpaceShadows && shader == hdrpAsset.renderPipelineResources.shaders.screenSpaceShadowPS)
+                return true;
 
             // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
             // either we have a variant that don't support at all. We can't have both at the same time.

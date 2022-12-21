@@ -115,6 +115,20 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VectorArray[0] = _FlowmapParamA; s_VectorArray[1] = _FlowmapParamB;
             m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._FlowmapParam, s_VectorArray);
 
+            if (cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None)
+            {
+                cloudLayer.layerA.scrollFactor += cloudLayer.layerA.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f; // factor to convert from km/h to m/s
+                if (cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap)
+                    m_CloudLayerMaterial.SetTexture(_FlowmapA, cloudLayer.layerA.flowmap.value);
+            }
+
+            if (cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None && cloudLayer.layers.value == CloudMapMode.Double)
+            {
+                cloudLayer.layerB.scrollFactor += cloudLayer.layerB.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f; // factor to convert from km/h to m/s
+                if (cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap)
+                    m_CloudLayerMaterial.SetTexture(_FlowmapB, cloudLayer.layerB.flowmap.value);
+            }
+
             // Sun light
             Color lightColor = Color.black;
             if (builtinParams.sunLight != null)
@@ -138,23 +152,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CloudLayerMaterial.SetBuffer(_AmbientProbeBuffer, builtinParams.cloudAmbientProbe);
 
             // Keywords
-            CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_CLOUD_MOTION", cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None);
-            if (cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None)
-                cloudLayer.layerA.scrollFactor += cloudLayer.layerA.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f; // factor to convert from km/h to m/s
-            CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_FLOWMAP", cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap);
-            if (cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap)
-                m_CloudLayerMaterial.SetTexture(_FlowmapA, cloudLayer.layerA.flowmap.value);
+            var mode1 = cloudLayer.layerA.distortionMode.value;
+            CoreUtils.SetKeyword(m_CloudLayerMaterial, "LAYER1_STATIC", mode1 == CloudDistortionMode.None);
+            CoreUtils.SetKeyword(m_CloudLayerMaterial, "LAYER1_PROCEDURAL", mode1 == CloudDistortionMode.Procedural);
+            CoreUtils.SetKeyword(m_CloudLayerMaterial, "LAYER1_FLOWMAP", mode1 == CloudDistortionMode.Flowmap);
 
-            CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_SECOND_CLOUD_LAYER", cloudLayer.layers.value == CloudMapMode.Double);
-            if (cloudLayer.layers.value == CloudMapMode.Double)
-            {
-                CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_SECOND_CLOUD_MOTION", cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None);
-                if (cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None)
-                    cloudLayer.layerB.scrollFactor += cloudLayer.layerB.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f; // factor to convert from km/h to m/s
-                CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_SECOND_FLOWMAP", cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap);
-                if (cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap)
-                    m_CloudLayerMaterial.SetTexture(_FlowmapB, cloudLayer.layerB.flowmap.value);
-            }
+            bool enabled2 = cloudLayer.layers.value == CloudMapMode.Double;
+            var mode2 = cloudLayer.layerB.distortionMode.value;
+            CoreUtils.SetKeyword(m_CloudLayerMaterial, "LAYER2_OFF", !enabled2);
+            CoreUtils.SetKeyword(m_CloudLayerMaterial, "LAYER2_STATIC", enabled2 && mode2 == CloudDistortionMode.None);
+            CoreUtils.SetKeyword(m_CloudLayerMaterial, "LAYER2_PROCEDURAL", enabled2 && mode2 == CloudDistortionMode.Procedural);
+            CoreUtils.SetKeyword(m_CloudLayerMaterial, "LAYER2_FLOWMAP", enabled2 && mode2 == CloudDistortionMode.Flowmap);
 
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "PHYSICALLY_BASED_SUN", visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased);
@@ -374,27 +382,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._SunDirection, -sunLight.transform.forward);
 
+                cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _FlowmapA, cloudLayer.layerA.flowmap.value);
+                cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _FlowmapB, cloudLayer.layerB.flowmap.value);
+
                 // Keywords
-                bool useSecond = (cloudLayer.layers.value == CloudMapMode.Double) && cloudLayer.layerB.castShadows.value;
-                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "DISABLE_MAIN_LAYER", !cloudLayer.layerA.castShadows.value);
-                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "USE_SECOND_CLOUD_LAYER", useSecond);
+                bool enabled1 = cloudLayer.layerA.castShadows.value;
+                var mode1 = cloudLayer.layerA.distortionMode.value;
+                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "LAYER1_OFF", !enabled1);
+                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "LAYER1_STATIC", enabled1 && mode1 == CloudDistortionMode.None);
+                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "LAYER1_PROCEDURAL", enabled1 && mode1 == CloudDistortionMode.Procedural);
+                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "LAYER1_FLOWMAP", enabled1 && mode1 == CloudDistortionMode.Flowmap);
 
-                if (cloudLayer.layerA.castShadows.value)
-                {
-                    CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "USE_CLOUD_MOTION", cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None);
-                    CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "USE_FLOWMAP", cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap);
-                    if (cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap)
-                        cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _FlowmapA, cloudLayer.layerA.flowmap.value);
-                }
+                bool enabled2 = (cloudLayer.layers.value == CloudMapMode.Double) && cloudLayer.layerB.castShadows.value;
+                var mode2 = cloudLayer.layerB.distortionMode.value;
+                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "LAYER2_OFF", !enabled2);
+                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "LAYER2_STATIC", enabled2 && mode2 == CloudDistortionMode.None);
+                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "LAYER2_PROCEDURAL", enabled2 && mode2 == CloudDistortionMode.Procedural);
+                CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "LAYER2_FLOWMAP", enabled2 && mode2 == CloudDistortionMode.Flowmap);
 
-                if (useSecond)
-                {
-                    CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "USE_SECOND_CLOUD_MOTION", cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None);
-                    CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "USE_SECOND_FLOWMAP", cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap);
-                    if (cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap)
-                        cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _FlowmapB, cloudLayer.layerB.flowmap.value);
-                }
-
+                // Dispatch
                 const int groupSizeX = 8;
                 const int groupSizeY = 8;
                 int threadGroupX = (cloudShadowsResolution + (groupSizeX - 1)) / groupSizeX;

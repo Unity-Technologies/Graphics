@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Defines if profiling is logged or not. This enum is not longer in use, use the Profiler instead.
     /// </summary>
-    [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect.", false)]
+    [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect.", true)]
     public enum PipelineDebugLevel
     {
         /// <summary>
@@ -287,11 +287,6 @@ namespace UnityEngine.Rendering.Universal
         /// Use this for 2D Renderer.
         /// </summary>
         _2DRenderer,
-        /// <summary>
-        /// This name was used before the Universal Renderer was implemented.
-        /// </summary>
-        [Obsolete("ForwardRenderer has been renamed (UnityUpgradable) -> UniversalRenderer", true)]
-        ForwardRenderer = UniversalRenderer,
     }
 
     /// <summary>
@@ -390,6 +385,18 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// The available Probe system used.
+    /// </summary>
+    public enum LightProbeSystem
+    {
+        /// <summary>The light probe group system.</summary>
+        [InspectorName("Light Probe Groups")]
+        LegacyLightProbes = 0,
+        /// <summary>Probe Volume system.</summary>
+        ProbeVolumes = 1,
+    }
+
+    /// <summary>
     /// The asset that contains the URP setting.
     /// You can use this asset as a graphics quality level.
     /// </summary>
@@ -400,7 +407,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
-    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
+    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
@@ -439,6 +446,22 @@ namespace UnityEngine.Rendering.Universal
 #endif
         [SerializeField] bool m_EnableLODCrossFade = true;
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
+
+        // Probe volume settings
+#if UNITY_EDITOR
+        [ShaderKeywordFilter.RemoveIf(LightProbeSystem.LegacyLightProbes, keywordNames: "PROBE_VOLUMES_L1")]
+        [ShaderKeywordFilter.RemoveIf(LightProbeSystem.LegacyLightProbes, keywordNames: "PROBE_VOLUMES_L2")]
+        [ShaderKeywordFilter.RemoveIf(LightProbeSystem.ProbeVolumes, keywordNames: "PROBE_VOLUMES_OFF")]
+#endif
+        [SerializeField] LightProbeSystem m_LightProbeSystem = LightProbeSystem.LegacyLightProbes;
+        [SerializeField] ProbeVolumeTextureMemoryBudget m_ProbeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium;
+        [SerializeField] ProbeVolumeBlendingTextureMemoryBudget m_ProbeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow;
+        [SerializeField] bool m_SupportProbeVolumeStreaming = false;
+#if UNITY_EDITOR
+        [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL1, keywordNames: "PROBE_VOLUMES_L2")]
+        [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL2, keywordNames: "PROBE_VOLUMES_L1")]
+#endif
+        [SerializeField] ProbeVolumeSHBands m_ProbeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1;
 
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
@@ -529,7 +552,7 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.LightLayers)]
 #endif
         [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] [Obsolete("",true)] PipelineDebugLevel m_DebugLevel;
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
         [SerializeField] bool m_EnableRenderGraph = false;
 
@@ -1133,6 +1156,51 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Determines what system to use.
+        /// </summary>
+        public LightProbeSystem lightProbeSystem
+        {
+            get { return m_LightProbeSystem; }
+            internal set { m_LightProbeSystem = value; }
+        }
+
+        /// <summary>
+        /// Probe Volume Memory Budget.
+        /// </summary>
+        public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget
+        {
+            get { return m_ProbeVolumeMemoryBudget; }
+            internal set { m_ProbeVolumeMemoryBudget = value; }
+        }
+
+        /// <summary>
+        /// Probe Volume Memory Budget for scenario blending.
+        /// </summary>
+        public ProbeVolumeBlendingTextureMemoryBudget probeVolumeBlendingMemoryBudget
+        {
+            get { return m_ProbeVolumeBlendingMemoryBudget; }
+            internal set { m_ProbeVolumeBlendingMemoryBudget = value; }
+        }
+
+        /// <summary>
+        /// Support Streaming for Probe Volumes.
+        /// </summary>
+        public bool supportProbeVolumeStreaming
+        {
+            get { return m_SupportProbeVolumeStreaming; }
+            internal set { m_SupportProbeVolumeStreaming = value; }
+        }
+
+        /// <summary>
+        /// Probe Volumes SH Bands.
+        /// </summary>
+        public ProbeVolumeSHBands probeVolumeSHBands
+        {
+            get { return m_ProbeVolumeSHBands; }
+            internal set { m_ProbeVolumeSHBands = value; }
+        }
+
+        /// <summary>
         /// Specifies the <c>LightRenderingMode</c> for the main light used by this <c>UniversalRenderPipelineAsset</c>.
         /// </summary>
         /// <see cref="LightRenderingMode"/>
@@ -1396,7 +1464,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
         /// </summary>
-        [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", false)]
+        [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", true)]
         public bool supportsLightLayers
         {
             get { return m_SupportsLightLayers; }
@@ -1418,7 +1486,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Previously returned the debug level for this Render Pipeline Asset but is now deprecated. Replaced to use the profiler and is no longer used.
         /// </summary>
-        [Obsolete("PipelineDebugLevel is deprecated and replaced to use the profiler. Calling debugLevel is not necessary.", false)]
+        [Obsolete("PipelineDebugLevel is deprecated and replaced to use the profiler. Calling debugLevel is not necessary.", true)]
         public PipelineDebugLevel debugLevel
         {
             get => PipelineDebugLevel.Disabled;
@@ -1710,7 +1778,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", true)]
         public string[] lightLayerMaskNames => new string[0];
 
         /// <summary>
@@ -1927,6 +1995,22 @@ namespace UnityEngine.Rendering.Universal
             if (index == -1) index = m_DefaultRendererIndex;
             return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
         }
+
+        #region APV
+        // This is temporarily here until we have a core place to put it shared between pipelines.
+        [SerializeField]
+        internal ProbeVolumeSceneData apvScenesData;
+
+        internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
+        {
+            if (apvScenesData == null)
+                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
+
+            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
+            return apvScenesData;
+        }
+
+        #endregion
 
         /// <summary>
         /// Class containing texture resources used in URP.
