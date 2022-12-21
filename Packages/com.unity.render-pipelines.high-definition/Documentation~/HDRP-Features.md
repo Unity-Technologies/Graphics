@@ -199,6 +199,10 @@ For more information, see [Planar Reflection Probe](Planar-Reflection-Probe.md).
 
 HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP.md) documentation.
 
+### Compute Thickness
+![](Images/HDRPFeatures-ComputeThickness.png)
+HDRP provides a screen-space pass to compute the accumulated thickness for objects (opaque or transparent) in a given LayerMask. HDRP computes the optical path and overlap count, which can be useful for [Subsurface Scattering](Subsurface-Scattering.md) or [Refraction](Override-Screen-Space-Refraction.md). The overlap count can be used for non-closed or flat geometry like vegetation. This thickness can be sampled in a ShaderGraph via the HD Sampler Buffer node using the LayerMask as an input.
+
 ### Screen-space global illumination
 
 ![](Images/HDRPFeatures-SSGI.png)
