@@ -137,22 +137,6 @@
       * [Velocity from Direction & Speed (Random Direction)](Block-VelocityFromDirectionAndSpeed(RandomDirection).md)
       * [Velocity from Direction & Speed (Spherical)](Block-VelocityFromDirectionAndSpeed(Spherical).md)
       * [Velocity from Direction & Speed (Tangent)](Block-VelocityFromDirectionAndSpeed(Tangent).md)
-  * Context
-    * [Event](Context-Event.md)
-    * [GPU Event](Context-GPUEvent.md)
-    * [Initialize Particle](Context-Initialize.md)
-    * [Output Mesh](Context-OutputMesh.md)
-    * [Output Distortion](Context-OutputDistortion.md)
-    * [Output Decal](Context-OutputForwardDecal.md)
-    * [Output Line](Context-OutputLine.md)
-    * [Output Particle Mesh](Context-OutputParticleMesh.md)
-    * [Output Point](Context-OutputPoint.md)
-    * [Output Primitive](Context-OutputPrimitive.md)
-    * Shared Output Settings
-      * [Global Settings](Context-OutputSharedSettings.md)
-      * [Lit Output Settings](Context-OutputLitSettings.md)
-    * [Spawn](Context-Spawn.md)
-    * [Update Particle](Context-Update.md)
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
