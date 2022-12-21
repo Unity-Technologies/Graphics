@@ -187,7 +187,7 @@ namespace UnityEditor.VFX.UI
 
             Profiler.BeginSample("VFXContextUI.CreateInputFlow");
             HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
-            foreach (var inanchorcontroller in controller.flowInputAnchors)
+            foreach (var inanchorcontroller in controller.flowInputAnchors.Take(VFXContext.kMaxFlowCount))
             {
                 var existing = m_FlowInputConnectorContainer.Children().Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorcontroller);
                 if (existing == null)
@@ -211,7 +211,7 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXContextUI.CreateInputFlow");
             HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
 
-            foreach (var outanchorcontroller in controller.flowOutputAnchors)
+            foreach (var outanchorcontroller in controller.flowOutputAnchors.Take(VFXContext.kMaxFlowCount))
             {
                 var existing = m_FlowOutputConnectorContainer.Children().Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == outanchorcontroller);
                 if (existing == null)
@@ -418,9 +418,9 @@ namespace UnityEditor.VFX.UI
 
             int blockIndex = GetDragBlockIndex(mousePosition);
 
-            if (DragAndDrop.GetGenericData("DragSelection") != null)
+            if (DragAndDrop.GetGenericData("DragSelection") is List<ISelectable> dragSelection)
             {
-                IEnumerable<VFXBlockUI> blocksUI = (DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>).Select(t => t as VFXBlockUI).Where(t => t != null);
+                var blocksUI = dragSelection.OfType<VFXBlockUI>().ToArray();
 
                 DragAndDrop.visualMode = evt.ctrlKey ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Move;
                 DraggingBlocks(blocksUI, blockIndex);
@@ -439,10 +439,12 @@ namespace UnityEditor.VFX.UI
             {
                 var references = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>();
 
-                if (references.Count() > 0 && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
+                if (references.Any() && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
                 {
-                    var context = references.First().GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
-                    if (context != null && (context.compatibleContextType & controller.model.contextType) == controller.model.contextType)
+                    var compatibleReferences = references
+                        .Where(x => x != null && x.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType.HasFlag(controller.model.contextType));
+
+                    if (compatibleReferences.Any())
                     {
                         DragAndDrop.visualMode = DragAndDropVisualMode.Link;
                         evt.StopPropagation();
@@ -454,6 +456,11 @@ namespace UnityEditor.VFX.UI
                             AddToClassList("dropping");
                         }
                     }
+                    else
+                    {
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                        evt.StopPropagation();
+                    }
                 }
             }
         }
@@ -461,11 +468,11 @@ namespace UnityEditor.VFX.UI
         void OnDragPerform(DragPerformEvent evt)
         {
             RemoveDragIndicator();
-            if (DragAndDrop.GetGenericData("DragSelection") != null)
+            if (DragAndDrop.GetGenericData("DragSelection") is List<ISelectable> dragSelection)
             {
                 Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.mousePosition);
 
-                IEnumerable<VFXBlockUI> blocksUI = (DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>).Select(t => t as VFXBlockUI).Where(t => t != null);
+                var blocksUI = dragSelection.OfType<VFXBlockUI>().ToArray();
                 if (!CanDrop(blocksUI))
                     return;
 
@@ -480,23 +487,29 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var references = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>();
+                var references = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>().ToArray();
 
-                if (references.Count() > 0 && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
+                if (references.Any() && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
                 {
-                    var context = references.First().GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
-                    if (context != null && (context.compatibleContextType & controller.model.contextType) == controller.model.contextType)
+                    foreach (var reference in references)
                     {
-                        DragAndDrop.AcceptDrag();
-                        Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.mousePosition);
+                        if (reference != null && reference.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType.HasFlag(controller.model.contextType))
+                        {
+                            DragAndDrop.AcceptDrag();
+                            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.mousePosition);
 
-                        int blockIndex = GetDragBlockIndex(mousePosition);
-                        VFXBlock newModel = ScriptableObject.CreateInstance<VFXSubgraphBlock>();
+                            int blockIndex = GetDragBlockIndex(mousePosition);
+                            VFXBlock newModel = ScriptableObject.CreateInstance<VFXSubgraphBlock>();
 
-                        newModel.SetSettingValue("m_Subgraph", references.First());
+                            newModel.SetSettingValue("m_Subgraph", reference);
 
-                        UpdateSelectionWithNewBlocks();
-                        controller.AddBlock(blockIndex, newModel);
+                            UpdateSelectionWithNewBlocks();
+                            controller.AddBlock(blockIndex, newModel);
+                        }
+                        else if (reference != null)
+                        {
+                            Debug.LogWarning($"Could not drag & drop asset '{reference.name}' because it's not supported in a context of type '{controller.model.contextType}'");
+                        }
                     }
 
                     evt.StopPropagation();

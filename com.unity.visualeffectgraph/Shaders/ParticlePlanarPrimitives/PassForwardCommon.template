@@ -35,7 +35,7 @@ struct ps_input
 	VFX_DECLARE_MOTION_VECTORS_STORAGE(4,5)
 	#endif
 
-	#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+	#if SHADERGRAPH_NEEDS_NORMAL_FORWARD || FORCE_NORMAL_OUTPUT_UNLIT_VERTEX_SHADER
 	float3 normal : TEXCOORD6;
 	#endif
 	#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
@@ -79,7 +79,7 @@ struct ps_output
 
 ${VFXPassForwardDefine}
 
-#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+#if SHADERGRAPH_NEEDS_NORMAL_FORWARD || FORCE_NORMAL_OUTPUT_UNLIT_VERTEX_SHADER
 #define VFX_VARYING_NORMAL normal
 #endif
 #if SHADERGRAPH_NEEDS_TANGENT_FORWARD
@@ -129,6 +129,7 @@ ps_output frag(ps_input i,
 	o.color = VFXApplyPreExposure(o.color, i);
 #endif
 
+	o.color = VFXApplyAO(o.color,i);
 	o.color = VFXApplyFog(o.color,i);
 	VFXClipFragmentColor(o.color.a,i);
 	o.color.a = saturate(o.color.a);

@@ -179,16 +179,15 @@ namespace UnityEditor.VFX.UI
                 : "Check out to modify";
         }
 
-        public VFXBlackboardCategory AddCategory(string initialName)
+        public string AddCategory(string initialName)
         {
             var newCategoryName = VFXParameterController.MakeNameUnique(initialName, new HashSet<string>(m_Categories.Keys));
-            var newCategory = new VFXBlackboardCategory { title = newCategoryName };
-            newCategory.SetSelectable();
-            this.m_Categories.Add(newCategoryName, newCategory);
 
-            this.Add(newCategory);
+            controller.graph.UIInfos.categories ??= new List<VFXUI.CategoryInfo>();
+            controller.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo { name = newCategoryName });
+            controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
 
-            return newCategory;
+            return newCategoryName;
         }
 
         DropdownMenuAction.Status GetContextualMenuStatus()
@@ -537,37 +536,33 @@ namespace UnityEditor.VFX.UI
 
         public void SetCategoryName(VFXBlackboardCategory cat, string newName)
         {
-            int index = GetCategoryIndex(cat);
-
-            bool succeeded = controller.SetCategoryName(index, newName);
-
-            if (succeeded)
+            if (TryGetValidName(newName, out var validName))
             {
-                m_Categories.Remove(cat.title);
-                cat.title = newName;
-                m_Categories.Add(newName, cat);
+                int index = GetCategoryIndex(cat);
+
+                bool succeeded = controller.SetCategoryName(index, validName);
+
+                if (succeeded)
+                {
+                    m_Categories.Remove(cat.title);
+                    cat.title = validName;
+                    m_Categories.Add(validName, cat);
+                }
             }
+        }
+
+        bool TryGetValidName(string name, out string validName)
+        {
+            validName = string.IsNullOrEmpty(name)
+                ? "Untitled"
+                : name;
+
+            return validName.Trim().Length > 0;
         }
 
         void OnAddCategory()
         {
-            string newCategoryName = EditorGUIUtility.TrTextContent("new category").text;
-            int cpt = 1;
-
-            if (controller.graph.UIInfos.categories != null)
-            {
-                while (controller.graph.UIInfos.categories.Any(t => t.name == newCategoryName))
-                {
-                    newCategoryName = string.Format(EditorGUIUtility.TrTextContent("new category {0}").text, cpt++);
-                }
-            }
-            else
-            {
-                controller.graph.UIInfos.categories = new List<VFXUI.CategoryInfo>();
-            }
-
-            controller.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo() { name = newCategoryName });
-            controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+            AddCategory("new category");
         }
 
         void OnEditName(Blackboard bb, VisualElement element, string value)

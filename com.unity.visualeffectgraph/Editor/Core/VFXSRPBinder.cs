@@ -97,7 +97,7 @@ namespace UnityEditor.VFX
             return valid;
         }
 
-        public virtual ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXContextCompiledData data)
+        public virtual ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXTaskCompiledData data)
         {
             return new ShaderGraphBinder();
         }

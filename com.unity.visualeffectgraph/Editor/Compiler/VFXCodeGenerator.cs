@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
 {
     static class VFXCodeGenerator
     {
-        private const uint nbThreadsPerGroup = 64u;
+        public const uint nbThreadsPerGroup = 64u;
 
         private static string GetIndent(string src, int index)
         {
@@ -205,13 +205,13 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode,
-            VFXContextCompiledData contextData, HashSet<string> dependencies)
+        static public StringBuilder Build(VFXContext context, VFXTask task, VFXCompilationMode compilationMode,
+            VFXTaskCompiledData taskData, HashSet<string> dependencies, bool forceShadeDebugSymbols)
         {
-            var templatePath = string.Format("{0}.template", context.codeGeneratorTemplate);
+            var templatePath = string.Format("{0}.template", task.templatePath);
 
             dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
-            return Build(context, templatePath, compilationMode, contextData, dependencies);
+            return Build(context, task, templatePath, compilationMode, taskData, dependencies, forceShadeDebugSymbols);
         }
 
         static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
@@ -353,7 +353,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal static void BuildContextBlocks(VFXContext context, VFXContextCompiledData contextData,
+        internal static void BuildContextBlocks(VFXContext context, VFXTaskCompiledData taskData,
             out string blockFunctionContent,
             out string blockCallFunctionContent)
         {
@@ -364,37 +364,37 @@ namespace UnityEditor.VFX
             var blockCallFunction = new VFXShaderWriter();
             var blockDeclared = new HashSet<string>();
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
             int cpt = 0;
             foreach (var current in context.activeFlattenedChildrenWithImplicit)
             {
-                BuildBlock(contextData, linkedEventOut, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
+                BuildBlock(taskData, linkedEventOut, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
             }
 
             blockFunctionContent = blockFunction.builder.ToString();
             blockCallFunctionContent = blockCallFunction.builder.ToString();
         }
 
-        internal static void BuildParameterBuffer(VFXContextCompiledData contextData, IEnumerable<string> filteredOutTextures, out string parameterBufferContent, out bool needsGraphValueStruct) //TODO: pass all in one? Do we need some info out of that method?
+        internal static void BuildParameterBuffer(VFXTaskCompiledData taskData, IEnumerable<string> filteredOutTextures, out string parameterBufferContent, out bool needsGraphValueStruct) //TODO: pass all in one? Do we need some info out of that method?
         {
             var parameterBuffer = new VFXShaderWriter();
-            needsGraphValueStruct = parameterBuffer.WriteGraphValuesStruct(contextData.uniformMapper);
+            needsGraphValueStruct = parameterBuffer.WriteGraphValuesStruct(taskData.uniformMapper);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
+            parameterBuffer.WriteBufferTypeDeclaration(taskData.graphicsBufferUsage.Values);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
+            parameterBuffer.WriteBuffer(taskData.uniformMapper, taskData.graphicsBufferUsage);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteTexture(contextData.uniformMapper, filteredOutTextures);
+            parameterBuffer.WriteTexture(taskData.uniformMapper, filteredOutTextures);
             parameterBufferContent = parameterBuffer.ToString();
         }
 
-        internal static void BuildVertexProperties(VFXContext context, VFXContextCompiledData contextData, out string vertexProperties)
+        internal static void BuildVertexProperties(VFXContext context, VFXTaskCompiledData taskData, out string vertexProperties)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
 
             var additionalVertexProperties = new VFXShaderWriter();
 
@@ -424,12 +424,12 @@ namespace UnityEditor.VFX
             vertexProperties = additionalVertexProperties.ToString();
         }
 
-        internal static void BuildVertexPropertiesAssign(VFXContext context, VFXContextCompiledData contextData, out string buildVertexPropertiesGeneration)
+        internal static void BuildVertexPropertiesAssign(VFXContext context, VFXTaskCompiledData taskData, out string buildVertexPropertiesGeneration)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
 
             var vertexInputsGeneration = new VFXShaderWriter();
 
@@ -451,13 +451,13 @@ namespace UnityEditor.VFX
             buildVertexPropertiesGeneration = vertexInputsGeneration.ToString();
         }
 
-        internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData, bool raytracing,
+        internal static void BuildInterpolatorBlocks(VFXContext context, VFXTaskCompiledData taskData, bool raytracing,
             out string interpolatorsGeneration)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
 
             var additionalInterpolantsGeneration = new VFXShaderWriter();
             var additionalInterpolantsPreparation = new VFXShaderWriter();
@@ -490,12 +490,12 @@ namespace UnityEditor.VFX
             interpolatorsGeneration = additionalInterpolantsGeneration.ToString();
         }
 
-        internal static void BuildFragInputsGeneration(VFXContext context, VFXContextCompiledData contextData, bool useFragInputs, out string buildFragInputsGeneration)
+        internal static void BuildFragInputsGeneration(VFXContext context, VFXTaskCompiledData taskData, bool useFragInputs, out string buildFragInputsGeneration)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
 
             var fragInputsGeneration = new VFXShaderWriter();
 
@@ -515,12 +515,12 @@ namespace UnityEditor.VFX
             buildFragInputsGeneration = fragInputsGeneration.ToString();
         }
 
-        internal static void BuildPixelPropertiesAssign(VFXContext context, VFXContextCompiledData contextData, bool useFragInputs, out string buildFragInputsGeneration)
+        internal static void BuildPixelPropertiesAssign(VFXContext context, VFXTaskCompiledData taskData, bool useFragInputs, out string buildFragInputsGeneration)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
 
             var fragInputsGeneration = new VFXShaderWriter();
 
@@ -535,27 +535,26 @@ namespace UnityEditor.VFX
             buildFragInputsGeneration = fragInputsGeneration.ToString();
         }
 
-        internal static void BuildFillGraphValues(VFXContextCompiledData contextData, VFXDataParticle.GraphValuesLayout graphValuesLayout,
+        internal static void BuildFillGraphValues(VFXTaskCompiledData taskData, VFXDataParticle.GraphValuesLayout graphValuesLayout,
             VFXUniformMapper systemUniformMapper,
             out string fillGraphValues)
         {
             var fillGraphValuesShaderWriter = new VFXShaderWriter();
-            fillGraphValuesShaderWriter.GenerateFillGraphValuesStruct(contextData.uniformMapper, graphValuesLayout);
+            fillGraphValuesShaderWriter.GenerateFillGraphValuesStruct(taskData.uniformMapper, graphValuesLayout);
             fillGraphValues = fillGraphValuesShaderWriter.ToString();
         }
 
-        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode,
-            VFXContextCompiledData contextData, HashSet<string> dependencies)
+        static private StringBuilder Build(VFXContext context, VFXTask task, string templatePath, VFXCompilationMode compilationMode,
+                VFXTaskCompiledData taskData, HashSet<string> dependencies, bool enableShaderDebugSymbols)
         {
             if (!context.SetupCompilation())
                 return null;
 
             if (context is VFXShaderGraphParticleOutput shaderGraphContext &&
                 shaderGraphContext.GetOrRefreshShaderGraphObject() != null &&
-                shaderGraphContext.GetOrRefreshShaderGraphObject().generatesWithShaderGraph &&
-                VFXViewPreference.generateOutputContextWithShaderGraph)
+                shaderGraphContext.GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
             {
-                var result = TryBuildFromShaderGraph(shaderGraphContext, contextData);
+                var result = TryBuildFromShaderGraph(shaderGraphContext, taskData);
 
                 // If the ShaderGraph generation path was successful, use the result, otherwise fall back to the VFX generation path.
                 if (result != null)
@@ -565,7 +564,8 @@ namespace UnityEditor.VFX
                 }
             }
 
-            var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines, dependencies);
+            var allAdditionalDefines = context.additionalDefines.Concat(task.additionalDefines ?? Enumerable.Empty<string>());
+            var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), allAdditionalDefines, dependencies);
 
             var allCurrentAttributes = context.GetData().GetAttributes().Where(a =>
                 (context.GetData().IsCurrentAttributeUsed(a.attrib, context)) ||
@@ -574,17 +574,17 @@ namespace UnityEditor.VFX
             var allSourceAttributes = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
-            globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
+            globalDeclaration.WriteBufferTypeDeclaration(taskData.graphicsBufferUsage.Values);
             globalDeclaration.WriteLine();
             var particleData = (context.GetData() as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
-            contextData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
-            var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(contextData.uniformMapper);
+            taskData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
+            var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(taskData.uniformMapper);
             globalDeclaration.WriteLine();
 
-            globalDeclaration.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
+            globalDeclaration.WriteBuffer(taskData.uniformMapper, taskData.graphicsBufferUsage);
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteTexture(contextData.uniformMapper);
+            globalDeclaration.WriteTexture(taskData.uniformMapper);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "VFXAttributes");
             globalDeclaration.WriteLine();
             globalDeclaration.WriteAttributeStruct(allSourceAttributes.Select(a => a.attrib), "VFXSourceAttributes");
@@ -600,17 +600,24 @@ namespace UnityEditor.VFX
 
             var expressionToName = context.GetData().GetAttributes()
                 .ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode)
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode)
                 .ToDictionary(s => s.Key, s => s.Value);
 
             int cpt = 0;
             foreach (var current in context.activeFlattenedChildrenWithImplicit)
             {
-                BuildBlock(contextData, linkedEventOut, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
+                BuildBlock(taskData, linkedEventOut, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
             }
 
             //< Final composition
             var globalIncludeContent = new VFXShaderWriter();
+
+            if (enableShaderDebugSymbols)
+            {
+                globalIncludeContent.WriteLine("#pragma enable_d3d11_debug_symbols");
+                globalIncludeContent.WriteLine();
+            }
+
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP " + nbThreadsPerGroup);
             globalIncludeContent.WriteLine("#define HAS_VFX_ATTRIBUTES 1");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_ACTUAL (0)");
@@ -627,15 +634,18 @@ namespace UnityEditor.VFX
             foreach (var additionnalHeader in context.additionalDataHeaders)
                 globalIncludeContent.WriteLine(additionnalHeader);
 
-            foreach (var additionnalDefine in context.additionalDefines)
+            foreach (var additionnalDefine in allAdditionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0}{1}", additionnalDefine, additionnalDefine.Contains(' ') ? "" : " 1");
+
+            // We consider that tasks are always generating a compute shader.
+            bool generateComputes = task.shaderType == VFXTaskShaderType.ComputeShader;
 
             var renderTemplatePipePath = VFXLibrary.currentSRPBinder.templatePath;
             var renderRuntimePipePath = VFXLibrary.currentSRPBinder.runtimePath;
-            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderTemplatePipePath))
+            if (!generateComputes && !string.IsNullOrEmpty(renderTemplatePipePath))
             {
                 string renderPipePasses = renderTemplatePipePath + "/VFXPasses.template";
-                globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines, dependencies));
+                globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), allAdditionalDefines, dependencies));
             }
 
             if (context.GetData() is ISpaceable)
@@ -648,14 +658,14 @@ namespace UnityEditor.VFX
             if (needsGraphValueStruct)
                 globalIncludeContent.WriteLine("#define VFX_USE_GRAPH_VALUES 1");
 
-            foreach (string s in GetInstancingAdditionalDefines(context, particleData))
+            foreach (string s in GetInstancingAdditionalDefines(context, task, particleData))
                 globalIncludeContent.WriteLine(s);
 
             var perPassIncludeContent = new VFXShaderWriter();
             string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl" : renderRuntimePipePath + "/VFXCommon.hlsl";
             perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
             perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"");
-            if (!context.codeGeneratorCompute)
+            if (!generateComputes)
             {
                 perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");
             }
@@ -684,10 +694,10 @@ namespace UnityEditor.VFX
             ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);
 
             VFXShaderWriter fillGraphValueStruct = new VFXShaderWriter();
-            fillGraphValueStruct.GenerateFillGraphValuesStruct(contextData.uniformMapper, particleData.graphValuesLayout);
+            fillGraphValueStruct.GenerateFillGraphValuesStruct(taskData.uniformMapper, particleData.graphValuesLayout);
             ReplaceMultiline(stringBuilder, "${VFXLoadGraphValues}", fillGraphValueStruct.builder);
 
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
             foreach (var match in GetUniqueMatches("\\${VFXLoadParameter:{(.*?)}}", stringBuilder.ToString()))
             {
                 var str = match.Groups[0].Value;
@@ -767,7 +777,7 @@ namespace UnityEditor.VFX
             }
 
             //< Detect needed pragma require
-            var useCubeArray = contextData.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
+            var useCubeArray = taskData.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
             var pragmaRequire = useCubeArray ? new StringBuilder("#pragma require cubearray") : new StringBuilder();
             ReplaceMultiline(stringBuilder, "${VFXPragmaRequire}", pragmaRequire);
             if (VFXLibrary.currentSRPBinder != null)
@@ -808,7 +818,7 @@ namespace UnityEditor.VFX
             _ => throw new Exception($"Graphics Device Type '{deviceType}' not supported in shader string."),
         };
 
-        private static StringBuilder TryBuildFromShaderGraph(VFXShaderGraphParticleOutput context, VFXContextCompiledData contextData)
+        private static StringBuilder TryBuildFromShaderGraph(VFXShaderGraphParticleOutput context, VFXTaskCompiledData taskData)
         {
             var stringBuilder = new StringBuilder();
 
@@ -846,7 +856,7 @@ namespace UnityEditor.VFX
                 return false;
             }).FirstOrDefault();
 
-            if (target == null || !target.TryConfigureContextData(context, contextData))
+            if (target == null || !target.TryConfigureContextData(context, taskData))
                 return null;
 
             // Use ShaderGraph to generate the VFX shader.
@@ -859,10 +869,10 @@ namespace UnityEditor.VFX
             return stringBuilder;
         }
 
-        private static void BuildBlock(VFXContextCompiledData contextData, List<VFXSlot> linkedEventOut, VFXShaderWriter blockFunction, VFXShaderWriter blockCallFunction, HashSet<string> blockDeclared, Dictionary<VFXExpression, string> expressionToName, VFXBlock block, ref int blockIndex)
+        private static void BuildBlock(VFXTaskCompiledData taskData, List<VFXSlot> linkedEventOut, VFXShaderWriter blockFunction, VFXShaderWriter blockCallFunction, HashSet<string> blockDeclared, Dictionary<VFXExpression, string> expressionToName, VFXBlock block, ref int blockIndex)
         {
             // Check enabled state
-            VFXExpression enabledExp = contextData.gpuMapper.FromNameAndId(VFXBlock.activationSlotName, blockIndex);
+            VFXExpression enabledExp = taskData.gpuMapper.FromNameAndId(VFXBlock.activationSlotName, blockIndex);
             bool needsEnabledCheck = enabledExp != null && !enabledExp.Is(VFXExpression.Flags.Constant);
             if (enabledExp != null && !needsEnabledCheck && !enabledExp.Get<bool>())
                 throw new ArgumentException("This method should not be called on a disabled block");
@@ -879,7 +889,7 @@ namespace UnityEditor.VFX
 
             foreach (var parameter in block.parameters)
             {
-                var expReduced = contextData.gpuMapper.FromNameAndId(parameter.name, blockIndex);
+                var expReduced = taskData.gpuMapper.FromNameAndId(parameter.name, blockIndex);
                 if (VFXExpression.IsTypeValidOnGPU(expReduced.valueType))
                 {
                     parameters.Add(new VFXShaderWriter.FunctionParameter
@@ -896,7 +906,7 @@ namespace UnityEditor.VFX
             if (!blockDeclared.Contains(methodName))
             {
                 blockDeclared.Add(methodName);
-                blockFunction.WriteBlockFunction(contextData.gpuMapper,
+                blockFunction.WriteBlockFunction(taskData.gpuMapper,
                     methodName,
                     block.source,
                     parameters,
@@ -945,7 +955,7 @@ namespace UnityEditor.VFX
 
             blockCallFunction.WriteCallFunction(methodName,
                 parameters,
-                contextData.gpuMapper,
+                taskData.gpuMapper,
                 expressionToNameLocal);
 
             if (indexEventCount != -1)
@@ -967,11 +977,12 @@ namespace UnityEditor.VFX
             blockIndex++;
         }
 
-        internal static IEnumerable<string> GetInstancingAdditionalDefines(VFXContext context, VFXDataParticle particleData)
+        internal static IEnumerable<string> GetInstancingAdditionalDefines(VFXContext context, VFXTask task, VFXDataParticle particleData)
         {
             yield return "#define VFX_USE_INSTANCING 1";
 
-            if (context is VFXAbstractParticleOutput output)
+            bool isOutputTask = task != null && (task.type & VFXTaskType.Output) != 0;
+            if (context is VFXAbstractParticleOutput output && isOutputTask)
             {
                 uint fixedSize;
                 if (!output.IsInstancingFixedSize(out fixedSize))
@@ -983,7 +994,6 @@ namespace UnityEditor.VFX
             }
             else
             {
-                Debug.Assert(context.codeGeneratorCompute);
                 if (context is VFXBasicInitialize)
                 {
                     yield return "#define VFX_INSTANCING_VARIABLE_SIZE 1";

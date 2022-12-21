@@ -118,60 +118,65 @@ namespace UnityEditor.VFX
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
-            Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
+            VFXCompiledData compiledData,
+            IEnumerable<VFXContext> compilableContexts,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
             VFXSystemNames systemNames = null)
         {
             var context = m_Owners[0];
-            var contextData = contextToCompiledData[context];
 
-            var mappings = new List<VFXMapping>();
-            var uniforms = contextData.uniformMapper.uniforms;
-            uniforms = uniforms.Concat(contextData.uniformMapper.textures);
-            uniforms = uniforms.Concat(contextData.uniformMapper.buffers);
-            foreach (var uniform in uniforms)
+            foreach (var task in compiledData.contextToCompiledData[context].tasks)
             {
-                int exprIndex = expressionGraph.GetFlattenedIndex(uniform);
-                foreach (var name in contextData.uniformMapper.GetNames(uniform))
-                    mappings.Add(new VFXMapping(name, exprIndex));
+                var contextData = compiledData.taskToCompiledData[task];
+
+                var mappings = new List<VFXMapping>();
+                var uniforms = contextData.uniformMapper.uniforms;
+                uniforms = uniforms.Concat(contextData.uniformMapper.textures);
+                uniforms = uniforms.Concat(contextData.uniformMapper.buffers);
+                foreach (var uniform in uniforms)
+                {
+                    int exprIndex = expressionGraph.GetFlattenedIndex(uniform);
+                    foreach (var name in contextData.uniformMapper.GetNames(uniform))
+                        mappings.Add(new VFXMapping(name, exprIndex));
+                }
+
+                var taskDesc = new VFXEditorTaskDesc()
+                {
+                    externalProcessor = shader,
+                    values = mappings.ToArray(),
+                    type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output,
+                    model = context
+                };
+
+                mappings.Clear();
+                var mapper = contextData.cpuMapper;
+
+                // TODO Factorize that
+                var meshExp = mapper.FromNameAndId("mesh", -1);
+                var transformExp = mapper.FromNameAndId("transform", -1);
+                var subMaskExp = mapper.FromNameAndId("subMeshMask", -1);
+
+                int meshIndex = meshExp != null ? expressionGraph.GetFlattenedIndex(meshExp) : -1;
+                int transformIndex = transformExp != null ? expressionGraph.GetFlattenedIndex(transformExp) : -1;
+                int subMaskIndex = subMaskExp != null ? expressionGraph.GetFlattenedIndex(subMaskExp) : -1;
+
+                if (meshIndex != -1)
+                    mappings.Add(new VFXMapping("mesh", meshIndex));
+                if (transformIndex != -1)
+                    mappings.Add(new VFXMapping("transform", transformIndex));
+                if (subMaskIndex != -1)
+                    mappings.Add(new VFXMapping("subMeshMask", subMaskIndex));
+
+                outSystemDescs.Add(new VFXEditorSystemDesc()
+                {
+                    tasks = new VFXEditorTaskDesc[1] { taskDesc },
+                    values = mappings.ToArray(),
+                    type = VFXSystemType.Mesh,
+                    layer = uint.MaxValue,
+                });
             }
-
-            var task = new VFXEditorTaskDesc()
-            {
-                externalProcessor = shader,
-                values = mappings.ToArray(),
-                type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output,
-                model = context
-            };
-
-            mappings.Clear();
-            var mapper = contextData.cpuMapper;
-
-            // TODO Factorize that
-            var meshExp = mapper.FromNameAndId("mesh", -1);
-            var transformExp = mapper.FromNameAndId("transform", -1);
-            var subMaskExp = mapper.FromNameAndId("subMeshMask", -1);
-
-            int meshIndex = meshExp != null ? expressionGraph.GetFlattenedIndex(meshExp) : -1;
-            int transformIndex = transformExp != null ? expressionGraph.GetFlattenedIndex(transformExp) : -1;
-            int subMaskIndex = subMaskExp != null ? expressionGraph.GetFlattenedIndex(subMaskExp) : -1;
-
-            if (meshIndex != -1)
-                mappings.Add(new VFXMapping("mesh", meshIndex));
-            if (transformIndex != -1)
-                mappings.Add(new VFXMapping("transform", transformIndex));
-            if (subMaskIndex != -1)
-                mappings.Add(new VFXMapping("subMeshMask", subMaskIndex));
-
-            outSystemDescs.Add(new VFXEditorSystemDesc()
-            {
-                tasks = new VFXEditorTaskDesc[1] { task },
-                values = mappings.ToArray(),
-                type = VFXSystemType.Mesh,
-                layer = uint.MaxValue,
-            });
         }
         public override void Sanitize(int version)
         {

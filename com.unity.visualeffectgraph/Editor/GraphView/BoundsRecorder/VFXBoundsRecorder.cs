@@ -208,7 +208,7 @@ namespace UnityEditor.VFX.UI
                         var currentBounds = m_Effect.GetComputedBounds(systemName);
                         if (currentBounds.size == Vector3.zero)
                             continue;
-                        var padding = m_Effect.GetCurrentPadding(systemName);
+                        var padding = m_Effect.GetCurrentBoundsPadding(systemName);
                         currentBounds.extents -= padding;
                         if (m_Bounds.TryGetValue(systemName, out var previousBounds))
                         {
@@ -272,7 +272,7 @@ namespace UnityEditor.VFX.UI
                     if ((renderAllRecordedBounds || selectedSystems.Contains(systemName)) &&
                         m_Bounds.TryGetValue(systemName, out var currentBounds) && NeedsToBeRecorded(system))
                     {
-                        var padding = m_Effect.GetCurrentPadding(systemName);
+                        var padding = m_Effect.GetCurrentBoundsPadding(systemName);
                         var paddedBounds = new Bounds(currentBounds.center, 2 * (currentBounds.extents + padding));
                         RenderBoundsSystem(paddedBounds);
                     }
@@ -359,16 +359,14 @@ namespace UnityEditor.VFX.UI
                 {
                     var initializeContext = system.owners.OfType<VFXBasicInitialize>().Single();
                     var boundsSlot = initializeContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
-                    // if (initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXSpace.Local) //TODO: Investigate why use space instead of GetOutputSpaceFromSlot
-                    var padding = m_Effect.GetCurrentPadding(systemName);
-                    var paddedBounds = new Bounds(currentBounds.center, 2 * (currentBounds.extents + padding));
+                    var bounds = new Bounds(currentBounds.center, 2 * currentBounds.extents);
                     if (boundsSlot.space == VFXSpace.Local)
-                        boundsSlot.value = new AABox { center = paddedBounds.center, size = paddedBounds.size };
+                        boundsSlot.value = new AABox { center = bounds.center, size = bounds.size };
                     else
                     {
                         //Subject to change depending on the future behavior of AABox w.r.t. to Spaceable
-                        var positionWorld = m_Effect.transform.TransformPoint(paddedBounds.center);
-                        boundsSlot.value = new AABox { center = positionWorld, size = paddedBounds.size };
+                        var positionWorld = m_Effect.transform.TransformPoint(bounds.center);
+                        boundsSlot.value = new AABox { center = positionWorld, size = bounds.size };
                     }
                 }
             }
