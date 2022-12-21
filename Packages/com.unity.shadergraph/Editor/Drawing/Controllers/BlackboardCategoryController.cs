@@ -98,12 +98,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal string newCategoryNameValue { get; set; }
     }
 
-    class BlackboardCategoryController : SGViewController<CategoryData, BlackboardCategoryViewModel>
+    class BlackboardCategoryController : SGViewController<CategoryData, BlackboardCategoryViewModel>, IDisposable
     {
         internal SGBlackboardCategory blackboardCategoryView => m_BlackboardCategoryView;
         SGBlackboardCategory m_BlackboardCategoryView;
         Dictionary<string, BlackboardItemController> m_BlackboardItemControllers = new Dictionary<string, ShaderInputViewController>();
         SGBlackboard blackboard { get; set; }
+
+        Action m_UnregisterAll;
 
         internal BlackboardCategoryController(CategoryData categoryData, BlackboardCategoryViewModel categoryViewModel, GraphDataStore dataStore)
             : base(categoryData, categoryViewModel, dataStore)
@@ -114,11 +116,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             blackboard.Add(m_BlackboardCategoryView);
-            // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
-            blackboard.RegisterCallback<MouseUpEvent>(evt =>
+
+            var dragActionCancelCallback = new EventCallback<MouseUpEvent>((evt) =>
             {
                 m_BlackboardCategoryView.OnDragActionCanceled();
             });
+
+            m_UnregisterAll += () => blackboard.UnregisterCallback(dragActionCancelCallback);
+
+            // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
+            blackboard.RegisterCallback(dragActionCancelCallback);
             blackboard.hideDragIndicatorAction += m_BlackboardCategoryView.OnDragActionCanceled;
 
             foreach (var categoryItem in categoryData.Children)
@@ -143,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // If categoryData associated with this controller is removed by an operation, destroy controller and views associated
             if (graphData.ContainsCategory(Model) == false)
             {
-                this.Destroy();
+                Dispose();
                 return;
             }
 
@@ -202,7 +209,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case DeleteCategoryAction deleteCategoryAction:
                     if (deleteCategoryAction.categoriesToRemoveGuids.Contains(ViewModel.associatedCategoryGuid))
                     {
-                        this.Destroy();
+                        this.Dispose();
                         return;
                     }
 
@@ -274,7 +281,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardItemControllers.TryGetValue(shaderInput.objectId, out var associatedBlackboardItemController);
             if (associatedBlackboardItemController != null)
             {
-                associatedBlackboardItemController.Destroy();
+                associatedBlackboardItemController.Dispose();
                 m_BlackboardItemControllers.Remove(shaderInput.objectId);
             }
             else
@@ -284,16 +291,25 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ClearBlackboardRows()
         {
             foreach (var shaderInputViewController in m_BlackboardItemControllers.Values)
-                shaderInputViewController.Destroy();
+                shaderInputViewController.Dispose();
 
             m_BlackboardItemControllers.Clear();
         }
 
-        public override void Destroy()
+        public override void Dispose()
         {
+            if(blackboard == null)
+                return;
+
+            base.Dispose();
             Cleanup();
-            m_BlackboardCategoryView?.RemoveFromHierarchy();
             ClearBlackboardRows();
+            m_UnregisterAll?.Invoke();
+
+            blackboard = null;
+            m_BlackboardCategoryView?.Dispose();
+            m_BlackboardCategoryView?.Clear();
+            m_BlackboardCategoryView = null;
         }
     }
 }

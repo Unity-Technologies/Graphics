@@ -322,6 +322,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void Release()
         {
+            if (parameters == null)
+                return;
+
             for (int i = 0; i < parameters.Count; i++)
             {
                 if (parameters[i] != null)

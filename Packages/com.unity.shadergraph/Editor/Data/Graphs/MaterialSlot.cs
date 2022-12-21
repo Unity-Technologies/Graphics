@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class MaterialSlot : JsonObject
+    abstract class MaterialSlot : JsonObject, IDisposable
     {
         const string k_NotInit = "Not Initialized";
 
@@ -356,6 +356,11 @@ namespace UnityEditor.ShaderGraph
             {
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
             }
+        }
+
+        public void Dispose()
+        {
+            owner = null;
         }
 
         // this tracks old CustomFunctionNode slots that are expecting the old bare resource inputs

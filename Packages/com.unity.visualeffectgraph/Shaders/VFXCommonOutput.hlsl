@@ -119,14 +119,15 @@ float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
     float fade = 1.0f;
     #if USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)
     float sceneZ, selfZ;
+    float sampledDepth = VFXSampleDepth(i.VFX_VARYING_POSCS);
     if(IsPerspectiveProjection())
     {
-        sceneZ = VFXLinearEyeDepth(VFXSampleDepth(i.VFX_VARYING_POSCS));
+        sceneZ = VFXLinearEyeDepth(sampledDepth);
         selfZ = i.VFX_VARYING_POSCS.w;
     }
     else
     {
-        sceneZ = VFXLinearEyeDepthOrthographic(VFXSampleDepth(i.VFX_VARYING_POSCS));
+        sceneZ = VFXLinearEyeDepthOrthographic(sampledDepth);
         selfZ = VFXLinearEyeDepthOrthographic(i.VFX_VARYING_POSCS.z);
     }
     fade = saturate(i.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE * (sceneZ - selfZ));
@@ -134,7 +135,16 @@ float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
     #endif
     return fade;
 }
-
+float4 VFXApplySoftParticleFade(VFX_VARYING_PS_INPUTS i, float4 color)
+{
+    float fade = VFXGetSoftParticleFade(i);
+    #if VFX_BLENDMODE_PREMULTIPLY
+    color *= fade;
+    #else
+    color.a *= fade;
+    #endif
+    return color;
+}
 float4 VFXGetTextureColor(VFXSampler2D s,VFX_VARYING_PS_INPUTS i)
 {
     return SampleTexture(s, GetUVData(i));
@@ -170,7 +180,7 @@ float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
 float4 VFXGetFragmentColor(VFX_VARYING_PS_INPUTS i)
 {
     float4 color = VFXGetParticleColor(i);
-    color.a *= VFXGetSoftParticleFade(i);
+    color = VFXApplySoftParticleFade(i, color);
     return color;
 }
 
@@ -275,3 +285,4 @@ float4x4 VFXGetPreviousElementToVFX(uint elementToVFXBaseIndex)
 #endif
     return previousElementToVFX;
 }
+

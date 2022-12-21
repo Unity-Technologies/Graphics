@@ -404,7 +404,7 @@ namespace UnityEngine.Rendering
                 var scene = SceneManager.GetSceneAt(i);
                 if (!scene.isLoaded)
                     continue;
-                sceneData.OnSceneSaved(scene); // We need to perform the same actions we do when the scene is saved.
+                sceneData.OnSceneSaving(scene); // We need to perform the same actions we do when the scene is saved.
                 if (sceneData.GetBakingSetForScene(scene) != activeSet && sceneData.SceneHasProbeVolumes(scene))
                 {
                     Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
@@ -476,7 +476,6 @@ namespace UnityEngine.Rendering
             if (pvList.Count == 0) return; // We have no probe volumes.
 
             CachePVHashes(pvList);
-            ProbeReferenceVolume.instance.checksDuringBakeAction = CheckPVChanges;
 
             currentBakingState = BakingStage.Started;
 
@@ -1084,11 +1083,7 @@ namespace UnityEngine.Rendering
                 window.UpdateScenariosStatuses(ProbeReferenceVolume.instance.lightingScenario);
             }
 
-            // We are done with baking so we reset the partial bake scene list.
-            partialBakeSceneList.Clear();
-
             currentBakingState = BakingStage.OnBakeCompletedFinished;
-
         }
 
         static void OnLightingDataCleared()
@@ -1736,7 +1731,9 @@ namespace UnityEngine.Rendering
         public static void OnBakeCompletedCleanup()
         {
             Lightmapping.bakeCompleted -= OnBakeCompletedCleanup;
+
             ProbeReferenceVolume.instance.checksDuringBakeAction = null;
+            partialBakeSceneList.Clear();
 
             if (currentBakingState != BakingStage.OnBakeCompletedFinished && currentBakingState != BakingStage.OnBakeCompletedStarted)
             {
@@ -1758,6 +1755,7 @@ namespace UnityEngine.Rendering
         public static void RunPlacement()
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            ProbeReferenceVolume.instance.checksDuringBakeAction = CheckPVChanges;
             AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
             Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
 
@@ -1902,6 +1900,7 @@ namespace UnityEngine.Rendering
 
                 profile.simplificationLevels = (int)Mathf.Log(data.asset.cellSizeInBricks, 3);
                 profile.minDistanceBetweenProbes = data.asset.minDistanceBetweenProbes;
+                globalBounds = data.asset.globalBounds;
                 return true;
             }
 

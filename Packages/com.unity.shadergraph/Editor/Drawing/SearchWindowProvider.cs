@@ -57,6 +57,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 DestroyImmediate(m_Icon);
                 m_Icon = null;
             }
+
+            m_EditorWindow = null;
+            m_Graph = null;
+            m_GraphView = null;
+            connectedPort = null;
+
+            currentNodeEntries?.Clear();
+            currentNodeEntries = null;
         }
 
         List<int> m_Ids;

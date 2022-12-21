@@ -10,9 +10,10 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
 #if defined(USING_STEREO_MATRICES)
-        float4x4 _PrevViewProjMStereo[2];
+            float4x4 _ViewProjMStereo[2];
+            float4x4 _PrevViewProjMStereo[2];
+#define _ViewProjM _ViewProjMStereo[unity_StereoEyeIndex]
 #define _PrevViewProjM  _PrevViewProjMStereo[unity_StereoEyeIndex]
-#define _ViewProjM unity_MatrixVP
 #else
         float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;
@@ -61,25 +62,26 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         // Per-pixel camera velocity
         half2 GetCameraVelocity(float4 uv)
         {
-            float depth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, uv.xy).r;
+            #if UNITY_REVERSED_Z
+                half depth = SampleSceneDepth(uv.xy).x;
+            #else
+                half depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uv.xy).x);
+            #endif
 
-        #if UNITY_REVERSED_Z
-            depth = 1.0 - depth;
-        #endif
+            float4 worldPos = float4(ComputeWorldSpacePosition(uv.xy, depth, UNITY_MATRIX_I_VP), 1.0);
 
-            depth = 2.0 * depth - 1.0;
-
-            float3 viewPos = ComputeViewSpacePosition(uv.zw, depth, unity_CameraInvProjection);
-            float4 worldPos = float4(mul(unity_CameraToWorld, float4(viewPos, 1.0)).xyz, 1.0);
-            float4 prevPos = worldPos;
-
-            float4 prevClipPos = mul(_PrevViewProjM, prevPos);
+            float4 prevClipPos = mul(_PrevViewProjM, worldPos);
             float4 curClipPos = mul(_ViewProjM, worldPos);
 
             half2 prevPosCS = prevClipPos.xy / prevClipPos.w;
             half2 curPosCS = curClipPos.xy / curClipPos.w;
 
-            return ClampVelocity(prevPosCS - curPosCS, _Clamp);
+            // Backwards motion vectors
+            half2 velocity = (prevPosCS - curPosCS);
+            #if UNITY_UV_STARTS_AT_TOP
+                velocity.y = -velocity.y;
+            #endif
+            return ClampVelocity(velocity, _Clamp);
         }
 
         half3 GatherSample(half sampleNumber, half2 velocity, half invSampleCount, float2 centerUV, half randomVal, half velocitySign)

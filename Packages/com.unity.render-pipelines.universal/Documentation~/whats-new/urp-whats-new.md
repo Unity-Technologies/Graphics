@@ -1,190 +1,189 @@
-# What's new in URP 12 (Unity 2021.2)
+# What's new in URP 14 (Unity 2022.2)
 
-This section contains information about new features, improvements, and issues fixed in URP 12.
+This section contains information about new features, improvements, and issues fixed in URP 14.
 
-For a complete list of changes made in URP 12, refer to the [Changelog](xref:changelog).
+For a complete list of changes made in URP 14, refer to the [Changelog](xref:changelog).
 
 ## Features
 
 This section contains the overview of the new features in this release.
 
-### Lens Flare
+### Full Screen Pass Renderer Feature
 
-When using Lens Flare, URP allow to remap the result of the occlusion to another value with a curve. By default, the occlusion is linear, between 0 and 1. This can be specifically useful to occlude flare more drastically when behind clouds.
+This Renderer Feature lets you inject full screen render passes at pre-defined injection points to create full screen effects. To read more about the feature, refer to page [Full Screen Pass Renderer Feature](../renderer-features/renderer-feature-full-screen-pass.md).
 
-![](../Images/LensFlare_OcclusionCurve.png)
+![Full Screen Pass Renderer Feature](../Images/whats-new/urp-14/full-screen-render-pass-example.png)<br/>*Full Screen Pass with a custom Grayscale Material.*
 
-### Scene Debug View Modes
+### Custom post-processing effects
 
-![Rendering Debugger](../Images/whats-new/urp-12/rendering-debugger.png)
+The Full Screen Pass Renderer Feature lets you create custom post-processing effects with minimum coding effort. To read how to create a simple post-processing effect, see the page [How to create a custom post-processing effect](../post-processing/post-processing-custom-effect-low-code.md).
 
-Improvements in this release bring URP's **Scene Debug View Modes** closer to parity with the options available in Built-in Render Pipeline. The Render Pipeline Debug Window is also included as a new debugging workflow for URP in this release. Users can use Debug Window to inspect the properties of materials being rendered, how the light interacts with these materials, and how shadows and LOD operations are performed to produce the final frame.
+The following images show a fog effect implemented with a Full Screen Render Pass Renderer Feature.
 
-### Reflection probe blending and box projection support
+The scene without the fog effect:<br/>![Scene without the fog effect](../Images/whats-new/urp-14/custom-post-processing-example-no-fog.png)
 
-![Reflection probe blending and box projection support](../Images/whats-new/urp-12/reflection-probe-blending-artistic-demo.gif)<br/>*This illustration shows the reflections implemented using reflection probes.*
+The scene with the custom fog effect implemented as a Full Screen Render Pass Renderer Feature:<br/>![Custom fog effect implemented as a Full Screen Render Pass](../Images/whats-new/urp-14/custom-post-processing-example-custom-fog.png)
 
-Reflection probe blending and box projection support have been added to allow for better reflection quality using probes and bringing URP closer to feature parity with the Built-In Render Pipeline.
+Implementing a custom effect lets you overcome the limitation of the default Unity fog effect that does not affect the skybox:<br/>![Default Unity fog](../Images/whats-new/urp-14/custom-post-processing-example-unity-default-fog.png)
 
-For more information on reflection probes in URP, see the page [Reflection probes](../lighting/reflection-probes.md).
+### Rendering layers
 
-### URP Deferred Rendering Path
+The Rendering Layers feature lets you configure certain Lights to affect only specific GameObjects. With the [Custom Shadow Layers](../features/rendering-layers.md#shadow-layers) property, you can configure certain GameObjects to cast shadows only from specific Lights (even if those Lights do not affect the GameObjects).
 
-![URP Deferred Rendering Path](../Images/whats-new/urp-12/urp-deferred-rendering-path.png)<br/>*A sample scene that uses the Deferred Rendering Path.*
+In this URP version, Rendering Layers work not only with Lights, but also with Decals.
 
-The URP Deferred Rendering Path uses a rendering technique where light shading is performed in screen space on a separate rendering pass after all the vertex and pixel shaders have been rendered. Deferred shading decouples scene geometry from lighting calculations, so the shading of each light is only computed for the visible pixels that it actually affects. With this approach, Unity can efficiently render a far greater amount of lights in a scene compared to per-object forward rendering.
+![Rendering Layers working with Decals](../Images/lighting/rendering-layers/rendering-layers-decal-example.png)
 
-For more information about this feature, see the page [Deferred Rendering Path](../rendering/deferred-rendering-path.md).
+Refer to the following pages to learn more about the feature:
 
-### URP decal system
+* [Rendering Layers](../features/rendering-layers.md)
 
-![Decal Projector in the Scene.](../Images/whats-new/urp-12/urp-decal.png)<br/>*Decal Projector in the Scene.*
+* [How to use Rendering Layers with Decals](../features/rendering-layers.md#how-to-rendering-layers-decals)
 
-The new decal system enables you to project decal materials into the surfaces of a Scene. Decals projected into a scene will wrap around meshes and interact with the Scene’s lighting. Decals are useful for adding extra textural detail to a Scene, especially in order to break up materials’ repetitiveness and detail patterns.
+### Forward+ Rendering Path
 
-For more information about this feature, see the page [Decal Renderer Feature](../renderer-feature-decal.md).
+The Forward+ Rendering Path lets you avoid the per object limit of the Forward Rendering Path.
 
-### Depth prepass (Depth Priming Mode)
+The Forward+ Rendering Path has the following advantages compared with the Forward Rendering Path:
 
-This release adds support for depth prepass, a rendering pass in which all visible opaque meshes are rendered to populate the depth buffer (without incurring fragment shading cost). Any subsequent color pass can reuse this depth buffer. A depth prepass eliminates or significantly reduces geometry rendering overdraw.
+* There is no per-object limit for the number of Lights that affect GameObjects, the per-Camera limit still applies.<br/>The per-Camera limits for different platforms are:<ul><li>Desktop and console platforms: 256 Lights</li><li>Mobile platforms: 32 Lights. OpenGL ES 3.0 and earlier: 16 Lights.</li></ul>This implementation lets you avoid splitting big meshes when more than 8 lights affect them.
 
-To enable the depth prepass, set the **Depth Priming Mode** to Auto or Forced (URP Asset > Rendering > Rendering Path, Forward > Depth Priming Mode).
+* Blending of more than 2 reflection probes.
 
-![Depth Priming Mode property.](../Images/whats-new/urp-12/urp-asset-depth-priming-mode.png)<br/>*The Depth Priming Mode property*.
+* Support for multiple Lights when using Unity Entity Component System (ECS).
 
-### URP Light Cookies
+* More flexibility with procedural draws.
 
-![Light Cookie sample](../Images/whats-new/urp-12/light-cookie-sample-1.png)
+For more information, see the page [Forward+ Rendering Path](../rendering/forward-plus-rendering-path.md).
 
-The **URP Light Cookies** feature enables a technique for masking or filtering outgoing light’s intensity to produce patterned illumination. This feature can be used to change the appearance, shape, and intensity of cast light for artistic effects or to simulate complex lighting scenarios with minimal runtime performance impact.
+### LOD Cross-fade
 
-### Render Pipeline Converter
+The LOD cross-fade lets you achieve a smoother transition blending between the current mesh LOD and the next LOD based on the object's distance to the Camera.
 
-A new converter framework for migrating from the Built-in Render Pipeline to URP makes the migration process more robust and supports converting elements other than Materials.
+As the Camera moves, Unity shows different LODs to provide a good balance between quality and processing cost. Cross-fading lets you avoid harsh LOD snapping and popping.
 
-To open the Render Pipeline Converter window, select **Window** > **Rendering** > **Render Pipeline Converter**
+![LOD cross-fade](../Images/whats-new/urp-14/lod-cross-fade.png)<br/>*1: LOD cross-fade off. 2: LOD cross-fade on.*
 
-![Render Pipeline Converter](../Images/whats-new/urp-12/render-pipeline-converter-ui.png)
-
-For more information, see the page [Render Pipeline Converter](../features/rp-converter.md).
-
-### Motion Vectors
-
-Motion vector support provides a velocity buffer that captures and stores the per-pixel and screen-space motion of objects from one frame to another.
-
-### URP Volume system update frequency
-
-![Volume update modes](../Images/whats-new/urp-12/volume-update-modes.png)
-
-URP Volume system update frequency lets you to optimize the performance of your Volumes framework according to your content and target platform requirements.
-
-### URP Global Settings
-
-![URP Global Settings](../Images/whats-new/urp-12/urp-global-settings.png)
-
-The URP Global Settings section lets you define project-wide settings for URP. In this release, URP Global Settings contain the names of Rendering layers.
-
-### Rendering Layers
-
-Rendering Layers let you mask certain lights in a Scene to affect particular meshes. The lights assigned to a specific layer only affect meshes assigned to the same layer.
-
-For more information, see the page [Rendering layers](../features/rendering-layers.md).
-
-### New URP package samples
-
-New URP samples are available in the Package Manager. The samples show use cases of URP features, their configuration, and practical applications in one or more scenes.
-
-> **Note**: in the current URP version, there is a known issue that prevents the rendering effects from working correctly. [Follow this link to read the description of the issue and how to fix it](../known-issues.md#urp-samples-known-issue-1).
-
-### Lens Flare system
-
-![Lens Flare system](../Images/whats-new/urp-12/urp-lens-flare-art-demo.png)<br/>*A sample URP scene using lens flares*.
-
-This version introduces a new Lens Flare system. Lens Flares simulate the effect of lights refracting inside a camera lens. They are used to represent really bright lights, or, more subtly, they can add a bit more atmosphere to your Scene. The new system, similar to the one present in the Built-in Render Pipeline, allows stacking flares with an improved user interface and adds many more options.
-
-### Enlighten Realtime GI
-
-![Enlighten Realtime GI](../Images/whats-new/urp-12/enlighten-realtime-gi.png)<br/>*A sample scene with Enlighten Realtime GI*.
-
-Enlighten Realtime GI lets you enrich your projects with more dynamic lighting effects by, for example, having moving lights that affect global illumination in scenes. We've extended the platform reach of Enlighten Realtime GI to Apple Silicon, Sony PlayStation(R) 5, and Microsoft Xbox Series X|S platforms.
-
-### SpeedTree 8 vegetation
-
-This release adds support for SpeedTree 8 vegetation to URP, including support for animated vegetation using the SpeedTree wind system. URP uses Shader Graphs to support SpeedTree 8, for more information see the page [SpeedTree Sub Graph Assets](https://docs.unity3d.com/Packages/com.unity.shadergraph@12.0/manual/SpeedTree8-SubGraphAssets.html).
-
-### Shader Graph: Override Material properties
-
-In this release, Shader Graph stacks that have URP as a target have the **Allow Material Override** property. The property is available for Lit and Unlit Material types.
-
-When enabled, this property lets you override certain surface properties on Materials. Before this release, those properties were set in a Shader Graph.
-
-![Allow Material Override property.](../Images/whats-new/urp-12/allow-material-override.png)
+For more information, see the [LOD Cross Fade](../universalrp-asset.md#lod-cross-fade) property.
 
 ## Improvements
 
 This section contains the overview of the major improvements in this release.
 
-### SSAO improvements
+### Screen space ambient occlusion (SSAO) Improvements
 
-This release brings multiple SSAO improvements:
+This release implements multiple performance and quality improvements to the SSAO feature.
 
-* SSAO supports the Deferred Rendering Path.
+![Falloff Distance property](../Images/post-proc/ssao/ssao-falloff-distance.gif)<br/>*The Falloff Distance property lets you improve performance for Scenes with a lot of distant objects*
 
-* Normal maps contribute to the effect.
+Performance improvements:
 
-* SSAO supports Particle Systems and surfaces with Unlit shaders.
+* New **Blur Quality** property with three blur options: High, Medium, Low.
 
-* Performance is improved.
+* The **Downsample** check box now not only affects the Ambient Occlusion pass but also the following blur passes.
 
-### SRP settings workflow improvements
+* The **Falloff Distance** property lets you reduce computational work on objects far away from the Camera.
 
-The SRP settings workflow improvements are a series of UI/UX improvements intended to impact workflows and provide consistency between the SRP render pipelines. For this iteration, the focus was mainly on aligning the light and camera components between URP and HDRP. The changes consist of aligning header design, sub-header designs, expanders, settings order, naming, and the indentation of dependent fields. While these are mostly cosmetic changes, they have a high impact.
+* The last Blur pass and the After Opaque pass are now merged into one when the **After Opaque** option is enabled.
 
-### More optimal handling of the depth buffer with MSAA enabled
+* The **Samples** property now has three options with pre-defined sample counts that provide a good balance of visual quality and performance.
 
-Previously, with MSAA enabled, Unity executed an extra depth prepass to populate the depth buffer.
-In this release, with MSAA enabled, Unity doesn't execute the extra depth prepass and reuses the  depth texture from the opaque pass instead (**Note**: this is valid for all but GLES3 platforms).
+Quality improvements:
 
-### SwapBuffer
+* The **Method** property lets you choose the algorithm that Unity uses to calculate the ambient occlusion values. The **Blue Noise** algorithm is added in this release.
 
-In this release, Universal Renderer can manage and operate on multiple Camera color buffers in the backend.
+* A new depth test was added to avoid adding SSAO to objects far away from one another. 
 
-You can now use the new [ScriptableRenderPass.Blit](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/api/UnityEngine.Rendering.Universal.ScriptableRenderPass.html) method in your Scriptable Renderer Feature to apply effects to the color buffer without managing and handling Camera color buffers yourself. You can use the method to write effects that read and write to the Camera color buffer.
+For more information, see the page [Screen Space Ambient Occlusion](../post-processing-ssao.md).
 
-### URP 2D Renderer improvements
+### 64 bit high precision HDR render target format
 
-This release contains multiple URP 2D Renderer improvements:
+URP can now render into 64-bit high precision HDR render target format. Compared to the default 32-bit HDR render target, the 64-bit option provides the following benefits: 
 
-* New SceneView Debug Modes in URP let 2D developers access the following views: Mask, Alpha channel, Overdraw or Mipmaps. The Sprite Mask feature has been adjusted to work correctly in SRP.
+* Better precision for all color channels which reduces banding.
 
-* The 2D Renderer can now be customized with Renderer Features which let you add custom passes.
+* Even precision for color channels eliminates the subtle blue-yellow banding caused by the lower blue channel precision of the 32-bit target.
 
-* 2D Lights are now integrated in the Light Explorer window, and they are no longer labeled as Experimental.
+* Support for the alpha channel. The alpha channel enables the alpha output with some limitations.
+ 
+The 64-bit format uses twice more memory compared to the 32-bit format. It can also have a significant performance impact on mobile platforms.
 
-* 2D shadow optimizations.
+To select the 64-bit render target option: in URP Asset, navigate to **Quality** > **HDR** > **HDR Precision**.
 
-* 2D Light textures produced by the 2D Lights are now accessible via the 2D Light Texture node in Shader Graph.
+This setting controls only the internal HDR rendering precision, not HDR output.
 
-* VFX Graph now supports 2D Unlit shaders.
+### New bloom quality settings
 
-* A new 2D URP default template has been added. It includes a set of verified 2D tools, so new projects load faster with the entire 2D toolset at your disposal.
+URP 14 adds two new properties to the Bloom post-processing effect:
 
-* Sprite Atlas v2 with folder support.
+* **Downscale**: set the bloom texture scale to either half size or quarter size.
 
-* New APIs to find duplicated sprites in several atlases for a single sprite, query for MasterAtlas and IsInBuild.
+* **Max Iterations**: set the maximum number of scale iterations (down and up) the bloom effect does. This property replaces the **Skip Iterations** property, which skipped a number of last iterations, but did not limit the maximum number.
 
-* 2D Pixel Perfect's Inspector UI has a more intuitive setting display.
+For more information, see the page [Bloom](../post-processing-bloom.md).
 
-* 2D PSD Importer has new UX improvements, better control over the Photoshop layers, and Sprite name mapping.
+### Improvements to the Render Pipeline Converter
 
-* 2D Animation updates include bone colors, which can now be set in the visibility panel.
+This release contains multiple usability improvements of the Render Pipeline Converter:
 
-* 2D tilemap improvements.
+* The Render Pipeline Converter window now has the **Initialize and Convert** button.
+
+* Certain dialogs now show the number of selected elements and the total number of elements.
+
+* You can click each converter to see more information about the elements it converter.
+
+* Improvements to the visual appearance and usability of the Render Pipeline Converter dialogs.
+
+Material converter section improvements:
+
+* Items in the list are sorted alphabetically now.
+
+* The converter handles Materials in packages better.
+
+* The converter ignores Shader Graph shaders.
+
+Performance improvement:
+
+* Indexing is significantly faster in this release. This improves the performance of converters that use an `.index` file.
+
+### Full screen draws in URP now use the SRP Core Bliter API
+
+All the calls to `cmd.Blit` method are replaced with the [Blitter](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@14.0/api/UnityEngine.Rendering.Blitter.html) API. This ensures a correct and consistent way to perform full screen draws.
+
+In the current URP version, using `cmd.Blit` might implicitly enable or disable XR shader keywords, which breaks XR SPI rendering.
+
+Refer to the [Perform a full screen blit in URP](../renderer-features/how-to-fullscreen-blit.md) page to read how to use the Blitter API.
+
+### More consistent lighting behavior on different platforms
+
+Removed implicit mobile shader optimizations to keep the visual appearance of lighting consistent on all platforms. Changes are mostly related to light fade quality and shadow filtering. Light fade calculations on mobile platforms are now the same as on desktop platforms.
+
+In this release, URP implements full quality spherical harmonics and always normalized normals for lighting.
+
+`SHADER_QUALITY_LOW/MEDIUM/HIGH` and `SHADER_HINT_NICE_QUALITY` shader defines were removed. If you used those defines in custom shaders, consider using `SHADER_API_MOBILE` or `SHADER_API_GLES` defines to replace `SHADER_QUALITY_LOW/MEDIUM/HIGH`. 
+
+URP uses the `SHADER_API_MOBILE` define only for platform-specific functions now, and not for implicit quality changes.
+
+### XRSystem API
+
+URP can now use the [XRSystem API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@14.0/api/UnityEngine.Experimental.Rendering.XRBuiltinShaderConstants.html) override the Built-In Render Pipeline stereo matrices. This lets you inject modifications to the projection matrix and the view matrix in URP.
+
+### Shader stripping improvement: Light cookie stripping
+
+The URP Asset now has the option **Lighting** > **Light Cookies** that lets you enable or disable Light Cookies. When Light Cookies are disabled in all URP Assets in **Graphics** and **Quality** settings, Unity strips all shader variants with Light Cookies. This can reduce the shader variant count up to two times.
+
+### CPU performance improvements for light-heavy scenes
+
+This release contains optimizations to avoid unnecessary copies of Light and Camera data. The changes mostly affect scenes containing tens or hundreds of Lights with Light cookies, with shadows enabled, and when using the Deferred Rendering Path. In scenes with hundreds of Lights that use all the mentioned features, the rendering performance can be up to 25% faster in the Editor.
+
+### Soft Shadows Quality property on Lights
+
+Point Lights and Spot Lights now have the **Soft Shadows Quality** property. Options **Low**, **Medium**, and **High** let you specify the soft shadow quality value for the Light.
 
 ## Issues resolved
 
-For a complete list of issues resolved in URP 12, see the [Changelog](xref:changelog).
+For a complete list of issues resolved in URP 14, see the [Changelog](xref:changelog).
 
 ## Known issues
 
-For information on the known issues in URP 12, see the section [Known issues](../known-issues.md).
+For information on the known issues in URP 14, see the section [Known issues](../known-issues.md).

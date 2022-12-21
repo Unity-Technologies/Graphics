@@ -88,18 +88,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Additional Shadows");
 
-        int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-        {
-            get
-            {
-                if (UniversalRenderPipeline.maxVisibleAdditionalLights != UniversalRenderPipeline.k_MaxVisibleAdditionalLightsNonMobile)
-                    // Reduce uniform block size on Mobile/GL to avoid shader performance or compilation issues - keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-                    return UniversalRenderPipeline.maxVisibleAdditionalLights;
-                else
-                    return 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-            }
-        }
-
         /// <summary>
         /// Creates a new <c>AdditionalLightsShadowCasterPass</c> instance.
         /// </summary>
@@ -141,13 +129,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!m_UseStructuredBuffer)
             {
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
-
-                m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];
-                m_UnusedAtlasSquareAreas.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
-                m_ShadowResolutionRequests.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
+                int capacity = UniversalRenderPipeline.maxVisibleAdditionalLights;
+                m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[capacity];
+                m_UnusedAtlasSquareAreas.Capacity = capacity;
+                m_ShadowResolutionRequests.Capacity = capacity;
             }
         }
 
+        /// <summary>
+        /// Cleans up resources used by the pass.
+        /// </summary>
         public void Dispose()
         {
             m_AdditionalLightsShadowmapHandle?.Release();
@@ -596,7 +587,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // To avoid visual artifacts when there is not enough place in the atlas, we remove shadow slices that would be allocated a too small resolution.
             // When not using structured buffers, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length maps to _AdditionalLightsWorldToShadow in Shadows.hlsl
             // In that case we have to limit its size because uniform buffers cannot be higher than 64kb for some platforms.
-            int totalShadowSlicesCount = m_UseStructuredBuffer ? totalShadowResolutionRequestsCount : Math.Min(totalShadowResolutionRequestsCount, MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO);  // Number of shadow slices that we will actually be able to fit in the shadow atlas without causing visual artifacts.
+            int totalShadowSlicesCount = m_UseStructuredBuffer ? totalShadowResolutionRequestsCount : Math.Min(totalShadowResolutionRequestsCount, UniversalRenderPipeline.maxVisibleAdditionalLights);  // Number of shadow slices that we will actually be able to fit in the shadow atlas without causing visual artifacts.
 
             // Find biggest end index in m_SortedShadowResolutionRequests array, under which all shadow requests can be allocated a big enough shadow atlas slot, to not cause rendering artifacts
             bool allShadowsAfterStartIndexHaveEnoughResolution = false;
@@ -719,9 +710,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     m_GlobalShadowSliceIndexToPerLightShadowSliceIndex.Add(perLightShadowSlice);
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
-                                    float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
-                                    if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
-                                        softShadows *= 1 + (int)additionalLightData.softShadowQuality;
+                                    float softShadows = ShadowUtils.SoftShadowQualityToShaderProperty(light, (supportsSoftShadows && light.shadows == LightShadows.Soft));
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Spot, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
@@ -750,9 +739,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     m_GlobalShadowSliceIndexToPerLightShadowSliceIndex.Add(perLightShadowSlice);
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
-                                    float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
-                                    if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
-                                        softShadows *= 1 + (int)additionalLightData.softShadowQuality;
+                                    float softShadows = ShadowUtils.SoftShadowQualityToShaderProperty(light, (supportsSoftShadows && light.shadows == LightShadows.Soft));
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Point, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
@@ -872,8 +859,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        // Get the "additional light index" (used to index arrays _AdditionalLightsPosition, _AdditionalShadowParams, ...) from the "global" visible light index
         // Function called by Deferred Renderer
+        /// <summary>
+        /// Gets the additional light index from the global visible light index, which is used to index arrays _AdditionalLightsPosition, _AdditionalShadowParams, etc.
+        /// </summary>
+        /// <param name="visibleLightIndex">The index of the visible light.</param>
+        /// <returns>The additional light index.</returns>
         public int GetShadowLightIndexFromLightIndex(int visibleLightIndex)
         {
             if (visibleLightIndex < 0 || visibleLightIndex >= m_VisibleLightIndexToAdditionalLightIndex.Length)

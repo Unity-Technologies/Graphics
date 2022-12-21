@@ -8,6 +8,7 @@ The **Rendering Debugger** is a specific window for the Scriptable Render Pipeli
 * [Lighting](#LightingPanel)
 * [Volume](#VolumePanel)
 * [Rendering](#RenderingPanel)
+* [Probe Volume](#ProbeVolume)
 * [Camera](#CameraPanel)
 
 ![](Images/RenderPipelineDebug1.png)
@@ -517,6 +518,77 @@ The **Volume** panel has tools that you can use to visualize the Volume Componen
 | **Parameter**          | List of parameters for the selected component. |
 | **Interpolated Value** | Current value affecting the choosen camera for each parameter. |
 | **Other columns**      | Each one of the remaining columns display the parameter values of a volume affecting the selected **Camera**. They're sorted from left to right by decreasing influence. |
+
+<a name="ProbeVolume"></a>
+
+## Probe Volume panel
+
+These settings make it possible for you to visualize [Probe Volumes](probevolumes.md) in your Scene, and configure the visualization.
+
+
+<table>
+<thead>
+  <tr>
+    <td colspan="2"><b>Property</b></th>
+    <td colspan="1"><b>Description</b></th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td rowspan="5"><b>Subdivision Visualization</b></td>
+  </tr>
+  <tr>
+    <td><b>Display Cells</b></td>
+    <td>Display cells, which are the units used for <a href="probevolumes-streaming.md">streaming</a></td>
+  </tr>
+  <tr>
+    <td><b>Display Bricks</b></td>
+    <td>Display <a href="probevolumes.md#bricks">Bricks</a>.</td>
+  </tr>
+  <tr>
+    <td><b>Realtime Update</b> <a name="realtimeupdatessubdivisionsview"></a></td>
+    <td>Preview Probe Volume data in the Scene without baking. </td>
+  </tr>
+  <tr>
+    <td><b>Culling Distance</b></td>
+    <td>Determines how far from the Scene Camera Unity draws debug visuals for cells and bricks, in meters.</td>
+  </tr>
+  <tr>
+    <td rowspan="4"><b>Probe Visualization</b></td>
+  </tr>
+  <tr>
+    <td><b>Display Probes</b></td>
+    <td>Display probe positions. <br></td>
+  </tr>
+  <tr>
+    <td><b>Virtual Offset</b></td>
+    <td>Display the offsets Unity applies to Light Probe capture positions. </td>
+  </tr>
+  <tr>
+    <td><b>Culling Distance</b></td>
+    <td>Determines how far from the Scene Camera Unity draws Light Probe position indicators, in meters. </td>
+  </tr>
+  <tr>
+    <td rowspan="5"><b>Scenario Blending</b></td>
+  </tr>
+  <tr>
+    <td><b>Number of Cells Blended Per Frame</b></td>
+    <td>Determines the maximum number of cells Unity blends per frame.</td>
+  </tr>
+  <tr>
+    <td><b>Turnover Rate</b></td>
+    <td>Delay in seconds between updates to cell, brick, and Light Probe positions during <a href="probevolumes-use.md#scenarios">Lighting Scenario</a> blending. </td>
+  </tr>
+  <tr>
+    <td><b>Scenario To Blend With</b></td>
+    <td>Select another Lighting Scenario to blend with the active lighting scenario. </td>
+  </tr>
+  <tr>
+    <td><b>Scenario Blending Factor</b></td>
+    <td>Adjust to blend between Light Scenarios.</td>
+  </tr>
+</tbody>
+</table>
 
 <a name="RenderingPanel"></a>
 

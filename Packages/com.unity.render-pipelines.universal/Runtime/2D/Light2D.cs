@@ -263,6 +263,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public float falloffIntensity { get => m_FalloffIntensity; set => m_FalloffIntensity = Mathf.Clamp(value, 0, 1); }
 
+        /// <summary>
+        /// Checks if the alpha overlap operation is alpha blend.
+        /// This is obsolete.
+        /// </summary>
         [Obsolete]
         public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
 

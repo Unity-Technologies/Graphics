@@ -414,7 +414,7 @@ namespace UnityEngine.Rendering
         }
 
         // Should be called after EnsureSceneIsInBakingSet otherwise GetProfileForScene might be out of date
-        internal void UpdateSceneBounds(Scene scene)
+        internal void UpdateSceneBounds(Scene scene, bool updateGlobalVolumes)
         {
             var volumes = Object.FindObjectsOfType<ProbeVolume>();
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
@@ -436,11 +436,12 @@ namespace UnityEngine.Rendering
             Bounds newBound = new Bounds();
             foreach (var volume in volumes)
             {
-                if (volume.gameObject.scene != scene)
+                bool forceUpdate = updateGlobalVolumes && volume.mode == ProbeVolume.Mode.Global;
+                if (!forceUpdate && volume.gameObject.scene != scene)
                     continue;
 
-                if (volume.globalVolume)
-                    volume.UpdateGlobalVolume();
+                if (volume.mode != ProbeVolume.Mode.Local)
+                    volume.UpdateGlobalVolume(volume.mode == ProbeVolume.Mode.Global ? GIContributors.ContributorFilter.All : GIContributors.ContributorFilter.Scene);
 
                 var transform = volume.gameObject.transform;
                 var obb = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(transform.position, transform.rotation, volume.GetExtents()), 0, 0);
@@ -521,10 +522,13 @@ namespace UnityEngine.Rendering
             return null;
         }
 
-        internal void OnSceneSaved(Scene scene)
+        internal void OnSceneSaving(Scene scene, string path = null)
         {
+            // If we are called from the scene callback, we want to update all global volumes that are potentially affected
+            bool updateGlobalVolumes = path != null;
+            
             EnsureSceneIsInBakingSet(scene);
-            UpdateSceneBounds(scene);
+            UpdateSceneBounds(scene, updateGlobalVolumes);
             EnsurePerSceneData(scene);
         }
 

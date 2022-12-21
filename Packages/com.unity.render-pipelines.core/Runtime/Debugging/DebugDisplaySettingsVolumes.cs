@@ -196,38 +196,18 @@ namespace UnityEngine.Rendering
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(selectedType);
 
                 // First row for volume info
-                float timer = 0.0f, refreshRate = 0.2f;
                 var row = new DebugUI.Table.Row()
                 {
                     displayName = Strings.volumeInfo,
                     opened = true, // Open by default for the in-game view
-                    children = { new DebugUI.Value() {
-                                         displayName = Strings.interpolatedValue,
-                                         getter = () => {
-                                             // This getter is called first at each render
-                                             // It is used to update the volumes
-                                             bool refresh = timer >= refreshRate;
-                                             timer += Time.deltaTime;
-                                             if (!refresh) return string.Empty;
-                                             timer -= refreshRate;
-
-                                             if (data.volumeDebugSettings.selectedCamera != null)
-                                             {
-                                                 var newVolumes = data.volumeDebugSettings.GetVolumes();
-                                                 if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
-                                                 {
-                                                     for (int i = 0; i < newVolumes.Length; i++)
-                                                     {
-                                                         var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
-                                                         table.SetColumnVisibility(i + 1, visible);
-                                                     }
-                                                     return string.Empty;
-                                                 }
-                                             }
-                                             DebugManager.instance.ReDrawOnScreenDebug();
-                                             return string.Empty;
-                                         }
-                                     } }
+                    children =
+                    {
+                        new DebugUI.Value()
+                        {
+                            displayName = Strings.interpolatedValue,
+                            getter = () => string.Empty
+                        }
+                    }
                 };
 
                 // Second row, links to volume gameobjects
@@ -326,6 +306,36 @@ namespace UnityEngine.Rendering
                 data.volumeDebugSettings.RefreshVolumes(volumes);
                 for (int i = 0; i < volumes.Length; i++)
                     table.SetColumnVisibility(i + 1, data.volumeDebugSettings.VolumeHasInfluence(volumes[i]));
+
+                float timer = 0.0f, refreshRate = 0.2f;
+                table.isHiddenCallback = () =>
+                {
+                    timer += Time.deltaTime;
+                    if (timer >= refreshRate)
+                    {
+                        if (data.volumeDebugSettings.selectedCamera != null)
+                        {
+                            var newVolumes = data.volumeDebugSettings.GetVolumes();
+                            if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
+                            {
+                                for (int i = 0; i < newVolumes.Length; i++)
+                                {
+                                    var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
+                                    table.SetColumnVisibility(i + 1, visible);
+                                }
+                            }
+
+                            if (!volumes.SequenceEqual(newVolumes))
+                            {
+                                volumes = newVolumes;
+                                DebugManager.instance.ReDrawOnScreenDebug();
+                            }
+                        }
+
+                        timer = 0.0f;
+                    }
+                    return false;
+                };
 
                 return table;
             }

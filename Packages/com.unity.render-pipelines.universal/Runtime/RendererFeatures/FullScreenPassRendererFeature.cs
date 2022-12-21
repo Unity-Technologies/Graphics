@@ -4,25 +4,56 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.XR;
 
+/// <summary>
+/// FullScreenPass is a renderer feature used to change screen appearance such as post processing effect. This implementation
+/// lets it's user create an effect with minimal code involvement.
+/// </summary>
 public class FullScreenPassRendererFeature : ScriptableRendererFeature
 {
+    /// <summary>
+    /// An injection point for the full screen pass. This is similar to RenderPassEvent enum but limits to only supported events.
+    /// </summary>
     public enum InjectionPoint
     {
+        /// <summary>
+        /// Inject a full screen pass before transparents are rendered
+        /// </summary>
         BeforeRenderingTransparents = RenderPassEvent.BeforeRenderingTransparents,
+        /// <summary>
+        /// Inject a full screen pass before post processing is rendered
+        /// </summary>
         BeforeRenderingPostProcessing = RenderPassEvent.BeforeRenderingPostProcessing,
+        /// <summary>
+        /// Inject a full screen pass after post processing is rendered
+        /// </summary>
         AfterRenderingPostProcessing = RenderPassEvent.AfterRenderingPostProcessing
     }
 
+    /// <summary>
+    /// Material the Renderer Feature uses to render the effect.
+    /// </summary>
     public Material passMaterial;
+    /// <summary>
+    /// Selection for when the effect is rendered.
+    /// </summary>
     public InjectionPoint injectionPoint = InjectionPoint.AfterRenderingPostProcessing;
+    /// <summary>
+    /// One or more requirements for pass. Based on chosen flags certain passes will be added to the pipeline.
+    /// </summary>
     public ScriptableRenderPassInput requirements = ScriptableRenderPassInput.Color;
-    [HideInInspector] // We draw custom pass index entry with the dropdown inside FullScreenPassRendererFeatureEditor.cs
+    /// <summary>
+    /// An index that tells renderer feature which pass to use if passMaterial contains more than one. Default is 0.
+    /// We draw custom pass index entry with the custom dropdown inside FullScreenPassRendererFeatureEditor that sets this value.
+    /// Setting it directly will be overridden by the editor class.
+    /// </summary>
+    [HideInInspector]
     public int passIndex = 0;
 
     private FullScreenRenderPass fullScreenPass;
     private bool requiresColor;
     private bool injectedBeforeTransparents;
 
+    /// <inheritdoc/>
     public override void Create()
     {
         fullScreenPass = new FullScreenRenderPass();
@@ -44,8 +75,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
         fullScreenPass.ConfigureInput(modifiedRequirements);
     }
 
-    // Here you can inject one or multiple render passes in the renderer.
-    // This method is called when setting up the renderer once per-camera.
+    /// <inheritdoc/>
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (passMaterial == null)
@@ -58,6 +88,7 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
         renderer.EnqueuePass(fullScreenPass);
     }
 
+    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         fullScreenPass.Dispose();

@@ -44,6 +44,16 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: e983e6ee0e89e14478c8f616dfbc3e20, type: 3}
+    - {fileID: 102900000, guid: ea8e093d73ca555418eb5f7ae5fb9b3d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash on iOS
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 6e7a83866a1e446b3becf7972371c5d0, type: 3}
     - {fileID: 102900000, guid: 773767ac5b09198408c0c084dc243abc, type: 3}
     ColorSpace: -1
@@ -62,6 +72,15 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Reflection probe missing sometimes.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c8a775519652940ac936ad7b75d2c615, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'Bug: iPhone yamato instability for unknown reason.'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 6d72a4ab29e211149914e8a46ba9d1cf, type: 3}
@@ -199,6 +218,24 @@ MonoBehaviour:
     Reason: No GL on Deferred. Not supported.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: URP-1199
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: URP-1199
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
     - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
     - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
@@ -231,6 +268,15 @@ MonoBehaviour:
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 22
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-12033
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
     - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
     ColorSpace: -1
@@ -257,43 +303,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/URP-1313
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: URP-1199
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: URP-1199
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: c8a775519652940ac936ad7b75d2c615, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: 'Bug: iPhone yamato instability for unknown reason.'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: e983e6ee0e89e14478c8f616dfbc3e20, type: 3}
-    - {fileID: 102900000, guid: ea8e093d73ca555418eb5f7ae5fb9b3d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Crash on iOS
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
@@ -327,6 +336,16 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Rendering Layers not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: UUM-15388
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}

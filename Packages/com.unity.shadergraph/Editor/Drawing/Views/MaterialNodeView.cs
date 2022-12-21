@@ -23,7 +23,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         Image m_PreviewImage;
         // Remove this after updated to the correct API call has landed in trunk. ------------
         VisualElement m_TitleContainer;
-        new VisualElement m_ButtonContainer;
 
         VisualElement m_PreviewContainer;
         VisualElement m_PreviewFiller;
@@ -31,6 +30,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ControlsDivider;
         VisualElement m_DropdownItems;
         VisualElement m_DropdownsDivider;
+        Action m_UnregisterAll;
+
         IEdgeConnectorListener m_ConnectorListener;
 
         MaterialGraphView m_GraphView;
@@ -271,12 +272,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
 
                         var field = new PopupField<string>(dropdown.entries.Select(x => x.displayName).ToList(), name);
-                        field.RegisterValueChangedCallback(evt =>
+
+                        // Create anonymous lambda
+                        EventCallback<ChangeEvent<string>> eventCallback = (evt) =>
                         {
                             subGraphNode.owner.owner.RegisterCompleteObjectUndo("Change Dropdown Value");
                             subGraphNode.SetDropdownEntryName(dropdown.referenceName, field.value);
                             subGraphNode.Dirty(ModificationScope.Topological);
-                        });
+                        };
+
+                        field.RegisterValueChangedCallback(eventCallback);
+
+                        // Setup so we can unregister this callback later
+                        m_UnregisterAll += () => field.UnregisterValueChangedCallback(eventCallback);
 
                         m_DropdownItems.Add(new PropertyRow(new Label(dropdown.displayName)), (row) =>
                         {
@@ -783,6 +791,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var portInputView in inputContainer.Query<PortInputView>().ToList())
                 portInputView.Dispose();
 
+            foreach (var shaderPort in outputContainer.Query<ShaderPort>().ToList())
+                shaderPort.Dispose();
+
             var propRow = GetAssociatedBlackboardRow();
             // If this node view is deleted, remove highlighting from associated blackboard row
             if (propRow != null)
@@ -790,14 +801,39 @@ namespace UnityEditor.ShaderGraph.Drawing
                 propRow.RemoveFromClassList("hovered");
             }
 
+            styleSheets.Clear();
+            inputContainer.Clear();
+            outputContainer.Clear();
+            m_DropdownsDivider.Clear();
+            m_ControlsDivider.Clear();
+            m_PreviewContainer?.Clear();
+            m_ControlItems.Clear();
+
+            m_ConnectorListener = null;
+            m_GraphView = null;
+            m_DropdownItems = null;
+            m_ControlItems = null;
+            m_ControlsDivider = null;
+            m_PreviewContainer = null;
+            m_PreviewFiller = null;
+            m_PreviewImage = null;
+            m_DropdownsDivider = null;
+            m_TitleContainer = null;
             node = null;
             userData = null;
+
+            // Unregister callback
+            m_UnregisterAll?.Invoke();
+            m_UnregisterAll = null;
+
             if (m_PreviewRenderData != null)
             {
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;
                 m_PreviewRenderData = null;
             }
             ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTitle;
+
+            Clear();
         }
     }
 }

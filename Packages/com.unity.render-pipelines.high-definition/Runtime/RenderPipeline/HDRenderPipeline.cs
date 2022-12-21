@@ -122,6 +122,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = -1;
         int m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = -1;
 
+        ComputeShader m_ClearBuffer2DCS { get { return defaultResources.shaders.clearBuffer2D; } }
+        int m_ClearBuffer2DKernel = -1;
+
         Material m_ApplyDistortionMaterial;
         Material m_FinalBlitWithOETF;
 
@@ -224,6 +227,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
+        static bool HDROutputActiveForCameraType(CameraType cameraType)
+        {
+            return HDROutputIsActive() && cameraType == CameraType.Game;
+        }
+
         static bool HDROutputIsActive()
         {
             // TODO: Until we can test it, disable on Mac.
@@ -232,8 +240,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void SetHDRState(HDCamera camera)
         {
+            if (camera.camera.cameraType == CameraType.Reflection) return; // Do nothing for reflection probes, they don't output to backbuffers. 
 #if UNITY_EDITOR
             bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
+#else
+            bool hdrInPlayerSettings = true;
+#endif
+
             if (hdrInPlayerSettings && HDROutputSettings.main.available)
             {
                 if (camera.camera.cameraType != CameraType.Game)
@@ -241,7 +254,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     HDROutputSettings.main.RequestHDRModeChange(true);
             }
-#endif
             // Make sure HDR auto tonemap is off
             if (HDROutputSettings.main.active)
             {
@@ -428,6 +440,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SsrAccumulateSmoothSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug");
             m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug");
             m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug");
+
+            m_ClearBuffer2DKernel = m_ClearBuffer2DCS.FindKernel("ClearBuffer2DMain");
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
@@ -722,7 +736,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UnsetRenderingFeatures()
         {
-            Shader.globalRenderPipeline = "";
+            Shader.globalRenderPipeline = string.Empty;
 
             GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
             GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;

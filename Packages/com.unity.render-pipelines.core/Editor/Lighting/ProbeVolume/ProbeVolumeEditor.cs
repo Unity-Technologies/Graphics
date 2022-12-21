@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering
         protected void OnSceneGUI()
         {
             ProbeVolume probeVolume = target as ProbeVolume;
-            if (probeVolume.globalVolume)
+            if (probeVolume.mode != ProbeVolume.Mode.Local)
                 return;
 
             //important: if the origin of the handle's space move along the handle,

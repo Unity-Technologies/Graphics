@@ -17,9 +17,43 @@ namespace UnityEditor.VFX
             AlphaPremultiplied,
             Opaque,
         }
+        public enum ZWriteMode
+        {
+            Default,
+            Off,
+            On
+        }
+        public enum CullMode
+        {
+            Default,
+            Front,
+            Back,
+            Off
+        }
+
+        public enum ZTestMode
+        {
+            Default,
+            Less,
+            Greater,
+            LEqual,
+            GEqual,
+            Equal,
+            NotEqual,
+            Always
+        }
 
         [VFXSetting, Header("Render States"), Tooltip("Specifies the transparency and blending method for rendering the particles to the screen.")]
         public BlendMode blendMode = BlendMode.Alpha;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle geometry is culled. This can be used to hide the front or back facing sides or make the mesh double-sided.")]
+        protected CullMode cullMode = CullMode.Default;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies whether the particle is writing to the depth buffer.")]
+        protected ZWriteMode zWriteMode = ZWriteMode.Default;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle rendering is affected by the depth buffer. By default, particles render if they are closer to the camera than solid objects in the scene.")]
+        protected ZTestMode zTestMode = ZTestMode.Default;
 
         [VFXSetting, Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded."), SerializeField]
         protected bool useAlphaClipping = false;

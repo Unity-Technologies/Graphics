@@ -102,6 +102,8 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Script Interactions**    | Enable to have HDRP calculate the height of the water simulation on the CPU. Also makes it possible for you to query height data for specific points on the water's surface. You can use this data for customizations like your own buoyancy implementation, for example. |
 <a name="water-scriptinteractions"></a>
 
+<a name="Lighting"></a>
+
 ## Lighting
 
 | **Property**                         | **Description**                                              |
@@ -111,6 +113,19 @@ These settings control the draw distance and resolution of the decals atlas that
 | **Volumetrics**                      | Enable the checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.md). |
 | **Light Layers**                     | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers or Terrain with a matching rendering Layer. <a name="lightlayers"></a>|
 | **Rendering Layer Mask Buffer**      | Enable the checkbox to make HDRP write the Rendering Layer Mask of GameObjects in a fullscreen buffer target. This comes with a performance and memory cost.<br/>The [HD Sample Buffer node](HD-Sample-Buffer-Node.md) in ShaderGraph can sample this target. |
+
+### Light Probe Lighting
+Use these settings in the **Quality** > **HDRP** menu to configure [Probe Volumes](probevolumes.md).
+
+| **Property**                        | **Description**                                                     |
+|---------------------------------|-----------------------------------------------------------------|
+| **Light Probe System**              | &#8226; **Light Probe Groups (Legacy)**: Use the same [Light Probe Group system](https://docs.unity3d.com/Manual/class-LightProbeGroup.html) as the Built-In Render Pipeline. <br/>  &#8226; **Probe Volumes**: Use Probe Volumes.                            |
+| **Memory Budget**                   | Limits the width and height of the textures that store baked Global Illumination data, which determines the amount of memory Unity sets aside to store baked Probe Volume data. These textures have a fixed depth.<br/>Options: <br/>&#8226; **Memory Budget Low**<br/>&#8226;**Memory Budget Medium**<br/>&#8226;**Memory Budget High** |
+| **Scenario Blending Memory Budget** | Limits the width and height of the textures that Unity uses to blend between lighting scenarios. This determines the amount of memory Unity sets aside to store Lighting Scenario blending data, and store data while doing the blending operation. These textures have a fixed depth. <br/>Options: <br/> &#8226; **Memory Budget Low**<br/> &#8226; **Memory Budget Medium**<br/> &#8226; **Memory Budget High** |                                                 |
+| **SH Bands**                        | Determines the [spherical harmonics (SH) bands](https://docs.unity3d.com/Manual/LightProbes-TechnicalInformation.html) Unity uses to store probe data. L2 provides more precise results, but uses more system resources.<br/>Options: <br/>&#8226; **Spherical Harmonics L1** (default)<br/> &#8226; **Spherical Harmonics L2**               |
+| **Enable Streaming**                | Enable to use [streaming](probevolumes-streaming.md).  |
+| **Estimated GPU Memory cost**      | Indicates the amount of Global Illumination and scenario blending texture data associated with Probe Volumes in your project.|
+
 
 ### Cookies
 

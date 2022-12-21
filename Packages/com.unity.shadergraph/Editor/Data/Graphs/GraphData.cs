@@ -2797,6 +2797,9 @@ namespace UnityEditor.ShaderGraph
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
+
+            foreach (var node in GetNodes<AbstractMaterialNode>())
+                node.Dispose();
         }
 
         internal void ValidateCustomBlockLimit()

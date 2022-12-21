@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.Test
             m_mainCamera = new GameObject(mainCameraName);
             var camera = this.m_mainCamera.AddComponent<Camera>();
             camera.transform.localPosition = Vector3.one;
-            camera.transform.LookAt(this.m_mainCamera.transform);
+            camera.transform.LookAt(m_mainObject.transform.position);
 
             Time.captureFramerate = 10;
             UnityEngine.VFX.VFXManager.fixedTimeStep = 0.1f;
@@ -1626,6 +1626,95 @@ namespace UnityEditor.VFX.Test
                 }
                 yield return null;
             }
+            yield return new ExitPlayMode();
+        }
+
+        static uint s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount = 0u;
+        static void VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCountFn(VFXOutputEventArgs evt)
+        {
+            s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount++;
+        }
+
+        [UnityTest, Description("Regression test UUM-6379")]
+        public IEnumerator VisualEffect_Spawned_Behind_Camera_Doesnt_Update()
+        {
+            while (EditorWindow.HasOpenInstances<SceneView>())
+                EditorWindow.GetWindow<SceneView>().Close();
+
+            if (!EditorWindow.HasOpenInstances<GameView>())
+                EditorApplication.ExecuteMenuItem("Window/General/Game");
+
+            Assert.IsTrue(EditorWindow.HasOpenInstances<GameView>());
+
+            yield return new EnterPlayMode();
+
+            //Delete unexpected camera (will be restore with ExitPlayMode)
+            foreach (var camera in Camera.allCameras)
+            {
+                if (camera.gameObject == m_mainCamera)
+                    continue;
+
+                UnityEngine.Object.DestroyImmediate(camera);
+            }
+
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            contextInitialize.GetData().SetSettingValue(nameof(VFXDataParticle.boundsMode), BoundsSettingMode.Manual);
+            var bounds = contextInitialize.inputSlots.FirstOrDefault(o => o.name.ToLowerInvariant() == nameof(VFXBasicInitialize.InputPropertiesBounds.bounds));
+            Assert.IsNotNull(bounds);
+            bounds.value = new AABox() { center = Vector3.zero, size = Vector3.one };
+            graph.AddChild(contextInitialize);
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var setSpawnCount = ScriptableObject.CreateInstance<Block.VFXSpawnerSetAttribute>();
+            setSpawnCount.SetSettingValue("attribute", VFXAttribute.SpawnCount.name);
+            setSpawnCount.inputSlots[0].value = 1.0f;
+            spawner.AddChild(setSpawnCount);
+            spawner.LinkTo(contextInitialize);
+            graph.AddChild(spawner);
+
+            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+            output.LinkFrom(contextInitialize);
+            graph.AddChild(output);
+
+            var outputEvent = ScriptableObject.CreateInstance<VFX.VFXOutputEvent>();
+            outputEvent.LinkFrom(spawner);
+            graph.AddChild(outputEvent);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var visualEffectObject = new GameObject("VFX_Behind_Camera");
+            visualEffectObject.transform.position = 10.0f * m_mainCamera.transform.position;
+
+            var vfx = visualEffectObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount = 0u;
+            vfx.outputEventReceived += VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCountFn;
+
+            //Really first update, the culled status is true for one frame when we don't know
+            //See https://unity.slack.com/archives/G1BTWN88Z/p1655996888047749?thread_ts=1655796328.440779&cid=G1BTWN88Z
+            yield return null;
+            Assert.AreEqual(1u, s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount);
+            Assert.IsFalse(vfx.culled);
+            s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount = 0u;
+
+            //Wait for a few frames
+            for (int i = 0; i < 16; i++)
+                yield return null;
+
+            Assert.AreEqual(0u, s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount);
+            Assert.IsTrue(vfx.culled);
+
+            s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount = 0u;
+            visualEffectObject.transform.position = Vector3.zero;
+            //Wait for a few frames, after back in frustum
+            for (int i = 0; i < 8; i++)
+                yield return null;
+
+            Assert.IsTrue(s_VisualEffect_Spawned_Behind_Camera_Doesnt_Update_EventCount > 0u);
+            Assert.IsFalse(vfx.culled);
+
             yield return new ExitPlayMode();
         }
     }

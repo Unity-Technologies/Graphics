@@ -21,15 +21,19 @@
 
 // Match with values in UniversalRenderPipeline.cs
 #define MAX_ZBIN_VEC4S 1024
-#if MAX_VISIBLE_LIGHTS <= 32
+#if MAX_VISIBLE_LIGHTS <= 16
     #define MAX_LIGHTS_PER_TILE 32
     #define MAX_TILE_VEC4S 1024
+    #define MAX_REFLECTION_PROBES 16
+#elif MAX_VISIBLE_LIGHTS <= 32
+    #define MAX_LIGHTS_PER_TILE 32
+    #define MAX_TILE_VEC4S 1024
+    #define MAX_REFLECTION_PROBES 32
 #else
     #define MAX_LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
     #define MAX_TILE_VEC4S 4096
+    #define MAX_REFLECTION_PROBES 64
 #endif
-
-#define MAX_REFLECTION_PROBES (min(MAX_VISIBLE_LIGHTS, 64))
 
 struct InputData
 {
@@ -154,22 +158,22 @@ CBUFFER_END
 CBUFFER_START(URP_ZBinBuffer)
         float4 URP_ZBins[MAX_ZBIN_VEC4S];
 CBUFFER_END
-CBUFFER_START(URP_TileBuffer)
-        float4 URP_Tiles[MAX_TILE_VEC4S];
+CBUFFER_START(urp_TileBuffer)
+        float4 urp_Tiles[MAX_TILE_VEC4S];
 CBUFFER_END
 
-TEXTURE2D(URP_ReflProbes_Atlas);
-SAMPLER(samplerURP_ReflProbes_Atlas);
-float URP_ReflProbes_Count;
+TEXTURE2D(urp_ReflProbes_Atlas);
+SAMPLER(samplerurp_ReflProbes_Atlas);
+float urp_ReflProbes_Count;
 
 #ifndef SHADER_API_GLES3
-CBUFFER_START(URP_ReflectionProbeBuffer)
+CBUFFER_START(urp_ReflectionProbeBuffer)
 #endif
-half4 URP_ReflProbes_HDR[MAX_REFLECTION_PROBES];
-float4 URP_ReflProbes_BoxMax[MAX_REFLECTION_PROBES];          // w contains the blend distance
-float4 URP_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the importance
-float4 URP_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
-float4 URP_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
+half4 urp_ReflProbes_HDR[MAX_REFLECTION_PROBES];
+float4 urp_ReflProbes_BoxMax[MAX_REFLECTION_PROBES];          // w contains the blend distance
+float4 urp_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the importance
+float4 urp_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
+float4 urp_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif

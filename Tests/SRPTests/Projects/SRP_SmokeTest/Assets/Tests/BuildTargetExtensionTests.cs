@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -102,6 +103,38 @@ namespace UnityEditor.Rendering.Tests
             {
                 Assert.IsTrue(EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(rpAssets));
                 return rpAssets.Count;
+            }
+        }
+
+        [Test]
+        [Description("https://jira.unity3d.com/browse/UUM-19235")]
+        public void ThereAreNotQualityLevelsForTheCurrentPlatformAndOnlyTheAssetInGraphicsSettingsIsOverriden()
+        {
+            const string assetPath = "Assets/PipelineAssets/UniversalRenderPipelineAsset.asset";
+            GraphicsSettings.defaultRenderPipeline = LoadAsset(assetPath);
+
+            var buildTarget = EditorUserBuildSettings.activeBuildTarget;
+            var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
+            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+
+            // Disable all qualities
+            var includedLevels = QualitySettings.GetActiveQualityLevelsForPlatform(activeBuildTargetGroupName);
+            foreach (var level in includedLevels)
+            {
+                QualitySettings.TryExcludePlatformAt(activeBuildTargetGroupName,level, out var _);
+            }
+
+            using (ListPool<RenderPipelineAsset>.Get(out var rpAssets))
+            {
+                Assert.IsTrue(buildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(rpAssets));
+                Assert.AreEqual(1, rpAssets.Count);
+                Assert.AreEqual(assetPath, AssetDatabase.GetAssetPath(rpAssets.First()));
+            }
+
+            // Restore
+            foreach (var level in includedLevels)
+            {
+                QualitySettings.TryIncludePlatformAt(activeBuildTargetGroupName,level, out var _);
             }
         }
     }

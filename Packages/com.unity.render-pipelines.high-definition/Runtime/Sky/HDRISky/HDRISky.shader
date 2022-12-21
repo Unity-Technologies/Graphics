@@ -10,14 +10,13 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
-    #pragma multi_compile_local_fragment _ SKY_MOTION
-    #pragma multi_compile_local_fragment _ USE_FLOWMAP
+    #pragma multi_compile_local_fragment _ DISTORTION_PROCEDURAL DISTORTION_FLOWMAP
 
     #pragma multi_compile_fragment _ DEBUG_DISPLAY
     #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
     #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
 
-    #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+    #pragma multi_compile_fragment USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
     #define ATTRIBUTES_NEED_NORMAL
     #define ATTRIBUTES_NEED_TANGENT
@@ -187,12 +186,12 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float3 GetSkyColor(float3 dir)
     {
-#if SKY_MOTION
+#if defined(DISTORTION_PROCEDURAL) || defined(DISTORTION_FLOWMAP)
         if (dir.y >= 0 || !_UpperHemisphere)
         {
             float2 alpha = frac(float2(_ScrollFactor, _ScrollFactor + 0.5)) - 0.5;
 
-#ifdef USE_FLOWMAP
+#ifdef DISTORTION_FLOWMAP
             float3 tangent = normalize(cross(dir, float3(0.0, 1.0, 0.0)));
             float3 bitangent = cross(tangent, dir);
 

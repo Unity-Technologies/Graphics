@@ -184,27 +184,27 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
     {
         probeIndex -= URP_FP_PROBES_BEGIN;
 
-        float weight = CalculateProbeWeight(positionWS, URP_ReflProbes_BoxMin[probeIndex], URP_ReflProbes_BoxMax[probeIndex]);
+        float weight = CalculateProbeWeight(positionWS, urp_ReflProbes_BoxMin[probeIndex], urp_ReflProbes_BoxMax[probeIndex]);
         weight = min(weight, 1.0f - totalWeight);
 
         half3 sampleVector = reflectVector;
 #ifdef _REFLECTION_PROBE_BOX_PROJECTION
-        sampleVector = BoxProjectedCubemapDirection(reflectVector, positionWS, URP_ReflProbes_ProbePosition[probeIndex], URP_ReflProbes_BoxMin[probeIndex], URP_ReflProbes_BoxMax[probeIndex]);
+        sampleVector = BoxProjectedCubemapDirection(reflectVector, positionWS, urp_ReflProbes_ProbePosition[probeIndex], urp_ReflProbes_BoxMin[probeIndex], urp_ReflProbes_BoxMax[probeIndex]);
 #endif // _REFLECTION_PROBE_BOX_PROJECTION
 
-        uint maxMip = (uint)abs(URP_ReflProbes_ProbePosition[probeIndex].w) - 1;
+        uint maxMip = (uint)abs(urp_ReflProbes_ProbePosition[probeIndex].w) - 1;
         half probeMip = min(mip, maxMip);
         float2 uv = saturate(PackNormalOctQuadEncode(sampleVector) * 0.5 + 0.5);
 
         float mip0 = floor(probeMip);
         float mip1 = mip0 + 1;
         float mipBlend = probeMip - mip0;
-        float4 scaleOffset0 = URP_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip0];
-        float4 scaleOffset1 = URP_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip1];
+        float4 scaleOffset0 = urp_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip0];
+        float4 scaleOffset1 = urp_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip1];
 
-        half4 encodedIrradiance0 = half4(SAMPLE_TEXTURE2D(URP_ReflProbes_Atlas, samplerURP_ReflProbes_Atlas, uv * scaleOffset0.xy + scaleOffset0.zw));
-        half4 encodedIrradiance1 = half4(SAMPLE_TEXTURE2D(URP_ReflProbes_Atlas, samplerURP_ReflProbes_Atlas, uv * scaleOffset1.xy + scaleOffset1.zw));
-        real4 hdr = URP_ReflProbes_HDR[probeIndex];
+        half4 encodedIrradiance0 = half4(SAMPLE_TEXTURE2D(urp_ReflProbes_Atlas, samplerurp_ReflProbes_Atlas, uv * scaleOffset0.xy + scaleOffset0.zw));
+        half4 encodedIrradiance1 = half4(SAMPLE_TEXTURE2D(urp_ReflProbes_Atlas, samplerurp_ReflProbes_Atlas, uv * scaleOffset1.xy + scaleOffset1.zw));
+        real4 hdr = urp_ReflProbes_HDR[probeIndex];
         irradiance += weight * DecodeHDREnvironment(lerp(encodedIrradiance0, encodedIrradiance1, mipBlend), hdr);
         totalWeight += weight;
     }

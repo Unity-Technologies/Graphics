@@ -70,17 +70,23 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
+
+        /// <inheritdoc/>
         public bool AreAnySettingsActive => (lightingDebugMode != DebugLightingMode.None) || (lightingFeatureFlags != DebugLightingFeatureFlags.None);
 
+        /// <inheritdoc/>
         public bool IsPostProcessingAllowed => (lightingDebugMode != DebugLightingMode.Reflections && lightingDebugMode != DebugLightingMode.ReflectionsWithSmoothness);
 
+        /// <inheritdoc/>
         public bool IsLightingActive => true;
 
+        /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
         {
             return false;
         }
 
+        /// <inheritdoc/>
         IDebugDisplaySettingsPanelDisposable IDebugDisplaySettingsData.CreatePanel()
         {
             return new SettingsPanel(this);

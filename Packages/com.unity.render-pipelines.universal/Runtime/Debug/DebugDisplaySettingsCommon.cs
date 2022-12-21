@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
 
                     AddWidget(widget);
                 }
-                    
+
             }
         }
 
@@ -62,11 +62,19 @@ namespace UnityEngine.Rendering.Universal
 
         // All common settings are owned by another panel, so they are treated as inactive here.
 
+        /// <inheritdoc/>
         public bool AreAnySettingsActive => false;
+
+        /// <inheritdoc/>
         public bool IsPostProcessingAllowed => true;
+
+        /// <inheritdoc/>
         public bool IsLightingActive => true;
+
+        /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color _) => false;
 
+        /// <inheritdoc/>
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel();

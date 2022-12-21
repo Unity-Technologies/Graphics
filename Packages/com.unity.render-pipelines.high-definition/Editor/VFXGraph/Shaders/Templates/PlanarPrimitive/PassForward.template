@@ -9,12 +9,15 @@ Pass
 	#pragma target 4.5
 
 	#define UNITY_MATERIAL_LIT
-	#define LIGHTLOOP_TILE_PASS
 	${VFXHDRPForwardDefines}
-	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST 
+	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
     #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 	#pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+    #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
+    #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+    #else
     #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+    #endif
 	#pragma multi_compile _ DEBUG_DISPLAY
 	//#pragma enable_d3d11_debug_symbols
 
@@ -36,7 +39,7 @@ Pass
 		float2 uv : TEXCOORD1;
 		#endif
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_FEATURE_MOTION_VECTORS_FORWARD || (VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL)
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_FEATURE_MOTION_VECTORS_FORWARD || (VFX_MATERIAL_TYPE_SIX_WAY_SMOKE && VFX_SIX_WAY_USE_ONE_EMISSIVE_CHANNEL)
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
@@ -62,20 +65,7 @@ Pass
 		VFX_DECLARE_MOTION_VECTORS_STORAGE(7,8)
 		#endif
 
-		float3 posWS : TEXCOOR9; // Needed for fog
-
-        #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-        #if IS_TRANSPARENT_PARTICLE
-        VFX_OPTIONAL_INTERPOLATION float4 alphaRemap : TEXCOORD10;
-        #endif
-        #if VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL
-        VFX_OPTIONAL_INTERPOLATION float2 emissiveGradient : TEXCOORD11;
-        #endif
-        #endif
-
-        #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-        ${VFXVertexProbeDeclareVaryings}
-        #endif
+		float3 posWS : TEXCOORD9; // Needed for fog
 
         ${VFXAdditionalInterpolantsDeclaration}
 
@@ -103,17 +93,6 @@ ${VFXVertexProbeVaryingsMacros}
 #define VFX_VARYING_BENTFACTORS bentFactors
 #endif
 #define VFX_VARYING_POSWS posWS
-
-#if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-    #if IS_TRANSPARENT_PARTICLE
-        #define VFX_VARYING_ALPHA_REMAP alphaRemap
-    #endif
-    #if VFX_SMOKE_USE_ONE_EMISSIVE_CHANNEL
-        #define VFX_VARYING_EMISSIVE_MULTIPLIER builtInInterpolants.w
-        #define VFX_VARYING_EMISSIVE_GRADIENT emissiveGradient
-    #endif
-#endif
-
 
 #if VFX_FEATURE_MOTION_VECTORS_FORWARD
 #define VFX_VARYING_VELOCITY_CPOS VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER
@@ -158,7 +137,11 @@ ${VFXEnd}
             ${VFXIncludeRP("VFXSGSurfaceData.template")}
             outColor = VFXGetPixelOutputForwardShaderGraph(i, surface, builtinEmissiveColor, builtinOpacity);
         #else
-            outColor = VFXGetPixelOutputForward(i, normalWS, uvData);
+            #if USE_DOUBLE_SIDED
+            outColor = VFXGetPixelOutputForward(i,normalWS,uvData, frontFace);
+            #else
+            outColor = VFXGetPixelOutputForward(i,normalWS,uvData, true);
+            #endif
         #endif
 
         #if VFX_FEATURE_MOTION_VECTORS_FORWARD

@@ -22,7 +22,7 @@ There are two types of wind in the HDRP water implementation: distant wind and l
 <img src="Images/watersystem-OceanSwellOnly.png">
 </td>
 </tr>
-<table>
+</table>
 
 Here is an **Ocean, Sea, or Lake** surface that only has **Swells**. These **Swells** significantly displace the water surface.
 
@@ -38,7 +38,7 @@ Here is an **Ocean, Sea, or Lake** surface that only has **Swells**. These **Swe
 <img src="Images/watersystem-OceanRipplesOnly.png">
 </td>
 </tr>
-<table>
+</table>
 
 
 Here is an **Ocean, Sea, or Lake** surface that only has **Ripples**. These **Ripples** do not significantly displace the water surface.

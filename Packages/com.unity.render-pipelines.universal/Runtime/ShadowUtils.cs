@@ -2,16 +2,49 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Struct container for shadow slice data.
+    /// </summary>
     public struct ShadowSliceData
     {
+        /// <summary>
+        /// The view matrix.
+        /// </summary>
         public Matrix4x4 viewMatrix;
-        public Matrix4x4 projectionMatrix;
-        public Matrix4x4 shadowTransform;
-        public int offsetX;
-        public int offsetY;
-        public int resolution;
-        public ShadowSplitData splitData; // splitData contains culling information
 
+        /// <summary>
+        /// The projection matrix.
+        /// </summary>
+        public Matrix4x4 projectionMatrix;
+
+        /// <summary>
+        /// The shadow transform matrix.
+        /// </summary>
+        public Matrix4x4 shadowTransform;
+
+        /// <summary>
+        /// The X offset to the shadow map.
+        /// </summary>
+        public int offsetX;
+
+        /// <summary>
+        /// The Y offset to the shadow map.
+        /// </summary>
+        public int offsetY;
+
+        /// <summary>
+        /// The maximum tile resolution in an Atlas.
+        /// </summary>
+        public int resolution;
+
+        /// <summary>
+        /// The shadow split data containing culling information.
+        /// </summary>
+        public ShadowSplitData splitData;
+
+        /// <summary>
+        /// Clears and resets the data.
+        /// </summary>
         public void Clear()
         {
             viewMatrix = Matrix4x4.identity;
@@ -382,6 +415,14 @@ namespace UnityEngine.Rendering.Universal
             return rtd;
         }
 
+        /// <summary>
+        /// Gets a temporary render texture for shadows.
+        /// This function has been deprecated. Use AllocShadowRT or ShadowRTReAllocateIfNeeded instead.
+        /// </summary>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <param name="bits">The number of depth bits.</param>
+        /// <returns>A shadow render texture.</returns>
         [Obsolete("Use AllocShadowRT or ShadowRTReAllocateIfNeeded")]
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
         {
@@ -405,7 +446,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>If the RTHandle needs to be re-allocated</returns>
         public static bool ShadowRTNeedsReAlloc(RTHandle handle, int width, int height, int bits, int anisoLevel, float mipMapBias, string name)
         {
-            if (handle == null)
+            if (handle == null || handle.rt == null)
                 return true;
             var descriptor = GetTemporaryShadowTextureDescriptor(width, height, bits);
             if (m_ForceShadowPointSampling)
@@ -485,6 +526,20 @@ namespace UnityEngine.Rendering.Universal
 
             // Apply texture scale and offset to save a MAD in shader.
             return textureScaleAndBias * worldToShadow;
+        }
+
+        internal static float SoftShadowQualityToShaderProperty(Light light, bool softShadowsEnabled)
+        {
+            float softShadows = softShadowsEnabled ? 1.0f : 0.0f;
+            if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+            {
+                var softShadowQuality = (additionalLightData.softShadowQuality == SoftShadowQuality.UsePipelineSettings)
+                    ? UniversalRenderPipeline.asset?.softShadowQuality
+                    : additionalLightData.softShadowQuality;
+                softShadows *= Math.Max((int)softShadowQuality, (int)SoftShadowQuality.Low);
+            }
+
+            return softShadows;
         }
     }
 }

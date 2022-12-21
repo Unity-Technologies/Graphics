@@ -320,6 +320,10 @@ namespace UnityEngine.Rendering.Universal
                 onDecalPropertyChange?.Invoke(this);
         }
 
+        /// <summary>
+        /// Checks if material is valid for rendering decals.
+        /// </summary>
+        /// <returns>True if material is valid.</returns>
         public bool IsValid()
         {
             if (material == null)

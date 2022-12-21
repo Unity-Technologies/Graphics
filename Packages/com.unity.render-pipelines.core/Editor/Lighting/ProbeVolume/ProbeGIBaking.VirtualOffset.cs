@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering
                         break;
 
                     var dotRaySurface = Vector3.Dot(outRay, hit.normal);
-                    if (dotRaySurface > 0f && IsNewBestHit(hit.distance, distance, dotRaySurface, dotSurface))
+                    if (IsNewBestHit(hit.distance, distance, dotRaySurface, dotSurface))
                     {
                         distance = hit.distance;
                         dotSurface = dotRaySurface;
@@ -477,11 +477,18 @@ namespace UnityEngine.Rendering
                     var outBoundRay = raycastCommands[cmdIdx++];
                     GetClosestColliderHit(hitIdx, outBoundRay.direction, maxHitsPerRay, out var distanceForDir, out var dotSurface);
 
-                    if (IsNewBestHit(distanceForDir, minDist, dotSurface, maxDotSurface))
+                    if (distanceForDir < float.MaxValue)
                     {
-                        outDirection = outBoundRay.direction;
-                        minDist = distanceForDir;
-                        maxDotSurface = dotSurface;
+                        // If any of the closest hit is outside, we are not inside geometry so we don't want to virtual offset.
+                        // TO VERIFY: Is this too harsh? Should we allow some level of hit of a front face? 
+                        if (dotSurface < 0f) return Vector3.zero;
+
+                        if (IsNewBestHit(distanceForDir, minDist, dotSurface, maxDotSurface))
+                        {
+                            outDirection = outBoundRay.direction;
+                            minDist = distanceForDir;
+                            maxDotSurface = dotSurface;
+                        }
                     }
                 }
 

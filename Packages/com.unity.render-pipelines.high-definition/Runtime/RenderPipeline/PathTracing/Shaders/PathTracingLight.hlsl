@@ -559,9 +559,6 @@ void EvaluateLights(LightList lightList,
 
                     float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
                     pdf += GetLocalLightWeight(lightList) * t2 / (lightArea * cosTheta);
-
-                    // If we consider that a ray is very unlikely to hit 2 area lights one after another, we can exit the loop
-                    break;
                 }
             }
         }

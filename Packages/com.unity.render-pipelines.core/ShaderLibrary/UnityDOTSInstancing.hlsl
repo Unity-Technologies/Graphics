@@ -154,7 +154,6 @@ CBUFFER_START(unity_DOTSInstanceGlobalValues)
     float4 unity_DOTS_SHBg;
     float4 unity_DOTS_SHBb;
     float4 unity_DOTS_SHC;
-    float4 unity_DOTS_SH_Padding;
 CBUFFER_END
 
 // The data has to be wrapped inside a struct, otherwise the instancing code path

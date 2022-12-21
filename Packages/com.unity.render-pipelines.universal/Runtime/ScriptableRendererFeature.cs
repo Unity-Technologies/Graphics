@@ -94,6 +94,11 @@ namespace UnityEngine.Rendering.Universal
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Called by Dispose().
+        /// Override this function to clean up resources in your renderer.
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
         }

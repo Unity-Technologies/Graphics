@@ -136,6 +136,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/ShaderLibrary/BlitColorAndDepth.shader")]
             public Shader blitColorAndDepthPS;
 
+            [Reload("Runtime/Core/CoreResources/ClearBuffer2D.compute")]
+            public ComputeShader clearBuffer2D;
+
             [Reload("Runtime/ShaderLibrary/DownsampleDepth.shader")]
             public Shader downsampleDepthPS;
             [Reload("Runtime/ShaderLibrary/UpsampleTransparent.shader")]

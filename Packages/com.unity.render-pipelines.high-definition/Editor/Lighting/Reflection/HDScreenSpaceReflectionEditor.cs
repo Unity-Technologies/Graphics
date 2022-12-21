@@ -263,8 +263,16 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Transparent Screen Space Reflection.", MessageType.Info, wide: true);
+                if (!currentAsset.currentPlatformRenderPipelineSettings.supportSSRTransparent)
+                {
+                    HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Transparent Screen Space Reflection.", MessageType.Info,
+                        HDRenderPipelineUI.Expandable.Reflection, "m_RenderPipelineSettings.supportSSRTransparent");
+                }
+                else
+                {
+                    HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Transparent Depth Prepass.\nIt is required for Transparent Screen Space Reflection.", MessageType.Info,
+                        HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportTransparentDepthPrepass");
+                }
             }
 
             // If ray tracing is supported display the tracing choice

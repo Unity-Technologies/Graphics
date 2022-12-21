@@ -135,7 +135,10 @@ namespace UnityEditor.VFX.URP
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,      StructFields.SurfaceDescriptionInputs.worldToElement),
 
             new FieldDependency(Fields.WorldToObject, StructFields.SurfaceDescriptionInputs.worldToElement),
-            new FieldDependency(Fields.ObjectToWorld, StructFields.SurfaceDescriptionInputs.elementToWorld)
+            new FieldDependency(Fields.ObjectToWorld, StructFields.SurfaceDescriptionInputs.elementToWorld),
+
+            // NormalDropOffOS requires worldToElement (see _NORMAL_DROPOFF_OS condition calling TransformObjectToWorldNormal which uses world inverse transpose)
+            new FieldDependency(UniversalFields.NormalDropOffOS, StructFields.SurfaceDescriptionInputs.worldToElement),
         };
 
         static readonly StructDescriptor AttributesMeshVFX = new StructDescriptor()

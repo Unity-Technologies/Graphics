@@ -13,6 +13,15 @@
 
 <tr>
 <td>
+<a href="WaterSystem-use.md">Use the Water System in your Project</a>
+</td>
+<td>
+A basic water workflow.
+</td>
+</tr>
+
+<tr>
+<td>
 <a href="WaterSystem-Overview.md">Capabilities of the Water System</a>
 </td>
 <td>
@@ -29,16 +38,6 @@ How the Water System simulation works.
 </td>
 </tr>
 
-
-
-<tr>
-<td>
-<a href="WaterSystem-use.md">Use the Water System in your Project</a>
-</td>
-<td>
-A basic water workflow.
-</td>
-</tr>
 
 <tr>
 <td>

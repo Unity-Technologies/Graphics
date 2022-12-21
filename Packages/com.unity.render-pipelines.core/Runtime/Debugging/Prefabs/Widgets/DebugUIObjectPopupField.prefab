@@ -112,7 +112,7 @@ RectTransform:
   - {fileID: 4224596122123881110}
   - {fileID: 4087557601278945244}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
@@ -308,8 +308,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: 
+      - m_Target: {fileID: 2788630288702080079}
+        m_TargetAssemblyTypeName: UnityEngine.Rendering.UI.DebugUIHandlerObjectPopupField,
+          Unity.RenderPipelines.Core.Runtime
         m_MethodName: OnDecrement
         m_Mode: 6
         m_Arguments:
@@ -445,8 +446,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: 
+      - m_Target: {fileID: 2788630288702080079}
+        m_TargetAssemblyTypeName: UnityEngine.Rendering.UI.DebugUIHandlerObjectPopupField,
+          Unity.RenderPipelines.Core.Runtime
         m_MethodName: OnIncrement
         m_Mode: 6
         m_Arguments:

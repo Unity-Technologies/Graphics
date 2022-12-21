@@ -32,10 +32,21 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings,
     }
 
+    /// <summary>
+    /// Options to control the renderer override.
+    /// This enum is no longer in use.
+    /// </summary>
     //[Obsolete("Renderer override is no longer used, renderers are referenced by index on the pipeline asset.")]
     public enum RendererOverrideOption
     {
+        /// <summary>
+        /// Use this to choose a custom override.
+        /// </summary>
         Custom,
+
+        /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
         UsePipelineSettings,
     }
 
@@ -66,7 +77,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
         SubpixelMorphologicalAntiAliasing,
-        //TemporalAntialiasing
+
+        /// <summary>
+        /// Use this to have a temporal anti-aliasing pass rendered when resolving camera to screen.
+        /// </summary>
+        [InspectorName("Temporal Anti-aliasing (TAA)")]
+        TemporalAntiAliasing,
     }
 
     /// <summary>
@@ -277,6 +293,9 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Class containing various additional camera data used by URP.
+    /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
@@ -327,6 +346,15 @@ namespace UnityEngine.Rendering.Universal
 
         [HideInInspector] [SerializeField] float m_Version = 2;
 
+        // These persist over multiple frames
+        [NonSerialized] MotionVectorsPersistentData m_MotionVectorsPersistentData = new MotionVectorsPersistentData();
+        [NonSerialized] TaaPersistentData m_TaaPersistentData = new TaaPersistentData();
+
+        [SerializeField] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
+
+        /// <summary>
+        /// The serialized version of the class. Used for upgrading.
+        /// </summary>
         public float version => m_Version;
 
         static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
@@ -563,12 +591,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the current volume stack used by this camera.
         /// </summary>
-        VolumeStack m_VolumeStack = null;
         public VolumeStack volumeStack
         {
             get => m_VolumeStack;
             set => m_VolumeStack = value;
         }
+        VolumeStack m_VolumeStack = null;
 
         /// <summary>
         /// Returns true if this camera should render post-processing.
@@ -597,6 +625,34 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_AntialiasingQuality;
             set => m_AntialiasingQuality = value;
+        }
+
+        internal ref TemporalAA.Settings taaSettings
+        {
+            get { return ref m_TaaSettings; }
+        }
+
+        /// <summary>
+        /// Temporal Anti-aliasing buffers and data that persists over a frame.
+        /// </summary>
+        internal TaaPersistentData taaPersistentData => m_TaaPersistentData;
+
+        /// <summary>
+        /// Motion data that persists over a frame.
+        /// </summary>
+        internal MotionVectorsPersistentData motionVectorsPersistentData => m_MotionVectorsPersistentData;
+
+        /// <summary>
+        /// Reset post-process history.
+        /// </summary>
+        public bool resetHistory
+        {
+            get => m_TaaSettings.resetHistoryFrames != 0;
+            set
+            {
+                m_TaaSettings.resetHistoryFrames += value ? 1 : 0;
+                m_MotionVectorsPersistentData.Reset();
+            }
         }
 
         /// <summary>

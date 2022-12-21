@@ -39,6 +39,12 @@ namespace UnityEngine.Rendering.Universal
     public enum SoftShadowQuality
     {
         /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
+        [InspectorName("Use settings from Render Pipeline Asset")]
+        UsePipelineSettings,
+
+        /// <summary>
         /// Low quality soft shadows. Recommended for mobile. 4 PCF sample filtering.
         /// </summary>
         Low,
@@ -525,6 +531,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SoftShadowsSupported = false;
         [SerializeField] bool m_ConservativeEnclosingSphere = false;
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
+        [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.Medium;
 
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
@@ -1376,6 +1383,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Light default Soft Shadow Quality.
+        /// </summary>
+        internal SoftShadowQuality softShadowQuality
+        {
+            get { return m_SoftShadowQuality; }
+            set { m_SoftShadowQuality = value; }
+        }
+
+        /// <summary>
         /// Specifies if this <c>UniversalRenderPipelineAsset</c> should use dynamic batching.
         /// </summary>
         /// <see href="https://docs.unity3d.com/Manual/DrawCallBatching.html"/>
@@ -1705,6 +1721,9 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return editorResources?.shaders.defaultSpeedTree8PS; }
         }
+
+        /// <inheritdoc/>
+        public override string renderPipelineShaderTag => UniversalRenderPipeline.k_ShaderTagName;
 #endif
 
         /// <summary>Names used for display of rendering layer masks.</summary>
@@ -1934,15 +1953,28 @@ namespace UnityEngine.Rendering.Universal
             return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
         }
 
+        /// <summary>
+        /// Class containing texture resources used in URP.
+        /// </summary>
         [Serializable, ReloadGroup]
         public sealed class TextureResources
         {
+            /// <summary>
+            /// Pre-baked blue noise textures.
+            /// </summary>
             [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
             public Texture2D blueNoise64LTex;
 
+            /// <summary>
+            /// Bayer matrix texture.
+            /// </summary>
             [Reload("Textures/BayerMatrix.png")]
             public Texture2D bayerMatrixTex;
 
+            /// <summary>
+            /// Check if the textures need reloading.
+            /// </summary>
+            /// <returns>True if any of the textures need reloading.</returns>
             public bool NeedsReload()
             {
                 return blueNoise64LTex == null || bayerMatrixTex == null;

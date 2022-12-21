@@ -2,6 +2,10 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Rendering;
 
+/// <summary>
+/// Custom editor for FullScreenPassRendererFeature class responsible for drawing unavailable by default properties
+/// such as custom drop down items and additional properties.
+/// </summary>
 [CustomEditor(typeof(FullScreenPassRendererFeature))]
 public class FullScreenPassRendererFeatureEditor : Editor
 {
@@ -9,6 +13,10 @@ public class FullScreenPassRendererFeatureEditor : Editor
     private EditorPrefBool m_ShowAdditionalProperties;
     private int m_PassIndexToUse = 0;
 
+    /// <summary>
+    /// A toggle that is responsible whether additional properties are shown.
+    /// This toggle also sets pass index to 0 when toggle's value changes.
+    /// </summary>
     public bool showAdditionalProperties
     {
         get => m_ShowAdditionalProperties.value;
@@ -22,6 +30,9 @@ public class FullScreenPassRendererFeatureEditor : Editor
         }
     }
 
+    /// <summary>
+    /// Implementation for a custom inspector
+    /// </summary>
     public override void OnInspectorGUI()
     {
         DrawPropertiesExcluding(serializedObject, "m_Script");

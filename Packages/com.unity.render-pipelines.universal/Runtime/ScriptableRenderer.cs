@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.Universal
         /// <see cref="CameraRenderType"/>
         /// Returns the bitmask of the supported camera render types in the renderer's current state.
         /// </summary>
+        /// <returns>The bitmask of the supported camera render types in the renderer's current state.</returns>
         public virtual int SupportedCameraStackingTypes()
         {
             return 0;
@@ -74,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
         /// Returns true if the given camera render type is supported in the renderer's current state.
         /// </summary>
         /// <param name="cameraRenderType">The camera render type that is checked if supported.</param>
+        /// <returns>True if the given camera render type is supported in the renderer's current state.</returns>
         public bool SupportsCameraStackingType(CameraRenderType cameraRenderType)
         {
             return (SupportedCameraStackingTypes() & 1 << (int)cameraRenderType) != 0;
@@ -83,6 +85,11 @@ namespace UnityEngine.Rendering.Universal
         /// Override to provide a custom profiling name
         /// </summary>
         protected ProfilingSampler profilingExecute { get; set; }
+
+        /// <summary>
+        /// Used to determine whether to release render targets used by the renderer when the renderer is no more active
+        /// </summary>
+        internal bool hasReleasedRTs = true;
 
         /// <summary>
         /// Configures the supported features for this renderer. When creating custom renderers
@@ -143,12 +150,15 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
+            // NOTE: the URP default main view/projection matrices are the CameraData view/projection matrices.
             Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
-            Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix();
+            Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix(); // Jittered, non-gpu
 
             // TODO: Investigate why SetViewAndProjectionMatrices is causing y-flip / winding order issue
             // for now using cmd.SetViewProjecionMatrices
             //SetViewAndProjectionMatrices(cmd, viewMatrix, cameraData.GetDeviceProjectionMatrix(), setInverseMatrices);
+
+            // Set the default view/projection, note: projectionMatrix will be set as a gpu-projection (gfx api adjusted) for rendering.
             cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
 
             if (setInverseMatrices)
@@ -261,6 +271,9 @@ namespace UnityEngine.Rendering.Universal
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
             float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
+            // Temporal Anti-aliasing can use negative mip bias to increase texture sharpness and new information for the jitter.
+            float taaMipBias = Math.Min(cameraData.taaSettings.mipBias, 0.0f);
+            mipBias = Math.Min(mipBias, taaMipBias);
             cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
 
             //Set per camera matrices.
@@ -526,6 +539,10 @@ namespace UnityEngine.Rendering.Universal
         private static bool m_UseOptimizedStoreActions = false;
 
         const int k_RenderPassBlockCount = 4;
+
+        /// <summary>
+        /// The RTHandle for the Camera Target.
+        /// </summary>
         protected static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
@@ -638,6 +655,10 @@ namespace UnityEngine.Rendering.Universal
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
 
+        /// <summary>
+        /// Disposable pattern implementation.
+        /// Cleans up resources used by the renderer.
+        /// </summary>
         public void Dispose()
         {
             // Dispose all renderer features...
@@ -650,10 +671,20 @@ namespace UnityEngine.Rendering.Universal
             }
 
             Dispose(true);
+            hasReleasedRTs = true;
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Called by Dispose().
+        /// Override this function to clean up resources in your renderer.
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
+        {
+        }
+
+        internal virtual void ReleaseRenderTargets()
         {
         }
 
@@ -1025,6 +1056,7 @@ namespace UnityEngine.Rendering.Universal
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
             bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
 
+            hasReleasedRTs = false;
             m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;

@@ -28,7 +28,14 @@ namespace UnityEditor.Rendering.Universal
             Stack = 1 << 7,
         }
 
+        public enum ExpandableAdditional
+        {
+            /// <summary> Rendering</summary>
+            Rendering = 1 << 0,
+        }
+
         static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new(Expandable.Projection, "URP");
+        static readonly AdditionalPropertiesState<ExpandableAdditional, Camera> k_ExpandedAdditionalState = new(0, "URP");
 
         public static readonly CED.IDrawer SectionProjectionSettings = CED.FoldoutGroup(
             CameraUI.Styles.projectionSettingsHeaderContent,

@@ -102,6 +102,12 @@ namespace UnityEngine.Rendering.Universal
             public Shader bloomPS;
 
             /// <summary>
+            /// The Temporal-antialiasing Post Processing shader.
+            /// </summary>
+            [Reload("Shaders/PostProcessing/TemporalAA.shader")]
+            public Shader temporalAntialiasingPS;
+
+            /// <summary>
             /// The Lens Flare Post Processing shader.
             /// </summary>
             [Reload("Shaders/PostProcessing/LensFlareDataDriven.shader")]

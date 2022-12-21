@@ -50,26 +50,32 @@ In the Universal Render Pipeline (URP), Unity exposes different properties of th
 <a name="Rendering"></a>
 ## Rendering
 
-| __Property__               | __Description__                                              |
+| **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
-|__Renderer__ |Controls which renderer this Camera uses. |
-|__Post Processing__ |Enables post-processing effects. |
-|__Anti-aliasing__          | Use the drop-down to select the method that this Camera uses for post-process anti-aliasing. A Camera can still use multisample anti-aliasing (MSAA), which is a hardware feature, at the same time as post-process anti-aliasing.<br />&#8226; **None**: This Camera can process MSAA but does not process any post-process anti-aliasing.<br />&#8226; **Fast Approximate Anti-aliasing (FXAA)**: Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in URP.<br />&#8226; **Subpixel Morphological Anti-aliasing (SMAA)**: Finds patterns in borders of the image and blends the pixels on these borders according to the pattern. |
-| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Quality_| Use the drop-down to select the quality of SMAA. The difference in resource intensity is fairly small between **Low** and **High**.<br />&#8226; **Low**: The lowest SMAA quality. This is the least resource-intensive option.<br />&#8226; **Medium**: A good balance between SMAA quality and resource intensity.<br />&#8226; **High**: The highest SMAA quality. This is the most resource-intensive option.<br /><br />This property only appears when you select **Subpixel Morphological Anti-aliasing (SMAA)** from the **Anti-aliasing** drop-down.|
-|__Stop NaNs__| Enable the checkbox to make this Camera replace values that are Not a Number (NaN) with a black pixel. This stops certain effects from breaking, but is a resource-intensive process. Only enable this feature if you experience NaN issues that you can not fix. |
-|__Dithering__ |Enable the checkbox to apply 8-bit dithering to the final render. This can help reduce banding on wide gradients and low light areas. |
-|__Render Shadows__ |Enables shadow rendering. |
-|__Priority__ |A Camera with a higher priority is drawn on top of a Camera with a lower priority. [-100, 100] |
-|__Opaque Texture__ | Controls whether the Camera creates a CameraOpaqueTexture, which is a copy of the rendered view. |
-|&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_On_ |Camera creates a CameraOpaqueTexture.|
-|&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Off_ |Camera does not create a CameraOpaqueTexture. |
-|&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Use Pipeline Settings_ |The value of this setting is determined by the Render Pipeline Asset.|
-|__Depth Texture__ | Controls whether the Camera creates CameraDepthTexture, which is a copy of the rendered depth values. |
-|&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_On_ |The Camera creates a CameraDepthTexture.|
-|&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Off_ |The Camera does not create a CameraDepthTexture. |
-|&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Use Pipeline Settings_ |The value of this setting is determined by the Render Pipeline Asset.|
-|__Culling Mask__ |Which Layers the Camera renders to. |
-|__Occlusion Culling__ |Enables Occlusion Culling. |
+| **Renderer** | Controls which renderer this Camera uses. |
+| **Post Processing** | Enables post-processing effects. |
+| **Anti-Aliasing** | Use the drop-down to select the method that this Camera uses for post-process anti-aliasing. A Camera can still use Multisample Anti-aliasing (MSAA), which is a hardware feature, at the same time as post-process anti-aliasing unless you use Temporal Anti-aliasing.</br></br>The following Anti-aliasing options are available:<ul><li>**None**: This Camera can process MSAA but does not process any post-process anti-aliasing.</li><li>**Fast Approximate Anti-aliasing (FXAA)**: Performs a full screen pass which smooths edges on a per-pixel level.</li><li>**Subpixel Morphological Anti-aliasing (SMAA)**: Finds edge patterns in the image and blends the pixels on these edges according to those patterns.</li><li>**Temporal Anti-aliasing (TAA)**: Uses previous frames accumulated into a color history buffer to smooth edges over the course of multiple frames.</li></ul>For more information, see [Anti-aliasing in the Universal Render Pipeline](anti-aliasing.md). |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Quality (SMAA)* | Use the drop-down to select the quality of SMAA. The difference in resource intensity is fairly small between **Low** and **High**.</br></br>Available options:<ul><li>**Low**</li><li>**Medium**</li><li>**High**</li></ul>This property only appears when you select **Subpixel Morphological Anti-aliasing (SMAA)** from the **Anti-aliasing** drop-down. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Quality (TAA)* | Use the drop-down to select the quality of TAA.</br></br>Available options:<ul><li>**Very Low**</li><li>**Low**</li><li>**Medium**</li><li>**High**</li><li>**Very High**</li></ul>This property only appears when you select **Temporal Anti-aliasing (TAA)** from the **Anti-aliasing** drop-down. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Contrast Adaptive Sharpening* | Enables high quality post sharpening to reduce TAA blur.</br></br>This setting is overridden when you enable [AMD FidelityFX Super Resolution (FSR)](universalrp-asset.md#quality) upscaling in the URP Asset as FSR handles sharpening when it performs post-upscale sharpening.</br></br>This property only appears when you select **Temporal Anti-aliasing (TAA)** from the **Anti-aliasing** drop-down. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Base Blend Factor* | Determines how much the history buffer blends with the current frame result. Higher values mean more history contribution, which improves the anti-aliasing, but also increases the chance of ghosting.</br></br>This property only appears when you select **Temporal Anti-aliasing (TAA)** from the **Anti-aliasing** drop-down and enable **Show Additional Properties** in the Inspector. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Jitter Scale* | Determines the scale of the jitter applied when TAA is enabled. A lower value reduces visible flickering and jittering, but also reduces the effectiveness of the anti-aliasing.</br></br>This property only appears when you select **Temporal Anti-aliasing (TAA)** from the **Anti-aliasing** drop-down and enable **Show Additional Properties** in the Inspector. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Mip Bias* | Determines how much texture mipmap selection is biased when rendering.</br></br>A positive bias makes a texture appear more blurry, while a negative bias sharpens the texture. However, a lower value also has a negative impact on performance.</br></br>**Note**: Requires mipmaps in textures.</br></br>This property only appears when you select **Temporal Anti-aliasing (TAA)** from the **Anti-aliasing** drop-down and enable **Show Additional Properties** in the Inspector. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Variance Clamp Scale* | Determines the size of the color volume Unity uses to find nearby pixels when the color history is incorrect or unavailable. To do this, the clamp limits how much a pixel's color can vary from the color of the pixels that surround it.</br></br>Lower values can reduce ghosting, but produce more flickering. Higher values reduce flickering, but are prone to blur and ghosting.</br></br>This property only appears when you select **Temporal Anti-aliasing (TAA)** from the **Anti-aliasing** drop-down and enable **Show Additional Properties** in the Inspector. |
+| **Stop NaNs** | Enable the checkbox to make this Camera replace values that are Not a Number (NaN) with a black pixel. This stops certain effects from breaking, but is a resource-intensive process. Only enable this feature if you experience NaN issues that you can not fix. |
+| **Dithering** | Enable the checkbox to apply 8-bit dithering to the final render. This can help reduce banding on wide gradients and low light areas. |
+| **Render Shadows** | Enables shadow rendering. |
+| **Priority** | A Camera with a higher priority is drawn on top of a Camera with a lower priority. [-100, 100] |
+| **Opaque Texture** | Controls whether the Camera creates a CameraOpaqueTexture, which is a copy of the rendered view. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*On* | Camera creates a CameraOpaqueTexture.|
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Off* | Camera does not create a CameraOpaqueTexture. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Use Pipeline Settings* | The value of this setting is determined by the Render Pipeline Asset.|
+| **Depth Texture** | Controls whether the Camera creates CameraDepthTexture, which is a copy of the rendered depth values. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*On* | The Camera creates a CameraDepthTexture.|
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Off* | The Camera does not create a CameraDepthTexture. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;*Use Pipeline Settings* | The value of this setting is determined by the Render Pipeline Asset.|
+| **Culling Mask** | Which Layers the Camera renders to. |
+| **Occlusion Culling** | Enables Occlusion Culling. |
 
 ## <a name="Stack"></a>Stack
 
@@ -108,7 +114,7 @@ This is because the Render Texture determines these properties. To change them, 
 | -------------------------- | ------------------------------------------------------------ |
 |__Output Texture__ | Renders this Camera's output to a RenderTexture if this field is assigned, otherwise renders to screen.
 |__HDR__| Enables High Dynamic Range rendering for this camera.<br/>This property only appears when you select **Screen** from the **Output Target** drop-down.|
-|__MSAA__| Enables multi sample antialiasing for this camera.<br/>This property only appears when you select **Screen** from the **Output Target** drop-down.|
+|__MSAA__| Enables [Multisample Anti-aliasing](anti-aliasing.md#msaa) for this camera.<br/>This property only appears when you select **Screen** from the **Output Target** drop-down.|
 |__Viewport Rect__|Four values that indicate where on the screen this camera view will be drawn. Measured in Viewport Coordinates (values 0-1). This property only appears when you select **Screen** from the **Output Target** drop-down. |
 |&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_X_ |The beginning horizontal position that the camera view will be drawn. |
 |&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Y_ |The beginning vertical position that the camera view will be drawn. |
