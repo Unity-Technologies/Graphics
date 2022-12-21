@@ -53,14 +53,6 @@ float2 SampleCloudMap(float3 dir, int layer)
     return SAMPLE_TEXTURE2D_ARRAY_LOD(_CloudTexture, sampler_CloudTexture, coords, layer, 0).rg;
 }
 
-float3 RotationUp(float3 p, float2 cos_sin)
-{
-    float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
-    float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
-
-    return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
-}
-
 CloudLayerData GetCloudLayer(int index)
 {
     CloudLayerData layer;
