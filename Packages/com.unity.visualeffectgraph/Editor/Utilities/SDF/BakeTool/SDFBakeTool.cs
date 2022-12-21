@@ -81,6 +81,12 @@ namespace UnityEditor.VFX.SDF
             set { m_Settings.m_MeshPrefab = value; }
         }
 
+        private bool liftSizeLimit
+        {
+            get { return m_Settings.m_LiftSizeLimit; }
+            set { m_Settings.m_LiftSizeLimit = value; }
+        }
+
         private Mesh mesh
         {
             get { return m_Settings.m_Mesh; }
@@ -167,7 +173,7 @@ namespace UnityEditor.VFX.SDF
                 EditorGUILayout.HelpBox("The volume of your bounding box is zero.", MessageType.Warning);
 
             int estimatedGridSize = EstimateGridSize();
-            if (estimatedGridSize > 1 << 21 || selectedMesh == null)
+            if (estimatedGridSize > 1 << 21 || mesh == null)
             {
                 GUI.enabled = false;
                 m_LiveUpdate = false;
@@ -186,6 +192,7 @@ namespace UnityEditor.VFX.SDF
             bool fitPaddingChanged = false;
             if (m_ShowAdvanced)
             {
+                liftSizeLimit = EditorGUILayout.Toggle(Contents.liftSizeLimit, liftSizeLimit);
                 m_FoldOutParameters = EditorGUILayout.BeginFoldoutHeaderGroup(m_FoldOutParameters, Contents.bakingParameters);
                 EditorGUI.BeginChangeCheck();
                 if (m_FoldOutParameters)
@@ -278,7 +285,10 @@ namespace UnityEditor.VFX.SDF
                 m_RefreshMeshPreview = false;
             }
 
-            if (mesh == null || (estimatedGridSize > UnityEngine.VFX.SDF.MeshToSDFBaker.kMaxGridSize) || InternalMeshUtil.GetPrimitiveCount(mesh) == 0)
+            if (mesh == null ||
+                !liftSizeLimit && estimatedGridSize > MeshToSDFBaker.kMaxRecommandedGridSize ||
+                estimatedGridSize > MeshToSDFBaker.kMaxAbsoluteGridSize ||
+                InternalMeshUtil.GetPrimitiveCount(mesh) == 0)
             {
                 GUI.enabled = false;
             }
@@ -659,6 +669,7 @@ namespace UnityEditor.VFX.SDF
             internal static GUIContent previewChoice = new GUIContent("Preview Object");
             internal static GUIContent bakeSource = new GUIContent("Model Source");
             internal static GUIContent liveUpdate = new GUIContent("Live Update", "When enabled, every modification to the settings will trigger a new bake of the SDF, and the preview will be updated accordingly.");
+            internal static GUIContent liftSizeLimit = new GUIContent("Lift Size Limit", "When enabled, it is possible to bake SDF at higher resolutions, provided that your GPU has enough memory to execute the baking command.");
 
             internal static GUIContent signPass = new GUIContent("Sign passes count",
                 "Increasing the number of sign passes can help refine the distinction between the inside and the outside of the mesh." +

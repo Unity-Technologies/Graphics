@@ -1075,9 +1075,31 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle lightingTexture;
             public TextureHandle ssrAccumPrev;
             public TextureHandle clearCoatMask;
+
             public ComputeBufferHandle coarseStencilBuffer;
+
             public BlueNoise blueNoise;
             public HDCamera hdCamera;
+
+            public ComputeShader clearBuffer2DCS;
+            public int clearBuffer2DKernel;
+
+            public bool useAsync;
+        }
+
+        static void ClearColorBuffer2D(RenderSSRPassData data, CommandBuffer cmd, TextureHandle rt, Color clearColor, bool async)
+        {
+            if (!async)
+            {
+                CoreUtils.SetRenderTarget(cmd, rt, ClearFlag.Color, clearColor);
+            }
+            else
+            {
+                cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccum);
+                cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, clearColor);
+                cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
+                cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+            }
         }
 
         void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
@@ -1146,7 +1168,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
-                    builder.EnableAsyncCompute(hdCamera.frameSettings.SSRRunsAsync());
+                    bool useAsync = hdCamera.frameSettings.SSRRunsAsync();
+                    builder.EnableAsyncCompute(useAsync);
 
                     hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
 
@@ -1182,6 +1205,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.normalBuffer = builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
                     passData.motionVectorsBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
 
+                    passData.clearBuffer2DCS = m_ClearBuffer2DCS;
+                    passData.clearBuffer2DKernel = m_ClearBuffer2DKernel;
+                    passData.useAsync = useAsync;
+
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
@@ -1196,8 +1223,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else
                     {
-                        passData.lightingTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }));
+                        passData.lightingTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }));
                     }
 
                     builder.SetRenderFunc(
@@ -1206,14 +1232,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             var cs = data.ssrCS;
 
                             if (data.accumNeedClear)
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
+                                ClearColorBuffer2D(data, ctx.cmd, data.ssrAccum, Color.clear, data.useAsync);
                             if (data.previousAccumNeedClear)
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+                                ClearColorBuffer2D(data, ctx.cmd, data.ssrAccumPrev, Color.clear, data.useAsync);
 
                             if (!data.usePBRAlgo)
                                 ctx.cmd.EnableShaderKeyword("SSR_APPROX");
                             else
+                            {
                                 ctx.cmd.DisableShaderKeyword("SSR_APPROX");
+                            }
 
                             if (data.transparentSSR)
                                 ctx.cmd.EnableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
@@ -1241,8 +1269,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 data.blueNoise.BindDitheredRNGData1SPP(ctx.cmd);
 
-                                ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
-
                                 ctx.cmd.DispatchCompute(cs, data.tracingKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
                             }
 
@@ -1266,8 +1292,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 if (!data.validColorPyramid)
                                 {
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+                                    ClearColorBuffer2D(data, ctx.cmd, data.ssrAccum, Color.clear, data.useAsync);
+                                    ClearColorBuffer2D(data, ctx.cmd, data.ssrAccumPrev, Color.clear, data.useAsync);
                                 }
                                 else
                                 {

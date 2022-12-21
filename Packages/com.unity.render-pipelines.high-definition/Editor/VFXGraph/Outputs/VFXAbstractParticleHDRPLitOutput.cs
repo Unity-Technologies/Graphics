@@ -243,7 +243,8 @@ namespace UnityEditor.VFX.HDRP
                 if (!isBlendModeOpaque)
                 {
                     if (preserveSpecularLighting)
-                        forwardDefines.WriteLine("#define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
+                        forwardDefines.WriteLine("#define SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
+                    forwardDefines.WriteLineFormat("#define _EnableBlendModePreserveSpecularLighting {0}", preserveSpecularLighting ? 1 : 0 );
                 }
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);

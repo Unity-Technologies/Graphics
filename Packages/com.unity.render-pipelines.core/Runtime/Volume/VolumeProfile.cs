@@ -33,6 +33,21 @@ namespace UnityEngine.Rendering
             components.RemoveAll(x => x == null);
         }
 
+        // The lifetime of ScriptableObjects is different from MonoBehaviours. When the last reference to a
+        // VolumeProfile goes out of scope (e.g. when a scene containing Volume components is unloaded), Unity will call
+        // OnDisable() on the VolumeProfile. We need to release the internal resources in this case to avoid leaks.
+        internal void OnDisable()
+        {
+            if (components == null)
+               return;
+               
+            for (int i = 0; i < components.Count; i++)
+            {
+                if (components[i] != null)
+                    components[i].Release();
+            }
+        }
+
         /// <summary>
         /// Resets the dirty state of the Volume Profile. Unity uses this to force-refresh and redraw the
         /// Volume Profile editor when you modify the Asset via script instead of the Inspector.

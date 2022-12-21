@@ -5,6 +5,12 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        // Setup to match FORWARD_ECCENTRICITY in VolumetricCloudsUtilies.hlsl
+        // Kinda empirical because they are not using the same phase function
+        const float m_VolumetricCloudsAnisotropy = 0.7f;
+
+        const int m_SkyCubemapResolution = 16;
+
         // Resources required to evaluate the ambient probe for the clouds
         ComputeShader m_ComputeAmbientProbeCS;
         int m_AmbientProbeConvolutionNoMipKernel;
@@ -19,12 +25,24 @@ namespace UnityEngine.Rendering.HighDefinition
         static SphericalHarmonicsL2 m_CloudsAmbientProbe = new SphericalHarmonicsL2();
         static bool m_CloudsAmbientProbeIsReady = false;
 
+        Matrix4x4[] m_facePixelCoordToViewDirMatrices = new Matrix4x4[6];
+
         void InitializeVolumetricCloudsAmbientProbe()
         {
             m_ComputeAmbientProbeCS = m_Asset.renderPipelineResources.shaders.ambientProbeConvolutionCS;
             m_AmbientProbeConvolutionNoMipKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionNoMip");
             m_CloudsAmbientProbeBuffer = new ComputeBuffer(9 * 3, sizeof(float));
-            m_CloudsAmbientProbeSky = RTHandles.Alloc(16, 16, TextureXR.slices, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
+            m_CloudsAmbientProbeSky = RTHandles.Alloc(m_SkyCubemapResolution, m_SkyCubemapResolution, TextureXR.slices, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
+
+            var cubemapScreenSize = new Vector4((float)m_SkyCubemapResolution, (float)m_SkyCubemapResolution, 1.0f / (float)m_SkyCubemapResolution, 1.0f / (float)m_SkyCubemapResolution);
+
+            for (int i = 0; i < 6; ++i)
+            {
+                var lookAt = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
+                var worldToView = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
+
+                m_facePixelCoordToViewDirMatrices[i] = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(0.5f * Mathf.PI, Vector2.zero, cubemapScreenSize, worldToView, true);
+            }
         }
 
         void ReleaseVolumetricCloudsAmbientProbe()
@@ -92,13 +110,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(m_CloudsAmbientProbe);
                 probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, settings.ambientLightProbeDimmer.value);
-                ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(m_PhaseZHClouds, 0.0f);
+                ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(m_PhaseZHClouds, m_VolumetricCloudsAnisotropy);
                 SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, m_PhaseZHClouds));
                 SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsClouds, finalSH);
 
                 // Evaluate the probe at the top and bottom (above and under the clouds)
-                cb._AmbientProbeTop = EvaluateAmbientProbe(Vector3.down);
-                cb._AmbientProbeBottom = EvaluateAmbientProbe(Vector3.up);
+                cb._AmbientProbeTop = EvaluateAmbientProbe(Vector3.up);
+                cb._AmbientProbeBottom = EvaluateAmbientProbe(Vector3.down);
             }
             else
             {
@@ -150,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.skyRenderer != null)
                         {
                             // Render the sky into a low resolution cubemap
-                            data.skyManager.RenderSkyOnlyToCubemap(ctx.cmd, data.skyCubemap, false, data.skyRenderer);
+                            data.skyManager.RenderSkyOnlyToCubemap(ctx.cmd, data.skyCubemap, false, m_facePixelCoordToViewDirMatrices, data.skyRenderer);
 
                             // Evaluate the probe
                             ctx.cmd.SetComputeTextureParam(data.computeProbeCS, data.kernel, m_AmbientProbeInputCubemap, data.skyCubemap);

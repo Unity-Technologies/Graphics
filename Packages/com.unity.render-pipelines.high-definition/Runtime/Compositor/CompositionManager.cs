@@ -33,6 +33,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             RenderingAndPostProcessing
         }
 
+        [SerializeField]
+        bool m_Enable = true;
+
+        public bool enableInternal { get { return m_Enable; } set { m_Enable = value; } }
+
         [SerializeField] Material m_Material;
 
         [SerializeField] OutputDisplay m_OutputDisplay = OutputDisplay.Display1;
@@ -330,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             else
             {
                 Debug.LogError("The compositor was disabled due to a validation error in the configuration.");
-                enabled = false;
+                enableInternal = false;
             }
         }
 
@@ -934,7 +939,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         }
 
         static public CompositionManager GetInstance() =>
-            s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType(typeof(CompositionManager), true) as CompositionManager);
+            s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType<CompositionManager>(true));
 
         static public Vector4 GetAlphaScaleAndBiasForCamera(HDCamera hdCamera)
         {

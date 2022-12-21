@@ -12,6 +12,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     TEXTURE2D_X(_Source);
     float       _SourceMip;
+    float4      _OverrideRTHandleScale;
     float4      _ViewPortSize; // We need the viewport size because we have a non fullscreen render target (blur buffers are downsampled in half res)
     float4      _SourceScaleBias;
     float4      _ViewportScaleBias;
@@ -22,14 +23,18 @@ Shader "Hidden/HDRP/CustomPassUtils"
     float           _SampleCount;
     Buffer<float>   _GaussianWeights;
 
+    float2 GetRTHandleScale()
+    {
+        return _OverrideRTHandleScale.x > 0 ? _OverrideRTHandleScale.xy : _RTHandleScale.xy;
+    }
+
     float2 GetScaledUVs(Varyings varyings)
     {
         // Remap UV from part of the screen (due to viewport scale / offset) to 0 - 1
-        float2 uv01 = (varyings.positionCS.xy * _RTHandleScale.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
-        float2 uv = uv01;
+        float2 uv01 = (varyings.positionCS.xy * GetRTHandleScale() * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
 
         // Apply scale and bias
-        return uv * _SourceScaleBias.xy + _SourceScaleBias.zw;
+        return uv01 * _SourceScaleBias.xy + _SourceScaleBias.zw;
     }
 
     float4 Copy(Varyings varyings) : SV_Target
@@ -54,14 +59,15 @@ Shader "Hidden/HDRP/CustomPassUtils"
         depth = LOAD_TEXTURE2D_X_LOD(_Source, uv * _SourceSize.xy, _SourceMip).x;
     }
 
-    // We need to clamp the UVs to avoid bleeding from bigger render tragets (when we have multiple cameras)
+    // We need to clamp the UVs to avoid bleeding from bigger render targets (when we have multiple cameras)
     float2 ClampUVs(float2 uv)
     {
         // Clamp UV to the current viewport:
         // Note that uv here are scaled with _RTHandleScale.xy to support sampling from RTHandle
-        float2 offset = _ViewportScaleBias.zw * _RTHandleScale.xy;
-        float2 size = rcp(_ViewportScaleBias.xy) * _RTHandleScale.xy;
-        float2 halfPixelSize = _SourceSize.zw * _RTHandleScale.xy / 2 * _SourceScaleFactor.zw;
+        float2 rtHandleScale = GetRTHandleScale();
+        float2 offset = _ViewportScaleBias.zw * rtHandleScale;
+        float2 size = rcp(_ViewportScaleBias.xy) * rtHandleScale;
+        float2 halfPixelSize = _SourceSize.zw * rtHandleScale / 2 * _SourceScaleFactor.zw;
         uv = clamp(uv, offset + halfPixelSize, size + offset - halfPixelSize);
         return saturate(uv);
     }

@@ -106,6 +106,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrReprojectionKernel = -1;
         int m_SsrAccumulateKernel = -1;
 
+        ComputeShader m_ClearBuffer2DCS { get { return defaultResources.shaders.clearBuffer2D; } }
+        int m_ClearBuffer2DKernel = -1;
+
         Material m_ApplyDistortionMaterial;
 
         Material m_ClearStencilBufferMaterial;
@@ -229,6 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_AssetSupportsRayTracing = false;
 
         // Flag that defines if ray tracing is supported by the current asset and platform
+        // Note: this will include whether resources are available or not because we can be in a state where the asset was not included in the build and so the the resources were stripped. 
         bool m_RayTracingSupported = false;
 
         /// <summary>
@@ -284,7 +288,21 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.maximumLODLevel = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_RayTracingSupported = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
+            bool pipelineSupportsRayTracing = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
+
+            m_RayTracingSupported = pipelineSupportsRayTracing && m_GlobalSettings.renderPipelineRayTracingResources != null;
+
+            // In Editor we need to be freely available to select raytracing to create the resources, otherwise we get stuck in a situation in which we cannot create the resources, 
+            // hence why the following is done only in player
+#if !UNITY_EDITOR
+            if (pipelineSupportsRayTracing && !m_RayTracingSupported)
+            {
+                Debug.LogWarning("The asset supports ray tracing but the ray tracing resources are not included in the build. This can happen if the asset currently in use was not included in any quality setting for the current platform.");
+                // We need to modify the pipeline settings here because we use them to sanitize the frame settings.
+                m_Asset.TurnOffRayTracing();
+            }
+#endif
+
             m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
 
 #if UNITY_EDITOR
@@ -349,6 +367,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
             m_SsrAccumulateKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulate");
+
+            m_ClearBuffer2DKernel = m_ClearBuffer2DCS.FindKernel("ClearBuffer2DMain");
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);

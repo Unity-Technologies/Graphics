@@ -108,7 +108,7 @@ This is because the Render Texture determines these properties. To change them, 
 | -------------------------- | ------------------------------------------------------------ |
 |__Output Texture__ | Renders this Camera's output to a RenderTexture if this field is assigned, otherwise renders to screen.
 |__HDR__| Enables High Dynamic Range rendering for this camera.<br/>This property only appears when you select **Screen** from the **Output Target** drop-down.|
-|__MSAA__| Enables multi sample antialiasing for this camera.<br/>This property only appears when you select **Screen** from the **Output Target** drop-down.|
+|__MSAA__| Enables [Multisample Anti-aliasing](anti-aliasing.md#msaa) for this camera.<br/>This property only appears when you select **Screen** from the **Output Target** drop-down.|
 |__Viewport Rect__|Four values that indicate where on the screen this camera view will be drawn. Measured in Viewport Coordinates (values 0-1). This property only appears when you select **Screen** from the **Output Target** drop-down. |
 |&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_X_ |The beginning horizontal position that the camera view will be drawn. |
 |&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Y_ |The beginning vertical position that the camera view will be drawn. |

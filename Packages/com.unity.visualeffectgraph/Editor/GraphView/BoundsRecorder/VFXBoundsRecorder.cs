@@ -471,7 +471,7 @@ namespace UnityEditor.VFX.UI
             {
                 string systemName = m_Graph.systemNames.GetUniqueSystemName(system);
 
-                if (m_Bounds.ContainsKey(systemName) && NeedsToBeRecorded(system))
+                if (m_Bounds.TryGetValue(systemName, out var currentBounds) && NeedsToBeRecorded(system))
                 {
                     VFXContext initContext;
                     try
@@ -483,16 +483,14 @@ namespace UnityEditor.VFX.UI
                         break;
                     }
                     var boundsSlot = initContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
-                    // if (initContext.GetOutputSpaceFromSlot(boundsSlot) == VFXCoordinateSpace.Local) //TODO: Investigate why use space instead of GetOutputSpaceFromSlot
-                    var padding = m_Effect.GetCurrentPadding(systemName);
-                    var paddedBounds = new Bounds(m_Bounds[systemName].center, 2 * (m_Bounds[systemName].extents + padding));
+                    var bounds = new Bounds(currentBounds.center, 2 * (currentBounds.extents));
                     if (boundsSlot.space == VFXCoordinateSpace.Local)
-                        boundsSlot.value = new AABox() { center = paddedBounds.center, size = paddedBounds.size };
+                        boundsSlot.value = new AABox() { center = bounds.center, size = bounds.size };
                     else
                     {
                         //Subject to change depending on the future behavior of AABox w.r.t. to Spaceable
-                        var positionWorld = m_Effect.transform.TransformPoint(paddedBounds.center);
-                        boundsSlot.value = new AABox() { center = positionWorld, size = paddedBounds.size };
+                        var positionWorld = m_Effect.transform.TransformPoint(bounds.center);
+                        boundsSlot.value = new AABox() { center = positionWorld, size = bounds.size };
                     }
                 }
             }

@@ -926,28 +926,52 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        void InstallLocalConfigurationPackage(Action onCompletion)
-            => m_UsedPackageRetriever.ProcessAsync(
-                k_HdrpConfigPackageName,
-                (installed, info) =>
+
+        void EmbedConfigPackage(bool installed, string name, Action onCompletion)
+        {
+            if (!installed)
+            {
+                Debug.LogError("The the HDRP config package is missing, please install the one with the same version of your HDRP package.");
+                return;
+            }
+
+            WaitForRequest(Client.Embed(name), embedRequest =>
+            {
+                if (embedRequest.Status >= StatusCode.Failure)
                 {
-                    if (!installed)
-                    {
-                        Debug.LogError("The the HDRP config package is missing, please install the one with the same version of your HDRP package.");
-                        return;
-                    }
+                    Debug.LogError($"Failed to install the config package {embedRequest.Error.message}");
+                    return;
+                }
 
-                    WaitForRequest(Client.Embed(info.name), embedRequest =>
-                    {
-                        if (embedRequest.Status >= StatusCode.Failure)
+                onCompletion?.Invoke();
+            });
+        }
+
+        void InstallLocalConfigurationPackage(Action onCompletion)
+        {
+            m_UsedPackageRetriever.ProcessAsync(
+            k_HdrpConfigPackageName,
+            (installed, info) =>
+            {
+                // Embedding a package requires it to be an explicit direct dependency in the manifest.
+                // If it's not, we add it first.
+                if (!info.isDirectDependency)
+                {
+                    m_PackageInstaller.ProcessAsync(k_HdrpConfigPackageName, () => m_UsedPackageRetriever.ProcessAsync(
+                        k_HdrpConfigPackageName,
+                        (installed, info) =>
                         {
-                            Debug.LogError($"Failed to install the config package {embedRequest.Error.message}");
-                            return;
-                        }
+                            EmbedConfigPackage(installed, info.name, onCompletion);
 
-                        onCompletion?.Invoke();
-                    });
-                });
+                        }));
+                }
+                else
+                {
+                    EmbedConfigPackage(installed, info.name, onCompletion);
+                }
+            });
+        }
+
 
         static void WaitForRequest<T>(T request, Action<T> onCompleted)
             where T : Request

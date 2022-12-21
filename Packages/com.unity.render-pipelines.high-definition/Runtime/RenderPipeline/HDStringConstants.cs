@@ -127,6 +127,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CachedShadowAtlasSize = Shader.PropertyToID("_CachedShadowAtlasSize");
         public static readonly int _CachedAreaShadowAtlasSize = Shader.PropertyToID("_CachedAreaShadowAtlasSize");
 
+        public static readonly int _ClearValue = Shader.PropertyToID("_ClearValue");
+        public static readonly int _BufferSize = Shader.PropertyToID("_BufferSize");
+        public static readonly int _Buffer2D = Shader.PropertyToID("_Buffer2D");
+
         // Moment shadow map data
         public static readonly int _MomentShadowAtlas = Shader.PropertyToID("_MomentShadowAtlas");
         public static readonly int _MomentShadowmapSlotST = Shader.PropertyToID("_MomentShadowmapSlotST");
@@ -1026,6 +1030,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ViewportScaleBias = Shader.PropertyToID("_ViewportScaleBias");
         public static readonly int _SourceSize = Shader.PropertyToID("_SourceSize");
         public static readonly int _SourceScaleFactor = Shader.PropertyToID("_SourceScaleFactor");
+        public static readonly int _OverrideRTHandleScale = Shader.PropertyToID("_OverrideRTHandleScale");
 
         // 3D Atlas
         public static readonly int _Dst3DTexture = Shader.PropertyToID("_Dst3DTexture");

@@ -23,7 +23,7 @@ RW_TEXTURE2D_X(float, _OutputAlphaTexture);
 SAMPLER(sampler_LinearClamp);
 SAMPLER(sampler_TrilinearClamp);
 
-//Only enable sampler usage on higher resolutions.
+// [NOTE-FORCE-DOF-TEX-LOAD]: Only enable sampler usage on higher resolutions.
 //on low resolutions with hardware DRS (quarter res) having a bilinear sampler can add dynamic resolution artifacts due to rounding of pixels during dof pyramid downsample
 //the proper fix would be to constrain the available DRS resolutions to multiples of 8, so we can perform a good quarter res downsample and not loose the extra column.
 //To avoid complexity, we just use a Load (no filter) so we grab the closest sample. Using a filter will aggravate this artifact and cause jitterness on the dof blur result.
@@ -131,11 +131,12 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         sampTap = sampTap * sampDist * clipping + uv;
         #if USE_SAMPLER
         sampTap = ClampAndScaleUVPostProcessTexture(sampTap, _PostProcessScreenSize.zw, texelsToClamp);
-
         CTYPE sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).CTYPE_SWIZZLE;
         float sampCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;
         #else
-        sampTap = clamp(sampTap.xy, 0, 1.0 - _TexelSize.zw * 0.5) * _TexelSize.xy;
+        // See: [NOTE-FORCE-DOF-TEX-LOAD]
+        // Need to manually compute a coordinate w.r.t. the mip level for a texture load.
+        sampTap *= _TexelSize.xy / (1u << (uint)mip);
         CTYPE sampColor = LOAD_TEXTURE2D_X_LOD(_InputTexture, sampTap, mip).CTYPE_SWIZZLE;
         float sampCoC = LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, sampTap, mip).x;
         #endif

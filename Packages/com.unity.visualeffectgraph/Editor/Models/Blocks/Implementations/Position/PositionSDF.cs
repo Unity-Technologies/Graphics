@@ -99,7 +99,6 @@ float3 wPos, n, worldNormal;
 for(uint proj_step=0; proj_step < n_steps; proj_step++){
 
     float dist = SampleSDF(SDF, coord);
-    n = SampleSDFDerivativesFast(SDF, coord, dist);
     n = -normalize(SampleSDFDerivativesFast(SDF, coord, dist));
     dist *= scalingFactor;
 

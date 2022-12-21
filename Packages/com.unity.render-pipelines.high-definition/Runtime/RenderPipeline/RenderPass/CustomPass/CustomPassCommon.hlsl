@@ -44,6 +44,21 @@ float3 CustomPassLoadCameraColor(uint2 pixelCoords, float lod)
     }
 }
 
+float CustomPassLoadCustomDepth(uint2 pixelCoords)
+{
+    return LoadCustomDepth(pixelCoords);
+}
+
+float CustomPassLoadCameraDepth(uint2 pixelCoords)
+{
+    switch ((int)_CustomPassInjectionPoint)
+    {
+        case CUSTOMPASSINJECTIONPOINT_BEFORE_RENDERING: return 0;
+        case CUSTOMPASSINJECTIONPOINT_AFTER_POST_PROCESS: return LoadCameraDepth(pixelCoords * _DynamicResolutionFullscreenScale.xy);
+        default: return LoadCameraDepth(pixelCoords);
+    }
+}
+
 struct Attributes
 {
     uint vertexID : SV_VertexID;

@@ -5,30 +5,43 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [12.1.8] - 2022-11-04
+## [12.1.9] - 2022-12-12
+
+This version is compatible with Unity 2021.3.16f1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.8] - 2022-11-04
+
+This version is compatible with Unity 2021.3.14f1.
+
+### Changed
+- Reduced time taken by code generation when a shader graph asset is imported
+
+### Fixed
+- Fixed a compilation bug in BiRP Target in some variants with lightmaps.
 
 ## [12.1.7] - 2022-03-29
 
+This version is compatible with Unity 2021.2.19f1.
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-
 ## [12.1.6] - 2022-02-09
+
+This version is compatible with Unity 2021.2.14f1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.5] - 2022-01-14
 
+This version is compatible with Unity 2021.2.12f1.
+
 ### Fixed
   - Fixed an issue where edges connected to SubGraphNodes would sometimes get lost on upgrading a pre-targets graphs [1379996](https://issuetracker.unity3d.com/product/unity/issues/guid/1379996/)
-
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.4] - 2021-12-07
 
