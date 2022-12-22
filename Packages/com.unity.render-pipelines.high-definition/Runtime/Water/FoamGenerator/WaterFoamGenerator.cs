@@ -47,11 +47,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the dimmer for the surface foam.
         /// </summary>
+        [Range(0.0f, 1.0f)]
         public float surfaceFoamDimmer = 1.0f;
 
         /// <summary>
         /// Specifies a dimmer for the deep foam.
         /// </summary>
+        [Range(0.0f, 1.0f)]
         public float deepFoamDimmer = 1.0f;
 
         #region Instance Management
@@ -122,10 +124,5 @@ namespace UnityEngine.Rendering.HighDefinition
             UnregisterInstance(this);
         }
         #endregion
-
-        void OnDrawGizmosSelected()
-        {
-            Gizmos.DrawWireMesh(Resources.GetBuiltinResource<Mesh>("Cube.fbx"), transform.position, Quaternion.Euler(0, transform.eulerAngles.y, 0), new Vector3(regionSize.x, 1, regionSize.y));
-        }
     }
 }
