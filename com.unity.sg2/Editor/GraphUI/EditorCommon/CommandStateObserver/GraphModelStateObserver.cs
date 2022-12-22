@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 graphDataName = nodeModel.graphDataName;
 
-                var declaration = nodeModel.DeclarationModel as GraphDataVariableDeclarationModel;
+                var declaration = nodeModel.DeclarationModel as SGVariableDeclarationModel;
                 declarationContextNodeName = declaration?.contextNodeName;
                 declarationGraphDataName = declaration?.graphDataName;
             }
@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             public string contextNodeName { get; }
             public string graphDataName { get; }
 
-            public VariableRemovalInfo(GraphDataVariableDeclarationModel variableDeclarationModel)
+            public VariableRemovalInfo(SGVariableDeclarationModel variableDeclarationModel)
             {
                 contextNodeName = variableDeclarationModel.contextNodeName;
                 graphDataName = variableDeclarationModel.graphDataName;
@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (model)
                 {
-                    case GraphDataVariableDeclarationModel variableDeclarationModel:
+                    case SGVariableDeclarationModel variableDeclarationModel:
                     {
                         m_VariableRemovalInfo[model.Guid] = new VariableRemovalInfo(variableDeclarationModel);
                         break;
@@ -298,7 +298,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 m_PreviewUpdateDispatcher.OnLocalPropertyChanged(graphDataPortModel.owner.graphDataName,  cldsConstant.PortName, cldsConstant.ObjectValue);
             }
 
-            foreach (var variableDeclarationModel in changedModels.OfType<GraphDataVariableDeclarationModel>())
+            foreach (var variableDeclarationModel in changedModels.OfType<SGVariableDeclarationModel>())
             {
                 var cldsConstant = variableDeclarationModel.InitializationModel as BaseShaderGraphConstant;
                 if (cldsConstant != null && cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)
