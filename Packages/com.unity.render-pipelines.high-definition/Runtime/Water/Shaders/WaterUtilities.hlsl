@@ -349,9 +349,9 @@ void SampleSimulation_VS(WaterSimCoord waterCoord, float3 waterMask, float dista
 void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData displacementData)
 {
     // Evaluate the pre-displaced absolute position
-    float3 positionAWS = mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz;
+    float3 positionRWS = mul(_WaterSurfaceTransformRWS, float4(positionOS, 1.0)).xyz;
     // Evaluate the distance to the camera
-    float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
+    float distanceToCamera = length(positionRWS);
 
     // Attenuate using the water mask
     float2 maskUV = EvaluateWaterMaskUV(positionOS.xz);
@@ -414,6 +414,7 @@ void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData disp
 
 #if defined(SUPPORT_WATER_DEFORMATION)
     // Apply the deformation data
+    float3 positionAWS = GetAbsolutePositionWS(positionRWS).xyz;
     float3 displacedPosition = positionAWS + displacementData.displacement;
     float2 deformationUV = (displacedPosition.xz - _WaterDeformationCenter) / _WaterDeformationExtent + 0.5f;
     float verticalDeformation = SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, deformationUV, 0);
@@ -525,9 +526,9 @@ void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float dist
 void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, float3 meshNormalOS, out WaterAdditionalData waterAdditionalData)
 {
     // Evaluate the pre-displaced absolute position
-    float3 positionAWS = mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz;
+    float3 positionRWS = mul(_WaterSurfaceTransformRWS, float4(positionOS, 1.0)).xyz;
     // Evaluate the distance to the camera
-    float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
+    float distanceToCamera = length(positionRWS);
 
     // Compute the texture size param for the filtering
     float4 texSize = 0.0;
@@ -609,9 +610,9 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
 
     // Evaluate the normals
     float3 lowFrequencyNormalOS = SurfaceGradientResolveNormal(meshNormalOS, float3(lFSurfaceGradient.x, 0, lFSurfaceGradient.y));
-    waterAdditionalData.lowFrequencyNormalWS = mul(_WaterSurfaceTransform, float4(lowFrequencyNormalOS, 0.0)).xyz;
+    waterAdditionalData.lowFrequencyNormalWS = mul(_WaterSurfaceTransformRWS, float4(lowFrequencyNormalOS, 0.0)).xyz;
     float3 normalOS = SurfaceGradientResolveNormal(meshNormalOS, float3(surfaceGradient.x, 0, surfaceGradient.y));
-    waterAdditionalData.normalWS = mul(_WaterSurfaceTransform, float4(normalOS, 0.0)).xyz;
+    waterAdditionalData.normalWS = mul(_WaterSurfaceTransformRWS, float4(normalOS, 0.0)).xyz;
 
     // Attenuate using the foam mask
     float2 foamMaskUV = EvaluateFoamMaskUV(positionOS.xz);
@@ -849,8 +850,8 @@ float3 EvaluateRefractionColor(float3 absorptionTint, float3 caustics)
 float3 EvaluateScatteringColor(float3 positionOS, float lowFrequencyHeight, float horizontalDisplacement, float3 absorptionTint, float deepFoam)
 {
     // Evaluate the pre-displaced absolute position
-    float3 positionAWS = mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz;
-    float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
+    float3 positionRWS = mul(_WaterSurfaceTransformRWS, float4(positionOS, 1.0)).xyz;
+    float distanceToCamera = length(positionRWS);
 
     // Evaluate the scattering terms (where the refraction doesn't happen)
     float heightBasedScattering = EvaluateHeightBasedScattering(lowFrequencyHeight, distanceToCamera);

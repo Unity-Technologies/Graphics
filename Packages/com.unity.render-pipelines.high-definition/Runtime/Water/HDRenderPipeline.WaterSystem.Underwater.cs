@@ -300,7 +300,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.waterRenderingCB._CausticsPlaneBlendDistance = waterSurface.causticsPlaneBlendDistance;
                 passData.waterRenderingCB._PatchOffset = waterSurface.transform.position;
                 passData.waterRenderingCB._WaterCausticsEnabled = waterSurface.caustics ? 1 : 0;
-                passData.waterRenderingCB._WaterSurfaceTransform = waterSurface.simulation.rendering.waterToWorldMatrix;
+                float4x4 waterToWorldAbs = waterSurface.simulation.rendering.waterToWorldMatrix;
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    waterToWorldAbs.c3 -= new float4(hdCamera.camera.transform.position, 0.0f);
+                }
+                passData.waterRenderingCB._WaterSurfaceTransformRWS = waterToWorldAbs;
                 passData.waterRenderingCB._WaterSurfaceTransform_Inverse = waterSurface.simulation.rendering.worldToWaterMatrix;
                 passData.waterRenderingCB._WaterAmbientProbe = m_WaterAmbientProbe;
 

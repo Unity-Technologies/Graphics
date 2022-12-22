@@ -58,7 +58,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareWaterRenderingParameters(hdCamera, settings, currentWater, surfaceIdx, false);
                 passData.waterDebugCB._WaterDebugMode = (int) currentWater.debugMode;
                 passData.waterDebugCB._WaterMaskDebugMode = (int) currentWater.waterMaskDebugMode;
-                passData.waterDebugCB._WaterCurrentDebugMode = (int)currentWater.waterCurrentDebugMode;
+                if (currentWater.waterCurrentDebugMode == WaterCurrentDebugMode.Large)
+                    passData.waterDebugCB._WaterCurrentDebugMode = 0;
+                else
+                    passData.waterDebugCB._WaterCurrentDebugMode = currentWater.ripplesMotionMode == WaterPropertyOverrideMode.Custom ? 1 : 0;
                 passData.waterDebugCB._CurrentDebugMultiplier = currentWater.currentDebugMultiplier;
                 passData.waterDebugCB._WaterFoamDebugMode = (int)currentWater.waterFoamDebugMode;
 

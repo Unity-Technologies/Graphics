@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>
         /// </summary>
-        public Texture2D largeCurrentMap = null;
+        public Texture largeCurrentMap = null;
 
         /// <summary>
         /// </summary>
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>
         /// </summary>
-        public Texture2D ripplesCurrentMap = null;
+        public Texture ripplesCurrentMap = null;
 
         /// <summary>
         /// </summary>
