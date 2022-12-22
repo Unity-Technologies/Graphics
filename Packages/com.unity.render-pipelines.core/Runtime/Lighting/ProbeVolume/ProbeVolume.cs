@@ -224,6 +224,9 @@ namespace UnityEngine.Rendering
                 cellSizeInMeters = profile.cellSizeInMeters;
             }
 
+            if (Camera.current == null)
+                return true;
+
             var cameraTransform = Camera.current.transform;
 
             Vector3 cellCenterWS = cellPosition * cellSizeInMeters + originWS + Vector3.one * (cellSizeInMeters / 2.0f);
@@ -261,12 +264,16 @@ namespace UnityEngine.Rendering
             var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
 
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
+            float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
             if (debugDisplay.realtimeSubdivision)
             {
                 var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(gameObject.scene);
                 if (profile == null)
                     return;
+
+                // Overwrite settings with data from profile
                 cellSizeInMeters = profile.cellSizeInMeters;
+                minBrickSize = profile.minBrickSize;
             }
 
             if (debugDisplay.drawBricks)
@@ -316,8 +323,7 @@ namespace UnityEngine.Rendering
                     if (brick.subdivisionLevel < 0)
                         continue;
 
-                    float brickSize = ProbeReferenceVolume.instance.BrickSize(brick.subdivisionLevel);
-                    float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
+                    float brickSize = minBrickSize * ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
                     Vector3 scaledSize = new Vector3(brickSize, brickSize, brickSize);
                     Vector3 scaledPos = new Vector3(brick.position.x * minBrickSize, brick.position.y * minBrickSize, brick.position.z * minBrickSize) + scaledSize / 2;
                     brickGizmos.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
