@@ -124,7 +124,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             return output;
         }
 
-
         internal static Color SampleMaterialColor(Material material)
         {
             var outputTexture = DrawMaterialToTexture(material);
@@ -188,8 +187,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             return graphHandler;
         }
 
-
-    [Test]
+        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
+        [Test]
         public void MainPreview_SingleColor_Material()
         {
             // Instantiate the graph
@@ -206,6 +205,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.AreEqual(Color.red, SampleMaterialColor(MainPreviewMaterial));
         }
 
+        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public void MainPreview_AddTwoColors_Material()
         {
@@ -228,6 +228,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.AreEqual(new Color(1, 1, 0, 1), SampleMaterialColor(mainPreviewMaterial));
         }
 
+        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public void MainPreview_SubtractTwoColors_Material()
         {
@@ -441,6 +442,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         //     Assert.IsTrue(nodeCodev1 != nodeCodev2);
         // }
 
+        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public void MainPreview_CodeChange()
         {
@@ -464,7 +466,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.IsTrue(shaderCodev1 != shaderCodev2);
         }
 
-
+        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public void MainPreview_ValidShaderCode()
         {
