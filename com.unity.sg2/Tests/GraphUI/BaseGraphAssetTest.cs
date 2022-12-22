@@ -1,6 +1,4 @@
 using NUnit.Framework;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.GraphUI;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
