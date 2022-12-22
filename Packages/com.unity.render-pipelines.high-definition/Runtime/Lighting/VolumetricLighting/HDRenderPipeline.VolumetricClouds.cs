@@ -341,10 +341,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             cb._PhysicallyBasedSun = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 1 : 0;
             Light currentSun = GetMainLight();
+            HDAdditionalLightData additionalLightData = null;
             if (currentSun != null)
             {
                 // Grab the target sun additional data
-                HDAdditionalLightData additionalLightData;
                 m_CurrentSunLight.TryGetComponent<HDAdditionalLightData>(out additionalLightData);
                 cb._SunDirection = -currentSun.transform.forward;
                 cb._SunRight = currentSun.transform.right;
@@ -391,10 +391,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If the sun has moved more than 2.0°, reduce significantly the history accumulation
             float sunAngleDifference = 0.0f;
-            if (m_CurrentSunLightAdditionalLightData != null)
-                sunAngleDifference = Quaternion.Angle(m_CurrentSunLightAdditionalLightData.previousTransform.rotation, m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix.rotation);
-            float sunAttenuation = sunAngleDifference > 2.0f ? 0.5f : 1.0f;
-            cb._TemporalAccumulationFactor = settings.temporalAccumulationFactor.value * sunAttenuation;
+            if (additionalLightData != null)
+                sunAngleDifference = Quaternion.Angle(additionalLightData.previousTransform.rotation, additionalLightData.transform.localToWorldMatrix.rotation);
+            cb._CloudHistoryInvalidation = Mathf.Lerp(1.0f, 0.0f, Mathf.Clamp((sunAngleDifference) / 10.0f, 0.0f, 1.0f));
+            cb._TemporalAccumulationFactor = settings.temporalAccumulationFactor.value;
 
             if (settings.fadeInMode.value == VolumetricClouds.CloudFadeInMode.Automatic)
             {

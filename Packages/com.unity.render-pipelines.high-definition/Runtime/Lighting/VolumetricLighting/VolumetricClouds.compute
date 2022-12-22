@@ -214,9 +214,6 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     // Evaluate the cloud transmittance
     VolumetricRayResult result = TraceVolumetricRay(ray);
 
-    // Apply a fast tonemap
-    result.inScattering = ApplyFastTonemapping(result.inScattering);
-
     // output the result
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float4(result.inScattering, result.transmittance);
 
@@ -288,9 +285,7 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 previousResult1 = SAMPLE_TEXTURE2D_X_LOD(_HistoryVolumetricClouds1Texture, s_linear_clamp_sampler, historySampleCoords, 0).xyz;
 
     // Inverse the exposure of the previous frame and apply the current one (need to be done in linear space)
-    previousResult.xyz = UnApplyFastTonemapping(previousResult.xyz);
     previousResult.xyz *= GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier();
-    previousResult.xyz = ApplyFastTonemapping(previousResult.xyz);
 
     // Unpack the second buffer
     float previousSampleCount = previousResult1.x;
@@ -366,7 +361,7 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
         {
             // Define our accumation value
             accumulationFactor = previousSampleCount >= 16.0 ? 0.94117647058 : (previousSampleCount / (previousSampleCount + 1.0));
-            accumulationFactor *= _TemporalAccumulationFactor * validityFactor;
+            accumulationFactor *= _TemporalAccumulationFactor * validityFactor * _CloudHistoryInvalidation;
             sampleCount = min(previousSampleCount + 1.0, 16.0);
         }
 
@@ -386,7 +381,7 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
     else
     {
         // Reduce the history validity a bit
-        previousSampleCount *= validityFactor;
+        previousSampleCount *= validityFactor * _CloudHistoryInvalidation;
 
         // If the target coordinate is out of the screen or the depth that was used to generate it
         // is too different from the one of the current pixel, we cannot use the history
@@ -673,7 +668,6 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 #endif
 
     // De-tonemap the inscattering value
-    currentClouds.xyz = UnApplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
     // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
@@ -763,7 +757,6 @@ void UPSAMPLE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID,
     float4 currentClouds = GetCloudLighting_LDS(groupThreadId, int2(0, 0));
 
     // De-tonemap the inscattering value
-    currentClouds.xyz = UnApplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
     // Store the upscaled result only, composite in later pass.
@@ -794,7 +787,6 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 #endif
 
     // De-tonemap the inscattering value
-    currentClouds.xyz = UnApplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
@@ -849,7 +841,6 @@ void COMBINE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID)
     float4 currentClouds = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, finalCoord.xy);
 
     // De-tonemap the inscattering value
-    currentClouds.xyz = UnApplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
     // Store the upscaled result only, composite in later pass.
