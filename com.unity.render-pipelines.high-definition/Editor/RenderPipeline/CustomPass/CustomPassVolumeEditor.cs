@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (HDRenderPipeline.currentAsset == null || !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportCustomPass)
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP asset does not support Custom Passes.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportCustomPass");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportCustomPass");
 
             DrawSettingsGUI();
             DrawCustomPassReorderableList();

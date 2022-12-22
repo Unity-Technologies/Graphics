@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -45,16 +46,20 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            InitPassData(ref m_PassData);
-            RenderingUtils.SetScaleBiasRt(renderingData.commandBuffer, in renderingData);
-            ExecutePass(context, m_PassData, ref renderingData, renderingData.commandBuffer);
+            InitPassData(ref renderingData, ref m_PassData);
+            RenderingUtils.SetScaleBiasRt(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), in renderingData);
+            SortingCriteria sortingCriteria = SortingCriteria.CommonTransparent;
+            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+            var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+            var rendererList = context.CreateRendererList(ref param);
+            using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
+            {
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, ref renderingData);
+            }
         }
 
         private class PassData
         {
-            internal FilteringSettings filteringSettings;
-            internal ProfilingSampler profilingSampler;
-            internal List<ShaderTagId> shaderTagIdList;
             internal DecalDrawScreenSpaceSystem drawSystem;
             internal DecalScreenSpaceSettings settings;
             internal bool decalLayers;
@@ -62,44 +67,30 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle colorTarget;
 
             internal RenderingData renderingData;
+            internal RendererListHandle rendererList;
         }
 
-        void InitPassData(ref PassData passData)
+        private void InitPassData(ref RenderingData renderingData, ref PassData passData)
         {
-            passData.filteringSettings = m_FilteringSettings;
-            passData.profilingSampler = m_ProfilingSampler;
-            passData.shaderTagIdList = m_ShaderTagIdList;
             passData.drawSystem = m_DrawSystem;
             passData.settings = m_Settings;
             passData.decalLayers = m_DecalLayers;
             passData.isGLDevice = IsGLDevice();
         }
 
-        private static void ExecutePass(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData, CommandBuffer cmd)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
         {
-            SortingCriteria sortingCriteria = SortingCriteria.CommonTransparent;
-            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(passData.shaderTagIdList, ref renderingData, sortingCriteria);
+            NormalReconstruction.SetupProperties(cmd, renderingData.cameraData);
 
-            using (new ProfilingScope(cmd, passData.profilingSampler))
-            {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, passData.settings.normalBlend == DecalNormalBlend.Low);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, passData.settings.normalBlend == DecalNormalBlend.Medium);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, passData.settings.normalBlend == DecalNormalBlend.High);
 
-                NormalReconstruction.SetupProperties(cmd, renderingData.cameraData);
+            if (!passData.isGLDevice)
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, passData.decalLayers);
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, passData.settings.normalBlend == DecalNormalBlend.Low);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, passData.settings.normalBlend == DecalNormalBlend.Medium);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, passData.settings.normalBlend == DecalNormalBlend.High);
-
-                if (!passData.isGLDevice)
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, passData.decalLayers);
-
-                passData.drawSystem?.Execute(cmd);
-
-                var param = new RendererListParams(renderingData.cullResults, drawingSettings, passData.filteringSettings);
-                var rl = context.CreateRendererList(ref param);
-                cmd.DrawRendererList(rl);
-            }
+            passData.drawSystem?.Execute(cmd);
+            cmd.DrawRendererList(rendererList);
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
@@ -110,24 +101,32 @@ namespace UnityEngine.Rendering.Universal
 
             RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
 
-            using (var builder = renderGraph.AddRenderPass<PassData>("Decal Screen Space Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal Screen Space Pass", out var passData, m_ProfilingSampler))
             {
                 TextureHandle cameraColor = frameResources.GetTexture(UniversalResource.CameraColor);
 
-                InitPassData(ref passData);
+                InitPassData(ref renderingData, ref passData);
                 passData.colorTarget = cameraColor;
                 passData.renderingData = renderingData;
 
-                builder.UseColorBuffer(renderer.activeColorTexture, 0);
-                builder.UseDepthBuffer(renderer.activeDepthTexture, DepthAccess.Read);
+                builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+
+                SortingCriteria sortingCriteria = SortingCriteria.CommonTransparent;
+                DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+                var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+                passData.rendererList = renderGraph.CreateRendererList(param);
+                builder.UseRendererList(passData.rendererList);
 
                 if (cameraDepthTexture.IsValid())
-                    builder.ReadTexture(cameraDepthTexture);
+                    builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
                     RenderingUtils.SetScaleBiasRt(rgContext.cmd, in data.renderingData, data.colorTarget);
-                    ExecutePass(rgContext.renderContext, data, ref data.renderingData, rgContext.cmd);
+                    ExecutePass(rgContext.cmd, data, data.rendererList, ref data.renderingData);
                 });
             }
         }

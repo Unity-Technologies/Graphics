@@ -1,22 +1,31 @@
-# Screen Space Refraction
+# Screen Space Refraction override
 
-The **Screen Space Refraction** (SSR) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate  refraction. For information about how screen space refraction works in HDRP, see the [Screen space refraction documentation](Refraction-in-HDRP.md#ScreenSpaceRefraction).
+Screen space refraction uses the color buffer or Reflection Probes to produce a refraction effect.
 
-## Using Screen Space Refraction
+HDRP uses screen space refraction by default if you set a Material's [Surface Type](Surface-Type.md) to **Transparent**. For information about how screen space refraction works in HDRP, or to turn refraction off, see [Refraction in HDRP](Refraction-in-HDRP.md).
 
-HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and modify SSR properties, you must add a **Screen Space Refraction** override to a [Volume](Volumes.md) in your Scene. To add **Screen Space Refraction** to a Volume:
+The **Screen Space Refraction** override controls **Screen Weight Distance**, which sets how quickly screen space refractions fades from sampling colors from the color buffer to sampling colors from the next level of the [reflection and refraction hierarchy](reflection-refraction-hierarchy.md).
 
-1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, go to **Add Override** > **Lighting** and select **Screen Space Refraction**.
+Increase **Screen Weight Distance** to reduce visible seams on an object between refracted colors from the screen, and refracted colors from probes or the Skybox.
 
-[!include[](snippets/volume-override-api.md)]
+## Using Screen Weight Distance
+
+To use this setting, you must enable it on a [Volume](Volumes.md), as follows:
+
+1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component.
+2. In the Inspector for this object, select **Add Override** > **Lighting** > **Screen Space Refraction**.
+
+![](Images/screen-weight-distance.png)<br/>
+In the refractive cube on the left of the screen, **Screen Weight Distance** affects the edges of the screen where HDRP fades from using the color buffer to using Reflection Probes.
 
 ## Properties
 
-![](Images/Override-ScreenSpaceRefraction1.png)
-
-[!include[](snippets/Volume-Override-Enable-Properties.md)]
-
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Screen Weight Distance** | Use the slider to control the distance at which HDRP fades out the refraction effect when the destination of the ray is near the boundaries of the screen. Increase this value to increase the distance from the screen edge at which HDRP fades out the refraction effect for a ray destination. |
+| **Screen Weight Distance** |   Adjust this value to set how quickly HDRP fades from sampling colors from the color buffer to sampling colors from the next level of the [reflection and refraction hierarchy](reflection-refraction-hierarchy.md). Use **Screen Weight Distance** to reduce visible seams between refracted colors from the screen, and refracted colors from probes or the Skybox. |
+
+You can also use the [Volume Scripting API](Volumes-API.md) to change **Screen Weight Distance**.
+
+## Additional resources
+
+- [Refraction in HDRP](Refraction-in-HDRP.md)

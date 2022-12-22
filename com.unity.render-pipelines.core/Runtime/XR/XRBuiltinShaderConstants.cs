@@ -106,6 +106,16 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
+        /// Bind the shader constants used by the C++ builtin renderer via a raster command buffer. `UpdateBuiltinShaderConstants` should be called before to update the constants.
+        /// This is required to maintain compatibility with legacy code and shaders.
+        /// </summary>
+        /// <param name="cmd"></param>
+        public static void SetBuiltinShaderConstants(RasterCommandBuffer cmd)
+        {
+            SetBuiltinShaderConstants(cmd.m_WrappedCommandBuffer);
+        }
+
+        /// <summary>
         /// Update and bind shader constants used by the C++ builtin renderer given the XRPass. For better control of setting up builtin shader constants, see `UpdateBuiltinShaderConstants`
         /// and `SetBuiltinShaderConstants` which do the same logic but could take in custom projection and view matricies instead.
         /// This is required to maintain compatibility with legacy code and shaders.

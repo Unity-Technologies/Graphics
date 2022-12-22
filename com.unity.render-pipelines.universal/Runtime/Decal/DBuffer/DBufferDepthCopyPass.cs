@@ -23,17 +23,16 @@ namespace UnityEngine.Rendering.Universal
             depthDesc.graphicsFormat = GraphicsFormat.None; //Depth only rendering
             depthDesc.depthStencilFormat = renderingData.cameraData.cameraTargetDescriptor.depthStencilFormat;
             depthDesc.msaaSamples = 1;
-            var depthTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
+            var depthTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
             TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
 
             if (renderer.renderingModeActual == RenderingMode.Deferred)
-                depthTexture = cameraDepthTexture;
+                depthTarget = cameraDepthTexture;
 
-            frameResources.SetTexture(UniversalResource.DBufferDepth, depthTexture);
+            TextureHandle depthTexture = (renderer.renderingModeActual == RenderingMode.Deferred) ? renderer.activeDepthTexture : cameraDepthTexture;
+            frameResources.SetTexture(UniversalResource.DBufferDepth, depthTarget);
 
-            TextureHandle depthTarget = (renderer.renderingModeActual == RenderingMode.Deferred) ? renderer.activeDepthTexture : cameraDepthTexture;
-
-            Render(renderGraph, ref depthTexture, in depthTarget, ref renderingData);
+            Render(renderGraph, depthTarget, depthTexture, ref renderingData);
         }
     }
 }

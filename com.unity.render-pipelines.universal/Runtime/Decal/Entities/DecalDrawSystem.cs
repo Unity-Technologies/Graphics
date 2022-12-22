@@ -1,4 +1,5 @@
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -29,6 +30,11 @@ namespace UnityEngine.Rendering.Universal
 
         public void Execute(CommandBuffer cmd)
         {
+            Execute(CommandBufferHelpers.GetRasterCommandBuffer(cmd));
+        }
+
+        internal void Execute(RasterCommandBuffer cmd)
+        {
             using (new ProfilingScope(cmd, m_Sampler))
             {
                 for (int i = 0; i < m_EntityManager.chunkCount; ++i)
@@ -47,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected abstract int GetPassIndex(DecalCachedChunk decalCachedChunk);
 
-        private void Execute(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int count)
+        private void Execute(RasterCommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int count)
         {
             decalCachedChunk.currentJobHandle.Complete();
             decalDrawCallChunk.currentJobHandle.Complete();
@@ -68,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void Draw(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
+        private void Draw(RasterCommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
         {
             var mesh = m_EntityManager.decalProjectorMesh;
             var material = GetMaterial(decalEntityChunk);
@@ -88,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void DrawInstanced(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
+        private void DrawInstanced(RasterCommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
         {
             var mesh = m_EntityManager.decalProjectorMesh;
             var material = GetMaterial(decalEntityChunk);
@@ -116,7 +122,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Execute(in CameraData cameraData)
         {
-            using (new ProfilingScope(null, m_Sampler))
+            using (new ProfilingScope(m_Sampler))
             {
                 for (int i = 0; i < m_EntityManager.chunkCount; ++i)
                 {
@@ -164,6 +170,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
                     decalCachedChunk.propertyBlock.SetFloat("_DecalLayerMaskFromDecal", decalDrawCallChunk.renderingLayerMasks[j]);
+                    // RENDERGRAPH TODO: schedule drawmesh through commandBuffer?
                     Graphics.DrawMesh(mesh, decalCachedChunk.decalToWorlds[j], material, decalCachedChunk.layerMasks[j], cameraData.camera, 0, decalCachedChunk.propertyBlock);
                 }
             }
@@ -191,6 +198,7 @@ namespace UnityEngine.Rendering.Universal
 
                 decalCachedChunk.propertyBlock.SetMatrixArray("_NormalToWorld", m_NormalToDecals);
                 decalCachedChunk.propertyBlock.SetFloatArray("_DecalLayerMaskFromDecal", m_DecalLayerMasks);
+                // RENDERGRAPH TODO: schedule drawmesh through commandBuffer?
                 Graphics.DrawMeshInstanced(mesh, 0, material,
                     m_WorldToDecals, subCall.count, decalCachedChunk.propertyBlock, ShadowCastingMode.On, true, 0, cameraData.camera);
             }

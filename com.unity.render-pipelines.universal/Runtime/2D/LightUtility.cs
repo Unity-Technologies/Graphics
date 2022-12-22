@@ -8,6 +8,22 @@ using UnityEngine.U2D;
 
 namespace UnityEngine.Rendering.Universal
 {
+    // Per Light parameters to batch.
+    struct PerLight2D
+    {
+        internal float4x4 InvMatrix;
+        internal float4 Color;
+        internal float4 Position;
+        internal float FalloffIntensity;
+        internal float FalloffDistance;
+        internal float OuterAngle;
+        internal float InnerAngle;
+        internal float InnerRadiusMult;
+        internal float VolumeOpacity;
+        internal float ShadowIntensity;
+        internal int LightType;
+    };
+
     internal static class LightUtility
     {
         public static bool CheckForChange(Light2D.LightType a, ref Light2D.LightType b)
@@ -253,7 +269,7 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ushort>.Copy(indices, light.indices, indexCount);
         }
 
-        public static Bounds GenerateShapeMesh(Light2D light, Vector3[] shapePath, float falloffDistance)
+        public static Bounds GenerateShapeMesh(Light2D light, Vector3[] shapePath, float falloffDistance, float batchColor)
         {
             var ix = 0;
             var vcount = 0;
@@ -262,8 +278,8 @@ namespace UnityEngine.Rendering.Universal
             var mesh = light.lightMesh;
 
             // todo Revisit this while we do Batching.
-            var meshInteriorColor = new Color(0.0f, 0, 0, 1.0f);
-            var meshExteriorColor = new Color(0.0f, 0, 0, 0.0f);
+            var meshInteriorColor = new Color(0, 0, batchColor, 1.0f);
+            var meshExteriorColor = new Color(0, 0, batchColor, 0.0f);
             var vertices = new NativeArray<LightMeshVertex>(shapePath.Length * 256, Allocator.Temp);
             var indices = new NativeArray<ushort>(shapePath.Length * 256, Allocator.Temp);
 
@@ -376,7 +392,7 @@ namespace UnityEngine.Rendering.Universal
             return mesh.GetSubMesh(0).bounds;
         }
 
-        public static Bounds GenerateParametricMesh(Light2D light, float radius, float falloffDistance, float angle, int sides)
+        public static Bounds GenerateParametricMesh(Light2D light, float radius, float falloffDistance, float angle, int sides, float batchColor)
         {
             var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
             if (sides < 3)
@@ -398,7 +414,7 @@ namespace UnityEngine.Rendering.Universal
             var mesh = light.lightMesh;
 
             // Only Alpha value in Color channel is ever used. May remove it or keep it for batching params in the future.
-            var color = new Color(0, 0, 0, 1);
+            var color = new Color(0, 0, batchColor, 1.0f);
             vertices[centerIndex] = new LightMeshVertex
             {
                 position = float3.zero,
@@ -419,7 +435,7 @@ namespace UnityEngine.Rendering.Universal
                 vertices[vertexIndex] = new LightMeshVertex
                 {
                     position = endPoint,
-                    color = new Color(extrudeDir.x, extrudeDir.y, 0, 0)
+                    color = new Color(extrudeDir.x, extrudeDir.y, batchColor, 0)
                 };
                 vertices[vertexIndex + 1] = new LightMeshVertex
                 {
@@ -463,7 +479,7 @@ namespace UnityEngine.Rendering.Universal
             };
         }
 
-        public static Bounds GenerateSpriteMesh(Light2D light, Sprite sprite)
+        public static Bounds GenerateSpriteMesh(Light2D light, Sprite sprite, float batchColor)
         {
             var mesh = light.lightMesh;
 
@@ -483,7 +499,7 @@ namespace UnityEngine.Rendering.Universal
 
             var center = 0.5f * (sprite.bounds.min + sprite.bounds.max);
             var vertices = new NativeArray<LightMeshVertex>(srcIndices.Length, Allocator.Temp);
-            var color = new Color(0, 0, 0, 1);
+            var color = new Color(0, 0, batchColor, 1);
 
             for (var i = 0; i < srcVertices.Length; i++)
             {

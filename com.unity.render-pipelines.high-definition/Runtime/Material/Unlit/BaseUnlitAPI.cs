@@ -34,13 +34,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Alpha tested materials always have a prepass where we perform the clip.
             // Then during Gbuffer pass we don't perform the clip test, so we need to use depth equal in this case.
-            if (alphaTestEnable)
+            if (material.HasProperty(kZTestGBuffer))
             {
-                material.SetInt(kZTestGBuffer, (int)UnityEngine.Rendering.CompareFunction.Equal);
-            }
-            else
-            {
-                material.SetInt(kZTestGBuffer, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+                if (alphaTestEnable)
+                {
+                    material.SetInt(kZTestGBuffer, (int)UnityEngine.Rendering.CompareFunction.Equal);
+                }
+                else
+                {
+                    material.SetInt(kZTestGBuffer, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+                }
             }
 
             // If the material use the kZTestDepthEqualForOpaque it mean it require depth equal test for opaque but transparent are not affected

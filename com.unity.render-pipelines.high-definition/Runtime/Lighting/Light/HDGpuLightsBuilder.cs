@@ -115,18 +115,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_LightTypeCounters.IsCreated)
                 m_LightTypeCounters.Dispose();
 
-            if (m_VisibleLightsAndIndicesBuffer.IsCreated)
-            {
-                m_VisibleLightsAndIndicesBuffer.Dispose();
-                m_VisibleLightsAndIndicesBuffer = default;
-            }
-
-            if (m_SplitVisibleLightsAndIndicesBuffer.IsCreated)
-            {
-                m_SplitVisibleLightsAndIndicesBuffer.Dispose();
-                m_SplitVisibleLightsAndIndicesBuffer = default;
-            }
-
             if (m_CachedPointUpdateInfos.IsCreated)
             {
                 m_CachedPointUpdateInfos.Dispose();
@@ -142,12 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CachedDirectionalAnglesArray.IsCreated)
             {
                 m_CachedDirectionalAnglesArray.Dispose();
-            }
-
-            if (m_CachedCubeMapFaces.IsCreated)
-            {
-                m_CachedCubeMapFaces.Dispose();
-                m_CachedCubeMapFaces = default;
             }
 
             if (m_IsValidIndexScratchpadArray.IsCreated)
@@ -219,15 +201,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private int m_BoundsEyeDataOffset = 0;
 
-        private NativeList<ShadowIndicesAndVisibleLightData> m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
-        private NativeList<ShadowIndicesAndVisibleLightData> m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
         private NativeBitArray m_IsValidIndexScratchpadArray = new NativeBitArray(256, Allocator.Persistent);
         private NativeArray<int> m_ShadowIndicesScratchpadArray;
 #if UNITY_EDITOR
         NativeArray<int> m_ShadowRequestCountsScratchpad;
 #endif
-
-        private NativeArray<Matrix4x4> m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
 
         private NativeList<ShadowRequestIntermediateUpdateData> m_CachedPointUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
         private NativeList<ShadowRequestIntermediateUpdateData> m_CachedSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
@@ -260,11 +238,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void EnsureScratchpadCapacity(int lightCount)
         {
-            if (!m_CachedCubeMapFaces.IsCreated)
-            {
-                m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
-            }
-
 #if UNITY_EDITOR
             if (m_ShadowRequestCountsScratchpad.IsCreated && m_ShadowRequestCountsScratchpad.Length < lightCount)
             {
@@ -309,13 +282,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_IsValidIndexScratchpadArray.IsCreated)
             {
                 m_IsValidIndexScratchpadArray = new NativeBitArray(lightCount, Allocator.Persistent);
-            }
-
-            if (!m_VisibleLightsAndIndicesBuffer.IsCreated)
-            {
-                m_VisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
-                m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
-                m_CachedCubeMapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.Persistent);
             }
 
             if (!m_CachedPointUpdateInfos.IsCreated)

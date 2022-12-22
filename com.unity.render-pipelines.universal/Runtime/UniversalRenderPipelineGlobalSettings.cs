@@ -15,8 +15,11 @@ namespace UnityEngine.Rendering.Universal
     {
         #region Version system
 
+        private const int k_LastVersion = 3;
+
 #pragma warning disable CS0414
-        [SerializeField] int k_AssetVersion = 3;
+        [SerializeField][FormerlySerializedAs("k_AssetVersion")]
+        int m_AssetVersion = k_LastVersion;
 #pragma warning restore CS0414
 
         public void OnBeforeSerialize()
@@ -26,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
-            if (k_AssetVersion != 3)
+            if (m_AssetVersion != k_LastVersion)
             {
                 EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
@@ -36,14 +39,17 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         static void UpgradeAsset(int assetInstanceID)
         {
-            UniversalRenderPipelineGlobalSettings asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineGlobalSettings;
+            if (EditorUtility.InstanceIDToObject(assetInstanceID) is not UniversalRenderPipelineGlobalSettings asset)
+                    return;
 
-            if (asset.k_AssetVersion < 2)
+            int assetVersionBeforeUpgrade = asset.m_AssetVersion;
+
+            if (asset.m_AssetVersion < 2)
             {
 #pragma warning disable 618 // Obsolete warning
                 // Renamed supportRuntimeDebugDisplay => stripDebugVariants, which results in inverted logic
                 asset.m_StripDebugVariants = !asset.supportRuntimeDebugDisplay;
-                asset.k_AssetVersion = 2;
+                asset.m_AssetVersion = 2;
 #pragma warning restore 618 // Obsolete warning
 
                 // For old test projects lets keep post processing stripping enabled, as huge chance they did not used runtime profile creating
@@ -52,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             }
 
-            if (asset.k_AssetVersion < 3)
+            if (asset.m_AssetVersion < 3)
             {
                 int index = 0;
                 asset.m_RenderingLayerNames = new string[8];
@@ -66,11 +72,13 @@ namespace UnityEngine.Rendering.Universal
                 asset.m_RenderingLayerNames[index++] = asset.lightLayerName6;
                 asset.m_RenderingLayerNames[index++] = asset.lightLayerName7;
 #pragma warning restore 618 // Obsolete warning
-                asset.k_AssetVersion = 3;
+                asset.m_AssetVersion = 3;
                 asset.UpdateRenderingLayerNames();
             }
 
-            EditorUtility.SetDirty(asset);
+            // If the asset version has changed, means that a migration step has been executed
+            if (assetVersionBeforeUpgrade != asset.m_AssetVersion)
+                EditorUtility.SetDirty(asset);
         }
 
 #endif
@@ -112,40 +120,44 @@ namespace UnityEngine.Rendering.Universal
         //Making sure there is at least one UniversalRenderPipelineGlobalSettings instance in the project
         internal static UniversalRenderPipelineGlobalSettings Ensure(string folderPath = "", bool canCreateNewAsset = true)
         {
-            if (UniversalRenderPipelineGlobalSettings.instance)
-                return UniversalRenderPipelineGlobalSettings.instance;
-
-            UniversalRenderPipelineGlobalSettings assetCreated = null;
-            string path = $"Assets/{folderPath}/{defaultAssetName}.asset";
-            assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
-            if (assetCreated == null)
+            if (instance == null)
             {
-                var guidGlobalSettingsAssets = AssetDatabase.FindAssets("t:UniversalRenderPipelineGlobalSettings");
-                //If we could not find the asset at the default path, find the first one
-                if (guidGlobalSettingsAssets.Length > 0)
+                UniversalRenderPipelineGlobalSettings assetCreated = null;
+                string path = $"Assets/{folderPath}/{defaultAssetName}.asset";
+                assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
+                if (assetCreated == null)
                 {
-                    var curGUID = guidGlobalSettingsAssets[0];
-                    path = AssetDatabase.GUIDToAssetPath(curGUID);
-                    assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
-                }
-                else if (canCreateNewAsset)// or create one altogether
-                {
-                    if (!AssetDatabase.IsValidFolder("Assets/" + folderPath))
-                        AssetDatabase.CreateFolder("Assets", folderPath);
-                    assetCreated = Create(path);
+                    var guidGlobalSettingsAssets = AssetDatabase.FindAssets("t:UniversalRenderPipelineGlobalSettings");
+                    //If we could not find the asset at the default path, find the first one
+                    if (guidGlobalSettingsAssets.Length > 0)
+                    {
+                        var curGUID = guidGlobalSettingsAssets[0];
+                        path = AssetDatabase.GUIDToAssetPath(curGUID);
+                        assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
+                    }
+                    else if (canCreateNewAsset)// or create one altogether
+                    {
+                        if (!AssetDatabase.IsValidFolder("Assets/" + folderPath))
+                            AssetDatabase.CreateFolder("Assets", folderPath);
+                        assetCreated = Create(path);
 
-                    // TODO: Reenable after next urp template is published
-                    //Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
+                        // TODO: Reenable after next urp template is published
+                        //Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
+                    }
+                    else
+                    {
+                        Debug.LogError("If you are building a Player, make sure to save an URP Global Settings asset by opening the project in the Editor first.");
+                        return null;
+                    }
                 }
-                else
-                {
-                    Debug.LogError("If you are building a Player, make sure to save an URP Global Settings asset by opening the project in the Editor first.");
-                    return null;
-                }
+                Debug.Assert(assetCreated, "Could not create URP's Global Settings - URP may not work correctly - Open  Project Settings > Graphics > URP Settings for additional help.");
+                UpdateGraphicsSettings(assetCreated);
             }
-            Debug.Assert(assetCreated, "Could not create URP's Global Settings - URP may not work correctly - Open  Project Settings > Graphics > URP Settings for additional help.");
-            UpdateGraphicsSettings(assetCreated);
-            return UniversalRenderPipelineGlobalSettings.instance;
+
+            if (instance != null && instance.m_AssetVersion != k_LastVersion)
+                UpgradeAsset(instance.GetInstanceID());
+
+            return instance;
         }
 
         internal static UniversalRenderPipelineGlobalSettings Create(string path, UniversalRenderPipelineGlobalSettings src = null)
@@ -240,7 +252,7 @@ namespace UnityEngine.Rendering.Universal
         /// Names used for display of light layers with Layer's index as prefix.
         /// For example: "0: Light Layer Default"
         /// </summary>
-        [Obsolete("This is obsolete, please use prefixedRenderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use prefixedRenderingLayerMaskNames instead.", true)]
         public string[] prefixedLightLayerNames => new string[0];
 
 

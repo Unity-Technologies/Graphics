@@ -17,7 +17,6 @@ Shader "Hidden/Universal Render Pipeline/LensFlareScreenSpace"
             #pragma target 3.0
             #pragma vertex vert
             #pragma fragment FragmentPrefilter
-            #pragma exclude_renderers gles
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -48,7 +47,6 @@ Shader "Hidden/Universal Render Pipeline/LensFlareScreenSpace"
             #pragma target 3.0
             #pragma vertex vert
             #pragma fragment FragmentDownsample
-            #pragma exclude_renderers gles
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -79,7 +77,6 @@ Shader "Hidden/Universal Render Pipeline/LensFlareScreenSpace"
             #pragma target 3.0
             #pragma vertex vert
             #pragma fragment FragmentUpsample
-            #pragma exclude_renderers gles
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -111,7 +108,6 @@ Shader "Hidden/Universal Render Pipeline/LensFlareScreenSpace"
             #pragma target 3.0
             #pragma vertex vert
             #pragma fragment FragmentComposition
-            #pragma exclude_renderers gles
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 

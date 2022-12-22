@@ -10,12 +10,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateRefractionData_Water (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateRefractionData_Water")]
     class EvaluateRefractionData_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNDCPosition, IMayRequireViewDirection
     {
         public EvaluateRefractionData_Water()
         {
-            name = "Evaluate Refraction Data Water (Preview)";
+            name = "Evaluate Refraction Data Water";
             UpdateNodeAfterDeserialization();
         }
 
@@ -77,13 +77,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 string lfNormalWS = GetSlotValue(kLowFrequencyNormalWSInputSlotId, generationMode);
                 string screenPos = ScreenSpaceType.Default.ToValueAsVariable();
                 string viewWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection)}";
+                string faceSign = $"IN.{StructFields.SurfaceDescriptionInputs.FaceSign.name}";
 
-                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}, {2}, {3}.xy, {4}, true, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, refractedPos, distordedNDC, refractedDistance, absorptionTint);",
+                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}, {2}, {3}.xy, {4}, {5}, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, refractedPos, distordedNDC, refractedDistance, absorptionTint);",
                     positionAWS,
                     normalWS,
                     lfNormalWS,
                     screenPos,
-                    viewWS
+                    viewWS,
+                    faceSign
                 );
 
                 // Output the refraction params

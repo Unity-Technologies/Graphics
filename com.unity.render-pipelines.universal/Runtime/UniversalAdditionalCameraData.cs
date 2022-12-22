@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
     /// Options to control the renderer override.
     /// This enum is no longer in use.
     /// </summary>
-    //[Obsolete("Renderer override is no longer used, renderers are referenced by index on the pipeline asset.")]
+    [Obsolete("Renderer override is no longer used, renderers are referenced by index on the pipeline asset.")]
     public enum RendererOverrideOption
     {
         /// <summary>

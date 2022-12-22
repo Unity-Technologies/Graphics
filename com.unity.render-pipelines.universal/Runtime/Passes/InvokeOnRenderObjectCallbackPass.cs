@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            context.InvokeOnRenderObjectCallback();
+            renderingData.commandBuffer.InvokeOnRenderObjectCallbacks();
         }
 
         private class PassData
@@ -31,15 +31,15 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("OnRenderObject Callback Pass", out var passData,
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("OnRenderObject Callback Pass", out var passData,
                 base.profilingSampler))
             {
-                passData.colorTarget = builder.UseColorBuffer(colorTarget, 0);
-                passData.depthTarget = builder.UseDepthBuffer(depthTarget, DepthAccess.ReadWrite);
+                passData.colorTarget = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.depthTarget = builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.AllowPassCulling(false);
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    context.renderContext.InvokeOnRenderObjectCallback();
+                    context.cmd.InvokeOnRenderObjectCallbacks();
                 });
             }
         }

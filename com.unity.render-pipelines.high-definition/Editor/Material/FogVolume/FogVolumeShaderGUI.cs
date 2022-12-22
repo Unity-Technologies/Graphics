@@ -14,9 +14,9 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     internal class FogVolumeShaderGUI : HDShaderGUI
     {
-        MaterialUIBlockList m_UIBlocks = new MaterialUIBlockList
+        MaterialUIBlockList m_UIBlocks = new()
         {
-            // new FogVolumeUIBlock(MaterialUIBlock.ExpandableBit.Base),
+            new FogVolumeUIBlock(MaterialUIBlock.ExpandableBit.Base),
             new ShaderGraphUIBlock(MaterialUIBlock.ExpandableBit.ShaderGraph, ShaderGraphUIBlock.Features.Unlit),
         };
 

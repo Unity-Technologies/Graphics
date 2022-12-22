@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
         const int AlwaysDrawDynamicShadowsFlagsIndex = 1;
         const int UpdateUponLightMovementFlagsIndex = 2;
 
+        public HDLightType lightType;
         public float shadowNearPlane;
         public float normalBias;
         public float shapeHeight;
@@ -154,6 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Set(HDAdditionalLightData additionalLightData)
         {
+            lightType = additionalLightData.type;
             shadowNearPlane = additionalLightData.shadowNearPlane;
             normalBias = additionalLightData.normalBias;
             shapeHeight = additionalLightData.shapeHeight;
@@ -537,7 +539,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GetDataIndicesFromHDLightRenderEntitiesArrayJob getDataIndicesJob = new GetDataIndicesFromHDLightRenderEntitiesArrayJob()
             {
                 lightEntityLookups = inLightEntities,
-                lightEntityStorage = m_LightEntities,
+                lightEntityStorage = m_LightEntities.AsArray(),
                 dataIndices = outDataIndices
             };
 
@@ -549,7 +551,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GetDataIndicesFromHDLightRenderEntitiesHashmapJob getDataIndicesJob = new GetDataIndicesFromHDLightRenderEntitiesHashmapJob()
             {
                 lightEntityLookups = inLightEntities,
-                lightEntityStorage = m_LightEntities,
+                lightEntityStorage = m_LightEntities.AsArray(),
                 dataIndices = outDataIndices
             };
 

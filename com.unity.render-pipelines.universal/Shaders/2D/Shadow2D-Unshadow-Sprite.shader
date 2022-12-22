@@ -82,7 +82,7 @@ Shader "Hidden/Shadow2DUnshadowSprite"
                 Pass      Replace
             }
 
-            Blend   One One
+            Blend   One Zero
             BlendOp Add
             Cull Off
             ZWrite Off

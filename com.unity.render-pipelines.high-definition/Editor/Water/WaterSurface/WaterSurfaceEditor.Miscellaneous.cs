@@ -139,14 +139,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!decalLayersEnabled)
                 {
                     HDEditorUtils.QualitySettingsHelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control which decals affect water surfaces. There is a performance cost of enabling this option.",
-                        MessageType.Info, HDRenderPipelineUI.Expandable.Decal, "m_RenderPipelineSettings.supportDecalLayers");
+                        MessageType.Info,
+                        HDRenderPipelineUI.ExpandableGroup.Rendering,
+                        HDRenderPipelineUI.ExpandableRendering.Decal, "m_RenderPipelineSettings.supportDecalLayers");
                     EditorGUILayout.Space();
                 }
 
                 if (!lightLayersEnabled)
                 {
                     HDEditorUtils.QualitySettingsHelpBox("Enable 'Light Layers' in your HDRP Asset if you want defined which lights affect water surfaces. There is a performance cost of enabling this option.",
-                        MessageType.Info, HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportLightLayers");
+                        MessageType.Info, HDRenderPipelineUI.ExpandableGroup.Lighting, "m_RenderPipelineSettings.supportLightLayers");
                     EditorGUILayout.Space();
                 }
             }

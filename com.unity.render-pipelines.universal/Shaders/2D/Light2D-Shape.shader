@@ -21,7 +21,6 @@ Shader "Hidden/Light2D-Shape"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile_local SPRITE_LIGHT __
             #pragma multi_compile_local USE_NORMAL_MAP __
             #pragma multi_compile_local USE_ADDITIVE_BLENDING __
             #pragma multi_compile_local USE_VOLUMETRIC __
@@ -49,52 +48,47 @@ Shader "Hidden/Light2D-Shape"
 
                 SHADOW_COORDS(TEXCOORD1)
                 NORMALS_LIGHTING_COORDS(TEXCOORD2, TEXCOORD3)
+                LIGHT_OFFSET(TEXCOORD4)
             };
 
-            half    _InverseHDREmulationScale;
-            half4   _LightColor;
-            half    _FalloffDistance;
-#if USE_VOLUMETRIC
-            half    _VolumeOpacity;
-#endif
+            UNITY_LIGHT2D_DATA
 
-#ifdef SPRITE_LIGHT
+            half _InverseHDREmulationScale;
+
             TEXTURE2D(_CookieTex);          // This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
-#else
-            half    _FalloffIntensity;
+
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
-#endif
+
             NORMALS_LIGHTING_VARIABLES
             SHADOW_VARIABLES
 
-            Varyings vert(Attributes attributes)
+            Varyings vert(Attributes a)
             {
                 Varyings o = (Varyings)0;
+                o.lightOffset = a.color;
+                PerLight2D light = GetPerLight2D(o.lightOffset);
 
-                float3 positionOS = attributes.positionOS;
+                float3 positionOS = a.positionOS;
 
-                positionOS.x = positionOS.x + _FalloffDistance * attributes.color.r;
-                positionOS.y = positionOS.y + _FalloffDistance * attributes.color.g;
+                positionOS.x = positionOS.x + light.FalloffDistance * a.color.r;
+                positionOS.y = positionOS.y + light.FalloffDistance * a.color.g;
 
                 o.positionCS = TransformObjectToHClip(positionOS);
-                o.color = _LightColor * _InverseHDREmulationScale;
-                o.color.a = attributes.color.a;
+                o.color = light.Color * _InverseHDREmulationScale;
+                o.color.a = a.color.a;
 #if USE_VOLUMETRIC
-                o.color.a = _LightColor.a  * _VolumeOpacity;
+                o.color.a = light.Color.a  * light.VolumeOpacity;
 #endif
 
-#ifdef SPRITE_LIGHT
-                o.uv = attributes.uv;
-#else
-                o.uv = float2(attributes.color.a, _FalloffIntensity);
-#endif
+                // If Sprite use UV.
+                o.uv = (light.LightType == 2) ? a.uv : float2(a.color.a, light.FalloffIntensity);
 
                 float4 worldSpacePos;
                 worldSpacePos.xyz = TransformObjectToWorld(positionOS);
                 worldSpacePos.w = 1;
-                TRANSFER_NORMALS_LIGHTING(o, worldSpacePos)
+                TRANSFER_NORMALS_LIGHTING(o, worldSpacePos, light.Position.xyz, light.Position.w)
                 TRANSFER_SHADOWS(o)
 
                 return o;
@@ -102,33 +96,32 @@ Shader "Hidden/Light2D-Shape"
 
             FragmentOutput frag(Varyings i) : SV_Target
             {
-                half4 color = i.color;
-#if SPRITE_LIGHT
-                half4 cookie = SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
-    #if USE_ADDITIVE_BLENDING
-                color *= cookie * cookie.a;
-    #else
-                color *= cookie;
-    #endif
+                PerLight2D light = GetPerLight2D(i.lightOffset);
+                half4 lightColor = i.color;
+
+                if (light.LightType == 2)
+                {
+                    half4 cookie = SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
+#if USE_ADDITIVE_BLENDING
+                    lightColor *= cookie * cookie.a;
 #else
-    #if USE_ADDITIVE_BLENDING
-                color *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
-    #elif USE_VOLUMETRIC
-                color.a = i.color.a * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
-    #else
-                color.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
-    #endif
+                    lightColor *= cookie;
 #endif
-
-                APPLY_NORMALS_LIGHTING(i, color);
-
-#if USE_VOLUMETRIC
-                APPLY_SHADOWS(i, color, _ShadowVolumeIntensity);
+                }
+                else
+                {
+#if USE_ADDITIVE_BLENDING
+                    lightColor *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+#elif USE_VOLUMETRIC
+                    lightColor.a = i.color.a * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 #else
-                APPLY_SHADOWS(i, color, _ShadowIntensity);
+                    lightColor.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 #endif
+                }
 
-                return ToFragmentOutput(color);
+                APPLY_NORMALS_LIGHTING(i, lightColor, light.Position.xyz, light.Position.w);
+                APPLY_SHADOWS(i, lightColor, light.ShadowIntensity);
+                return ToFragmentOutput(lightColor);
             }
             ENDHLSL
         }

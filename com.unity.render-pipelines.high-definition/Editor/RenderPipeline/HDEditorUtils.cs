@@ -206,11 +206,11 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Should be placed between BeginProperty / EndProperty
         /// </summary>
-        internal static int DrawRenderingLayerMask(Rect rect, int renderingLayer, GUIContent label = null)
+        internal static int DrawRenderingLayerMask(Rect rect, int renderingLayer, GUIContent label = null, bool allowHelpBox = true)
         {
             string[] renderingLayerMaskNames = HDRenderPipelineGlobalSettings.instance.renderingLayerNames;
             int maskCount = (int)Mathf.Log(renderingLayer, 2) + 1;
-            if (renderingLayerMaskNames.Length < maskCount && maskCount <= 16)
+            if (allowHelpBox && renderingLayerMaskNames.Length < maskCount && maskCount <= 16)
                 EditorGUILayout.HelpBox($"One or more of the Rendering Layers is not defined in the HDRP Global Settings asset.", MessageType.Warning);
 
             return EditorGUI.MaskField(rect, label ?? GUIContent.none, renderingLayer, renderingLayerMaskNames);
@@ -261,12 +261,25 @@ namespace UnityEditor.Rendering.HighDefinition
             return (int)((editor.target as Component).gameObject.hideFlags) == 93;
         }
 
-        internal static void QualitySettingsHelpBox(string message, MessageType type, HDRenderPipelineUI.Expandable uiSection, string propertyPath)
+        internal static void QualitySettingsHelpBox(string message, MessageType type, HDRenderPipelineUI.ExpandableGroup uiGroupSection, string propertyPath)
         {
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
                 SettingsService.OpenProjectSettings("Project/Quality/HDRP");
-                HDRenderPipelineUI.Inspector.Expand((int)uiSection);
+                HDRenderPipelineUI.Inspector.Expand((int)uiGroupSection);
+                CoreEditorUtils.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
+                GUIUtility.ExitGUI();
+            });
+        }
+
+        internal static void QualitySettingsHelpBox<TEnum>(string message, MessageType type, HDRenderPipelineUI.ExpandableGroup uiGroupSection, TEnum uiSection, string propertyPath)
+            where TEnum : struct, IConvertible
+        {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
+            {
+                SettingsService.OpenProjectSettings("Project/Quality/HDRP");
+                HDRenderPipelineUI.SubInspectors[uiGroupSection].Expand(uiSection.ToInt32(System.Globalization.CultureInfo.InvariantCulture));
+
                 CoreEditorUtils.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
                 GUIUtility.ExitGUI();
             });

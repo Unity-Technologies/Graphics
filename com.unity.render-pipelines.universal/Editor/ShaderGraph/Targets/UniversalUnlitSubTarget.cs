@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
             }
             // Process SubShaders
-            context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue, target.disableBatching)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor Unlit(UniversalTarget target, string renderType, string renderQueue)
+            public static SubShaderDescriptor Unlit(UniversalTarget target, string renderType, string renderQueue, string disableBatchingTag)
             {
                 var result = new SubShaderDescriptor()
                 {
@@ -164,6 +164,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customTags = UniversalTarget.kUnlitMaterialTypeTag,
                     renderType = renderType,
                     renderQueue = renderQueue,
+                    disableBatchingTag = disableBatchingTag,
                     generatesPreview = true,
                     passes = new PassCollection()
                 };
@@ -216,9 +217,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target),
                     pragmas = CorePragmas.Forward,
-                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { keywords },
-                    includes = UnlitIncludes.Unlit,
+                    defines = new DefineCollection { CoreDefines.UseFragmentFog },
+                    keywords = new KeywordCollection { keywords },
+                    includes = new IncludeCollection { UnlitIncludes.Unlit },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -258,8 +259,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Forward,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { CoreKeywordDescriptors.GBufferNormalsOct },
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    keywords = new KeywordCollection { CoreKeywordDescriptors.GBufferNormalsOct },
+                    includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common

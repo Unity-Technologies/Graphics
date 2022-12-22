@@ -132,7 +132,7 @@ for t, c, sz in (
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 CBUFFER_START(unity_DOTSInstanceData)
-    float4 unity_DOTSInstanceDataRaw[4096];
+    float4 unity_DOTSInstanceDataRaw[1024];
 CBUFFER_END
 #else
 ByteAddressBuffer unity_DOTSInstanceData;
@@ -189,6 +189,8 @@ static real4 unity_DOTS_Sampled_SHBr;
 static real4 unity_DOTS_Sampled_SHBg;
 static real4 unity_DOTS_Sampled_SHBb;
 static real4 unity_DOTS_Sampled_SHC;
+static float3 unity_DOTS_RendererBounds_Min;
+static float3 unity_DOTS_RendererBounds_Max;
 
 uint GetDOTSInstanceIndex()
 {
@@ -537,6 +539,16 @@ float4  LoadDOTSInstancedData_RenderingLayer()
     return float4(asfloat(unity_DOTSVisibleInstances[0].VisibleData.z), 0,0,0);
 }
 
+float3  LoadDOTSInstancedData_MeshLocalBoundCenter()
+{
+    return float3(asfloat(unity_DOTSVisibleInstances[1].VisibleData.z), asfloat(unity_DOTSVisibleInstances[1].VisibleData.w), asfloat(unity_DOTSVisibleInstances[2].VisibleData.z));
+}
+
+float3  LoadDOTSInstancedData_MeshLocalBoundExtent()
+{
+    return float3(asfloat(unity_DOTSVisibleInstances[2].VisibleData.w), asfloat(unity_DOTSVisibleInstances[3].VisibleData.z), asfloat(unity_DOTSVisibleInstances[3].VisibleData.w));
+}
+
 float4 LoadDOTSInstancedData_MotionVectorsParams()
 {
     uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
@@ -564,6 +576,19 @@ float4 LoadDOTSInstancedData_LODFade()
     float crossfade = clamp((float)crossfadeSNorm8, -127, 127);
     crossfade *= 1.0 / 127;
     return crossfade;
+}
+
+
+void    SetupDOTSRendererBounds(float4x4 objectToWorld)
+{
+    float3 vCenter = mul(objectToWorld, float4(LoadDOTSInstancedData_MeshLocalBoundCenter(), 1.0f)).xyz;
+    float3 vInputExt = LoadDOTSInstancedData_MeshLocalBoundExtent();
+    float3 vExtent = abs(objectToWorld[0].xyz * vInputExt.x) +
+                     abs(objectToWorld[1].xyz * vInputExt.y) +
+                     abs(objectToWorld[2].xyz * vInputExt.z);
+
+    unity_DOTS_RendererBounds_Min = vCenter - vExtent;
+    unity_DOTS_RendererBounds_Max = vCenter + vExtent;
 }
 
 void SetupDOTSSHCoeffs(uint shMetadata)
@@ -598,6 +623,8 @@ real4 LoadDOTSInstancedData_SHBr() { return unity_DOTS_Sampled_SHBr; }
 real4 LoadDOTSInstancedData_SHBg() { return unity_DOTS_Sampled_SHBg; }
 real4 LoadDOTSInstancedData_SHBb() { return unity_DOTS_Sampled_SHBb; }
 real4 LoadDOTSInstancedData_SHC()  { return unity_DOTS_Sampled_SHC; }
+float3 LoadDOTSInstancedData_RendererBounds_Min() { return unity_DOTS_RendererBounds_Min; }
+float3 LoadDOTSInstancedData_RendererBounds_Max() { return unity_DOTS_RendererBounds_Max; }
 
 float4 LoadDOTSInstancedData_SelectionValue(uint metadata, uint submeshIndex, float4 globalSelectionID)
 {

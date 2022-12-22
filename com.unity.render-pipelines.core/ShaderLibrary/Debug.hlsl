@@ -482,4 +482,54 @@ void DrawOverdrawLegend(real2 texCoord, real maxOverdrawCount, real4 screenSize,
     }
 }
 
+// Returns the barycentric coordinates of a point p in a triangle defined by the vertices a, b, and c
+float3 GetBarycentricCoord(float2 p, float2 a, float2 b, float2 c)
+{
+    float2 v0 = b - a;
+    float2 v1 = c - a;
+    float2 v2 = p - a;
+    float d00 = dot(v0, v0);
+    float d01 = dot(v0, v1);
+    float d11 = dot(v1, v1);
+    float d20 = dot(v2, v0);
+    float d21 = dot(v2, v1);
+    float denom = d00 * d11 - d01 * d01;
+    float3 bary = 0;
+    bary.y = (d11 * d20 - d01 * d21) / denom;
+    bary.z = (d00 * d21 - d01 * d20) / denom;
+    bary.x = 1.0f - bary.y - bary.z;
+    return bary;
+}
+
+// Returns whether a point p is part of a triangle defined by the vertices a, b, and c
+bool IsPointInTriangle(float2 p, float2 a, float2 b, float2 c)
+{
+    float3 bar = GetBarycentricCoord(p, a, b, c);
+    return (bar.x >= 0 && bar.x <= 1 && bar.y >= 0 && bar.y <= 1 && (bar.x + bar.y) <= 1);
+}
+
+/// Return the color of the segment.
+///
+/// It will draw a line between the given points with the given appearance (thickness and color).
+///
+/// * texcoord: the texture coordinate of the pixel to draw
+/// * p1: coordinates of the line start
+/// * p2: coordinates of the line end
+/// * thickness: how thick the line should be
+/// * color: color of the line
+float4 DrawSegment(float2 texcoord, float2 p1, float2 p2, float thickness, float3 color)
+{
+    float a = abs(distance(p1, texcoord));
+    float b = abs(distance(p2, texcoord));
+    float c = abs(distance(p1, p2));
+
+    if (a >= c || b >= c) return 0;
+
+    float p = (a + b + c) * 0.5;
+    float h = 2 / c * sqrt(p * (p - a) * (p - b) * (p - c));
+
+    float lineAlpha = lerp(1.0, 0.0, smoothstep(0.5 * thickness, 1.5 * thickness, h));
+    return float4(color * lineAlpha, lineAlpha);
+}
+
 #endif // UNITY_DEBUG_INCLUDED

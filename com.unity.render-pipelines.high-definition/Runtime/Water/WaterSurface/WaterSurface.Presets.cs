@@ -1,5 +1,4 @@
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using static UnityEngine.Rendering.HighDefinition.WaterSurface;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -26,10 +25,18 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.largeCurrentMapInfluence = 1.0f;
             waterSurface.largeBand0Multiplier = 1.0f;
             waterSurface.largeBand1Multiplier = 1.0f;
+
             // Fade
-            waterSurface.largeBand0FadeToggle = true;
+            waterSurface.largeBand0FadeMode = FadeMode.Automatic;
+            waterSurface.largeBand1FadeMode = FadeMode.Automatic;
+            waterSurface.ripplesFadeMode = FadeMode.Automatic;
+
             waterSurface.largeBand0FadeStart = 1500.0f;
             waterSurface.largeBand0FadeDistance = 3000.0f;
+            waterSurface.largeBand1FadeStart = 300.0f;
+            waterSurface.largeBand1FadeDistance = 800.0f;
+            waterSurface.ripplesFadeStart = 50.0f;
+            waterSurface.ripplesFadeDistance = 200.0f;
 
             // Ripples
             waterSurface.ripples = true;
@@ -92,9 +99,14 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.largeBand1Multiplier = 1.0f;
 
             // Fade
-            waterSurface.largeBand0FadeToggle = true;
+            waterSurface.largeBand0FadeMode = FadeMode.Automatic;
+            waterSurface.ripplesFadeMode = FadeMode.Automatic;
+
             waterSurface.largeBand0FadeStart = 150.0f;
             waterSurface.largeBand0FadeDistance = 300.0f;
+            waterSurface.ripplesFadeStart = 50.0f;
+            waterSurface.ripplesFadeDistance = 200.0f;
+
             // Ripples
             waterSurface.ripples = true;
             waterSurface.ripplesWindSpeed = 8.0f;
@@ -134,6 +146,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Make the time multiplier a bit slower
             waterSurface.timeMultiplier = 0.8f;
             waterSurface.waterMask = null;
+
+            // Fade
+            waterSurface.ripplesFadeMode = FadeMode.Automatic;
+            waterSurface.ripplesFadeStart = 50.0f;
+            waterSurface.ripplesFadeDistance = 200.0f;
 
             // Ripples
             waterSurface.ripplesWindSpeed = 5.0f;

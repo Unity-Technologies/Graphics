@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UnityEngine.Pool;
 
 namespace UnityEditor.Rendering
@@ -13,6 +14,20 @@ namespace UnityEditor.Rendering
     /// </summary>
     public static class AnalyticsUtils
     {
+        const string k_VendorKey = "unity.srp";
+
+        internal static bool TryRegisterEvent(string eventName, int version = 1, int maxEventPerHour = 100, int maxNumberOfElements = 1000)
+        {
+             if (!EditorAnalytics.enabled) return false;
+             if (EditorAnalytics.RegisterEventWithLimit(eventName, maxEventPerHour, maxNumberOfElements, k_VendorKey, version) != AnalyticsResult.Ok) return false;
+             return true;
+        }
+
+        internal static void SendData<T>(T data, string eventName, int version)
+        {
+             EditorAnalytics.SendEventWithLimit(eventName, data, version);
+        }
+
         internal static IEnumerable<FieldInfo> GetSerializableFields(this Type type, bool removeObsolete = false)
         {
             var members = type.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);

@@ -564,7 +564,7 @@ namespace UnityEngine.Rendering
         {
             var probeVolume = CoreEditorUtils.CreateGameObject(null, "Probe Volume");
             var pv = probeVolume.AddComponent<ProbeVolume>();
-            pv.globalVolume = true;
+            pv.mode = ProbeVolume.Mode.Scene;
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         }
 

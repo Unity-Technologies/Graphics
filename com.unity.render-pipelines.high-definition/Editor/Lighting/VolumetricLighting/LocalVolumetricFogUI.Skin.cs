@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Local Volumetric Fog. This is independent of the Transform's Scale.");
             public static readonly GUIContent s_AlbedoLabel = new GUIContent("Single Scattering Albedo", "The color this fog scatters light to.");
             public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Density at the base of the fog. Determines how far you can see through the fog in meters.");
-            public static readonly GUIContent s_BlendingModeLabel = new GUIContent("Blending Mode", "Blending Mode.");
+            public static readonly GUIContent s_BlendingModeLabel = new GUIContent("Blending Mode", "Determines how the fog volume will blend with other fogs in the scene.");
             public static readonly GUIContent s_PriorityLabel = new GUIContent("Priority", "Priority.");
             public static readonly GUIContent s_VolumeTextureLabel = new GUIContent("Texture", "The fog Texture for the Density Mask.");
             public static readonly GUIContent s_TextureScrollLabel = new GUIContent("Scroll Speed", "Modify the speed for each axis at which HDRP scrolls the fog Texture.");

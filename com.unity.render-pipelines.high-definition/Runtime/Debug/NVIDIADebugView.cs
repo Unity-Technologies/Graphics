@@ -175,8 +175,8 @@ namespace UnityEngine.NVIDIA
                     },
                     new DebugUI.Value()
                     {
-                        displayName = "NGX API Version",
-                        getter = () => m_DebugView == null ? "-" : m_DebugView.ngxVersion.ToString("X2"),
+                        displayName = "DLSS Version",
+                        getter = () => m_DebugView == null ? "-" : String.Format("{0}.{1}.{2}", (m_DebugView.ngxVersion >> 16) & 0xFF, (m_DebugView.ngxVersion >> 8) & 0xFF, m_DebugView.ngxVersion & 0xFF),
                     },
                     new DebugUI.Value()
                     {

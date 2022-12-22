@@ -5,29 +5,44 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [15.0.2] - 2022-11-04
+## [15.0.3] - 2022-12-02
+
+This version is compatible with Unity 2023.1.0a23.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.2] - 2022-11-04
+
+This version is compatible with Unity 2023.1.0a19.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [15.0.1] - 2022-08-04
 
+This version is compatible with Unity 2023.1.0a6.
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-
 ## [15.0.0] - 2022-06-13
+
+This version is compatible with Unity 2023.1.0a1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ## [14.0.3] - 2021-05-09
 
+This version is compatible with Unity 2022.2.0a14.
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ## [14.0.2] - 2021-02-04
+
+This version is compatible with Unity 2022.2.0a8.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

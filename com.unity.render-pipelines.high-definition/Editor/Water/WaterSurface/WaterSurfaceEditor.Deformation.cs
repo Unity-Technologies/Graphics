@@ -35,14 +35,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportWater");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWater");
                 return;
             }
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWaterDeformation ?? false)
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support deformation for Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportWaterDeformation");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWaterDeformation");
                 return;
             }
 

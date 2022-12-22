@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    /// The resolution at which HDRP computes the Screen Space Lens Flare effect.
+    /// The resolution at which URP computes the Screen Space Lens Flare effect.
     /// </summary>
     public enum ScreenSpaceLensFlareResolution : int
     {
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
         /// Controls the intensity of streaks effect. This effect has an impact on performance when above zero. When this intensity is zero, this effect is not evaluated to save costs.
         /// </summary>
         [Header("Streaks")]
-        public MinFloatParameter streaksIntensity = new MinFloatParameter(1f, 0f);
+        public MinFloatParameter streaksIntensity = new MinFloatParameter(0f, 0f);
         /// <summary>
         /// Controls the length of streaks effect. A value of one creates streaks about the width of the screen.
         /// </summary>
@@ -124,6 +124,14 @@ namespace UnityEngine.Rendering.Universal
         public bool IsActive()
         {
             return intensity.value > 0;
+        }
+        /// <summary>
+        /// Returns true is streakIntensity is above zero.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsStreaksActive()
+        {
+            return streaksIntensity.value > 0;
         }
 
 

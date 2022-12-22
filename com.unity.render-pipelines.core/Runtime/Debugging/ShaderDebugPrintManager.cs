@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering
 
         private void BufferReadComplete(Rendering.AsyncGPUReadbackRequest request)
         {
-            using var profScope = new ProfilingScope(null, Profiling.BufferReadComplete);
+            using var profScope = new ProfilingScope(Profiling.BufferReadComplete);
 
             Assert.IsTrue(request.done);
 

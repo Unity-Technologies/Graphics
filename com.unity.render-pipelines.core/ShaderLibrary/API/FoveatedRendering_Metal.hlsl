@@ -37,10 +37,22 @@
         return uv;
     }
 
+    float2 RemapFoveatedRenderingPrevFrameResolve(float2 uv, bool yFlip = false)
+    {
+        // TODO : implement me to support eye tracking that can change the remap each frame
+        return RemapFoveatedRenderingResolve(uv, yFlip);
+    }
+
     float2 RemapFoveatedRenderingDensity(float2 uv, bool yFlip = false)
     {
         // TODO: Implement density look up
         return uv;
+    }
+    
+    float2 RemapFoveatedRenderingPrevFrameDensity(float2 uv, bool yFlip = false)
+    {
+        // TODO : implement me to support eye tracking that can change the remap each frame
+        return RemapFoveatedRenderingDensity(uv, yFlip);
     }
 
     float2 RemapFoveatedRenderingDistort(float2 uv, bool yFlip = false)
@@ -64,6 +76,12 @@
             uv.y = 1.0 - uv.y;
 
         return uv;
+    }
+    
+    float2 RemapFoveatedRenderingPrevFrameDistort(float2 uv, bool yFlip = false)
+    {
+        // TODO : implement me to support eye tracking that can change the remap each frame
+        return RemapFoveatedRenderingDistort(uv, yFlip);
     }
 
     float2 RemapFoveatedRenderingDistortCS(float2 uv, bool yFlip = false)

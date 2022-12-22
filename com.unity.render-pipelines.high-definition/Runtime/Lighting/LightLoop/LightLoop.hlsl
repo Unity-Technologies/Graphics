@@ -5,7 +5,7 @@
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/ .
 // Note that it is currently disabled on gamecore platforms for issues with wave intrinsics and the new compiler, it will be soon investigated, but we disable it in the meantime.
-#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && !defined(SHADER_API_GAMECORE) && SHADERPASS == SHADERPASS_FORWARD)
+#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 #endif
 
 
@@ -286,7 +286,15 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         uint v_lightListOffset = 0;
         uint v_lightIdx = lightStart;
 
+#if NEED_TO_CHECK_HELPER_LANE
+        // On some platform helper lanes don't behave as we'd expect, therefore we prevent them from entering the loop altogether.
+        // IMPORTANT! This has implications if ddx/ddy is used on results derived from lighting, however given Lightloop is called in compute we should be
+        // sure it will not happen.
+        bool isHelperLane = WaveIsHelperLane();
+        while (!isHelperLane && v_lightListOffset < lightCount)
+#else
         while (v_lightListOffset < lightCount)
+#endif
         {
             v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
 #if SCALARIZE_LIGHT_LOOP
@@ -537,7 +545,15 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             // Scalarized loop, same rationale of the punctual light version
             uint v_envLightListOffset = 0;
             uint v_envLightIdx = envLightStart;
+#if NEED_TO_CHECK_HELPER_LANE
+            // On some platform helper lanes don't behave as we'd expect, therefore we prevent them from entering the loop altogether.
+            // IMPORTANT! This has implications if ddx/ddy is used on results derived from lighting, however given Lightloop is called in compute we should be
+            // sure it will not happen.
+            bool isHelperLane = WaveIsHelperLane();
+            while (!isHelperLane && v_envLightListOffset < envLightCount)
+#else
             while (v_envLightListOffset < envLightCount)
+#endif
             {
                 v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
 #if SCALARIZE_LIGHT_LOOP

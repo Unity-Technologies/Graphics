@@ -889,11 +889,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("surfaceTexture")]
-        Texture2D m_SurfaceTexture = null;
+        Texture m_SurfaceTexture = null;
         /// <summary>
-        /// 2D (disk) texture of the surface of the celestial body. Acts like a multiplier.
+        /// Texture of the surface of the celestial body. Acts like a multiplier.
         /// </summary>
-        public Texture2D surfaceTexture
+        public Texture surfaceTexture
         {
             get => m_SurfaceTexture;
             set
@@ -2364,6 +2364,28 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int index = 0; index < count; index++)
             {
                 requestIndices[index] = shadowManager.ReserveShadowResolutions(shadowIsInCacheSystem ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, updateType);
+            }
+        }
+
+        internal bool HasShadowAtlasPlacement()
+        {
+            // If we force evicted the light, it will have lightIdxForCachedShadows == -1
+            return !HDShadowManager.cachedShadowManager.LightIsPendingPlacement(lightIdxForCachedShadows, shadowMapType) && (lightIdxForCachedShadows != -1);
+        }
+
+        internal void OverrideShadowResolutionRequestsWithShadowCache(HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDLightType lightType)
+        {
+            int shadowRequestCount = GetShadowRequestCount(shadowSettings.cascadeShadowSplitCount.value, lightType);
+            
+            for (int i = 0; i < shadowRequestCount; i++)
+            {
+                int shadowRequestIndex = shadowRequestIndices[i];
+                if (shadowRequestIndex < 0 || shadowRequestIndex >= shadowManager.shadowResolutionRequestStorage.Length)
+                    continue;
+
+                ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(shadowRequestIndex);
+                int cachedShadowID = lightIdxForCachedShadows + i;
+                HDShadowManager.cachedShadowManager.OverrideShadowResolutionRequestWithCachedData(ref resolutionRequest, cachedShadowID, shadowMapType);
             }
         }
 

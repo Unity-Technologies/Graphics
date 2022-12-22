@@ -118,7 +118,9 @@ void DDA(int2 center, float2 lineToDraw, uint centerInfo)
     }
 }
 
-#define USE_NEIGHBOURHOOD_MIN 1
+#define USE_NEIGHBOURHOOD_MIN 0 // Note: the neighbourhood building for min is done during merge pass as we need to have easy access to maxVal
+
+
 [numthreads(8, 8, 1)]
 void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {

@@ -8,6 +8,17 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class WaterSurface
     {
+        /// <summary>Fade modes</summary>
+        public enum FadeMode
+        {
+            /// <summary>No fading</summary>
+            None,
+            /// <summary>Automatic fading</summary>
+            Automatic,
+            /// <summary>Custom fading</summary>
+            Custom
+        }
+
         #region Swell/Agitation
         /// <summary>
         ///
@@ -38,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         ///
         /// </summary>
-        public bool largeBand0FadeToggle = true;
+        public FadeMode largeBand0FadeMode = FadeMode.Automatic;
 
         /// <summary>
         ///
@@ -62,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         /// </summary>
         [Tooltip("")]
-        public bool largeBand1FadeToggle = true;
+        public FadeMode largeBand1FadeMode = FadeMode.Automatic;
 
         /// <summary>
         ///
@@ -111,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         /// </summary>
         [Tooltip("")]
-        public bool ripplesFadeToggle = true;
+        public FadeMode ripplesFadeMode = FadeMode.Automatic;
 
         /// <summary>
         ///
@@ -329,6 +340,31 @@ namespace UnityEngine.Rendering.HighDefinition
             return spectrum;
         }
 
+        void ComputeDistanceFade(ref WaterRenderingParameters rendering, int index, FadeMode mode, float customStart, float customDistance)
+        {
+            if (mode == FadeMode.None)
+            {
+                rendering.patchFadeA[index] = 0.0f;
+                rendering.patchFadeB[index] = 1.0f;
+            }
+            else
+            {
+                if (mode == FadeMode.Automatic)
+                {
+                    // For an ocean with repetition size 500, will give following results
+                    // band0:   start = 1500 / distance = 6000
+                    // band1:   start = 339  / distance = 1357
+                    // ripples: start = 67   / distance = 271
+                    float factor = (index == 0) ? 3 : (index == 1 ? 5 : simulation.spectrum.patchSizes[1] / WaterConsts.k_RipplesBandSize);
+                    customStart = factor * simulation.spectrum.patchSizes[index];
+                    customDistance = 4 * customStart;
+                }
+
+                rendering.patchFadeA[index] = -1.0f / Mathf.Max(customDistance, 0.001f);
+                rendering.patchFadeB[index] = 1.0f - customStart * rendering.patchFadeA[index];
+            }
+        }
+
         WaterRenderingParameters EvaluateRenderingParams(WaterSurfaceType type)
         {
             WaterRenderingParameters rendering = new WaterRenderingParameters();
@@ -352,15 +388,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     rendering.patchCurrentSpeed.z = ripplesMotionMode == WaterPropertyOverrideMode.Inherit ? swellCurrentSpeed : ripplesCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
 
                     // Fade parameters
-                    rendering.patchFadeStart.x = largeBand0FadeStart;
-                    rendering.patchFadeStart.y = largeBand1FadeStart;
-                    rendering.patchFadeStart.z = ripplesFadeStart;
-                    rendering.patchFadeDistance.x = largeBand0FadeDistance;
-                    rendering.patchFadeDistance.y = largeBand1FadeDistance;
-                    rendering.patchFadeDistance.z = ripplesFadeDistance;
-                    rendering.patchFadeValue.x = largeBand0FadeToggle ? 0.0f : 1.0f;
-                    rendering.patchFadeValue.y = largeBand1FadeToggle ? 0.0f : 1.0f;
-                    rendering.patchFadeValue.z = ripplesFadeToggle ? 0.0f : 1.0f;
+                    ComputeDistanceFade(ref rendering, 0, largeBand0FadeMode, largeBand0FadeStart, largeBand0FadeDistance);
+                    ComputeDistanceFade(ref rendering, 1, largeBand1FadeMode, largeBand1FadeStart, largeBand1FadeDistance);
+                    ComputeDistanceFade(ref rendering, 2, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
                 }
                 break;
                 case WaterSurfaceType.River:
@@ -374,12 +404,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     rendering.patchCurrentSpeed.y = ripplesMotionMode == WaterPropertyOverrideMode.Inherit ? rendering.patchCurrentSpeed.x : ripplesCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
 
                     // Fade parameters
-                    rendering.patchFadeStart.x = largeBand0FadeStart;
-                    rendering.patchFadeStart.y = ripplesFadeStart;
-                    rendering.patchFadeDistance.x = largeBand0FadeDistance;
-                    rendering.patchFadeDistance.y = ripplesFadeDistance;
-                    rendering.patchFadeValue.x = largeBand0FadeToggle ? 0.0f : 1.0f;
-                    rendering.patchFadeValue.y = ripplesFadeToggle ? 0.0f : 1.0f;
+                    ComputeDistanceFade(ref rendering, 0, largeBand0FadeMode, largeBand0FadeStart, largeBand0FadeDistance);
+                    ComputeDistanceFade(ref rendering, 1, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
                 }
                 break;
                 case WaterSurfaceType.Pool:
@@ -392,9 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     rendering.patchCurrentSpeed.x = ripplesCurrentSpeedValue * WaterConsts.k_KilometerPerHourToMeterPerSecond;
 
                     // Fade parameters
-                    rendering.patchFadeStart.x = ripplesFadeStart;
-                    rendering.patchFadeDistance.x = ripplesFadeDistance;
-                    rendering.patchFadeValue.x = ripplesFadeToggle ? 0.0f : 1.0f;
+                    ComputeDistanceFade(ref rendering, 0, ripplesFadeMode, ripplesFadeStart, ripplesFadeDistance);
                 }
                 break;
             }

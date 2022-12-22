@@ -132,6 +132,10 @@
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP.md)
   * [Refraction in HDRP](Refraction-in-HDRP.md)
+    * [Understand refraction](refraction-concept.md)
+    * [Create a refractive Material](refraction-use.md)
+    * [Refraction models](refraction-models.md)
+    * [How HDRP calculates color for reflection and refraction](reflection-refraction-hierarchy.md)
   * [Reflection Probes](Reflection-Probes-Intro.md)
     * [Using Reflection Probes](Reflection-Probe-Usage.md)
     * Components

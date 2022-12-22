@@ -97,7 +97,15 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
         uint v_lightListOffset = 0;
         uint v_lightIdx = lightStart;
 
+#if NEED_TO_CHECK_HELPER_LANE
+        // On some platform helper lanes don't behave as we'd expect, therefore we prevent them from entering the loop altogether.
+        // IMPORTANT! This has implications if ddx/ddy is used on results derived from lighting, however given Lightloop is called in compute we should be
+        // sure it will not happen.
+        bool isHelperLane = WaveIsHelperLane();
+        while (!isHelperLane && v_lightListOffset < lightCount)
+#else
         while (v_lightListOffset < lightCount)
+#endif
         {
             v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
             uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);

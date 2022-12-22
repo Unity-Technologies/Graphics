@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static readonly string currentAssetDoesNotSupportSSAO = "The current HDRP Asset does not support Screen Space Ambient Occlusion.";
             public static readonly string performanceImpacted = "Performance will be seriously impacted by high direction count.";
-            public static readonly GUIContent rayTracing = EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced ambient occlusion.");
+            public static readonly GUIContent rayTracing = EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced ambient occlusion.");
             public static readonly GUIContent intesity = EditorGUIUtility.TrTextContent("Intensity", "Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas.");
             public static readonly GUIContent directLightingStrenght = EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient light affects occlusion.");
             public static readonly GUIContent layerMask = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion.");
@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox(Styles.currentAssetDoesNotSupportSSAO, MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportSSAO");
+                    HDRenderPipelineUI.ExpandableGroup.Lighting, "m_RenderPipelineSettings.supportSSAO");
                 return;
             }
 

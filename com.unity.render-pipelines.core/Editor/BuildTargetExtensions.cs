@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering
 
             int count = QualitySettings.GetActiveQualityLevelsForPlatformCount(activeBuildTargetGroupName);
             var allQualityLevelsAreOverriden = buildPipelineAssets.Count == count;
-            if (!allQualityLevelsAreOverriden)
+            if (count == 0 || !allQualityLevelsAreOverriden)
             {
                 // We need to check the fallback cases
                 if (GraphicsSettings.defaultRenderPipeline is T srpAsset)

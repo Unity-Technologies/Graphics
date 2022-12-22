@@ -2,6 +2,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 // cleanup code
 // listMinDepth and maxDepth should be stored in a different uniform block?
@@ -39,7 +40,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // ScriptableRenderPass
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_DeferredLights.ExecuteDeferredPass(context, ref renderingData);
+            m_DeferredLights.ExecuteDeferredPass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), ref renderingData);
         }
 
         private class PassData
@@ -53,28 +54,30 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void Render(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Deferred Lighting Pass", out var passData,
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Deferred Lighting Pass", out var passData,
                 base.profilingSampler))
             {
-                passData.color = builder.UseColorBuffer(color, 0);
-                passData.depth = builder.UseDepthBuffer(depth, DepthAccess.ReadWrite);
+                passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.depth = builder.UseTextureFragmentDepth(depth, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.deferredLights = m_DeferredLights;
                 passData.renderingData = renderingData;
 
                 for (int i = 0; i < gbuffer.Length; ++i)
                 {
                     if (i != m_DeferredLights.GBufferLightingIndex)
-                        builder.ReadTexture(gbuffer[i]);
+                        builder.UseTexture(gbuffer[i], IBaseRenderGraphBuilder.AccessFlags.Read);
                 }
 
                 builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    data.deferredLights.ExecuteDeferredPass(context.renderContext, ref data.renderingData);
+                    data.deferredLights.ExecuteDeferredPass(context.cmd, ref data.renderingData);
                 });
             }
         }
+
         // ScriptableRenderPass
         public override void OnCameraCleanup(CommandBuffer cmd)
         {

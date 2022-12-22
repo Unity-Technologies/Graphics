@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Execute()
         {
-            using (new ProfilingScope(null, m_Sampler))
+            using (new ProfilingScope(m_Sampler))
             {
                 for (int i = 0; i < m_EntityManager.chunkCount; ++i)
                     Execute(m_EntityManager.cachedChunks[i], m_EntityManager.culledChunks[i], m_EntityManager.drawCallChunks[i], m_EntityManager.cachedChunks[i].count);

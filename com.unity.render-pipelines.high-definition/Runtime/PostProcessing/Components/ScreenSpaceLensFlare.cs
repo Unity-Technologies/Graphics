@@ -135,6 +135,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return intensity.value > 0;
         }
+        /// <summary>
+        /// Returns true is streakIntensity is above zero.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsStreaksActive()
+        {
+            return streaksIntensity.value > 0;
+        }
     }
 
     /// <summary>
