@@ -38,6 +38,7 @@ namespace UnityEditor.ShaderGraph
         public string customTags;
         public string renderType;
         public string renderQueue;
+        public string disableBatchingTag;
         public bool generatesPreview;
         public PassCollection passes;
         public List<string> usePassList;
