@@ -128,6 +128,8 @@ namespace UnityEngine.Rendering
         // Field used for the realtime subdivision preview
         internal Dictionary<Bounds, ProbeBrickIndex.Brick[]> realtimeSubdivisionInfo = new ();
 
+        bool m_MaxSubdivVisualizedIsMaxAvailable = false;
+
         /// <summary>
         ///  Render Probe Volume related debug
         /// </summary>
@@ -444,6 +446,7 @@ namespace UnityEngine.Rendering
             }
 
             probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1);
+            m_MaxSubdivVisualizedIsMaxAvailable = probeVolumeDebug.maxSubdivToVisualize == ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
             probeVolumeDebug.minSubdivToVisualize = Mathf.Clamp(probeVolumeDebug.minSubdivToVisualize, minAvailableSubdiv, probeVolumeDebug.maxSubdivToVisualize);
 
 
@@ -482,6 +485,12 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
+        }
+
+        internal void ResetDebugViewToMaxSubdiv()
+        {
+            if (m_MaxSubdivVisualizedIsMaxAvailable)
+                probeVolumeDebug.maxSubdivToVisualize = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
         }
 
         void ClearDebugData()
