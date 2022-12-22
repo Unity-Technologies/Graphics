@@ -351,12 +351,17 @@ namespace UnityEngine.Rendering.HighDefinition
             bool pipelineSupportsRayTracing = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
 
             m_RayTracingSupported = pipelineSupportsRayTracing && m_GlobalSettings.renderPipelineRayTracingResources != null;
+
+            // In Editor we need to be freely available to select raytracing to create the resources, otherwise we get stuck in a situation in which we cannot create the resources, 
+            // hence why the following is done only in player
+#if !UNITY_EDITOR
             if (pipelineSupportsRayTracing && !m_RayTracingSupported)
             {
                 Debug.LogWarning("The asset supports ray tracing but the ray tracing resources are not included in the build. This can happen if the asset currently in use was not included in any quality setting for the current platform.");
                 // We need to modify the pipeline settings here because we use them to sanitize the frame settings.
                 m_Asset.TurnOffRayTracing();
             }
+#endif
 
             m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
 
