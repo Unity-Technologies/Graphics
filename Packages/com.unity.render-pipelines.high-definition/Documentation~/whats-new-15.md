@@ -81,6 +81,10 @@ HDRP 15.0 adds several improvements to the already existing volumetric clouds fe
 
 HDRP 15.0 improves the overall real-time ray tracing feature fixing several issues related to the ray traced shadows, mixed tracing lighting. It also significantly improves the fallback lighting mechanic with an integration with the Adaptative Probe Volume feature for Ray Traced Reflection, Ray Traced Global Illumination and Recursive Ray Tracing.
 
+### Path Tracing Light Cluster
+
+The Path Tracer now uses the Ray Tracing Light Cluster to store the lights that affect the scene. The Light Cluster grid for the Path Tracer does not use the range parameter; instead it is defined such that it coincides with the axis-aligned bounding box of the extended culling frustum of the camera.
+
 ### Compute Thickness
 
 ![](Images/WhatsNew15_ComputeThickness.png)
