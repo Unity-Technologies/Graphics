@@ -215,6 +215,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         RenderData m_CustomRenderData;
 
+#if UNITY_EDITOR
+        // Maintain the GUID of the custom texture so that we can switch back to it in editor mode, but still release
+        // the resource if the probe is set back to baked or realtime mode.
+        private string m_CustomTextureGUID;
+
+        // Need to keep track of the previous selected mode in editor to handle the case if a user selects no custom texture.
+        private ProbeSettings.Mode m_PreviousMode = ProbeSettings.Mode.Baked;
+#endif
 
         // Runtime Data
         RTHandle m_RealtimeTexture;
@@ -556,8 +564,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The probe type
         /// </summary>
         public ProbeSettings.ProbeType type { get => m_ProbeSettings.type; protected set => m_ProbeSettings.type = value; }
+
         /// <summary>The capture mode.</summary>
-        public ProbeSettings.Mode mode { get => m_ProbeSettings.mode; set => m_ProbeSettings.mode = value; }
+        public ProbeSettings.Mode mode
+        {
+            get => m_ProbeSettings.mode;
+            set
+            {
+                m_ProbeSettings.mode = value;
+
+#if UNITY_EDITOR
+                // Validate in case we are in the editor and we have to release a custom texture reference.
+                OnValidate();
+#endif
+            }
+        }
         /// <summary>
         /// The realtime mode of the probe
         /// </summary>
@@ -919,6 +940,34 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        void SetOrReleaseCustomTextureReference()
+        {
+#if UNITY_EDITOR
+            if (m_PreviousMode != mode)
+            {
+                if (m_PreviousMode == ProbeSettings.Mode.Custom)
+                {
+                    // Try to fetch the asset GUID before we release the reference to it.
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_CustomTexture, out m_CustomTextureGUID, out long unused);
+
+                    // Release the asset reference.
+                    m_CustomTexture = null;
+                }
+                else if (mode == ProbeSettings.Mode.Custom)
+                {
+                    if (m_CustomTextureGUID != null)
+                    {
+                        // Try to reset the asset reference.
+                        var customTexturePath = AssetDatabase.GUIDToAssetPath(m_CustomTextureGUID);
+                        m_CustomTexture = AssetDatabase.LoadAssetAtPath<Texture>(customTexturePath);
+                    }
+                }
+            }
+
+            m_PreviousMode = mode;
+#endif
+        }
+
         void OnEnable()
         {
             wasRenderedAfterOnEnable = false;
@@ -927,6 +976,9 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateProbeName();
 
 #if UNITY_EDITOR
+            // Ensure that the custom texture is set.
+            SetOrReleaseCustomTextureReference();
+
             // Moving the garbage outside of the render loop:
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
             UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
@@ -963,6 +1015,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnValidate()
         {
             HDProbeSystem.UnregisterProbe(this);
+
+            SetOrReleaseCustomTextureReference();
 
             if (isActiveAndEnabled)
             {
