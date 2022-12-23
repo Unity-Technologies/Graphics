@@ -4,10 +4,8 @@ ShaderGraph2_Win_pr_trigger:
     expression: pull_request.source match "(?:^|.+\/)sg2\/.+" AND NOT pull_request.draft # this trigger the job on pull request exclusively on specific branches
     cancel_old_ci: true
   dependencies:
-    -  path: .yamato/sg2-tests.yml#ShaderGraph2_Win
-       rerun: on_new_revision
-    -  path: .yamato/sg2-tests.yml#ShaderGraph2_Mac
-       rerun: on_new_revision
+    - .yamato/sg2-tests.yml#ShaderGraph2_Mac
+    - .yamato/sg2-tests.yml#ShaderGraph2_Win
 ShaderGraph2_Win:
   name: ShaderGraph2 Tests - Win
   agent:
