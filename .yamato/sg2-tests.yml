@@ -36,19 +36,20 @@ ShaderGraph2_Mac:
     type: Unity::VM::osx
     image: slough-ops/macos-11-xcode:v0.0.1-973582
     flavor: m1.mac
-    variables:
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-    commands:
-      -  command: pip3 install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  command: $(python3 -m site --user-base)/bin/unity-downloader-cli -u gtf/staging -c editor --fast --wait
-      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-         retries: 2
-      -  command: chmod +x utr
-      -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground
-         retries: 2
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "ShaderGraphPlayground/Logs/*.log"
+  variables:
+    UTR_VERSION: "current"
+    TEST_FILTER: .*
+    EDITOR_BRANCH: "gtf/staging"
+  commands:
+    -  command: pip3 install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+    -  command: $(python3 -m site --user-base)/bin/unity-downloader-cli -u gtf/staging -c editor --fast --wait
+    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+       retries: 2
+    -  command: chmod +x utr
+    -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground
+       retries: 2
+  artifacts:
+    logs:
+      paths:
+        -  "**/test-results/**"
+        -  "ShaderGraphPlayground/Logs/*.log"
