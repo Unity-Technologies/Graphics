@@ -246,7 +246,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightLoopSettings.reflectionProbeTexCacheSize = ReflectionProbeTextureCacheResolution.Resolution16384x16384;
 
                 // Find closes pixel count in the ReflectionProbeTextureCacheResolution enum:
-                foreach (ReflectionProbeTextureCacheResolution res in Enum.GetValues(typeof(ReflectionProbeTextureCacheResolution)))
+                var availableResolutions = Enum.GetValues(typeof(ReflectionProbeTextureCacheResolution)).Cast<ReflectionProbeTextureCacheResolution>();
+                foreach (ReflectionProbeTextureCacheResolution res in availableResolutions.OrderBy(r => (int)r & 0xFFFF))
                 {
                     int height = (int)res & 0xFFFF;
                     int width = (int)res >> 16;
@@ -254,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         width = height;
 
                     int currentPixelCount = width * height;
-                    if (currentPixelCount > totalNeededPixelCount)
+                    if (currentPixelCount >= totalNeededPixelCount)
                     {
                         lightLoopSettings.reflectionProbeTexCacheSize = res;
                         break;
