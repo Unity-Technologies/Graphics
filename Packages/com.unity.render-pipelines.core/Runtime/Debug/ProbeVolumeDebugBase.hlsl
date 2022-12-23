@@ -182,14 +182,17 @@ half4 WriteFractNumber(float input, float2 texCoord)
     float2 n1_uv = float2(clamp(texCoord.x*i - 2.0f, 0.0f, 1.0f), texCoord.y);
     float2 n2_uv = float2(clamp(texCoord.x*i - 3.0f, 0.0f, 1.0f), texCoord.y);
 
+    half4 outVal = 0;
     if (texCoord.x <= 0.25)
-        return SampleCharacter(n0_value, n0_uv);
-    if (texCoord.x <= 0.50)
-        return SampleCharacter(10, dot_uv);
-    if (texCoord.x <= 0.75)
-        return SampleCharacter(n1_value, n1_uv);
+        outVal = SampleCharacter(n0_value, n0_uv);
+    else if (texCoord.x <= 0.50)
+        outVal = SampleCharacter(10, dot_uv);
+    else if (texCoord.x <= 0.75)
+        outVal = SampleCharacter(n1_value, n1_uv);
+    else 
+        outVal = SampleCharacter(n2_value, n2_uv);
 
-    return SampleCharacter(n2_value, n2_uv);
+    return outVal;
 }
 
 
