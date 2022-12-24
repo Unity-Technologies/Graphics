@@ -57,6 +57,7 @@ namespace UnityEditor.Rendering.Universal
         GBufferWriteRenderingLayers = (1L << 34),
         DepthNormalPassRenderingLayers = (1L << 35),
         LightCookies = (1L << 36),
+        HdrGrading = (1L << 37),
     }
 
     [Flags]
@@ -67,7 +68,7 @@ namespace UnityEditor.Rendering.Universal
         LensDistortion = (1 << 1),
         Bloom = (1 << 2),
         ChromaticAberration = (1 << 3),
-        ToneMaping = (1 << 4),
+        ToneMapping = (1 << 4),
         FilmGrain = (1 << 5),
         DepthOfField = (1 << 6),
         CameraMotionBlur = (1 << 7),
@@ -422,6 +423,9 @@ namespace UnityEditor.Rendering.Universal
             if (stripTool.StripMultiCompileKeepOffVariant(m_SoftShadows, ShaderFeatures.SoftShadows))
                 return true;
 
+            if (stripTool.StripMultiCompileKeepOffVariant(m_HdrGrading, ShaderFeatures.HdrGrading))
+                return true;
+
             // Left for backward compatibility
             if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
@@ -626,11 +630,9 @@ namespace UnityEditor.Rendering.Universal
             if (stripTool.StripMultiCompileKeepOffVariant(m_BloomHQDirt, VolumeFeatures.Bloom))
                 return true;
 
-            if (stripTool.StripMultiCompileKeepOffVariant(m_HdrGrading, VolumeFeatures.ToneMaping))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_ToneMapACES, VolumeFeatures.ToneMapping))
                 return true;
-            if (stripTool.StripMultiCompileKeepOffVariant(m_ToneMapACES, VolumeFeatures.ToneMaping))
-                return true;
-            if (stripTool.StripMultiCompileKeepOffVariant(m_ToneMapNeutral, VolumeFeatures.ToneMaping))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_ToneMapNeutral, VolumeFeatures.ToneMapping))
                 return true;
             if (stripTool.StripMultiCompileKeepOffVariant(m_FilmGrain, VolumeFeatures.FilmGrain))
                 return true;
@@ -872,7 +874,7 @@ namespace UnityEditor.Rendering.Universal
                 if (asset.Has<Bloom>())
                     s_VolumeFeatures |= VolumeFeatures.Bloom;
                 if (asset.Has<Tonemapping>())
-                    s_VolumeFeatures |= VolumeFeatures.ToneMaping;
+                    s_VolumeFeatures |= VolumeFeatures.ToneMapping;
                 if (asset.Has<FilmGrain>())
                     s_VolumeFeatures |= VolumeFeatures.FilmGrain;
                 if (asset.Has<DepthOfField>())
@@ -1074,6 +1076,9 @@ namespace UnityEditor.Rendering.Universal
                 (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
             if (pipelineAsset.supportsSoftShadows && anyShadows)
                 shaderFeatures |= ShaderFeatures.SoftShadows;
+
+            if (pipelineAsset.colorGradingMode == ColorGradingMode.HighDynamicRange)
+                shaderFeatures |= ShaderFeatures.HdrGrading;
 
             return shaderFeatures;
         }
