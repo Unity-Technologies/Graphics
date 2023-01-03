@@ -152,9 +152,6 @@ namespace UnityEngine.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
-            bool savedIsOrthographic = renderingData.cameraData.camera.orthographic;
-            float savedOrthographicSize = renderingData.cameraData.camera.orthographicSize;
-
             if (DebugHandler != null)
             {
 #if UNITY_EDITOR
@@ -190,9 +187,6 @@ namespace UnityEngine.Rendering.Universal
                         cameraTargetDescriptor.width = ppc.offscreenRTSize.x;
                         cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
                     }
-
-                    renderingData.cameraData.camera.orthographic = true;
-                    renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
 
                     colorTextureFilterMode = ppc.finalBlitFilterMode;
                     ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
@@ -258,7 +252,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (ppc != null && ppc.enabled && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Windowbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.StretchFill))
             {
-                m_PixelPerfectBackgroundPass.Setup(savedIsOrthographic, savedOrthographicSize);
                 EnqueuePass(m_PixelPerfectBackgroundPass);
             }
 

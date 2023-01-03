@@ -6,18 +6,10 @@ namespace UnityEngine.Rendering.Universal
     internal class PixelPerfectBackgroundPass : ScriptableRenderPass
     {
         private static readonly ProfilingSampler m_ProfilingScope = new ProfilingSampler("Pixel Perfect Background Pass");
-        private bool m_SavedIsOrthographic;
-        private float m_SavedOrthographicSize;
 
         public PixelPerfectBackgroundPass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
-        }
-
-        public void Setup(bool savedIsOrthographic, float savedOrthographicSize)
-        {
-            m_SavedIsOrthographic = savedIsOrthographic;
-            m_SavedOrthographicSize = savedOrthographicSize;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -38,9 +30,6 @@ namespace UnityEngine.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-
-            renderingData.cameraData.camera.orthographic = m_SavedIsOrthographic;
-            renderingData.cameraData.camera.orthographicSize = m_SavedOrthographicSize;
         }
     }
 }
