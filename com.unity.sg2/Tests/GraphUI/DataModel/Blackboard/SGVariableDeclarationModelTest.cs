@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     [TestFixture]
-    class SGVariableDeclarationModelTests : BaseGraphAssetTest
+    class SGVariableDeclarationModelTest : BaseGraphAssetTest
     {
         static readonly TypeHandle k_ExposableType = TypeHandle.Float;
         static readonly TypeHandle k_NonExposableType = ShaderGraphExampleTypes.SamplerStateTypeHandle;
