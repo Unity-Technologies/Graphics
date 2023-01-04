@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -54,7 +55,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void UpdatePartFromModel()
         {
-            // This Part is not effected by updates from the model.
+            if (!m_sgNodeModel.TryGetNodeHandler(out var reader))
+                return; // (Brett) Should maybe log warning here
+            var field = reader.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME);
+            if (field == null)
+                return;
+            var data = field.GetData();
+            m_dropdownField.SetValueWithoutNotify(data);
         }
 
         private void HandleSelectionChange(ChangeEvent<string> evt)

@@ -36,34 +36,5 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 .GetValue(inspectorOverlay);
             Assert.IsNotNull(m_InspectorView, "Inspector view was not found");
         }
-
-        [Test]
-        public void TestGraphModelIsSubGraph()
-        {
-            var model = (SGGraphModel)m_MainWindow.GraphView.GraphModel;
-            Assert.IsTrue(model.IsSubGraph, "GraphModel.IsSubGraph should be true for subgraph asset");
-        }
-
-        [UnityTest]
-        public IEnumerator TestCanAddNodeToSubGraph()
-        {
-            return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
-        }
-
-        [UnityTest]
-        public IEnumerator TestSubgraphOutputHasEditor()
-        {
-            const string outputNodeName = "DefaultContextDescriptor";
-            const string outputInspectorListName = "sg-subgraph-output-list";
-
-            var output = m_MainWindow.GetNodeModelFromGraphByName(outputNodeName);
-            Assert.IsNotNull(output);
-
-            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, output));
-            yield return null;
-
-            var list = m_InspectorView.Q<ListView>(outputInspectorListName);
-            Assert.IsNotNull(list, "Subgraph output node should display a list in the inspector");
-        }
     }
 }

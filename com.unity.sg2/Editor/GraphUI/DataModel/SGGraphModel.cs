@@ -136,7 +136,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     if (nodeUIInfo.SelectableFunctions.Count > 0)
                     {
                         string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-                        selectedFunctionID = nodeTopology.GetField(fieldName).GetData<string>();
+                        FieldHandler selectedFunctionField = nodeTopology.GetField<string>(fieldName);
+                        selectedFunctionID = selectedFunctionField.GetData<string>();
                     }
 
                     var shouldShowPreview = nodeUIInfo.HasPreview && showPreviewForType;
@@ -192,10 +193,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             bool isMatrixType = GraphTypeHelpers.GetHeight(portInfo.GetTypeField()) > GraphType.Height.One;
             int matrixHeight = (int)GraphTypeHelpers.GetHeight(portInfo.GetTypeField());
-
-            // Only add new node parts for static ports & ports that should actually appear on nodes
-            if (!isStatic || parameter.InspectorOnly)
-                return false;
 
             if (isGradientType && !portInfo.IsInput)
                 showPreviewForType = false;

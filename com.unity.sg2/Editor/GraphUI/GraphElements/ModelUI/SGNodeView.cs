@@ -79,6 +79,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         ussClassName));
             }
 
+            if (nodeName == "ChannelMixer")
+            {
+                PartList.InsertPartAfter(portContainerPartName,
+                    new ChannelMixerPart("sg-channel-mixer-container",
+                        GraphElementModel,
+                        this,
+                        ussClassName));
+            }
+
             // By default we assume all nodes should display previews, unless there
             // is a UIHint that dictates otherwise
             bool nodeHasPreview = nodeViewModel.HasPreview;
@@ -143,6 +152,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // Figure out the correct part to display based on the port type.
         ModelViewPart ResolvePortType(SGPortViewModel portViewModel)
         {
+            if (portViewModel.Options is {Count: > 0})
+            {
+                return new StaticPortOptionsPart("sg-dropdown", GraphElementModel, this, ussClassName, portViewModel.Name);
+            }
+
             if (portViewModel.IsMatrix)
             {
                 return new MatrixPart(

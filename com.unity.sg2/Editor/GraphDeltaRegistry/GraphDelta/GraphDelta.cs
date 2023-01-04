@@ -222,7 +222,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
                 if (port.IsInput)
                 {
-                    var removedDefaults = m_data.defaultConnections.Where(c => c.Input.Equals(port.ID));
+                    var removedDefaults = m_data.defaultConnections.Where(c => c.Input.Equals(port.ID)).ToList();
                     foreach(var removedDefault in removedDefaults)
                     {
                         RemoveDefaultConnection(removedDefault.Context, removedDefault.Input, registry);
@@ -451,7 +451,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         }
                     }
                 }
-
             }
         }
 
@@ -465,6 +464,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     return port;
                 }
             }
+            return null;
+        }
+
+        internal string GetDefaultConnectionToPort(ElementID port)
+        {
+            bool isInput = m_data.GetMetadata<bool>(port, PortHeader.kInput);
+            if (!isInput) return null;
+
+            foreach (var defConnection in m_data.defaultConnections)
+            {
+                if (defConnection.Input.Equals(port))
+                {
+                    return defConnection.Context;
+                }
+            }
+
             return null;
         }
 
