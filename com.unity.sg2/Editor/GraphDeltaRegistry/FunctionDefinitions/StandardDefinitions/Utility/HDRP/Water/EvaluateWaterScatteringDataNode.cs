@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 @"ScatteringData scatteringData;
 ZERO_INITIALIZE(ScatteringData, scatteringData);
-EvaluateScatteringData(PositionWS, NormalWS, LowFrequencyNormalWS, ScreenPosition, ViewWS, SSSMask, LowFrequencyHeight, HorizontalDisplacement, ScatteringFoam, scatteringData);
+EvaluateScatteringData(PositionWS, NormalWS, LowFrequencyNormalWS, ScreenPosition, ViewWS, LowFrequencyHeight, HorizontalDisplacement, ScatteringFoam, scatteringData);
 ScatteringColor = scatteringData.scatteringColor;
 RefractionColor = scatteringData.refractionColor;
 TipThickness = scatteringData.tipThickness;",
@@ -24,7 +24,6 @@ TipThickness = scatteringData.tipThickness;",
                 new ParameterDescriptor("ViewWS", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("ScatteringFoam", TYPE.Float, Usage.In),
                 new ParameterDescriptor("LowFrequencyHeight", TYPE.Float, Usage.In),
-                new ParameterDescriptor("SSSMask", TYPE.Float, Usage.In),
                 new ParameterDescriptor("HorizontalDisplacement", TYPE.Float, Usage.In),
                 new ParameterDescriptor("ScatteringColor", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("RefractionColor", TYPE.Vec3, Usage.Out),
@@ -74,11 +73,6 @@ TipThickness = scatteringData.tipThickness;",
                 new ParameterUIDescriptor(
                     name: "LowFrequencyHeight",
                     displayName: "Low Frequency Height",
-                    tooltip: ""
-                ),
-                new ParameterUIDescriptor(
-                    name: "SSSMask",
-                    displayName: "SSS Mask",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
