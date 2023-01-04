@@ -102,6 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Bind the constant buffer
                 ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
+                ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsTraceCS, HDShaderIDs._ShaderVariablesClouds);
 
                 // Compute the number of tiles to dispatch
                 int shadowTX = (parameters.commonData.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;

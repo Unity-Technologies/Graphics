@@ -100,6 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the constant buffer
             ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
+            ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsTraceCS, HDShaderIDs._ShaderVariablesClouds);
+
             if (parameters.commonData.localClouds)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsPrepare)))

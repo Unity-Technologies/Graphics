@@ -125,6 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the constant buffer
             ConstantBuffer.Push(cmd, passData.commonData.cloudsCB, passData.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
+            ConstantBuffer.Push(cmd, passData.commonData.cloudsCB, passData.commonData.volumetricCloudsTraceCS, HDShaderIDs._ShaderVariablesClouds);
 
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
             CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", passData.commonData.microErosion);
