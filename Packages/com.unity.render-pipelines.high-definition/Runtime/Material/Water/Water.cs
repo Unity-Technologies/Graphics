@@ -51,6 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Underwater caustics
             [SurfaceDataAttributes("Caustics")]
             public float caustics;
+
+            [SurfaceDataAttributes("Refracted Position WS")]
+            public Vector3 refractedPositionWS;
         }
 
         //-----------------------------------------------------------------------------

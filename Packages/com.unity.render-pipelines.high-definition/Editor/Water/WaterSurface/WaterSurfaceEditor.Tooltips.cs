@@ -109,10 +109,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_DirectLightBodyScattering = EditorGUIUtility.TrTextContent("Direct Light Body Term", "Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.");
 
         static public readonly GUIContent k_Caustics = EditorGUIUtility.TrTextContent("Caustics", "When enabled, the water surface will render caustics.");
+        static public readonly GUIContent k_CausticsInstensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the intensity of the under-water caustics.");
         static public readonly GUIContent k_CausticsVirtualPlaneDistance = EditorGUIUtility.TrTextContent("Virtual Plane Distance", "Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artefacts. The larger the waves are, the further the plane distance should be to obtain sharp caustics.");
         static public readonly GUIContent k_CausticsBandSwell = EditorGUIUtility.TrTextContent("Simulation Band", "Controls which simulation band is used for the caustics evaluation. The first (index 0) and second band (index 1) come from the swell simulation and the third (index 2) one from the ripples.");
         static public readonly GUIContent k_CausticsBandAgitation = EditorGUIUtility.TrTextContent("Simulation Band", "Controls which simulation band is used for the caustics evaluation. The first band (index 0) comes from the agitation simulation and the second one (index 1) from the ripples.");
-
+        static public readonly GUIContent k_CausticsDirectionalShadow = EditorGUIUtility.TrTextContent("Directional Shadow", "When enabled, the water caustics will take into account the directional light's shadow.");
+        static public readonly GUIContent k_CausticsDirectionalShadowDimmer = EditorGUIUtility.TrTextContent("Directional Shadow Dimmer", "Sets the water caustics dimmer value for the directional shadow.");
+        
         static public readonly GUIContent k_FoamSmoothness = EditorGUIUtility.TrTextContent("Smoothness", "Controls the simulation foam smoothness.");
         static public readonly GUIContent k_FoamPersistenceMultiplier = EditorGUIUtility.TrTextContent("Persistence Multiplier", "Specifies the foam persistence multiplier. A higher value will lead to the foam remaining visible longer.");
         static public readonly GUIContent k_FoamTexture = EditorGUIUtility.TrTextContent("Custom Texture", "Sets the texture used to define a visual appearance for the foam.");

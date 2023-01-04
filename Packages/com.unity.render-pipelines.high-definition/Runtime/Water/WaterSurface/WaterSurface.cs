@@ -305,6 +305,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artifacts.
         /// </summary>
         public float virtualPlaneDistance = 5.0f;
+
+        /// <summary>
+        /// When enabled, the water caustics will take into account the directional light's shadow.
+        /// </summary>
+        public bool causticsDirectionalShadow = false;
+
+        /// <summary>
+        /// Sets the water caustics dimmer value for the directional shadow.
+        /// </summary>
+        public float causticsDirectionalShadowDimmer = 0.25f;
         #endregion
 
         #region Water Miscellaneous

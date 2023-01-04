@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_WaterLineBoundsPropagation;
         int m_WaterLinePropagation1D;
         int m_UnderWaterKernel;
+        int m_UnderWaterDirectionalCausticsKernel;
 
         // Resolution of the binning tile
         const int underWaterTileSize = 16;
@@ -29,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WaterLineBoundsPropagation = m_UnderWaterRenderingCS.FindKernel("BoundsPropagation");
             m_WaterLinePropagation1D = m_UnderWaterRenderingCS.FindKernel("LinePropagation1D");
             m_UnderWaterKernel = m_UnderWaterRenderingCS.FindKernel("UnderWater");
+            m_UnderWaterDirectionalCausticsKernel = m_UnderWaterRenderingCS.FindKernel("UnderWaterDirectionalCaustics");
         }
 
         void EvaluateUnderWaterSurface(HDCamera hdCamera)
@@ -276,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Shader data
                 passData.underWaterCS = m_UnderWaterRenderingCS;
-                passData.underWaterKernel = m_UnderWaterKernel;
+                passData.underWaterKernel = waterSurface.causticsDirectionalShadow ? m_UnderWaterDirectionalCausticsKernel : m_UnderWaterKernel;
 
                 // All the required textures
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
@@ -297,6 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Fill the water rendering CB
                 passData.waterRenderingCB._CausticsIntensity = waterSurface.causticsIntensity;
+                passData.waterRenderingCB._CausticsShadowIntensity = waterSurface.causticsDirectionalShadow ? waterSurface.causticsDirectionalShadowDimmer : 1.0f;
                 passData.waterRenderingCB._CausticsPlaneBlendDistance = waterSurface.causticsPlaneBlendDistance;
                 passData.waterRenderingCB._PatchOffset = waterSurface.transform.position;
                 passData.waterRenderingCB._WaterCausticsEnabled = waterSurface.caustics ? 1 : 0;

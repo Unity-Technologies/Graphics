@@ -301,6 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Setup the water rendering constant buffers (parameters that we can setup
             cb._CausticsIntensity = currentWater.causticsIntensity;
+            cb._CausticsShadowIntensity = currentWater.causticsDirectionalShadow ? currentWater.causticsDirectionalShadowDimmer : 1.0f;
             cb._CausticsPlaneBlendDistance = currentWater.causticsPlaneBlendDistance;
             cb._WaterCausticsEnabled = currentWater.caustics ? 1 : 0;
             cb._CameraInUnderwaterRegion = insideUnderWaterVolume ? 1 : 0;

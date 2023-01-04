@@ -486,7 +486,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _NumWaterPatches;
 
         // Padding
-        public float _PaddingWR0;
+        public float _CausticsShadowIntensity;
         // Intensity of the water caustics
         public float _CausticsIntensity;
         // Current Map Influence

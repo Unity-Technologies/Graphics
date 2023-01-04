@@ -9,7 +9,8 @@
 #pragma kernel LinePropagation1D
 
 // Underwater rendering
-#pragma kernel UnderWater
+#pragma kernel UnderWater UNDER_WATER_KERNEL=UnderWater
+#pragma kernel UnderWaterDirectionalCaustics UNDER_WATER_KERNEL=UnderWaterDirectionalCaustics DIRECTIONAL_LIGHT_CAUSTICS
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -164,7 +165,7 @@ RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
 
 // Need to be moved to a constant buffer
 [numthreads(8, 8, 1)]
-void UnderWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void UNDER_WATER_KERNEL(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
@@ -198,7 +199,26 @@ void UnderWater(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadI
 
     // Read the stencil value
     if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+    {
         caustics = EvaluateSimulationCaustics(posInput.positionWS, depth, currentCoord * _ScreenSize.zw);
+        #if defined(DIRECTIONAL_LIGHT_CAUSTICS)
+        // In case the user asked for shadow to explicitly be affected by shadows
+        if (_CausticsShadowIntensity < 1.0 && _DirectionalShadowIndex >= 0)
+        {
+            HDShadowContext shadowContext = InitShadowContext();
+            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+            // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
+            float3 L = -light.forward;
+            // Is it worth sampling the shadow map?
+            float sunShadow = 1.0f;
+            if ((light.lightDimmer > 0) && (light.shadowDimmer > 0))
+            {
+                sunShadow = lerp(_CausticsShadowIntensity, 1.0, GetDirectionalShadowAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, L, light.shadowIndex, L));
+            }
+            caustics = (caustics - 1)  * sunShadow + 1;
+        }
+        #endif
+    }
 
     // Evaluate the fog of the target surface
     float cameraDistance = depthValue == UNITY_RAW_FAR_CLIP_VALUE ? _ProjectionParams.z : length(posInput.positionWS);
