@@ -362,7 +362,7 @@ namespace UnityEditor.VFX
             for (int i = 0; i < count; ++i)
             {
                 var prefix = VFXCodeGeneratorHelper.GeneratePrefix((uint)i);
-                WriteLineFormat("AppendStructuredBuffer<uint> {0}_{1};", baseName, prefix);
+                WriteLineFormat("RWStructuredBuffer<uint> {0}_{1};", baseName, prefix);
             }
         }
 

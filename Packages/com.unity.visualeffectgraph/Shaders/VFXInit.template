@@ -16,13 +16,7 @@ ByteAddressBuffer sourceAttributeBuffer;
 StructuredBuffer<uint> spawnCountPrefixSum;
 #endif
 
-#if VFX_USE_SPAWNER_FROM_GPU
-    struct InitParams
-    {
-        uint offsetInAdditionalOutput;
-        uint3 _pad;
-    };
-#else
+#if !VFX_USE_SPAWNER_FROM_GPU
     struct InitParams
     {
         uint spawnIndex;
@@ -30,8 +24,8 @@ StructuredBuffer<uint> spawnCountPrefixSum;
     };
 
     StructuredBuffer<uint> eventCountPrefixSum;
+    StructuredBuffer<InitParams> batchedInitParams;
 #endif
-StructuredBuffer<InitParams> batchedInitParams;
 
 CBUFFER_START(initParamsConst)
     uint dispatchWidth;
@@ -46,7 +40,6 @@ StructuredBuffer<uint> deadListCountCopy;
 
 #if VFX_USE_SPAWNER_FROM_GPU
 StructuredBuffer<uint> eventList;
-ByteAddressBuffer inputAdditional;
 #endif
 
 #if HAS_STRIPS
@@ -91,19 +84,18 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
     ${VFXInitInstancing}
 
-    InitParams initParams = batchedInitParams[instanceActiveIndex];
 	ContextData contextData = instancingContextData[instanceActiveIndex];
 	uint systemSeed = contextData.systemSeed;
 
     ${VFXLoadGraphValues}
 
 #if VFX_USE_SPAWNER_FROM_GPU
-    uint offsetInAdditionalOutput = initParams.offsetInAdditionalOutput;
-    uint maxThreadId = inputAdditional.Load((offsetInAdditionalOutput * 2 + 0) << 2);
-    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput * 2 + 1) << 2) - maxThreadId;
-
-    maxThreadId = min(maxThreadId, contextData.maxParticleCount);
+    uint elementCount = eventList[VFXGetEventListBufferElementCount(instanceActiveIndex)];
+    uint totalAccumulatedElementCount = eventList[VFXGetEventListBufferAccumulatedCount(instanceActiveIndex)];
+    uint maxThreadId = min(contextData.maxParticleCount, elementCount);
+    uint currentSpawnIndex = totalAccumulatedElementCount - elementCount;
 #else
+    InitParams initParams = batchedInitParams[instanceActiveIndex];
     uint maxThreadId = instancingPrefixSum[instanceActiveIndex];
     uint nbEvents = eventCountPrefixSum[instanceActiveIndex];
 
@@ -124,7 +116,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
     if (index < maxThreadId)
     {
 #if VFX_USE_SPAWNER_FROM_GPU
-        int sourceIndex = eventList[id];
+        int sourceIndex = eventList[VFXGetEventListBufferIndex(id, instanceActiveIndex)];
 #endif
 
         uint startEventIndex = 0u; //tmp for GPU Events

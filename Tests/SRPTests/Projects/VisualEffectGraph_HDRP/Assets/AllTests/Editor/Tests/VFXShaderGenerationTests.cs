@@ -149,7 +149,8 @@ namespace UnityEditor.VFX.Test
             {
                 gpuMapper = new VFXExpressionMapper(),
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
-                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>())
+                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>()),
+                linkedEventOut = Array.Empty<(VFXSlot slot, VFXData data)>()
             };
             var task = new VFXTask { templatePath = updateContext.codeGeneratorTemplate, type = updateContext.taskType };
             HashSet<string> dependencies = new HashSet<string>();
@@ -179,7 +180,8 @@ namespace UnityEditor.VFX.Test
             {
                 gpuMapper = new VFXExpressionMapper(),
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
-                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>())
+                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>()),
+                linkedEventOut = new (VFXSlot slot, VFXData data)[] { }
             };
             HashSet<string> dependencies = new HashSet<string>();
             var task = new VFXTask { templatePath = updateContext.codeGeneratorTemplate, type = updateContext.taskType };
