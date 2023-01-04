@@ -12,6 +12,7 @@ namespace UnityEditor.VFX.UI
         readonly Slider m_ReinitPrewarmTime;
         readonly FloatField m_ReinitPrewarmTimeField;
         readonly Toggle m_RuntimeModeToggle;
+        readonly Toggle m_ShaderDebugSymbolsToggle;
         readonly Toggle m_ShaderValidationToggle;
         readonly Button m_ResyncMaterial;
 
@@ -56,6 +57,9 @@ namespace UnityEditor.VFX.UI
             m_RuntimeModeToggle = m_PopupContent.Q<Toggle>("runtimeMode");
             m_RuntimeModeToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleRuntimeMode);
 
+            m_ShaderDebugSymbolsToggle = m_PopupContent.Q<Toggle>("shaderDebugSymbols");
+            m_ShaderDebugSymbolsToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleShaderDebugSymbols);
+
             m_ShaderValidationToggle = m_PopupContent.Q<Toggle>("shaderValidation");
             m_ShaderValidationToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleShaderValidation);
 
@@ -63,23 +67,29 @@ namespace UnityEditor.VFX.UI
             m_ResyncMaterial.clicked += OnResyncMaterial;
         }
 
-        protected override Vector2 GetPopupSize() => new Vector2(250, 120);
+        protected override Vector2 GetPopupSize() => new Vector2(250, 140);
 
         protected override void OnOpenPopup()
         {
-            bool enableAutoReinit = (!m_VFXView.controller.graph.GetResource()?.isSubgraph) ?? false; // for subgraph we disable auto reinit
+            bool enableToggles = (!m_VFXView.controller.graph.GetResource()?.isSubgraph) ?? false; // for subgraph we disable auto reinit
 
             m_AutoCompileToggle.value = VFXViewWindow.GetWindowNoShow(m_VFXView).autoCompile;
 
-            m_AutoReinitToggle.value = enableAutoReinit ? VFXViewWindow.GetWindowNoShow(m_VFXView).autoReinit : false;
-            m_AutoReinitToggle.SetEnabled(enableAutoReinit);
+            m_AutoReinitToggle.value = enableToggles ? VFXViewWindow.GetWindowNoShow(m_VFXView).autoReinit : false;
+            m_AutoReinitToggle.SetEnabled(enableToggles);
 
             m_ReinitPrewarmTime.value = m_ReinitPrewarmTimeField.value = VFXViewWindow.GetWindowNoShow(m_VFXView).autoReinitPrewarmTime;
             m_ReinitPrewarmTime.SetEnabled(m_AutoReinitToggle.value);
             m_ReinitPrewarmTimeField.SetEnabled(m_AutoReinitToggle.value);
 
             m_RuntimeModeToggle.value = m_VFXView.GetIsRuntimeMode();
+            m_RuntimeModeToggle.SetEnabled(enableToggles);
+
+            m_ShaderDebugSymbolsToggle.value = enableToggles && (m_VFXView.GetForceShaderDebugSymbols() || VFXViewPreference.generateShadersWithDebugSymbols);
+            m_ShaderDebugSymbolsToggle.SetEnabled(enableToggles && !VFXViewPreference.generateShadersWithDebugSymbols);
+
             m_ShaderValidationToggle.value = m_VFXView.GetShaderValidation();
+            m_ShaderValidationToggle.SetEnabled(enableToggles);
         }
 
         protected override void OnMainButton()
@@ -95,6 +105,11 @@ namespace UnityEditor.VFX.UI
         void OnToggleRuntimeMode(ChangeEvent<bool> evt)
         {
             m_VFXView.ToggleRuntimeMode();
+        }
+
+        void OnToggleShaderDebugSymbols(ChangeEvent<bool> evt)
+        {
+            m_VFXView.ToggleForceShaderDebugSymbols();
         }
 
         void OnToggleShaderValidation(ChangeEvent<bool> evt)
