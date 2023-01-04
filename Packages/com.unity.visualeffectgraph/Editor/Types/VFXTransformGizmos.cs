@@ -23,9 +23,13 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Transform transform)
         {
-            PositionGizmo(transform.position, transform.angles, m_PositionProperty, false);
-            RotationGizmo(transform.position, transform.angles, m_AnglesProperty, false);
-            ScaleGizmo(transform.position, transform.scale, Quaternion.Euler(transform.angles), m_ScaleProperty, false);
+            TransformGizmo(
+                transform.position,
+                transform.angles,
+                transform.scale,
+                m_PositionProperty,
+                m_AnglesProperty,
+                m_ScaleProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Transform value)

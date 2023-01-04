@@ -49,9 +49,13 @@ namespace UnityEditor.VFX
 
         public static void DrawTorus(VFXGizmo gizmo, TTorus torus, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> thicknessProperty, IProperty<float> radiusProperty, IEnumerable<float> angles, float maxAngle = Mathf.PI * 2)
         {
-            gizmo.PositionGizmo(torus.transform.position, torus.transform.angles, centerProperty, false);
-            gizmo.RotationGizmo(torus.transform.position, torus.transform.angles, anglesProperty, false);
-            gizmo.ScaleGizmo(torus.transform.position, torus.transform.angles, torus.transform.scale, scaleProperty, false);
+            gizmo.TransformGizmo(
+                torus.transform.position,
+                torus.transform.angles,
+                torus.transform.scale,
+                centerProperty,
+                anglesProperty,
+                scaleProperty);
 
             // Radius controls
             using (new Handles.DrawingScope(Handles.matrix * torus.transform * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
@@ -77,7 +81,7 @@ namespace UnityEditor.VFX
                             Vector3 sliderPos = capCenter + distRotated * torus.minorRadius;
 
                             EditorGUI.BeginChangeCheck();
-                            var result = Handles.Slider(gizmo.GetCombinedHashCode(composedName), sliderPos, distRotated, arcAngle <= maxAngle ? handleSize * HandleUtility.GetHandleSize(sliderPos) : 0, CustomCubeHandleCap, 0);
+                            var result = CustomSlider(gizmo.GetCombinedHashCode(composedName), sliderPos, distRotated, arcAngle <= maxAngle ? handleSize * HandleUtility.GetHandleSize(sliderPos) : 0);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 var newRadius = (result - capCenter).magnitude;
@@ -98,7 +102,7 @@ namespace UnityEditor.VFX
                         Vector3 sliderPos = distRotated * torus.majorRadius;
 
                         EditorGUI.BeginChangeCheck();
-                        Vector3 result = Handles.Slider(gizmo.GetCombinedHashCode(composedName), sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), CustomCubeHandleCap, 0);
+                        Vector3 result = CustomSlider(gizmo.GetCombinedHashCode(composedName), sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos));
                         if (EditorGUI.EndChangeCheck())
                         {
                             float newRadius = (result).magnitude;
