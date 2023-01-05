@@ -13,9 +13,9 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("AbsorptionTint", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("LowFrequencyHeight", TYPE.Float, Usage.In),
                 new ParameterDescriptor("HorizontalDisplacement", TYPE.Float, Usage.In),
                 new ParameterDescriptor("DeepFoam", TYPE.Float, Usage.In),
-                new ParameterDescriptor("LowFrequencyHeight", TYPE.Float, Usage.In),
                 new ParameterDescriptor("ScatteringColor", TYPE.Vec3, Usage.Out)
             }
         );
@@ -42,11 +42,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "HorizontalDisplacement",
                     displayName: "Horizontal Displacement",
-                    tooltip: ""
-                ),
-                new ParameterUIDescriptor(
-                    name: "SSSMask",
-                    displayName: "SSS Mask",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
