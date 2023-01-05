@@ -30,11 +30,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "ViewDir",
                     displayName: "View Dir",
-                    tooltip: "The mesh's view direction."
+                    tooltip: "The mesh's view direction.",
+                    options: REF.OptionList.ViewDirections
                 ),
                 new ParameterUIDescriptor(
                     name: "Normal",
-                    tooltip: "The mesh's normal vector."
+                    tooltip: "The mesh's normal vector.",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "LOD",

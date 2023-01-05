@@ -101,7 +101,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Dir",
-                    tooltip: "the direction vector used to sample the cubemap"
+                    tooltip: "the direction vector used to sample the cubemap",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

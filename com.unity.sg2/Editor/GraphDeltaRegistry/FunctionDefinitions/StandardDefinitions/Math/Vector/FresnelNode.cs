@@ -29,12 +29,14 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "Normal",
-                    tooltip: "normal direction"
+                    tooltip: "normal direction",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "ViewDir",
                     displayName: "View Dir",
-                    tooltip: "view direction"
+                    tooltip: "view direction",
+                    options: REF.OptionList.ViewDirections
                 ),
                 new ParameterUIDescriptor(
                     name: "Power",

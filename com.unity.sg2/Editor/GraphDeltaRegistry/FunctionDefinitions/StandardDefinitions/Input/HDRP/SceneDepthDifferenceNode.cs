@@ -95,7 +95,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "PositionWS",
                     displayName: "Position WS",
-                    tooltip: "The position of the pixel in world space"
+                    tooltip: "The position of the pixel in world space",
+                    options: REF.OptionList.Positions
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
