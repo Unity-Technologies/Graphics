@@ -111,8 +111,8 @@ namespace UnityEditor.VFX.PerformanceTest
             float simulateTime = VFXGraphicsTestSettings.defaultSimulateTime;
             int captureFrameRate = VFXGraphicsTestSettings.defaultCaptureFrameRate;
 
-            var testSettingsInScene = Object.FindObjectOfType<GraphicsTestSettings>();
-            var vfxTestSettingsInScene = Object.FindObjectOfType<VFXGraphicsTestSettings>();
+            var testSettingsInScene = Object.FindAnyObjectByType<GraphicsTestSettings>();
+            var vfxTestSettingsInScene = Object.FindAnyObjectByType<VFXGraphicsTestSettings>();
 
             if (vfxTestSettingsInScene != null)
             {
