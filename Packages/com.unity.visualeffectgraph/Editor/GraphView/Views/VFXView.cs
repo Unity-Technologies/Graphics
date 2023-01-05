@@ -214,8 +214,10 @@ namespace UnityEditor.VFX.UI
         void DisconnectController()
         {
             if (controller.model && controller.graph)
+            {
+                controller.graph.ForceShaderDebugSymbols(VFXViewPreference.generateShadersWithDebugSymbols, false); // Remove debug symbols override from view but don't reimport (this is done by the SetCompilation below)
                 controller.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
-
+            }
 
             m_Controller.UnregisterHandler(this);
             m_Controller.useCount--;
@@ -447,6 +449,7 @@ namespace UnityEditor.VFX.UI
         VFXNodeProvider m_NodeProvider;
         ToolbarButton m_SaveButton;
         bool m_IsRuntimeMode;
+        bool m_ForceShaderDebugSymbols;
         bool m_ForceShaderValidation;
 
 
@@ -581,6 +584,7 @@ namespace UnityEditor.VFX.UI
             showDebugMenu.text = "Advanced";
             showDebugMenu.menu.AppendAction("Runtime Mode (Forced)", OnRuntimeModeChanged, RuntimeModeStatus);
             showDebugMenu.menu.AppendAction("Shader Validation (Forced)", OnShaderValidationChanged, ShaderValidationStatus);
+            showDebugMenu.menu.AppendAction("Shader Debug Symbols", OnForceShaderDebugSymbolsChanged, ShaderDebugSymbolsStatus);
             showDebugMenu.menu.AppendSeparator();
             showDebugMenu.menu.AppendAction("Refresh UI", OnRefreshUI, DropdownMenuAction.Status.Normal);
             m_Toolbar.Add(showDebugMenu);
@@ -655,6 +659,9 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
+        internal bool GetIsRuntimeMode() => m_IsRuntimeMode;
+        internal bool GetForceShaderDebugSymbols() => m_ForceShaderDebugSymbols;
+
         public void Dispose()
         {
             UnregisterCallback<DragUpdatedEvent>(OnDragUpdated);
@@ -695,14 +702,36 @@ namespace UnityEditor.VFX.UI
             m_IsRuntimeMode = !m_IsRuntimeMode;
             controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
         }
-
+                
         DropdownMenuAction.Status RuntimeModeStatus(DropdownMenuAction action)
         {
+            if (controller.graph.GetResource()?.isSubgraph ?? true)
+                return DropdownMenuAction.Status.Disabled;
             if (m_IsRuntimeMode)
                 return DropdownMenuAction.Status.Checked;
             else
                 return DropdownMenuAction.Status.Normal;
         }
+
+        internal void OnForceShaderDebugSymbolsChanged(DropdownMenuAction action)
+        {
+            m_ForceShaderDebugSymbols = !m_ForceShaderDebugSymbols;
+            controller.graph.ForceShaderDebugSymbols(m_ForceShaderDebugSymbols);
+        }
+
+        DropdownMenuAction.Status ShaderDebugSymbolsStatus(DropdownMenuAction action)
+        {
+            if (controller.graph.GetResource()?.isSubgraph ?? true)
+                return DropdownMenuAction.Status.Disabled;
+            else if (VFXViewPreference.generateShadersWithDebugSymbols)
+                return DropdownMenuAction.Status.Checked | DropdownMenuAction.Status.Disabled;
+            else if (m_ForceShaderDebugSymbols)
+                return DropdownMenuAction.Status.Checked;
+            else
+                return DropdownMenuAction.Status.Normal;
+        }
+
+        internal bool GetShaderValidation() => m_ForceShaderValidation;
 
         void OnShaderValidationChanged(DropdownMenuAction action)
         {
@@ -712,7 +741,9 @@ namespace UnityEditor.VFX.UI
 
         DropdownMenuAction.Status ShaderValidationStatus(DropdownMenuAction action)
         {
-            if (m_ForceShaderValidation)
+            if (controller.graph.GetResource()?.isSubgraph ?? true)
+                return DropdownMenuAction.Status.Disabled;
+            else if (m_ForceShaderValidation)
                 return DropdownMenuAction.Status.Checked;
             else
                 return DropdownMenuAction.Status.Normal;

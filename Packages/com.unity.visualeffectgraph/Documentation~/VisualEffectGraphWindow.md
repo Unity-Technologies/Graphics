@@ -38,7 +38,7 @@ The Visual Effect Graph window Toolbar contains functionality to operate on a Vi
 | **Show in Project**   | **Action** : Focuses the currently opened Visual Effect Graph's Asset in the Project window. |
 | **Blackboard**        | **Toggle** : Toggles visibility of the **Blackboard Panel**. |
 | **Target GameObject** | **Toggle** : Toggles visibility of the **Target VisualEffect GameObject Panel**. |
-| **Advanced**          | **Menu:** Displays Advanced Properties. The options are <br/>&#8226; **Runtime Mode (Forced)**: Forces optimized compilation, even when the editor is open.<br/>&#8226; **Shader Validation (Forced)**: Performs a forced Shader compilation when the effect recompiles, even if no visual effect is visible. This displays the Shader errors in the Scene. <br/>&#8226; **Refresh UI**: Refreshes the window UI. |
+| **Advanced**          | **Menu:** Displays Advanced Properties. The options are <br/>&#8226; **Runtime Mode (Forced)**: Forces optimized compilation, even when the editor is open.<br/>&#8226; **Shader Debug Symbols**: Forces shader debug symbols generation when Unity compiles the authored VFX asset. <br/>&#8226; **Refresh UI**: Refreshes the window UI. |
 
 <a name="NodeWorkspace"></a>
 ### Node Workspace
