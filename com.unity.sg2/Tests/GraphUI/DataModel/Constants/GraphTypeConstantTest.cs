@@ -58,22 +58,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             new TestCaseData(TYPE.Mat4, ShaderGraphExampleTypes.Matrix4).SetName("{m}(Mat4)"),
         };
 
-        (NodeHandler, PortHandler) MakeTestField(ITypeDescriptor type, object value = null, string name = "TestParam")
-        {
-             var node = GraphModel.CreateGraphDataNode(new RegistryKey {Name = "Add", Version = 1});
-            node.TryGetNodeHandler(out var nodeHandler);
-
-            var param = new ParameterDescriptor(name, type, Usage.In, value);
-            var portHandler = NodeBuilderUtils.ParameterDescriptorToField(param, TYPE.Any, nodeHandler, GraphModel.GraphHandler.registry);
-
-            return (nodeHandler, portHandler);
-        }
-
         [Test]
         [TestCaseSource(nameof(s_FieldTypesAndSampleValues))]
         public void TestGetObjectValue_MatchesField(ITypeDescriptor type, object value)
         {
-            var (nodeHandler, portHandler) = MakeTestField(type, value);
+            var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, type, value);
             var constant = new GraphTypeConstant();
             constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
 
@@ -84,7 +73,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [TestCaseSource(nameof(s_FieldTypesAndSampleValues))]
         public void TestGetType_MatchesField(ITypeDescriptor type, object value)
         {
-            var (nodeHandler, portHandler) = MakeTestField(type, value);
+            var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, type, value);
             var constant = new GraphTypeConstant();
             constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
 
@@ -95,7 +84,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [TestCaseSource(nameof(s_FieldTypesAndTypeHandles))]
         public void TestGetTypeHandle_MatchesField(ITypeDescriptor type, TypeHandle typeHandle)
         {
-            var (nodeHandler, portHandler) = MakeTestField(type);
+            var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, type);
             var constant = new GraphTypeConstant();
             constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
 
@@ -106,8 +95,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [TestCaseSource(nameof(s_FieldTypesAndSampleValues))]
         public void TestSetObjectValue_MatchingType_WritesField(ITypeDescriptor type, object value)
         {
-            var (_, expectedPortHandler) = MakeTestField(type, name: "Expected");
-            var (actualNodeHandler, actualPortHandler) = MakeTestField(type, name: "Actual");
+            var (_, expectedPortHandler) = ConstantTestUtils.MakeTestField(GraphModel, type, name: "Expected");
+            var (actualNodeHandler, actualPortHandler) = ConstantTestUtils.MakeTestField(GraphModel, type, name: "Actual");
 
             // Set the components using a known working method as reference
             GraphTypeHelpers.SetByManaged(expectedPortHandler.GetTypeField(), value);
