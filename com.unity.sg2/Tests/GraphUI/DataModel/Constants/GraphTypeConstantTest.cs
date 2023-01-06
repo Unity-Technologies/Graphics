@@ -5,7 +5,6 @@ using Unity.GraphToolsFoundation;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using static UnityEditor.ShaderGraph.GraphDelta.GraphType;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
