@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             foreach (var model in graphModel.VariableDeclarations)
             {
                 // If we can find a variable that is tied to this constant, we're fine!
-                if (model is GraphDataVariableDeclarationModel variableDeclarationModel
+                if (model is SGVariableDeclarationModel variableDeclarationModel
                 && variableDeclarationModel.graphDataName == portName)
                 {
                     return false;
