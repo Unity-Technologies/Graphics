@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "com.unity.collab-proxy": "1.15.7",
+    "com.unity.feature.development": "1.0.1",
+    "com.unity.package-validation-suite": "0.22.0-preview",
+    "com.unity.render-pipelines.high-definition": "14.0.0",
+    "com.unity.textmeshpro": "3.0.6",
+    "com.unity.timeline": "1.6.3",
+    "com.unity.ugui": "1.0.0",
+    "com.unity.visualscripting": "1.7.6"
+  }
+}
