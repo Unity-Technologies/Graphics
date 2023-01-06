@@ -3580,7 +3580,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.parameters.debugView);
                     });
 
-                PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.LensFlareScreenSpace);
+                PushFullScreenDebugTexture(renderGraph, passData.result, hdCamera.postProcessRTScales, FullScreenDebugMode.LensFlareScreenSpace);
                 result = passData.bloomTexture;
             }
             return result;
