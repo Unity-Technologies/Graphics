@@ -131,14 +131,14 @@ namespace UnityEditor.ShaderGraph.Defs
         public static readonly ReferenceValueDescriptor UV6 = new("uv6");
         public static readonly ReferenceValueDescriptor UV7 = new("uv7");
 
-        public static readonly ReferenceValueDescriptor M = new("");  // model
-        public static readonly ReferenceValueDescriptor I_M = new("");
-        public static readonly ReferenceValueDescriptor V = new("");  // view
-        public static readonly ReferenceValueDescriptor I_V = new("");
-        public static readonly ReferenceValueDescriptor P = new("");  // projection
-        public static readonly ReferenceValueDescriptor I_P = new("");
-        public static readonly ReferenceValueDescriptor VP = new("");  // view projection
-        public static readonly ReferenceValueDescriptor I_VP = new("");
+        public static readonly ReferenceValueDescriptor M = new("UNITY_MATRIX_M");  // model
+        public static readonly ReferenceValueDescriptor I_M = new("UNITY_MATRIX_I_M");
+        public static readonly ReferenceValueDescriptor V = new("UNITY_MATRIX_V");  // view
+        public static readonly ReferenceValueDescriptor I_V = new("UNITY_MATRIX_I_V");
+        public static readonly ReferenceValueDescriptor P = new("UNITY_MATRIX_P");  // projection
+        public static readonly ReferenceValueDescriptor I_P = new("UNITY_MATRIX_I_P");
+        public static readonly ReferenceValueDescriptor VP = new("UNITY_MATRIX_VP");  // view projection
+        public static readonly ReferenceValueDescriptor I_VP = new("UNITY_MATRIX_I_VP");
 
         public static readonly ReferenceValueDescriptor ProjectionParams = new("");
         public static readonly ReferenceValueDescriptor ScreenParams = new("");
