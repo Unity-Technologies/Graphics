@@ -12,8 +12,8 @@ namespace UnityEditor.ShaderGraph.Defs
             @"   NormalWS = BlendWaterNormal(NormalTS, NormalWSin);",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("NormalTS", TYPE.Vec3, Usage.In),
-                new ParameterDescriptor("NormalWSin", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("NormalTS", TYPE.Vec3, Usage.In, new float[] { 1.0f, 1.0f, 1.0f}),
+                new ParameterDescriptor("NormalWSin", TYPE.Vec3, Usage.In, new float[] { 1.0f, 1.0f, 1.0f}),
                 new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Out)
             }
         );
