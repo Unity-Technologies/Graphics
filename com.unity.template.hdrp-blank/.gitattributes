@@ -1,0 +1,11 @@
+* text=auto
+
+# Unity insists using LF for its text assets so prevent changing them to CRLF
+*.unity text eol=lf
+*.prefab text eol=lf
+*.asset text eol=lf
+*.meta text eol=lf
+*.json text eol=lf
+*.mat text eol=lf
+*.mesh text eol=lf
+*.txt text eol=lf

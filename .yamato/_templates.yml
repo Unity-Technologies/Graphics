@@ -299,6 +299,298 @@ publish_hdrp_template_CUSTOM-REVISION_dry_run:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
+pre_pack_hdrp_blank_template_Win_2021.3:
+    name: Pre-Pack HDRP Blank Template Win 2021.3
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v1.21.0-1103460
+        flavor: b1.large
+    commands:
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  .Editor\Unity.exe -projectPath com.unity.template.hdrp-blank -batchmode -quit -logFile ./Editor.log
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:Win
+    artifacts:
+        primed:
+            paths:
+              -  "com.unity.template.hdrp-blank/Library/Artifacts/**"
+              -  "com.unity.template.hdrp-blank/Library/ArtifactDB"
+              -  "com.unity.template.hdrp-blank/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
+pack_hdrp_blank_template_Win_2021.3:
+    name: Pack HDRP Blank Template Win 2021.3
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v2.2.1-1064078
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template.hdrp-blank
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+test_hdrp_blank_template_Win_2021.3:
+    name: Test HDRP Blank Template Win 2021.3
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v1.21.0-1103460
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_Win_2021.3
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:Win
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci template test -u .\.Editor --project-path com.unity.template.hdrp-blank
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+pre_pack_hdrp_blank_template_OSX_2021.3:
+    name: Pre-Pack HDRP Blank Template OSX 2021.3
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:v1.20.0-1079282
+        flavor: m1.mac
+    commands:
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template.hdrp-blank -batchmode -quit -logFile ./Editor.log
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
+    artifacts:
+        primed:
+            paths:
+              -  "com.unity.template.hdrp-blank/Library/Artifacts/**"
+              -  "com.unity.template.hdrp-blank/Library/ArtifactDB"
+              -  "com.unity.template.hdrp-blank/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
+pack_hdrp_blank_template_OSX_2021.3:
+    name: Pack HDRP Blank Template OSX 2021.3
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v2.2.1-1064078
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template.hdrp-blank
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+test_hdrp_blank_template_OSX_2021.3:
+    name: Test HDRP Blank Template OSX 2021.3
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:v1.20.0-1079282
+        flavor: m1.mac
+    dependencies:
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_OSX_2021.3
+      -  .yamato/_editor_priming.yml#editor:priming:2021.3:OSX
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template.hdrp-blank
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+publish_hdrp_blank_template_2021.3:
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v2.2.1-1064078
+        flavor: b1.large
+    name: Publish HDRP Blank Template 2021.3
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template publish --project-path com.unity.template.hdrp-blank
+    dependencies:
+      -  .yamato/_templates.yml#test_hdrp_blank_template_Win_2021.3
+      -  .yamato/_templates.yml#test_hdrp_blank_template_OSX_2021.3
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_Win_2021.3
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_OSX_2021.3
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+publish_hdrp_blank_template_2021.3_dry_run:
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v2.2.1-1064078
+        flavor: b1.large
+    name: Publish HDRP Blank Template 2021.3 Dry Run
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template publish --project-path com.unity.template.hdrp-blank --dry-run
+    dependencies:
+      -  .yamato/_templates.yml#test_hdrp_blank_template_Win_2021.3
+      -  .yamato/_templates.yml#test_hdrp_blank_template_OSX_2021.3
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_Win_2021.3
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_OSX_2021.3
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+pre_pack_hdrp_blank_template_Win_CUSTOM-REVISION:
+    name: Pre-Pack HDRP Blank Template Win CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v1.21.0-1103460
+        flavor: b1.large
+    commands:
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  .Editor\Unity.exe -projectPath com.unity.template.hdrp-blank -batchmode -quit -logFile ./Editor.log
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+    artifacts:
+        primed:
+            paths:
+              -  "com.unity.template.hdrp-blank/Library/Artifacts/**"
+              -  "com.unity.template.hdrp-blank/Library/ArtifactDB"
+              -  "com.unity.template.hdrp-blank/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
+pack_hdrp_blank_template_Win_CUSTOM-REVISION:
+    name: Pack HDRP Blank Template Win CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v2.2.1-1064078
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template.hdrp-blank
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+test_hdrp_blank_template_Win_CUSTOM-REVISION:
+    name: Test HDRP Blank Template Win CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v1.21.0-1103460
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_Win_CUSTOM-REVISION
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci template test -u .\.Editor --project-path com.unity.template.hdrp-blank
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+pre_pack_hdrp_blank_template_OSX_CUSTOM-REVISION:
+    name: Pre-Pack HDRP Blank Template OSX CUSTOM-REVISION
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:v1.20.0-1079282
+        flavor: m1.mac
+    commands:
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template.hdrp-blank -batchmode -quit -logFile ./Editor.log
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+    artifacts:
+        primed:
+            paths:
+              -  "com.unity.template.hdrp-blank/Library/Artifacts/**"
+              -  "com.unity.template.hdrp-blank/Library/ArtifactDB"
+              -  "com.unity.template.hdrp-blank/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
+pack_hdrp_blank_template_OSX_CUSTOM-REVISION:
+    name: Pack HDRP Blank Template OSX CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v2.2.1-1064078
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template.hdrp-blank
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+test_hdrp_blank_template_OSX_CUSTOM-REVISION:
+    name: Test HDRP Blank Template OSX CUSTOM-REVISION
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:v1.20.0-1079282
+        flavor: m1.mac
+    dependencies:
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_OSX_CUSTOM-REVISION
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template.hdrp-blank
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+publish_hdrp_blank_template_CUSTOM-REVISION:
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v2.2.1-1064078
+        flavor: b1.large
+    name: Publish HDRP Blank Template CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template publish --project-path com.unity.template.hdrp-blank
+    dependencies:
+      -  .yamato/_templates.yml#test_hdrp_blank_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_blank_template_OSX_CUSTOM-REVISION
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_OSX_CUSTOM-REVISION
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+publish_hdrp_blank_template_CUSTOM-REVISION_dry_run:
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:v2.2.1-1064078
+        flavor: b1.large
+    name: Publish HDRP Blank Template CUSTOM-REVISION Dry Run
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template publish --project-path com.unity.template.hdrp-blank --dry-run
+    dependencies:
+      -  .yamato/_templates.yml#test_hdrp_blank_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_blank_template_OSX_CUSTOM-REVISION
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#pack_hdrp_blank_template_OSX_CUSTOM-REVISION
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
 pre_pack_universal_template_Win_2021.3:
     name: Pre-Pack Universal Template Win 2021.3
     agent:
@@ -599,8 +891,10 @@ all_template_ci_2021.3:
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#test_hdrp_template_Win_2021.3
+      -  .yamato/_templates.yml#test_hdrp_blank_template_Win_2021.3
       -  .yamato/_templates.yml#test_universal_template_Win_2021.3
       -  .yamato/_templates.yml#test_hdrp_template_OSX_2021.3
+      -  .yamato/_templates.yml#test_hdrp_blank_template_OSX_2021.3
       -  .yamato/_templates.yml#test_universal_template_OSX_2021.3
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -614,8 +908,10 @@ all_template_ci_CUSTOM-REVISION:
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#test_hdrp_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_blank_template_Win_CUSTOM-REVISION
       -  .yamato/_templates.yml#test_universal_template_Win_CUSTOM-REVISION
       -  .yamato/_templates.yml#test_hdrp_template_OSX_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_blank_template_OSX_CUSTOM-REVISION
       -  .yamato/_templates.yml#test_universal_template_OSX_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
