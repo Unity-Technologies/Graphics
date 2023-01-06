@@ -32,7 +32,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: 
+  m_Name: 018_CollisionScaledPrimitive_Sphere_Debug
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 0}
@@ -267,10 +267,10 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+    x: 580
+    y: -190
+    width: 798
+    height: 2622
 --- !u!114 &114350483966674978
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3363,7 +3363,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 622, y: 1142}
+  m_UIPosition: {x: 640, y: 1125}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3806,7 +3806,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 114350483966675089}
       inputSlot: {fileID: 114350483966675008}
-    position: {x: 543, y: 954}
+    position: {x: 580, y: 956}
     expandedSlots: []
     expanded: 0
 --- !u!114 &114350483966675089
@@ -4343,7 +4343,7 @@ MonoBehaviour:
   - {fileID: 114350483966675105}
   m_ExposedName: Sphere_Inner
   m_Exposed: 1
-  m_Order: 0
+  m_Order: 1
   m_Category: 
   m_Min:
     m_Type:
@@ -4899,7 +4899,7 @@ MonoBehaviour:
   - {fileID: 114350483966675121}
   m_ExposedName: Size
   m_Exposed: 1
-  m_Order: 1
+  m_Order: 2
   m_Category: 
   m_Min:
     m_Type:
@@ -4979,7 +4979,7 @@ MonoBehaviour:
   - {fileID: 114350483966675123}
   m_ExposedName: Size 1
   m_Exposed: 1
-  m_Order: 2
+  m_Order: 3
   m_Category: 
   m_Min:
     m_Type:
