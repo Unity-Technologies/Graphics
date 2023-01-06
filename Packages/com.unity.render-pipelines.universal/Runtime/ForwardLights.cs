@@ -578,13 +578,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         if (lightData.mainLightIndex != i)
                         {
-                            InitializeLightConstants(lights, i, out m_AdditionalLightPositions[lightIter],
+                            InitializeLightConstants(
+                                lights,
+                                i,
+                                out m_AdditionalLightPositions[lightIter],
                                 out m_AdditionalLightColors[lightIter],
                                 out m_AdditionalLightAttenuations[lightIter],
                                 out m_AdditionalLightSpotDirections[lightIter],
                                 out m_AdditionalLightOcclusionProbeChannels[lightIter],
-                                out _,
+                                out uint lightLayerMask,
                                 out var isSubtractive);
+
+                            m_AdditionalLightsLayerMasks[lightIter] = math.asfloat(lightLayerMask);
                             m_AdditionalLightColors[lightIter].w = isSubtractive ? 1f : 0f;
                             lightIter++;
                         }
