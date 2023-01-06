@@ -19,7 +19,6 @@ public unsafe class BRGTransparent : MonoBehaviour
     private const int kTransparentCount = 16;
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
-    private GraphicsBuffer m_Globals;
 
     private BatchID[] m_batchIDs;
     private BatchMaterialID m_materialID;
@@ -153,11 +152,6 @@ public unsafe class BRGTransparent : MonoBehaviour
             kBRGBufferAlignment = (uint)(BatchRendererGroup.GetConstantBufferOffsetAlignment());
         }
 
-        m_Globals = new GraphicsBuffer(GraphicsBuffer.Target.Constant,
-            1,
-            UnsafeUtility.SizeOf<BatchRendererGroupGlobals>());
-        m_Globals.SetData(new [] { BatchRendererGroupGlobals.Default });
-
         // create one or several batches (regarding UBO size limit on UBO only platform such as GLES3.1)
         uint itemCount = (uint)kTransparentCount;
 
@@ -245,8 +239,6 @@ public unsafe class BRGTransparent : MonoBehaviour
         }
 
         m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
-        Shader.SetGlobalConstantBuffer(BatchRendererGroupGlobals.kGlobalsPropertyId, m_Globals, 0, m_Globals.stride);
-
         m_initialized = true;
     }
 
@@ -302,7 +294,6 @@ public unsafe class BRGTransparent : MonoBehaviour
 
             m_BatchRendererGroup.Dispose();
             m_GPUPersistentInstanceData.Dispose();
-            m_Globals.Dispose();
             m_sysmemBuffer.Dispose();
         }
     }
