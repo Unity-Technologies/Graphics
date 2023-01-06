@@ -120,7 +120,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
             {
                 // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
                 nextPathIntersection.remainingDepth = _RaytracingMaxRecursion + 1;
-                ray.TMax -= _RaytracingRayBias;
+                ray.TMax -= _RayTracingRayBias;
                 nextPathIntersection.value = 1.0;
 
                 // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future

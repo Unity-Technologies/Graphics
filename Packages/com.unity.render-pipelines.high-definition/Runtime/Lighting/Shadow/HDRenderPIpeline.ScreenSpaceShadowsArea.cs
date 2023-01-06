@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the light data
             cmd.SetComputeMatrixParam(data.screenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, data.worldToLocalMatrix);
-            cmd.SetComputeIntParam(data.screenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, data.lightIndex);
+            cmd.SetComputeIntParam(data.screenSpaceShadowsCS, HDShaderIDs._RaytracingTargetLight, data.lightIndex);
 
             data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.numSamples;
             ConstantBuffer.PushGlobal(cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(data.screenSpaceShadowsRT, HDShaderIDs._RaytracedAreaShadowSample, data.intermediateBufferRGBA1);
             cmd.SetRayTracingTextureParam(data.screenSpaceShadowsRT, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
             cmd.SetRayTracingTextureParam(data.screenSpaceShadowsRT, HDShaderIDs._RayTracingLengthBuffer, data.rayLengthBuffer);
-            cmd.SetRayTracingIntParam(data.screenSpaceShadowsRT, HDShaderIDs._RaytracingTargetAreaLight, data.lightIndex);
+            cmd.SetRayTracingIntParam(data.screenSpaceShadowsRT, HDShaderIDs._RaytracingTargetLight, data.lightIndex);
 
             // Output data
             cmd.SetRayTracingTextureParam(data.screenSpaceShadowsRT, HDShaderIDs._RaytracedAreaShadowIntegration, data.outputShadowTexture);
@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConstantBuffer.PushGlobal(cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Bind the light data
-                cmd.SetComputeIntParam(data.screenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, data.lightIndex);
+                cmd.SetComputeIntParam(data.screenSpaceShadowsCS, HDShaderIDs._RaytracingTargetLight, data.lightIndex);
                 cmd.SetComputeMatrixParam(data.screenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, data.worldToLocalMatrix);
 
                 // Input Buffers
@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingTextureParam(data.screenSpaceShadowsRT, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
                 cmd.SetRayTracingTextureParam(data.screenSpaceShadowsRT, HDShaderIDs._RayTracingLengthBuffer, data.rayLengthBuffer);
                 cmd.SetRayTracingTextureParam(data.screenSpaceShadowsRT, HDShaderIDs._AnalyticProbBuffer, data.intermediateBufferRG0);
-                cmd.SetRayTracingIntParam(data.screenSpaceShadowsRT, HDShaderIDs._RaytracingTargetAreaLight, data.lightIndex);
+                cmd.SetRayTracingIntParam(data.screenSpaceShadowsRT, HDShaderIDs._RaytracingTargetLight, data.lightIndex);
 
                 // Output buffers
                 cmd.SetRayTracingTextureParam(data.screenSpaceShadowsRT, HDShaderIDs._RaytracedAreaShadowIntegration, data.outputShadowTexture);

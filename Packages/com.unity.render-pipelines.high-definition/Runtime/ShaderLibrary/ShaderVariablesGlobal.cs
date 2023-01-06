@@ -170,6 +170,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
         public fixed float _Env2DAtlasScaleOffset[s_MaxEnv2DLight * 4];
 
+        public int _ReflectionsMode;
+        public int _UnusedPadding0;
+        public int _UnusedPadding1;
+        public int _UnusedPadding2;
+
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;
         public uint _AreaLightCount;
@@ -253,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CoarseStencilBufferSize;
 
-        public int _IndirectDiffuseMode; // Match IndirectDiffuseMode enum in LightLoop.cs
+        public int _IndirectDiffuseMode;
         public int _EnableRayTracedReflections;
         public int _RaytracingFrameIndex;  // Index of the current frame [0, 7]
         public uint _EnableRecursiveRayTracing;

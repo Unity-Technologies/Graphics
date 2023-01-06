@@ -924,6 +924,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ShaderVariablesGlobalCB._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
             m_ShaderVariablesGlobalCB._IndirectDiffuseMode = (int)GetIndirectDiffuseMode(hdCamera);
+            m_ShaderVariablesGlobalCB._ReflectionsMode = (int)GetReflectionsMode(hdCamera);
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
@@ -963,7 +964,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ScreenSpaceReflection screenSpaceReflection = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
             // Those are globally set parameters. The others are set per effect and will update the constant buffer as we render.
-            m_ShaderVariablesRayTracingCB._RaytracingRayBias = rayTracingSettings.rayBias.value;
+            m_ShaderVariablesRayTracingCB._RayTracingRayBias = rayTracingSettings.rayBias.value;
+            m_ShaderVariablesRayTracingCB._RayTracingDistantRayBias = rayTracingSettings.distantRayBias.value;
             m_ShaderVariablesRayTracingCB._RayCountEnabled = m_RayCountManager.RayCountIsEnabled();
             m_ShaderVariablesRayTracingCB._RaytracingCameraNearPlane = hdCamera.camera.nearClipPlane;
             m_ShaderVariablesRayTracingCB._RaytracingPixelSpreadAngle = GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
@@ -1178,8 +1180,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDCamera.CleanUnused();
             }
 
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
+#endif
 #endif
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
@@ -2052,7 +2058,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                     m_DebugDisplaySettings.UpdateCameraFreezeOptions();
+#endif
                     m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
                 }
 

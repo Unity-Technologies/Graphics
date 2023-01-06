@@ -1269,6 +1269,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 data.blueNoise.BindDitheredRNGData1SPP(ctx.cmd);
 
+                                ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
+
                                 ctx.cmd.DispatchCompute(cs, data.tracingKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
                             }
 

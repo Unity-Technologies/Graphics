@@ -675,7 +675,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingReflectionTexture = Shader.PropertyToID("_RaytracingReflectionTexture");
 
         // Shadows
-        public static readonly int _RaytracingTargetAreaLight = Shader.PropertyToID("_RaytracingTargetAreaLight");
+        public static readonly int _RaytracingTargetLight = Shader.PropertyToID("_RaytracingTargetLight");
         public static readonly int _RaytracingShadowSlot = Shader.PropertyToID("_RaytracingShadowSlot");
         public static readonly int _RaytracingChannelMask = Shader.PropertyToID("_RaytracingChannelMask");
         public static readonly int _RaytracingChannelMask0 = Shader.PropertyToID("_RaytracingChannelMask0");
@@ -695,11 +695,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AnalyticProbBuffer = Shader.PropertyToID("_AnalyticProbBuffer");
         public static readonly int _AnalyticHistoryBuffer = Shader.PropertyToID("_AnalyticHistoryBuffer");
         public static readonly int _RaytracingLightRadius = Shader.PropertyToID("_RaytracingLightRadius");
-        public static readonly int _RaytracingSpotAngle = Shader.PropertyToID("_RaytracingSpotAngle");
+        public static readonly int _RaytracingLightAngle = Shader.PropertyToID("_RaytracingLightAngle");
         public static readonly int _RaytracedShadowIntegration = Shader.PropertyToID("_RaytracedShadowIntegration");
         public static readonly int _RaytracedColorShadowIntegration = Shader.PropertyToID("_RaytracedColorShadowIntegration");
 
-        public static readonly int _DirectionalLightAngle = Shader.PropertyToID("_DirectionalLightAngle");
         public static readonly int _DirectionalMaxRayLength = Shader.PropertyToID("_DirectionalMaxRayLength");
         public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
         public static readonly int _SphereLightPosition = Shader.PropertyToID("_SphereLightPosition");

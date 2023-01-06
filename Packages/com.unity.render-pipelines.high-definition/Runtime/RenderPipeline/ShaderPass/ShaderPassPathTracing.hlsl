@@ -31,7 +31,7 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
     LightList lightList = CreateLightList(position, normal, DEFAULT_LIGHT_LAYERS, withPoint, withArea, withDistant);
 
     RayDesc rayDescriptor;
-    rayDescriptor.Origin = position + normal * _RaytracingRayBias;
+    rayDescriptor.Origin = position + normal * _RayTracingRayBias;
     rayDescriptor.TMin = 0.0;
 
     // By default, full visibility
@@ -46,7 +46,7 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
         // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
         PathIntersection intersection;
         intersection.remainingDepth = _RaytracingMaxRecursion + 1;
-        rayDescriptor.TMax -= _RaytracingRayBias;
+        rayDescriptor.TMax -= _RayTracingRayBias;
         intersection.value = 1.0;
 
         // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
@@ -151,7 +151,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         MaterialResult mtlResult;
 
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = shadingPosition + mtlData.bsdfData.geomNormalWS * _RaytracingRayBias;
+        rayDescriptor.Origin = shadingPosition + mtlData.bsdfData.geomNormalWS * _RayTracingRayBias;
         rayDescriptor.TMin = 0.0;
 
         PathIntersection nextPathIntersection;
@@ -168,7 +168,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 {
                     // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
                     nextPathIntersection.remainingDepth = _RaytracingMaxRecursion + 1;
-                    rayDescriptor.TMax -= _RaytracingRayBias;
+                    rayDescriptor.TMax -= _RayTracingRayBias;
                     nextPathIntersection.value = 1.0;
 
                     // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
@@ -198,7 +198,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
             {
                 bool isSampleBelow = IsBelow(mtlData, rayDescriptor.Direction);
 
-                rayDescriptor.Origin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RaytracingRayBias, isSampleBelow);
+                rayDescriptor.Origin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RayTracingRayBias, isSampleBelow);
                 rayDescriptor.TMax = FLT_INF;
 
                 // Copy path constants across
@@ -222,7 +222,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 if (computeDirect)
                 {
                     // Use same ray for direct lighting (use indirect result for occlusion)
-                    rayDescriptor.TMax = nextPathIntersection.t + _RaytracingRayBias;
+                    rayDescriptor.TMax = nextPathIntersection.t + _RayTracingRayBias;
                     float3 lightValue;
                     float lightPdf;
                     EvaluateLights(lightList, rayDescriptor, lightValue, lightPdf);
@@ -263,7 +263,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     if (builtinData.opacity < 1.0)
     {
         RayDesc rayDescriptor;
-        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
+        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RayTracingRayBias : -_RayTracingRayBias;
         rayDescriptor.Origin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
         rayDescriptor.Direction = WorldRayDirection();
         rayDescriptor.TMin = 0.0;

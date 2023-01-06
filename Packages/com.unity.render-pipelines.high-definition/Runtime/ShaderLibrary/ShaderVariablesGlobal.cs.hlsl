@@ -86,6 +86,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4x4 _Env2DCaptureVP[32];
     float4 _Env2DCaptureForward[32];
     float4 _Env2DAtlasScaleOffset[32];
+    int _ReflectionsMode;
+    int _UnusedPadding0;
+    int _UnusedPadding1;
+    int _UnusedPadding2;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;

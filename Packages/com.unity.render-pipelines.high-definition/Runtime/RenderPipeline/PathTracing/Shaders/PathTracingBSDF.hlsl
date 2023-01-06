@@ -528,7 +528,7 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
 
     // Initialize the walk parameters
     RayDesc rayDesc;
-    rayDesc.Origin = position - normal * _RaytracingRayBias;
+    rayDesc.Origin = position - normal * _RayTracingRayBias;
     rayDesc.TMin = 0.0;
 
     bool hit;

@@ -202,3 +202,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: driver issue?
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6293ce393e2851d4e9827ff3dadd2673, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: cause a crash on yamato?

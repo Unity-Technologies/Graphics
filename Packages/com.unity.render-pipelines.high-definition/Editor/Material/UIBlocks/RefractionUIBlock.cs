@@ -108,10 +108,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (transmittanceColorMap != null)
                         {
                             materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
-                            ++EditorGUI.indentLevel;
                             materialEditor.ShaderProperty(atDistance, Styles.atDistanceText);
                             atDistance.floatValue = Mathf.Max(atDistance.floatValue, 0);
-                            --EditorGUI.indentLevel;
                         }
                     }
                     break;

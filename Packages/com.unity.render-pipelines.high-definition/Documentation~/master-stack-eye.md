@@ -70,7 +70,7 @@ When you create a new Eye Master Stack, the Fragment Context contains the follow
 [!include[](snippets/shader-graph-blocks/normal-tangent-space.md)]
 [!include[](snippets/shader-graph-blocks/bent-normal.md)]
 [!include[](snippets/shader-graph-blocks/smoothness.md)]
-[!include[](snippets/shader-graph-blocks/ior.md)]
+[!include[](snippets/shader-graph-blocks/eye-ior.md)]
 [!include[](snippets/shader-graph-blocks/ambient-occlusion.md)]
 [!include[](snippets/shader-graph-blocks/mask.md)]
 [!include[](snippets/shader-graph-blocks/emission.md)]

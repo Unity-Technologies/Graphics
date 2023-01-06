@@ -85,7 +85,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 
             // Build the transmitted ray structure
             RayDesc transmittedRay;
-            transmittedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RaytracingRayBias;
+            transmittedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RayTracingRayBias;
             transmittedRay.Direction = refractedDir;
             transmittedRay.TMin = 0;
             transmittedRay.TMax = _RaytracingRayMaxLength;
@@ -125,7 +125,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 
             // Build the transmitted ray structure
             RayDesc transmittedRay;
-            transmittedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RaytracingRayBias;
+            transmittedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RayTracingRayBias;
             transmittedRay.Direction = incidentDirection;
             transmittedRay.TMin = 0;
             transmittedRay.TMax = _RaytracingRayMaxLength;
@@ -164,7 +164,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 
         // Build the reflected ray
         RayDesc reflectedRay;
-        reflectedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RaytracingRayBias;
+        reflectedRay.Origin = pointWSPos + biasSign * fragInput.tangentToWorld[2] * _RayTracingRayBias;
         reflectedRay.Direction = reflectedDir;
         reflectedRay.TMin = 0;
         reflectedRay.TMax = _RaytracingRayMaxLength;

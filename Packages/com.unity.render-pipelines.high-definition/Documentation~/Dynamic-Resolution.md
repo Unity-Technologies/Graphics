@@ -7,7 +7,7 @@ HDRP uses hardware dynamic resolution by default. If hardware dynamic resolution
 Hardware dynamic resolution is supported on the following platforms:
 
 - All Console platforms supported by HDRP.
-- PCs that use DX12 and Metal.
+- PCs that use DX12, Vulkan or Metal.
 
 When you enable dynamic resolution, HDRP allocates render targets to accommodate the maximum resolution possible. HDRP rescales the viewport so it can render at varying resolutions. At the end of each frame, HDRP upscales the result of the scaled rendering to match the back buffer resolution.
 

@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 clearColor = Color.black;
 
-            if (CoreUtils.IsSceneFilteringEnabled() && hdCamera.camera.cameraType == CameraType.SceneView)
+            if (hdCamera.CameraIsSceneFiltering())
                 clearColor.a = 0.0f;
 
             return clearColor;
