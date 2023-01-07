@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: VirtualTexturing, customOrderInGroup: 105, tooltip: "Virtual Texturing needs to be enabled first in Project Settings > Player > Other Settings > Virtual Texturing.")]
         VirtualTexturing = 68,
         /// <summary>When enabled, HDRP renders line topology with high quality anti-aliasing and transparency.</summary>
-        [FrameSettingsField(0, autoName: HighQualityLineRendering, customOrderInGroup: 109, tooltip: "When enabled, HDRP ")]
+        [FrameSettingsField(0, autoName: HighQualityLineRendering, customOrderInGroup: 109, tooltip: "When enabled, Cameras using these Frame Settings render line topology with high quality anti-aliasing and transparency.")]
         HighQualityLineRendering = 103,
         /// <summary>When enabled, HDRP accounts for asymmetry in the projection matrix when evaluating the view direction based on pixel coordinates.</summary>
         [FrameSettingsField(0, displayedName: "Asymmetric Projection", customOrderInGroup: 107, tooltip: "When enabled HDRP will account for asymmetric projection when evaluating the view direction based on pixel coordinates.")]
