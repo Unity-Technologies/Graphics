@@ -1016,11 +1016,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle fogOverdrawOutput;
         }
 
-        unsafe TextureHandle VolumeVoxelizationPass(RenderGraph renderGraph,
-            HDCamera hdCamera,
-            CullingResults cullingResults,
-            ComputeBuffer visibleVolumeBoundsBuffer,
-            ComputeBufferHandle bigTileLightList)
+        unsafe TextureHandle ClearAndHeightFogVoxelizationPass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1029,7 +1025,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var currIdx = (frameIndex + 0) & 1;
                 var currParams = hdCamera.vBufferParams[currIdx];
 
-                using (var builder = renderGraph.AddRenderPass<HeightFogVoxelizationPassData>("Height Fog Voxelization", out var passData))
+                using (var builder = renderGraph.AddRenderPass<HeightFogVoxelizationPassData>("Clear and Height Fog Voxelization", out var passData))
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
@@ -1066,6 +1062,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     densityBuffer = passData.densityBuffer;
                 }
 
+                return densityBuffer;
+            }
+
+            return TextureHandle.nullHandle;
+        }
+
+        unsafe TextureHandle FogVolumeVoxelizationPass(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle densityBuffer,
+            ComputeBuffer visibleVolumeBoundsBuffer)
+        {
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
+            {
                 if (!SystemInfo.supportsRenderTargetArrayIndexFromVertexShader)
                 {
                     Debug.LogError("Hardware not supported for Volumetric Materials");
@@ -1080,14 +1089,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     new ComputeBufferDesc(hdCamera.viewCount * k_VolumetricMaterialIndirectArgumentCount * maxLocalVolumetricFogOnScreen, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "FogVolumeIndirectArguments" }
                 );
 
-                // We need XR rendering for shadergraph fog objects
-                StartXRSinglePass(m_RenderGraph, hdCamera);
-
                 TextureHandle fogOverdrawOutput = TextureHandle.nullHandle;
                 bool fogOverdrawDebugEnabled = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LocalVolumetricFogOverdraw;
 
+                int frameIndex = (int)VolumetricFrameIndex(hdCamera);
+                var currIdx = (frameIndex + 0) & 1;
+                var currParams = hdCamera.vBufferParams[currIdx];
+
                 // Voxelize fog volumes
-                using (var builder = renderGraph.AddRenderPass<LocalVolumetricFogMaterialVoxelizationPassData>("Fog Volume Mesh Voxelization", out var passData))
+                using (var builder = renderGraph.AddRenderPass<LocalVolumetricFogMaterialVoxelizationPassData>("Fog Volume Voxelization", out var passData))
                 {
                     passData.fog = hdCamera.volumeStack.GetComponent<Fog>();
                     passData.densityBuffer = builder.WriteTexture(densityBuffer);
@@ -1218,7 +1228,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ConstantBuffer.PushGlobal(ctx.cmd, materialCB, HDShaderIDs._VolumetricMaterialDataCBuffer);
 
                                 // We need to issue a draw call per eye because the number of instances to dispatch can be different per eye
-                                for (int viewIndex = 0 ; viewIndex < data.hdCamera.viewCount; viewIndex++)
+                                for (int viewIndex = 0; viewIndex < data.hdCamera.viewCount; viewIndex++)
                                 {
                                     // Upload the volume index to fetch the volume data from the compute shader
                                     props.SetInt(HDShaderIDs._VolumeMaterialDataIndex, volumeIndex + viewIndex * volumeCount);
@@ -1246,8 +1256,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (fogOverdrawDebugEnabled)
                     PushFullScreenDebugTexture(renderGraph, fogOverdrawOutput, FullScreenDebugMode.LocalVolumetricFogOverdraw);
-
-                StopXRSinglePass(m_RenderGraph, hdCamera);
 
                 return densityBuffer;
             }

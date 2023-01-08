@@ -394,6 +394,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalLightData hdLight = lightEntities.hdAdditionalLightData[lightIdx];
                 if (hdLight != null && hdLight.enabled && hdLight != HDUtils.s_DefaultHDAdditionalLightData)
                 {
+                    Light light = hdLight.gameObject.GetComponent<Light>();
+                    // If the light is null or disabled, skip it
+                    if (light == null || !light.enabled)
+                        continue;
+
+                    // If the light is flagged as baked and has been effectively been baked, skip it, except if we are path tracing
+                    bool isPathTracingEnabled = hdCamera.volumeStack.GetComponent<PathTracing>().enable.value;
+                    if (!isPathTracingEnabled && light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked)
+                        continue;
+
+                    // If this light should not be included when ray tracing is active on the camera, skip it
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !hdLight.includeForRayTracing)
+                        continue;
+
                     // Flag that needs to be overriden by the light and tells us if the light will need the RTAS
                     bool hasRayTracedShadows = false;
 
