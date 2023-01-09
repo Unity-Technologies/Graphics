@@ -15,11 +15,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public string Tooltip { get; }
         public bool HasPreview { get; }
         public IReadOnlyDictionary<string, string> SelectableFunctions { get; }
-        public IReadOnlyCollection<SGPortViewModel> StaticPortUIData { get; }
+        public IReadOnlyCollection<SGPortViewModel> PortUIData { get; }
         public IReadOnlyCollection<string> Synonyms { get; }
         public string Category { get; }
         public string FunctionSelectorLabel { get; }
         public string SelectedFunctionID { get; }
+
+        public IEnumerable<SGPortViewModel> StaticPortUIData
+        {
+            get
+            {
+                foreach (var param in PortUIData)
+                {
+                    if (param.IsStatic) yield return param;
+                }
+            }
+        }
 
         public SGNodeViewModel(
             int version,
@@ -45,17 +56,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var functionDictionary = selectableFunctions ?? new Dictionary<string, string>();
             SelectableFunctions = new ReadOnlyDictionary<string, string>(functionDictionary);
             var parametersList = parameters ?? new SGPortViewModel[0];
-            StaticPortUIData = parametersList.ToList().AsReadOnly();
+            PortUIData = parametersList.ToList().AsReadOnly();
             FunctionSelectorLabel = functionSelectorLabel;
             SelectedFunctionID = selectedFunctionID;
         }
 
         public SGPortViewModel GetParameterInfo(string parameterName)
         {
-            if(StaticPortUIData == null)
+            if (PortUIData == null)
                 return new SGPortViewModel();
 
-            foreach(var parameter in StaticPortUIData)
+            foreach (var parameter in PortUIData)
                 if (parameter.Name == parameterName)
                     return parameter;
 

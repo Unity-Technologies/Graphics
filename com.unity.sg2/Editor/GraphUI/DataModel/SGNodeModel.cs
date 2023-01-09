@@ -146,18 +146,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             get
             {
-                try
+                var latest = 0;
+
+                foreach (var key in graphHandler.registry.BrowseRegistryKeys())
                 {
-                    return graphHandler.registry.BrowseRegistryKeys()
-                        .Where(otherKey => otherKey.Name == registryKey.Name)
-                        .Select(otherKey => otherKey.Version)
-                        .Max();
+                    if (key.Name != registryKey.Name)
+                    {
+                        continue;
+                    }
+
+                    if (key.Version > latest)
+                    {
+                        latest = key.Version;
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.Log(e + " thrown while trying to retrieve latestAvailableVersion");
-                    return -1;
-                }
+
+                return latest;
             }
         }
 
@@ -229,6 +233,64 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             DefineNode();
+        }
+
+        /// <summary>
+        /// Sets a port's value from its parameter descriptor's Options list.
+        /// </summary>
+        /// <param name="portName">Port name.</param>
+        /// <param name="optionIndex">Index of the Option in the port's parameter descriptor to use.</param>
+        public void SetPortOption(string portName, int optionIndex)
+        {
+            if (!TryGetNodeHandler(out var handler)) return;
+            var parameterInfo = GetViewModel().GetParameterInfo(portName);
+            var (_, optionValue) = parameterInfo.Options[optionIndex];
+
+            if (optionValue is not ReferenceValueDescriptor desc)
+            {
+                Debug.LogError("SetPortOption not implemented for options that are not ReferenceValueDescriptors");
+                return;
+            }
+
+            var port = handler.GetPort(portName);
+            var existing = GetCurrentPortOption(portName);
+            if (existing != -1)
+            {
+                var (_, existingValue) = parameterInfo.Options[existing];
+                if (existingValue is ReferenceValueDescriptor existingDesc)
+                {
+                    graphHandler.graphDelta.RemoveDefaultConnection(existingDesc.ContextName, port.ID, registry.Registry);
+                }
+            }
+
+            graphHandler.graphDelta.AddDefaultConnection(desc.ContextName, port.ID, registry.Registry);
+            graphHandler.ReconcretizeNode(graphDataName);
+        }
+
+        /// <summary>
+        /// Gets the currently selected option for the given port.
+        /// </summary>
+        /// <param name="portName">Port name.</param>
+        /// <returns>Index into the Options list for the given port, or -1 if there are no options or no option is selected.</returns>
+        public int GetCurrentPortOption(string portName)
+        {
+            var paramInfo = GetViewModel().GetParameterInfo(portName);
+            if (!existsInGraphData) return 0;  // default to first option
+
+            if (!TryGetNodeHandler(out var handler)) return -1;
+            var port = handler.GetPort(portName);
+
+            var connection = graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID);
+            if (connection == null) return -1;
+
+            for (var i = 0; i < paramInfo.Options.Count; i++)
+            {
+                var (_, value) = paramInfo.Options[i];
+                if (value is not ReferenceValueDescriptor desc) continue;
+                if (connection == desc.ContextName) return i;
+            }
+
+            return -1;
         }
 
         public void OnPreviewTextureUpdated(Texture newTexture)

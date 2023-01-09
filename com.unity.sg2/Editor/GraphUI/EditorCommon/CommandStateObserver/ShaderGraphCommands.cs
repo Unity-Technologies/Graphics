@@ -66,6 +66,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoStateComponent,
                 graphModelStateComponent);
 
+            graphTool.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, SetPortOptionCommand>(
+                SetPortOptionCommand.DefaultCommandHandler,
+                undoStateComponent,
+                graphModelStateComponent,
+                previewUpdateDispatcher);
+
             graphTool.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeNodeFunctionCommand>(
                 ChangeNodeFunctionCommand.DefaultCommandHandler,
                 undoStateComponent,

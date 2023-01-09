@@ -5,11 +5,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class SetVariableSettingCommand : UndoableCommand
     {
-        readonly GraphDataVariableDeclarationModel m_Model;
+        readonly SGVariableDeclarationModel m_Model;
         readonly VariableSetting m_Setting;
         readonly object m_Value;
 
-        public SetVariableSettingCommand(GraphDataVariableDeclarationModel model, VariableSetting setting, object value)
+        public SetVariableSettingCommand(SGVariableDeclarationModel model, VariableSetting setting, object value)
         {
             m_Model = model;
             m_Setting = setting;

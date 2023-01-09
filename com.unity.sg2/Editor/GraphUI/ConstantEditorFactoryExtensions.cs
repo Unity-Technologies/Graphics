@@ -64,9 +64,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, portViewModel.Tooltip);
                     }
 
+                    if (portViewModel.Options is {Count: > 0})
+                    {
+                        return BuildPortOptionsEditor(builder, (SGNodeModel)graphDataPort.owner, portViewModel);
+                    }
+
                     break;
                 }
-                case GraphDataVariableDeclarationModel declarationModel when declarationModel.DataType == ShaderGraphExampleTypes.Color:
+                case SGVariableDeclarationModel declarationModel when declarationModel.DataType == ShaderGraphExampleTypes.Color:
                 {
                     var isHdr = VariableSettings.colorMode.GetTyped(declarationModel) is VariableSettings.ColorMode.HDR;
                     return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, "", isHdr);
@@ -75,6 +80,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // Try/Catch maybe.
             return builder.BuildDefaultConstantEditor(constants);
+        }
+
+        static BaseModelPropertyField BuildPortOptionsEditor(ConstantEditorBuilder builder, SGNodeModel nodeModel, SGPortViewModel viewModel)
+        {
+            return new PortOptionsPropertyField(builder.CommandTarget, nodeModel, viewModel.Name, viewModel.Options);
         }
 
         static BaseModelPropertyField BuildColorConstantEditor(ConstantEditorBuilder builder, IEnumerable<GraphTypeConstant> constants, string propertyName, string label, string tooltip, bool hdr = false)

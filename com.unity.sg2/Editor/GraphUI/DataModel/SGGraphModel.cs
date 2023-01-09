@@ -194,10 +194,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             bool isMatrixType = GraphTypeHelpers.GetHeight(portInfo.GetTypeField()) > GraphType.Height.One;
             int matrixHeight = (int)GraphTypeHelpers.GetHeight(portInfo.GetTypeField());
 
-            // Only add new node parts for static ports & ports that should actually appear on nodes
-            if (!isStatic || parameter.InspectorOnly)
-                return false;
-
             if (isGradientType && !portInfo.IsInput)
                 showPreviewForType = false;
 
@@ -481,7 +477,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     break;
                 }
-                case SGVariableNodeModel { DeclarationModel: GraphDataVariableDeclarationModel declarationModel } newCopiedVariableNode:
+                case SGVariableNodeModel { DeclarationModel: SGVariableDeclarationModel declarationModel } newCopiedVariableNode:
                 {
                     // if the blackboard property/keyword this variable node is referencing
                     // doesn't exist in the graph, it has probably been copied from another graph
@@ -493,7 +489,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         // Restore the Guid from its graph data name (as currently we need to align the Guids and graph data names)
                         newCopiedVariableNode.graphDataName = new SerializableGUID(newCopiedVariableNode.graphDataName.Replace("_", String.Empty)).ToString();
                         // Make sure this reference is up to date
-                        declarationModel = (GraphDataVariableDeclarationModel)newCopiedVariableNode.DeclarationModel;
+                        declarationModel = (SGVariableDeclarationModel)newCopiedVariableNode.DeclarationModel;
                     }
                     else
                         newCopiedVariableNode.graphDataName = newCopiedVariableNode.Guid.ToString();
@@ -530,7 +526,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override TDeclType DuplicateGraphVariableDeclaration<TDeclType>(TDeclType sourceModel, bool keepGuid = false)
         {
-            var sourceDataVariable = sourceModel as GraphDataVariableDeclarationModel;
+            var sourceDataVariable = sourceModel as SGVariableDeclarationModel;
             Assert.IsNotNull(sourceDataVariable);
 
             var sourceShaderGraphConstant = sourceDataVariable.InitializationModel as BaseShaderGraphConstant;
@@ -587,17 +583,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             Action<VariableDeclarationModel, Constant> initializationCallback = null
         )
         {
-            if (variableTypeToCreate != typeof(GraphDataVariableDeclarationModel))
+            if (variableTypeToCreate != typeof(SGVariableDeclarationModel))
             {
                 return base.InstantiateVariableDeclaration(variableTypeToCreate, variableDataType, variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
             }
 
-            var graphDataVar = new GraphDataVariableDeclarationModel();
+            var graphDataVar = new SGVariableDeclarationModel();
             return InitVariableDeclarationModel(graphDataVar, variableDataType, variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
         }
 
         VariableDeclarationModel InitVariableDeclarationModel(
-            GraphDataVariableDeclarationModel graphDataVar,
+            SGVariableDeclarationModel graphDataVar,
             TypeHandle variableDataType,
             string variableName,
             ModifierFlags modifierFlags,
@@ -653,7 +649,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public IEnumerable<AbstractNodeModel> GetLinkedVariableNodes(string variableName)
         {
             return NodeModels.Where(
-                node => node is SGVariableNodeModel { VariableDeclarationModel: GraphDataVariableDeclarationModel variableDeclarationModel }
+                node => node is SGVariableNodeModel { VariableDeclarationModel: SGVariableDeclarationModel variableDeclarationModel }
                     && variableDeclarationModel.graphDataName == variableName);
         }
 
@@ -750,7 +746,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             Action<VariableNodeModel> initCallback = variableNodeModel =>
             {
-                if (declarationModel is GraphDataVariableDeclarationModel model && variableNodeModel is SGVariableNodeModel graphDataVariable)
+                if (declarationModel is SGVariableDeclarationModel model && variableNodeModel is SGVariableNodeModel graphDataVariable)
                 {
                     variableNodeModel.VariableDeclarationModel = model;
 
@@ -765,6 +761,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return this.CreateNode<SGVariableNodeModel>(guid.ToString(), position, guid, initCallback, spawnFlags);
         }
 
-        protected override Type GetVariableDeclarationType() => typeof(GraphDataVariableDeclarationModel);
+        protected override Type GetVariableDeclarationType() => typeof(SGVariableDeclarationModel);
     }
 }

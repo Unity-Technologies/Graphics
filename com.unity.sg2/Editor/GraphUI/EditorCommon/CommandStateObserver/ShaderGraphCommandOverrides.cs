@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     case SGRedirectNodeModel redirectModel:
                         redirects.Add(redirectModel);
                         break;
-                    case GraphDataVariableDeclarationModel:
+                    case SGVariableDeclarationModel:
                         // We handle variables in HandleDeleteBlackboardItems so can be skipped here
                         break;
                     default:
