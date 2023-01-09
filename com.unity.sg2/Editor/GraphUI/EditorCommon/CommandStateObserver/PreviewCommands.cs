@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             BaseGraphTool graphTool,
             PreviewUpdateDispatcher previewUpdateDispatcher,
             SGGraphModel graphModel,
-            Dispatcher commandDispatcher,
+            ICommandTarget commandDispatcher,
             GraphViewModel graphViewModel)
         {
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, ChangePreviewExpandedCommand>(
