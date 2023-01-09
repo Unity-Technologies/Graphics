@@ -7,7 +7,10 @@ namespace UnityEditor.ShaderFoundry
             var propInfo = PropertyDeclarations.Extract(variable.Type, variable.Name, variable.Attributes);
             if (propInfo != null && propInfo.UniformReadingData != null)
             {
-                propInfo.UniformReadingData.Copy(builder, parent);
+                propInfo.UniformReadingData.Copy(builder, (builder) =>{
+                    string variableDeclaration = variable.GetDeclarationString();
+                    builder.Add(variableDeclaration);
+                });
             }
         }
     }

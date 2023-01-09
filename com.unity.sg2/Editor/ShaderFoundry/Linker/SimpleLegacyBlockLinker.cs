@@ -295,7 +295,7 @@ namespace UnityEditor.ShaderFoundry
 
             var entryPointFn = BuildEntryPointFunction(buildingContext, inputsInstance, outputsInstance, blockInputInstance, blockOutputInstance);
             //fnBuilder.Build();
-            blockBuilder.SetEntryPointFunction(entryPointFn);
+            blockBuilder.SetLegacyEntryPointFunction(entryPointFn);
 
             return blockBuilder.Build();
         }
@@ -363,7 +363,7 @@ namespace UnityEditor.ShaderFoundry
                 DeclareMatch(fnBuilder, inputData, subBlockInputInstance);
 
             // Call the sub-block entry point
-            fnBuilder.AddCallStatementWithNewReturn(subEntryPointFn, blockOutputInstance.Name, blockInputInstance.Name);
+            fnBuilder.CallFunction(subEntryPointFn, blockInputInstance.Name);
 
             // Copy all outputs into the legacy description type
             fnBuilder.AddVariableDeclarationStatement(outputsInstance.Type, outputsInstance.Name);

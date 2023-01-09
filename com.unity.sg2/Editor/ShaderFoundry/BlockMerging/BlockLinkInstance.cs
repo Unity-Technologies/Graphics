@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderFoundry
         internal Block Block => block;
         internal VariableLinkInstance InputInstance { get; set; } = new VariableLinkInstance();
         internal VariableLinkInstance OutputInstance { get; set; } = new VariableLinkInstance();
+        internal bool IsLegacy = true;
 
         internal BlockLinkInstance(ShaderContainer container)
         {
@@ -40,6 +41,12 @@ namespace UnityEditor.ShaderFoundry
 
             InputInstance = CreateVariableInstance(inType, block.Inputs);
             OutputInstance = CreateVariableInstance(outType, block.Outputs);
+            if (outType.IsVoid)
+            {
+                InputInstance.Name = $"{block.Name}Instance";
+                OutputInstance.Name = InputInstance.Name;
+                IsLegacy = false;
+            }
         }
 
         VariableLinkInstance CreateVariableInstance(ShaderType type, IEnumerable<BlockVariable> variables)
