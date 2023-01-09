@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Unity.Profiling;
 using UnityEngine.Assertions;
 
 #if UNITY_EDITOR
@@ -19,6 +20,9 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class VolumeManager
     {
+        static readonly ProfilerMarker k_ProfilerMarkerUpdate = new ("VolumeManager.Update");
+        static readonly ProfilerMarker k_ProfilerMarkerReplaceData = new ("VolumeManager.ReplaceData");
+
         static readonly Lazy<VolumeManager> s_Instance = new Lazy<VolumeManager>(() => new VolumeManager());
 
         /// <summary>
@@ -336,6 +340,8 @@ namespace UnityEngine.Rendering
         // Faster version of OverrideData to force replace values in the global state
         void ReplaceData(VolumeStack stack)
         {
+            using var profilerScope = k_ProfilerMarkerReplaceData.Auto();
+
             var resetParameters = stack.defaultParameters;
             var resetParametersCount = resetParameters.Length;
             for (int i = 0; i < resetParametersCount; i++)
@@ -432,6 +438,8 @@ namespace UnityEngine.Rendering
         /// <seealso cref="VolumeStack"/>
         public void Update(VolumeStack stack, Transform trigger, LayerMask layerMask)
         {
+            using var profilerScope = k_ProfilerMarkerUpdate.Auto();
+
             Assert.IsNotNull(stack);
 
             CheckBaseTypes();
