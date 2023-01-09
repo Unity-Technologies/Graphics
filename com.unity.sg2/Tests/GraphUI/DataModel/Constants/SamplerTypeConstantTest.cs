@@ -3,7 +3,7 @@ using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
+namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
 {
     class SamplerTypeConstantTest : BaseGraphAssetTest
     {

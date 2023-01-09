@@ -1,7 +1,7 @@
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 
-namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
+namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
 {
     static class ConstantTestUtils
     {

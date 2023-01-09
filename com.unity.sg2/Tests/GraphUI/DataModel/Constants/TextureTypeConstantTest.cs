@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
-namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
+namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
 {
     class TextureTypeConstantTest : BaseGraphAssetTest
     {
