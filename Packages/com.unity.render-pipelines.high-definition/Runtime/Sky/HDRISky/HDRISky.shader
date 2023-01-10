@@ -111,14 +111,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return output;
     }
 
-    float3 RotationUp(float3 p, float2 cos_sin)
-    {
-        float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
-        float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
-
-        return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
-    }
-
     // TODO: cf. dir.y == 0
     float3 GetPositionOnInfinitePlane(float3 dir)
     {
