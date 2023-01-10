@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return HDROutputIsActive() && cameraType == CameraType.Game;
         }
 
-        static bool HDROutputIsActive()
+        internal static bool HDROutputIsActive()
         {
             // TODO: Until we can test it, disable on Mac.
             return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && HDROutputSettings.main.active;
