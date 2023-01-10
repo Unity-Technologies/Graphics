@@ -1018,6 +1018,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, WaterConsts.k_WaterHighBandCount))
                     continue;
 
+                // Only render the water surface if it is included in the layers that the camera requires
+                int waterCullingMask = 1 << currentWater.gameObject.layer;
+                if (hdCamera.camera.cullingMask != 0 && (waterCullingMask & hdCamera.camera.cullingMask) == 0)
+                    continue;
+
                 #if UNITY_EDITOR
                 var stage = PrefabStageUtility.GetCurrentPrefabStage();
                 if (!CoreUtils.IsSceneViewPrefabStageContextHidden() && stage != null && stage.mode == PrefabStage.Mode.InContext)
