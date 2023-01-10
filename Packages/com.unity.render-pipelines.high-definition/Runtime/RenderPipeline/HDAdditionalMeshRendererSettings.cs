@@ -8,43 +8,6 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    // Utility for quickly checking if a camera has line rendering disabled.
-    // We need to do this in case we need to force a renderer back to normal hardware line rendering.
-    static class HDLineRenderingInstanceManagement
-    {
-        private static Dictionary<Camera, bool> s_EnabledLineRenderingCameras;
-
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-#else
-        [RuntimeInitializeOnLoadMethod]
-#endif
-        static void StaticInitialize()
-        {
-            RenderPipelineManager.beginContextRendering += ComputeValidCameras;
-            s_EnabledLineRenderingCameras = new Dictionary<Camera, bool>();
-        }
-
-        static void ComputeValidCameras(ScriptableRenderContext unused0, List<Camera> cameras)
-        {
-            foreach (var camera in cameras)
-            {
-                var active = HDRenderPipeline.LineRenderingIsEnabled(HDCamera.GetOrCreate(camera), out var unused1);
-
-                if (s_EnabledLineRenderingCameras.ContainsKey(camera))
-                    s_EnabledLineRenderingCameras[camera] = active;
-                else
-                    s_EnabledLineRenderingCameras.TryAdd(camera, active);
-            }
-        }
-
-        internal static bool IsCameraSupported(Camera camera)
-        {
-            s_EnabledLineRenderingCameras.TryGetValue(camera, out var supported);
-            return supported;
-        }
-    }
-
     /// <summary>
     /// Component containing additional mesh rendering features for HDRP.
     /// </summary>
@@ -210,6 +173,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MeshRenderer.sharedMaterial.renderQueue = !enabled ? (int)HDRenderQueue.Priority.LineRendering : -1;
         }
 
+        private static bool CameraSupportsLineRendering(Camera camera)
+        {
+            return HDRenderPipeline.LineRenderingIsEnabled(HDCamera.GetOrCreate(camera), out var unused1);
+        }
+
         private void SetLineRenderingEnabled(bool enabled)
         {
             if (enabled)
@@ -231,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_EnableHighQualityLineRendering)
                 return;
 
-            if (!HDLineRenderingInstanceManagement.IsCameraSupported(camera))
+            if (!CameraSupportsLineRendering(camera))
             {
                 ForceSetBaseMeshRendererPasses(true);
             }
@@ -242,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_EnableHighQualityLineRendering)
                 return;
 
-            if (!HDLineRenderingInstanceManagement.IsCameraSupported(camera))
+            if (!CameraSupportsLineRendering(camera))
             {
                 ForceSetBaseMeshRendererPasses(false);
             }
