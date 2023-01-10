@@ -8,11 +8,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class AddContextEntryCommand : UndoableCommand
     {
-        readonly GraphDataContextNodeModel m_Model;
+        readonly SGContextNodeModel m_Model;
         readonly string m_Name;
         readonly TypeHandle m_Type;
 
-        public AddContextEntryCommand(GraphDataContextNodeModel model, string name, TypeHandle type)
+        public AddContextEntryCommand(SGContextNodeModel model, string name, TypeHandle type)
         {
             m_Model = model;
             m_Name = name;
@@ -37,10 +37,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     class RemoveContextEntryCommand : UndoableCommand
     {
-        readonly GraphDataContextNodeModel m_Model;
+        readonly SGContextNodeModel m_Model;
         readonly string m_Name;
 
-        public RemoveContextEntryCommand(GraphDataContextNodeModel model, string name)
+        public RemoveContextEntryCommand(SGContextNodeModel model, string name)
         {
             m_Model = model;
             m_Name = name;
@@ -71,11 +71,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     class RenameContextEntryCommand : UndoableCommand
     {
-        readonly GraphDataContextNodeModel m_Model;
+        readonly SGContextNodeModel m_Model;
         readonly string m_OldName;
         readonly string m_NewName;
 
-        public RenameContextEntryCommand(GraphDataContextNodeModel model, string oldName, string newName)
+        public RenameContextEntryCommand(SGContextNodeModel model, string oldName, string newName)
         {
             m_Model = model;
             m_OldName = oldName;
@@ -118,11 +118,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
     class ChangeContextEntryTypeCommand : UndoableCommand
     {
-        readonly GraphDataContextNodeModel m_Model;
+        readonly SGContextNodeModel m_Model;
         readonly string m_Name;
         readonly TypeHandle m_NewType;
 
-        public ChangeContextEntryTypeCommand(GraphDataContextNodeModel model, string name, TypeHandle newType)
+        public ChangeContextEntryTypeCommand(SGContextNodeModel model, string name, TypeHandle newType)
         {
             m_Model = model;
             m_Name = name;

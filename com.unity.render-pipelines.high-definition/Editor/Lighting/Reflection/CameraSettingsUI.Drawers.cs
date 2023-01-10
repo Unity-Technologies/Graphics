@@ -59,7 +59,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyFieldWithoutToggle(CameraSettingsFields.bufferClearColorMode, serialized.bufferClearColorMode, Styles.bufferClearColorMode, displayedFields.camera);
                 PropertyFieldWithoutToggle(CameraSettingsFields.bufferClearBackgroundColorHDR, serialized.bufferClearBackgroundColorHDR, Styles.bufferClearBackgroundColorHDR, displayedFields.camera);
-                PropertyFieldWithoutToggle(CameraSettingsFields.bufferClearClearDepth, serialized.bufferClearClearDepth, Styles.bufferClearClearDepth, displayedFields.camera);
                 EditorGUILayout.Space();
             }
 

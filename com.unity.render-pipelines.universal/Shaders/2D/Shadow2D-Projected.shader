@@ -9,26 +9,17 @@ Shader "Hidden/ShadowProjected2D"
     {
         Tags { "RenderType"="Transparent" }
 
-        Cull Off
+        Cull    Off
         BlendOp Add
-        ZWrite Off
-        ZTest Always
+        Blend   One One, One One
+        ZWrite  Off
+        ZTest   Always
 
-        // This pass draws the projected shadow and sets the composite shadow bit.
+        // This pass draws the projected shadows
         Pass
         {
-            // Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
-            Stencil
-            {
-                Ref         5
-                ReadMask    4
-                WriteMask   1
-                Comp        NotEqual
-                Pass        Replace
-                Fail        Keep
-            }
-
-            ColorMask [_ShadowColorMask]
+            // Draw the shadow
+            ColorMask R
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -37,33 +28,41 @@ Shader "Hidden/ShadowProjected2D"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShadowProjectVertex.hlsl"
 
+            TEXTURE2D(_FalloffLookup);
+            SAMPLER(sampler_FalloffLookup);
+            half _ShadowSoftnessFalloffIntensity;
+
             Varyings vert (Attributes v)
             {
                 return ProjectShadow(v);
             }
 
-            half4 frag (Varyings i) : SV_Target
+            half4 frag(Varyings i) : SV_Target
             {
-                return half4(1,1,1,1);
+                half2 mappedUV;
+
+                float value = 1 - saturate(abs(i.shadow.x) / i.shadow.y);
+                mappedUV.x = value;
+                mappedUV.y = _ShadowSoftnessFalloffIntensity;
+                value = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
+
+                half4 color = half4(value, value, value, value);
+                return color;
             }
             ENDHLSL
         }
-        // Sets the global shadow bit, and clears the composite shadow bit
+        // This pass draws the projected unshadowing
         Pass
         {
-            // Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
             Stencil
             {
-                Ref         3
-                WriteMask   2
-                ReadMask    1
-                Comp        Equal
-                Pass        Replace
-                Fail        Keep
+                Ref       1
+                Comp      Equal
+                Pass      Keep
             }
 
-            // We only want to change the stencil value in this pass
-            ColorMask 0
+            // Draw the shadow
+            ColorMask G
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -72,14 +71,27 @@ Shader "Hidden/ShadowProjected2D"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShadowProjectVertex.hlsl"
 
+            TEXTURE2D(_FalloffLookup);
+            SAMPLER(sampler_FalloffLookup);
+            half _ShadowSoftnessFalloffIntensity;
+
+
             Varyings vert (Attributes v)
             {
                 return ProjectShadow(v);
             }
 
-            half4 frag (Varyings i) : SV_Target
+            half4 frag(Varyings i) : SV_Target
             {
-                return half4(1,1,1,1);
+                half2 mappedUV;
+
+                float value = 1-saturate(abs(i.shadow.x) / i.shadow.y);
+                mappedUV.x = value;
+                mappedUV.y = _ShadowSoftnessFalloffIntensity;
+                value = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
+
+                half4 color = half4(value, value, value, value);
+                return color;
             }
             ENDHLSL
         }

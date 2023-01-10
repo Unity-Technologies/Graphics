@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
@@ -87,6 +88,7 @@ namespace UnityEditor.Rendering.BuiltIn
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_EditorVisualization = new ShaderKeyword(ShaderKeywordStrings.EDITOR_VISUALIZATION);
+        ShaderTagId m_ShaderGraphShaderTag = new ShaderTagId("ShaderGraphShader");
 
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
@@ -104,6 +106,16 @@ namespace UnityEditor.Rendering.BuiltIn
         {
             return (snippetData.passType == PassType.ScriptableRenderPipeline ||
                 snippetData.passType == PassType.ScriptableRenderPipelineDefaultUnlit);
+        }
+
+        bool IsShaderGraphShader(Shader shader, ShaderSnippetData snippetData)
+        {
+            var shaderData = ShaderUtil.GetShaderData(shader);
+            var serializedSubShader = shaderData.GetSerializedSubshader((int)snippetData.pass.SubshaderIndex);
+            var shaderGraphTag = serializedSubShader.FindTagValue(m_ShaderGraphShaderTag);
+            if (shaderGraphTag == ShaderTagId.none)
+                return false;
+            return true;
         }
 
         bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData)
@@ -217,18 +229,6 @@ namespace UnityEditor.Rendering.BuiltIn
                   compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)))
                 return true;
 
-            // As GLES2 has low amount of registers, we strip:
-            if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
-            {
-                // Cascade shadows
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
-                    return true;
-
-                // Screen space shadows
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
-                    return true;
-            }
-
             // Editor visualization is only used in scene view debug modes.
             if (compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization))
                 return true;
@@ -268,12 +268,10 @@ namespace UnityEditor.Rendering.BuiltIn
             if (StripUnusedPass(features, snippetData))
                 return true;
 
-            // Strip terrain holes
-            // TODO: checking for the string name here is expensive
-            // maybe we can rename alpha clip keyword name to be specific to terrain?
-            if (compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
-                !IsFeatureEnabled(features, ShaderFeatures.TerrainHoles))
-                return true;
+            // Skip any shaders that weren't built by Shader Graph.
+            // Note: This needs to be after StripUnusedPass so that other SRP shaders (including hand-written) are stripped.
+            if (!IsShaderGraphShader(shader, snippetData))
+                return false;
 
             // // TODO: Test against lightMode tag instead.
             if (snippetData.passName == kPassNameGBuffer)
@@ -434,6 +432,9 @@ namespace UnityEditor.Rendering.BuiltIn
             shaderFeatures |= ShaderFeatures.DeferredShading;
             // Built-in doesn't throw this switch, but the shader library has it, so set it here
             shaderFeatures |= ShaderFeatures.DeferredWithoutAccurateGbufferNormals;
+
+            // Until there's a global flag to disable terrain holes, this should always be on.
+            shaderFeatures |= ShaderFeatures.TerrainHoles;
 
             return shaderFeatures;
         }

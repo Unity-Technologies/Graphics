@@ -47,10 +47,45 @@ o.VFX_VARYING_DECALLAYER = decalLayerMask;
 #if defined(VFX_VARYING_POSWS)
 o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 #endif
+
+#if VFX_USE_INSTANCING
+    #ifdef UNITY_INSTANCING_ENABLED
+    o.VFX_VARYINGS_INSTANCE_CURRENT_INDEX = unity_InstanceID;
+    #endif
+o.VFX_VARYINGS_INSTANCE_ACTIVE_INDEX = instanceActiveIndex;
+#endif
 ${VFXEnd}
+
+${VFXBegin:VFXGetRTScalingFactor}
+float3 rtScale = float3(1,1,1);
+#if VFX_USE_RT_CUSTOM_SCALE
+    ${VFXLoadParameter:{rayTracedScaling}}
+    rtScale = float3(rayTracedScaling, 1.0f);
+#else
+    #ifdef VFX_RT_DEFAULT_SCALE
+        rtScale = VFX_RT_DEFAULT_SCALE;
+    #endif
+#endif
+${VFXEnd}
+
 
 ${VFXBegin:VFXLoadSize}
 float3 size3 = float3(attributes.size,attributes.size,attributes.size);
+#if VFX_USE_SCALEX_CURRENT
+size3.x *= attributes.scaleX;
+#endif
+#if VFX_USE_SCALEY_CURRENT
+size3.y *= attributes.scaleY;
+#endif
+#if VFX_USE_SCALEZ_CURRENT
+size3.z *= attributes.scaleZ;
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXLoadSizeRT}
+float3 size3 = float3(attributes.size,attributes.size,attributes.size);
+${VFXGetRTScalingFactor}
+size3 *= rtScale;
 #if VFX_USE_SCALEX_CURRENT
 size3.x *= attributes.scaleX;
 #endif
@@ -96,9 +131,14 @@ ${VFXEnd}
 ${VFXBegin:VFXLoadAttributesOrCull}
 uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
-deadCount = deadListCount.Load(0);
+deadCount = deadListCount[instanceIndex];
 #endif
+#if VFX_USE_INSTANCING
+if (index >= nbMax - deadCount)
+#else
 if (index >= asuint(nbMax) - deadCount)
+#endif
+
 {
 #if USE_GEOMETRY_SHADER
 	return; // cull
@@ -112,7 +152,7 @@ VFXAttributes attributes = (VFXAttributes)0;
 VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
 #if VFX_HAS_INDIRECT_DRAW
-index = indirectBuffer[index];
+index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
 ${VFXLoadAttributes}
 #else
 ${VFXLoadAttributes:{alive}}
@@ -142,8 +182,9 @@ ${VFXBegin:VFXVertexComputeCurrentAndPreviousClipPos}
 	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = o.VFX_VARYING_VELOCITY_CPOS = float4(0.0f, 0.0f, 0.0f, 1.0f);
 #endif
 
+${VFXLoadParameter:{currentFrameIndex}}
 uint elementToVFXBaseIndex;
-if (TryGetElementToVFXBaseIndex(index, elementToVFXBaseIndex))
+if (TryGetElementToVFXBaseIndex(index, instanceIndex, elementToVFXBaseIndex, currentFrameIndex))
 {
 float4 cPos = TransformPositionVFXToNonJitteredClip(vPos);
 
@@ -157,6 +198,22 @@ float4 cPos = TransformPositionVFXToNonJitteredClip(vPos);
 	o.VFX_VARYING_VELOCITY_CPOS = cPos;
 #endif
 
+}
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXVertexComputeDisplacement}
+float displacement = 0.0;
+#if VFX_FEATURE_MOTION_VECTORS
+uint elementToVFXBaseIndex;
+float3 previousWS;
+
+${VFXLoadParameter:{currentFrameIndex}}
+if (TryGetElementToVFXBaseIndex(index, instanceIndex, elementToVFXBaseIndex, currentFrameIndex))
+{
+    float4x4 previousElementToVFX = VFXGetPreviousElementToVFX(elementToVFXBaseIndex);
+    previousWS = TransformPreviousVFXPositionToWorld(mul(previousElementToVFX, float4(inputVertexPosition, 1.0f)).xyz);
+    displacement = length(currentWS - previousWS);
 }
 #endif
 ${VFXEnd}
@@ -190,7 +247,7 @@ float4 color = VFXGetFragmentColor(i);
 #endif
 
 #if VFX_COLORMAPPING_GRADIENTMAPPED
-	${VFXLoadAttributes:{gradient}}
+	${VFXLoadParameter:{gradient}}
 	o.color = SampleGradient(gradient, VFX_TEXTURE_COLOR.a * color.a) * float4(color.rgb,1.0);
 #endif
 
@@ -289,31 +346,42 @@ ${VFXEnd}
 
 // Strips tangent computation
 ${VFXBegin:VFXDeclareGetStripTangent}
-float3 GetParticlePosition(uint index)
+float3 GetParticlePosition(uint index, uint instanceIndex)
 {
 	VFXAttributes attributes = (VFXAttributes)0;
 	${VFXLoadAttributes:{position}}
 	return attributes.position;
 }
 
-float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData stripData)
+float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex, const StripData stripData)
 {
 	float3 prevTangent = (float3)0.0f;
 	if (relativeIndex > 0)
 	{
 		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
-		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
+		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex,instanceIndex));
 	}
 
 	float3 nextTangent = (float3)0.0f;
 	if (relativeIndex < stripData.nextIndex - 1)
 	{
 		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
-		nextTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
+		nextTangent = normalize(GetParticlePosition(nextIndex, instanceIndex) - currentPos);
 	}
 
 	return normalize(prevTangent + nextTangent);
 }
+${VFXEnd}
+
+${VFXBegin:VFXInitInstancing}
+uint instanceIndex, instanceActiveIndex;
+index = VFXInitInstancing(index, instanceIndex, instanceActiveIndex);
+${VFXEnd}
+
+
+
+${VFXBegin:VFXInstancingConstants}
+float4 instancingConstants;
 ${VFXEnd}
 
 ${VFXBegin:VFXFeedSortingKeys}
@@ -349,4 +417,28 @@ ${VFXBegin:VFXFeedSortingKeys}
                 output.sortKey *= SORTING_SIGN;
 ${VFXEnd}
 
+${VFXBegin:VFXGetIndexFromRTPrimitiveIndex}
+#ifdef VFX_RT_DECIMATION_FACTOR
+int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
+#else
+int rayTracingDecimationFactor = 1;
+#endif
+uint index = PrimitiveIndex() * rayTracingDecimationFactor;
+uint instanceIndex =  asuint(_InstanceIndex);
+uint instanceActiveIndex = asuint(_InstanceActiveIndex);
+VFXGetInstanceCurrentIndex(index);
+${VFXEnd}
 
+${VFXBegin:VFXDeclareAppendOutputIndirectBuffer}
+void AppendOutputBuffer(RWStructuredBuffer<IndirectOutputType> outputBuffer, IndirectOutputType output, uint instanceActiveIndex)
+{
+    uint indirectIndex;
+#if VFX_FEATURE_SORT
+    InterlockedAdd(outputBuffer[instanceActiveIndex].index, 1, indirectIndex);
+#else
+    InterlockedAdd(outputBuffer[instanceActiveIndex], 1, indirectIndex);
+#endif
+    indirectIndex += instancingBatchSize + instanceActiveIndex * RAW_CAPACITY;
+    outputBuffer[indirectIndex] = output;
+}
+${VFXEnd}

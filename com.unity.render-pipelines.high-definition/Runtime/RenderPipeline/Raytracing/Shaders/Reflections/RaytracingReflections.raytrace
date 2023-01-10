@@ -3,6 +3,10 @@
 
 #define HAS_LIGHTLOOP
 
+// Include and define the shader pass
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_RAYTRACING
+
 // HDRP include
 #define SHADER_TARGET 50
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -29,6 +33,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RaytracingHelpers.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
@@ -98,7 +103,7 @@ void RayGenIntegration()
     _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
 
     // Read the depth value
-    float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).r;
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).r;
 
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -125,6 +130,9 @@ void RayGenIntegration()
     float perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness);
     if (_RaytracingReflectionMinSmoothness > perceptualSmoothness)
         return;
+
+    // Evaluate the ray bias
+    float rayBias = EvaluateRayTracingBias(posInput.positionWS);
 
     // Compute the actual roughness
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
@@ -164,7 +172,7 @@ void RayGenIntegration()
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
+        rayDescriptor.Origin = posInput.positionWS + normalData.normalWS * rayBias;
         rayDescriptor.Direction = sampleDir;
         rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = _RaytracingRayMaxLength;
@@ -275,9 +283,12 @@ void RayGenIntegrationTransparent()
         _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
     }
 
+    // Evaluate the ray bias
+    float rayBias = EvaluateRayTracingBias(posInput.positionWS);
+
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
-    rayDescriptor.Origin = positionWS + normalData.normalWS * _RaytracingRayBias;
+    rayDescriptor.Origin = positionWS + normalData.normalWS * rayBias;
     rayDescriptor.Direction = reflectionDir;
     rayDescriptor.TMin = 0.0;
     rayDescriptor.TMax = _RaytracingRayMaxLength;
@@ -300,32 +311,6 @@ void RayGenIntegrationTransparent()
     // Evaluate the ray intersection
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
-    // The clamping process is different for the sky and rest
-    float3 finalColor = 0.0;
-    if (rayIntersection.t == _RaytracingRayMaxLength)
-    {
-        // Convert to HSV space
-        finalColor = RgbToHsv(rayIntersection.color * GetCurrentExposureMultiplier());
-
-        // Expose and clamp the final color
-        finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
-
-        // Convert back to HSV space
-        finalColor = HsvToRgb(finalColor) * GetInverseCurrentExposureMultiplier();
-    }
-    else
-    {
-        // Expose and clamp the final color
-        finalColor = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
-    }
-
     // We store the sampled color and the weight that shall be used for it (1.0)
-    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
-}
-
-[shader("closesthit")]
-void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{
-	// When we do not hit any known closest hit, that means that no shader was specified for the target object meaning either it has nothing to do in the acceleration structure or we need to add raytracing subshaders to it
-	rayIntersection.color = float3(1.0, 0.0, 0.5);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(rayIntersection.color, 1.0);
 }

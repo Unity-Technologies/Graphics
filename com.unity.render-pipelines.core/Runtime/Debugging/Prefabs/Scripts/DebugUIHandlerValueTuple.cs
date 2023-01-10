@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.UI
 
         void Update()
         {
-            if (m_Timer >= m_Field.refreshRate)
+            if (m_Field != null && m_Timer >= m_Field.refreshRate)
             {
                 UpdateValueLabels();
                 m_Timer -= m_Field.refreshRate;

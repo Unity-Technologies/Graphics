@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
         Direction direction { get; }
     }
 
-    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IGizmoable
+    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IGizmoable, IGizmoError
     {
         private VFXNodeController m_SourceNode;
         private int m_expressionHashCode;
@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXCoordinateSpace space
+        public VFXSpace space
         {
             get
             {
@@ -92,6 +92,8 @@ namespace UnityEditor.VFX.UI
 
             if (model != null)
             {
+                isSubgraphActivation = sourceNode.model is VFXSubgraphBlock && model.name == VFXBlock.activationSlotName;
+
                 portType = model.property.type;
 
                 if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
@@ -159,6 +161,9 @@ namespace UnityEditor.VFX.UI
             base.OnDisable();
         }
 
+        // Used to hide activation slot and forbid linking
+        public bool isSubgraphActivation { get; }
+
         public virtual bool HasLink()
         {
             return model.HasLink();
@@ -172,6 +177,9 @@ namespace UnityEditor.VFX.UI
 
         public bool CanLinkToNode(VFXNodeController nodeController, CanLinkCache cache)
         {
+            if (isSubgraphActivation)
+                return false;
+
             if (nodeController == sourceNode)
                 return false;
 
@@ -198,6 +206,9 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool CanLink(VFXDataAnchorController controller, CanLinkCache cache = null)
         {
+            if (isSubgraphActivation)
+                return false;
+
             if (controller.model != null)
             {
                 if (model.CanLink(controller.model) && controller.model.CanLink(model))
@@ -213,11 +224,11 @@ namespace UnityEditor.VFX.UI
             return controller.CanLink(this, cache);
         }
 
-        public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output, bool revertTypeConstraint = false)
         {
             var slotOutput = output != null ? output.model : null;
             var slotInput = model;
-            sourceNode.WillCreateLink(ref slotInput, ref slotOutput);
+            sourceNode.WillCreateLink(ref slotInput, ref slotOutput, revertTypeConstraint);
 
             if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
             {
@@ -501,26 +512,13 @@ namespace UnityEditor.VFX.UI
             return new Bounds();
         }
 
-        public bool gizmoNeedsComponent
+        public GizmoError GetGizmoError(VisualEffect component)
         {
-            get
-            {
-                if (!VFXGizmoUtility.HasGizmo(portType))
-                    return false;
-                CreateGizmoContextIfNeeded();
-                return VFXGizmoUtility.NeedsComponent(m_GizmoContext);
-            }
-        }
+            if (!VFXGizmoUtility.HasGizmo(portType))
+                return GizmoError.None;
+            CreateGizmoContextIfNeeded();
 
-        public bool gizmoIndeterminate
-        {
-            get
-            {
-                if (!VFXGizmoUtility.HasGizmo(portType))
-                    return false;
-                CreateGizmoContextIfNeeded();
-                return m_GizmoContext.IsIndeterminate();
-            }
+            return VFXGizmoUtility.CollectGizmoError(m_GizmoContext, component);
         }
 
         VFXDataAnchorGizmoContext m_GizmoContext;
@@ -623,6 +621,9 @@ namespace UnityEditor.VFX.UI
         }
         public override bool CanLink(VFXDataAnchorController controller, CanLinkCache cache = null)
         {
+            if (isSubgraphActivation)
+                return false;
+
             var op = (sourceNode as VFXCascadedOperatorController);
 
             if (op == null)
@@ -642,7 +643,7 @@ namespace UnityEditor.VFX.UI
             get { return base.sourceNode as VFXCascadedOperatorController; }
         }
 
-        public override VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        public override VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output, bool revertTypeConstraint = false)
         {
             var slotOutput = output != null ? output.model : null;
 
@@ -691,7 +692,7 @@ namespace UnityEditor.VFX.UI
                 return stack.First();
             }
         }
-        public override VFXCoordinateSpace space
+        public override VFXSpace space
         {
             get
             {
@@ -719,7 +720,7 @@ namespace UnityEditor.VFX.UI
                 {
                     if (VFXTypeUtility.GetComponentCount(m_Controller.model) != 0)
                     {
-                        m_Indeterminate = true;
+                        m_Error |= GizmoError.HasLinkIndeterminate;
                         return;
                     }
                 }
@@ -742,29 +743,32 @@ namespace UnityEditor.VFX.UI
                     }
                     else if (subSlot.HasLink(false) && VFXTypeUtility.GetComponentCount(subSlot) != 0) // replace by is VFXType
                     {
-                        m_Indeterminate = true;
+                        m_Error |= GizmoError.HasLinkIndeterminate;
                         return;
                     }
                     else
                     {
                         m_ValueBuilder.Add(o => o.Add(subSlot.value));
                         BuildValue(subSlot);
-                        if (m_Indeterminate) return;
+                        if (m_Error != GizmoError.None)
+                            return;
                     }
                     m_ValueBuilder.Add(o =>
                     {
                         var newValue = o[o.Count - 1];
-                        var target = o[o.Count - 2];
-
-                        if (newValue != null && field.FieldType != newValue.GetType())
+                        if (newValue != null)
                         {
-                            object convertedValue;
-                            if (!VFXConverter.TryConvertTo(newValue, field.FieldType, out convertedValue))
-                                throw new InvalidOperationException(string.Format("VFXDataAnchorGizmo is failing to convert from {0} to {1}", newValue.GetType(), field.FieldType));
-                            newValue = convertedValue;
-                        }
+                            var target = o[o.Count - 2];
 
-                        field.SetValue(target, newValue);
+                            if (field.FieldType != newValue.GetType())
+                            {
+                                if (!VFXConverter.TryConvertTo(newValue, field.FieldType, out var convertedValue))
+                                    throw new InvalidOperationException($"VFXDataAnchorGizmo is failing to convert from {newValue.GetType()} to {field.FieldType}");
+                                newValue = convertedValue;
+                            }
+
+                            field.SetValue(target, newValue);
+                        }
                     });
                     m_ValueBuilder.Add(o => o.RemoveAt(o.Count - 1));
                 }

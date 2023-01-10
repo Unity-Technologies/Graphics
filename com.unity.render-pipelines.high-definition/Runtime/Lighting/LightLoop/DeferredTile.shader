@@ -39,7 +39,8 @@ Shader "Hidden/HDRP/DeferredTile"
             #pragma multi_compile_fragment _ OUTPUT_SPLIT_LIGHTING // Split lighting is utilized during the SSS pass.
             #pragma multi_compile_fragment  _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
             #pragma multi_compile_local_fragment VARIANT0 VARIANT1 VARIANT2 VARIANT3 VARIANT4 VARIANT5 VARIANT6 VARIANT7 VARIANT8 VARIANT9 VARIANT10 VARIANT11 VARIANT12 VARIANT13 VARIANT14 VARIANT15 VARIANT16 VARIANT17 VARIANT18 VARIANT19 VARIANT20 VARIANT21 VARIANT22 VARIANT23 VARIANT24 VARIANT25 VARIANT26 VARIANT27 VARIANT28
-            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
 
             #define USE_INDIRECT    // otherwise TileVariantToFeatureFlags() will not be defined in Lit.hlsl!!!
 
@@ -312,7 +313,8 @@ Shader "Hidden/HDRP/DeferredTile"
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
-            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
 
             #define USE_FPTL_LIGHTLIST 1 // deferred opaque always use FPTL
 

@@ -11,57 +11,61 @@ namespace UnityEngine.Rendering.HighDefinition
     public struct HDEffectsParameters
     {
         /// <summary>
-        /// Specified if ray traced shadows are active.
+        /// Specifies if ray traced shadows are active.
         /// </summary>
         public bool shadows;
         /// <summary>
-        /// Specified if ray traced ambient occlusion is active.
+        /// Specifies if ray traced ambient occlusion is active.
         /// </summary>
         public bool ambientOcclusion;
         /// <summary>
-        /// Specified the layer mask that will be used to evaluate ray traced ambient occlusion.
+        /// Specifies the layer mask that will be used to evaluate ray traced ambient occlusion.
         /// </summary>
         public int aoLayerMask;
         /// <summary>
-        /// Specified if ray traced reflections are active.
+        /// Specifies if ray traced reflections are active.
         /// </summary>
         public bool reflections;
         /// <summary>
-        /// Specified the layer mask that will be used to evaluate ray traced reflections.
+        /// Specifies the layer mask that will be used to evaluate ray traced reflections.
         /// </summary>
         public int reflLayerMask;
         /// <summary>
-        /// Specified if ray traced global illumination is active.
+        /// Specifies if ray traced global illumination is active.
         /// </summary>
         public bool globalIllumination;
         /// <summary>
-        /// Specified the layer mask that will be used to evaluate ray traced global illumination.
+        /// Specifies the layer mask that will be used to evaluate ray traced global illumination.
         /// </summary>
         public int giLayerMask;
         /// <summary>
-        /// Specified if recursive rendering is active.
+        /// Specifies if recursive rendering is active.
         /// </summary>
         public bool recursiveRendering;
         /// <summary>
-        /// Specified the layer mask that will be used to evaluate recursive rendering.
+        /// Specifies the layer mask that will be used to evaluate recursive rendering.
         /// </summary>
         public int recursiveLayerMask;
         /// <summary>
-        /// Specified if ray traced sub-surface scattering is active.
+        /// Specifies if ray traced sub-surface scattering is active.
         /// </summary>
         public bool subSurface;
         /// <summary>
-        /// Specified if path tracing is active.
+        /// Specifies if path tracing is active.
         /// </summary>
         public bool pathTracing;
         /// <summary>
-        /// Specified the layer mask that will be used to evaluate path tracing.
+        /// Specifies the layer mask that will be used to evaluate path tracing.
         /// </summary>
         public int ptLayerMask;
         /// <summary>
-        /// Specified if at least one ray tracing effect is enabled.
+        /// Specifies if at least one ray tracing effect is enabled.
         /// </summary>
         public bool rayTracingRequired;
+        /// <summary>
+        /// Specifies if the visual effects should be included in the ray tracing acceleration structure.
+        /// </summary>
+        public bool includeVFX;
     };
 
     class HDRTASManager
@@ -113,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cullingConfig.alphaTestedMaterialConfig.optionalShaderKeywords[0] = "_ALPHATEST_ON";
 
             // Flags for the transparency
-            cullingConfig.transparentMaterialConfig.renderQueueLowerBound = HDRenderQueue.k_RenderQueue_Transparent.lowerBound;
+            cullingConfig.transparentMaterialConfig.renderQueueLowerBound = HDRenderQueue.k_RenderQueue_PreRefraction.lowerBound;
             cullingConfig.transparentMaterialConfig.renderQueueUpperBound = HDRenderQueue.k_RenderQueue_Transparent.upperBound;
             cullingConfig.transparentMaterialConfig.optionalShaderKeywords = new string[1];
             cullingConfig.transparentMaterialConfig.optionalShaderKeywords[0] = "_SURFACE_TYPE_TRANSPARENT";
@@ -290,10 +294,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ShO_CT.layerMask = parameters.ptLayerMask;
                 ShT_CT.layerMask = parameters.ptLayerMask;
+                ShO_CT.allowVisualEffects = false;
+                ShT_CT.allowVisualEffects = false;
             }
 
             if (parameters.shadows || parameters.pathTracing)
             {
+                ShO_CT.allowVisualEffects = parameters.includeVFX;
+                ShT_CT.allowVisualEffects = parameters.includeVFX;
                 instanceTestArray.Add(ShO_CT);
                 instanceTestArray.Add(ShT_CT);
             }
@@ -301,33 +309,41 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.ambientOcclusion)
             {
                 AO_CT.layerMask = parameters.aoLayerMask;
+                AO_CT.allowVisualEffects = parameters.includeVFX;
                 instanceTestArray.Add(AO_CT);
             }
 
             if (parameters.reflections)
             {
                 Refl_CT.layerMask = parameters.reflLayerMask;
+                Refl_CT.allowVisualEffects = parameters.includeVFX;
                 instanceTestArray.Add(Refl_CT);
             }
 
             if (parameters.globalIllumination)
             {
                 GI_CT.layerMask = parameters.giLayerMask;
+                GI_CT.allowVisualEffects = parameters.includeVFX;
                 instanceTestArray.Add(GI_CT);
             }
 
             if (parameters.recursiveRendering)
             {
                 RR_CT.layerMask = parameters.recursiveLayerMask;
+                RR_CT.allowVisualEffects = parameters.includeVFX;
                 instanceTestArray.Add(RR_CT);
             }
 
             if (parameters.subSurface)
+            {
+                SSS_CT.allowVisualEffects = parameters.includeVFX;
                 instanceTestArray.Add(SSS_CT);
+            }
 
             if (parameters.pathTracing)
             {
                 PT_CT.layerMask = parameters.ptLayerMask;
+                PT_CT.allowVisualEffects = false;
                 instanceTestArray.Add(PT_CT);
             }
 

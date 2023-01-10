@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     name = $"Create {displayName}",
                     action = () =>
                     {
-                        var command = new CreateGraphVariableDeclarationCommand(displayName, true, type, typeof(GraphDataVariableDeclarationModel), selectedGroup ?? GraphModel.GetSectionModel(sectionName));
+                        var command = new CreateGraphVariableDeclarationCommand(displayName, true, type, typeof(SGVariableDeclarationModel), selectedGroup ?? GraphModel.GetSectionModel(sectionName));
                         view.Dispatch(command);
                     }
                 });
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override bool CanPasteNode(AbstractNodeModel originalModel, GraphModel graph)
         {
-            return originalModel is not GraphDataContextNodeModel;
+            return originalModel is not SGContextNodeModel;
         }
 
         public override bool CanPasteVariable(VariableDeclarationModel originalModel, GraphModel graph)

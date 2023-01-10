@@ -27,18 +27,18 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_LightVolumeGPUArray = null;
 
         // Culling result
-        ComputeBuffer m_LightCullResult = null;
+        GraphicsBuffer m_LightCullResult = null;
 
         // Output cluster data
-        ComputeBuffer m_LightCluster = null;
+        GraphicsBuffer m_LightCluster = null;
 
         // Light runtime data
         List<LightData> m_LightDataCPUArray = new List<LightData>();
-        ComputeBuffer m_LightDataGPUArray = null;
+        GraphicsBuffer m_LightDataGPUArray = null;
 
         // Env Light data
         List<EnvLightData> m_EnvLightDataCPUArray = new List<EnvLightData>();
-        ComputeBuffer m_EnvLightDataGPUArray = null;
+        GraphicsBuffer m_EnvLightDataGPUArray = null;
 
         // Light cluster debug material
         Material m_DebugMaterial = null;
@@ -87,8 +87,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderPipeline = renderPipeline;
 
             // Pre allocate the cluster with a dummy size
-            m_LightDataGPUArray = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-            m_EnvLightDataGPUArray = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+            m_LightDataGPUArray = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+            m_EnvLightDataGPUArray = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
 
             // Allocate the light cluster buffer at the right size
             m_NumLightsPerCell = renderPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell;
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the next buffer buffer
             if (bufferSize > 0)
             {
-                m_LightCluster = new ComputeBuffer(bufferSize, sizeof(uint));
+                m_LightCluster = new GraphicsBuffer(GraphicsBuffer.Target.Structured, bufferSize, sizeof(uint));
             }
         }
 
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the next buffer buffer
             if (numLights > 0)
             {
-                m_LightCullResult = new ComputeBuffer(numLights, sizeof(uint));
+                m_LightCullResult = new GraphicsBuffer(GraphicsBuffer.Target.Structured, numLights, sizeof(uint));
             }
         }
 
@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the next buffer buffer
             if (numLights > 0)
             {
-                m_LightDataGPUArray = new ComputeBuffer(numLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                m_LightDataGPUArray = new GraphicsBuffer(GraphicsBuffer.Target.Structured, numLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
             }
         }
 
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate the next buffer buffer
             if (numEnvLights > 0)
             {
-                m_EnvLightDataGPUArray = new ComputeBuffer(numEnvLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+                m_EnvLightDataGPUArray = new GraphicsBuffer(GraphicsBuffer.Target.Structured, numEnvLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
             }
         }
 
@@ -397,13 +397,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 maxClusterPos.z = Mathf.Max(m_LightVolumesCPUArray[lightIdx].position.z + m_LightVolumesCPUArray[lightIdx].range.z, maxClusterPos.z);
             }
 
-            minClusterPos.x = minClusterPos.x < clusterCenter.x - settings.cameraClusterRange.value ? clusterCenter.x - settings.cameraClusterRange.value : minClusterPos.x;
-            minClusterPos.y = minClusterPos.y < clusterCenter.y - settings.cameraClusterRange.value ? clusterCenter.y - settings.cameraClusterRange.value : minClusterPos.y;
-            minClusterPos.z = minClusterPos.z < clusterCenter.z - settings.cameraClusterRange.value ? clusterCenter.z - settings.cameraClusterRange.value : minClusterPos.z;
+            float cameraClusterRange;
+            if (hdCamera.IsPathTracingEnabled())
+            {
+                // For path tracing we use the max extent of the extended culling frustum as the light cluster size
+                Vector3 extendedFrustumExtent = (hdCamera.camera.transform.up + hdCamera.camera.transform.right + hdCamera.camera.transform.forward) * hdCamera.camera.farClipPlane;
+                cameraClusterRange = Mathf.Max(Mathf.Max(Mathf.Abs(extendedFrustumExtent.x), Mathf.Abs(extendedFrustumExtent.y)), Mathf.Abs(extendedFrustumExtent.z));
+            }
+            else
+                cameraClusterRange = settings.cameraClusterRange.value;
 
-            maxClusterPos.x = maxClusterPos.x > clusterCenter.x + settings.cameraClusterRange.value ? clusterCenter.x + settings.cameraClusterRange.value : maxClusterPos.x;
-            maxClusterPos.y = maxClusterPos.y > clusterCenter.y + settings.cameraClusterRange.value ? clusterCenter.y + settings.cameraClusterRange.value : maxClusterPos.y;
-            maxClusterPos.z = maxClusterPos.z > clusterCenter.z + settings.cameraClusterRange.value ? clusterCenter.z + settings.cameraClusterRange.value : maxClusterPos.z;
+            minClusterPos.x = Mathf.Max(minClusterPos.x, clusterCenter.x - cameraClusterRange);
+            minClusterPos.y = Mathf.Max(minClusterPos.y, clusterCenter.y - cameraClusterRange);
+            minClusterPos.z = Mathf.Max(minClusterPos.z, clusterCenter.z - cameraClusterRange);
+
+            maxClusterPos.x = Mathf.Min(maxClusterPos.x, clusterCenter.x + cameraClusterRange);
+            maxClusterPos.y = Mathf.Min(maxClusterPos.y, clusterCenter.y + cameraClusterRange);
+            maxClusterPos.z = Mathf.Min(maxClusterPos.z, clusterCenter.z + cameraClusterRange);
 
             // Compute the cell size per dimension
             clusterCellSize = (maxClusterPos - minClusterPos);
@@ -434,7 +444,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Inject all the parameters
                 cmd.SetComputeVectorParam(lightClusterCS, _ClusterCenterPosition, clusterCenter);
                 cmd.SetComputeVectorParam(lightClusterCS, _ClusterDimension, clusterDimension);
-                cmd.SetComputeFloatParam(lightClusterCS, _LightVolumeCount, HDShadowUtils.Asfloat(totalLightCount));
+                cmd.SetComputeIntParam(lightClusterCS, _LightVolumeCount, totalLightCount);
 
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterCullKernel, _LightVolumes, m_LightVolumeGPUArray);
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterCullKernel, _RaytracingLightCullResult, m_LightCullResult);
@@ -458,7 +468,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(lightClusterCS, _ClusterCellSize, clusterCellSize);
 
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterKernel, _LightVolumes, m_LightVolumeGPUArray);
-                cmd.SetComputeFloatParam(lightClusterCS, _LightVolumeCount, HDShadowUtils.Asfloat(totalLightCount));
+                cmd.SetComputeIntParam(lightClusterCS, _LightVolumeCount, totalLightCount);
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterKernel, _RaytracingLightCullResult, m_LightCullResult);
 
                 // Dispatch a compute
@@ -469,7 +479,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings)
+        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // If no lights, exit
             if (rayTracingLights.lightCount == 0)
@@ -570,6 +580,32 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightDataGPUArray.SetData(m_LightDataCPUArray);
         }
 
+        internal const int k_MaxPlanarReflectionsOnScreen = 16;
+        internal const int k_MaxCubeReflectionsOnScreen = 64;
+        EnvLightReflectionDataRT m_EnvLightReflectionDataRT = new EnvLightReflectionDataRT();
+
+        unsafe void SetPlanarReflectionDataRT(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset, ref Vector3 capturedForwardWS)
+        {
+            Debug.Assert(index < k_MaxPlanarReflectionsOnScreen);
+
+            for (int j = 0; j < 16; ++j)
+                m_EnvLightReflectionDataRT._PlanarCaptureVPRT[index * 16 + j] = vp[j];
+
+            for (int j = 0; j < 4; ++j)
+                m_EnvLightReflectionDataRT._PlanarScaleOffsetRT[index * 4 + j] = scaleOffset[j];
+
+            for (int j = 0; j < 3; ++j)
+                m_EnvLightReflectionDataRT._PlanarCaptureForwardRT[index * 4 + j] = capturedForwardWS[j];
+        }
+
+        unsafe void SetCubeReflectionDataRT(int index, ref Vector4 scaleOffset)
+        {
+            Debug.Assert(index < k_MaxCubeReflectionsOnScreen);
+
+            for (int j = 0; j < 4; ++j)
+                m_EnvLightReflectionDataRT._CubeScaleOffsetRT[index * 4 + j] = scaleOffset[j];
+        }
+
         void BuildEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights lights)
         {
             int totalReflectionProbes = lights.reflectionProbeArray.Count;
@@ -589,15 +625,29 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EnvLightDataCPUArray.Clear();
             ProcessedProbeData processedProbe = new ProcessedProbeData();
 
+            int fetchIndex;
+            Vector4 scaleOffset;
+            Matrix4x4 vp;
+            Vector3 capturedForwardWS;
+            EnvLightData envLightData = new EnvLightData();
+
             // Build the data for every light
             for (int lightIdx = 0; lightIdx < lights.reflectionProbeArray.Count; ++lightIdx)
             {
                 HDProbe probeData = lights.reflectionProbeArray[lightIdx];
 
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
+                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, out fetchIndex, out scaleOffset, out vp, out capturedForwardWS);
 
-                var envLightData = new EnvLightData();
-                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);
+                switch (processedProbe.hdProbe)
+                {
+                    case PlanarReflectionProbe planarProbe:
+                        SetPlanarReflectionDataRT(fetchIndex, ref vp, ref scaleOffset, ref capturedForwardWS);
+                        break;
+                    case HDAdditionalReflectionData reflectionData:
+                        SetCubeReflectionDataRT(fetchIndex, ref scaleOffset);
+                        break;
+                };
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
@@ -618,7 +668,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int lightClusterDebugKernel;
             public Vector3 clusterCellSize;
             public Material debugMaterial;
-            public ComputeBufferHandle lightCluster;
+            public BufferHandle lightCluster;
             public ComputeShader lightClusterDebugCS;
 
             public TextureHandle depthStencilBuffer;
@@ -640,7 +690,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
                 passData.clusterCellSize = clusterCellSize;
-                passData.lightCluster = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_LightCluster));
+                passData.lightCluster = builder.ReadBuffer(renderGraph.ImportBuffer(m_LightCluster));
                 passData.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
                 passData.lightClusterDebugKernel = passData.lightClusterDebugCS.FindKernel("DebugLightCluster");
                 passData.debugMaterial = m_DebugMaterial;
@@ -688,17 +738,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderPipeline.PushFullScreenDebugTexture(renderGraph, debugTexture, FullScreenDebugMode.LightCluster);
         }
 
-        public ComputeBuffer GetCluster()
+        public GraphicsBuffer GetCluster()
         {
             return m_LightCluster;
         }
 
-        public ComputeBuffer GetLightDatas()
+        public GraphicsBuffer GetLightDatas()
         {
             return m_LightDataGPUArray;
         }
 
-        public ComputeBuffer GetEnvLightDatas()
+        public GraphicsBuffer GetEnvLightDatas()
         {
             return m_EnvLightDataGPUArray;
         }
@@ -800,10 +850,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings)
+        public void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // Build the light data
-            BuildLightData(cmd, hdCamera, rayTracingLights, debugDisplaySettings);
+            BuildLightData(cmd, hdCamera, rayTracingLights);
 
             // Build the light data
             BuildEnvLightData(cmd, hdCamera, rayTracingLights);
@@ -811,6 +861,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void BindLightClusterData(CommandBuffer cmd)
         {
+            ConstantBuffer.PushGlobal(cmd, m_EnvLightReflectionDataRT, HDShaderIDs._EnvLightReflectionDataRT);
+
             cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, GetCluster());
             cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, GetLightDatas());
             cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatasRT, GetEnvLightDatas());

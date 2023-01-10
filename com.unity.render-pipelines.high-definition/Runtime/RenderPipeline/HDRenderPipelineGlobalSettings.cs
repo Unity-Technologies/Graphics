@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
 using System.IO;
+using System.Linq;
 using UnityEngine.Serialization;
-using UnityEngine.Experimental.Rendering;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var createdAsset = Create($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
                     UpdateGraphicsSettings(createdAsset);
 
-                    Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
+                    Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Global Settings.");
                 }
 
                 if (instance == null)
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Reset()
         {
-            UpdateRenderingLayerNames();
+            m_PrefixedRenderingLayerNames = null;
         }
 
         internal static HDRenderPipelineGlobalSettings Create(string path, HDRenderPipelineGlobalSettings dataSource = null)
@@ -546,238 +546,69 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
-        #region Rendering Layer Names [Light + Decal]
+        #region Rendering Layer Mask
 
-        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7" };
+        [SerializeField]
+        internal RenderingLayerMask defaultRenderingLayerMask = RenderingLayerMask.Default;
 
-        /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0 = k_DefaultLightLayerNames[0];
-        /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1 = k_DefaultLightLayerNames[1];
-        /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2 = k_DefaultLightLayerNames[2];
-        /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3 = k_DefaultLightLayerNames[3];
-        /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4 = k_DefaultLightLayerNames[4];
-        /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5 = k_DefaultLightLayerNames[5];
-        /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6 = k_DefaultLightLayerNames[6];
-        /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7 = k_DefaultLightLayerNames[7];
-
-
-        [System.NonSerialized]
-        string[] m_LightLayerNames = null;
-        /// <summary>
-        /// Names used for display of light layers.
-        /// </summary>
-        public string[] lightLayerNames
-        {
-            get
-            {
-                if (m_LightLayerNames == null)
-                {
-                    m_LightLayerNames = new string[8];
-                }
-
-                m_LightLayerNames[0] = lightLayerName0;
-                m_LightLayerNames[1] = lightLayerName1;
-                m_LightLayerNames[2] = lightLayerName2;
-                m_LightLayerNames[3] = lightLayerName3;
-                m_LightLayerNames[4] = lightLayerName4;
-                m_LightLayerNames[5] = lightLayerName5;
-                m_LightLayerNames[6] = lightLayerName6;
-                m_LightLayerNames[7] = lightLayerName7;
-
-                return m_LightLayerNames;
-            }
-        }
-
-        [System.NonSerialized]
-        string[] m_PrefixedLightLayerNames = null;
-        /// <summary>
-        /// Names used for display of light layers with Layer's index as prefix.
-        /// For example: "0: Light Layer Default"
-        /// </summary>
-        public string[] prefixedLightLayerNames
-        {
-            get
-            {
-                if (m_PrefixedLightLayerNames == null)
-                    UpdateRenderingLayerNames();
-                return m_PrefixedLightLayerNames;
-            }
-        }
-
-        static readonly string[] k_DefaultDecalLayerNames = { "Decal Layer default", "Decal Layer 1", "Decal Layer 2", "Decal Layer 3", "Decal Layer 4", "Decal Layer 5", "Decal Layer 6", "Decal Layer 7" };
-
-        /// <summary>Name for decal layer 0.</summary>
-        public string decalLayerName0 = k_DefaultDecalLayerNames[0];
-        /// <summary>Name for decal layer 1.</summary>
-        public string decalLayerName1 = k_DefaultDecalLayerNames[1];
-        /// <summary>Name for decal layer 2.</summary>
-        public string decalLayerName2 = k_DefaultDecalLayerNames[2];
-        /// <summary>Name for decal layer 3.</summary>
-        public string decalLayerName3 = k_DefaultDecalLayerNames[3];
-        /// <summary>Name for decal layer 4.</summary>
-        public string decalLayerName4 = k_DefaultDecalLayerNames[4];
-        /// <summary>Name for decal layer 5.</summary>
-        public string decalLayerName5 = k_DefaultDecalLayerNames[5];
-        /// <summary>Name for decal layer 6.</summary>
-        public string decalLayerName6 = k_DefaultDecalLayerNames[6];
-        /// <summary>Name for decal layer 7.</summary>
-        public string decalLayerName7 = k_DefaultDecalLayerNames[7];
-
-        [System.NonSerialized]
-        string[] m_DecalLayerNames = null;
-        /// <summary>
-        /// Names used for display of decal layers.
-        /// </summary>
-        public string[] decalLayerNames
-        {
-            get
-            {
-                if (m_DecalLayerNames == null)
-                {
-                    m_DecalLayerNames = new string[8];
-                }
-
-                m_DecalLayerNames[0] = decalLayerName0;
-                m_DecalLayerNames[1] = decalLayerName1;
-                m_DecalLayerNames[2] = decalLayerName2;
-                m_DecalLayerNames[3] = decalLayerName3;
-                m_DecalLayerNames[4] = decalLayerName4;
-                m_DecalLayerNames[5] = decalLayerName5;
-                m_DecalLayerNames[6] = decalLayerName6;
-                m_DecalLayerNames[7] = decalLayerName7;
-
-                return m_DecalLayerNames;
-            }
-        }
-
-        [System.NonSerialized]
-        string[] m_PrefixedDecalLayerNames = null;
-        /// <summary>
-        /// Names used for display of decal layers with Decal's index as prefix.
-        /// For example: "0: Decal Layer Default"
-        /// </summary>
-        public string[] prefixedDecalLayerNames
-        {
-            get
-            {
-                if (m_PrefixedDecalLayerNames == null)
-                    UpdateRenderingLayerNames();
-                return m_PrefixedDecalLayerNames;
-            }
-        }
-
-        [System.NonSerialized]
-        string[] m_RenderingLayerNames;
-        string[] renderingLayerNames
-        {
-            get
-            {
-                if (m_RenderingLayerNames == null)
-                    UpdateRenderingLayerNames();
-                return m_RenderingLayerNames;
-            }
-        }
+        [SerializeField]
+        internal string[] renderingLayerNames = null;
 
         [System.NonSerialized]
         string[] m_PrefixedRenderingLayerNames;
-        string[] prefixedRenderingLayerNames
+        internal string[] prefixedRenderingLayerNames
         {
             get
             {
                 if (m_PrefixedRenderingLayerNames == null)
-                {
                     UpdateRenderingLayerNames();
-                }
                 return m_PrefixedRenderingLayerNames;
             }
         }
 
-        /// <summary>Names used for display of rendering layer masks.</summary>
-        public string[] renderingLayerMaskNames => renderingLayerNames;
-
-        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
-        public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
-
         /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
         internal void UpdateRenderingLayerNames()
         {
-            if (m_RenderingLayerNames == null)
-                m_RenderingLayerNames = new string[32];
-
-            m_RenderingLayerNames[0] = lightLayerName0;
-            m_RenderingLayerNames[1] = lightLayerName1;
-            m_RenderingLayerNames[2] = lightLayerName2;
-            m_RenderingLayerNames[3] = lightLayerName3;
-            m_RenderingLayerNames[4] = lightLayerName4;
-            m_RenderingLayerNames[5] = lightLayerName5;
-            m_RenderingLayerNames[6] = lightLayerName6;
-            m_RenderingLayerNames[7] = lightLayerName7;
-
-            m_RenderingLayerNames[8] = decalLayerName0;
-            m_RenderingLayerNames[9] = decalLayerName1;
-            m_RenderingLayerNames[10] = decalLayerName2;
-            m_RenderingLayerNames[11] = decalLayerName3;
-            m_RenderingLayerNames[12] = decalLayerName4;
-            m_RenderingLayerNames[13] = decalLayerName5;
-            m_RenderingLayerNames[14] = decalLayerName6;
-            m_RenderingLayerNames[15] = decalLayerName7;
-
-            // Unused
-            for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
-            {
-                m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
-            }
-
-            // Update prefixed
+            if (renderingLayerNames == null)
+                renderingLayerNames = new string[1];
             if (m_PrefixedRenderingLayerNames == null)
-                m_PrefixedRenderingLayerNames = new string[32];
-            if (m_PrefixedLightLayerNames == null)
-                m_PrefixedLightLayerNames = new string[8];
-            if (m_PrefixedDecalLayerNames == null)
-                m_PrefixedDecalLayerNames = new string[8];
+                m_PrefixedRenderingLayerNames = new string[16];
+
             for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
             {
-                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, m_RenderingLayerNames[i]);
-                if (i < 8)
-                    m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
-                else if (i < 16)
-                    m_PrefixedDecalLayerNames[i - 8] = string.Format("{0}: {1}", i - 8, m_RenderingLayerNames[i]);
+                if (i < renderingLayerNames.Length && renderingLayerNames[i] == null) renderingLayerNames[i] = GetDefaultLayerName(i);
+                m_PrefixedRenderingLayerNames[i] = i < renderingLayerNames.Length ? renderingLayerNames[i] : $"Unused Layer {i}";
             }
         }
 
-        internal void ResetRenderingLayerNames(bool lightLayers, bool decalLayers)
+        internal void ResetRenderingLayerNames()
         {
-            if (lightLayers)
-            {
-                lightLayerName0 = k_DefaultLightLayerNames[0];
-                lightLayerName1 = k_DefaultLightLayerNames[1];
-                lightLayerName2 = k_DefaultLightLayerNames[2];
-                lightLayerName3 = k_DefaultLightLayerNames[3];
-                lightLayerName4 = k_DefaultLightLayerNames[4];
-                lightLayerName5 = k_DefaultLightLayerNames[5];
-                lightLayerName6 = k_DefaultLightLayerNames[6];
-                lightLayerName7 = k_DefaultLightLayerNames[7];
-            }
-            if (decalLayers)
-            {
-                decalLayerName0 = k_DefaultDecalLayerNames[0];
-                decalLayerName1 = k_DefaultDecalLayerNames[1];
-                decalLayerName2 = k_DefaultDecalLayerNames[2];
-                decalLayerName3 = k_DefaultDecalLayerNames[3];
-                decalLayerName4 = k_DefaultDecalLayerNames[4];
-                decalLayerName5 = k_DefaultDecalLayerNames[5];
-                decalLayerName6 = k_DefaultDecalLayerNames[6];
-                decalLayerName7 = k_DefaultDecalLayerNames[7];
-            }
+            for (int i = 0; i < renderingLayerNames.Length; ++i)
+                renderingLayerNames[i] = GetDefaultLayerName(i);
             UpdateRenderingLayerNames();
         }
+
+        internal static string GetDefaultLayerName(int index)
+        {
+            return index == 0 ? "Default" : $"Layer {index}";
+        }
+
+        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName0;
+        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName1;
+        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName2;
+        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName3;
+        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName4;
+        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName5;
+        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName6;
+        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName7;
+        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName0;
+        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName1;
+        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName2;
+        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName3;
+        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName4;
+        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName5;
+        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName6;
+        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName7;
 
         #endregion
 
@@ -788,28 +619,91 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal ColorGradingSpace colorGradingSpace;
 
+        [SerializeField, FormerlySerializedAs("diffusionProfileSettingsList")]
+        internal DiffusionProfileSettings[] m_ObsoleteDiffusionProfileSettingsList;
+
         [SerializeField]
-        internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
+        internal bool specularFade;
 
         [SerializeField]
         internal bool rendererListCulling;
 
+        static readonly DiffusionProfileSettings[] kEmptyProfiles = new DiffusionProfileSettings[0];
+        internal DiffusionProfileSettings[] diffusionProfileSettingsList
+        {
+            get
+            {
+                if (instance.volumeProfile != null && instance.volumeProfile.TryGet<DiffusionProfileList>(out var overrides))
+                    return overrides.diffusionProfiles.value ?? kEmptyProfiles;
+                return kEmptyProfiles;
+            }
+            set { GetOrCreateDiffusionProfileList().diffusionProfiles.value = value; }
+        }
+
+        internal DiffusionProfileList GetOrCreateDiffusionProfileList()
+        {
+            var volumeProfile = instance.GetOrCreateDefaultVolumeProfile();
+            if (!volumeProfile.TryGet<DiffusionProfileList>(out var component))
+            {
+                component = volumeProfile.Add<DiffusionProfileList>(true);
+
 #if UNITY_EDITOR
+                if (EditorUtility.IsPersistent(volumeProfile))
+                {
+                    UnityEditor.AssetDatabase.AddObjectToAsset(component, volumeProfile);
+                    EditorUtility.SetDirty(volumeProfile);
+                }
+#endif
+            }
+
+            if (component.diffusionProfiles.value == null)
+                component.diffusionProfiles.value = new DiffusionProfileSettings[0];
+            return component;
+        }
+
+#if UNITY_EDITOR
+        internal void TryAutoRegisterDiffusionProfile(DiffusionProfileSettings profile)
+        {
+            if (!autoRegisterDiffusionProfiles || profile == null || diffusionProfileSettingsList == null || diffusionProfileSettingsList.Any(d => d == profile))
+                return;
+
+            if (diffusionProfileSettingsList.Length >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
+            {
+                Debug.LogError($"Failed to register profile '{profile.name}'. You have reached the limit of {DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1} custom diffusion profiles in HDRP's Global Settings Default Volume.\n" +
+                        "Remove one from the list or disable the automatic registration of missing diffusion profiles in the Global Settings.", HDRenderPipelineGlobalSettings.instance);
+                return;
+            }
+
+            AddDiffusionProfile(profile);
+        }
+
         internal bool AddDiffusionProfile(DiffusionProfileSettings profile)
         {
-            if (diffusionProfileSettingsList.Length < 15)
+            var overrides = GetOrCreateDiffusionProfileList();
+            var profiles = overrides.diffusionProfiles.value;
+
+            for (int i = 0; i < profiles.Length; i++)
             {
-                int index = diffusionProfileSettingsList.Length;
-                System.Array.Resize(ref diffusionProfileSettingsList, index + 1);
-                diffusionProfileSettingsList[index] = profile;
-                UnityEditor.EditorUtility.SetDirty(this);
-                return true;
+                if (profiles[i] == null)
+                {
+                    profiles[i] = profile;
+                    return true;
+                }
             }
-            else
+
+            if (profiles.Length >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
             {
-                Debug.LogErrorFormat("We cannot add the diffusion profile {0} to the HDRP's Global Settings as we only allow 14 custom profiles. Please remove one before adding a new one.", profile.name);
+                Debug.LogErrorFormat("Failed to register profile {0}. You have reached the limit of {1} custom diffusion profiles in HDRP's Global Settings Default Volume. Please remove one before adding a new one.", profile.name, DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1);
                 return false;
             }
+
+            int index = profiles.Length;
+            Array.Resize(ref profiles, index + 1);
+            profiles[index] = profile;
+
+            overrides.diffusionProfiles.value = profiles;
+            EditorUtility.SetDirty(overrides);
+            return true;
         }
 
 #endif
@@ -824,9 +718,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool supportProbeVolumes = false;
 
         /// <summary>
-        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// Controls whether diffusion profiles referenced by an imported material should be automatically added to the list.
         /// </summary>
-        public bool supportRuntimeDebugDisplay = false;
+        public bool autoRegisterDiffusionProfiles = true;
 
         #endregion
 
@@ -839,7 +733,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (apvScenesData == null)
                 apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
-
 
             apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
             return apvScenesData;

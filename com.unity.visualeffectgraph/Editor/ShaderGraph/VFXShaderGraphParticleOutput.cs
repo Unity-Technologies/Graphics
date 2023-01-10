@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
 {
     [CustomEditor(typeof(VFXShaderGraphParticleOutput), true)]
     [CanEditMultipleObjects]
-    class VFXShaderGraphParticleOutputEditor : VFXContextEditor
+    class VFXShaderGraphParticleOutputEditor : VFXAbstractParticleOutputEditor
     {
         private MaterialEditor m_MaterialEditor = null;
 
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
 
         void UpdateMaterialEditor()
         {
-            var material = ((VFXShaderGraphParticleOutput)target).transientMaterial;
+            var material = ((VFXShaderGraphParticleOutput)target).FindMaterial();
 
             if (material != null)
             {
@@ -167,23 +167,38 @@ namespace UnityEditor.VFX
 
         public event Action OnMaterialChange;
 
-        internal Material transientMaterial;
+        private bool m_IsShaderGraphMissing;
 
-        public ShaderGraphVfxAsset GetOrRefreshShaderGraphObject()
+        public ShaderGraphVfxAsset GetOrRefreshShaderGraphObject(bool refreshErrors = true)
         {
+            var wasShaderGraphMissing = m_IsShaderGraphMissing;
             //This is the only place where shaderGraph property is updated or read
             if (shaderGraph == null && !object.ReferenceEquals(shaderGraph, null))
             {
-                string assetPath = AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID());
+                var assetPath = AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID());
 
                 var newShaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(assetPath);
-                if (newShaderGraph != null)
+                m_IsShaderGraphMissing = newShaderGraph == null;
+
+                if (!m_IsShaderGraphMissing)
                 {
                     shaderGraph = newShaderGraph;
                 }
             }
+            else
+            {
+                m_IsShaderGraphMissing = false;
+            }
+
+            if (refreshErrors && wasShaderGraphMissing != m_IsShaderGraphMissing)
+            {
+                RefreshErrors();
+            }
+
             return shaderGraph;
         }
+
+        public override bool CanBeCompiled() => !m_IsShaderGraphMissing && base.CanBeCompiled();
 
         public override bool hasShadowCasting
         {
@@ -261,16 +276,16 @@ namespace UnityEditor.VFX
                 materialSettings.ApplyToMaterial(material);
                 VFXLibrary.currentSRPBinder.SetupMaterial(material, hasMotionVector, hasShadowCasting, shaderGraph);
 
-                transientMaterial = material;
                 OnMaterialChange?.Invoke();
             }
         }
 
         public void UpdateMaterialSettings()
         {
-            if (transientMaterial != null)
+            var material = FindMaterial();
+            if (material != null)
             {
-                materialSettings.SyncFromMaterial(transientMaterial);
+                materialSettings.SyncFromMaterial(material);
             }
         }
 
@@ -278,7 +293,9 @@ namespace UnityEditor.VFX
         {
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(shaderGraph, null))
+            {
                 dependencies.Add(shaderGraph.GetInstanceID());
+            }
         }
 
         protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
@@ -343,9 +360,15 @@ namespace UnityEditor.VFX
 
         public override bool HasSorting()
         {
-            var materialBlendMode = GetMaterialBlendMode();
-
-            return base.HasSorting() || ((sort == SortActivationMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)) && !HasStrips(true));
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+            {
+                var materialBlendMode = GetMaterialBlendMode();
+                return (sort == SortActivationMode.On
+                        || (sort == SortActivationMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)))
+                       && !HasStrips(true);
+            }
+            return base.HasSorting();
         }
 
         public override bool isBlendModeOpaque
@@ -359,6 +382,8 @@ namespace UnityEditor.VFX
                 return base.isBlendModeOpaque;
             }
         }
+
+        protected bool isShaderGraphMissing => m_IsShaderGraphMissing;
 
         protected string shaderName
         {
@@ -396,24 +421,37 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                if (GetOrRefreshShaderGraphObject() != null)
+                var sg = GetOrRefreshShaderGraphObject();
+                if (sg != null || m_IsShaderGraphMissing)
                 {
                     yield return "colorMapping";
                     yield return "useAlphaClipping";
 
-                    if (shaderGraph.generatesWithShaderGraph)
+                    if (m_IsShaderGraphMissing)
+                    {
+                        yield return "useSoftParticle";
+                        yield return "uvMode";
+                    }
+
+                    if (sg != null && sg.generatesWithShaderGraph)
                     {
                         foreach (var builtinSetting in FilterOutBuiltinSettings())
                             yield return builtinSetting;
 
-                        if (VFXLibrary.currentSRPBinder != null)
+                        var srpBinder = VFXLibrary.currentSRPBinder;
+                        if (srpBinder != null)
                         {
-                            if (VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(shaderGraph, materialSettings, out var castShadow))
+                            if (srpBinder.TryGetCastShadowFromMaterial(shaderGraph, materialSettings, out _))
                                 yield return nameof(castShadows);
 
-                            if (VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, materialSettings, out var queueOffset))
+                            if (srpBinder.TryGetQueueOffset(shaderGraph, materialSettings, out _))
                                 yield return nameof(sortingPriority);
                         }
+                    }
+                    else if (m_IsShaderGraphMissing)
+                    {
+                        foreach (var builtinSetting in FilterOutBuiltinSettings())
+                            yield return builtinSetting;
                     }
                 }
                 if (!VFXViewPreference.displayExperimentalOperator)
@@ -459,18 +497,45 @@ namespace UnityEditor.VFX
             }
         }
 
+        // Do not resync slots when shader graph is missing to keep potential links to the shader properties
+        public override bool ResyncSlots(bool notify) => !isShaderGraphMissing && base.ResyncSlots(notify);
+
         public override void CheckGraphBeforeImport()
         {
             base.CheckGraphBeforeImport();
-            // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
+            var currentShaderGraph = GetOrRefreshShaderGraphObject();
+
+            // If the graph is reimported it can be because one of its dependency such as the shadergraphs, has been changed.
             if (!VFXGraph.explicitCompile)
             {
                 ResyncSlots(true);
 
                 // Ensure that the output context name is in sync with the shader graph shader enum name.
-                if (GetOrRefreshShaderGraphObject() != null &&
-                    GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
+                if (currentShaderGraph != null && currentShaderGraph.generatesWithShaderGraph)
                     Invalidate(InvalidationCause.kUIChangedTransient);
+                else if (isShaderGraphMissing)
+                {
+                    var vfxName = GetGraph().visualEffectResource.name;
+                    Debug.LogError($"The VFX Graph '{vfxName}'" + GetMissingShaderGraphErrorMessage(currentShaderGraph));
+                }
+            }
+        }
+
+        static string GetMissingShaderGraphErrorMessage(ShaderGraphVfxAsset shader)
+        {
+            var missingShaderPath = AssetDatabase.GetAssetPath(shader.GetInstanceID());
+            return $" cannot be compiled because a Shader Graph asset located here '{missingShaderPath}' is missing.";
+        }
+
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            var currentShaderGraph = GetOrRefreshShaderGraphObject(false);
+            if (isShaderGraphMissing)
+            {
+                var message = GetMissingShaderGraphErrorMessage(currentShaderGraph);
+                manager.RegisterError("ErrorMissingShaderGraph", VFXErrorType.Error, "The VFX Graph" + message);
             }
         }
 
@@ -479,11 +544,11 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                var shaderGraph = GetOrRefreshShaderGraphObject();
-                if (shaderGraph != null)
+                var sg = GetOrRefreshShaderGraphObject();
+                if (sg != null)
                 {
                     var shaderGraphProperties = new List<VFXPropertyWithValue>();
-                    foreach (var property in shaderGraph.properties
+                    foreach (var property in sg.properties
                              .Where(t => !t.hidden)
                              .Select(t => new { property = t, type = GetSGPropertyType(t) })
                              .Where(t => t.type != null))

@@ -51,8 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Motion Blur effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Motion Blur", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Motion-Blur")]
+    [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [HDRPHelpURL("Post-Processing-Motion-Blur")]
     public sealed class MotionBlur : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>

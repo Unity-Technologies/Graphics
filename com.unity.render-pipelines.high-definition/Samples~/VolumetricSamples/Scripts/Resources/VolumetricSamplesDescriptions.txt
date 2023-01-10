@@ -1,0 +1,50 @@
+Welcome to the collection of [Volumetric_Fog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Override-Fog.html) Samples. 
+Each of the effects instantiated by this script are Prefabs available for usage in *VolumetricSamples/Prefabs/…
+
+The [Local_Volumetric_Fog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Local-Volumetric-Fog.html) component allows the usage of *3D *Textures or *Shader *Graphs to add details and animation locally to the fog. *Blending *Modes are also available to add, multiply or overwrite fog values.
+
+The Local Fog visual quality is dependent on the *Volumetric *Fog *quality *settings, found in the active *Volume *Profile. The Manual control offers precise management over the Fog’s budget :  for an effect with lots of variation over a short distance, it is preferred to increase the *Volume *Slice *Count. If performance is an issue, the *Screen *Resolution *Percentage can be kept low as a tradeoff.
+
+---
+This Local Volumetric Fog uses the *Texture *Mask *Mode.
+It requires a *3D *texture, some more examples are found in *VolumetricSamples/3D *Textures/... .
+RGB channels are used for tint, while the alpha channel will drive the density. If the 3D texture contains only the alpha channel, the tint will be presumed white.
+---
+This *Ground *Smoke uses a Shader Graph.
+Unlike the other samples, it only uses *2D *textures. For such effects, only modulation of the height is needed, so it works to just project a 2D noise over the top. Two textures with different sizes move around in different directions. A simple Gradient over the Volume’s height adds a bit more depth.
+---
+This *Cloudy Effect uses a Shader Graph.
+It samples multiple noises baked in *3D *textures to create those cloudy shapes. For actual clouds in the sky, the usage of [Volumetric_Clouds](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Override-Volumetric-Clouds.html) is recommended, as Local Volumetric Fog is intended for very local use close to the camera.
+---
+This *Foggy *Orb uses a Shader Graph. The 3D texture is not only scrolling upwards, but also turning upon itself, which helps to give it a good flow.
+It has a *light in the middle.
+---
+This sample showcases *procedural *3D *Noise.
+It is possible to compute a 3D noise directly in the Shader Graph. Several *3D *noise *functions are available as *SubGraphs found in *VolumetricSamples/Fog *Volume *Shadergraph/Procedural *Noises/... .
+
+Procedural Noise can be quite slow to run as there is complex math involved.
+
+Check out the Material on the Sample to visualize different noise functions.
+
+---
+This *Fumes Effect uses a Shader Graph. It is using a *procedural *3D *Noise *SubGraph, which is easy to scale and deform, as we are not limited by resolution.
+---
+It’s a very simple *Heart, using simple math with Shader Graph.
+No textures are involved.
+---
+The *Local *Volumetric *Fog has different *Blending *Modes.
+
+The *Additive blending mode is the most commonly used as it will seamlessly blend with the surrounding fog by simple addition of color and density values. With this mode you can not go less dense than existing fog.
+
+The *Overwrite blending mode will replace any fog value. It won’t blend at all with the surrounding fog, noticeably on the blend distance. Can be useful to remove fog from an interior.
+
+The *Multiply blending mode can be used to remove fog density locally, by multiplying the color and density with a small value. Can be useful to seamlessly remove fog locally. 
+
+The *Min and *Max blending mode can be used to clamp value in one way or the other.
+
+
+
+
+ 
+
+

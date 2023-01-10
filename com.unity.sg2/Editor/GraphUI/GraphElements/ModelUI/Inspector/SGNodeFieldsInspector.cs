@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public SGNodeFieldsInspector(string name, IEnumerable<Model> models, RootView rootView, string parentClassName)
             : base(name, models, rootView, parentClassName) { }
 
-        IEnumerable<GraphDataNodeModel> nodeModels => m_Models.OfType<GraphDataNodeModel>();
+        IEnumerable<SGNodeModel> nodeModels => m_Models.OfType<SGNodeModel>();
 
         protected override IEnumerable<BaseModelPropertyField> GetFields()
         {
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     "Preview Mode",
                     "Preview Mode",
                     "Controls the way the preview output is rendered for this node",
-                    (model) => ((GraphDataNodeModel)model).NodePreviewMode);
+                    (model) => ((SGNodeModel)model).NodePreviewMode);
 
             propertyFieldList.Add(previewModeField);
             return propertyFieldList;

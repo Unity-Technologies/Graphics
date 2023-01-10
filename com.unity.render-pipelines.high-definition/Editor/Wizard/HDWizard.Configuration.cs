@@ -150,8 +150,15 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (EditorWindow.HasOpenInstances<HDWizard>())
             {
-                HDWizard window = (HDWizard)EditorWindow.GetWindow(typeof(HDWizard));
-                window.ReBuildEntryList();
+                EditorApplication.update += DelayedRebuildEntryList;
+
+                // Case 1407981: Calling GetWindow in InitializeOnLoadMethod doesn't work and creates a new window instead of getting the existing one.
+                void DelayedRebuildEntryList()
+                {
+                    EditorApplication.update -= DelayedRebuildEntryList;
+                    HDWizard window = EditorWindow.GetWindow<HDWizard>(Style.title.text);
+                    window.ReBuildEntryList();
+                }
             }
         }
 
@@ -172,9 +179,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpRuntimeResources, IsRuntimeResourcesCorrect, FixRuntimeResources),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpEditorResources, IsEditorResourcesCorrect, FixEditorResources),
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile),
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpMigratableAssets, IsMigratableAssetsCorrect, FixMigratableAssets),
 
                 new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
@@ -184,7 +191,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyHelpersPackage, IsVRLegacyHelpersCorrect, FixVRLegacyHelpers)
             });
 
-            if (CalculateSelectedBuildTarget() == BuildTarget.PS5)
+            var currentBuildTarget = CalculateSelectedBuildTarget();
+            if (( currentBuildTarget == BuildTarget.PS5) || (currentBuildTarget == BuildTarget.GameCoreXboxSeries ))
             {
                 entryList.AddRange(new[]
                 {
@@ -221,6 +229,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrTransparentReflectionsFS, IsDXRTransparentReflectionsFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrGI, IsDXRGICorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
                 new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrGIFS, IsDXRGIFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
+                new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrVfx, IsDXRVFXCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrVfxFS, IsDXRVFXFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
             });
 
             return entryList.ToArray();
@@ -391,7 +401,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // in editor (Standalone) and for the other part, it is all in internal code.
             return GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Standalone) == LightmapEncodingQualityCopy.High
                 && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android) == LightmapEncodingQualityCopy.High
-                && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Lumin) == LightmapEncodingQualityCopy.High
                 && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA) == LightmapEncodingQualityCopy.High;
         }
 
@@ -399,7 +408,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Standalone, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android, LightmapEncodingQualityCopy.High);
-            SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Lumin, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA, LightmapEncodingQualityCopy.High);
         }
 
@@ -511,6 +519,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!IsEditorResourcesCorrect())
                 FixEditorResources(fromAsyncUnused: false);
+
+            if (!IsDefaultVolumeProfileCorrect())
+                FixDefaultVolumeProfile(fromAsyncUnused: false);
 
             var defaultAssetList = HDRenderPipelineGlobalSettings.instance.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
             HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
@@ -785,7 +796,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var selectedBuildTarget = CalculateSelectedBuildTarget();
             return IsHdrpGlobalSettingsUsedCorrect()
                 && HDRenderPipelineGlobalSettings.instance.AreRayTracingResourcesCreated()
-                && (SystemInfo.supportsRayTracing || selectedBuildTarget == BuildTarget.PS5);
+                && (SystemInfo.supportsRayTracing || selectedBuildTarget == BuildTarget.GameCoreXboxSeries || selectedBuildTarget == BuildTarget.PS5);
         }
 
         void FixDXRResources(bool fromAsyncUnused)
@@ -858,15 +869,29 @@ namespace UnityEditor.Rendering.HighDefinition
             return defaultCameraFS.IsEnabled(FrameSettingsField.SSGI);
         }
 
+        bool IsDXRVFXCorrect()
+            => HDRenderPipeline.currentAsset != null
+               && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportVFXRayTracing;
+
+        bool IsDXRVFXFSCorrect()
+        {
+            if (!IsHdrpGlobalSettingsUsedCorrect())
+                return false;
+
+            FrameSettings defaultCameraFS = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+            return defaultCameraFS.IsEnabled(FrameSettingsField.RaytracingVFX);
+        }
+
         bool IsValidBuildTarget()
         {
             return (EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64)
+                || (EditorUserBuildSettings.activeBuildTarget == BuildTarget.GameCoreXboxSeries)
                 || (EditorUserBuildSettings.activeBuildTarget == BuildTarget.PS5);
         }
 
         void FixBuildTarget(bool fromAsyncUnused)
         {
-            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.PS5)
+            if ((EditorUserBuildSettings.activeBuildTarget != BuildTarget.PS5) && (EditorUserBuildSettings.activeBuildTarget != BuildTarget.GameCoreXboxSeries))
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
         }
 
@@ -919,28 +944,52 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        void InstallLocalConfigurationPackage(Action onCompletion)
-            => m_UsedPackageRetriever.ProcessAsync(
-                k_HdrpConfigPackageName,
-                (installed, info) =>
+
+        void EmbedConfigPackage(bool installed, string name, Action onCompletion)
+        {
+            if (!installed)
+            {
+                Debug.LogError("The the HDRP config package is missing, please install the one with the same version of your HDRP package.");
+                return;
+            }
+
+            WaitForRequest(Client.Embed(name), embedRequest =>
+            {
+                if (embedRequest.Status >= StatusCode.Failure)
                 {
-                    if (!installed)
-                    {
-                        Debug.LogError("The the HDRP config package is missing, please install the one with the same version of your HDRP package.");
-                        return;
-                    }
+                    Debug.LogError($"Failed to install the config package {embedRequest.Error.message}");
+                    return;
+                }
 
-                    WaitForRequest(Client.Embed(info.name), embedRequest =>
-                    {
-                        if (embedRequest.Status >= StatusCode.Failure)
+                onCompletion?.Invoke();
+            });
+        }
+
+        void InstallLocalConfigurationPackage(Action onCompletion)
+        {
+            m_UsedPackageRetriever.ProcessAsync(
+            k_HdrpConfigPackageName,
+            (installed, info) =>
+            {
+                // Embedding a package requires it to be an explicit direct dependency in the manifest.
+                // If it's not, we add it first.
+                if (!info.isDirectDependency)
+                {
+                    m_PackageInstaller.ProcessAsync(k_HdrpConfigPackageName, () => m_UsedPackageRetriever.ProcessAsync(
+                        k_HdrpConfigPackageName,
+                        (installed, info) =>
                         {
-                            Debug.LogError($"Failed to install the config package {embedRequest.Error.message}");
-                            return;
-                        }
+                            EmbedConfigPackage(installed, info.name, onCompletion);
 
-                        onCompletion?.Invoke();
-                    });
-                });
+                        }));
+                }
+                else
+                {
+                    EmbedConfigPackage(installed, info.name, onCompletion);
+                }
+            });
+        }
+
 
         static void WaitForRequest<T>(T request, Action<T> onCompleted)
             where T : Request

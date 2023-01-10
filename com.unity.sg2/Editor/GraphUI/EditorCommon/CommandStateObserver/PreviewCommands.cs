@@ -13,8 +13,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static void RegisterCommandHandlers(
             BaseGraphTool graphTool,
             PreviewUpdateDispatcher previewUpdateDispatcher,
-            ShaderGraphModel shaderGraphModel,
-            Dispatcher commandDispatcher,
+            SGGraphModel graphModel,
+            ICommandTarget commandDispatcher,
             GraphViewModel graphViewModel)
         {
             commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, PreviewUpdateDispatcher, ChangePreviewExpandedCommand>(
@@ -24,27 +24,27 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 previewUpdateDispatcher
             );
 
-            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewUpdateDispatcher, ChangePreviewMeshCommand>(
+            commandDispatcher.RegisterCommandHandler<SGGraphModel, PreviewUpdateDispatcher, ChangePreviewMeshCommand>(
                 ChangePreviewMeshCommand.DefaultCommandHandler,
-                shaderGraphModel,
+                graphModel,
                 previewUpdateDispatcher
             );
 
-            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewUpdateDispatcher, ChangePreviewZoomCommand>(
+            commandDispatcher.RegisterCommandHandler<SGGraphModel, PreviewUpdateDispatcher, ChangePreviewZoomCommand>(
                 ChangePreviewZoomCommand.DefaultCommandHandler,
-                shaderGraphModel,
+                graphModel,
                 previewUpdateDispatcher
             );
 
-            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewUpdateDispatcher, ChangePreviewRotationCommand>(
+            commandDispatcher.RegisterCommandHandler<SGGraphModel, PreviewUpdateDispatcher, ChangePreviewRotationCommand>(
                 ChangePreviewRotationCommand.DefaultCommandHandler,
-                shaderGraphModel,
+                graphModel,
                 previewUpdateDispatcher
             );
 
-            commandDispatcher.RegisterCommandHandler<ShaderGraphModel, PreviewUpdateDispatcher, ChangePreviewSizeCommand>(
+            commandDispatcher.RegisterCommandHandler<SGGraphModel, PreviewUpdateDispatcher, ChangePreviewSizeCommand>(
                 ChangePreviewSizeCommand.DefaultCommandHandler,
-                shaderGraphModel,
+                graphModel,
                 previewUpdateDispatcher
             );
 
@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 foreach (var graphElementModel in command.Models)
                 {
-                    if (graphElementModel is GraphDataNodeModel graphDataNodeModel)
+                    if (graphElementModel is SGNodeModel graphDataNodeModel)
                     {
                         graphDataNodeModel.IsPreviewExpanded = command.m_IsPreviewExpanded;
                         if(command.m_IsPreviewExpanded)
@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public static void DefaultCommandHandler(
-            ShaderGraphModel graphModel,
+            SGGraphModel graphModel,
             PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewMeshCommand command
         )
@@ -124,13 +124,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
     }
 
 
-    class ChangePreviewModeCommand : ModelCommand<GraphDataNodeModel>
+    class ChangePreviewModeCommand : ModelCommand<SGNodeModel>
     {
         PreviewRenderMode m_PreviewMode;
 
         // Needed for the ModelPropertyField used by the SGNodeFieldsInspector
         public ChangePreviewModeCommand(object previewMode, Model model)
-            : base("Change Preview Mode", "Change Preview Modes", new []{ model as GraphDataNodeModel })
+            : base("Change Preview Mode", "Change Preview Modes", new []{ model as SGNodeModel })
         {
             m_PreviewMode = (PreviewRenderMode)previewMode;
         }
@@ -185,7 +185,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public static void DefaultCommandHandler(
-            ShaderGraphModel graphModel,
+            SGGraphModel graphModel,
             PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewZoomCommand command
         )
@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public static void DefaultCommandHandler(
-            ShaderGraphModel graphModel,
+            SGGraphModel graphModel,
             PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewRotationCommand command
         )
@@ -231,7 +231,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         public static void DefaultCommandHandler(
-            ShaderGraphModel graphModel,
+            SGGraphModel graphModel,
             PreviewUpdateDispatcher previewUpdateDispatcher,
             ChangePreviewSizeCommand command
         )

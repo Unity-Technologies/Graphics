@@ -1,0 +1,76 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+
+#pragma kernel SharpenCS
+
+TEXTURE2D_X(_InputTexture);
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
+
+#pragma multi_compile _ CLAMP_RINGING
+
+float4 _SharpenParams;
+#define _SharpenStrength _SharpenParams.x
+#define _RingingReduction _SharpenParams.y
+
+
+float3 GetBlurred(float2 UV)
+{
+    float2 delta = _PostProcessScreenSize.zw;
+    float3 s0 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(UV + float2(delta.x, 0)), 0).xyz;
+    float3 s1 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(UV + float2(-delta.x, 0)), 0).xyz;
+    float3 s2 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(UV + float2(0, delta.y)), 0).xyz;
+    float3 s3 = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(UV + float2(0, -delta.y)), 0).xyz;
+    float3 blurred = s0 + s1 + s2 + s3;
+    blurred *= 0.25f;
+
+    return blurred;
+}
+
+float3 GetSharpenedResult(float3 original, float2 UV)
+{
+    float3 blurry = GetBlurred(UV);
+
+    float3 diff = (original - blurry);
+    float3 sharpened = original + (original - blurry) * _SharpenStrength;
+
+#ifdef CLAMP_RINGING
+    {
+        float3 clampedSharp = sharpened;
+        // Get a gather result around a local window.
+        float4 gatherData = GATHER_RED_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(UV));
+        float minC = Min3(gatherData.x, gatherData.y, min(gatherData.z, gatherData.w));
+        float maxC = Max3(gatherData.x, gatherData.y, max(gatherData.z, gatherData.w));
+        clampedSharp.r = clamp(clampedSharp.r, minC, maxC);
+
+        gatherData = GATHER_GREEN_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(UV));
+        minC = Min3(gatherData.x, gatherData.y, min(gatherData.z, gatherData.w));
+        maxC = Max3(gatherData.x, gatherData.y, max(gatherData.z, gatherData.w));
+        clampedSharp.g = clamp(clampedSharp.g, minC, maxC);
+
+        gatherData = GATHER_BLUE_TEXTURE2D_X(_InputTexture, s_point_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(UV));
+        minC = Min3(gatherData.x, gatherData.y, min(gatherData.z, gatherData.w));
+        maxC = Max3(gatherData.x, gatherData.y, max(gatherData.z, gatherData.w));
+        clampedSharp.b = clamp(clampedSharp.b, minC, maxC);
+
+        sharpened = lerp(sharpened, clampedSharp, _RingingReduction);
+    }
+#endif
+
+    return sharpened;
+}
+
+
+
+[numthreads(8, 8, 1)]
+void SharpenCS(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    float2 UV = (dispatchThreadId.xy + 0.5) * _PostProcessScreenSize.zw;
+
+    float4 original = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    float3 sharpened = GetSharpenedResult(original.xyz, UV);
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(sharpened.xyz, original.a).CTYPE_SWIZZLE;
+}

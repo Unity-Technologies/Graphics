@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class HDLightingWindowEnvironmentSectionEditor : LightingWindowEnvironmentSection
     {
         class Styles
@@ -107,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
             //Perhaps it is an old scene. Search everywhere
             if (result == null)
             {
-                var candidates = GameObject.FindObjectsOfType<StaticLightingSky>().Where(sls => sls.gameObject.scene == scene);
+                var candidates = GameObject.FindObjectsByType<StaticLightingSky>(FindObjectsSortMode.InstanceID).Where(sls => sls.gameObject.scene == scene);
                 if (candidates.Count() > 0)
                     result = candidates.First();
             }
@@ -193,14 +193,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.skyUniqueID, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Sky", "Specify which kind of sky you want to use for static ambient in the referenced profile for active scene."));
                 }
 
+                if (m_SkyClassNames.Count > 1 && m_SerializedActiveSceneLightingSky.skyUniqueID.intValue > 0)
+                    EditorGUILayout.HelpBox("Note that depending on the static lighting sky type, you might need to regenerate the lighting after changing the properties of the main directional light.", MessageType.Info);
+
                 using (new EditorGUI.DisabledScope(m_CloudClassNames.Count == 1)) // Only "None"
                 {
-                    EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.cloudUniqueID, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Clouds", "Specify which kind of clouds you want to use for static ambient in the referenced profile for active scene."));
+                    EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.cloudUniqueID, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Background Clouds", "Specify which kind of background clouds you want to use for static ambient in the referenced profile for active scene."));
                 }
 
                 EditorGUILayout.PropertyField(m_SerializedActiveSceneLightingSky.volumetricCloudsToggle, EditorGUIUtility.TrTextContent("Static Lighting Volumetric Clouds", "Specify if volumetric clouds should be used for static ambient in the referenced profile for active scene."));
-
-                EditorGUILayout.HelpBox("The interaction between the Scene Volume sky type and the Scene's dominant directional light may affect the visual characteristics of this bake.", MessageType.Info);
 
                 --EditorGUI.indentLevel;
             }
@@ -225,8 +226,8 @@ namespace UnityEditor.Rendering.HighDefinition
             VolumeProfile profile = m_SerializedActiveSceneLightingSky.volumeProfile;
             if (profile != null)
             {
-                bool foundID = false;
                 var currentID = idProperty.intValue;
+                bool foundID = currentID == 0;
 
                 foreach (KeyValuePair<int, Type> kvp in typesDict)
                 {

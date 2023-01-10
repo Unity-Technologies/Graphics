@@ -33,11 +33,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void UpdatePartFromModel()
         {
-            if (!m_Models.OfType<GraphDataNodeModel>().Any()) return;
+            if (!m_Models.OfType<SGNodeModel>().Any()) return;
 
             m_Root.Clear();
 
-            var graphDataNodeModel = m_Models.OfType<GraphDataNodeModel>().First();
+            var graphDataNodeModel = m_Models.OfType<SGNodeModel>().First();
             if (graphDataNodeModel.currentVersion >= graphDataNodeModel.latestAvailableVersion)
             {
                 // Nothing to show if no upgrade is needed.
@@ -65,15 +65,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void UpgradeNode()
         {
-            if (!m_Models.OfType<GraphDataNodeModel>().Any()) return;
-            var graphDataNodeModel = m_Models.OfType<GraphDataNodeModel>().First();
+            if (!m_Models.OfType<SGNodeModel>().Any()) return;
+            var graphDataNodeModel = m_Models.OfType<SGNodeModel>().First();
             RootView.Dispatch(new UpgradeNodeCommand(graphDataNodeModel));
         }
 
         void DismissUpgrade()
         {
-            if (!m_Models.OfType<GraphDataNodeModel>().Any()) return;
-            var graphDataNodeModel = m_Models.OfType<GraphDataNodeModel>().First();
+            if (!m_Models.OfType<SGNodeModel>().Any()) return;
+            var graphDataNodeModel = m_Models.OfType<SGNodeModel>().First();
             RootView.Dispatch(new DismissNodeUpgradeCommand(graphDataNodeModel));
         }
     }

@@ -1,10 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -64,6 +60,11 @@ namespace UnityEngine.Rendering
         [SerializeField] internal Matrix4x4 cachedTransform;
         [SerializeField] internal int cachedHashCode;
 
+        /// <summary>Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.</summary>
+        [HideInInspector]
+        [Tooltip("Whether Unity should fill empty space between renderers with bricks at the lowest subdivision level.")]
+        public bool fillEmptySpaces = false;
+
 #if UNITY_EDITOR
         /// <summary>
         /// Returns the extents of the volume.
@@ -74,51 +75,49 @@ namespace UnityEngine.Rendering
             return size;
         }
 
-        internal void UpdateGlobalVolume(Scene scene)
+        internal Bounds ComputeBounds(GIContributors.ContributorFilter filter, Scene? scene = null)
         {
-            if (gameObject.scene != scene) return;
-
             Bounds bounds = new Bounds();
             bool foundABound = false;
-            bool ContributesToGI(Renderer renderer)
-            {
-                var flags = GameObjectUtility.GetStaticEditorFlags(renderer.gameObject) & StaticEditorFlags.ContributeGI;
-                return (flags & StaticEditorFlags.ContributeGI) != 0;
-            }
 
-            void ExpandBounds(Bounds currBound)
+            void ExpandBounds(Bounds bound)
             {
                 if (!foundABound)
                 {
-                    bounds = currBound;
+                    bounds = bound;
                     foundABound = true;
                 }
                 else
                 {
-                    bounds.Encapsulate(currBound);
+                    bounds.Encapsulate(bound);
                 }
             }
 
-            var renderers = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+            var contributors = GIContributors.Find(filter, scene);
+            foreach (var renderer in contributors.renderers)
+                ExpandBounds(renderer.component.bounds);
+            foreach (var terrain in contributors.terrains)
+                ExpandBounds(terrain.boundsWithTrees);
 
-            foreach (Renderer renderer in renderers)
-            {
-                bool contributeGI = ContributesToGI(renderer) && renderer.gameObject.activeInHierarchy && renderer.enabled;
+            return bounds;
+        }
 
-                if (contributeGI && renderer.gameObject.scene == scene)
-                {
-                    ExpandBounds(renderer.bounds);
-                }
-            }
+        internal void UpdateGlobalVolume()
+        {
+            var scene = gameObject.scene;
 
-            transform.position = bounds.center;
-
+            // Get minBrickSize from scene profile if available
             float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
-            Vector3 tmpClamp = (bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize));
-            tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
-            tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
-            tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
-            size = tmpClamp;
+            if (ProbeReferenceVolume.instance.sceneData != null)
+            {
+                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(scene);
+                if (profile != null)
+                    minBrickSize = profile.minBrickSize;
+            }
+
+            var bounds = ComputeBounds(GIContributors.ContributorFilter.All, scene);
+            transform.position = bounds.center;
+            size = Vector3.Max(bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize), Vector3.zero);
         }
 
         internal void OnLightingDataAssetCleared()
@@ -141,6 +140,7 @@ namespace UnityEngine.Rendering
             unchecked
             {
                 hash = hash * 23 + size.GetHashCode();
+                hash = hash * 23 + gameObject.transform.worldToLocalMatrix.GetHashCode();
                 hash = hash * 23 + overridesSubdivLevels.GetHashCode();
                 hash = hash * 23 + highestSubdivLevelOverride.GetHashCode();
                 hash = hash * 23 + lowestSubdivLevelOverride.GetHashCode();
@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering
                 if (overrideRendererFilters)
                 {
                     hash = hash * 23 + minRendererVolumeSize.GetHashCode();
-                    hash = hash * 23 + objectLayerMask.GetHashCode();
+                    hash = hash * 23 + objectLayerMask.value.GetHashCode();
                 }
             }
 
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering
         // other non-hidden component related to APV.
         #region APVGizmo
 
-        static List<ProbeVolume> sProbeVolumeInstances = new();
+        internal static List<ProbeVolume> instances = new();
 
         MeshGizmo brickGizmos;
         MeshGizmo cellGizmo;
@@ -187,58 +187,70 @@ namespace UnityEngine.Rendering
 
         void OnEnable()
         {
-            sProbeVolumeInstances.Add(this);
+            instances.Add(this);
         }
 
         void OnDisable()
         {
-            sProbeVolumeInstances.Remove(this);
+            instances.Remove(this);
             DisposeGizmos();
         }
 
         // Only the first PV of the available ones will draw gizmos.
-        bool IsResponsibleToDrawGizmo() => sProbeVolumeInstances.Count > 0 && sProbeVolumeInstances[0] == this;
+        bool IsResponsibleToDrawGizmo() => instances.Count > 0 && instances[0] == this;
 
         internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
-            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+            var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
             if (debugDisplay.realtimeSubdivision)
             {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
+                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(gameObject.scene);
                 if (profile == null)
                     return true;
                 cellSizeInMeters = profile.cellSizeInMeters;
             }
 
-            var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
+            var cameraTransform = Camera.current.transform;
 
             Vector3 cellCenterWS = cellPosition * cellSizeInMeters + originWS + Vector3.one * (cellSizeInMeters / 2.0f);
 
             // Round down to cell size distance
             float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / cellSizeInMeters) * cellSizeInMeters;
 
-            if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
+            if (roundedDownDist > ProbeReferenceVolume.instance.probeVolumeDebug.subdivisionViewCullingDistance)
                 return true;
 
-            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
+            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.current);
             var volumeAABB = new Bounds(cellCenterWS, cellSizeInMeters * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
+
+        struct CellDebugData
+        {
+            public Vector4  center;
+            public Color    color;
+        }
+
+        // Path to the gizmos location
+        internal readonly static string s_gizmosLocationPath = "Packages/com.unity.render-pipelines.core/Editor/Resources/Gizmos/";
+
         // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
         void OnDrawGizmos()
         {
+            Gizmos.DrawIcon(transform.position, s_gizmosLocationPath + "ProbeVolume.png", true);
+
             if (!ProbeReferenceVolume.instance.isInitialized || !IsResponsibleToDrawGizmo() || ProbeReferenceVolume.instance.sceneData == null)
                 return;
 
-            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+            var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
 
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
             if (debugDisplay.realtimeSubdivision)
             {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
+                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(gameObject.scene);
                 if (profile == null)
                     return;
                 cellSizeInMeters = profile.cellSizeInMeters;
@@ -303,28 +315,47 @@ namespace UnityEngine.Rendering
 
             if (debugDisplay.drawCells)
             {
-                IEnumerable<Vector4> GetVisibleCellCentersAndState()
+                IEnumerable<CellDebugData> GetVisibleCellDebugData()
                 {
+                    Color s_LoadedColor = new Color(0, 1, 0.5f, 0.2f);
+                    Color s_UnloadedColor = new Color(1, 0.0f, 0.0f, 0.2f);
+                    Color s_LowScoreColor = new Color(0, 0, 0, 0.2f);
+                    Color s_HighScoreColor = new Color(1, 1, 0, 0.2f);
+
+                    var prv = ProbeReferenceVolume.instance;
+
+                    float minStreamingScore = prv.minStreamingScore;
+                    float streamingScoreRange = prv.maxStreamingScore - prv.minStreamingScore;
+
                     if (debugDisplay.realtimeSubdivision)
                     {
-                        foreach (var kp in ProbeReferenceVolume.instance.realtimeSubdivisionInfo)
+                        foreach (var kp in prv.realtimeSubdivisionInfo)
                         {
-                            kp.Key.CalculateCenterAndSize(out var center, out var _);
-                            yield return new Vector4(center.x, center.y, center.z, 1.0f);
+                            var center = kp.Key.center;
+                            yield return new CellDebugData { center = center, color = s_LoadedColor };
                         }
                     }
                     else
                     {
                         foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
                         {
-                            if (ShouldCullCell(cellInfo.cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                            if (ShouldCullCell(cellInfo.cell.position, prv.GetTransform().posWS))
                                 continue;
 
                             var cell = cellInfo.cell;
                             var positionF = new Vector4(cell.position.x, cell.position.y, cell.position.z, 0.0f);
-                            var center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
-                            center.w = cellInfo.loaded ? 1.0f : 0.0f;
-                            yield return center;
+                            var output = new CellDebugData();
+                            output.center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
+                            if (debugDisplay.displayCellStreamingScore)
+                            {
+                                float lerpFactor = (cellInfo.streamingScore - minStreamingScore) / streamingScoreRange;
+                                output.color = Color.Lerp(s_HighScoreColor, s_LowScoreColor, lerpFactor);
+                            }
+                            else
+                            {
+                                output.color = cellInfo.loaded ? s_LoadedColor : s_UnloadedColor;
+                            }
+                            yield return output;
                         }
                     }
                 }
@@ -335,15 +366,15 @@ namespace UnityEngine.Rendering
                 if (cellGizmo == null)
                     cellGizmo = new MeshGizmo();
                 cellGizmo.Clear();
-                foreach (var center in GetVisibleCellCentersAndState())
+                foreach (var cell in GetVisibleCellDebugData())
                 {
-                    bool loaded = center.w == 1.0f;
-
-                    Gizmos.color = loaded ? new Color(0, 1, 0.5f, 0.2f) : new Color(1, 0.0f, 0.0f, 0.2f);
+                    Gizmos.color = cell.color;
                     Gizmos.matrix = trs;
 
-                    Gizmos.DrawCube(center, Vector3.one * cellSizeInMeters);
-                    cellGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 1) : new Color(1, 0.0f, 0.0f, 1));
+                    Gizmos.DrawCube(cell.center, Vector3.one * cellSizeInMeters);
+                    var wireColor = cell.color;
+                    wireColor.a = 1.0f;
+                    cellGizmo.AddWireCube(cell.center, Vector3.one * cellSizeInMeters, wireColor);
                 }
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
                 Gizmos.matrix = oldGizmoMatrix;

@@ -196,6 +196,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // End Tessellation
 
         [SerializeField]
+        bool m_DebugSymbols = false;
+        public bool debugSymbols
+        {
+            get => m_DebugSymbols;
+            set => m_DebugSymbols = value;
+        }
+
+        [SerializeField]
         ShaderGraphVersion m_Version = MigrationDescription.LastVersion<ShaderGraphVersion>();
         public ShaderGraphVersion version
         {

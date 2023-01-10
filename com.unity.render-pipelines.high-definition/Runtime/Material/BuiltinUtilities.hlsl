@@ -47,7 +47,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     builtinData.opacity = alpha;
 
     // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-    builtinData.renderingLayers = GetMeshRenderingLightLayer();
+    builtinData.renderingLayers = GetMeshRenderingLayerMask();
 
     // Sample lightmap/lightprobe/volume proxy
     builtinData.bakeDiffuseLighting = 0.0;

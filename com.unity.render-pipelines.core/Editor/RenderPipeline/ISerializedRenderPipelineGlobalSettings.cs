@@ -19,5 +19,10 @@ namespace UnityEditor.Rendering
         /// If the shader variants needs to be exported
         /// </summary>
         SerializedProperty exportShaderVariants { get; }
+
+        /// <summary>
+        /// If the Runtime Rendering Debugger Debug Variants should be stripped
+        /// </summary>
+        SerializedProperty stripDebugVariants { get => null; }
     }
 }

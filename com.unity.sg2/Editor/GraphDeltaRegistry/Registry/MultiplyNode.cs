@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         void INodeDefinitionBuilder.BuildNode(NodeHandler node, Registry registry)
         {
             node.AddPort<GraphType>(kInputA, true, registry);
-            node.AddPort<GraphType>(kInputB, true, registry);
+            var inputB = node.AddPort<GraphType>(kInputB, true, registry);
             node.AddPort<GraphType>(kOutput, false, registry);
 
             // initialize all of our ports to be fully dynamic, so they can get resolved by their input connections.
@@ -62,6 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     precisionDynamic: true);
             }
 
+            GraphTypeHelpers.SetComponents(inputB.GetTypeField(), 0, 2.0f, 2.0f, 2.0f, 2.0f);
             GraphTypeHelpers.ResolveDynamicPorts(node);
         }
 

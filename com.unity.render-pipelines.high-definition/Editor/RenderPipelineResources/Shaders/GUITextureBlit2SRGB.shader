@@ -25,11 +25,10 @@ Shader "Hidden/GUITextureBlit2SRGB" {
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/EditorShaderVariables.hlsl"
 
             TEXTURE2D(_MainTex);
-            TEXTURE2D(_Exposure);
             uniform float4 _MainTex_ST;
             uniform float4 _Color;
-            uniform float _ExposureBias;
             uniform float _MipLevel;
+            uniform float _Exposure;
             uniform bool _ManualTex2SRGB;
 
             struct appdata_t {
@@ -53,8 +52,7 @@ Shader "Hidden/GUITextureBlit2SRGB" {
             float4 frag (v2f i) : SV_Target
             {
                 float4 colTex = SAMPLE_TEXTURE2D_LOD(_MainTex, s_linear_clamp_sampler, i.texcoord, _MipLevel);
-                float exposure = SAMPLE_TEXTURE2D_LOD(_Exposure, s_linear_clamp_sampler, float2(0, 0), 0).x;
-                return colTex * _Color * exposure * exp2(_ExposureBias);
+                return colTex * _Color * exp2(_Exposure);
             }
             ENDHLSL
 

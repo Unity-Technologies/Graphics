@@ -49,12 +49,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Solid angle associated with a texel of the cubemap.
                 float invOmegaP = (6.0f * source.width * source.width) / (4.0f * Mathf.PI);
 
-                // Copy the first mip
-                for (int f = 0; f < 6; f++)
-                {
-                    cmd.CopyTexture(source, f, 0, target, f, 0);
-                }
-
                 var props = new MaterialPropertyBlock();
                 props.SetTexture("_MainTex", source);
                 props.SetFloat("_InvOmegaP", invOmegaP);

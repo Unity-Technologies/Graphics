@@ -13,7 +13,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Enable;
 
         // LOD
-        SerializedDataParameter m_GridSize;
+        SerializedDataParameter m_MinGridSize;
+        SerializedDataParameter m_MaxGridSize;
+        SerializedDataParameter m_ElevationTransition;
         SerializedDataParameter m_NumLevelOfDetails;
 
         // Tessellation
@@ -31,7 +33,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Enable = Unpack(o.Find(x => x.enable));
 
             // LOD
-            m_GridSize = Unpack(o.Find(x => x.gridSize));
+            m_MinGridSize = Unpack(o.Find(x => x.minGridSize));
+            m_MaxGridSize = Unpack(o.Find(x => x.maxGridSize));
+            m_ElevationTransition = Unpack(o.Find(x => x.elevationTransition));
             m_NumLevelOfDetails = Unpack(o.Find(x => x.numLevelOfDetails));
 
             // Tessellation
@@ -55,10 +59,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
-            PropertyField(m_Enable);
+            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
 
             EditorGUILayout.LabelField("Level of Detail", EditorStyles.miniLabel);
-            PropertyField(m_GridSize);
+            PropertyField(m_MinGridSize);
+            PropertyField(m_MaxGridSize);
+            PropertyField(m_ElevationTransition);
             PropertyField(m_NumLevelOfDetails);
 
             if (showAdditionalProperties)

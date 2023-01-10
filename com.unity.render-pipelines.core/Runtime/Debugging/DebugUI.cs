@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
     public partial class DebugUI
     {
         /// <summary>
-        /// Flags for Debug UI widgets.
+        /// A column of checkboxes for enabling and disabling flags.
         /// </summary>
         [Flags]
         public enum Flags
@@ -30,7 +30,12 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// This widget will force the Debug Editor Window refresh.
             /// </summary>
-            EditorForceUpdate = 1 << 3
+            EditorForceUpdate = 1 << 3,
+            /// <summary>
+            /// This widget will appear in the section "Frequently Used"
+            /// </summary>
+            FrequentlyUsed = 1 << 4
+
         }
 
         /// <summary>
@@ -126,7 +131,7 @@ namespace UnityEngine.Rendering
             /// <returns>The hash code of the widget.</returns>
             public override int GetHashCode()
             {
-                return queryPath.GetHashCode();
+                return queryPath.GetHashCode() ^ isHidden.GetHashCode();
             }
 
             /// <summary>
@@ -216,7 +221,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Read only Value widget.
+        /// A field that displays a read-only value.
         /// </summary>
         public class Value : Widget
         {
@@ -268,7 +273,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Progress bar value.
+        /// A progress bar that displays values between 0% and 100%.
         /// </summary>
         public class ProgressBarValue : Value
         {
@@ -297,7 +302,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Tuple of Value widgets for creating tabular UI.
+        /// An array of read-only values that Unity displays in a horizontal row.
         /// </summary>
         public class ValueTuple : Widget
         {

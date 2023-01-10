@@ -26,8 +26,8 @@ namespace UnityEditor.VFX.UI
                     newField.control.AddToClassList("fieldContainer");
                     newField.RegisterCallback<ChangeEvent<float>>(OnFloatValueChanged);
 
-                    newField.onValueDragFinished = t => ValueDragFinished();
-                    newField.onValueDragStarted = t => ValueDragStarted();
+                    newField.SetOnValueDragFinished(t => ValueDragFinished());
+                    newField.SetOnValueDragStarted(t => ValueDragStarted());
                 }
             }
         }

@@ -8,7 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
         enum Version
         {
             Initial,
-            InfiniteProjectionInShape
+            InfiniteProjectionInShape,
+            ForcePositiveSize,
         }
 
         static readonly MigrationDescription<Version, ProxyVolume> k_Migration = MigrationDescription.New(
@@ -21,6 +22,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     p.shape = ProxyShape.Infinite;
                 }
+            }),
+            MigrationStep.New(Version.ForcePositiveSize, (ProxyVolume p) =>
+            {
+                p.sphereRadius = Mathf.Abs(p.sphereRadius);
+                p.boxSize = new Vector3(Mathf.Abs(p.boxSize.x), Mathf.Abs(p.boxSize.y), Mathf.Abs(p.boxSize.z));
             })
         );
 

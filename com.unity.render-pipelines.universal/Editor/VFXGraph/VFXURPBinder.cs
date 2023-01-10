@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.URP
 
         public override void SetupMaterial(Material material, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
-            ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader);
+            ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader, shaderGraph);
             material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
             material.SetShaderPassEnabled("ShadowCaster", hasShadowCasting);
         }
@@ -69,12 +69,15 @@ namespace UnityEditor.VFX.URP
             var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
             if (shader.TryGetMetadataOfType<UniversalMetadata>(out var metaData) && !metaData.allowMaterialOverride)
             {
-                switch (metaData.alphaMode)
+                if (metaData.surfaceType == SurfaceType.Transparent)
                 {
-                    case AlphaMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;
-                    case AlphaMode.Premultiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied; break;
-                    case AlphaMode.Additive: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
-                    case AlphaMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                    switch (metaData.alphaMode)
+                    {
+                        case AlphaMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;
+                        case AlphaMode.Premultiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied; break;
+                        case AlphaMode.Additive: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                        case AlphaMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                    }
                 }
             }
             else
@@ -106,8 +109,11 @@ namespace UnityEditor.VFX.URP
             {
                 switch (metaData.shaderID)
                 {
-                    case ShaderUtils.ShaderID.SG_Unlit: return "Unlit";
-                    case ShaderUtils.ShaderID.SG_Lit: return "Lit";
+                    case ShaderUtils.ShaderID.SG_Unlit:
+                    case ShaderUtils.ShaderID.SG_SpriteUnlit: return "Unlit";
+                    case ShaderUtils.ShaderID.SG_Lit:
+                    case ShaderUtils.ShaderID.SG_SpriteLit:
+                    case ShaderUtils.ShaderID.SG_SpriteCustomLit: return "Lit";
                 }
             }
             return string.Empty;
@@ -132,7 +138,10 @@ namespace UnityEditor.VFX.URP
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,      StructFields.SurfaceDescriptionInputs.worldToElement),
 
             new FieldDependency(Fields.WorldToObject, StructFields.SurfaceDescriptionInputs.worldToElement),
-            new FieldDependency(Fields.ObjectToWorld, StructFields.SurfaceDescriptionInputs.elementToWorld)
+            new FieldDependency(Fields.ObjectToWorld, StructFields.SurfaceDescriptionInputs.elementToWorld),
+
+            // NormalDropOffOS requires worldToElement (see _NORMAL_DROPOFF_OS condition calling TransformObjectToWorldNormal which uses world inverse transpose)
+            new FieldDependency(UniversalFields.NormalDropOffOS, StructFields.SurfaceDescriptionInputs.worldToElement),
         };
 
         static readonly StructDescriptor AttributesMeshVFX = new StructDescriptor()
@@ -256,7 +265,19 @@ namespace UnityEditor.VFX.URP
                 fieldDependencies = ElementSpaceDependencies,
                 pragmasReplacement = new (PragmaDescriptor, PragmaDescriptor)[]
                 {
-                    ( Pragma.Vertex("vert"), Pragma.Vertex("VertVFX") )
+                    ( Pragma.Vertex("vert"), Pragma.Vertex("VertVFX") ),
+
+                    //Minimal target of VFX is always Target45 (2.0 is used with GLCore)
+                    ( Pragma.Target(ShaderModel.Target20), Pragma.Target(ShaderModel.Target45) ),
+                    ( Pragma.Target(ShaderModel.Target30), Pragma.Target(ShaderModel.Target45) ),
+                    ( Pragma.Target(ShaderModel.Target35), Pragma.Target(ShaderModel.Target45) ),
+                    ( Pragma.Target(ShaderModel.Target40), Pragma.Target(ShaderModel.Target45) ),
+
+                    //Irrelevant general multicompile instancing (VFX will append them when needed)
+                    ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
+                    ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),
+                    ( Pragma.InstancingOptions(InstancingOptions.NoLightProbe), ShaderGraphBinder.kPragmaDescriptorNone ),
+                    ( Pragma.InstancingOptions(InstancingOptions.NoLodFade), ShaderGraphBinder.kPragmaDescriptorNone ),
                 },
                 useFragInputs = false
             };

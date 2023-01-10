@@ -280,6 +280,7 @@ Shader "HDRP/Unlit"
 
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+            Blend 1 SrcAlpha OneMinusSrcAlpha // target 1 alpha blend required for VT feedback. All other uses will pass 1.
             ZWrite [_ZWrite]
             ZTest [_ZTestDepthEqualForOpaque]
 
@@ -468,7 +469,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -499,7 +500,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -529,7 +530,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
@@ -560,7 +561,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
 
             #define SHADOW_LOW
@@ -587,13 +588,43 @@ Shader "HDRP/Unlit"
 
         Pass
         {
+            Name "DebugDXR"
+            Tags{ "LightMode" = "DebugDXR" }
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma raytracing surface_shader
+
+            #define SHADERPASS SHADERPASS_RAYTRACING_DEBUG
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingDebug.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "PathTracingDXR"
             Tags{ "LightMode" = "PathTracingDXR" }
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
             #pragma raytracing surface_shader
+
+            #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
+
+            #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+                #define SENSORSDK_ENABLE_LIDAR
+            #endif
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
@@ -617,5 +648,6 @@ Shader "HDRP/Unlit"
         }
     }
 
+    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "Rendering.HighDefinition.UnlitGUI"
 }

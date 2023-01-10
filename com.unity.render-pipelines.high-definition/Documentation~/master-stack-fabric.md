@@ -6,15 +6,15 @@ The Fabric Master Stack enables you to render various types of fabric in the Hig
 
 ## Creating a Fabric Shader Graph
 
-To create a Fabric material in Shader Graph, you can either:
+To create a Fabric material in Shader Graph, use one of the following methods:
 
 * Modify an existing Shader Graph.
+
     1. Open the Shader Graph in the Shader Editor.
     2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button, and select **HDRP**.
     3. In the **Material** drop-down, select **Fabric**.
 
-* Create a new Shader Graph.
-    1. Go to **Assets > Create > Shader Graph > HDRP** and click **Fabric Shader Graph**.
+* Create a new Shader Graph. Go to **Assets** > **Create** > **Shader Graph** > **HDRP** and click **Fabric Shader Graph**.
 
 ## Contexts
 

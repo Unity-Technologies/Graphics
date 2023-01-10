@@ -199,10 +199,20 @@ Shader "HDRP/LayeredLitTessellation"
         _SubsurfaceMaskMap2("Subsurface Mask Map2", 2D) = "white" {}
         _SubsurfaceMaskMap3("Subsurface Mask Map3", 2D) = "white" {}
 
-        _Thickness0("Thickness", Range(0.0, 1.0)) = 1.0
-        _Thickness1("Thickness", Range(0.0, 1.0)) = 1.0
-        _Thickness2("Thickness", Range(0.0, 1.0)) = 1.0
-        _Thickness3("Thickness", Range(0.0, 1.0)) = 1.0
+        _TransmissionMask0("Transmission Mask0", Range(0.0, 1.0)) = 1.0
+        _TransmissionMask1("Transmission Mask1", Range(0.0, 1.0)) = 1.0
+        _TransmissionMask2("Transmission Mask2", Range(0.0, 1.0)) = 1.0
+        _TransmissionMask3("Transmission Mask3", Range(0.0, 1.0)) = 1.0
+
+        _TransmissionMaskMap0("Transmission Mask Map0", 2D) = "white" {}
+        _TransmissionMaskMap1("Transmission Mask Map1", 2D) = "white" {}
+        _TransmissionMaskMap2("Transmission Mask Map2", 2D) = "white" {}
+        _TransmissionMaskMap3("Transmission Mask Map3", 2D) = "white" {}
+
+        _Thickness0("Thickness", Float) = 1.0
+        _Thickness1("Thickness", Float) = 1.0
+        _Thickness2("Thickness", Float) = 1.0
+        _Thickness3("Thickness", Float) = 1.0
 
         _ThicknessMap0("Thickness Map", 2D) = "white" {}
         _ThicknessMap1("Thickness Map", 2D) = "white" {}
@@ -491,6 +501,10 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP1               // Non-local
     #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP2               // Non-local
     #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP3               // Non-local
+    #pragma shader_feature_fragment _TRANSMISSION_MASK_MAP0             // Non-local
+    #pragma shader_feature_fragment _TRANSMISSION_MASK_MAP1             // Non-local
+    #pragma shader_feature_fragment _TRANSMISSION_MASK_MAP2             // Non-local
+    #pragma shader_feature_fragment _TRANSMISSION_MASK_MAP3             // Non-local
     #pragma shader_feature_fragment _THICKNESSMAP0                      // Non-local
     #pragma shader_feature_fragment _THICKNESSMAP1                      // Non-local
     #pragma shader_feature_fragment _THICKNESSMAP2                      // Non-local
@@ -530,14 +544,6 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_local_fragment _MATERIAL_FEATURE_TRANSMISSION
     #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_TRANSMISSION
-
-    // enable dithering LOD crossfade
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
-
-    //enable GPU instancing support
-    #pragma multi_compile_instancing
-    #pragma multi_compile _ DOTS_INSTANCING_ON
-    #pragma instancing_options renderinglayer
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -728,7 +734,7 @@ Shader "HDRP/LayeredLitTessellation"
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
-            #pragma multi_compile_fragment _ LIGHT_LAYERS
+            #pragma multi_compile_fragment _ RENDERING_LAYERS
 
         #ifndef DEBUG_DISPLAY
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -825,7 +831,13 @@ Shader "HDRP/LayeredLitTessellation"
 
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
-            #pragma multi_compile _ WRITE_DECAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER_AND_RENDERING_LAYER
+
+            // We can't name this keyword WRITE_DECAL_BUFFER directly because we want to enable it at a different
+            // frequency than WRITE_DECAL_BUFFER defined in the DepthForwardOnly pass
+            #ifdef WRITE_DECAL_BUFFER_AND_RENDERING_LAYER
+            #define WRITE_DECAL_BUFFER
+            #endif
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -917,7 +929,7 @@ Shader "HDRP/LayeredLitTessellation"
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
-            #pragma multi_compile _ WRITE_DECAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -954,6 +966,8 @@ Shader "HDRP/LayeredLitTessellation"
             }
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+            Blend 1 SrcAlpha OneMinusSrcAlpha // target 1 alpha blend required for VT feedback
+
             // In case of forward we want to have depth equal for opaque mesh
             ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]
@@ -980,7 +994,8 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
 
             // Supported shadow modes per light type
-            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
 
             #pragma multi_compile_fragment USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
@@ -1096,7 +1111,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1129,7 +1144,7 @@ Shader "HDRP/LayeredLitTessellation"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #define HAS_LIGHTLOOP
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl"
@@ -1144,7 +1159,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1174,7 +1189,7 @@ Shader "HDRP/LayeredLitTessellation"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #define HAS_LIGHTLOOP
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl"
@@ -1189,7 +1204,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1215,7 +1230,7 @@ Shader "HDRP/LayeredLitTessellation"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingGBuffer.hlsl"
 
             ENDHLSL
@@ -1228,7 +1243,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1257,7 +1272,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1289,12 +1304,36 @@ Shader "HDRP/LayeredLitTessellation"
 
         Pass
         {
+            Name "DebugDXR"
+            Tags{ "LightMode" = "DebugDXR" }
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma raytracing surface_shader
+
+            #define SHADERPASS SHADERPASS_RAYTRACING_DEBUG
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingDebug.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "PathTracingDXR"
             Tags{ "LightMode" = "PathTracingDXR" }
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps5
+            #pragma only_renderers d3d11 xboxseries ps5
 
             #pragma raytracing surface_shader
 
@@ -1303,6 +1342,11 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
+
+            #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+                #define SENSORSDK_ENABLE_LIDAR
+            #endif
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
@@ -1328,10 +1372,8 @@ Shader "HDRP/LayeredLitTessellation"
 
             ENDHLSL
         }
-
-        // This ensures that the material finds the "DebugDXR" pass for ray tracing debug view
-        UsePass "HDRP/RayTracingDebug/DebugDXR"
     }
 
+    FallBack "Hidden/HDRP/FallbackError"
     CustomEditor "UnityEditor.Rendering.HighDefinition.LayeredLitGUI"
 }

@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Runtime.CompilerServices;
+using Unity.Mathematics;
 
 namespace UnityEditor.Rendering
 {
@@ -1267,6 +1268,35 @@ namespace UnityEditor.Rendering
                             EmitPrimitiveType(PrimitiveType.UInt, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
                         else if (fieldType == typeof(Matrix4x4))
                             EmitMatrixType(floatPrecision, 4, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+
+                        // Mathematics floating
+                        else if (fieldType == typeof(float2))
+                            EmitPrimitiveType(floatPrecision, 2, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(float3))
+                            EmitPrimitiveType(floatPrecision, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(float4))
+                            EmitPrimitiveType(floatPrecision, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+
+                        // Mathematics Signed integer
+                        else if (fieldType == typeof(int2))
+                            EmitPrimitiveType(PrimitiveType.Int, 2, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(int3))
+                            EmitPrimitiveType(PrimitiveType.Int, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(int4))
+                            EmitPrimitiveType(PrimitiveType.Int, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+
+                        // Mathematics Unsigned integer
+                        else if (fieldType == typeof(uint2))
+                            EmitPrimitiveType(PrimitiveType.UInt, 2, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(uint3))
+                            EmitPrimitiveType(PrimitiveType.UInt, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+                        else if (fieldType == typeof(uint4))
+                            EmitPrimitiveType(PrimitiveType.UInt, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+
+                        // Mathematics Matrix
+                        else if (fieldType == typeof(float4x4))
+                            EmitMatrixType(floatPrecision, 4, 4, arraySize, field.Name, "", preprocessor, m_ShaderFields);
+
                         else if (!ExtractComplex(field, preprocessor, m_ShaderFields))
                         {
                             // Error reporting done in ExtractComplex()

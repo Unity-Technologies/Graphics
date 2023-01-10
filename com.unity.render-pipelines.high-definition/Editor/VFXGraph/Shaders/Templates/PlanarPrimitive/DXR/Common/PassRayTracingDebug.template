@@ -1,0 +1,73 @@
+
+        Pass
+        {
+            Name "DebugDXR"
+            Tags{ "LightMode" = "DebugDXR" }
+
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma raytracing surface_shader
+            #pragma skip_variants INSTANCING_ON
+
+            // Global includes
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
+            // Define the shader pass
+            #define SHADERPASS SHADERPASS_RAYTRACING_DEBUG
+
+            // Need to override the macros for ray tracing
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            // Shader variables
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+
+            // VFX includes
+            ${VFXIncludeRP("VFXLitVaryings.template")}
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/RayTracingInputStructure.template")}
+            ${VFXPerPassInclude}
+            ${VFXIncludeRP("VFXLit.template")}
+
+            // Needs to be included after the VFX includes
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/IntersectionFunctions.template")}
+
+            // Material includes
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RayTracingProcedural.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+            ${VFXGeneratedBlockFunction}
+
+            // Generic function that handles the reflection code
+            [shader("closesthit")]
+            void ClosestHitDebug(inout RayIntersectionDebug rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+            {
+                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
+                rayIntersection.t = RayTCurrent();
+                rayIntersection.barycentrics = attributeData.barycentrics;
+                rayIntersection.primitiveIndex = PrimitiveIndex();
+                rayIntersection.instanceIndex = InstanceIndex();
+            }
+
+            // Generic function that handles the reflection code
+            [shader("anyhit")]
+            void AnyHitDebug(inout RayIntersectionDebug rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+            {
+                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
+                // Debug data
+                rayIntersection.t = RayTCurrent();
+                rayIntersection.barycentrics = attributeData.barycentrics;
+                rayIntersection.primitiveIndex = PrimitiveIndex();
+                rayIntersection.instanceIndex = InstanceIndex();
+            }
+
+            // Inject the intersection shader
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/IntersectionShader.template")}
+            ENDHLSL
+        }

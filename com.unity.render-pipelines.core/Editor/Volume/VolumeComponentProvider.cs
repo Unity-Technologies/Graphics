@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
             var volumeComponentTypesFiltered =
-                VolumeManager.GetSupportedVolumeComponents(currentPipeline.GetType());
+                VolumeManager.GetSupportedVolumeComponents(currentPipeline.GetType(), GraphicsSettings.currentRenderPipelineAssetType);
 
             if (volumeComponentTypesFiltered.Any())
             {

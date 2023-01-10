@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
                         EditorGUI.BeginChangeCheck();
                         var dir = s_RadiusDirections[i];
                         var sliderPos = dir * radius;
-                        var result = Handles.Slider(s_RadiusDirectionsName[i], sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), CustomCubeHandleCap, 0.0f);
+                        var result = Handles.Slider(gizmo.GetCombinedHashCode(s_RadiusDirectionsName[i]), sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), CustomCubeHandleCap, 0.0f);
                         if (EditorGUI.EndChangeCheck())
                         {
                             radius = result.magnitude;

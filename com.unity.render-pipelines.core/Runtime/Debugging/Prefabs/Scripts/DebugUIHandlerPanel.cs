@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.UI
     /// <summary>
     /// DebugUIHandler for panels.
     /// </summary>
+    [CoreRPHelpURL("Rendering-Debugger")]
     public class DebugUIHandlerPanel : MonoBehaviour
     {
         /// <summary>Name of the panel.</summary>

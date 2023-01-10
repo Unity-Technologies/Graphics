@@ -539,7 +539,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void DrawHandles(HDAdditionalLightData additionalData, Editor owner)
         {
             Light light = additionalData.legacyLight;
-            float shadowNearPlane = light.shadows != LightShadows.None ? additionalData.shadowNearPlane : 0.0f;
 
             Color wireframeColorAbove = (owner as HDLightEditor).legacyLightColor;
             Color handleColorAbove = GetLightHandleColor(wireframeColorAbove);
@@ -554,6 +553,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     //See HDLightEditor
                     break;
                 case HDLightType.Spot:
+                    float shadowNearPlane = Mathf.Max(additionalData.shadowNearPlane, additionalData.spotLightShape == SpotLightShape.Box ? 0 : HDShadowUtils.k_MinShadowNearPlane);
+                    shadowNearPlane = light.shadows != LightShadows.None ? shadowNearPlane : 0.0f;
+
                     switch (additionalData.spotLightShape)
                     {
                         case SpotLightShape.Cone:

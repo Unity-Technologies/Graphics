@@ -1,4 +1,6 @@
 using System;
+using Unity.Mathematics;
+using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -287,6 +289,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
                 return Matrix4x4.Perspective(camera.GetGateFittedFieldOfView(), camera.aspect, camera.nearClipPlane, camera.farClipPlane);
+        }
+
+        // https://iquilezles.org/www/articles/distfunctions/distfunctions.htm
+        static float DistanceToOriginAABB(Vector3 point, Vector3 aabbSize)
+        {
+            float3 q = abs(point) - float3(aabbSize);
+            return length(max(q, 0.0f)) + min(max(q.x, max(q.y, q.z)), 0.0f);
+        }
+
+        // Optimized version of https://www.sciencedirect.com/topics/computer-science/oriented-bounding-box
+        public static float DistanceToOBB(OrientedBBox obb, Vector3 point)
+        {
+            float3 offset = point - obb.center;
+            float3 boxForward = normalize(cross(obb.right, obb.up));
+            float3 axisAlignedPoint = float3(dot(offset, normalize(obb.right)), dot(offset, normalize(obb.up)), dot(offset, boxForward));
+
+            return DistanceToOriginAABB(axisAlignedPoint, float3(obb.extentX, obb.extentY, obb.extentZ));
         }
     } // class GeometryUtils
 }

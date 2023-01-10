@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             m_RenderersUsingThisMaterial.Clear();
 
-            ParticleSystemRenderer[] renderers = UnityEngine.Object.FindObjectsOfType(typeof(ParticleSystemRenderer)) as ParticleSystemRenderer[];
+            ParticleSystemRenderer[] renderers = UnityEngine.Object.FindObjectsByType<ParticleSystemRenderer>(FindObjectsSortMode.InstanceID);
             foreach (ParticleSystemRenderer renderer in renderers)
             {
                 if (renderer.sharedMaterial == material)

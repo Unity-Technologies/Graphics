@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Water/ShaderGraph/"
         };
         public static readonly string k_CullWaterMask = "_CullWaterMask";
+        public static readonly string k_StencilWaterReadMaskGBuffer = "_StencilWaterReadMaskGBuffer";
         public static readonly string k_StencilWaterWriteMaskGBuffer = "_StencilWaterWriteMaskGBuffer";
         public static readonly string k_StencilWaterRefGBuffer = "_StencilWaterRefGBuffer";
 
@@ -57,7 +58,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public class WaterIncludes
         {
-            public const string kPassWaterGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/ShaderPassWaterGBuffer.hlsl";
+            public const string kPassWaterGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/ShaderPassWaterGBuffer.hlsl";
+            public const string kPassWaterMask = "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/ShaderPassWaterMask.hlsl";
         }
 
         [GenerateBlocks]
@@ -91,14 +93,29 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor HighResolutionWater = new KeywordDescriptor()
+        public static KeywordDescriptor DecalSurfaceGradient = new KeywordDescriptor()
         {
-            displayName = "HighResolutionWater",
-            referenceName = "HIGH_RESOLUTION_WATER",
+            displayName = "DecalSurfaceGradient",
+            referenceName = "DECAL_SURFACE_GRADIENT",
             type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor WaterBandCount = new KeywordDescriptor()
+        {
+            displayName = "WaterBand",
+            referenceName = "WATER",
+            type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Default
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "ONE_BAND", referenceName = "ONE_BAND" },
+                new KeywordEntry() { displayName = "TWO_BANDS", referenceName = "TWO_BANDS" },
+                new KeywordEntry() { displayName = "THREE_BANDS", referenceName = "THREE_BANDS" },
+            },
+            stages = KeywordShaderStage.Default,
         };
 
         public static KeywordDescriptor HasRefraction = new KeywordDescriptor()
@@ -118,6 +135,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Global,
         };
+
+        public static KeywordDescriptor WaterSurfaceCurrent = new KeywordDescriptor()
+        {
+            displayName = "Write Local Current",
+            referenceName = "WATER_LOCAL_CURRENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Default,
+        };
         #endregion
 
         #region Defines
@@ -127,7 +154,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HasRefraction, 1 },
             // Required for things such as decals
             { WaterSurfaceGBuffer, 1},
+            { DecalSurfaceGradient, 1},
             { UseClusturedLightList, 1},
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+        };
+
+        public static DefineCollection WaterMaskDefines = new DefineCollection
+        {
+            { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
         #endregion
@@ -141,10 +175,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = $"[{k_StencilWaterWriteMaskGBuffer}]",
+                ReadMask = $"[{k_StencilWaterReadMaskGBuffer}]",
                 Ref = $"[{k_StencilWaterRefGBuffer}]",
-                Comp = "Always",
+                Comp = "Equal",
                 Pass = "Replace",
+                Fail = "Keep",
             }) },
+        };
+
+        public static FieldCollection BasicWaterGBuffer = new FieldCollection()
+        {
+            HDStructFields.FragInputs.positionRWS,
+            HDStructFields.FragInputs.tangentToWorld,
+            HDStructFields.FragInputs.texCoord0,
+            HDStructFields.FragInputs.texCoord1,
+            HDStructFields.FragInputs.IsFrontFace,
         };
 
         public static PassDescriptor GenerateWaterGBufferPassTesselation()
@@ -155,12 +200,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 displayName = "GBufferTesselation",
                 referenceName = "SHADERPASS_GBUFFER",
                 lightMode = "GBufferTesselation",
-                useInPreview = true,
+                useInPreview = false,
 
                 // Collections
                 structs = CoreStructCollections.BasicTessellation,
-                // We need motion vector version as GBuffer pass support transparent motion vector and we can't use ifdef for it
-                requiredFields = CoreRequiredFields.BasicLighting,
+                requiredFields = BasicWaterGBuffer,
                 renderStates = WaterGBuffer,
                 pragmas = WaterTessellationInstanced,
                 defines = HDShaderPasses.GenerateDefines(WaterGBufferDefines, false, true),
@@ -190,6 +234,61 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
         #endregion
 
+        #region MaskWater
+        public static RenderStateCollection WaterMask = new RenderStateCollection
+        {
+            { RenderState.Cull($"[{k_CullWaterMask}]") },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.ZTest(ZTest.LEqual) },
+        };
+
+        public static FieldCollection BasicWaterMask = new FieldCollection()
+        {
+            HDStructFields.FragInputs.positionRWS,
+            HDStructFields.FragInputs.tangentToWorld,
+            HDStructFields.FragInputs.texCoord0,
+            HDStructFields.FragInputs.texCoord1,
+            HDStructFields.FragInputs.IsFrontFace,
+        };
+
+        public static PassDescriptor GenerateWaterMaskPassTesselation()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "MaskTesselation",
+                referenceName = "SHADERPASS_WATER_MASK",
+                lightMode = "MaskTesselation",
+                useInPreview = false,
+
+                // Collections
+                structs = CoreStructCollections.BasicTessellation,
+                requiredFields = BasicWaterMask,
+                renderStates = WaterMask,
+                pragmas = WaterTessellationInstanced,
+                defines = HDShaderPasses.GenerateDefines(WaterMaskDefines, false, true),
+                includes = GenerateIncludes(),
+
+                virtualTextureFeedback = false,
+                customInterpolators = CoreCustomInterpolators.Common
+            };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+
+                includes.Add(CoreIncludes.CorePregraph);
+                includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(WaterIncludes.kPassWaterMask, IncludeLocation.Postgraph);
+
+                return includes;
+            }
+        }
+        #endregion
+
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
             return new SubShaderDescriptor
@@ -204,6 +303,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     // Generate the water GBuffer pass
                     GenerateWaterGBufferPassTesselation(),
+                    GenerateWaterMaskPassTesselation(),
                 };
                 return passes;
             }
@@ -216,6 +316,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Water specific properties
             context.AddField(StructFields.VertexDescriptionInputs.uv0);
             context.AddField(StructFields.VertexDescriptionInputs.uv1);
+            context.AddField(StructFields.VertexDescriptionInputs.WorldSpacePosition);
             context.AddField(HDFields.GraphTessellation);
             context.AddField(HDFields.TessellationFactor);
         }
@@ -242,12 +343,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             base.CollectPassKeywords(ref pass);
-            pass.keywords.Add(HighResolutionWater);
-            pass.keywords.Add(CoreKeywordDescriptors.Decals);
-            pass.keywords.Add(CoreKeywordDescriptors.Shadow);
-            pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
+            pass.keywords.Add(WaterBandCount);
+            pass.keywords.Add(WaterSurfaceCurrent);
             pass.keywords.Add(CoreKeywordDescriptors.ProceduralInstancing);
             pass.keywords.Add(CoreKeywordDescriptors.StereoInstancing);
+
+            // The following keywords/multicompiles are only required for the gbuffer pass
+            if (pass.displayName == "GBufferTesselation")
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.Decals);
+                pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
+                pass.keywords.Add(CoreKeywordDescriptors.Shadow);
+                pass.keywords.Add(CoreKeywordDescriptors.AreaShadow);
+            }
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
@@ -279,6 +387,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilWriteMaskWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilWriteMaskWaterVar.generatePropertyBlock = false;
             collector.AddShaderProperty(stencilWriteMaskWaterVar);
+
+            Vector1ShaderProperty stencilReadMaskWaterVar = new Vector1ShaderProperty();
+            stencilReadMaskWaterVar.overrideReferenceName = k_StencilWaterReadMaskGBuffer;
+            stencilReadMaskWaterVar.displayName = "Stencil Water Read Mask GBuffer";
+            stencilReadMaskWaterVar.hidden = true;
+            stencilReadMaskWaterVar.floatType = FloatType.Default;
+            stencilReadMaskWaterVar.value = (int)StencilUsage.WaterSurface;
+            stencilReadMaskWaterVar.overrideHLSLDeclaration = true;
+            stencilReadMaskWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
+            stencilReadMaskWaterVar.generatePropertyBlock = false;
+            collector.AddShaderProperty(stencilReadMaskWaterVar);
 
             Vector1ShaderProperty cullingModeWaterVar = new Vector1ShaderProperty();
             cullingModeWaterVar.overrideReferenceName = k_CullWaterMask;

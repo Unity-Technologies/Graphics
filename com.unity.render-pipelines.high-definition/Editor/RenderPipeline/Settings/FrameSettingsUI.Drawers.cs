@@ -175,6 +175,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues
             );
 
+            area.AmmendInfo(FrameSettingsField.ComputeThickness, ignoreDependencies: true);
+
             area.AmmendInfo(FrameSettingsField.DecalLayers, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, ignoreDependencies: true);
@@ -289,6 +291,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
                 ignoreDependencies: true,
                 hasMixedValues: serialized.sssCustomSampleBudget.hasMultipleDifferentValues
+            );
+            area.AmmendInfo(FrameSettingsField.SssCustomDownsampleSteps,
+                overridedDefaultValue: 0,
+                customGetter: () => serialized.sssDownsampleSteps.intValue,
+                customSetter: v => serialized.sssDownsampleSteps.intValue = Math.Max(0, Math.Min((int)v, (int)DefaultSssDownsampleSteps.Max)),
+                overrideable: () => (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+                && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
+                ignoreDependencies: true,
+                hasMixedValues: serialized.sssDownsampleSteps.hasMultipleDifferentValues
             );
             area.Draw(withOverride);
 

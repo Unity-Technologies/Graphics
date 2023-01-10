@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         float EvaluateSpecularOcclusionFlag(HDCamera hdCamera)
         {
-            AmbientOcclusion ssoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            var ssoSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
             bool enableRTAO = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ssoSettings.rayTracing.value;
             if (enableRTAO)
                 return EvaluateRTSpecularOcclusionFlag(hdCamera, ssoSettings);
@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 1.0f;
         }
 
-        bool IsAmbientOcclusionActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
+        bool IsAmbientOcclusionActive(HDCamera camera, ScreenSpaceAmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
         struct RenderAOParameters
         {
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ref var cb = ref parameters.cb;
 
             // Grab current settings
-            var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
+            var settings = camera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
             parameters.fullResolution = settings.fullResolution;
 
             if (parameters.fullResolution)
@@ -143,10 +143,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return renderGraph.CreateTexture(new TextureDesc(Vector2.one * 0.5f, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R32_SFloat, name = "Final Half Res AO Packed" });
         }
 
-        TextureHandle RenderAmbientOcclusion(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidityBuffer,
+        TextureHandle RenderAmbientOcclusion(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidityBuffer,
             in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
         {
-            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
 
             TextureHandle result;
             if (IsAmbientOcclusionActive(hdCamera, settings))
@@ -168,13 +168,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, depthMipInfo);
 
-                        result = RenderAO(renderGraph, aoParameters, depthBuffer, normalBuffer);
+                        result = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
                         if (aoParameters.temporalAccumulation || aoParameters.fullResolution)
                             result = SpatialDenoiseAO(renderGraph, aoParameters, result);
                         if (aoParameters.temporalAccumulation)
-                            result = TemporalDenoiseAO(renderGraph, aoParameters, depthBuffer, motionVectors, result, currentHistory, outputHistory);
+                            result = TemporalDenoiseAO(renderGraph, aoParameters, depthPyramid, motionVectors, result, currentHistory, outputHistory);
                         if (!aoParameters.fullResolution)
-                            result = UpsampleAO(renderGraph, aoParameters, result, depthBuffer);
+                            result = UpsampleAO(renderGraph, aoParameters, result, depthPyramid);
                     }
                 }
             }
@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariableGlobalAmbientOcclusion(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
-            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceAmbientOcclusion>();
             bool aoEnabled = false;
             if (IsAmbientOcclusionActive(hdCamera, settings))
             {

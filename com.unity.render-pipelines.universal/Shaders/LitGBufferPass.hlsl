@@ -3,6 +3,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#if defined(LOD_FADE_CROSSFADE)
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#endif
 
 // TODO: Currently we support viewDirTS caclulated in vertex shader and in fragments shader.
 // As both solutions have their advantages and disadvantages (etc. shader target 2.0 has only 8 interpolators).
@@ -181,16 +184,21 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 #if defined(_PARALLAXMAP)
-#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    half3 viewDirTS = input.viewDirTS;
-#else
-    half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, input.viewDirWS);
-#endif
+    #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+        half3 viewDirTS = input.viewDirTS;
+    #else
+        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
+        half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, viewDirWS);
+    #endif
     ApplyPerPixelDisplacement(viewDirTS, input.uv);
 #endif
 
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
+
+#ifdef LOD_FADE_CROSSFADE
+    LODFadeCrossFade(input.positionCS);
+#endif
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);

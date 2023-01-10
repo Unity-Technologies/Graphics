@@ -4,6 +4,11 @@ using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditorInternal;
+// TODO @ SHADERS: Enable as many of the rules (currently commented out) as make sense
+//                 once the setting asset aggregation behavior is finalized.  More fine tuning
+//                 of these rules is also desirable (current rules have been interpreted from
+//                 the variant stripping logic)
+using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -11,6 +16,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// High Definition Render Pipeline asset.
     /// </summary>
     [HDRPHelpURLAttribute("HDRP-Asset")]
+#if UNITY_EDITOR
+    // [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "HDRenderPipeline")]
+#endif
     public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline
     {
         [System.NonSerialized]
@@ -18,6 +26,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
+        }
+
+        void OnEnable()
+        {
+            ///////////////////////////
+            // This is not optimal.
+            // When using AssetCache, this is not called. [TODO: fix it]
+            // It will be called though if you import it.
+            Migrate();
+            ///////////////////////////
+
+            HDRenderPipeline.SetupDLSSFeature(HDRenderPipelineGlobalSettings.instance);
         }
 
         void Reset()
@@ -66,11 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return new ReflectionSystemParameters
                 {
-                    maxPlanarReflectionProbePerCamera = currentPlatformRenderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen,
                     maxActivePlanarReflectionProbe = 512,
-                    planarReflectionProbeSize = (int)PlanarReflectionAtlasResolution.Resolution512,
-                    maxActiveReflectionProbe = 512,
-                    reflectionProbeSize = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize
+                    maxActiveEnvReflectionProbe = 512
                 };
             }
         }
@@ -86,6 +103,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Return the current use RenderPipelineSettings (i.e for the current platform)</summary>
         public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+
+        internal void TurnOffRayTracing()
+        {
+            m_RenderPipelineSettings.supportRayTracing = false;
+        }
 
         [SerializeField]
         internal bool allowShaderVariantStripping = true;
@@ -108,21 +130,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames
-            => globalSettings.renderingLayerMaskNames;
+            => globalSettings.renderingLayerNames;
 
         /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
         public override string[] prefixedRenderingLayerMaskNames
-            => globalSettings.prefixedRenderingLayerMaskNames;
+            => globalSettings.prefixedRenderingLayerNames;
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerNames => globalSettings.lightLayerNames;
+        [Obsolete("Use renderingLayerNames")]
+        public string[] lightLayerNames => renderingLayerNames;
 
         /// <summary>
         /// Names used for display of decal layers.
         /// </summary>
-        public string[] decalLayerNames => globalSettings.decalLayerNames;
+        [Obsolete("Use renderingLayerNames")]
+        public string[] decalLayerNames => renderingLayerNames;
+
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] renderingLayerNames => globalSettings.renderingLayerNames;
 
         /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader
@@ -191,6 +220,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public override Material defaultTerrainMaterial
             => globalSettings?.renderPipelineEditorResources?.materials.defaultTerrainMat;
 
+        /// <inheritdoc/>
+        public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
 
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();

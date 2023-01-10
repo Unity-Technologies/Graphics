@@ -18,9 +18,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             public string graphDataName { get; }
 
-            public NodeRemovalInfo(GraphDataNodeModel nodeModel)
+            public NodeRemovalInfo(SGNodeModel nodeModel)
             {
                 graphDataName = nodeModel.graphDataName;
+            }
+        }
+
+        class BlockRemovalInfo
+        {
+            public string contextNodeName { get; }
+
+            public BlockRemovalInfo(SGBlockNodeModel blockNodeModel)
+            {
+                contextNodeName = (blockNodeModel.ContextNodeModel as SGContextNodeModel)?.graphDataName;
             }
         }
 
@@ -30,11 +40,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             public string declarationContextNodeName { get; }
             public string declarationGraphDataName { get; }
 
-            public VariableNodeRemovalInfo(GraphDataVariableNodeModel nodeModel)
+            public VariableNodeRemovalInfo(SGVariableNodeModel nodeModel)
             {
                 graphDataName = nodeModel.graphDataName;
 
-                var declaration = nodeModel.DeclarationModel as GraphDataVariableDeclarationModel;
+                var declaration = nodeModel.DeclarationModel as SGVariableDeclarationModel;
                 declarationContextNodeName = declaration?.contextNodeName;
                 declarationGraphDataName = declaration?.graphDataName;
             }
@@ -55,7 +65,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             public string contextNodeName { get; }
             public string graphDataName { get; }
 
-            public VariableRemovalInfo(GraphDataVariableDeclarationModel variableDeclarationModel)
+            public VariableRemovalInfo(SGVariableDeclarationModel variableDeclarationModel)
             {
                 contextNodeName = variableDeclarationModel.contextNodeName;
                 graphDataName = variableDeclarationModel.graphDataName;
@@ -63,12 +73,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         Dictionary<SerializableGUID, NodeRemovalInfo> m_NodeRemovalInfo;
+        Dictionary<SerializableGUID, BlockRemovalInfo> m_BlockRemovalInfo;
         Dictionary<SerializableGUID, VariableNodeRemovalInfo> m_VariableNodeRemovalInfo;
         Dictionary<SerializableGUID, WireRemovalInfo> m_WireRemovalInfo;
         Dictionary<SerializableGUID, VariableRemovalInfo> m_VariableRemovalInfo;
 
         GraphModelStateComponent m_GraphModelStateComponent;
-        ShaderGraphModel graphModel => m_GraphModelStateComponent.GraphModel as ShaderGraphModel;
+        SGGraphModel graphModel => m_GraphModelStateComponent.GraphModel as SGGraphModel;
 
         PreviewStateComponent m_PreviewStateComponent;
         PreviewUpdateDispatcher m_PreviewUpdateDispatcher;
@@ -91,6 +102,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (graphModel != null)
             {
                 m_NodeRemovalInfo = new Dictionary<SerializableGUID, NodeRemovalInfo>();
+                m_BlockRemovalInfo = new Dictionary<SerializableGUID, BlockRemovalInfo>();
                 m_VariableNodeRemovalInfo = new Dictionary<SerializableGUID, VariableNodeRemovalInfo>();
                 m_WireRemovalInfo = new Dictionary<SerializableGUID, WireRemovalInfo>();
                 m_VariableRemovalInfo = new Dictionary<SerializableGUID, VariableRemovalInfo>();
@@ -107,24 +119,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (model)
                 {
-                    case GraphDataVariableDeclarationModel variableDeclarationModel:
+                    case SGVariableDeclarationModel variableDeclarationModel:
                     {
                         m_VariableRemovalInfo[model.Guid] = new VariableRemovalInfo(variableDeclarationModel);
                         break;
                     }
-                    case GraphDataEdgeModel wireModel when
+                    case SGEdgeModel wireModel when
                         graphModel.TryGetModelFromGuid(wireModel.ToNodeGuid, out var toNode) &&
-                        toNode is GraphDataNodeModel dataOwner:
+                        toNode is IGraphDataOwner dataOwner:
                     {
                         m_WireRemovalInfo[model.Guid] = new WireRemovalInfo(dataOwner);
                         break;
                     }
-                    case GraphDataNodeModel { HasPreview: true } nodeModel:
+                    case SGNodeModel { HasPreview: true } nodeModel:
                     {
                         m_NodeRemovalInfo[model.Guid] = new NodeRemovalInfo(nodeModel);
                         break;
                     }
-                    case GraphDataVariableNodeModel nodeModel:
+                    case SGBlockNodeModel blockNodeModel:
+                    {
+                        m_BlockRemovalInfo[model.Guid] = new BlockRemovalInfo(blockNodeModel);
+                        break;
+                    }
+                    case SGVariableNodeModel nodeModel:
                     {
                         m_VariableNodeRemovalInfo[model.Guid] = new VariableNodeRemovalInfo(nodeModel);
                         break;
@@ -139,6 +156,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 _ = m_WireRemovalInfo.Remove(guid) ||
                     m_NodeRemovalInfo.Remove(guid) ||
+                    m_BlockRemovalInfo.Remove(guid) ||
                     m_VariableNodeRemovalInfo.Remove(guid) ||
                     m_VariableRemovalInfo.Remove(guid);
             }
@@ -177,7 +195,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             AddOrUpdateModelsToCache(addedModels);
 
-            foreach (var graphDataNodeModel in addedModels.OfType<GraphDataNodeModel>())
+            foreach (var graphDataNodeModel in addedModels.OfType<SGNodeModel>())
             {
                 if (graphDataNodeModel.HasPreview)
                 {
@@ -195,9 +213,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            foreach (var graphDataEdgeModel in addedModels.OfType<GraphDataEdgeModel>())
+            foreach (var graphDataEdgeModel in addedModels.OfType<SGEdgeModel>())
             {
-                if (graphDataEdgeModel.ToPort.NodeModel is GraphDataNodeModel nodeModel)
+                if (graphDataEdgeModel.ToPort.NodeModel is SGNodeModel nodeModel)
                 {
                     m_PreviewUpdateDispatcher.OnListenerConnectionChanged(nodeModel.graphDataName);
                 }
@@ -228,6 +246,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                     // Remove CLDS data backing the node
                     graphModel.GraphHandler.RemoveNode(nodeRemovalInfo.graphDataName);
+                }
+                else if (m_BlockRemovalInfo.TryGetValue(guid, out var blockRemovalInfo))
+                {
+                    m_PreviewUpdateDispatcher.OnListenerConnectionChanged(blockRemovalInfo.contextNodeName);
                 }
                 else if (m_VariableNodeRemovalInfo.TryGetValue(guid, out var variableNodeRemovalInfo))
                 {
@@ -268,18 +290,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             AddOrUpdateModelsToCache(changedModels);
 
-            foreach (var graphDataPortModel in changedModels.OfType<GraphDataPortModel>())
+            foreach (var graphDataPortModel in changedModels.OfType<SGPortModel>())
             {
-                if (graphDataPortModel.owner is GraphDataNodeModel graphDataNodeModel)
-                {
-                    if(graphDataPortModel.EmbeddedValue is not BaseShaderGraphConstant cldsConstant)
-                        continue;
-                    // Update preview for node that owns changed port
-                    m_PreviewUpdateDispatcher.OnLocalPropertyChanged(graphDataNodeModel.graphDataName,  cldsConstant.PortName, cldsConstant.ObjectValue);
-                }
+                if (graphDataPortModel.EmbeddedValue is not BaseShaderGraphConstant cldsConstant)
+                    continue;
+                // Update preview for node that owns changed port
+                m_PreviewUpdateDispatcher.OnLocalPropertyChanged(graphDataPortModel.owner.graphDataName,  cldsConstant.PortName, cldsConstant.ObjectValue);
             }
 
-            foreach (var variableDeclarationModel in changedModels.OfType<GraphDataVariableDeclarationModel>())
+            foreach (var variableDeclarationModel in changedModels.OfType<SGVariableDeclarationModel>())
             {
                 var cldsConstant = variableDeclarationModel.InitializationModel as BaseShaderGraphConstant;
                 if (cldsConstant != null && cldsConstant.NodeName == Registry.ResolveKey<PropertyContext>().Name)

@@ -5,7 +5,8 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Color Adjustments effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Curves", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Color Curves")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public sealed class ColorCurves : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -60,6 +61,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsActive() => true;
 
         /// <inheritdoc/>
+        [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => true;
     }
 }

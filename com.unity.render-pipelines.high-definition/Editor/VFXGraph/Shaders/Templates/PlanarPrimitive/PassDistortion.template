@@ -1,6 +1,6 @@
 // Distortion pass
 Pass
-{		
+{
 	Tags { "LightMode"="DistortionVectors" }
 
     ${VFXStencilDistortionVectors}
@@ -8,9 +8,9 @@ Pass
 	HLSLPROGRAM
 	#pragma target 4.5
 	${VFXPassForwardAdditionalPragma}
-	
+
 	#define USE_NORMAL_MAP DISTORTION_NORMALBASED
-	
+
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
@@ -21,10 +21,10 @@ Pass
 			float3 uv : TEXCOORD0;
 			#else
 			float2 uv : TEXCOORD0;
-			#endif	
+			#endif
 		#endif
 
-		#if USE_SOFT_PARTICLE || VFX_USE_ALPHA_CURRENT || USE_FLIPBOOK_INTERPOLATION 
+		#if USE_SOFT_PARTICLE || VFX_USE_ALPHA_CURRENT || USE_FLIPBOOK_INTERPOLATION
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
@@ -39,7 +39,7 @@ Pass
 		#endif
 
 		// x: horizontal value / normal scale
-		// y: vertical value 
+		// y: vertical value
 		// z: blur scale
 		VFX_OPTIONAL_INTERPOLATION float3 distortionInterpolants : TEXCOORD3;
 
@@ -53,6 +53,8 @@ Pass
 		#endif
 
 		UNITY_VERTEX_OUTPUT_STEREO
+
+        VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 	};
 
 	struct ps_output
@@ -73,9 +75,9 @@ Pass
 	#define VFX_VARYING_TANGENT tangent
 #endif
 	#define VFX_VARYING_UV uv
-	
+
 	${VFXIncludeRP("VFXDistortion.template")}
-	
+
 	${VFXBegin:VFXVertexAdditionalProcess}
 
 	${VFXVertexDistortionProcess}
@@ -83,7 +85,7 @@ Pass
 	${VFXEnd}
 
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
-		
+
 	#pragma fragment frag
 	ps_output frag(ps_input i)
 	{

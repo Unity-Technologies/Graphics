@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System;
 using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
+using System.Linq;
+using static UnityEngine.Rendering.DebugUI.Widget;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -155,54 +157,59 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // className include the additional "/"
-        static void FillWithProperties(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string className)
+        static void FillWithProperties(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string className = "")
         {
             var attr = type.GetCustomAttribute<GenerateHLSL>();
 
             if (!attr.needParamDebug)
-            {
                 return;
-            }
 
-            var fields = type.GetFields();
-
-            var localIndex = 0;
-            foreach (var field in fields)
+            using (ListPool<(GUIContent, int)>.Get(out var tmp))
             {
-                // Note: One field can have multiple name. This is to allow to have different debug view mode for the same field
-                // like for example display normal in world space or in view space. Same field but two different modes.
-                List<String> displayNames = new List<string>();
-
-                if (Attribute.IsDefined(field, typeof(PackingAttribute)))
+                var fields = type.GetFields();
+                var localIndex = 0;
+                foreach (var field in fields)
                 {
-                    var packingAttributes = (PackingAttribute[])field.GetCustomAttributes(typeof(PackingAttribute), false);
-                    foreach (PackingAttribute packAttr in packingAttributes)
+                    // Note: One field can have multiple name. This is to allow to have different debug view mode for the same field
+                    // like for example display normal in world space or in view space. Same field but two different modes.
+                    List<String> displayNames = new List<string>();
+
+                    if (Attribute.IsDefined(field, typeof(PackingAttribute)))
                     {
-                        displayNames.AddRange(packAttr.displayNames);
+                        var packingAttributes = (PackingAttribute[])field.GetCustomAttributes(typeof(PackingAttribute), false);
+                        foreach (PackingAttribute packAttr in packingAttributes)
+                        {
+                            displayNames.AddRange(packAttr.displayNames);
+                        }
+                    }
+                    else
+                    {
+                        displayNames.Add(field.Name);
+                    }
+
+                    // Check if the display name have been override by the users
+                    if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
+                    {
+                        var propertyAttr = (SurfaceDataAttributes[])field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
+                        if (propertyAttr[0].displayNames.Length > 0 && propertyAttr[0].displayNames[0] != "")
+                        {
+                            displayNames.Clear();
+
+                            displayNames.AddRange(propertyAttr[0].displayNames);
+                        }
+                    }
+
+                    foreach (string fieldName in displayNames)
+                    {
+                        tmp.Add((new GUIContent(className + fieldName), attr.paramDefinesStart + (int)localIndex));
+                        localIndex++;
                     }
                 }
-                else
-                {
-                    displayNames.Add(field.Name);
-                }
 
-                // Check if the display name have been override by the users
-                if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
+                foreach (var (name, value) in tmp.OrderBy(t => t.Item1.text))
                 {
-                    var propertyAttr = (SurfaceDataAttributes[])field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
-                    if (propertyAttr[0].displayNames.Length > 0 && propertyAttr[0].displayNames[0] != "")
-                    {
-                        displayNames.Clear();
-
-                        displayNames.AddRange(propertyAttr[0].displayNames);
-                    }
-                }
-
-                foreach (string fieldName in displayNames)
-                {
-                    debugViewMaterialStringsList.Add(new GUIContent(className + fieldName));
-                    debugViewMaterialValuesList.Add(attr.paramDefinesStart + (int)localIndex);
-                    localIndex++;
+                    debugViewMaterialStringsList.Add(name);
+                    debugViewMaterialValuesList.Add(value);
                 }
             }
         }
@@ -224,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal class MaterialItem
         {
-            public String className;
+            public string className;
             public Type surfaceDataType;
             public Type bsdfDataType;
         };
@@ -253,16 +260,16 @@ namespace UnityEngine.Rendering.HighDefinition
             int numBSDFDataFields = 0;
             foreach (RenderPipelineMaterial material in materialList)
             {
-                MaterialItem item = new MaterialItem();
+                var materialType = material.GetType();
+                MaterialItem item = new()
+                {
+                    className = materialType.Name + "/",
+                    surfaceDataType = materialType.GetNestedType("SurfaceData"),
+                    bsdfDataType = materialType.GetNestedType("BSDFData")
 
-                item.className = material.GetType().Name + "/";
-
-                item.surfaceDataType = material.GetType().GetNestedType("SurfaceData");
+                };
                 numSurfaceDataFields += item.surfaceDataType.GetFields().Length;
-
-                item.bsdfDataType = material.GetType().GetNestedType("BSDFData");
                 numBSDFDataFields += item.bsdfDataType.GetFields().Length;
-
                 materialItems.Add(item);
             }
 
@@ -276,8 +283,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 List<MaterialItem> materialItems = GetAllMaterialDatas();
 
                 // Init list
-                List<GUIContent> debugViewMaterialStringsList = new List<GUIContent>();
-                List<int> debugViewMaterialValuesList = new List<int>();
+                FillMaterialsInfos(materialItems);
+
                 List<GUIContent> debugViewEngineStringsList = new List<GUIContent>();
                 List<int> debugViewEngineValuesList = new List<int>();
                 List<GUIContent> debugViewMaterialVaryingStringsList = new List<GUIContent>();
@@ -288,20 +295,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 List<int> debugViewMaterialTextureValuesList = new List<int>();
                 List<GUIContent> debugViewMaterialGBufferStringsList = new List<GUIContent>();
                 List<int> debugViewMaterialGBufferValuesList = new List<int>();
-
-                // First element is a reserved location and should not be used (allow to track error)
-                // Special case for None since it cannot be inferred from SurfaceData/BuiltinData
-                debugViewMaterialStringsList.Add(new GUIContent("None"));
-                debugViewMaterialValuesList.Add(0);
-
-                foreach (MaterialItem item in materialItems)
-                {
-                    // BuiltinData are duplicated for each material
-                    // Giving the material specific types allow to move iterator at a separate range for each material
-                    // Otherwise, all BuiltinData will be at same offset and will broke the enum
-                    FillWithProperties(typeof(Builtin.BuiltinData), ref debugViewMaterialStringsList, ref debugViewMaterialValuesList, item.className);
-                    FillWithProperties(item.surfaceDataType, ref debugViewMaterialStringsList, ref debugViewMaterialValuesList, item.className);
-                }
 
                 // Engine properties debug
                 // First element is a reserved location and should not be used (allow to track error)
@@ -324,12 +317,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Gbuffer debug
                 FillWithPropertiesEnum(typeof(DebugViewGbuffer), ref debugViewMaterialGBufferStringsList, ref debugViewMaterialGBufferValuesList, "");
-                FillWithProperties(typeof(Lit.BSDFData), ref debugViewMaterialGBufferStringsList, ref debugViewMaterialGBufferValuesList, "");
+                FillWithProperties(typeof(Lit.BSDFData), ref debugViewMaterialGBufferStringsList, ref debugViewMaterialGBufferValuesList);
 
                 // Convert to array for UI
-                debugViewMaterialStrings = debugViewMaterialStringsList.ToArray();
-                debugViewMaterialValues = debugViewMaterialValuesList.ToArray();
-
                 debugViewEngineStrings = debugViewEngineStringsList.ToArray();
                 debugViewEngineValues = debugViewEngineValuesList.ToArray();
 
@@ -431,6 +421,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 isDebugViewMaterialInit = true;
+            }
+        }
+
+        private static void FillMaterialsInfos(List<MaterialItem> materialItems)
+        {
+            using (ListPool<GUIContent>.Get(out var debugViewMaterialStringsList))
+            using (ListPool<int>.Get(out var debugViewMaterialValuesList))
+            {
+                // First element is a reserved location and should not be used (allow to track error)
+                // Special case for None since it cannot be inferred from SurfaceData/BuiltinData
+                debugViewMaterialStringsList.Add(new GUIContent("None"));
+                debugViewMaterialValuesList.Add(0);
+
+                FillWithProperties(typeof(Builtin.BuiltinData), ref debugViewMaterialStringsList, ref debugViewMaterialValuesList, "Common/");
+                foreach (MaterialItem item in materialItems)
+                    FillWithProperties(item.surfaceDataType, ref debugViewMaterialStringsList, ref debugViewMaterialValuesList, item.className);
+
+                debugViewMaterialStrings = debugViewMaterialStringsList.ToArray();
+                debugViewMaterialValues = debugViewMaterialValuesList.ToArray();
             }
         }
 

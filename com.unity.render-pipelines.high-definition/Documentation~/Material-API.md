@@ -41,7 +41,7 @@ public class CreateCutoutMaterial : MonoBehaviour
 
 Some properties of HDRP shaders aren't independent, and they require changes to other properties or keywords to have any effect.
 To help modify these properties, HDRP provides a set of functions that will take care of setting all the required states.
-You can find a list of available methods in the [Scripting API](.../api/UnityEngine.Rendering.HighDefinition.HDMaterial.html).
+You can find a list of available methods in the [Scripting API](../api/UnityEngine.Rendering.HighDefinition.HDMaterial.html).
 Please refer to the documentation to know with which shaders the methods are compatible.
 
 The example script below:

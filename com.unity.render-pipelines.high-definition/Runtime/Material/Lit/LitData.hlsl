@@ -105,6 +105,7 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap
 
 #define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap
+#define SAMPLER_TRANSMISSION_MASK_MAP_IDX sampler_TransmissionMaskMap
 #define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap
 
 // include LitDataIndividualLayer to define GetSurfaceData
@@ -122,6 +123,9 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #endif
 #ifdef _SUBSURFACE_MASK_MAP
 #define _SUBSURFACE_MASK_MAP_IDX
+#endif
+#ifdef _TRANSMISSION_MASK_MAP
+#define _TRANSMISSION_MASK_MAP_IDX
 #endif
 #ifdef _THICKNESSMAP
 #define _THICKNESSMAP_IDX
@@ -203,11 +207,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 #endif
 
-#ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-#else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-#endif
+    float3 doubleSidedConstants = GetDoubleSidedConstants();
 
     ApplyDoubleSidedFlipOrMirror(input, doubleSidedConstants); // Apply double sided flip on the vertex normal
 
@@ -294,7 +294,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
     // If user provide bent normal then we process a better term
-#if defined(_BENTNORMALMAP) && defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
+#if defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
     // If we have bent normal and ambient occlusion, process a specular occlusion
     surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
     // Don't do spec occ from Ambient if there is no mask mask

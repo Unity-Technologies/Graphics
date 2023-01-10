@@ -12,8 +12,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public string Label { get; }
         public abstract Type SettingType { get; }
 
-        public abstract object GetAsObject(GraphDataVariableDeclarationModel model);
-        public abstract void SetAsObject(GraphDataVariableDeclarationModel model, object value);
+        public abstract object GetAsObject(SGVariableDeclarationModel model);
+        public abstract void SetAsObject(SGVariableDeclarationModel model, object value);
 
         protected VariableSetting(string label) { Label = label; }
     }
@@ -27,16 +27,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public override Type SettingType => typeof(T);
 
-        Func<GraphDataVariableDeclarationModel, T> m_Getter;
-        Action<GraphDataVariableDeclarationModel, T> m_Setter;
+        Func<SGVariableDeclarationModel, T> m_Getter;
+        Action<SGVariableDeclarationModel, T> m_Setter;
 
-        public override object GetAsObject(GraphDataVariableDeclarationModel model) => GetTyped(model);
-        public override void SetAsObject(GraphDataVariableDeclarationModel model, object value) => SetTyped(model, (T)value);
+        public override object GetAsObject(SGVariableDeclarationModel model) => GetTyped(model);
+        public override void SetAsObject(SGVariableDeclarationModel model, object value) => SetTyped(model, (T)value);
 
-        public T GetTyped(GraphDataVariableDeclarationModel model) => m_Getter(model);
-        public void SetTyped(GraphDataVariableDeclarationModel model, T value) => m_Setter(model, value);
+        public T GetTyped(SGVariableDeclarationModel model) => m_Getter(model);
+        public void SetTyped(SGVariableDeclarationModel model, T value) => m_Setter(model, value);
 
-        public VariableSetting(string label, Func<GraphDataVariableDeclarationModel, T> getter, Action<GraphDataVariableDeclarationModel, T> setter)
+        public VariableSetting(string label, Func<SGVariableDeclarationModel, T> getter, Action<SGVariableDeclarationModel, T> setter)
             : base(label)
         {
             m_Getter = getter;
@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 });
 
         static VariableSetting<T> CreateFromSubField<T>(
-            Func<GraphDataVariableDeclarationModel, FieldHandler> fieldProvider,
+            Func<SGVariableDeclarationModel, FieldHandler> fieldProvider,
             string key,
             string label,
             T defaultValue = default) =>

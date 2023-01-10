@@ -1,5 +1,6 @@
 Pass
 {
+    Name ${VFXPassVelocity}
 	Tags { "LightMode"=${VFXPassVelocity} }
 
 	${VFXStencilMotionVector}

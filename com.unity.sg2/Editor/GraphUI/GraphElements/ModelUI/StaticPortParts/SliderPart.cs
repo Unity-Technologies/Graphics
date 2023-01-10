@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnFieldValueChanged(ChangeEvent<float> change)
         {
-            if (m_Model is not GraphDataNodeModel graphDataNodeModel) return;
+            if (m_Model is not SGNodeModel graphDataNodeModel) return;
             m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
                 m_PortName,
                 GraphType.Length.One,

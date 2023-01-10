@@ -38,16 +38,16 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "World To Viewport Point"; } }
 
-        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        public override VFXSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
         {
-            return VFXCoordinateSpace.World;
+            return VFXSpace.World;
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var expressions = Block.CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this), camera);
             // camera matrix is already in world even in custom mode due to GetOutputSpaceFromSlot returning world space
-            Block.CameraMatricesExpressions matricesExpressions = Block.CameraHelper.GetMatricesExpressions(expressions, VFXCoordinateSpace.World, VFXCoordinateSpace.World);
+            Block.CameraMatricesExpressions matricesExpressions = Block.CameraHelper.GetMatricesExpressions(expressions, VFXSpace.World, VFXSpace.World);
 
             // result = position * VFXToView * ViewToClip
             VFXExpression positionExpression = inputExpression[0];

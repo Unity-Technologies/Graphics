@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int sourceHeight = m_CookieAtlas.AtlasTexture.rt.height;
             int viewportWidth = finalWidth;// source.width;
             int viewportHeight = finalHeight;// source.height;
-            int mipMapCount = 1 + Mathf.FloorToInt(Mathf.Log(Mathf.Max(source.width, source.height), 2));
+            int mipMapCount = CoreUtils.GetMipCount(Mathf.Max(source.width, source.height));
 
             ReserveTempTextureIfNeeded(cmd, mipMapCount);
 

@@ -46,8 +46,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     // - It is enabled in the volume
                     // - The RTAS has been build validated
                     // - The RTLightCluster has been validated
-                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.tracing.value != RayCastingMode.RayMarching && GetRayTracingState() && GetRayTracingClusterState();
-                    mode = raytracing ? IndirectDiffuseMode.Raytrace : (allowSsgi ? IndirectDiffuseMode.ScreenSpace : IndirectDiffuseMode.Off);
+                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                        && settings.tracing.value != RayCastingMode.RayMarching
+                        && GetRayTracingState();
+                    if (raytracing)
+                        mode = settings.tracing.value == RayCastingMode.RayTracing ? IndirectDiffuseMode.RayTraced : IndirectDiffuseMode.Mixed;
+                    else
+                        mode = allowSsgi ? IndirectDiffuseMode.ScreenSpace : IndirectDiffuseMode.Off;
                 }
             }
             return mode;
@@ -139,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer offsetBuffer;
 
             // Prepass buffers
-            public ComputeBufferHandle lightList;
+            public BufferHandle lightList;
             public TextureHandle depthTexture;
             public TextureHandle stencilBuffer;
             public TextureHandle normalBuffer;
@@ -156,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle TraceSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle stencilBuffer, TextureHandle motionVectorsBuffer, ComputeBufferHandle lightList)
+        TextureHandle TraceSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle stencilBuffer, TextureHandle motionVectorsBuffer, BufferHandle lightList)
         {
             using (var builder = renderGraph.AddRenderPass<TraceSSGIPassData>("Trace SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGITrace)))
             {
@@ -196,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
                 passData.offsetBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
-                passData.lightList = builder.ReadComputeBuffer(lightList);
+                passData.lightList = builder.ReadBuffer(lightList);
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
@@ -429,8 +434,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderSSGI(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidationTexture,
-            ShaderVariablesRaytracing shaderVariablesRayTracingCB, HDUtils.PackedMipChainInfo info, ComputeBufferHandle lightList)
+            TextureHandle depthPyramid, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidationTexture,
+            ShaderVariablesRaytracing shaderVariablesRayTracingCB, HDUtils.PackedMipChainInfo info, BufferHandle lightList)
         {
             // Grab the global illumination volume component
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -438,10 +443,10 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.SSGIPass)))
             {
                 // Trace the signal
-                TextureHandle colorBuffer = TraceSSGI(renderGraph, hdCamera, giSettings, depthPyramid, normalBuffer, stencilBuffer, motionVectorsBuffer, lightList);
+                TextureHandle colorBuffer = TraceSSGI(renderGraph, hdCamera, giSettings, depthPyramid, normalBuffer, depthStencilBuffer, motionVectorsBuffer, lightList);
 
                 // Denoise the result
-                TextureHandle denoisedSSGI = DenoiseSSGI(renderGraph, hdCamera, colorBuffer, depthPyramid, normalBuffer, motionVectorsBuffer, historyValidationTexture, giSettings.fullResolutionSS.value);
+                TextureHandle denoisedSSGI = DenoiseSSGI(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, normalBuffer, motionVectorsBuffer, historyValidationTexture, giSettings.fullResolutionSS.value);
 
                 // Upscale it if required
                 // If this was a half resolution effect, we still have to upscale it
@@ -452,16 +457,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle RenderScreenSpaceIndirectDiffuse(HDCamera hdCamera, in PrepassOutput prepassOutput, TextureHandle rayCountTexture, TextureHandle historyValidationTexture, ComputeBufferHandle lightList)
+        TextureHandle RenderScreenSpaceIndirectDiffuse(HDCamera hdCamera, in PrepassOutput prepassOutput, TextureHandle rayCountTexture, TextureHandle historyValidationTexture, BufferHandle lightList)
         {
             TextureHandle result;
             switch (GetIndirectDiffuseMode(hdCamera))
             {
                 case IndirectDiffuseMode.ScreenSpace:
-                    result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_ShaderVariablesRayTracingCB, hdCamera.depthBufferMipChainInfo, lightList);
+                    result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_ShaderVariablesRayTracingCB, hdCamera.depthBufferMipChainInfo, lightList);
                     break;
 
-                case IndirectDiffuseMode.Raytrace:
+                case IndirectDiffuseMode.RayTraced:
+                case IndirectDiffuseMode.Mixed:
                     result = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
                         prepassOutput, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
                         m_ShaderVariablesRayTracingCB);

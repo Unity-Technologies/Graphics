@@ -53,7 +53,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
 
             // Variant of light layer only exist in GBuffer pass, so we test it here
-            if (inputData.shaderKeywordSet.IsEnabled(m_LightLayers) && isGBufferPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportLightLayers)
+            bool outputLayers = hdrpAsset.currentPlatformRenderPipelineSettings.supportLightLayers || hdrpAsset.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer;
+            if (inputData.shaderKeywordSet.IsEnabled(m_RenderingLayers) && isGBufferPass && !outputLayers)
                 return true;
 
             // This test include all Lit variant from Shader Graph (Because we check "DepthOnly" pass)
@@ -115,12 +116,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
                 }
             }
-
-#if !ENABLE_SENSOR_SDK
-            // If the SensorSDK package is not present, make sure that all code related to it is stripped away
-            if (inputData.shaderKeywordSet.IsEnabled(m_SensorEnableLidar) || inputData.shaderKeywordSet.IsEnabled(m_SensorOverrideReflectance))
-                return true;
-#endif
 
             // TODO: Tests for later
             // We need to find a way to strip useless shader features for passes/shader stages that don't need them (example, vertex shaders won't ever need SSS Feature flag)

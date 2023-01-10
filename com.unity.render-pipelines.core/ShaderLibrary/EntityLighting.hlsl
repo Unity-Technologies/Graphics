@@ -1,7 +1,7 @@
 #ifndef UNITY_ENTITY_LIGHTING_INCLUDED
 #define UNITY_ENTITY_LIGHTING_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -32,8 +32,6 @@
     #define LIGHTMAP_HDR_EXPONENT real(1.0)
 #endif
 
-// texture3dLod is not supported on gles2.
-#if !defined(SHADER_API_GLES)
 // This sample a 3D volume storing SH
 // Volume is store as 3D texture with 4 R, G, B, Occ set of 4 coefficient store atlas in same 3D texture. Occ is use for occlusion.
 // TODO: the packing here is inefficient as we will fetch values far away from each other and they may not fit into the cache - Suggest we pack RGB continuously
@@ -120,8 +118,6 @@ float3 SampleProbeVolumeSH9(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), f
                             bakeDiffuseLighting, backBakeDiffuseLightingUnused);
     return bakeDiffuseLighting;
 }
-
-#endif
 
 float4 SampleProbeOcclusion(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float4x4 WorldToTexture,
                             float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
@@ -217,6 +213,23 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
 #define LIGHTMAP_EXTRA_ARGS_USE uv
 #endif
 
+// For the built-in target, lightmaps are defined with half precision.
+// Unfortunately, TEXTURE2D_Half_PARAM is not defined.
+#ifdef BUILTIN_TARGET_API
+#undef TEXTURE2D_LIGHTMAP_PARAM
+#undef TEXTURE2D_LIGHTMAP_ARGS
+#undef SAMPLE_TEXTURE2D_LIGHTMAP
+
+#ifdef SHADER_API_GLES
+#define TEXTURE2D_LIGHTMAP_PARAM(textureName, samplerName) TEXTURE2D_HALF(textureName)
+#else
+#define TEXTURE2D_LIGHTMAP_PARAM(textureName, samplerName) TEXTURE2D_HALF(textureName), SAMPLER(samplerName)
+#endif
+
+#define TEXTURE2D_LIGHTMAP_ARGS TEXTURE2D_ARGS
+#define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D
+#endif
+
 real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), LIGHTMAP_EXTRA_ARGS, float4 transform, bool encodedLightmap, real4 decodeInstructions)
 {
     // transform is scale and bias
@@ -281,7 +294,7 @@ real3 SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSa
     return bakeDiffuseLighting;
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

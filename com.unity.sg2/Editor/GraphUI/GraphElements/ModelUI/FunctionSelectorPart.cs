@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
+using UnityEditor.ShaderGraph.Defs;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -10,7 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         private static readonly string ROOT_CLASS_NAME = "sg-function-selector-part";
         public override VisualElement Root => m_rootVisualElement;
-        private readonly GraphDataNodeModel m_graphDataNodeModel;
+        private readonly SGNodeModel m_sgNodeModel;
         private VisualElement m_rootVisualElement;
         private DropdownField m_dropdownField;
         private int m_selectedFunctionIdx;
@@ -27,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             IReadOnlyDictionary<string, string> options,
             string label = ""): base(name, model, ownerElement, parentClassName)
         {
-            m_graphDataNodeModel = model as GraphDataNodeModel;
+            m_sgNodeModel = model as SGNodeModel;
             m_functionNames = options.Keys.ToList();
             m_displayNames = options.Values.ToList();
             m_selectedFunctionIdx = m_functionNames.IndexOf(selectedFunctionName);
@@ -54,7 +55,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void UpdatePartFromModel()
         {
-            // This Part is not effected by updates from the model.
+            if (!m_sgNodeModel.TryGetNodeHandler(out var reader))
+                return; // (Brett) Should maybe log warning here
+            var field = reader.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME);
+            if (field == null)
+                return;
+            var data = field.GetData();
+            m_dropdownField.SetValueWithoutNotify(data);
         }
 
         private void HandleSelectionChange(ChangeEvent<string> evt)
@@ -64,7 +71,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             string newFunctionName = m_functionNames[newIndex];
             string previousFunctionName = m_functionNames[previousIndex];
             var cmd = new ChangeNodeFunctionCommand(
-                m_graphDataNodeModel,
+                m_sgNodeModel,
                 newFunctionName,
                 previousFunctionName
             );

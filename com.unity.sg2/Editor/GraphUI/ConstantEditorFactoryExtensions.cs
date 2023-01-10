@@ -45,28 +45,33 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     return builder.BuildDefaultConstantEditor(constants);
                 }
 
-                return new MatrixConstantPropertyField(constant, owner, builder.CommandTarget, (int)height, builder.Label);
+                return new MatrixConstantPropertyField(constant, owner, builder.CommandTarget, (int)height, null, builder.Label);
             }
 
             switch (owner)
             {
-                case GraphDataPortModel graphDataPort:
+                case SGPortModel graphDataPort:
                 {
-                    ((GraphDataNodeModel)graphDataPort.NodeModel).TryGetNodeHandler(out var nodeReader);
-
-                    var length = constant.GetLength();
-                    var stencil = (ShaderGraphStencil)graphDataPort.GraphModel.Stencil;
-                    var nodeUIDescriptor = stencil.GetUIHints(graphDataPort.owner.registryKey, nodeReader);
-                    var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(constant.PortName);
-
-                    if (length >= GraphType.Length.Three && parameterUIDescriptor.UseColor)
+                    var sgModel = (SGGraphModel)graphDataPort.GraphModel;
+                    if (!sgModel.GetNodeViewModel(graphDataPort.owner.registryKey, out var nodeViewModel))
                     {
-                        return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, parameterUIDescriptor.Tooltip);
+                        break;
+                    }
+
+                    var portViewModel = nodeViewModel.GetParameterInfo(graphDataPort.graphDataName);
+                    if (portViewModel.UseColor)
+                    {
+                        return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, portViewModel.Tooltip);
+                    }
+
+                    if (portViewModel.Options is {Count: > 0})
+                    {
+                        return BuildPortOptionsEditor(builder, (SGNodeModel)graphDataPort.owner, portViewModel);
                     }
 
                     break;
                 }
-                case GraphDataVariableDeclarationModel declarationModel when declarationModel.DataType == ShaderGraphExampleTypes.Color:
+                case SGVariableDeclarationModel declarationModel when declarationModel.DataType == ShaderGraphExampleTypes.Color:
                 {
                     var isHdr = VariableSettings.colorMode.GetTyped(declarationModel) is VariableSettings.ColorMode.HDR;
                     return BuildColorConstantEditor(builder, graphTypeConstants, "", builder.Label, "", isHdr);
@@ -75,6 +80,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             // Try/Catch maybe.
             return builder.BuildDefaultConstantEditor(constants);
+        }
+
+        static BaseModelPropertyField BuildPortOptionsEditor(ConstantEditorBuilder builder, SGNodeModel nodeModel, SGPortViewModel viewModel)
+        {
+            return new PortOptionsPropertyField(builder.CommandTarget, nodeModel, viewModel.Name, viewModel.Options);
         }
 
         static BaseModelPropertyField BuildColorConstantEditor(ConstantEditorBuilder builder, IEnumerable<GraphTypeConstant> constants, string propertyName, string label, string tooltip, bool hdr = false)

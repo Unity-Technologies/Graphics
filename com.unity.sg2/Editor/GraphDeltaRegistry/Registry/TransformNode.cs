@@ -37,9 +37,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         const string kWorldPosition = "WorldPosition";
 
         // Fields
-        const string kSourceSpace = "Source";
-        const string kDestinationSpace = "Destination";
-        const string kType = "ConversionType";
+        public const string kSourceSpace = "Source";
+        public const string kDestinationSpace = "Destination";
+        public const string kConversionType = "ConversionType";
 
         public RegistryKey GetRegistryKey() => new() {Name = "Transform", Version = 1};
         public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
@@ -69,14 +69,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             node.AddField(kSourceSpace, CoordinateSpace.Object, reconcretizeOnDataChange: true);
             node.AddField(kDestinationSpace, CoordinateSpace.World, reconcretizeOnDataChange: true);
-            node.AddField(kType, ConversionType.Position, reconcretizeOnDataChange: true);
+            node.AddField(kConversionType, ConversionType.Position, reconcretizeOnDataChange: true);
         }
 
         static SpaceTransform GetTransform(NodeHandler node)
         {
             var source = node.GetField<CoordinateSpace>(kSourceSpace).GetData();
             var destination = node.GetField<CoordinateSpace>(kDestinationSpace).GetData();
-            var type = node.GetField<ConversionType>(kType).GetData();
+            var type = node.GetField<ConversionType>(kConversionType).GetData();
 
             return new SpaceTransform(source, destination, type);
         }

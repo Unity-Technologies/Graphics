@@ -1,111 +1,21 @@
+using System;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine.Experimental.Rendering;
 using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>
-    /// Structure that holds the water surface data used for height requests.
-    /// </summary>
-    public struct WaterSimSearchData
-    {
-        /// <summary>
-        /// Native array that holds the displacement data for all bands.
-        /// </summary>
-        [ReadOnly]
-        public NativeArray<float4> displacementData;
-
-        /// <summary>
-        /// Elevation of the surface (Y axis coordinate).
-        /// </summary>
-        public float waterSurfaceElevation;
-
-        /// <summary>
-        /// Resolution that the CPU simulation runs at.
-        /// </summary>
-        public int simulationRes;
-
-        /// <summary>
-        /// Raw choppiness value used for the simulation.
-        /// </summary>
-        public float choppiness;
-
-        /// <summary>
-        /// Wave amplitude for each patch.
-        /// </summary>
-        public float4 amplitude;
-
-        /// <summary>
-        /// Per band patch size.
-        /// </summary>
-        public float4 patchSizes;
-
-        /// <summary>
-        /// Number of bands that the simulation has.
-        /// </summary>
-        public int bandCount;
-    }
-
-    /// <summary>
-    /// Structure that holds the input parameters of the search.
-    /// </summary>
-    public struct WaterSearchParameters
-    {
-        /// <summary>
-        /// Target position that the search needs to evaluate the height at.
-        /// </summary>
-        public float3 targetPosition;
-
-        /// <summary>
-        /// Position that the search starts from. Can be used as a hint for the search algorithm.
-        /// </summary>
-        public float3 startPosition;
-
-        /// <summary>
-        /// Target error value at which the algorithm should stop.
-        /// </summary>
-        public float error;
-
-        /// <summary>
-        /// Number of iterations of the search algorithm.
-        /// </summary>
-        public int maxIterations;
-    }
-
-    /// <summary>
-    /// Structure that holds the output parameters of the search.
-    /// </summary>
-    public struct WaterSearchResult
-    {
-        /// <summary>
-        /// World space elevation of the input target elevation
-        /// </summary>
-        public float height;
-
-        /// <summary>
-        /// Horizontal error value of the search algorithm.
-        /// </summary>
-        public float error;
-
-        /// <summary>
-        /// Location of the 3D point that has been displaced to the target positions.
-        /// </summary>
-        public float3 candidateLocation;
-
-        /// <summary>
-        /// Number of iterations of the search algorithm to find the height value.
-        /// </summary>
-        public int numIterations;
-    }
-
     internal class WaterCPUSimulation
     {
         // Simulation constants
         internal const float k_EarthGravity = 9.81f;
-        internal const float k_PhillipsAmplitudeScalar = 10.0f;
         internal const float k_OneOverSqrt2 = 0.70710678118f;
+        internal const float k_PhillipsAmplitudeScalar = 0.2f;
+        internal const int k_NoiseFunctionOffset = 64;
 
         // Function that generates a uint4 noise from a uint3
         // Extracted from this Shader Toy: https://www.shadertoy.com/view/4tfyW4
@@ -149,30 +59,26 @@ namespace UnityEngine.Rendering.HighDefinition
             public int simulationResolution;
             // Offset applied to the noise pattern to guarantee the coherence independently from the resolution
             public int waterSampleOffset;
-            // Maximal/Reference resolution
-            public float refSimResolution;
-            // Offset of this spectrum in the ref simulation resolution
-            public float spectrumOffset;
             // Index of the current slice
             public int sliceIndex;
             // Offset in the output buffer
             public int bufferOffset;
 
-            // Wind direction
-            public float2 windDirection;
-            // Wind speed scalar
-            public float windSpeed;
+            // Patch size of the current patch
+            public float patchSize;
+            // Wind orientation
+            public float orientation;
             // Attenuation of the current based on the wind direction
             public float directionDampner;
-            // Ratio between the current slice and the biggest slice
-            public float patchSizeRatio;
+            // Wind speed scalar
+            public float windSpeed;
 
             // Output spectrum buffer
             [WriteOnly]
             [NativeDisableParallelForRestriction]
             public NativeArray<float2> H0Buffer;
 
-            float Phillips(float2 k, float2 w, float V)
+            float Phillips(float2 k, float2 w, float V, float directionDampener, float patchSize)
             {
                 float kk = k.x * k.x + k.y * k.y;
                 float result = 0.0f;
@@ -185,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float phillips = (Mathf.Exp(-1.0f / (kk * L * L)) / (kk * kk)) * (wk * wk);
                     result = phillips * (wk < 0.0f ? directionDampner : 1.0f);
                 }
-                return k_PhillipsAmplitudeScalar * result;
+                return k_PhillipsAmplitudeScalar * result / (patchSize * patchSize);
             }
 
             public void Execute(int index)
@@ -195,16 +101,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 int y = index / simulationResolution;
 
                 // Generate the random numbers to use
-                uint3 coords = new uint3((uint)(x + waterSampleOffset), (uint)(y + waterSampleOffset), (uint)sliceIndex);
-                float4 rn = WaterHashFunctionFloat4(coords);
+                uint3 coords = new uint3((uint)x, (uint)y, (uint)sliceIndex);
+                uint3 sampleCoord = new uint3((uint)(x + waterSampleOffset), (uint)(y + waterSampleOffset), (uint)sliceIndex);
+                float4 rn = WaterHashFunctionFloat4(sampleCoord + k_NoiseFunctionOffset);
 
                 // First part of the Phillips spectrum term
                 float2 E = k_OneOverSqrt2 * new float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
 
                 // Second part of the Phillips spectrum term
-                float2 nDC = (new float2(x, y) / (float)refSimResolution - spectrumOffset) * 2.0f;
-                float2 k = (Mathf.PI * 2.0f * nDC) * patchSizeRatio;
-                float P = Phillips(k, windDirection, windSpeed);
+                float2 k = Mathf.PI * 2.0f * ((float2)coords.xy - simulationResolution * 0.5f)  / patchSize;
+                float2 windDirection = -HDRenderPipeline.OrientationToDirection(orientation);
+                float P = Phillips(k, windDirection, windSpeed, directionDampner, patchSize);
 
                 // Combine and output
                 H0Buffer[index + bufferOffset] = E * Mathf.Sqrt(P);
@@ -216,15 +123,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Resolution at which the simulation will be evaluate
             public int simulationResolution;
-            // Maximal/Reference resolution
-            public float refSimResolution;
-            // Offset of this spectrum in the ref simulation resolution
-            public float spectrumOffset;
             // Offset in the output buffer
             public int bufferOffset;
-
-            // Ratio between the current slice and the biggest slice
-            public float patchSizeRatio;
+            // Size of the current patch
+            public float patchSize;
             // Passed simulation time since the beginning of the simulation
             public float simulationTime;
 
@@ -244,9 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int x = index % simulationResolution;
                 int y = index / simulationResolution;
 
-                float2 nDC = (new float2(x, y) / (float)refSimResolution - spectrumOffset) * 2.0f;
-                float2 k = (Mathf.PI * 2.0f * nDC) * patchSizeRatio;
-
+                float2 k = Mathf.PI * 2.0f * (new float2(x, y) - simulationResolution * 0.5f) / patchSize;
                 float kl = Mathf.Sqrt(k.x * k.x + k.y * k.y);
                 float w = Mathf.Sqrt(k_EarthGravity * kl);
                 float2 kx = new float2(k.x / kl, 0.0f);
@@ -285,8 +185,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int butterflyCount;
             // Offset when outputting the partially transformed ifft values
             public int bufferOffset;
-            // Compensation factor to ensure that the simulation is independent of the resolution (TODO: Fix).
-            public float compensationFactor;
             // Flag that defines if this is the column (second) ifft pass
             public bool columnPass;
 
@@ -356,8 +254,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 float3 inputR2 = pingPongArray[ppOffset + (int)t0 * simulationResolution + (int)indices.y];
                 float3 inputI2 = pingPongArray[ppOffset + (int)t1 * simulationResolution + (int)indices.y];
 
-                resultR = (inputR1 + weights.x * inputR2 + weights.y * inputI2) * 0.5f;
-                resultI = (inputI1 - weights.y * inputR2 + weights.x * inputI2) * 0.5f;
+                resultR = (inputR1 + weights.x * inputR2 + weights.y * inputI2);
+                resultI = (inputI1 - weights.y * inputR2 + weights.x * inputI2);
             }
 
             public void Execute(int index)
@@ -445,13 +343,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (columnPass)
                     {
                         // last pass of the inverse transform. The imaginary value is no longer needed
-                        float sign_correction_and_normalization = ((x + y) & 0x01) != 0 ? -Mathf.PI * 2.0f : Mathf.PI * 2.0f;
-                        HtRealBufferOutput[(int)tapCoord + bufferOffset] = new float4(realValue * sign_correction_and_normalization * compensationFactor, 0.0f);
+                        float sign_correction_and_normalization = ((x + y) & 0x01) != 0 ? -1.0f : 1.0f;
+                        HtRealBufferOutput[(int)tapCoord + bufferOffset] = new float4(realValue * sign_correction_and_normalization, 0.0f);
                     }
                     else
                     {
-                        HtRealBufferOutput[(int)tapCoord] = new float4(realValue * compensationFactor, 0.0f);
-                        HtImaginaryBufferOutput[(int)tapCoord] = new float4(imaginaryValue * compensationFactor, 0.0f);
+                        HtRealBufferOutput[(int)tapCoord] = new float4(realValue, 0.0f);
+                        HtImaginaryBufferOutput[(int)tapCoord] = new float4(imaginaryValue, 0.0f);
                     }
                 }
             }
@@ -461,7 +359,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Function that returns the number of butterfly passes depending on the resolution
-        internal int ButterFlyCount(WaterSimulationResolution simRes)
+        internal static int ButterFlyCount(WaterSimulationResolution simRes)
         {
             switch (simRes)
             {
@@ -476,31 +374,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal float FFTCompensationFactor(WaterSimulationResolution simRes)
-        {
-            switch (simRes)
-            {
-                case WaterSimulationResolution.High256:
-                    return 1.0f;
-                case WaterSimulationResolution.Medium128:
-                    return 0.5f;
-                case WaterSimulationResolution.Low64:
-                    return 0.25f;
-                default:
-                    return 0.0f;
-            }
-        }
-
         // Flag that allows us to track if the CPU simulation was initialized
-        bool m_ActiveWaterSimulationCPU = false;
+        internal bool m_ActiveWaterSimulationCPU = false;
 
-        // CPU Simulation Data
+        // Simulation Data
         internal NativeArray<float4> htR0;
         internal NativeArray<float4> htI0;
         internal NativeArray<float4> htR1;
         internal NativeArray<float4> htI1;
         internal NativeArray<float3> pingPong;
         internal NativeArray<uint4> indices;
+        internal NativeArray<float4> m_SectorData;
+
+        // Default buffers for the simulation search
+        internal NativeArray<uint> m_DefaultWaterMask;
+        internal NativeArray<half> m_DefaultDeformationBuffer;
+        internal NativeArray<uint> m_DefaultCurrentMap;
 
         void InitializeCPUWaterSimulation()
         {
@@ -521,6 +410,17 @@ namespace UnityEngine.Rendering.HighDefinition
             htI1 = new NativeArray<float4>(res * res, Allocator.Persistent);
             pingPong = new NativeArray<float3>(res * res * 4, Allocator.Persistent);
             indices = new NativeArray<uint4>(res * res, Allocator.Persistent);
+
+            // Sector Data
+            m_SectorData = new NativeArray<float4>(WaterConsts.k_SectorSwizzle, Allocator.Persistent);
+
+            // Default textures
+            m_DefaultWaterMask = new NativeArray<uint>(1, Allocator.Persistent);
+            m_DefaultWaterMask[0] = 0xffffffff;
+            m_DefaultDeformationBuffer = new NativeArray<half>(1, Allocator.Persistent);
+            m_DefaultDeformationBuffer[0] = half(0.0f);
+            m_DefaultCurrentMap = new NativeArray<uint>(1, Allocator.Persistent);
+            m_DefaultCurrentMap[0] = 0;
         }
 
         void ReleaseCPUWaterSimulation()
@@ -530,6 +430,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Free the native buffers
+            m_DefaultCurrentMap.Dispose();
+            m_DefaultDeformationBuffer.Dispose();
+            m_DefaultWaterMask.Dispose();
+            m_SectorData.Dispose();
             htR0.Dispose();
             htI0.Dispose();
             htR1.Dispose();
@@ -538,7 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
             indices.Dispose();
         }
 
-        void UpdateCPUWaterSimulation(WaterSurface waterSurface, bool evaluateSpetrum, ShaderVariablesWater shaderVariablesWater)
+        void UpdateCPUWaterSimulation(WaterSurface waterSurface, bool evaluateSpetrum)
         {
             // If the asset doesn't support the CPU simulation or the surface doesn't, we don't have to do anything
             if (!m_ActiveWaterSimulationCPU || !waterSurface.cpuSimulation)
@@ -551,26 +455,23 @@ namespace UnityEngine.Rendering.HighDefinition
             // Number of pixels per band
             uint numPixels = cpuSimResUint * cpuSimResUint;
             int waterSampleOffset = EvaluateWaterNoiseSampleOffset(cpuSimResolution);
-            float waterSpectrumOffset = EvaluateFrequencyOffset(cpuSimResolution);
 
             // Re-evaluate the spectrum if needed.
             if (evaluateSpetrum)
             {
                 // To avoid re-evaluating
                 // If we get here, it means the spectrum is invalid and we need to go re-evaluate it
-                for (int bandIndex = 0; bandIndex < shaderVariablesWater._WaterBandCount; ++bandIndex)
+                for (int bandIndex = 0; bandIndex < waterSurface.simulation.spectrum.numActiveBands; ++bandIndex)
                 {
                     // Prepare the first band
                     WaterCPUSimulation.PhillipsSpectrumInitialization spectrumInit = new WaterCPUSimulation.PhillipsSpectrumInitialization();
                     spectrumInit.simulationResolution = (int)cpuSimResolution;
-                    spectrumInit.refSimResolution = shaderVariablesWater._WaterRefSimRes;
-                    spectrumInit.spectrumOffset = waterSpectrumOffset;
                     spectrumInit.waterSampleOffset = waterSampleOffset;
                     spectrumInit.sliceIndex = bandIndex;
-                    spectrumInit.windDirection = shaderVariablesWater._WindDirection;
-                    spectrumInit.windSpeed = shaderVariablesWater._WindSpeed[bandIndex];
-                    spectrumInit.patchSizeRatio = shaderVariablesWater._BandPatchSize[0] / shaderVariablesWater._BandPatchSize[bandIndex];
-                    spectrumInit.directionDampner = shaderVariablesWater._DirectionDampener;
+                    spectrumInit.orientation = waterSurface.simulation.spectrum.patchOrientation[bandIndex];
+                    spectrumInit.windSpeed = waterSurface.simulation.spectrum.patchWindSpeed[bandIndex];
+                    spectrumInit.patchSize = waterSurface.simulation.spectrum.patchSizes[bandIndex];
+                    spectrumInit.directionDampner = waterSurface.simulation.spectrum.patchWindDirDampener[bandIndex];
                     spectrumInit.bufferOffset = (int)(bandIndex * numPixels);
                     spectrumInit.H0Buffer = waterSurface.simulation.cpuBuffers.h0BufferCPU;
 
@@ -580,18 +481,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // For each band, we evaluate the dispersion then the two ifft passes
-            int cpuBoundCount = waterSurface.GetSimulationBandCountCPU();
-            for (int bandIndex = 0; bandIndex < cpuBoundCount; ++bandIndex)
+            // For each band, we evaluate the dispersion then the two inverse fft passes
+            int activeBandCount = HDRenderPipeline.EvaluateCPUBandCount(waterSurface.surfaceType, waterSurface.ripples, waterSurface.cpuEvaluateRipples);
+            for (int bandIndex = 0; bandIndex < activeBandCount; ++bandIndex)
             {
                 // Prepare the first band
                 WaterCPUSimulation.EvaluateDispersion dispersion = new WaterCPUSimulation.EvaluateDispersion();
                 dispersion.simulationResolution = (int)cpuSimResolution;
-                dispersion.refSimResolution = shaderVariablesWater._WaterRefSimRes;
-                dispersion.spectrumOffset = waterSpectrumOffset;
-                dispersion.patchSizeRatio = shaderVariablesWater._BandPatchSize[0] / shaderVariablesWater._BandPatchSize[bandIndex];
+                dispersion.patchSize = waterSurface.simulation.spectrum.patchSizes[bandIndex];
                 dispersion.bufferOffset = (int)(bandIndex * numPixels);
-                dispersion.simulationTime = shaderVariablesWater._SimulationTime;
+                dispersion.simulationTime = waterSurface.simulation.simulationTime;
 
                 // Input buffers
                 dispersion.H0Buffer = waterSurface.simulation.cpuBuffers.h0BufferCPU;
@@ -610,7 +509,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 inverseFFT0.butterflyCount = ButterFlyCount(cpuSimResolution);
                 inverseFFT0.bufferOffset = 0;
                 inverseFFT0.columnPass = false;
-                inverseFFT0.compensationFactor = FFTCompensationFactor(cpuSimResolution);
 
                 // Input buffers
                 inverseFFT0.HtRealBufferInput = htR0;
@@ -634,7 +532,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 inverseFFT1.butterflyCount = ButterFlyCount(cpuSimResolution);
                 inverseFFT1.bufferOffset = (int)(bandIndex * numPixels);
                 inverseFFT1.columnPass = true;
-                inverseFFT1.compensationFactor = FFTCompensationFactor(cpuSimResolution);
 
                 // Input buffers
                 inverseFFT1.HtRealBufferInput = htR1;
@@ -654,253 +551,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static Vector4 EvaluateDisplacementNormalization(WaterSimSearchData wsd)
+        void UpdateCPUBuffers(CommandBuffer cmd, WaterSurface currentWater)
         {
-            // Compute the displacement normalization factor
-            float4 patchSizeRatio = wsd.patchSizes / wsd.patchSizes[0];
-            return wsd.amplitude * k_WaterAmplitudeNormalization / patchSizeRatio;
-        }
+            // If the asset doesn't support the CPU simulation or the surface doesn't, we don't have to do anything
+            if (!m_ActiveWaterSimulationCPU || !currentWater.cpuSimulation)
+                return;
 
-        static int SignedMod(int x, int m)
-        {
-            int r = x % m;
-            return r < 0 ? r + m : r;
-        }
+            if (currentWater.waterMask != null)
+                currentWater.waterMaskSynchronizer.EnqueueRequest(cmd, currentWater.waterMask, true);
 
-        // This function does a "repeat" load
-        static float4 LoadDisplacementData(NativeArray<float4> displacementBuffer, int2 coord, int bandIndex, int simResolution)
-        {
-            int2 repeatCoord = coord;
-            repeatCoord.x = SignedMod(repeatCoord.x, simResolution);
-            repeatCoord.y = SignedMod(repeatCoord.y, simResolution);
-            int bandOffset = simResolution * simResolution * bandIndex;
-            return displacementBuffer[repeatCoord.x + repeatCoord.y * simResolution + bandOffset];
-        }
+            if (currentWater.deformation && m_ActiveWaterDeformation)
+                currentWater.deformationBufferSychro.EnqueueRequest(cmd, currentWater.deformationBuffer, true);
 
-        static int2 FloorCoordinate(float2 coord)
-        {
-            return new int2((int)Mathf.Floor(coord.x), (int)Mathf.Floor(coord.y));
-        }
+            if (currentWater.largeCurrentMap != null)
+                currentWater.largeCurrentMapSynchronizer.EnqueueRequest(cmd, currentWater.largeCurrentMap, true);
 
-        static float4 SampleDisplacementBilinear(NativeArray<float4> displacementBuffer, float2 uvCoord, int bandIndex, int simResolution)
-        {
-            // Convert the position from uv to floating pixel coords (for the bilinear interpolation)
-            float2 tapCoord = (uvCoord * simResolution);
-            int2 currentTapCoord = FloorCoordinate(tapCoord);
-
-            // Read the four samples we want
-            float4 p0 = LoadDisplacementData(displacementBuffer, currentTapCoord, bandIndex, simResolution);
-            float4 p1 = LoadDisplacementData(displacementBuffer, currentTapCoord + new int2(1, 0), bandIndex, simResolution);
-            float4 p2 = LoadDisplacementData(displacementBuffer, currentTapCoord + new int2(0, 1), bandIndex, simResolution);
-            float4 p3 = LoadDisplacementData(displacementBuffer, currentTapCoord + new int2(1, 1), bandIndex, simResolution);
-
-            // Do the bilinear interpolation
-            float2 fract = tapCoord - currentTapCoord;
-            float4 i0 = lerp(p0, p1, fract.x);
-            float4 i1 = lerp(p2, p3, fract.x);
-            return lerp(i0, i1, fract.y);
-        }
-
-        internal static float3 EvaluateWaterDisplacement(WaterSimSearchData wsd, Vector3 positionAWS, float4 bandsMultiplier)
-        {
-            // Compute the simulation coordinates
-            Vector2 uv = new Vector2(positionAWS.x, positionAWS.z);
-            Vector2 uvBand0 = uv / wsd.patchSizes.x;
-            Vector2 uvBand1 = uv / wsd.patchSizes.y;
-            Vector2 uvBand2 = uv / wsd.patchSizes.z;
-            Vector2 uvBand3 = uv / wsd.patchSizes.w;
-
-            // Compute the displacement normalization factor
-            float4 disNorm = EvaluateDisplacementNormalization(wsd);
-
-            // Accumulate the displacement from the various layers
-            float3 totalDisplacement = 0.0f;
-
-            // Attenuate using the water mask
-            // First band
-            float3 rawDisplacement = SampleDisplacementBilinear(wsd.displacementData, uvBand0, 0, wsd.simulationRes).xyz * disNorm.x * bandsMultiplier.x;
-            totalDisplacement += rawDisplacement;
-
-            // Second band
-            rawDisplacement = SampleDisplacementBilinear(wsd.displacementData, uvBand1, 1, wsd.simulationRes).xyz * disNorm.y * bandsMultiplier.y;
-            totalDisplacement += rawDisplacement;
-
-            // We only apply the choppiness tot he first two bands, doesn't behave very good past those
-            totalDisplacement.yz *= (wsd.choppiness * k_WaterMaxChoppinessValue);
-
-            // If we have more than two bounds, we need to add the displacement of the high frequency bounds
-            if (wsd.bandCount > 2)
-            {
-                // Third band
-                rawDisplacement = SampleDisplacementBilinear(wsd.displacementData, uvBand2, 2, wsd.simulationRes).xyz * disNorm.z * bandsMultiplier.z;
-                totalDisplacement += rawDisplacement;
-
-                // Fourth band
-                rawDisplacement = SampleDisplacementBilinear(wsd.displacementData, uvBand3, 3, wsd.simulationRes).xyz * disNorm.w * bandsMultiplier.w;
-                totalDisplacement += rawDisplacement;
-            }
-
-            // The vertical displacement is stored in the X channel and the XZ displacement in the YZ channel
-            return new float3(-totalDisplacement.y, totalDisplacement.x, -totalDisplacement.z);
-        }
-
-        internal struct WaterSimulationTapData
-        {
-            public float3 currentDisplacement;
-            public float3 displacedPoint;
-            public float2 offset;
-            public float distance;
-            public float height;
-        }
-
-        static WaterSimulationTapData EvaluateDisplacementData(WaterSimSearchData wsd, float3 currentLocation, float3 referencePosition)
-        {
-            WaterSimulationTapData data;
-
-            // Evaluate the displacement at the current point
-            data.currentDisplacement = EvaluateWaterDisplacement(wsd, currentLocation, new float4(1, 1, 1, 1));
-
-            // Evaluate the complete position
-            data.displacedPoint = currentLocation + data.currentDisplacement;
-
-            // Evaluate the distance to the reference point
-            data.offset = referencePosition.xz - data.displacedPoint.xz;
-
-            // Length of the offset vector
-            data.distance = Mathf.Sqrt(data.offset.x * data.offset.x + data.offset.y * data.offset.y);
-
-            // Simulation height of the position of the offset vector
-            data.height = data.currentDisplacement.y + wsd.waterSurfaceElevation;
-            return data;
-        }
-
-        internal static void FindWaterSurfaceHeight(WaterSimSearchData wsd,
-                                                    WaterSearchParameters wsp,
-                                                    out WaterSearchResult sr)
-        {
-            // Initialize the search data
-            WaterSimulationTapData tapData = EvaluateDisplacementData(wsd, wsp.startPosition, wsp.targetPosition);
-            float2 stepSize = tapData.offset;
-            sr.error = tapData.distance;
-            sr.height = tapData.height;
-            sr.candidateLocation = wsp.startPosition;
-            sr.numIterations = 0;
-
-            // Go through the steps until we found a position that satisfies our constraints
-            while (sr.numIterations < wsp.maxIterations)
-            {
-                // Is the point close enough to target position?
-                if (sr.error < wsp.error)
-                    break;
-
-                // Reset the search progress flag
-                bool progress = false;
-
-                float3 candidateLocation = sr.candidateLocation + new float3(stepSize.x, 0, stepSize.y);
-                tapData = EvaluateDisplacementData(wsd, candidateLocation, wsp.targetPosition);
-                if (tapData.distance < sr.error)
-                {
-                    sr.candidateLocation = candidateLocation;
-                    stepSize = tapData.offset;
-                    sr.error = tapData.distance;
-                    sr.height = tapData.height;
-                    progress = true;
-                }
-
-                // If we didn't make any progress in this step, this means out steps are probably too big make them smaller
-                if (!progress)
-                    stepSize *= 0.5f;
-
-                sr.numIterations++;
-            }
-        }
-    }
-
-    /// <summary>
-    /// C# Job that evaluate the height for a set of WaterSearchParameters and returns a set of WaterSearchResult (and stored them into native buffers).
-    /// </summary>
-    [BurstCompile]
-    public struct WaterSimulationSearchJob : IJobParallelFor
-    {
-        /// <summary>
-        /// Input simulation search data produced by the water surface.
-        /// </summary>
-        public WaterSimSearchData simSearchData;
-
-        /// <summary>
-        /// Native array that holds the set of position that the job will need to evaluate the height for.
-        /// </summary>
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float3> targetPositionBuffer;
-
-        /// <summary>
-        /// Native array that holds the set of "hint" position that the algorithm starts from.
-        /// </summary>
-        [ReadOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float3> startPositionBuffer;
-
-        /// <summary>
-        /// Target error value at which the algorithm should stop.
-        /// </summary>
-        public float error;
-
-        /// <summary>
-        /// Number of iterations of the search algorithm.
-        /// </summary>
-        public int maxIterations;
-
-        /// <summary>
-        /// Output native array that holds the set of heights that were evaluated for each target position.
-        /// </summary>
-        [WriteOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float> heightBuffer;
-
-        /// <summary>
-        /// Output native array that holds the set of horizontal error for each target position.
-        /// </summary>
-        [WriteOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float> errorBuffer;
-
-        /// <summary>
-        /// Output native array that holds the set of positions that were used to generate the height value.
-        /// </summary>
-        [WriteOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float3> candidateLocationBuffer;
-
-        /// <summary>
-        /// Output native array that holds the set of steps that were executed to find the height.
-        /// </summary>
-        [WriteOnly]
-        [NativeDisableParallelForRestriction]
-        public NativeArray<int> stepCountBuffer;
-
-        /// <summary>
-        /// Function that evaluates the height for a given element in the input buffer.
-        /// </summary>
-        /// <param name="index">The index of the element that the function will process.</param>
-        public void Execute(int index)
-        {
-            // Fill the search parameters
-            WaterSearchParameters wsp = new WaterSearchParameters();
-            wsp.targetPosition = targetPositionBuffer[index];
-            wsp.startPosition = startPositionBuffer[index];
-            wsp.error = error;
-            wsp.maxIterations = maxIterations;
-
-            // Do the search
-            WaterSearchResult wsr = new WaterSearchResult();
-            HDRenderPipeline.FindWaterSurfaceHeight(simSearchData, wsp, out wsr);
-
-            // Output the result to the output buffers
-            heightBuffer[index] = wsr.height;
-            errorBuffer[index] = wsr.error;
-            candidateLocationBuffer[index] = wsr.candidateLocation;
-            stepCountBuffer[index] = wsr.numIterations;
+            if (currentWater.ripplesCurrentMap != null)
+                currentWater.ripplesCurrentMapSynchronizer.EnqueueRequest(cmd, currentWater.ripplesCurrentMap, true);
         }
     }
 }

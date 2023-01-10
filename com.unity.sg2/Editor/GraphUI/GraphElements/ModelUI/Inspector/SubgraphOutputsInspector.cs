@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             public int TypeIndex;
         }
 
-        GraphDataContextNodeModel m_ContextNodeModel;
+        SGContextNodeModel m_ContextNodeModel;
         TypeHandle[] m_AvailableTypes;
         ShaderGraphStencil m_Stencil;
         List<SubgraphOutputRow> m_OutputRows;
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             m_OutputRows = new List<SubgraphOutputRow>();
             m_AvailableTypes = ShaderGraphExampleTypes.SubgraphOutputTypes.ToArray();
 
-            var contextNodeModels = m_Models.OfType<GraphDataContextNodeModel>();
+            var contextNodeModels = m_Models.OfType<SGContextNodeModel>();
             if (!contextNodeModels.Any()) return;
             m_ContextNodeModel = contextNodeModels.First();
             m_Stencil = (ShaderGraphStencil)m_ContextNodeModel.GraphModel.Stencil;

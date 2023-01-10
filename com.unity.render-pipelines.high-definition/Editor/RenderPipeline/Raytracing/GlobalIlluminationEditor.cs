@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
+using RayTracingMode = UnityEngine.Rendering.HighDefinition.RayTracingMode;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -21,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Ray tracing generic attributes
         SerializedDataParameter m_LastBounce;
+        SerializedDataParameter m_AmbientProbeDimmer;
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_ReceiverMotionRejection;
         SerializedDataParameter m_TextureLodBias;
@@ -67,6 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Ray Tracing shared parameters
             m_LastBounce = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
+            m_AmbientProbeDimmer = Unpack(o.Find(x => x.ambientProbeDimmer));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_ReceiverMotionRejection = Unpack(o.Find(x => x.receiverMotionRejection));
             m_TextureLodBias = Unpack(o.Find(x => x.textureLodBias));
@@ -173,7 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            PropertyField(m_Enable);
+            PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
             EditorGUILayout.Space();
 
             // If ray tracing is supported display the content of the volume component
@@ -190,14 +193,21 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (rayTracingSettingsDisplayed)
                 {
+                    if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
+                        HDRenderPipelineUI.DisplayRayTracingSupportBox();
+
                     PropertyField(m_LayerMask);
                     PropertyField(m_TextureLodBias);
 
-                    using (new IndentLevelScope())
+                    if (showAdditionalProperties)
                     {
-                        EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
-                        PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
-                        PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                        using (new IndentLevelScope())
+                        {
+                            EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                            PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
+                            PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                            PropertyField(m_AmbientProbeDimmer);
+                        }
                     }
 
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)

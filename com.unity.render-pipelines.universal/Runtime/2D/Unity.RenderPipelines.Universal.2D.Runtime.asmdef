@@ -1,0 +1,37 @@
+{
+    "name": "Unity.RenderPipelines.Universal.2D.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+        "GUID:ab67fb10353d84448ac887a7367cbda8",
+        "GUID:41524c21c95e5fe4dbc5b48bd21995a4",
+        "GUID:caccfbdb442cdc64fa722b4c5585521f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.2d.spriteshape",
+            "expression": "10.0.0-pre.1",
+            "define": "USING_SPRITESHAPE"
+        },
+        {
+            "name": "com.unity.modules.physics2d",
+            "expression": "0.0.0",
+            "define": "USING_PHYSICS2D"
+        },
+        {
+            "name": "com.unity.2d.animation",
+            "expression": "10.0.0-pre.1",
+            "define": "USING_2DANIMATION"
+        }
+    ],
+    "noEngineReferences": false
+}

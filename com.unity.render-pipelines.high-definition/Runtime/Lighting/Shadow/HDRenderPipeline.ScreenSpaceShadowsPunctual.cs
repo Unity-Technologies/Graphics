@@ -4,13 +4,25 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    internal struct PunctualShadowProperties
+    {
+        public bool isSpot;
+        public bool softShadow;
+        public int lightIndex;
+        public float lightRadius;
+        public float lightConeAngle;
+        public Vector3 lightPosition;
+        public int kernelSize;
+        public bool distanceBasedDenoiser;
+    }
+
     public partial class HDRenderPipeline
     {
         static float EvaluateHistoryValidityPointShadow(HDCamera hdCamera, LightData lightData, HDAdditionalLightData additionalLightData)
         {
             // We need to set the history as invalid if the light has moved (rotated or translated),
             float historyValidity = 1.0f;
-            if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix
+            if (hdCamera.shadowHistoryUsage[lightData.screenSpaceShadowIndex].transform != additionalLightData.transform.localToWorldMatrix
                 || !hdCamera.ValidShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType))
                 historyValidity = 0.0f;
 
@@ -21,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle DenoisePunctualScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
-            HDAdditionalLightData additionalLightData, in LightData lightData,
+            HDAdditionalLightData additionalLightData, in LightData lightData, PunctualShadowProperties properties,
             TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer, TextureHandle historyValidityBuffer,
             TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBufferI)
         {
@@ -34,7 +46,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Apply the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();
             HDTemporalFilter.TemporalDenoiserArrayOutputData temporalFilterResult;
-
 
             // Only set the distance based denoising buffers if required.
             RTHandle shadowHistoryDistanceArray = null;
@@ -50,6 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle shadowHistoryArray = RequestShadowHistoryBuffer(hdCamera);
             RTHandle shadowHistoryValidityArray = RequestShadowHistoryValidityBuffer(hdCamera);
 
+            // Temporal denoising
             temporalFilterResult = temporalFilter.DenoiseBuffer(renderGraph, hdCamera,
                 depthBuffer, normalBuffer, motionVetorsBuffer, historyValidityBuffer,
                 noisyBuffer, shadowHistoryArray,
@@ -59,25 +71,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.screenSpaceShadowIndex / 4, m_ShadowChannelMask0, m_ShadowChannelMask0,
                 additionalLightData.distanceBasedFiltering, true, historyValidity);
 
-            TextureHandle denoisedBuffer;
-            if (additionalLightData.distanceBasedFiltering)
-            {
-                HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();
-                denoisedBuffer = shadowDenoiser.DenoiseBufferSphere(renderGraph, hdCamera,
-                    depthBuffer, normalBuffer,
-                    temporalFilterResult.outputSignal, temporalFilterResult.outputSignalDistance,
-                    additionalLightData.filterSizeTraced, additionalLightData.transform.position, additionalLightData.shapeRadius);
-            }
-            else
-            {
-                HDSimpleDenoiser simpleDenoiser = GetSimpleDenoiser();
-                denoisedBuffer = simpleDenoiser.DenoiseBufferNoHistory(renderGraph, hdCamera,
-                    depthBuffer, normalBuffer,
-                    temporalFilterResult.outputSignal,
-                    additionalLightData.filterSizeTraced, true);
-            }
+            // Spatial denoising
+            HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();
+            TextureHandle denoisedBuffer = shadowDenoiser.DenoiseBufferSphere(renderGraph, hdCamera,
+                depthBuffer, normalBuffer,
+                temporalFilterResult.outputSignal, temporalFilterResult.outputSignalDistance,
+                properties);
 
-            // Now that we have overriden this history, mark is as used by this light
+            // Now that we have overridden this history, mark is as used by this light
             hdCamera.PropagateShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType);
 
             return denoisedBuffer;
@@ -91,14 +92,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCount;
 
             // Evaluation parameters
-            public bool softShadow;
             public bool distanceBasedFiltering;
             public int numShadowSamples;
             public bool semiTransparentShadow;
             public GPULightType lightType;
-            public float spotAngle;
-            public float shapeRadius;
-            public int lightIndex;
+            public PunctualShadowProperties properties;
 
             // Kernels
             public int clearShadowKernel;
@@ -136,7 +134,15 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle velocityBuffer;
             TextureHandle distanceBuffer;
 
-            bool softShadow = additionalLightData.shapeRadius > 0.0 ? true : false;
+            PunctualShadowProperties props = new PunctualShadowProperties();
+            props.isSpot = lightData.lightType == GPULightType.Spot;
+            props.lightIndex = lightIndex;
+            props.softShadow = additionalLightData.shapeRadius > 0.0 ? true : false;
+            props.lightRadius = additionalLightData.shapeRadius;
+            props.lightPosition = additionalLightData.transform.position;
+            props.kernelSize = additionalLightData.filterSizeTraced;
+            props.lightConeAngle = additionalLightData.legacyLight.spotAngle * (float)Math.PI / 180.0f;
+            props.distanceBasedDenoiser = additionalLightData.distanceBasedFiltering;
 
             using (var builder = renderGraph.AddRenderPass<RTSPunctualTracePassData>("Punctual RT Shadow", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingLightShadow)))
             {
@@ -145,16 +151,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texHeight = hdCamera.actualHeight;
                 passData.viewCount = hdCamera.viewCount;
 
-                // Evaluation parameters
-                passData.softShadow = softShadow;
                 // If the surface is infinitively small, we force it to one sample.
-                passData.numShadowSamples = passData.softShadow ? additionalLightData.numRayTracingSamples : 1;
+                passData.numShadowSamples = props.softShadow ? additionalLightData.numRayTracingSamples : 1;
                 passData.distanceBasedFiltering = additionalLightData.distanceBasedFiltering;
                 passData.semiTransparentShadow = additionalLightData.semiTransparentShadow;
                 passData.lightType = lightData.lightType;
-                passData.spotAngle = additionalLightData.legacyLight.spotAngle;
-                passData.shapeRadius = additionalLightData.shapeRadius;
-                passData.lightIndex = lightIndex;
+                passData.properties = props;
 
                 // Kernels
                 passData.clearShadowKernel = m_ClearShadowTexture;
@@ -214,6 +216,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Define the shader pass to use for the reflection pass
                         ctx.cmd.SetRayTracingShaderPass(data.screenSpaceShadowRT, "VisibilityDXR");
 
+                        // Bind the light & sampling data
+                        ctx.cmd.SetComputeIntParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingTargetLight, data.properties.lightIndex);
+                        ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightRadius, data.properties.lightRadius);
+                        ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightAngle, data.properties.lightConeAngle);
+
                         // Loop through the samples of this frame
                         for (int sampleIdx = 0; sampleIdx < data.numShadowSamples; ++sampleIdx)
                         {
@@ -222,19 +229,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.numShadowSamples;
                             ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
-                            // Bind the light & sampling data
-                            ctx.cmd.SetComputeIntParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingTargetAreaLight, data.lightIndex);
-                            ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightRadius, data.shapeRadius);
-
-                            // If this is a spot light, inject the spot angle in radians
-                            if (data.lightType == GPULightType.Spot)
-                            {
-                                float spotAngleRadians = data.spotAngle * (float)Math.PI / 180.0f;
-                                ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingSpotAngle, spotAngleRadians);
-                            }
-
                             // Input Buffer
                             ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
+                            ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
                             ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
                             // Output buffers
@@ -272,10 +269,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // If required, denoise the shadow
-            if (additionalLightData.filterTracedShadow && softShadow)
+            if (additionalLightData.filterTracedShadow && props.softShadow)
             {
                 pointShadowBuffer = DenoisePunctualScreenSpaceShadow(renderGraph, hdCamera,
-                    additionalLightData, lightData,
+                    additionalLightData, lightData, props,
                     depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer,
                     pointShadowBuffer, velocityBuffer, distanceBuffer);
             }

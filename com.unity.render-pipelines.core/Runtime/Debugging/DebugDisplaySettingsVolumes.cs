@@ -47,13 +47,13 @@ namespace UnityEngine.Rendering
 
         internal static class WidgetFactory
         {
-            public static DebugUI.EnumField CreateComponentSelector(DebugDisplaySettingsVolume data, Action<DebugUI.Field<int>, int> refresh)
+            public static DebugUI.EnumField CreateComponentSelector(SettingsPanel panel, Action<DebugUI.Field<int>, int> refresh)
             {
                 int componentIndex = 0;
                 var componentNames = new List<GUIContent>() { Styles.none };
                 var componentValues = new List<int>() { componentIndex++ };
 
-                foreach (var type in data.volumeDebugSettings.volumeComponentsPathAndType)
+                foreach (var type in panel.data.volumeDebugSettings.volumeComponentsPathAndType)
                 {
                     componentNames.Add(new GUIContent() { text = type.Item1 });
                     componentValues.Add(componentIndex++);
@@ -62,28 +62,28 @@ namespace UnityEngine.Rendering
                 return new DebugUI.EnumField
                 {
                     displayName = Strings.component,
-                    getter = () => data.volumeDebugSettings.selectedComponent,
-                    setter = value => data.volumeDebugSettings.selectedComponent = value,
+                    getter = () => panel.data.volumeDebugSettings.selectedComponent,
+                    setter = value => panel.data.volumeDebugSettings.selectedComponent = value,
                     enumNames = componentNames.ToArray(),
                     enumValues = componentValues.ToArray(),
-                    getIndex = () => data.volumeComponentEnumIndex,
-                    setIndex = value => { data.volumeComponentEnumIndex = value; },
+                    getIndex = () => panel.data.volumeComponentEnumIndex,
+                    setIndex = value => { panel.data.volumeComponentEnumIndex = value; },
                     onValueChanged = refresh
                 };
             }
 
-            public static DebugUI.ObjectPopupField CreateCameraSelector(DebugDisplaySettingsVolume data, Action<DebugUI.Field<Object>, Object> refresh)
+            public static DebugUI.ObjectPopupField CreateCameraSelector(SettingsPanel panel, Action<DebugUI.Field<Object>, Object> refresh)
             {
                 return new DebugUI.ObjectPopupField
                 {
                     displayName = Strings.camera,
-                    getter = () => data.volumeDebugSettings.selectedCamera,
+                    getter = () => panel.data.volumeDebugSettings.selectedCamera,
                     setter = value =>
                     {
-                        var c = data.volumeDebugSettings.cameras.ToArray();
-                        data.volumeDebugSettings.selectedCameraIndex = Array.IndexOf(c, value as Camera);
+                        var c = panel.data.volumeDebugSettings.cameras.ToArray();
+                        panel.data.volumeDebugSettings.selectedCameraIndex = Array.IndexOf(c, value as Camera);
                     },
-                    getObjects = () => data.volumeDebugSettings.cameras,
+                    getObjects = () => panel.data.volumeDebugSettings.cameras,
                     onValueChanged = refresh
                 };
             }
@@ -196,36 +196,18 @@ namespace UnityEngine.Rendering
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(selectedType);
 
                 // First row for volume info
-                float timer = 0.0f, refreshRate = 0.2f;
                 var row = new DebugUI.Table.Row()
                 {
                     displayName = Strings.volumeInfo,
                     opened = true, // Open by default for the in-game view
-                    children = { new DebugUI.Value() {
-                                         displayName = Strings.interpolatedValue,
-                                         getter = () => {
-                                             // This getter is called first at each render
-                                             // It is used to update the volumes
-                                             if (Time.time - timer < refreshRate)
-                                                 return string.Empty;
-                                             timer = Time.deltaTime;
-                                             if (data.volumeDebugSettings.selectedCamera != null)
-                                             {
-                                                 var newVolumes = data.volumeDebugSettings.GetVolumes();
-                                                 if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
-                                                 {
-                                                     for (int i = 0; i < newVolumes.Length; i++)
-                                                     {
-                                                         var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
-                                                         table.SetColumnVisibility(i + 1, visible);
-                                                     }
-                                                     return string.Empty;
-                                                 }
-                                             }
-                                             DebugManager.instance.ReDrawOnScreenDebug();
-                                             return string.Empty;
-                                         }
-                                     } }
+                    children =
+                    {
+                        new DebugUI.Value()
+                        {
+                             displayName = Strings.interpolatedValue,
+                             getter = () => string.Empty
+                        }
+                    }
                 };
 
                 // Second row, links to volume gameobjects
@@ -264,9 +246,9 @@ namespace UnityEngine.Rendering
 
                 // Build rows - recursively handles nested parameters
                 var rows = new List<DebugUI.Table.Row>();
-                void AddParameterRows(Type type, string baseName = null)
+                int AddParameterRows(Type type, string baseName = null, int skip = 0)
                 {
-                    void AddRow(FieldInfo f, string prefix)
+                    void AddRow(FieldInfo f, string prefix, int skip)
                     {
                         var fieldName = prefix + f.Name;
                         var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
@@ -278,7 +260,7 @@ namespace UnityEngine.Rendering
                             fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
 #endif
 
-                        int currentParam = rows.Count;
+                        int currentParam = rows.Count + skip;
                         row = new DebugUI.Table.Row()
                         {
                             displayName = fieldName,
@@ -304,13 +286,17 @@ namespace UnityEngine.Rendering
                     foreach (var field in fields)
                     {
                         if (field.GetCustomAttributes(typeof(ObsoleteAttribute), false).Length != 0)
+                        {
+                            skip++;
                             continue;
+                        }
                         var fieldType = field.FieldType;
                         if (fieldType.IsSubclassOf(typeof(VolumeParameter)))
-                            AddRow(field, baseName ?? string.Empty);
+                            AddRow(field, baseName ?? string.Empty, skip);
                         else if (!fieldType.IsArray && fieldType.IsClass)
-                            AddParameterRows(fieldType, baseName ?? (field.Name + " "));
+                            skip += AddParameterRows(fieldType, baseName ?? (field.Name + " "), skip);
                     }
+                    return skip;
                 }
 
                 AddParameterRows(selectedType);
@@ -321,21 +307,48 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < volumes.Length; i++)
                     table.SetColumnVisibility(i + 1, data.volumeDebugSettings.VolumeHasInfluence(volumes[i]));
 
+                float timer = 0.0f, refreshRate = 0.2f;
+                table.isHiddenCallback = () =>
+                {
+                    timer += Time.deltaTime;
+                    if (timer >= refreshRate)
+                    {
+                        if (data.volumeDebugSettings.selectedCamera != null)
+                        {
+                            var newVolumes = data.volumeDebugSettings.GetVolumes();
+                            if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
+                            {
+                                for (int i = 0; i < newVolumes.Length; i++)
+                                {
+                                    var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
+                                    table.SetColumnVisibility(i + 1, visible);
+                                }
+                            }
+
+                            if (!volumes.SequenceEqual(newVolumes))
+                            {
+                                volumes = newVolumes;
+                                DebugManager.instance.ReDrawOnScreenDebug();
+                            }
+                        }
+
+                        timer = 0.0f;
+                    }
+                    return false;
+                };
+
                 return table;
             }
         }
 
-        private class SettingsPanel : DebugDisplaySettingsPanel
+        [DisplayInfo(name = "Volume", order = int.MaxValue)]
+        internal class SettingsPanel : DebugDisplaySettingsPanel<DebugDisplaySettingsVolume>
         {
-            readonly DebugDisplaySettingsVolume m_Data;
-
-            public override string PanelName => "Volume";
-
             public SettingsPanel(DebugDisplaySettingsVolume data)
+                : base(data)
             {
-                m_Data = data;
-                AddWidget(WidgetFactory.CreateComponentSelector(m_Data, (_, __) => Refresh()));
-                AddWidget(WidgetFactory.CreateCameraSelector(m_Data, (_, __) => Refresh()));
+                AddWidget(WidgetFactory.CreateCameraSelector(this, (_, __) => Refresh()));
+                AddWidget(WidgetFactory.CreateComponentSelector(this, (_, __) => Refresh()));
             }
 
             DebugUI.Table m_VolumeTable = null;
@@ -370,29 +383,8 @@ namespace UnityEngine.Rendering
         /// Checks whether ANY of the debug settings are currently active.
         /// </summary>
         public bool AreAnySettingsActive => false; // Volume Debug Panel doesn't need to modify the renderer data, therefore this property returns false
-        /// <summary>
-        /// Checks whether the current state of these settings allows post-processing.
-        /// </summary>
-        public bool IsPostProcessingAllowed => true;
-        /// <summary>
-        /// Checks whether lighting is active for these settings.
-        /// </summary>
-        public bool IsLightingActive => true;
 
-        /// <summary>
-        /// Attempts to get the color used to clear the screen for this debug setting.
-        /// </summary>
-        /// <param name="color">A reference to the screen clear color to use.</param>
-        /// <returns>"true" if we updated the color, "false" if we didn't change anything.</returns>
-        public bool TryGetScreenClearColor(ref Color color)
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Creates the panel
-        /// </summary>
-        /// <returns>The panel</returns>
+        /// <inheritdoc/>
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel(this);

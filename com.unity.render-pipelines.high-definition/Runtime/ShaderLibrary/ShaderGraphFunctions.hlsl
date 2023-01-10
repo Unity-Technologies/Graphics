@@ -44,8 +44,12 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
 
 float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
 {
+#if defined(__BUILTINGIUTILITIES_HLSL__)
     float3 positionRWS = GetCameraRelativePositionWS(positionWS);
     return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
+#else
+    return 0;
+#endif
 }
 
 float3 shadergraph_HDMainLightDirection()
@@ -93,5 +97,28 @@ float3 shadergraph_HDMainLightDirection()
 #endif
 #define SHADERGRAPH_MAIN_LIGHT_DIRECTION shadergraph_HDMainLightDirection
 
+#ifdef SHADERGRAPH_RENDERER_BOUNDS_MIN
+#undef SHADERGRAPH_RENDERER_BOUNDS_MIN
+#endif
+#define SHADERGRAPH_RENDERER_BOUNDS_MIN shadergraph_RendererBoundsWS_Min()
+
+float3 shadergraph_RendererBoundsWS_Min()
+{
+    float3 minBounds, maxBounds;
+    GetRendererBounds(minBounds, maxBounds);
+    return minBounds;
+}
+
+#ifdef SHADERGRAPH_RENDERER_BOUNDS_MAX
+#undef SHADERGRAPH_RENDERER_BOUNDS_MAX
+#endif
+#define SHADERGRAPH_RENDERER_BOUNDS_MAX shadergraph_RendererBoundsWS_Max()
+
+float3 shadergraph_RendererBoundsWS_Max()
+{
+    float3 minBounds, maxBounds;
+    GetRendererBounds(minBounds, maxBounds);
+    return maxBounds;
+}
 
 #endif // UNITY_GRAPHFUNCTIONS_HD_INCLUDED

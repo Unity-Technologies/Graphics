@@ -73,16 +73,19 @@ namespace UnityEditor.VFX
             {
                 if (model == this)
                     ResyncSlots(false); // To add/remove stripIndex
-                RefreshErrors(GetGraph());
+                RefreshErrors();
             }
 
             base.OnInvalidate(model, cause);
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             VFXSetting capacitySetting = GetSetting("capacity");
-            if ((uint)capacitySetting.value > 1000000)
+
+            if ((uint)capacitySetting.value > UnityEngine.VFX.VFXManager.maxCapacity)
+                manager.RegisterError("CapacityOverMaximum", VFXErrorType.Error, "Systems capacity is greater than maximum capacity. This system will be skipped during rendering.\nYou can modify this limit in ProjectSettings/VFX.");
+            else if ((uint)capacitySetting.value > 1000000)
                 manager.RegisterError("CapacityOver1M", VFXErrorType.PerfWarning, "Systems with large capacities can be slow to simulate");
             var data = GetData() as VFXDataParticle;
             if (data != null && CanBeCompiled())
@@ -95,7 +98,7 @@ namespace UnityEditor.VFX
                         manager.RegisterError("NeedsRecording", VFXErrorType.Warning,
                             "In order to record the bounds, the current graph needs to be attached to a scene instance via the Target Game Object panel");
                     }
-                    var boundsSlot = inputSlots.FirstOrDefault(s => s.name == "bounds");
+                    var boundsSlot = inputSlots.FirstOrDefault(s => s.name == nameof(InputPropertiesBounds.bounds));
                     if (boundsSlot != null && boundsSlot.HasLink(true))
                     {
                         manager.RegisterError("OverriddenRecording", VFXErrorType.Warning,
@@ -151,10 +154,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public sealed override VFXSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
-            if (slot.name == "bounds")
-                return VFXCoordinateSpace.Local;
+            if (slot.name == nameof(InputPropertiesBounds.bounds))
+                return VFXSpace.Local;
             return base.GetOutputSpaceFromSlot(slot);
         }
 

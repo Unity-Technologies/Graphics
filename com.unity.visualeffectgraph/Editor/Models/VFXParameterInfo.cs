@@ -27,11 +27,15 @@ namespace UnityEditor.VFX
             descendantCount = 0;
             sheetType = null;
             enumValues = null;
+            space = VFXSpace.None;
+            spaceable = false;
         }
 
         public string name;
         public string path;
         public string tooltip;
+        public VFXSpace space;
+        public bool spaceable;
 
         public string sheetType;
 
@@ -84,6 +88,8 @@ namespace UnityEditor.VFX
 
                 VFXParameterInfo paramInfo = new VFXParameterInfo(parameter.exposedName, parameter.type.Name);
                 paramInfo.tooltip = parameter.tooltip;
+                paramInfo.space = parameter.outputSlots[0].space;
+                paramInfo.spaceable = parameter.outputSlots[0].spaceable;
                 if (rootFieldName != null)
                 {
                     paramInfo.sheetType = rootFieldName;
@@ -152,7 +158,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    if (field.FieldType == typeof(VFXCoordinateSpace)) // For space
+                    if (field.FieldType == typeof(VFXSpace)) // For space
                         continue;
                     info.descendantCount = RecurseBuildParameterInfo(subList, field.FieldType, info.path, subObj);
                 }

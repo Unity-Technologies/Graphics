@@ -210,18 +210,22 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginProperty(levelRect, label, self.useOverride);
             {
                 EditorGUI.BeginChangeCheck();
-                var (level, useOverride) = LevelFieldGUI(
-                    levelRect,
-                    GUIContent.none,
-                    schema,
-                    self.level.intValue,
-                    self.useOverride.boolValue
-                );
-                if (EditorGUI.EndChangeCheck())
+
+                using (new EditorGUI.MixedValueScope(self.useOverride.hasMultipleDifferentValues || !self.useOverride.boolValue && self.level.hasMultipleDifferentValues))
                 {
-                    self.useOverride.boolValue = useOverride;
-                    if (!self.useOverride.boolValue)
-                        self.level.intValue = level;
+                    var (level, useOverride) = LevelFieldGUI(
+                        levelRect,
+                        GUIContent.none,
+                        schema,
+                        self.level.intValue,
+                        self.useOverride.boolValue
+                    );
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        self.useOverride.boolValue = useOverride;
+                        if (!self.useOverride.boolValue)
+                            self.level.intValue = level;
+                    }
                 }
             }
             EditorGUI.EndProperty();

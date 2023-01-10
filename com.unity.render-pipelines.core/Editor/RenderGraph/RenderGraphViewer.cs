@@ -52,7 +52,7 @@ public class RenderGraphViewer : EditorWindow
         ImportedResources = 1 << 0,
         CulledPasses = 1 << 1,
         Textures = 1 << 2,
-        ComputeBuffers = 1 << 3,
+        Buffers = 1 << 3,
     }
 
     struct ResourceElementInfo
@@ -99,7 +99,7 @@ public class RenderGraphViewer : EditorWindow
     DynamicArray<ResourceElementInfo>[] m_ResourceElementsInfo = new DynamicArray<ResourceElementInfo>[(int)RenderGraphResourceType.Count];
     DynamicArray<PassElementInfo> m_PassElementsInfo = new DynamicArray<PassElementInfo>();
 
-    Filter m_Filter = Filter.Textures | Filter.ComputeBuffers;
+    Filter m_Filter = Filter.Textures | Filter.Buffers;
 
     void RenderPassLabelChanged(GeometryChangedEvent evt)
     {
@@ -566,8 +566,8 @@ public class RenderGraphViewer : EditorWindow
         resourceScrollView.name = "GraphViewer.ResourceScrollView";
 
         // Has to match RenderGraphModule.RenderGraphResourceType order.
-        Filter[] resourceFilterFlags = { Filter.Textures, Filter.ComputeBuffers };
-        string[] resourceNames = { "Textures Resources", "Compute Buffer Resources" };
+        Filter[] resourceFilterFlags = { Filter.Textures, Filter.Buffers };
+        string[] resourceNames = { "Textures Resources", "Buffer Resources" };
 
         for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
         {

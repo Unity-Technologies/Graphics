@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // Render and write
                     var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(textureSize, probeFormat);
-                    HDBakedReflectionSystem.RenderAndWriteToFile(probe, path, cubeRT, null);
+                    HDBakedReflectionSystem.RenderAndWriteToFile(probe, path, cubeRT);
                     cubeRT.Release();
 
                     // Import asset at target location

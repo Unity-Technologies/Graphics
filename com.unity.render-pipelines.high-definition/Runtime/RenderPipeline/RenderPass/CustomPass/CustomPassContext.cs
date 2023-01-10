@@ -67,6 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public readonly MaterialPropertyBlock propertyBlock;
 
+        internal readonly CustomPassInjectionPoint injectionPoint;
+
         internal CustomPassContext(
             ScriptableRenderContext renderContext, CommandBuffer cmd,
             HDCamera hdCamera, CullingResults cullingResults,
@@ -74,7 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle cameraColorBuffer, RTHandle cameraDepthBuffer,
             RTHandle cameraNormalBuffer, RTHandle cameraMotionVectorsBuffer,
             Lazy<RTHandle> customColorBuffer,
-            Lazy<RTHandle> customDepthBuffer, MaterialPropertyBlock propertyBlock)
+            Lazy<RTHandle> customDepthBuffer, MaterialPropertyBlock propertyBlock,
+            CustomPassInjectionPoint injectionPoint)
         {
             this.renderContext = renderContext;
             this.cmd = cmd;
@@ -88,6 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.cameraMotionVectorsBuffer = cameraMotionVectorsBuffer;
             this.customDepthBuffer = customDepthBuffer;
             this.propertyBlock = propertyBlock;
+            this.injectionPoint = injectionPoint;
         }
     }
 }

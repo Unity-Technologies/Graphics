@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static GUIContent overrideBakedGI = new GUIContent("Override Baked GI", "When enabled, inputs to override the current GI are exposed on the master node.");
             public static GUIContent supportLodCrossFade = new GUIContent("Support LOD CrossFade", "When enabled, allow to use the animated transition for LOD feature on this material.");
+            public static GUIContent debugSymbolsText = new GUIContent("Debug Symbols", "When enabled, HDRP activates d3d11 debug symbols for this Shader.");
         }
 
         Features enabledFeatures;
@@ -49,6 +50,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             AddProperty(Styles.supportLodCrossFade, () => builtinData.supportLodCrossFade, (newValue) => builtinData.supportLodCrossFade = newValue);
             AddProperty(addPrecomputedVelocityText, () => builtinData.addPrecomputedVelocity, (newValue) => builtinData.addPrecomputedVelocity = newValue);
+
+            if (Unsupported.IsDeveloperMode())
+                AddProperty(Styles.debugSymbolsText, () => systemData.debugSymbols, (newValue) => systemData.debugSymbols = newValue);
         }
     }
 }

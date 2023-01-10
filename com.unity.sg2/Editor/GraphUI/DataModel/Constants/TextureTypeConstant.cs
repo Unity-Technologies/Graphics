@@ -70,5 +70,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 default: return ShaderGraphExampleTypes.Texture2DTypeHandle;
             }
         }
+
+        /// <inheritdoc />
+        public override bool IsAssignableFrom(Type t)
+        {
+            return typeof(Texture).IsAssignableFrom(t);
+        }
     }
 }

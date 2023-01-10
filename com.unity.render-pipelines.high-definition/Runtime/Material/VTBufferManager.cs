@@ -30,7 +30,7 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public static GraphicsFormat GetFeedbackBufferFormat()
         {
-            return GraphicsFormat.R8G8B8A8_UNorm;
+            return GraphicsFormat.R16G16_UNorm;
         }
 
         const int kResolveScaleFactor = 16;

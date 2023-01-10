@@ -21,13 +21,13 @@ The Gather Texture 2D node is under the **Input** &gt; **Texture** category in t
 
 ## Compatibility
 
-[!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
+The Gather Texture 2D [!include[nodes-compatibility-all](./snippets/nodes-compatibility-all.md)]    <!-- ALL PIPELINES INCLUDE  -->
 
-[!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
+The Gather Texture 2D [!include[nodes-fragment-only](./snippets/nodes-fragment-only.md)]       <!-- FRAGMENT ONLY INCLUDE  -->
 
 ## Inputs
 
-[!include[nodes-inputs](./snippets/nodes-inputs.md)] <!-- MULTIPLE INPUT PORTS INCLUDE -->
+The Gather Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)] <!-- MULTIPLE INPUT PORTS INCLUDE -->
 
 | **Name**     | **Type**      | **Binding** | **Description**  |
 | :---         | :------       |  :------    |   :----------    |
@@ -39,7 +39,7 @@ The Gather Texture 2D node is under the **Input** &gt; **Texture** category in t
 
 ## Outputs
 
-[!include[nodes-outputs](./snippets/nodes-outputs.md)] <!-- MULTIPLE OUTPUT PORTS INCLUDE -->
+The Gather Texture 2D [!include[nodes-outputs](./snippets/nodes-outputs.md)] <!-- MULTIPLE OUTPUT PORTS INCLUDE -->
 
 | **Name** | **Type** | **Description** |
 | :------  | :------- | :-------------  |
@@ -65,7 +65,7 @@ By changing the value provided to the T port on the Lerp node, you can change wh
 
 ## Related nodes
 
-[!include[nodes-related](./snippets/nodes-related.md)]
+[!include[nodes-related](./snippets/nodes-related.md)] Gather Texture 2D node:
 
 - [Sample Texture 2D node](Sample-Texture-2D-Node.md)
 - [Sample Texture 2D LOD node](Sample-Texture-2D-LOD-Node.md)

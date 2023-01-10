@@ -1,0 +1,160 @@
+#pragma kernel Main
+#pragma kernel MainArgs
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/RenderPipeline/LineRendering/LineRenderingCommon.hlsl"
+
+#define THREADING_BLOCK_SIZE NUM_LANE_RASTER_BIN
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+typedef Threading::Wave  Wave;
+typedef Threading::Group Group;
+
+// Inputs
+ByteAddressBuffer _SegmentRecordBuffer;
+ByteAddressBuffer _ViewSpaceDepthRangeBuffer;
+ByteAddressBuffer _ClusterRangesBuffer;
+
+// Outputs
+RWStructuredBuffer<ClusterRecord> _ClusterRecordBuffer;
+RWByteAddressBuffer               _CounterBuffer;
+RWByteAddressBuffer               _ClusterCountersBuffer;
+
+groupshared uint   gs_ActiveSegmentCount;
+groupshared float2 gs_ClusteringCoefficients;
+groupshared uint   gs_TileCount;
+
+float NormalizeClusterDepth(float depthVS, uint clusterDepth)
+{
+    const float2 clusterDepthRanges = asfloat(_ClusterRangesBuffer.Load2(clusterDepth << 3));
+    return (depthVS - clusterDepthRanges.x) / (clusterDepthRanges.y - clusterDepthRanges.x);
+}
+
+// Technically it would be better to do this on CPU but since clustering
+// params are all computed on GPU we have to do it like this.
+void ComputeClusteringCoefficients()
+{
+    const float2 viewSpaceDepthRanges = asfloat(_ViewSpaceDepthRangeBuffer.Load2(0));
+    gs_ClusteringCoefficients.x = _ClusterDepth / log10(viewSpaceDepthRanges.y / viewSpaceDepthRanges.x);
+    gs_ClusteringCoefficients.y = (_ClusterDepth * log10(viewSpaceDepthRanges.x)) / log10(viewSpaceDepthRanges.y / viewSpaceDepthRanges.x);
+}
+
+uint ComputeClusterDepth(float depthVS)
+{
+    return floor(log10(depthVS) * gs_ClusteringCoefficients.x - gs_ClusteringCoefficients.y);
+}
+
+// TODO: I guess it makes sense to move this whole thing to group-wide ops?
+void RecordIntersection(Wave wave, bool intersects, uint2 coord, SegmentRecord segment, uint segmentIndex, float t)
+{
+    const float depthVS = lerp(segment.depthVS0, segment.depthVS1, t);
+
+    const uint clusterDepth = floor(log10(depthVS) * gs_ClusteringCoefficients.x - gs_ClusteringCoefficients.y);
+    const uint clusterIndex = (coord.y * (uint)_DimBin.x + coord.x) + ((uint)_DimBin.x * (uint)_DimBin.y * clusterDepth);
+
+    const uint waveOffset = wave.PrefixCountBits(intersects);
+#if _THREADING_ENABLE_WAVE_EMULATION
+    // Seems this sync is required for emulated path.
+    GroupMemoryBarrierWithGroupSync();
+#endif
+    const uint waveCount = wave.CountBits(intersects);
+
+    // Compute the next valid index in the record buffer.
+    uint globalOffset = 0u;
+    if (wave.IsFirstLane())
+    {
+        _CounterBuffer.InterlockedAdd(COUNTER_BIN_RECORD, waveCount, globalOffset);
+    }
+    globalOffset = wave.ReadLaneFirst(globalOffset);
+
+    // Normalize the cluster depth for more precision in the 10-bit encoded version
+    const float segmentSortKey = NormalizeClusterDepth(depthVS, clusterDepth);
+
+    if (!intersects)
+        return;
+
+    uint clusterOffset;
+    _ClusterCountersBuffer.InterlockedAdd(clusterIndex << 2, intersects, clusterOffset);
+
+    // Write back the record.
+    ClusterRecord record;
+    {
+        record.segmentIndex  = PackFloatToUInt(segmentSortKey, 24, 8) | segmentIndex;
+        record.clusterIndex  = clusterIndex;
+        record.clusterOffset = clusterOffset;
+    }
+    _ClusterRecordBuffer[globalOffset + waveOffset] = record;
+}
+
+[numthreads(NUM_LANE_RASTER_BIN, 1, 1)]
+void Main(Group group)
+{
+    if (group.groupIndex == 0u)
+    {
+        gs_ActiveSegmentCount = _CounterBuffer.Load(COUNTER_GROUP_SEG_OFFSET);
+        ComputeClusteringCoefficients();
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    const uint s_segmentIndex = group.dispatchID.x;
+
+    const SegmentRecord s_segment = LoadSegmentRecord(_SegmentRecordBuffer, s_segmentIndex);
+
+    uint2 v_segmentMin, v_segmentMax;
+    GetSegmentBoundingBox(s_segment, v_segmentMin, v_segmentMax);
+
+    const Wave wave = group.GetWave();
+
+    // Compute the maximum bounding box in the wave.
+    const uint2 v_segmentSize = 1u + (v_segmentMax - v_segmentMin);
+    const uint  v_tileCount   = v_segmentSize.x * v_segmentSize.y;
+
+    // Unfortunately, due to how the wave emulation works, we need to keep the loop synchronized on a group basis.
+    {
+        const uint v_temp = group.Max(v_tileCount);
+
+        if (group.groupIndex == 0u)
+        {
+            gs_TileCount = v_temp;
+        }
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // Per-lane bin index offset.
+    uint2 v_indexOffset = uint2(0u, 0u);
+
+    UNITY_LOOP
+    for (uint i = 0; i < gs_TileCount; ++i)
+    {
+        const uint2 v_index = v_segmentMin + v_indexOffset;
+
+        // "Barycentric" line coordinate.
+        float t;
+
+        const bool v_laneActive = i < v_tileCount && s_segmentIndex < gs_ActiveSegmentCount;
+        const bool v_intersects = SegmentsIntersectsBin(v_index.x, v_index.y, s_segment.positionSS0.xy, s_segment.positionSS1.xy, t);
+
+        RecordIntersection(wave, v_laneActive && v_intersects, v_index, s_segment, s_segmentIndex, 0.5);
+
+        v_indexOffset.x++;
+
+        // Transform the 2D index offset with the 1D iteration index.
+        if (v_index.x >= v_segmentMax.x)
+        {
+            v_indexOffset.x = 0u;
+            v_indexOffset.y++;
+        }
+    }
+}
+
+RWBuffer<uint> _BinningArgsBuffer;
+
+[numthreads(1, 1, 1)]
+void MainArgs()
+{
+    const uint binningDispatchSize = (_CounterBuffer.Load(COUNTER_GROUP_SEG_OFFSET) + NUM_LANE_RASTER_BIN - 1) / NUM_LANE_RASTER_BIN;
+
+    _BinningArgsBuffer[0] = binningDispatchSize;
+    _BinningArgsBuffer[1] = 1;
+    _BinningArgsBuffer[2] = 1;
+}
