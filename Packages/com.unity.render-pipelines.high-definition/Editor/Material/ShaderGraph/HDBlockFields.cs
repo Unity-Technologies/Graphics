@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new NormalControl(CoordinateSpace.Object), ShaderStage.Fragment);
             public static BlockFieldDescriptor IrisNormalWS = new BlockFieldDescriptor(SurfaceDescription.name, "IrisNormalWS", "Iris Normal (World Space)", "SURFACEDESCRIPTION_IRISNORMALWS",
                 new NormalControl(CoordinateSpace.World), ShaderStage.Fragment);
-            public static BlockFieldDescriptor IOR = new BlockFieldDescriptor(SurfaceDescription.name, "IOR", "SURFACEDESCRIPTION_IOR",
+            public static BlockFieldDescriptor IOR = new BlockFieldDescriptor(SurfaceDescription.name, "IOR", "Eye IOR", "SURFACEDESCRIPTION_IOR",
                 new FloatControl(1.4f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Mask = new BlockFieldDescriptor(SurfaceDescription.name, "Mask", "SURFACEDESCRIPTION_MASK",
                 new Vector2Control(new Vector2(1.0f, 0.0f)), ShaderStage.Fragment);

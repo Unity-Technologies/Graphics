@@ -111,7 +111,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.8.23-exp.2",
+      "version": "7.11.1-exp.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {

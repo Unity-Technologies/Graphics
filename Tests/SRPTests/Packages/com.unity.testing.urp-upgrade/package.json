@@ -16,7 +16,7 @@
   "dependencies": {
     "nuget.moq": "1.0.0",
     "com.unity.test-framework": "1.1.29",
-    "com.unity.testframework.graphics": "7.8.23-exp.2",
+    "com.unity.testframework.graphics": "7.11.1-exp.1",
     "com.unity.render-pipelines.universal": "12.1.0",
     "com.unity.timeline": "1.6.0-pre.3"
   }

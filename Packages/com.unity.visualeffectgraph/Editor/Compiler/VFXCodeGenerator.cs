@@ -192,12 +192,12 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
+        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies, bool forceShadeDebugSymbols)
         {
             var templatePath = string.Format("{0}.template", context.codeGeneratorTemplate);
 
             dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
-            return Build(context, templatePath, compilationMode, contextData, dependencies);
+            return Build(context, templatePath, compilationMode, contextData, dependencies, forceShadeDebugSymbols);
         }
 
         static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
@@ -521,7 +521,7 @@ namespace UnityEditor.VFX
             buildFragInputsGeneration = fragInputsGeneration.ToString();
         }
 
-        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
+        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies, bool enableShaderDebugSymbols)
         {
             if (!context.SetupCompilation())
                 return null;
@@ -580,6 +580,13 @@ namespace UnityEditor.VFX
 
             //< Final composition
             var globalIncludeContent = new VFXShaderWriter();
+
+            if (enableShaderDebugSymbols)
+            {
+                globalIncludeContent.WriteLine("#pragma enable_d3d11_debug_symbols");
+                globalIncludeContent.WriteLine();
+            }
+
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
             globalIncludeContent.WriteLine("#define HAS_VFX_ATTRIBUTES 1");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_ACTUAL (0)");

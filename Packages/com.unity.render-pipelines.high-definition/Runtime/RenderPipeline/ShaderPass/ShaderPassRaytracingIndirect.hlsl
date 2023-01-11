@@ -63,7 +63,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = pointWSPos + bsdfData.normalWS * _RaytracingRayBias;
+        rayDescriptor.Origin = pointWSPos + bsdfData.normalWS * _RayTracingRayBias;
         rayDescriptor.Direction = sampleDir;
         rayDescriptor.TMin = 0.0f;
         rayDescriptor.TMax = _RaytracingRayMaxLength;
@@ -94,7 +94,15 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
         // Contribute to the pixel
         if (_RayTracingDiffuseLightingOnly)
+        {
             builtinData.bakeDiffuseLighting = reflectedIntersection.color;
+
+            // This needs to be done here as the other sources of indirect lighting have it done elsewhere.
+            #ifdef  MODIFY_BAKED_DIFFUSE_LIGHTING
+                // Make sure the baked diffuse lighting is tinted with the diffuse color
+                ModifyBakedDiffuseLighting(viewWS, posInput, preLightData, bsdfData, builtinData);
+            #endif
+        }
         else
         {
             // Override the reflected color

@@ -400,11 +400,16 @@ namespace UnityEngine.Rendering.HighDefinition
             get { return m_AdditionalCameraData != null ? m_AdditionalCameraData.clearDepth : camera.clearFlags != CameraClearFlags.Nothing; }
         }
 
+        internal bool CameraIsSceneFiltering()
+        {
+            return CoreUtils.IsSceneFilteringEnabled() && camera.cameraType == CameraType.SceneView;
+        }
+
         internal HDAdditionalCameraData.ClearColorMode clearColorMode
         {
             get
             {
-                if (CoreUtils.IsSceneFilteringEnabled() && camera.cameraType == CameraType.SceneView)
+                if (CameraIsSceneFiltering())
                     return HDAdditionalCameraData.ClearColorMode.Color;
 
                 if (m_AdditionalCameraData != null)

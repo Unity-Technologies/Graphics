@@ -1,5 +1,3 @@
-**Important:** This page is subject to change during the 2019.1 beta cycle.
-
 # Particles Lit Shader
 
 In the Universal Render Pipeline (URP), use this Shader to make particles appear almost photorealistic, for example for camp fire particles, rain drops or torch smoke. This Shader produces lifelike visuals but uses the most computationally heavy [shading model](shading-model.md) in URP, which can impact performance.

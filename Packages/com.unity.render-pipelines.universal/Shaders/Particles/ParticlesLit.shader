@@ -133,6 +133,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             // -------------------------------------
             // Unity defined keywords
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
@@ -192,6 +193,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             // -------------------------------------
             // Unity defined keywords
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
 

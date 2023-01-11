@@ -104,7 +104,9 @@ namespace UnityEditor.Rendering
             {
                 int hash = 13;
                 hash = hash * 23 + m_QueryPath.GetHashCode();
-                hash = hash * 23 + value.GetHashCode();
+                if (value != null)
+                    hash = hash * 23 + value.GetHashCode();
+                
                 return hash;
             }
         }

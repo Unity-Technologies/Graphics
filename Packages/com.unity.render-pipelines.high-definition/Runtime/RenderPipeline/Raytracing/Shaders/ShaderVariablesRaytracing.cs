@@ -3,8 +3,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.RayTracing)]
     unsafe struct ShaderVariablesRaytracing
     {
-        // Global ray bias used for all trace rays
-        public float _RaytracingRayBias;
+        public float _RayTracingPadding0;
         // Maximal ray length for trace ray (in case an other one does not override it)
         public float _RaytracingRayMaxLength;
         // Number of samples that will be used to evaluate an effect
@@ -45,5 +44,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RayTracingClampingFlag;
         // Dimmer that allows us to nuke the ambient probe (and legacy probe as a side effect) in ray tracing effects.
         public float _RayTracingAmbientProbeDimmer;
+
+        // Flag that defines if the APV should be used in the case of a ray miss in performance mode
+        public int _RayTracingAPVRayMiss;
+        // Near plane ray Bias
+        public float _RayTracingRayBias;
+        // Far plane ray bias
+        public float _RayTracingDistantRayBias;
+        // Padding
+        public int _PaddingRT0;
     }
 }

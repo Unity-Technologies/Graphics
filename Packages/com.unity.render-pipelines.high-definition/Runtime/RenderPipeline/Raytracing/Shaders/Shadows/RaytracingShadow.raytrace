@@ -36,9 +36,11 @@
 // Raytracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RaytracingHelpers.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingMIS.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RayTracingShadowUtilities.hlsl"
 
 // Light Data
 uint     _RaytracingTargetAreaLight;
@@ -200,13 +202,13 @@ void RayGenAreaShadows()
         // Let's shift the origin and destination positions by a bias
         #ifdef LIGHT_TO_SURFACE
         // In order to match the behavior of the raster pipeline, shadow rays are cast from the light source and not the point (to mimic backface culling in shadowmaps)
-        float3 rayOrigin = misOutput.pos + lightData.forward * _RaytracingRayBias;
-        float3 rayDestination = positionWS + normalData.normalWS * _RaytracingRayBias;
+        float3 rayOrigin = misOutput.pos + lightData.forward * _RayTracingRayBias;
+        float3 rayDestination = positionWS + normalData.normalWS * _RayTracingRayBias;
         float3 rayDirection = normalize(rayDestination-rayOrigin);
         uint rayFlag = RAY_FLAG_CULL_BACK_FACING_TRIANGLES;
         #else
-        float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias;
-        float3 rayDestination = misOutput.pos + lightData.forward * _RaytracingRayBias;
+        float3 rayOrigin = positionWS + normalData.normalWS * _RayTracingRayBias;
+        float3 rayDestination = misOutput.pos + lightData.forward * _RayTracingRayBias;
         float3 rayDirection = normalize(rayDestination-rayOrigin);
         uint rayFlag = RAY_FLAG_CULL_FRONT_FACING_TRIANGLES;
         #endif
@@ -315,6 +317,9 @@ void RayGenAreaShadowSingle()
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
+    // Evaluate the ray bias
+    float rayBias = EvaluateRayTracingBias(posInput.positionWS);
+
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
@@ -323,8 +328,8 @@ void RayGenAreaShadowSingle()
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
     float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
-    float3 rayOrigin = posInput.positionWS + rayDirection * rayDistance - lightData.forward * _RaytracingRayBias;
-    float3 rayDestination = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
+    float3 rayOrigin = posInput.positionWS + rayDirection * rayDistance - lightData.forward * rayBias;
+    float3 rayDestination = posInput.positionWS + normalData.normalWS * rayBias;
     rayDistance = length(rayDestination - rayOrigin);
     rayDirection = (rayDestination - rayOrigin) / rayDistance;
 
@@ -377,7 +382,7 @@ void RayGenDirectionalShadowSingle()
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
 
-    // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
+    // If this is the background pixel, skip.
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
@@ -391,13 +396,16 @@ void RayGenDirectionalShadowSingle()
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
+    // Evaluate the ray bias
+    float rayBias = EvaluateRayTracingBias(posInput.positionWS);
+
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Read the ray distance
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
-    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * rayBias;
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
@@ -446,7 +454,7 @@ void RayGenDirectionalColorShadowSingle()
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
 
-    // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
+    // If this is the background pixel, skip.
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
@@ -460,13 +468,16 @@ void RayGenDirectionalColorShadowSingle()
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
+    // Evaluate the ray bias
+    float rayBias = EvaluateRayTracingBias(posInput.positionWS);
+
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Read the ray distance
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
-    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * rayBias;
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
@@ -525,26 +536,39 @@ void RayGenShadowSegmentSingle()
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
-    // Read the ray distance
-    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
-
     // Fetch the ray direction
     float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
 
-    // Read the previous integration value
-    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
-
-    // If we are inside the light (spot or point), we consider that we have no occlusion and end the execution.
-    if (rayDistance < 0.0 || rayDirection.w == -2.0)
+    // If we are:
+    // - Inside the light (spot or point)
+    // - An Unlit pixel
+    // We consider that we have no occlusion and skip the tracing.
+    if (rayDirection.w == POINT_WHITE_PDF)
     {
         // Read the previous value and add one
-        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
+        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
         _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
         return;
     }
 
-    // If this point doesn't see the light, we set it to black
-    if (rayDirection.w < 0.0) return;
+    // If this point is outside of the light range, then we force the result to black (as all rays starting from this ponit will have the same result)
+    if (rayDirection.w == POINT_BLACK_PDF)
+    {
+        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = 0.0;
+        _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
+        return;
+    }
+
+    // Read the previous integration value
+    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+
+    // If this direction is going under the surface, generate an occlusion and skip the tracing.
+    if (rayDirection.w == POINT_BACK_FACE_PDF)
+    {
+        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue;
+        _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
+        return;
+    }
 
     // Make sure it is taken into account in the ray counters
     if (_RayCountEnabled > 0)
@@ -556,13 +580,19 @@ void RayGenShadowSegmentSingle()
     // Compute the world space position of the source pixel
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
+    // Evaluate the ray bias
+    float rayBias = EvaluateRayTracingBias(posInput.positionWS);
+
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
+    // Read the ray distance
+    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
+
     // Recompute the ray parameters
-    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias; 
-    float3 rayDestination = rayOrigin + rayDirection.xyz * (rayDistance -_RaytracingRayBias);
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * rayBias; 
+    float3 rayDestination = rayOrigin + rayDirection.xyz * (rayDistance - rayBias);
 
     // Re-normalize using t
     rayDistance = length(rayDestination - rayOrigin);
@@ -615,26 +645,39 @@ void RayGenSemiTransparentShadowSegmentSingle()
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
-    // Read the ray distance
-    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
-
     // Fetch the ray direction
     float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
 
-    // Read the previous integration value
-    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
-
-    // If we are inside the light (spot or point), we consider that we have no occlusion and end the execution.
-    if (rayDistance < 0.0 || rayDirection.w == -2.0)
+    // If we are:
+    // - Inside the light (spot or point)
+    // - An Unlit pixel
+    // We consider that we have no occlusion and skip the tracing.
+    if (rayDirection.w == POINT_WHITE_PDF)
     {
         // Read the previous value and add one
-        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
+        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
         _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
         return;
     }
 
-    // If this point doesn't see the light, we set it to black
-    if (rayDirection.w <= 0.0) return;
+    // If this point is outside of the light range, then we force the result to black (as all rays starting from this ponit will have the same result)
+    if (rayDirection.w == POINT_BLACK_PDF)
+    {
+        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = 0.0;
+        _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
+        return;
+    }
+
+    // Read the previous integration value
+    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+
+    // If this direction is going under the surface, generate an occlusion and skip the tracing.
+    if (rayDirection.w == POINT_BACK_FACE_PDF)
+    {
+        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue;
+        _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
+        return;
+    }
 
     // Make sure it is taken into account in the ray counters
     if (_RayCountEnabled > 0)
@@ -646,13 +689,19 @@ void RayGenSemiTransparentShadowSegmentSingle()
     // Compute the world space position of the source pixel
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
+    // Evaluate the ray bias
+    float rayBias = EvaluateRayTracingBias(posInput.positionWS);
+
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
+    // Read the ray distance
+    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
+
     // Recompute the ray parameters
-    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias; 
-    float3 rayDestination = rayOrigin + rayDirection.xyz * (rayDistance -_RaytracingRayBias);
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * rayBias; 
+    float3 rayDestination = rayOrigin + rayDirection.xyz * (rayDistance - rayBias);
 
     // Re-normalize using t
     rayDistance = length(rayDestination - rayOrigin);
