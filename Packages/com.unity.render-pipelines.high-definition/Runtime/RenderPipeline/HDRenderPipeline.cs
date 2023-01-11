@@ -576,7 +576,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Hammersley.Initialize();
 
-            LocalVolumetricFogManager.manager.InitializeGraphicsBuffers();
+            LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
         }
 
 #if UNITY_EDITOR

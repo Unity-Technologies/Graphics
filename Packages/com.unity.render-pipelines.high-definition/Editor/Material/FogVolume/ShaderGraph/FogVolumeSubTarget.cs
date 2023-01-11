@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { GetAttributes() },
                     { Varyings },
                 }, TargetsVFX(), false),
-                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, true),
+                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, false),
                 defines = HDShaderPasses.GenerateDefines(GetBlendModeDefine(fogVolumeData.blendMode), TargetsVFX(), false),
                 renderStates = GetRenderState(fogVolumeData.blendMode),
                 includes = FogVolumeIncludes.Voxelize,

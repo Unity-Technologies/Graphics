@@ -80,7 +80,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public void UpdateMaterialMaskCompatibility()
         {
             if (materialMask.objectReferenceValue is Material mat)
+            {
                 isMaterialMaskCompatible = HDShaderUtils.IsFogVolumeShader(mat.shader);
+                isMaterialMaskCompatible |= mat.FindPass(HDShaderPassNames.s_FogVolumeVoxelizeStr) != -1;
+            }
             else
                 isMaterialMaskCompatible = false;
         }
