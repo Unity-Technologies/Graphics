@@ -267,7 +267,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 GetAsVec4(field, 3)
             );
 
-        public static object GetFieldValue(FieldHandler field, object defaultValue)
+        public static object GetFieldValue(FieldHandler field)
         {
             switch (GetHeight(field))
             {
@@ -283,13 +283,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     {
                         case GraphType.Primitive.Int: return GetAsInt(field);
                         case GraphType.Primitive.Bool: return GetAsBool(field);
-                        case GraphType.Primitive.Float:
-                        default: return GetAsFloat(field);
+                        case GraphType.Primitive.Float: return GetAsFloat(field);
+                        default: return null;
                     }
                 case GraphType.Length.Two: return GetAsVec2(field);
                 case GraphType.Length.Three: return GetAsVec3(field);
                 case GraphType.Length.Four: return GetAsVec4(field);
-                default: return defaultValue;
+                default: return null;
             }
         }
 
