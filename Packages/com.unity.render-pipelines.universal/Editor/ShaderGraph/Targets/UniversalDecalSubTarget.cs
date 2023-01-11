@@ -1060,6 +1060,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.ForwardPlus },
+                { CoreKeywordDescriptors.FoveatedRendering },
                 { Descriptors.DecalsNormalBlend },
             };
 

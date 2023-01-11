@@ -129,6 +129,8 @@ void GetSurface(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData
 PackedVaryings Vert(Attributes inputMesh)
 {
     Varyings output = (Varyings)0;
+    UNITY_SETUP_INSTANCE_ID(inputMesh);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 #ifdef DECAL_MESH
     if (_DecalMeshBiasType == DECALMESHDEPTHBIASTYPE_VIEW_BIAS) // TODO: Check performance of branch
     {
