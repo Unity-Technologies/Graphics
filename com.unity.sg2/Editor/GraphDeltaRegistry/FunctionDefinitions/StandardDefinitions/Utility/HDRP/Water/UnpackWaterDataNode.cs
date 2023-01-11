@@ -9,17 +9,13 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"LowFrequencyHeight = UV.x;
-CustomFoam =UV.y;
-SSSMask = UV.z;
-HorizontalDisplacement = UV.w;",
+@"LowFrequencyHeight = saturate(UV.x);
+HorizontalDisplacement = UV.y;",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("UV", TYPE.Vec4, Usage.Local, REF.UV1),
                 new ParameterDescriptor("LowFrequencyHeight", TYPE.Float, Usage.Out),
-                new ParameterDescriptor("HorizontalDisplacement", TYPE.Float, Usage.Out),
-                new ParameterDescriptor("SSSMask", TYPE.Float, Usage.Out),
-                new ParameterDescriptor("CustomFoam", TYPE.Float, Usage.Out)
+                new ParameterDescriptor("HorizontalDisplacement", TYPE.Float, Usage.Out)
             }
         );
 

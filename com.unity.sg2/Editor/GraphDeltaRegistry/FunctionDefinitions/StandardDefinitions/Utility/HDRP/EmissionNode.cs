@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Defs
             },
             functionSelectorLabel: "Intensity Unit",
             hasPreview: false,
-            parameters: new ParameterUIDescriptor[4] {
+            parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Color",
                     tooltip: "Sets the low dynamic range (LDR) color of the emission",
@@ -99,6 +99,11 @@ namespace UnityEditor.ShaderGraph.Defs
                     name: "ExposureWeight",
                     displayName: "Exposure Weight",
                     tooltip: "Controls how much the exposure affects the emission."
+                ),
+                new ParameterUIDescriptor(
+                    name: "NormalizeColor",
+                    displayName: "Normalize Color",
+                    tooltip: "Ensures the channels of the color are between zero and one."
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",

@@ -166,11 +166,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Position",
-                    tooltip: "position is used for projecting the texture onto the mesh"
+                    tooltip: "position is used for projecting the texture onto the mesh",
+                    options: REF.OptionList.Positions
                 ),
                 new ParameterUIDescriptor(
                     name: "Normal",
-                    tooltip: "the normal is used to mask and blend between the projections"
+                    tooltip: "the normal is used to mask and blend between the projections",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "Tile",

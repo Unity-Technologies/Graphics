@@ -27,7 +27,8 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "Position",
-                    tooltip: "The mesh vertex/fragment's position."
+                    tooltip: "The mesh vertex/fragment's position.",
+                    options: REF.OptionList.Positions
                 ),
                 new ParameterUIDescriptor(
                     name: "Color",

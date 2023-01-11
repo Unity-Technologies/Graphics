@@ -15,38 +15,38 @@ namespace UnityEditor.ShaderGraph.Defs
             };
             public static readonly List<(string, object)> Normals = new()
             {
-                ("World Space", WorldSpace_Normal),
-                ("Object Space", ObjectSpace_Normal),
-                ("View Space", ViewSpace_Normal),
-                ("Tangent Space", TangentSpace_Normal)
+                ("World", WorldSpace_Normal),
+                ("Object", ObjectSpace_Normal),
+                ("View", ViewSpace_Normal),
+                ("Tangent", TangentSpace_Normal)
             };
             public static readonly List<(string, object)> Tangents = new()
             {
-                ("World Space", WorldSpace_Tangent),
-                ("Object Space", ObjectSpace_Tangent),
-                ("View Space", ViewSpace_Tangent),
-                ("Tangent Space", TangentSpace_Tangent)
+                ("World", WorldSpace_Tangent),
+                ("Object", ObjectSpace_Tangent),
+                ("View", ViewSpace_Tangent),
+                ("Tangent", TangentSpace_Tangent)
             };
             public static readonly List<(string, object)> Bitangents = new()
             {
-                ("World Space", WorldSpace_Bitangent),
-                ("Object Space", ObjectSpace_Bitangent),
-                ("View Space", ViewSpace_Bitangent),
-                ("Tangent Space", TangentSpace_Bitangent)
+                ("World", WorldSpace_Bitangent),
+                ("Object", ObjectSpace_Bitangent),
+                ("View", ViewSpace_Bitangent),
+                ("Tangent", TangentSpace_Bitangent)
             };
             public static readonly List<(string, object)> ViewDirections = new()
             {
-                ("World Space", WorldSpace_ViewDirection),
-                ("Object Space", ObjectSpace_ViewDirection),
-                ("View Space", ViewSpace_ViewDirection),
-                ("Tangent Space", TangentSpace_ViewDirection)
+                ("World", WorldSpace_ViewDirection),
+                ("Object", ObjectSpace_ViewDirection),
+                ("View", ViewSpace_ViewDirection),
+                ("Tangent", TangentSpace_ViewDirection)
             };
             public static readonly List<(string, object)> Positions = new()
             {
-                ("World Space", WorldSpace_Position),
-                ("Object Space", ObjectSpace_Position),
-                ("View Space", ViewSpace_Position),
-                ("Tangent Space", TangentSpace_Position)
+                ("World", WorldSpace_Position),
+                ("Object", ObjectSpace_Position),
+                ("View", ViewSpace_Position),
+                ("Tangent", TangentSpace_Position)
             };
             public static readonly List<(string, object)> UVs = new()
             {
@@ -61,14 +61,14 @@ namespace UnityEditor.ShaderGraph.Defs
             };
             public static readonly List<(string, object)> Matrices = new()
             {
-                ("M", M),
-                ("V", V),
-                ("P", P),
-                ("VP", VP),
-                ("I_M", I_M),
-                ("I_V", I_V),
-                ("I_P", I_P),
-                ("I_VP", I_VP)
+                ("Model", M),
+                ("Inverse Model", I_M),
+                ("View", V),
+                ("Inverse View", I_V),
+                ("Projection", P),
+                ("Inverse Projection", I_P),
+                ("View Projection", VP),
+                ("Inverse View Projection", I_VP)
             };
             public static readonly List<(string, object)> Ambients = new()
             {
@@ -131,14 +131,14 @@ namespace UnityEditor.ShaderGraph.Defs
         public static readonly ReferenceValueDescriptor UV6 = new("uv6");
         public static readonly ReferenceValueDescriptor UV7 = new("uv7");
 
-        public static readonly ReferenceValueDescriptor M = new("");  // model
-        public static readonly ReferenceValueDescriptor I_M = new("");
-        public static readonly ReferenceValueDescriptor V = new("");  // view
-        public static readonly ReferenceValueDescriptor I_V = new("");
-        public static readonly ReferenceValueDescriptor P = new("");  // projection
-        public static readonly ReferenceValueDescriptor I_P = new("");
-        public static readonly ReferenceValueDescriptor VP = new("");  // view projection
-        public static readonly ReferenceValueDescriptor I_VP = new("");
+        public static readonly ReferenceValueDescriptor M = new("UNITY_MATRIX_M");  // model
+        public static readonly ReferenceValueDescriptor I_M = new("UNITY_MATRIX_I_M");
+        public static readonly ReferenceValueDescriptor V = new("UNITY_MATRIX_V");  // view
+        public static readonly ReferenceValueDescriptor I_V = new("UNITY_MATRIX_I_V");
+        public static readonly ReferenceValueDescriptor P = new("UNITY_MATRIX_P");  // projection
+        public static readonly ReferenceValueDescriptor I_P = new("UNITY_MATRIX_I_P");
+        public static readonly ReferenceValueDescriptor VP = new("UNITY_MATRIX_VP");  // view projection
+        public static readonly ReferenceValueDescriptor I_VP = new("UNITY_MATRIX_I_VP");
 
         public static readonly ReferenceValueDescriptor ProjectionParams = new("");
         public static readonly ReferenceValueDescriptor ScreenParams = new("");

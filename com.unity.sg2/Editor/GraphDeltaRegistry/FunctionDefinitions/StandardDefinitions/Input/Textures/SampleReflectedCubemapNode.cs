@@ -104,11 +104,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "ViewDir",
-                    tooltip: "the vector that points toward the camera"
+                    tooltip: "the vector that points toward the camera",
+                    options: REF.OptionList.ViewDirections
                 ),
                 new ParameterUIDescriptor(
                     name: "Normal",
-                    tooltip: "the surface normal of the model"
+                    tooltip: "the surface normal of the model",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

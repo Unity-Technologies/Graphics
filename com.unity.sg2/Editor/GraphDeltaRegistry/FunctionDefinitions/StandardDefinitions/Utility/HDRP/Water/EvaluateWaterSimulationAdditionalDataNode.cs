@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 @"WaterAdditionalData waterAdditionalData;
 ZERO_INITIALIZE(WaterAdditionalData, waterAdditionalData);
-EvaluateWaterAdditionalData(UV0.xyz, BandsMultiplier, waterAdditionalData);
-SurfaceGradient = waterAdditionalData.surfaceGradient;
+EvaluateWaterAdditionalData(UV0.xzy, IN.WorldSpacePosition, IN.WorldSpaceNormal, waterAdditionalData);
+NormalWS = waterAdditionalData.normalWS;
 LowFrequencySurfaceGradient = waterAdditionalData.lowFrequencySurfaceGradient;
 SurfaceFoam = waterAdditionalData.surfaceFoam;
 DeepFoam = waterAdditionalData.deepFoam;
@@ -20,11 +20,10 @@ DeepFoam = waterAdditionalData.deepFoam;
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("UV0", TYPE.Vec4, Usage.Local, REF.UV0),
-                new ParameterDescriptor("BandsMultiplier", TYPE.Vec4, Usage.In, new float[] { 1f, 1f, 1f, 1f}),
-                new ParameterDescriptor("SurfaceGradient", TYPE.Vec3, Usage.Out),
+                new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("LowFrequencySurfaceGradient", TYPE.Vec3, Usage.Out),
-                new ParameterDescriptor("SurfaceFoam", TYPE.Float, Usage.Out),
-                new ParameterDescriptor("DeepFoam", TYPE.Float, Usage.Out)
+                new ParameterDescriptor("DeepFoam", TYPE.Float, Usage.Out),
+                new ParameterDescriptor("SurfaceFoam", TYPE.Float, Usage.Out)
             }
         );
 
@@ -37,11 +36,6 @@ DeepFoam = waterAdditionalData.deepFoam;
             synonyms: new string[0],
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
-                new ParameterUIDescriptor(
-                    name: "BandsMultiplier",
-                    displayName: "Bands Multiplier",
-                    tooltip: ""
-                ),
                 new ParameterUIDescriptor(
                     name: "SurfaceGradient",
                     displayName: "Surface Gradient",
