@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Defs;
@@ -165,6 +166,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        SGNodeViewModel m_NodeViewModel;
+
+
         public void UpgradeToLatestVersion()
         {
             var nodeHandler = graphHandler.GetNode(graphDataName);
@@ -196,8 +200,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public SGNodeViewModel GetViewModel()
         {
-            graphModel.GetNodeViewModel(registryKey, out var nodeViewModel);
-            return nodeViewModel;
+            return m_NodeViewModel;
         }
 
         /// <summary>
@@ -304,6 +307,104 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PreviewShaderIsCompiling = true;
         }
 
+        SGNodeViewModel CreateNodeViewModel(NodeUIDescriptor nodeUIInfo, NodeHandler nodeTopology)
+        {
+            var portViewModels = new List<SGPortViewModel>();
+
+            // By default we assume all types need preview output, unless they opt out
+            var showPreviewForType = true;
+
+            var portTopologies = nodeTopology.GetPorts();
+            foreach (var parameter in nodeUIInfo.Parameters)
+            {
+                var portInfo = portTopologies.FirstOrDefault(port => port.ID.LocalPath == parameter.Name);
+                if(CreatePortViewModel(portInfo, parameter, out var portViewModel, out showPreviewForType))
+                    portViewModels.Add(portViewModel);
+            }
+
+            var selectedFunctionID = String.Empty;
+            // If the node has multiple possible topologies, show the selector.
+            if (nodeUIInfo.SelectableFunctions.Count > 0)
+            {
+                string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
+                FieldHandler selectedFunctionField = nodeTopology.GetField<string>(fieldName);
+                selectedFunctionID = selectedFunctionField.GetData<string>();
+            }
+
+            var shouldShowPreview = nodeUIInfo.HasPreview && showPreviewForType;
+
+            var functionDictionary = nodeUIInfo.SelectableFunctions.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            return new SGNodeViewModel(
+                nodeUIInfo.Version,
+                nodeUIInfo.Name,
+                nodeUIInfo.Tooltip,
+                nodeUIInfo.Category,
+                nodeUIInfo.Synonyms.ToArray(),
+                nodeUIInfo.DisplayName,
+                shouldShowPreview,
+                functionDictionary,
+                portViewModels.ToArray(),
+                nodeUIInfo.FunctionSelectorLabel,
+                selectedFunctionID);
+        }
+
+        /// <summary>
+        /// Returns true if we should create a view model for this port, false if it can be skipped
+        /// </summary>
+        /// <param name="portInfo"> Library port handler for the port</param>
+        /// <param name="parameter"> Library-side data struct containing UI info. of the port </param>
+        /// <param name="portViewModel"> Tool-side data struct that will contain all UI info of port </param>
+        /// <param name="showPreviewForType"> Flag that controls if this port opts into preview output</param>
+        bool CreatePortViewModel(PortHandler portInfo, ParameterUIDescriptor parameter, out SGPortViewModel portViewModel, out bool showPreviewForType)
+        {
+            SGPortViewModel outViewModel = new SGPortViewModel();
+            showPreviewForType = true;
+            portViewModel = outViewModel;
+
+            if (portInfo == null || !portInfo.IsHorizontal)
+                return false;
+
+            var staticField = portInfo.GetTypeField().GetSubField<bool>("IsStatic");
+            var typeField = portInfo.GetTypeField();
+            var typeKey = typeField.GetRegistryKey();
+
+            bool isStatic = staticField?.GetData() ?? false;
+            bool isGradientType = typeKey.Name == ((SGGraphModel)GraphModel).RegistryInstance.ResolveKey<GradientType>().Name;
+            bool isGraphType = typeKey.Name == ((SGGraphModel)GraphModel).RegistryInstance.ResolveKey<GraphType>().Name;
+            if (typeField == null)
+                return false;
+
+            ComponentLength componentLength = (ComponentLength)GraphTypeHelpers.GetLength(typeField);
+            NumericType numericType = (NumericType)GraphTypeHelpers.GetPrimitive(typeField);
+
+            bool isMatrixType = GraphTypeHelpers.GetHeight(portInfo.GetTypeField()) > GraphType.Height.One;
+            int matrixHeight = (int)GraphTypeHelpers.GetHeight(portInfo.GetTypeField());
+
+            if (isGradientType && !portInfo.IsInput)
+                showPreviewForType = false;
+
+            // Skip non-graph types as well
+            if (!isGraphType)
+                return showPreviewForType;
+
+            portViewModel = new SGPortViewModel(
+                parameter.Name,
+                parameter.DisplayName,
+                parameter.Tooltip,
+                parameter.UseColor,
+                parameter.IsHdr,
+                isStatic,
+                isGradientType,
+                componentLength,
+                numericType,
+                isMatrixType,
+                matrixHeight,
+                parameter.UseSlider,
+                parameter.InspectorOnly,
+                parameter.Options);
+            return showPreviewForType;
+        }
+
         protected override void OnDefineNode()
         {
             if (!TryGetNodeHandler(out var nodeReader))
@@ -317,6 +418,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey, nodeReader);
 
             bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
+            m_NodeViewModel = CreateNodeViewModel(nodeUIDescriptor, nodeReader);
 
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in nodeReader.GetPorts().Where(e => !e.LocalID.Contains("out_")))
