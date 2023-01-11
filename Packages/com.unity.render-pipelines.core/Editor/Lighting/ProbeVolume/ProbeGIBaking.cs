@@ -1750,6 +1750,9 @@ namespace UnityEngine.Rendering
                     CleanupOccluders();
                 }
             }
+
+            // We need to reset that view
+            ProbeReferenceVolume.instance.ResetDebugViewToMaxSubdiv();
         }
 
         public static void RunPlacement()

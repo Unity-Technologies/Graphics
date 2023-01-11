@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor.Rendering.Analytics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -152,7 +153,13 @@ namespace UnityEditor.Rendering
             }
 
             EditorGUILayout.PropertyField(m_Weight);
-            EditorGUILayout.PropertyField(m_Priority);
+
+            bool priorityHasChanged = false;
+            using (var scope = new EditorGUI.ChangeCheckScope())
+            {
+                EditorGUILayout.PropertyField(m_Priority);
+                priorityHasChanged = scope.changed;
+            }
 
             bool assetHasChanged = false;
             bool showCopy = m_Profile.objectReferenceValue != null;
@@ -267,6 +274,12 @@ namespace UnityEditor.Rendering
             }
 
             serializedObject.ApplyModifiedProperties();
+
+            if (assetHasChanged)
+                VolumeProfileUsageAnalytic.Send(actualTarget, (VolumeProfile)m_Profile.objectReferenceValue);
+
+            if (priorityHasChanged)
+                VolumePriorityUsageAnalytic.Send(actualTarget);
 
             if (m_Profile.objectReferenceValue == null)
                 EditorGUILayout.HelpBox(Styles.noVolumeMessage, MessageType.Info);

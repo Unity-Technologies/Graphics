@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected abstract GUID subTargetAssetGuid { get; }
         protected abstract string renderType { get; }
         protected abstract string renderQueue { get; }
+        protected abstract string disableBatchingTag { get; }
         protected abstract string templatePath { get; }
         protected abstract string[] templateMaterialDirectories { get; }
         protected abstract FieldDescriptor subShaderField { get; }
@@ -128,6 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var patchedSubShader = subShader;
                 patchedSubShader.renderType = renderType;
                 patchedSubShader.renderQueue = renderQueue;
+                patchedSubShader.disableBatchingTag = disableBatchingTag;
                 context.AddSubShader(patchedSubShader);
             }
 

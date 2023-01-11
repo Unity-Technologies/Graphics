@@ -1076,7 +1076,7 @@ public unsafe class RenderBRG : MonoBehaviour
         Shader.SetGlobalConstantBuffer(BatchRendererGroupGlobals.kGlobalsPropertyId, m_Globals, 0, m_Globals.stride);
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         // Always dispose the BRG, to avoid leaking it even in error cases. Unnecessary Dispose() is OK.
         // NOTE: Don't need to remove batch or unregister BatchRendererGroup resources. BRG.Dispose takes care of that.

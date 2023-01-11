@@ -599,6 +599,8 @@ namespace UnityEditor.Rendering.HighDefinition
             Assert.IsNotNull(go);
 
             WaterSurface waterSurface = go.GetComponent<WaterSurface>();
+            Undo.RecordObject(waterSurface, "Reset Water Surface");
+
             switch (waterSurface.surfaceType)
             {
                 case WaterSurfaceType.OceanSeaLake:

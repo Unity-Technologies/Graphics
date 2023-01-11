@@ -42,7 +42,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         #region Migration steps
-        static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
+
+        private static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.UpgradeFrameSettingsToStruct, (HDRenderPipelineAsset data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
@@ -236,10 +237,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
                 data.m_RenderPipelineSettings.cubeReflectionResolution = new RenderPipelineSettings.ReflectionProbeResolutionScalableSetting(cubeResolutions, ScalableSettingSchemaId.With3Levels);
 
-                int cubeReflectionAtlasArea = lightLoopSettings.reflectionProbeCacheSize * (int)lightLoopSettings.reflectionCubemapSize * (int)lightLoopSettings.reflectionCubemapSize * 6;
+                int newCubeReflectionSize = ReflectionProbeTextureCache.GetReflectionProbeSizeInAtlas((int)lightLoopSettings.reflectionCubemapSize);
+                int cubeReflectionAtlasArea = lightLoopSettings.reflectionProbeCacheSize * newCubeReflectionSize * newCubeReflectionSize;
                 int planarReflectionAtlasArea = (int)lightLoopSettings.planarReflectionAtlasSize * (int)lightLoopSettings.planarReflectionAtlasSize;
-                int reflectionProbeTexCacheSize = Mathf.NextPowerOfTwo((int)Mathf.Sqrt(cubeReflectionAtlasArea + planarReflectionAtlasArea));
-                lightLoopSettings.reflectionProbeTexCacheSize = (ReflectionProbeTextureCacheResolution)Mathf.Clamp(reflectionProbeTexCacheSize, (int)ReflectionProbeTextureCacheResolution.Resolution512x512, (int)ReflectionProbeTextureCacheResolution.Resolution16384x16384);
+                int totalNeededPixelCount = cubeReflectionAtlasArea + planarReflectionAtlasArea;
+
+                // Set a default value for the reflection probe cache size in case we don't find a suitable atlas resolution (too many probes in upgraded atlas)
+                lightLoopSettings.reflectionProbeTexCacheSize = ReflectionProbeTextureCacheResolution.Resolution16384x16384;
+
+                // Find closes pixel count in the ReflectionProbeTextureCacheResolution enum:
+                var availableResolutions = Enum.GetValues(typeof(ReflectionProbeTextureCacheResolution)).Cast<ReflectionProbeTextureCacheResolution>();
+                foreach (ReflectionProbeTextureCacheResolution res in availableResolutions.OrderBy(r => (int)r & 0xFFFF))
+                {
+                    int height = (int)res & 0xFFFF;
+                    int width = (int)res >> 16;
+                    if (width == 0)
+                        width = height;
+
+                    int currentPixelCount = width * height;
+                    if (currentPixelCount >= totalNeededPixelCount)
+                    {
+                        lightLoopSettings.reflectionProbeTexCacheSize = res;
+                        break;
+                    }
+                }
 
                 lightLoopSettings.maxCubeReflectionOnScreen = Mathf.Clamp(lightLoopSettings.maxEnvLightsOnScreen - lightLoopSettings.maxPlanarReflectionOnScreen, HDRenderPipeline.k_MaxCubeReflectionsOnScreen / 2, HDRenderPipeline.k_MaxCubeReflectionsOnScreen);
 #pragma warning restore 618

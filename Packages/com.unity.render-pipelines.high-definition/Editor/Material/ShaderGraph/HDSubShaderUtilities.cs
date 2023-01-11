@@ -138,9 +138,12 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilRefDistortionVec", (int)StencilUsage.DistortionVectors);
             collector.AddIntProperty("_StencilWriteMaskDistortionVec", (int)StencilUsage.DistortionVectors);
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer);
-            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer);
-            collector.AddIntProperty("_ZTestGBuffer", 4);
+            if (!forwardOnly)
+            {
+                collector.AddIntProperty(kStencilWriteMaskGBuffer, stencilWriteMaskGBuffer);
+                collector.AddIntProperty(kStencilRefGBuffer, stencilRefGBuffer);
+                collector.AddIntProperty(kZTestGBuffer, 4);
+            }
         }
 
         public static void AddBlendingStatesShaderProperties(

@@ -823,6 +823,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 positionWS = posInput.positionWS;
     float weight = 1.0;
     float3 R = preLightData.iblR;
+    float3 attenuation = 1.0f;
 
     if (!IsEnvIndexTexture2D(lightData.envIndex)) // ENVCACHETYPE_CUBEMAP
     {
@@ -832,20 +833,18 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // Formula is empirical.
         float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
         R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
-    }
 
-    // This intends to simulate indirect specular "multi bounce"
-    // TODO change this when supporting non horizontal water
-    float3 attenuation = 1.0f;
-    if (preLightData.aboveWater)
-    {
-        if (R.y < 0.0)
+        // This intends to simulate indirect specular "multi bounce"
+        if (preLightData.aboveWater)
         {
-            float weight = saturate(-R.y * 2.0f);
-            attenuation = lerp(float3(1.0, 1.0, 1.0), bsdfData.diffuseColor, float3(weight, weight, weight));
+            if (R.y < 0.0)
+            {
+                float weight = saturate(-R.y * 2.0f);
+                attenuation = lerp(float3(1.0, 1.0, 1.0), bsdfData.diffuseColor, weight);
+            }
+	        R.y = abs(R.y) + 0.1;
+	        R = normalize(R);
         }
-        R.y = abs(R.y) + 0.1;
-        R = normalize(R);
     }
 
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)

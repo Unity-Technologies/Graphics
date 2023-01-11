@@ -41,6 +41,10 @@ MonoBehaviour:
       m_Values: 000100000004000000040000
       m_SchemaId:
         m_Id: With3Levels
+    cubeReflectionResolution:
+      m_Values: 000100000002000000040000
+      m_SchemaId:
+        m_Id: With3Levels
     supportDecals: 1
     supportDecalLayers: 0
     supportSurfaceGradient: 1
@@ -65,8 +69,13 @@ MonoBehaviour:
       planarReflectionAtlasSize: 1024
       reflectionProbeCacheSize: 64
       reflectionCubemapSize: 256
+      maxEnvLightsOnScreen: 64
       reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
+      reflectionProbeTexCacheSize: 4096
+      reflectionProbeTexLastValidCubeMip: 3
+      reflectionProbeTexLastValidPlanarMip: 0
+      reflectionProbeDecreaseResToFit: 1
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
         serializedVersion: 2
@@ -75,9 +84,9 @@ MonoBehaviour:
       maxDirectionalLightsOnScreen: 16
       maxPunctualLightsOnScreen: 512
       maxAreaLightsOnScreen: 64
-      maxEnvLightsOnScreen: 64
-      maxDecalsOnScreen: 512
+      maxCubeReflectionOnScreen: 48
       maxPlanarReflectionOnScreen: 16
+      maxDecalsOnScreen: 512
       maxLightsPerClusterCell: 8
       maxLocalVolumetricFogSize: 32
       maxLocalVolumetricFogOnScreen: 64
@@ -85,6 +94,7 @@ MonoBehaviour:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
       shadowFilteringQuality: 1
+      areaShadowFilteringQuality: 0
       punctualLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
@@ -128,6 +138,7 @@ MonoBehaviour:
       useMipBias: 0
       enableDLSS: 0
       DLSSPerfQualitySetting: 0
+      DLSSInjectionPoint: 0
       DLSSUseOptimalSettings: 1
       DLSSSharpness: 0.5
       fsrOverrideSharpness: 0
@@ -286,7 +297,7 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 21
+  m_Version: 22
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0

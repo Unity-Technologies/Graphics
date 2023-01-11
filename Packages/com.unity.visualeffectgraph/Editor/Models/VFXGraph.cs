@@ -730,6 +730,21 @@ namespace UnityEditor.VFX
             return m_CompilationMode;
         }
 
+        public void ForceShaderDebugSymbols(bool enable, bool reimport = true)
+        {
+            if (m_ForceShaderDebugSymbols != enable)
+            {
+                m_ForceShaderDebugSymbols = enable;
+                if (reimport)
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
+            }
+        }
+
+        public bool GetForceShaderDebugSymbols()
+        {
+            return m_ForceShaderDebugSymbols;
+        }
+
         public void SetForceShaderValidation(bool forceShaderValidation, bool reimport = true)
         {
             if (m_ForceShaderValidation != forceShaderValidation)
@@ -998,7 +1013,7 @@ namespace UnityEditor.VFX
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
 
-                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation, VFXViewPreference.generateShadersWithDebugSymbols || m_ForceShaderDebugSymbols);
             }
             m_ExpressionGraphDirty = false;
             m_ExpressionValuesDirty = false;
@@ -1018,7 +1033,7 @@ namespace UnityEditor.VFX
                     BuildSubgraphDependencies();
                     PrepareSubgraphs();
 
-                    compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+                    compiledData.Compile(m_CompilationMode, m_ForceShaderValidation, VFXViewPreference.generateShadersWithDebugSymbols || m_ForceShaderDebugSymbols);
                 }
                 else
                 {
@@ -1085,6 +1100,7 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private VFXGraphCompiledData m_CompiledData;
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
+        private bool m_ForceShaderDebugSymbols = false;
         private bool m_ForceShaderValidation = false;
 
         [NonSerialized]

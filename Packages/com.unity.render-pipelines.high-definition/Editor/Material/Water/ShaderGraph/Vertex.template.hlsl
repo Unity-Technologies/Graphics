@@ -19,23 +19,31 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 }
 
 // The water shader graph required these four fields to be fed (not an option)
-void ApplyMeshModification(AttributesMesh input, float3 timeParameters, out float3 positionOS, out float3 normalOS, out float4 uv0, out float4 uv1)
+AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
+    #ifdef USE_CUSTOMINTERP_SUBSTRUCT
+    , inout VaryingsMeshToDS varyings
+    #endif
+    )
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
+
     // Override time parameters with used one (This is required to correctly handle motion vector for vertex animation based on time)
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     // evaluate vertex graph
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
-    // copy graph output to the results
-    positionOS = vertexDescription.Position;
-    normalOS = vertexDescription.Normal;
-    uv0 = vertexDescription.uv0;
-    uv1 = vertexDescription.uv1;
+    // We need to ensure that the value that gets pushed through the pipeline
+    // is camera relative for it to not get culled.
+    input.normalOS = vertexDescription.Normal;
+    input.uv0 = float4(vertexDescription.Position - input.positionOS, 1.0);
+    input.uv1 = float4(GetCameraRelativePositionWS(input.positionOS), 1.0);
+    input.positionOS = vertexDescription.Position;
 
     $splice(CustomInterpolatorVertMeshCustomInterpolation)
+
+    return input;
 }
 
 FragInputs BuildFragInputs(VaryingsMeshToPS input)

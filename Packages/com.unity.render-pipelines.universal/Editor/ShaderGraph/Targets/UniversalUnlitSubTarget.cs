@@ -40,8 +40,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
             }
             // Process SubShaders
-            context.AddSubShader(PostProcessSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue)));
-            context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue, target.disableBatching)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue, target.disableBatching)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -158,7 +158,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor Unlit(UniversalTarget target, string renderType, string renderQueue)
+            public static SubShaderDescriptor Unlit(UniversalTarget target, string renderType, string renderQueue, string disableBatchingTag)
             {
                 var result = new SubShaderDescriptor()
                 {
@@ -166,6 +166,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customTags = UniversalTarget.kUnlitMaterialTypeTag,
                     renderType = renderType,
                     renderQueue = renderQueue,
+                    disableBatchingTag = disableBatchingTag,
                     generatesPreview = true,
                     passes = new PassCollection()
                 };
@@ -188,7 +189,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
-            public static SubShaderDescriptor UnlitDOTS(UniversalTarget target, string renderType, string renderQueue)
+            public static SubShaderDescriptor UnlitDOTS(UniversalTarget target, string renderType, string renderQueue, string disableBatchingTag)
             {
                 var result = new SubShaderDescriptor()
                 {
@@ -196,6 +197,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customTags = UniversalTarget.kUnlitMaterialTypeTag,
                     renderType = renderType,
                     renderQueue = renderQueue,
+                    disableBatchingTag = disableBatchingTag,
                     generatesPreview = true,
                     passes = new PassCollection()
                 };

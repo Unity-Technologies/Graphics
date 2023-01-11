@@ -216,8 +216,10 @@ namespace UnityEditor.VFX.UI
         void DisconnectController(VFXViewController previousController)
         {
             if (previousController.model && previousController.graph)
+            {
+                previousController.graph.ForceShaderDebugSymbols(VFXViewPreference.generateShadersWithDebugSymbols, false); // Remove debug symbols override from view but don't reimport (this is done by the SetCompilation below)
                 previousController.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
-
+            }
 
             previousController.UnregisterHandler(this);
             previousController.useCount--;
@@ -479,6 +481,7 @@ namespace UnityEditor.VFX.UI
 
         VFXNodeProvider m_NodeProvider;
         bool m_IsRuntimeMode;
+        bool m_ForceShaderDebugSymbols;
         bool m_ForceShaderValidation;
 
 
@@ -678,6 +681,7 @@ namespace UnityEditor.VFX.UI
         }
 
         internal bool GetIsRuntimeMode() => m_IsRuntimeMode;
+        internal bool GetForceShaderDebugSymbols() => m_ForceShaderDebugSymbols;
 
         public void Dispose()
         {
@@ -718,6 +722,12 @@ namespace UnityEditor.VFX.UI
         {
             m_IsRuntimeMode = !m_IsRuntimeMode;
             controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
+        }
+
+        internal void ToggleForceShaderDebugSymbols()
+        {
+            m_ForceShaderDebugSymbols = !m_ForceShaderDebugSymbols;
+            controller.graph.ForceShaderDebugSymbols(m_ForceShaderDebugSymbols);
         }
 
         internal bool GetShaderValidation() => m_ForceShaderValidation;

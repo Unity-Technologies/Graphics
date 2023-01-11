@@ -90,7 +90,8 @@ public class SimpleBRGExample : MonoBehaviour
     }
 
     // During initialization, we will allocate all required objects, and set up our custom instance data.
-    void Start()
+    // Use OnEnable() instead of Start() so we also get a call when a domain reload happens.
+    void OnEnable()
     {
         // Create the BatchRendererGroup and register assets
         m_BRG = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
@@ -241,7 +242,7 @@ public class SimpleBRGExample : MonoBehaviour
 
         // Configure our single draw command to draw kNumInstances instances
         // starting from offset 0 in the array, using the batch, material and mesh
-        // IDs that we registered in the Start() method. No special flags are set.
+        // IDs that we registered in the OnEnable() method. No special flags are set.
         drawCommands->drawCommands[0].visibleOffset = 0;
         drawCommands->drawCommands[0].visibleCount = kNumInstances;
         drawCommands->drawCommands[0].batchID = m_BatchID;

@@ -41,6 +41,10 @@ MonoBehaviour:
       m_Values: 000100000004000000080000
       m_SchemaId:
         m_Id: With3Levels
+    cubeReflectionResolution:
+      m_Values: 800000000001000000020000
+      m_SchemaId:
+        m_Id: With3Levels
     supportDecals: 1
     supportDecalLayers: 1
     supportSurfaceGradient: 0
@@ -65,8 +69,13 @@ MonoBehaviour:
       planarReflectionAtlasSize: 2048
       reflectionProbeCacheSize: 128
       reflectionCubemapSize: 128
+      maxEnvLightsOnScreen: 64
       reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
+      reflectionProbeTexCacheSize: 4096
+      reflectionProbeTexLastValidCubeMip: 3
+      reflectionProbeTexLastValidPlanarMip: 0
+      reflectionProbeDecreaseResToFit: 1
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
         serializedVersion: 2
@@ -75,9 +84,9 @@ MonoBehaviour:
       maxDirectionalLightsOnScreen: 16
       maxPunctualLightsOnScreen: 512
       maxAreaLightsOnScreen: 64
-      maxEnvLightsOnScreen: 64
-      maxDecalsOnScreen: 512
+      maxCubeReflectionOnScreen: 48
       maxPlanarReflectionOnScreen: 16
+      maxDecalsOnScreen: 512
       maxLightsPerClusterCell: 8
       maxLocalVolumetricFogSize: 32
       maxLocalVolumetricFogOnScreen: 64
@@ -289,7 +298,7 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 32
   m_UseRenderGraph: 1
-  m_Version: 21
+  m_Version: 22
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0

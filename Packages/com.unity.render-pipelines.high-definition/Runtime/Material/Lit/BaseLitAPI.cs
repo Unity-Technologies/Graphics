@@ -91,7 +91,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static public void SetupStencil(Material material, bool receivesLighting, bool receivesSSR, bool useSplitLighting)
         {
-            bool forwardOnly = !material.HasPass("GBuffer");
+            // To determine if the shader is forward only, we can't rely on the presence of GBuffer pass because that depends on the active subshader, which
+            // depends on the active render pipeline, giving an inconsistent result. The properties of a shader are always the same so it's ok to check them
+            bool forwardOnly = material.shader.FindPropertyIndex(kZTestGBuffer) == -1;
 
             ComputeStencilProperties(receivesLighting, forwardOnly, receivesSSR, useSplitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,

@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightingBuffers.ambientOcclusionBuffer = RenderAmbientOcclusion(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, hdCamera.depthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
                     lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, hdCamera.depthBufferMipChainInfo.mipLevelOffsets[1].y);
 
-                    var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, cullingResults, m_VisibleVolumeBoundsBuffer, gpuLightListOutput.bigTileLightList);
+                    var volumetricDensityBuffer = ClearAndHeightFogVoxelizationPass(m_RenderGraph, hdCamera);
 
                     RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
 
@@ -189,6 +189,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera, prepassOutput, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, historyValidationTexture, rayCountTexture);
 
                     var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, hdCamera.depthBufferMipChainInfo);
+
+                    volumetricDensityBuffer = FogVolumeVoxelizationPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_VisibleVolumeBoundsBuffer);
 
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
 

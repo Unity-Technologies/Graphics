@@ -28,6 +28,7 @@ MonoBehaviour:
     supportLightLayers: 1
     supportWater: 0
     waterSimulationResolution: 128
+    waterCPUSimulation: 0
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -38,6 +39,10 @@ MonoBehaviour:
     supportedLitShaderMode: 2
     planarReflectionResolution:
       m_Values: 000100000004000000080000
+      m_SchemaId:
+        m_Id: With3Levels
+    cubeReflectionResolution:
+      m_Values: 800000000001000000020000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 0
@@ -51,6 +56,7 @@ MonoBehaviour:
     supportTerrainHole: 1
     lightProbeSystem: 1
     probeVolumeMemoryBudget: 1024
+    probeVolumeBlendingMemoryBudget: 128
     supportProbeVolumeStreaming: 0
     probeVolumeSHBands: 2
     supportRayTracing: 0
@@ -63,8 +69,13 @@ MonoBehaviour:
       planarReflectionAtlasSize: 2048
       reflectionProbeCacheSize: 128
       reflectionCubemapSize: 128
+      maxEnvLightsOnScreen: 64
       reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
+      reflectionProbeTexCacheSize: 4096
+      reflectionProbeTexLastValidCubeMip: 3
+      reflectionProbeTexLastValidPlanarMip: 0
+      reflectionProbeDecreaseResToFit: 1
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
         serializedVersion: 2
@@ -73,9 +84,9 @@ MonoBehaviour:
       maxDirectionalLightsOnScreen: 16
       maxPunctualLightsOnScreen: 512
       maxAreaLightsOnScreen: 64
-      maxEnvLightsOnScreen: 64
-      maxDecalsOnScreen: 512
+      maxCubeReflectionOnScreen: 48
       maxPlanarReflectionOnScreen: 16
+      maxDecalsOnScreen: 512
       maxLightsPerClusterCell: 8
       maxLocalVolumetricFogSize: 32
       maxLocalVolumetricFogOnScreen: 64
@@ -83,6 +94,7 @@ MonoBehaviour:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
       shadowFilteringQuality: 1
+      areaShadowFilteringQuality: 0
       punctualLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
@@ -126,6 +138,7 @@ MonoBehaviour:
       useMipBias: 0
       enableDLSS: 0
       DLSSPerfQualitySetting: 0
+      DLSSInjectionPoint: 0
       DLSSUseOptimalSettings: 1
       DLSSSharpness: 0.5
       fsrOverrideSharpness: 0
@@ -285,7 +298,7 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 32
   m_UseRenderGraph: 1
-  m_Version: 21
+  m_Version: 22
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0

@@ -322,8 +322,8 @@ Pass
         #endif
 
         // override sampleBakedGI - not used by Unlit
-        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
-        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
+        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI; builtinData.isLightmap = 1;
+        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI; builtinData.isLightmap = 1;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 

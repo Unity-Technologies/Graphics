@@ -738,7 +738,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     Mathf.Min(waterSurface.refractionColor.b, 0.99f));
             profile.outScatteringCoefficient = -Mathf.Log(0.02f) / waterSurface.absorptionDistance;
             profile.scatteringColor = new Vector3(waterSurface.scatteringColor.r, waterSurface.scatteringColor.g, waterSurface.scatteringColor.b);
-            profile.envPerceptualRoughness = Mathf.Lerp(0.0f, 0.15f, Mathf.Clamp(waterSurface.largeWindSpeed / WaterConsts.k_EnvRoughnessWindSpeed, 0.0f, 1.0f));
+            profile.envPerceptualRoughness = waterSurface.surfaceType == WaterSurfaceType.Pool ? 0.0f : Mathf.Lerp(0.0f, 0.15f, Mathf.Clamp(waterSurface.largeWindSpeed / WaterConsts.k_EnvRoughnessWindSpeed, 0.0f, 1.0f));
 
             // Smoothness fade
             profile.smoothnessFadeStart = waterSurface.smoothnessFadeStart;
@@ -827,7 +827,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     int radius = (int)parameters.waterRenderingCB._WaterLODCount - 1;
                     float gridSize = parameters.waterRenderingCB._GridSize.x;
+                    float maxWaveHeight = parameters.waterCB._MaxWaveHeight;
+                    uint numWaterPatches = parameters.waterRenderingCB._NumWaterPatches;
+                    float maxWaveDisplacement = parameters.waterCB._MaxWaveDisplacement;
                     Vector4 patchOffset = parameters.waterRenderingCB._PatchOffset;
+
                     for (int y = -radius; y <= radius; ++y)
                     {
                         for (int x = -radius; x <= radius; ++x)
@@ -836,6 +840,24 @@ namespace UnityEngine.Rendering.HighDefinition
                             float2 center;
                             float2 size;
                             ComputeGridBounds(x, y, gridSize, out center, out size);
+
+                            // Frustum cull the patch while accounting for it's maximal deformation
+                            OrientedBBox obb;
+                            obb.right = new float3(1, 0, 0);
+                            obb.up = new float3(0, 1, 0);
+                            obb.extentX = size.x * 0.5f + maxWaveDisplacement;
+                            obb.extentY = maxWaveHeight;
+                            obb.extentZ = size.y * 0.5f + maxWaveDisplacement;
+                            obb.center = new float3(patchOffset.x + center.x, patchOffset.y, patchOffset.z + center.y);
+
+                            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                                obb.center -= parameters.cameraPosition;
+
+                            int currentPatch = (x + radius) + (y + radius) * (1 + radius * 2);
+                            bool patchIsVisible = currentPatch < numWaterPatches ? GeometryUtils.Overlap(obb, parameters.cameraFrustum, 6, 8) : false;
+
+                            if (!patchIsVisible)
+                                continue;
 
                             // Propagate the data to the constant buffer
                             parameters.waterRenderingCB._GridSize.Set(size.x, size.y);
@@ -1016,6 +1038,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If the resources are invalid, we cannot render this surface
                 if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, WaterConsts.k_WaterHighBandCount))
+                    continue;
+
+                // Only render the water surface if it is included in the layers that the camera requires
+                int waterCullingMask = 1 << currentWater.gameObject.layer;
+                if (hdCamera.camera.cullingMask != 0 && (waterCullingMask & hdCamera.camera.cullingMask) == 0)
                     continue;
 
                 #if UNITY_EDITOR

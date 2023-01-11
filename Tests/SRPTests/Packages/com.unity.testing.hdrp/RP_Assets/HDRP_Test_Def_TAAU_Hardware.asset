@@ -72,7 +72,7 @@ MonoBehaviour:
       maxEnvLightsOnScreen: 64
       reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
-      reflectionProbeTexCacheSize: 8192
+      reflectionProbeTexCacheSize: 4096
       reflectionProbeTexLastValidCubeMip: 3
       reflectionProbeTexLastValidPlanarMip: 0
       reflectionProbeDecreaseResToFit: 1
