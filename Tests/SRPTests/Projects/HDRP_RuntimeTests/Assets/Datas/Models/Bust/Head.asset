@@ -13,13 +13,16 @@ MonoBehaviour:
   m_Name: Head
   m_EditorClassIdentifier: 
   profile:
-    scatteringDistance: {r: 1, g: 0.08614096, b: 0, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.06452127, b: 0, a: 1}
+    scatteringDistanceMultiplier: 1.3350785
     transmissionTint: {r: 0.6698113, g: 0.14478403, b: 0.12953897, a: 1}
     texturingMode: 1
+    smoothnessMultipliers: {x: 1, y: 1}
+    lobeMix: 0.5
+    diffuseShadingPower: 1
     transmissionMode: 0
     thicknessRemap: {x: 0, y: 5}
     worldScale: 1
     ior: 1.4
     hash: 1074745950
-  m_Version: 1
-  profiles: []
+  m_Version: 2

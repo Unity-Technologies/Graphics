@@ -13,13 +13,16 @@ MonoBehaviour:
   m_Name: IndoorPlantLeaves
   m_EditorClassIdentifier: 
   profile:
-    scatteringDistance: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.7490196, b: 0.7490196, a: 1}
+    scatteringDistanceMultiplier: 0.67015713
     transmissionTint: {r: 0.26591697, g: 0.685, b: 0.08630999, a: 1}
     texturingMode: 0
+    smoothnessMultipliers: {x: 1, y: 1}
+    lobeMix: 0.5
+    diffuseShadingPower: 1
     transmissionMode: 1
     thicknessRemap: {x: 0, y: 0.5}
     worldScale: 1
     ior: 1.4
-    hash: 1076500222
-  m_Version: 1
-  profiles: []
+    hash: 1077092686
+  m_Version: 2

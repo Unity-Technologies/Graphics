@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_DefaultVolumeProfile: {fileID: 11400000, guid: dc4052ec38b9ac147a469135b69baa9a,
     type: 2}
-  m_LookDevVolumeProfile: {fileID: 0}
+  m_LookDevVolumeProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
+    type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 1266551495851868
-      data2: 13763000477350330392
+      data2: 13799031439032811544
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -127,7 +128,7 @@ MonoBehaviour:
       hasProbeVolumes: 1
     bakingSets: []
     m_LightingScenario: Scenario 1
-  m_Version: 7
+  m_Version: 8
   m_ShaderVariantLogLevel: 0
   m_SupportRuntimeDebugDisplay: 0
   m_ExportShaderVariants: 1
