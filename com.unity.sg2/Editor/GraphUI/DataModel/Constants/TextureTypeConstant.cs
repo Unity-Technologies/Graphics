@@ -6,8 +6,12 @@ using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    [Serializable]
     class TextureTypeConstant : BaseShaderGraphConstant
     {
+        [SerializeReference]
+        Texture m_CopyPasteData;
+
         protected override object GetValue() => BaseTextureType.GetTextureAsset(GetField());
         protected override void SetValue(object value) => BaseTextureType.SetTextureAsset(GetField(), (Texture)value);
         public override object DefaultValue => null;
@@ -51,6 +55,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override bool IsAssignableFrom(Type t)
         {
             return typeof(Texture).IsAssignableFrom(t);
+        }
+
+        /// <inheritdoc />
+        public override void OnBeforeCopy()
+        {
+            m_CopyPasteData = ObjectValue as Texture;
+        }
+
+        /// <inheritdoc />
+        public override void OnAfterPaste()
+        {
+            ObjectValue = m_CopyPasteData;
+            m_CopyPasteData = null;
         }
     }
 }

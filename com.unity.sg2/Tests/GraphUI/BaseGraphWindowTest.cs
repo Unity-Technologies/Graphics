@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         // Used to simulate interactions within the shader graph editor window
         protected TestInteractionHelpers m_TestInteractionHelper;
 
-        protected virtual string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
+        protected virtual string testAssetPath => $"Assets/{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
         protected virtual bool hideOverlayWindows => true;
 
         // Need to match the values specified by the BlackboardOverlay and ModelInspectorOverlay in GTFO

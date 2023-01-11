@@ -4,6 +4,7 @@ using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using Unity.GraphToolsFoundation;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -15,9 +16,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         [SerializeField]
         protected string portName;
-
-        [SerializeReference]
-        object m_CopyPasteData;
 
         SGGraphModel graphModel => OwnerModel?.GraphModel as SGGraphModel;
 
@@ -91,16 +89,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         /// <inheritdoc />
-        public void OnBeforeCopy()
-        {
-            m_CopyPasteData = ObjectValue;
-        }
+        public abstract void OnBeforeCopy();
 
         /// <inheritdoc />
-        public void OnAfterPaste()
-        {
-            ObjectValue = m_CopyPasteData;
-            m_CopyPasteData = null;
-        }
+        public abstract void OnAfterPaste();
     }
 }

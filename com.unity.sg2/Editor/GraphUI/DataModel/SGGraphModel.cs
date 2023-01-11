@@ -284,8 +284,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void DeleteVariableDeclarations(IReadOnlyCollection<VariableDeclarationModel> variableModels, bool deleteUsages = true)
         {
-            // var changedNodes = new Dictionary<GraphElementModel, IReadOnlyList<ChangeHint>>();
-
             // Remove any ports that correspond to this property on the property context
             // as it causes issues with future port compability tests if the junk isnt cleared
             foreach (var nodeModel in NodeModels)
@@ -296,16 +294,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     GraphHandler.ReconcretizeNode(contextNodeModel.graphDataName);
                     contextNodeModel.DefineNode();
 
-                    // changedNodes.Add(contextNodeModel, new[] { ChangeHint.Unspecified });
+                    CurrentGraphChangeDescription?.AddChangedModel(contextNodeModel, ChangeHint.Unspecified);
                 }
             }
 
             // The referable entry this variable was backed by is removed in ShaderGraphCommandOverrides.HandleDeleteBlackboardItems()
             // In future we want to bring it here
 
-            // var changeDescription = base.DeleteVariableDeclarations(variableModels, deleteUsages);
-            // changeDescription.Union(null, changedNodes, null);
-            // return changeDescription;
+            base.DeleteVariableDeclarations(variableModels, deleteUsages);
         }
 
         PortModel HandleRedirectNodesCreation(PortModel toPort, PortModel fromPort, out List<PortModel> resolvedDestinations)
@@ -531,10 +527,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (newDecl is SGVariableDeclarationModel graphDataVar)
             {
+                graphDataVar.contextNodeName = BlackboardContextName;
                 graphDataVar.graphDataName = "_" + graphDataVar.Guid;
                 if (graphDataVar.InitializationModel is BaseShaderGraphConstant c)
                 {
-                    // Unbind the BaseShaderGraphConstant from the sourceModel
+                    // Make sure the BaseShaderGraphConstant is not bound to anything.
                     c.BindTo(null, null);
                 }
                 AddVariableDeclarationEntry(graphDataVar);
@@ -730,7 +727,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 var f = port.GetTypeField();
                 if (f != null)
                 {
-                    var data = GraphTypeHelpers.GetFieldValue(f, null);
+                    var data = GraphTypeHelpers.GetFieldValue(f);
                     Debug.Log($"    {port.ID.LocalPath} : {data}");
                 }
                 else

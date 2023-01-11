@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public enum Filter { Point, Linear, Trilinear }
         public enum Wrap { Clamp, Repeat, Mirror, MirrorOnce } // optionally can be per component- can be added later.
-        public enum Aniso { None = 0, Ansio2 = 2, Ansio8 = 8, Ansio16 = 16 } // optional
+        public enum Aniso { None = 0, Aniso2 = 2, Aniso8 = 8, Aniso16 = 16 } // optional
 
         #region GetSet
         public static void SetDepthComparison(FieldHandler field, bool enable)
