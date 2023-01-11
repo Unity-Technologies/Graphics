@@ -94,6 +94,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var hdCamera = builtinParams.hdCamera;
             var cmd = builtinParams.commandBuffer;
+#if UNITY_EDITOR
+            if (!hdCamera.camera.renderCloudsInSceneView)
+                return;
+#endif
             var cloudLayer = builtinParams.cloudSettings as CloudLayer;
             if (cloudLayer.opacity.value == 0.0f)
                 return;

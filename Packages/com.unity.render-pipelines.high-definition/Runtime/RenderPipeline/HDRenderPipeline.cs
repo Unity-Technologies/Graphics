@@ -672,7 +672,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 autoDefaultReflectionProbeBaking = false
                 ,
                 rendersUIOverlay = true,
-                supportsHDR = true
+                supportsHDR = true,
+                supportsClouds = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
