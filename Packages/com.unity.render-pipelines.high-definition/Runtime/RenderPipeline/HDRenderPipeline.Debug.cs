@@ -569,6 +569,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 if (IsComputeThicknessNeeded(hdCamera))
                     passData.thickness = builder.ReadTexture(HDComputeThickness.Instance.GetThicknessTextureArray());
+                else
+                    passData.thickness = builder.ReadTexture(renderGraph.defaultResources.blackTextureArrayXR);
+
                 passData.thicknessReindex = builder.ReadBuffer(renderGraph.ImportBuffer(HDComputeThickness.Instance.GetReindexMap()));
                 passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * hdCamera.depthBufferMipChainInfo.mipLevelCount);
                 passData.depthPyramidOffsets = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);

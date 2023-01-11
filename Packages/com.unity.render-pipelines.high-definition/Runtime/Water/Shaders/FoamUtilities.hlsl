@@ -67,7 +67,6 @@ float DeepFoam(float2 _UV, float foamTime)
     float4 foamMasks = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, _UV * _FoamTilling);
     float microDistanceField = foamMasks.r;
     float temporalNoise = foamMasks.g;
-    float foamNoise = foamMasks.b;
     float macroDistanceField = foamMasks.a;
 
     float noOffsetedTime = foamTime;
@@ -106,7 +105,7 @@ float DeepFoam(float2 _UV, float foamTime)
 
     float distanceFieldInAlpha = lerp(macroDistanceField, microDistanceField, 0.5f) * 1.0f;
     distanceFieldInAlpha = 1.0f - distanceFieldInAlpha;
-    float noiseInAlpha = pow(foamNoise, 4.0f);
+    float noiseInAlpha = pow(saturate(foamMasks.b), 4.0f);
 
     alpha *= noiseInAlpha * distanceFieldInAlpha * 18.0f;
     alpha += lerp(1.0 * temporalNoise, 0.0, saturate(noOffsetedTime * 2.0f));

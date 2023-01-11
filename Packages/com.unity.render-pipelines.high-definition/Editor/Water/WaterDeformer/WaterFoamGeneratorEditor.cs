@@ -3,14 +3,19 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [CanEditMultipleObjects]
     [CustomEditor(typeof(WaterFoamGenerator))]
     sealed partial class WaterFoamGeneratorEditor : Editor
     {
+        static readonly Color k_HandleColor = new Color(0 / 255f, 0xE5 / 255f, 0xFF / 255f, 1f).gamma;
+
         SerializedProperty m_Type;
         SerializedProperty m_RegionSize;
         SerializedProperty m_Texture;
         SerializedProperty m_SurfaceFoamDimmer;
         SerializedProperty m_DeepFoamDimmer;
+
+        HierarchicalBox m_BoxHandle;
 
         void OnEnable()
         {
@@ -20,6 +25,12 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Texture = o.Find(x => x.texture);
             m_SurfaceFoamDimmer = o.Find(x => x.surfaceFoamDimmer);
             m_DeepFoamDimmer = o.Find(x => x.deepFoamDimmer);
+
+            m_BoxHandle = new HierarchicalBox(k_HandleColor, new[] { k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor })
+            {
+                monoHandle = false,
+                allowNegativeSize = true,
+            };
         }
 
         static public readonly GUIContent k_TypeText = EditorGUIUtility.TrTextContent("Type", "Specifies the type of the foam generator.");
@@ -36,13 +47,13 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(m_RegionSize, k_RegionSizeText);
 
             WaterFoamGeneratorType type = (WaterFoamGeneratorType)m_Type.enumValueIndex;
-            if (type == WaterFoamGeneratorType.Texture)
+            if (!m_Type.hasMultipleDifferentValues && type == WaterFoamGeneratorType.Texture)
             {
                 EditorGUILayout.PropertyField(m_Texture, k_TextureText);
             }
 
-            m_SurfaceFoamDimmer.floatValue = EditorGUILayout.Slider(k_SurfaceFoamDimmerText, m_SurfaceFoamDimmer.floatValue, 0.0f, 1.0f);
-            m_DeepFoamDimmer.floatValue = EditorGUILayout.Slider(k_DeepFoamDimmerText, m_DeepFoamDimmer.floatValue, 0.0f, 1.0f);
+            EditorGUILayout.PropertyField(m_SurfaceFoamDimmer, k_SurfaceFoamDimmerText);
+            EditorGUILayout.PropertyField(m_DeepFoamDimmer, k_DeepFoamDimmerText);
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -53,6 +64,29 @@ namespace UnityEditor.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(WaterFoamGenerator foamGenerator, GizmoType gizmoType)
         {
+        }
+
+        void OnSceneGUI()
+        {
+            WaterFoamGenerator generator = target as WaterFoamGenerator;
+            var tr = generator.transform;
+            var rotation = Quaternion.Euler(0, tr.eulerAngles.y, 0);
+            var regionSize = generator.regionSize;
+
+            using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one)))
+            {
+                m_BoxHandle.center = Quaternion.Inverse(rotation) * tr.position;
+                m_BoxHandle.size = new Vector3(regionSize.x, 1, regionSize.y);
+                EditorGUI.BeginChangeCheck();
+                m_BoxHandle.DrawHull(true);
+                m_BoxHandle.DrawHandle();
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObjects(new Object[] { tr, generator }, "Update Generator Region");
+                    tr.position = rotation * m_BoxHandle.center;
+                    generator.regionSize = new Vector2(m_BoxHandle.size.x, m_BoxHandle.size.z);
+                }
+            }
         }
     }
 }

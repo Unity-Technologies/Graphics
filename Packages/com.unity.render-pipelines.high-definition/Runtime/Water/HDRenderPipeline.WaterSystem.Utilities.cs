@@ -80,6 +80,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             mesh.vertices = vertices;
 
+            Vector3[] normals = new Vector3[(meshResolution + 1) * (meshResolution + 1)];
+            for (int i = 0, y = 0; y <= meshResolution; y++)
+            {
+                for (int x = 0; x <= meshResolution; x++, i++)
+                {
+                    normals[i] = new Vector3(0, 1, 0);
+                }
+            }
+            mesh.normals = normals;
+
             int[] triangles = new int[meshResolution * meshResolution * 6];
             for (int ti = 0, vi = 0, y = 0; y < meshResolution; y++, vi++)
             {

@@ -30,22 +30,21 @@ VaryingsMeshToDS VertMeshWater(AttributesMesh input)
 
     // Due to the fact that a first clipping pass is done at the end of the vertex stage, we need to ensure that
     // the base triangles that were outside the frustum and need to be visible. We then have to apply the displacement to them
-    float3 positionOS;
-    float3 normalOS;
-    float4 uv0;
-    float4 uv1;
-    ApplyMeshModification(input, _TimeParameters.xyz, positionOS, normalOS, uv0, uv1);
-
-    // We need to ensure that the value that gets pushed through the pipeline
-    // is camera relative for it to not get culled.
-    output.positionRWS = GetCameraRelativePositionWS(mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz);
-    #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-    output.normalWS = normalOS;
-    #else
-    output.normalWS = TransformCustomMeshNormal(normalOS);
+    input = ApplyMeshModification(input, _TimeParameters.xyz
+    #ifdef USE_CUSTOMINTERP_SUBSTRUCT
+        , output
     #endif
-    output.texCoord0 = float4(positionOS - input.positionOS, 1.0);
-    output.texCoord1 = float4(GetCameraRelativePositionWS(positionOS), 1.0);
+        );
+
+    // Export for the following stage
+    output.positionRWS =  mul(_WaterSurfaceTransformRWS, float4(input.positionOS, 1.0)).xyz;
+    #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+    output.normalWS = input.normalOS;
+    #else
+    output.normalWS = TransformCustomMeshNormal(input.normalOS);
+    #endif
+    output.texCoord0 = input.uv0;
+    output.texCoord1 = input.uv1;
     output.tessellationFactor = _WaterMaxTessellationFactor;
     return output;
 }
@@ -96,24 +95,23 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     // Restore the pre-vertex value to apply the actual deformation
-    input.positionRWS = input.texCoord1.xyz - input.texCoord0.xyz;
+    input.positionRWS = input.texCoord1.xyz;
 
     // Apply the mesh modifications that come from the shader graph
-    float3 positionOS;
-    float3 normalOS;
-    float4 uv0;
-    float4 uv1;
-    ApplyTessellationModification(input, _TimeParameters.xyz, positionOS, normalOS, uv0, uv1);
-
-    // Convert the position to relative world space
-    float3 positionRWS = GetCameraRelativePositionWS(mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz);
+    input = ApplyTessellationModification(input, _TimeParameters.xyz);
 
     // Export for the following stage
-    output.positionCS = TransformWorldToHClip(positionRWS);
-    output.positionRWS = positionRWS;
-    output.normalWS = mul((float3x3)_WaterSurfaceTransform, normalOS);
-    output.texCoord0 = uv0;
-    output.texCoord1 = uv1;
+    output.positionCS = TransformWorldToHClip(input.positionRWS);
+    output.positionRWS = input.positionRWS;
+    output.normalWS = input.normalWS;
+    output.texCoord0 = input.texCoord0;
+    output.texCoord1 = input.texCoord1;
+
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
+    VertMeshTesselationCustomInterpolation(input, output);
+#endif
+
     return output;
 }
 

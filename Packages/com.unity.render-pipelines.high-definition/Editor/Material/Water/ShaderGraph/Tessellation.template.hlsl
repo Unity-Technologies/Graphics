@@ -36,7 +36,7 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
 // z - 0->1 edge
 // w - inside tessellation factor
 // The water shader graph required these four fields to be fed (not an option)
-void ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters, out float3 positionOS, out float3 normalOS, out float4 uv0, out float4 uv1)
+VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters)
 {
     // HACK: As there is no specific tessellation stage for now in shadergraph, we reuse the vertex description mechanism.
     // It mean we store TessellationFactor inside vertex description causing extra read on both vertex and hull stage, but unusued paramater are optimize out by the shader compiler, so no impact.
@@ -48,13 +48,26 @@ void ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters
     // evaluate vertex graph
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
-    // The set of vertex description outputs that are used are fixed
-    positionOS = vertexDescription.Position;
-    normalOS = vertexDescription.Normal;
-    uv0 = vertexDescription.uv0;
-    uv1 = vertexDescription.uv1;
+    // Convert the position to relative world space
+    float3 positionRWS = mul(_WaterSurfaceTransformRWS, float4(vertexDescription.Position, 1.0)).xyz;
 
-    $splice(CustomInterpolatorVertMeshCustomInterpolation)
+    // Export for the following stage
+    input.positionRWS = positionRWS;
+    input.normalWS = vertexDescription.Normal;
+    input.texCoord0 = vertexDescription.uv0;
+    input.texCoord1 = vertexDescription.uv1;
+
+    return input;
 }
+
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+
+// This will evaluate the custom interpolator and update the varying structure
+void VertMeshTesselationCustomInterpolation(VaryingsMeshToDS input, inout VaryingsMeshToPS output)
+{
+    $splice(CustomInterpolatorVertMeshTesselationCustomInterpolation)
+}
+
+#endif // USE_CUSTOMINTERP_SUBSTRUCT
 
 #endif // TESSELLATION_ON

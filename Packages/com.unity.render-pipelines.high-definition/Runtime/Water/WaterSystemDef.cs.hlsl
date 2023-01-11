@@ -88,7 +88,7 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _GridSize;
     uint _WaterLODCount;
     uint _NumWaterPatches;
-    float _PaddingWR0;
+    float _CausticsShadowIntensity;
     float _CausticsIntensity;
     float2 _CurrentMapInfluence;
     float4 _Group0CurrentRegionScaleOffset;
@@ -104,7 +104,7 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _RegionCenter;
     float2 _RegionExtent;
     float4 _WaterAmbientProbe;
-    float4x4 _WaterSurfaceTransform;
+    float4x4 _WaterSurfaceTransformRWS;
     float4x4 _WaterSurfaceTransform_Inverse;
     float4x4 _WaterCustomMeshTransform;
     float4x4 _WaterCustomMeshTransform_Inverse;

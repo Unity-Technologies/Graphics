@@ -1088,7 +1088,8 @@ namespace UnityEditor.VFX
             int spawnCountPrefixSumBufferIndex = -1;
             if (hasInstancing)
             {
-                FillBatchedUniformsBuffers(outBufferDescs, systemBufferMappings, out batchedInitParamsIndex);
+                if (eventGPUFrom == -1) //GPUEVent doesn't have any uniform buffer
+                    FillBatchedUniformsBuffers(outBufferDescs, systemBufferMappings, out batchedInitParamsIndex);
 
                 FillGraphValuesBuffers(outBufferDescs, systemBufferMappings, m_GraphValuesLayout, out graphValuesBufferIndex);
 
@@ -1252,7 +1253,7 @@ namespace UnityEditor.VFX
 
                 if (context.contextType == VFXContextType.Init)
                 {
-                    if (batchedInitParamsIndex != 1)
+                    if (batchedInitParamsIndex != -1)
                         bufferMappings.Add(new VFXMapping("batchedInitParams", batchedInitParamsIndex));
                     if(eventsPrefixSumBufferIndex != -1)
                         bufferMappings.Add(new VFXMapping("eventCountPrefixSum", eventsPrefixSumBufferIndex));
@@ -1341,17 +1342,14 @@ namespace UnityEditor.VFX
                     if (deadListCountIndex != -1)
                         bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
                 }
-                var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
-                    .Where(c => c.CanBeCompiled())
-                    .Select(o => dependentBuffers.eventBuffers[o.GetData()])
-                    .ToArray();
-                for (uint indexTarget = 0; indexTarget < (uint)gpuTarget.Length; ++indexTarget)
-                {
-                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(indexTarget);
-                    bufferMappings.Add(new VFXMapping(string.Format("eventListOut_{0}", prefix), gpuTarget[indexTarget]));
-                }
 
                 var contextData = compiledData.taskToCompiledData[task];
+                for (uint indexTarget = 0; indexTarget < (uint)contextData.linkedEventOut.Length; ++indexTarget)
+                {
+                    var gpuTarget = dependentBuffers.eventBuffers[contextData.linkedEventOut[indexTarget].data];
+                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(indexTarget);
+                    bufferMappings.Add(new VFXMapping($"eventListOut_{prefix}", gpuTarget));
+                }
 
                 uniformMappings.Clear();
                 foreach (var buffer in contextData.uniformMapper.buffers)
@@ -1473,9 +1471,7 @@ namespace UnityEditor.VFX
         private static void FillBatchedUniformsBuffers(List<VFXGPUBufferDesc> outBufferDescs, List<VFXMapping> systemBufferMappings,
             out int batchedInitParamsIndex)
         {
-
-            bool indirectInit = false;
-            uint initParamsStride = indirectInit ? 16u : 16u; //same here, but subject to change
+            uint initParamsStride = 16u;
             batchedInitParamsIndex = outBufferDescs.Count;
             outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = 1u, stride = initParamsStride });
             systemBufferMappings.Add(new VFXMapping("batchedInitParams", batchedInitParamsIndex));

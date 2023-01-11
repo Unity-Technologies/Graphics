@@ -1049,7 +1049,13 @@ namespace UnityEngine.Rendering
                 //       availability is already supported by runtime.
 
                 var asset = data.asset;
-                var profile = probeRefVolume.sceneData.GetBakingSetForScene(data.gameObject.scene);
+                var sceneOfOrigin = data.gameObject.scene;
+                var profile = probeRefVolume.sceneData.GetBakingSetForScene(sceneOfOrigin);
+
+                // We might have a scene in the list that doesn't have a baking set, this can happen if we are baking in single scene mode with 2 scene loaded, one of which never baked. 
+                if (profile == null)
+                    continue;
+
                 asset.StoreProfileData(profile);
                 asset.minCellPosition = minCellPosition;
                 asset.maxCellPosition = maxCellPosition;
@@ -1079,7 +1085,13 @@ namespace UnityEngine.Rendering
             InitDilationShaders(); // Do it now otherwise it messes the loading bar
 
             foreach (var data in fullSceneDataList)
+            {
+                // We might have a scene in the list that doesn't have a baking set, this can happen if we are baking in single scene mode with 2 scene loaded, one of which never baked. 
+                if (probeRefVolume.sceneData.GetBakingSetForScene(data.gameObject.scene) == null)
+                    continue;
+
                 data.QueueAssetLoading();
+            }
 
             // ---- Perform dilation ---
             using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDilation))
@@ -1822,6 +1834,9 @@ namespace UnityEngine.Rendering
                     CleanupOccluders();
                 }
             }
+
+            // We need to reset that view
+            ProbeReferenceVolume.instance.ResetDebugViewToMaxSubdiv();
         }
 
         public static void RunPlacement()

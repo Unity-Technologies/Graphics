@@ -30,7 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 WaterSubTarget.WaterBlocks.Foam,
                 WaterSubTarget.WaterBlocks.Caustics,
                 WaterSubTarget.WaterBlocks.TipThickness,
-            };
+                WaterSubTarget.WaterBlocks.RefractedPositionWS,
+            }; 
 
             GraphUtil.CreateNewGraphWithOutputs(new[] { target }, blockDescriptors);
         }

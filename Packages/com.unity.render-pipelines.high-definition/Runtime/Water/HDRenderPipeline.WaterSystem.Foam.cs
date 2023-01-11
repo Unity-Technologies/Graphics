@@ -214,7 +214,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(m_WaterFoamCS, m_PostProcessFoamKernel, tileC, tileC, 1);
 
                 // Update the foam data for the next frame
-                currentWater.previousFoamData = float4(currentWater.foamAreaSize.x, currentWater.foamAreaSize.y, currentWater.foamAreaOffset.x, currentWater.foamAreaOffset.y);
+                Vector3 waterPosition = currentWater.transform.position;
+                currentWater.previousFoamData = float4(currentWater.foamAreaSize.x, currentWater.foamAreaSize.y, currentWater.foamAreaOffset.x + waterPosition.x, currentWater.foamAreaOffset.y + waterPosition.z);
             }
         }
     }

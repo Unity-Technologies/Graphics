@@ -39,7 +39,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags)
         {
             CheckResource(input.handle, true);
-            m_Resources.IncrementWriteCount(input.handle);
+
+            if ((flags & DepthAccess.Write) != 0)
+                m_Resources.IncrementWriteCount(input.handle);
+            if ((flags & DepthAccess.Read) != 0)
+            {
+                if (!m_Resources.IsRenderGraphResourceImported(input.handle) && m_Resources.TextureNeedsFallback(input))
+                    WriteTexture(input);
+            }
+
             m_RenderPass.SetDepthBuffer(input, flags);
             return input;
         }

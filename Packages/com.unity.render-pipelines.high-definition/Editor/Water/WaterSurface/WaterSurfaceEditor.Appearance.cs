@@ -34,6 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_CausticsIntensity;
         SerializedProperty m_CausticsResolution;
         SerializedProperty m_CausticsPlaneBlendDistance;
+        SerializedProperty m_CausticsDirectionalShadow;
+        SerializedProperty m_CausticsDirectionalShadowDimmer;
 
         // Underwater
         SerializedProperty m_UnderWater;
@@ -77,6 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CausticsIntensity = o.Find(x => x.causticsIntensity);
             m_CausticsResolution = o.Find(x => x.causticsResolution);
             m_CausticsPlaneBlendDistance = o.Find(x => x.causticsPlaneBlendDistance);
+            m_CausticsDirectionalShadow = o.Find(x => x.causticsDirectionalShadow);
+            m_CausticsDirectionalShadowDimmer = o.Find(x => x.causticsDirectionalShadowDimmer);
 
             // Underwater
             m_UnderWater = o.Find(x => x.underWater);
@@ -258,11 +262,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (WaterSurfaceUI.ShowAdditionalProperties())
                     {
-                        EditorGUILayout.PropertyField(serialized.m_CausticsIntensity);
+                        EditorGUILayout.PropertyField(serialized.m_CausticsIntensity, k_CausticsInstensity);
                         serialized.m_CausticsIntensity.floatValue = Mathf.Max(serialized.m_CausticsIntensity.floatValue, 0.0f);
 
                         EditorGUILayout.PropertyField(serialized.m_CausticsPlaneBlendDistance);
                         serialized.m_CausticsPlaneBlendDistance.floatValue = Mathf.Max(serialized.m_CausticsPlaneBlendDistance.floatValue, 0.0f);
+
+                        EditorGUILayout.PropertyField(serialized.m_CausticsDirectionalShadow, k_CausticsDirectionalShadow);
+
+                        if (serialized.m_CausticsDirectionalShadow.boolValue)
+                        {
+                            using (new IndentLevelScope())
+                            {
+                                serialized.m_CausticsDirectionalShadowDimmer.floatValue = EditorGUILayout.Slider(k_CausticsDirectionalShadowDimmer, serialized.m_CausticsDirectionalShadowDimmer.floatValue, 0.0f, 1.0f);
+                            }
+                        }
                     }
 
                     // Display an info box if the wind speed is null for the target band

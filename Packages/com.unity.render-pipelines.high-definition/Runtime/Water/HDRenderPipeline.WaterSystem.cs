@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 #endif
@@ -269,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DisplacementScattering = currentWater.displacementScattering;
 
             // Foam
-            cb._FoamRegionOffset = currentWater.foamAreaOffset;
+            cb._FoamRegionOffset = currentWater.foamAreaOffset + (currentWater.IsInfinite() ? Vector2.zero : new Vector2(currentWater.transform.position.x, currentWater.transform.position.z));
             cb._FoamRegionScale.Set(1.0f / currentWater.foamAreaSize.x, 1.0f / currentWater.foamAreaSize.y);
             cb._FoamJacobianLambda = new Vector4(cb._PatchSize.x, cb._PatchSize.y, cb._PatchSize.z, cb._PatchSize.w);
             cb._SimulationFoamIntensity = m_ActiveWaterFoam && currentWater.HasSimulationFoam() ? 1.0f : 0.0f;
@@ -300,6 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Setup the water rendering constant buffers (parameters that we can setup
             cb._CausticsIntensity = currentWater.causticsIntensity;
+            cb._CausticsShadowIntensity = currentWater.causticsDirectionalShadow ? currentWater.causticsDirectionalShadowDimmer : 1.0f;
             cb._CausticsPlaneBlendDistance = currentWater.causticsPlaneBlendDistance;
             cb._WaterCausticsEnabled = currentWater.caustics ? 1 : 0;
             cb._CameraInUnderwaterRegion = insideUnderWaterVolume ? 1 : 0;
@@ -324,10 +326,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._PatchOffset = Vector3.zero;
             }
 
-            // Large Current
             cb._Group0CurrentRegionScaleOffset.Set(1.0f / currentWater.largeCurrentRegionExtent.x, 1.0f / currentWater.largeCurrentRegionExtent.y, currentWater.largeCurrentRegionOffset.x, -currentWater.largeCurrentRegionOffset.y);
-            cb._Group1CurrentRegionScaleOffset.Set(1.0f / currentWater.ripplesCurrentRegionExtent.x, 1.0f / currentWater.ripplesCurrentRegionExtent.y, currentWater.ripplesCurrentRegionOffset.x, -currentWater.ripplesCurrentRegionOffset.y);
-            cb._CurrentMapInfluence.Set(currentWater.largeCurrentMapInfluence, currentWater.ripplesCurrentMapInfluence);
+            if (currentWater.ripplesMotionMode == WaterPropertyOverrideMode.Inherit)
+            {
+                cb._Group1CurrentRegionScaleOffset = cb._Group0CurrentRegionScaleOffset;
+                cb._CurrentMapInfluence.Set(currentWater.largeCurrentMapInfluence, currentWater.largeCurrentMapInfluence);
+            }
+            else
+            {
+                cb._Group1CurrentRegionScaleOffset.Set(1.0f / currentWater.ripplesCurrentRegionExtent.x, 1.0f / currentWater.ripplesCurrentRegionExtent.y, currentWater.ripplesCurrentRegionOffset.x, -currentWater.ripplesCurrentRegionOffset.y);
+                cb._CurrentMapInfluence.Set(currentWater.largeCurrentMapInfluence, currentWater.ripplesCurrentMapInfluence);
+            }
 
             // Tessellation
             cb._WaterMaxTessellationFactor = settings.maxTessellationFactor.value;
@@ -351,15 +360,21 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WaterRenderingLayer = (uint)currentWater.renderingLayerMask;
 
             // Evaluate the matrices
-            cb._WaterSurfaceTransform = currentWater.simulation.rendering.waterToWorldMatrix;
+            float4x4 waterToWorldAbs = currentWater.simulation.rendering.waterToWorldMatrix;
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                waterToWorldAbs.c3 -= new float4(hdCamera.camera.transform.position, 0.0f);
+            }
+            cb._WaterSurfaceTransformRWS = waterToWorldAbs;
             cb._WaterSurfaceTransform_Inverse = currentWater.simulation.rendering.worldToWaterMatrix;
             cb._WaterCustomMeshTransform = Matrix4x4.identity;
+            cb._WaterCustomMeshTransform_Inverse = Matrix4x4.identity;
         }
 
         // Setup the deformation water constant buffer
         void UpdateShaderVariablesWaterDeformation(WaterSurface currentWater, ref ShaderVariablesWaterDeformation waterDeformationCB)
         {
-            waterDeformationCB._WaterDeformationCenter = currentWater.deformationAreaOffset;
+            waterDeformationCB._WaterDeformationCenter = currentWater.deformationAreaOffset + (currentWater.IsInfinite() ? Vector2.zero : new Vector2(currentWater.transform.position.x, currentWater.transform.position.z));
             waterDeformationCB._WaterDeformationExtent = currentWater.deformation ? currentWater.deformationAreaSize : new Vector2(-1, -1);
         }
 
@@ -507,8 +522,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Current
             public bool activeCurrent;
-            public Texture2D largeCurrentMap;
-            public Texture2D ripplesCurrentMap;
+            public Texture largeCurrentMap;
+            public Texture ripplesCurrentMap;
             public Texture2D sectorDataBuffer;
 
             // Foam data
@@ -1065,6 +1080,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     outputGBuffer.debugRequired = true;
                     continue;
                 }
+
+                // Only render the water surface if it is included in the layers that the camera requires
+                int waterCullingMask = 1 << currentWater.gameObject.layer;
+                if (hdCamera.camera.cullingMask != 0 && (waterCullingMask & hdCamera.camera.cullingMask) == 0)
+                    continue;
 
 #if UNITY_EDITOR
                 var stage = PrefabStageUtility.GetCurrentPrefabStage();

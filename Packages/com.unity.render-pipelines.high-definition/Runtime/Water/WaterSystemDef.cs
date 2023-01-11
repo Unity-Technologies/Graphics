@@ -486,7 +486,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _NumWaterPatches;
 
         // Padding
-        public float _PaddingWR0;
+        public float _CausticsShadowIntensity;
         // Intensity of the water caustics
         public float _CausticsIntensity;
         // Current Map Influence
@@ -525,7 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _WaterAmbientProbe;
 
         // Transform of the water surface
-        public Matrix4x4 _WaterSurfaceTransform;
+        public Matrix4x4 _WaterSurfaceTransformRWS;
         public Matrix4x4 _WaterSurfaceTransform_Inverse;
         public Matrix4x4 _WaterCustomMeshTransform;
         public Matrix4x4 _WaterCustomMeshTransform_Inverse;

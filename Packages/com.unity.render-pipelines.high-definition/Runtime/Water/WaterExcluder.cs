@@ -9,8 +9,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Water excluder component.
     /// </summary>
     [DisallowMultipleComponent]
-    [ExecuteInEditMode]
     [AddComponentMenu("")]
+    [ExecuteAlways]
     public partial class WaterExcluder : MonoBehaviour
     {
         // Mesh that shall be used to exclude water
@@ -42,5 +42,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 Gizmos.DrawWireMesh(m_InternalMesh, 0, transform.position, transform.rotation, transform.lossyScale);
             }
         }
+
+        #region Migration
+        enum Version
+        {
+            Initial,
+            RayTracingExclusion,
+
+            Count = RayTracingExclusion
+        }
+
+        [SerializeField]
+        Version version = Version.Initial;
+
+        void Awake()
+        {
+            if (version == Version.Count)
+                return;
+
+            if (version == Version.Initial)
+            {
+                if (m_ExclusionRenderer != null)
+                    m_ExclusionRenderer.GetComponent<MeshRenderer>().rayTracingMode = UnityEngine.Experimental.Rendering.RayTracingMode.Off;
+                version++;
+            }
+        }
+        #endregion
     }
 }

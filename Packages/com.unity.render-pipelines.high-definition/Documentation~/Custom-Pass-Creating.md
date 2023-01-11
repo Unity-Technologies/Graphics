@@ -245,6 +245,8 @@ When Unity renders a material that isn't supported by the current injection poin
 
 **Note**: HDRP doesn't support decals on GameObjects rendered in the DrawRenderers pass.
 
+**Note**: When rendering a [Terrain](https://docs.unity3d.com/Manual/terrain-UsingTerrains.html) with the DrawRenderers custom pass, only the override mode "Shader" is supported. Also, the replacement shader must be compatible with terrain rendering (like the HDRP/TerrainLit shader).
+
 <a name="Object-ID-Custom-Pass"></a>
 
 ## Object ID Custom Pass

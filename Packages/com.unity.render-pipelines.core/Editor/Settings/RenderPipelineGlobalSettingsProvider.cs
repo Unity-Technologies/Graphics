@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering
                         EditorGUILayout.HelpBox(string.Format(Styles.warningSRPNotActive, ObjectNames.NicifyVariableName(RenderPipelineManager.currentPipeline.GetType().Name)), MessageType.Warning);
                     }
 
-                    if (m_Editor != null && m_Editor.target == null)
+                    if (m_Editor != null && (m_Editor.target == null || m_Editor.target != renderPipelineSettings))
                         DestroyEditor();
 
                     if (m_Editor == null)

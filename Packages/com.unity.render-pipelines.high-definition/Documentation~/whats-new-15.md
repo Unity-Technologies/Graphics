@@ -80,3 +80,13 @@ HDRP 15.0 adds several improvements to the already existing volumetric clouds fe
 ### Real-time Ray Tracing
 
 HDRP 15.0 improves the overall real-time ray tracing feature fixing several issues related to the ray traced shadows, mixed tracing lighting. It also significantly improves the fallback lighting mechanic with an integration with the Adaptative Probe Volume feature for Ray Traced Reflection, Ray Traced Global Illumination and Recursive Ray Tracing.
+
+### Path Tracing Light Cluster
+
+The Path Tracer now uses the Ray Tracing Light Cluster to store the lights that affect the scene. The Light Cluster grid for the Path Tracer does not use the range parameter; instead it is defined such that it coincides with the axis-aligned bounding box of the extended culling frustum of the camera.
+
+### Compute Thickness
+
+![](Images/WhatsNew15_ComputeThickness.png)
+
+HDRP 15.0 introduces a fullscreen pass to compute the accumulated thickness for objects on a given **LayerMask**. HDRP computes optical path and the overlap count, which can be useful for instance for SubSurface Scattering or Refraction. The overlap count can be used for flat or non-closed objects like vegetation. This thickness can be sampled on a ShaderGraph via the HD Sampler Buffer.

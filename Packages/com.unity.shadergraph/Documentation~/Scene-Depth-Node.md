@@ -8,7 +8,7 @@ Note: Depth buffer access requires depth buffer to be enabled on the active **Re
 
 Note: The executed HLSL code for this [Node](Node.md) is defined per **Render Pipeline**, and different **Render Pipelines** may produce different results. Custom **Render Pipelines** that wish to support this [Node](Node.md) will also need to explicitly define the behaviour for it. If undefined this [Node](Node.md) will return 1 (white).
 
-NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](Shader-Stage.md).
+NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](Shader-Stage.md) and it is not guaranteed to work with an opaque material.
 
 #### Unity Render Pipelines Support
 - High Definition Render Pipeline

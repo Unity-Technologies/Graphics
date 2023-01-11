@@ -57,8 +57,8 @@ namespace UnityEngine.VFX.Test
             // Always wait one frame for scene load
             yield return null;
 
-            var testSettingsInScene = Object.FindObjectOfType<GraphicsTestSettings>();
-            var vfxTestSettingsInScene = Object.FindObjectOfType<VFXGraphicsTestSettings>();
+            var testSettingsInScene = Object.FindAnyObjectByType<GraphicsTestSettings>();
+            var vfxTestSettingsInScene = Object.FindAnyObjectByType<VFXGraphicsTestSettings>();
 
             var imageComparisonSettings = new ImageComparisonSettings() { AverageCorrectnessThreshold = VFXGraphicsTestSettings.defaultAverageCorrectnessThreshold };
             if (testSettingsInScene != null)

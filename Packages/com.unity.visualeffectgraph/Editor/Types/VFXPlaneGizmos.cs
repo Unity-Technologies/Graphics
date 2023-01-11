@@ -28,25 +28,29 @@ namespace UnityEditor.VFX
 
             var normalQuat = Quaternion.FromToRotation(Vector3.forward, normal);
 
-            float size = 10;
-
+            var planeSize = 5.0f;
+            var arrowSize = 1.0f;
+            var scale = 1.0f; //Could be relative to camera size using GetHandleSize
+            planeSize *= scale;
+            arrowSize *= scale;
             Vector3[] points = new Vector3[]
             {
-                new Vector3(size, size, 0),
-                new Vector3(size, -size, 0),
-                new Vector3(-size, -size, 0),
-                new Vector3(-size, size, 0),
-                new Vector3(size, size, 0),
+                new Vector3(planeSize, planeSize, 0),
+                new Vector3(planeSize, -planeSize, 0),
+                new Vector3(-planeSize, -planeSize, 0),
+                new Vector3(-planeSize, planeSize, 0),
+                new Vector3(planeSize, planeSize, 0),
             };
 
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(plane.position) * Matrix4x4.Rotate(normalQuat)))
+            var worldPositon = Handles.matrix.MultiplyPoint(plane.position);
+            var worldRotation = Handles.matrix.rotation * normalQuat;
+            using (new Handles.DrawingScope(Matrix4x4.TRS(worldPositon, worldRotation, Vector3.one)))
             {
                 Handles.DrawPolyLine(points);
+                Handles.ArrowHandleCap(0, Vector3.zero, Quaternion.identity, arrowSize, Event.current.type);
             }
-            Handles.ArrowHandleCap(0, plane.position, normalQuat, 5, Event.current.type);
 
-            PositionGizmo(plane.position, Vector3.zero, m_PositionProperty, false);
-
+            PositionOnlyGizmo(plane.position, m_PositionProperty);
             if (m_NormalProperty.isEditable && NormalGizmo(plane.position, ref normal, false))
             {
                 normal.Normalize();

@@ -171,7 +171,7 @@ VaryingsType MotionVectorVS_Internal(VaryingsType varyingsType, AttributesMesh i
         if (!previousPositionCSComputed)
         {
             // previousPositionRWS is only needed for TESSELLATION_ON
-            varyingsType.vpass.previousPositionCS = VFXGetPreviousClipPosition(inputMesh, inputElement);
+            varyingsType.vpass.previousPositionCS = VFXGetPreviousClipPosition(inputMesh, inputElement, varyingsType.vpass.positionCS);
             previousPositionCSComputed = true;
         }
 #endif
@@ -221,7 +221,13 @@ VaryingsType MotionVectorVS_Internal(VaryingsType varyingsType, AttributesMesh i
             previousMesh.positionOS -= inputPass.precomputedVelocity;
 #endif
 
+#if defined(HAVE_VFX_MODIFICATION) && VFX_WORLD_SPACE
+            //previousMesh.positionOS is already in absolute world space
+            previousPositionRWS = GetCameraRelativePositionWS(previousMesh.positionOS);
+#else
             previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
+#endif
+
 #else
 
 #if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity

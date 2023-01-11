@@ -3,6 +3,7 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/ShaderPassWaterCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
 
 void Frag(PackedVaryingsToPS packedInput,
     out float4 outGBuffer0 : SV_Target0,
@@ -51,6 +52,20 @@ void Frag(PackedVaryingsToPS packedInput,
         // For now we simply flip the normals and kill the caustics
         bsdfData.normalWS = -bsdfData.normalWS;
         bsdfData.lowFrequencyNormalWS = -bsdfData.lowFrequencyNormalWS;
+    }
+
+    // In case the user asked for shadow to explicitly be affected by shadows
+    if (_CausticsShadowIntensity < 1.0 && _DirectionalShadowIndex >= 0)
+    {
+        HDShadowContext shadowContext = InitShadowContext();
+        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+        // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
+        float3 L = -light.forward;
+        // Is it worth sampling the shadow map?
+        float sunShadow = 1.0f;
+        if ((light.lightDimmer > 0) && (light.shadowDimmer > 0))
+            sunShadow = lerp(_CausticsShadowIntensity, 1.0, GetDirectionalShadowAttenuation(shadowContext, posInput.positionSS, surfaceData.refractedPositionWS, GetNormalForShadowBias(bsdfData), light.shadowIndex, L));
+        bsdfData.caustics = max(max(bsdfData.caustics - 1.0, 0)  * sunShadow + 1.0, 0);
     }
 
     // Encode the water into the gbuffer

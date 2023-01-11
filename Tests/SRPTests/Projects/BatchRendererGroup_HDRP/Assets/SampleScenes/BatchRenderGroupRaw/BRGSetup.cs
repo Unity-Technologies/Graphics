@@ -22,7 +22,6 @@ public unsafe class BRGSetup : MonoBehaviour
 
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
-    private GraphicsBuffer m_Globals;
 
     private BatchID m_batchID;
     private BatchMaterialID m_materialID;
@@ -129,11 +128,6 @@ public unsafe class BRGSetup : MonoBehaviour
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
-
-        m_Globals = new GraphicsBuffer(GraphicsBuffer.Target.Constant,
-            1,
-            UnsafeUtility.SizeOf<BatchRendererGroupGlobals>());
-        m_Globals.SetData(new [] { BatchRendererGroupGlobals.Default });
 
         int itemCount = itemGridSize * itemGridSize;
         m_itemCount = itemCount;
@@ -244,8 +238,6 @@ public unsafe class BRGSetup : MonoBehaviour
             // upload the full buffer
             m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
         }
-
-        Shader.SetGlobalConstantBuffer(BatchRendererGroupGlobals.kGlobalsPropertyId, m_Globals, 0, m_Globals.stride);
     }
 
     private void OnDestroy()
@@ -258,7 +250,6 @@ public unsafe class BRGSetup : MonoBehaviour
 
             m_BatchRendererGroup.Dispose();
             m_GPUPersistentInstanceData.Dispose();
-            m_Globals.Dispose();
             m_sysmemBuffer.Dispose();
         }
     }

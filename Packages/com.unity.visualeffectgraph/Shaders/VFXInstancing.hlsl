@@ -130,3 +130,62 @@ uint VFXGetIndirectBufferIndex(uint index, uint instanceActiveIndex)
     return RAW_CAPACITY * instanceActiveIndex + instancingBatchSize + index;
 }
 #endif
+
+#define VFX_GPU_EVENT_SUPPORT_INSTANCING 0
+
+uint VFXGetEventListBufferIndex(uint index, uint instanceActiveIndex)
+{
+#if VFX_GPU_EVENT_SUPPORT_INSTANCING
+    return RAW_CAPACITY * instanceActiveIndex + instancingBatchSize * 2u + index;
+#else
+    return 2u + index;
+#endif
+}
+
+uint VFXGetEventListBufferElementCount(uint instanceActiveIndex)
+{
+#if VFX_GPU_EVENT_SUPPORT_INSTANCING
+    return instancingBatchSize * 0u + instanceActiveIndex;
+#else
+    return 0u;
+#endif
+}
+
+uint VFXGetEventListBufferAccumulatedCount(uint instanceActiveIndex)
+{
+#if VFX_GPU_EVENT_SUPPORT_INSTANCING
+    return instancingBatchSize * 1u + instanceActiveIndex;
+#else
+    return 1u;
+#endif
+}
+
+void AppendEventTotalCount(RWStructuredBuffer<uint> outputBuffer, uint totalCount, uint instanceActiveIndex)
+{
+    uint localInstancingBatchSize = instancingBatchSize;
+#if !VFX_GPU_EVENT_SUPPORT_INSTANCING
+    instanceActiveIndex = 0u;
+    localInstancingBatchSize = 1u;
+#endif
+    uint dummy;
+    InterlockedAdd(outputBuffer[localInstancingBatchSize + instanceActiveIndex], totalCount, dummy);
+}
+
+void AppendEventBuffer(RWStructuredBuffer<uint> outputBuffer, uint sourceIndex, uint outputCapacity, uint instanceActiveIndex)
+{
+    uint eventIndex;
+    uint localInstancingBatchSize = instancingBatchSize;
+#if !VFX_GPU_EVENT_SUPPORT_INSTANCING
+    instanceActiveIndex = 0u;
+    localInstancingBatchSize = 1u;
+#endif
+
+    InterlockedAdd(outputBuffer[instanceActiveIndex], 1u, eventIndex);
+
+    [branch]
+    if (eventIndex < outputCapacity)
+    {
+        eventIndex += localInstancingBatchSize * 2u + instanceActiveIndex * outputCapacity;
+        outputBuffer[eventIndex] = sourceIndex;
+    }
+}

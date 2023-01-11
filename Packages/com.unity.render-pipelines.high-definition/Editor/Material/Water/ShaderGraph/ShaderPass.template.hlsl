@@ -33,6 +33,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     $SurfaceDescription.TipThickness:               surfaceData.tipThickness =              surfaceDescription.TipThickness;
     $SurfaceDescription.Caustics:                   surfaceData.caustics =                  surfaceDescription.Caustics;
+    $SurfaceDescription.RefractedPositionWS:        surfaceData.refractedPositionWS =       surfaceDescription.RefractedPositionWS;
 
     bentNormalWS = float3(0, 1, 0);
 

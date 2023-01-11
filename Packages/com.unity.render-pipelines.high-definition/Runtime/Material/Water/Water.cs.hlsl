@@ -68,6 +68,7 @@ struct SurfaceData
     float foam;
     float tipThickness;
     float caustics;
+    float3 refractedPositionWS;
 };
 
 //
