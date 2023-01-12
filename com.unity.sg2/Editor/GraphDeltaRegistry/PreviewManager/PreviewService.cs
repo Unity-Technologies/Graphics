@@ -182,8 +182,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             if (m_CompilingTexture != null)
             {
-                m_CompilingTexture = GenerateFourSquare(Color.blue, Color.blue);
-                m_ErrorTexture = null;
+                Object.DestroyImmediate(m_CompilingTexture);
+                m_CompilingTexture = null;
             }
 
             if (m_SceneResources != null)
