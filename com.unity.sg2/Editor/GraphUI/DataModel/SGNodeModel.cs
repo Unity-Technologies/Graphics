@@ -166,8 +166,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        [NonSerialized]
         SGNodeViewModel m_NodeViewModel;
-
 
         public void UpgradeToLatestVersion()
         {
@@ -318,7 +318,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 var portHandler = node.GetPort(parameter.Name);
 
-                // Currently topology might not display all parameters.
+                // Current topology might not display all parameters.
                 if (portHandler == null)
                 {
                     continue;
