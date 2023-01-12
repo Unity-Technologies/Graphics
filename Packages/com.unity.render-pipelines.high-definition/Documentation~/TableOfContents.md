@@ -30,8 +30,8 @@
   * [Upgrading from HDRP 5.x to 6.x](Upgrading-from-2019.1-to-2019.2.md)
 * Volume Framework
   * [Volumes](Volumes.md)
-  * [Volume Profiles](Volume-Profile.md)
-  * [Volume Overrides](Volume-Components.md)
+    * [Volume Profiles](Volume-Profile.md)
+    * [Volume Overrides](Volume-Components.md)
   * Volume Overrides List
     * [Exposure](Override-Exposure.md)
     * [Fog](Override-Fog.md)
