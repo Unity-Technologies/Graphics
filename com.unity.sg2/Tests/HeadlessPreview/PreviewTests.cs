@@ -81,8 +81,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         [TearDown]
         public void TestCleanup()
         {
-            // Consider flushing the cached state of the preview manager between tests, depending on the test in question
-            // And/or having a separate test fixture for the contiguous/standalone tests
+            m_PreviewService.Cleanup();
         }
 
         static Texture2D DrawMaterialToTexture(Material material)

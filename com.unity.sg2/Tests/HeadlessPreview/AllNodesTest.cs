@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
+using UnityEditor.Graphs;
 using UnityEditor.ShaderGraph.HeadlessPreview.UnitTests;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
@@ -76,20 +77,32 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
 
         // Need to resolve the node names statically so that the Test Runner is happy and shows each node.
         private static readonly string[] nodeNames = InitNodeNames();
+        GraphHandler m_Graph;
+        PreviewService m_Preview;
+
+        [SetUp]
+        public void Setup()
+        {
+            m_Graph = new(SGR.Registry);
+
+            m_Preview = new();
+            m_Preview.SetActiveRegistry(SGR.Registry);
+            m_Preview.SetActiveGraph(m_Graph);
+            m_Preview.Initialize("ThisDontMatter", new UnityEngine.Vector2(125, 125));
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            m_Preview.Cleanup();
+        }
 
         [TestCaseSource("nodeNames")]
         public void DoesPreviewCompile(string nodeName)
         {
-            Registry Registry = SGR.Registry;
-            GraphHandler Graph = new(Registry);
-
-            PreviewService Preview = new();
-            Preview.SetActiveRegistry(Registry);
-            Preview.SetActiveGraph(Graph);
-            Preview.Initialize("ThisDontMatter", new UnityEngine.Vector2(125, 125));
 
             var nodeKey = SGR.DefaultTopologies.GetNode(nodeName).GetRegistryKey();
-            var node = Graph.AddNode(nodeKey, nodeName);
+            var node = m_Graph.AddNode(nodeKey, nodeName);
 
             string previewName = nodeName;
             if (!HasVectorOutput(node))
@@ -128,9 +141,9 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
                     Assert.Fail($"The type: {typeName} of output port: {portName} does not have a node key associated with it.");
                 }
 
-                var nodeHelper = Graph.AddNode(key, previewName);
+                var nodeHelper = m_Graph.AddNode(key, previewName);
                 var portHelperName = FindInputPortNameByTypeKeyName(nodeHelper, typeName);
-                Graph.TryConnect(nodeName, portName, previewName, portHelperName);
+                m_Graph.TryConnect(nodeName, portName, previewName, portHelperName);
             }
 
 
@@ -140,14 +153,14 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.NodeTests
             // by not routing through the PreviewManager, but the setup and behavior of nodes would then be inconsistent with where this
             // is relevant.
 
-            //Preview.RequestNodePreviewShaderCodeStrings(previewName, out var shaderMessages, out _, out var prevCode, out _);
+            //m_Preview.RequestNodePreviewShaderCodeStrings(previewName, out var shaderMessages, out _, out var prevCode, out _);
             //string dump = "";
             //foreach (var msg in shaderMessages)
             //    dump += msg + "\n";
             //dump += prevCode;
             //Assert.IsNotEmpty(shaderMessages, dump);
 
-            var material = Preview.RequestNodePreviewMaterial(previewName);
+            var material = m_Preview.RequestNodePreviewMaterial(previewName);
             var value = PreviewTestFixture.SampleMaterialColor(material);
             Assert.AreNotEqual(BadImageResults, value);
         }

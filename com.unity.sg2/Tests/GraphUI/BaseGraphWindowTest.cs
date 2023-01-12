@@ -13,8 +13,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2( /*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
         protected TestEditorWindow m_MainWindow;
         protected TestGraphView m_GraphView;
-        protected List<TestEditorWindow> m_ExtraWindows = new();
-        protected List<string> m_ExtraGraphAssets = new();
+        List<TestEditorWindow> m_ExtraWindows = new();
+        List<string> m_ExtraGraphAssets = new();
         protected SGGraphModel GraphModel => m_GraphView.GraphModel as SGGraphModel;
 
         // Used to send events to the highest shader graph editor window
@@ -41,6 +41,26 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         }
 
         protected virtual GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
+
+        protected void CreateGraphInNewWindow(
+            out ShaderGraphAsset graphAsset,
+            out TestEditorWindow editorWindow,
+            out TestEventHelpers windowTestHelper)
+        {
+            // Create second graph
+            var graphPath = testAssetPath.Replace(ShaderGraphStencil.DefaultGraphAssetName, "NewShaderGraph1");
+            var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
+            newGraphAction.Action(0, graphPath, "");
+            graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(graphPath);
+            m_ExtraGraphAssets.Add(graphPath);
+
+            // Create second window
+            editorWindow = GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<TestEditorWindow>(graphAsset);
+            editorWindow.shouldCloseWindowNoPrompt = true;
+            m_ExtraWindows.Add(editorWindow);
+
+            windowTestHelper = new TestEventHelpers(editorWindow);
+        }
 
         [SetUp]
         public virtual void SetUp()
@@ -116,7 +136,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 extraWindow.Close();
             foreach (var extraGraphAsset in m_ExtraGraphAssets)
                 AssetDatabase.DeleteAsset(extraGraphAsset);
-
         }
 
         public TestEditorWindow CreateWindow()

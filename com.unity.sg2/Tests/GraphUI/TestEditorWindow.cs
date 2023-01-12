@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEngine;
 
@@ -7,6 +8,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
     class TestEditorWindow : ShaderGraphEditorWindow
     {
         public BlackboardView blackboardView => m_BlackboardView;
+
+        void OnDestroy()
+        {
+            previewUpdateDispatcher.Cleanup();
+        }
 
         protected override GraphView CreateGraphView()
         {

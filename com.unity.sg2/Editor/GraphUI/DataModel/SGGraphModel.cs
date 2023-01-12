@@ -548,7 +548,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var decl = base.InstantiateVariableDeclaration(variableTypeToCreate, variableDataType,
                 variableName, modifierFlags, isExposed, initializationModel, guid, initializationCallback);
 
-            if (decl is GraphDataVariableDeclarationModel graphDataVar)
+            if (decl is SGVariableDeclarationModel graphDataVar)
             {
                 graphDataVar.contextNodeName = BlackboardContextName;
                 graphDataVar.graphDataName = "_" + decl.Guid;;
@@ -737,9 +737,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
             Debug.Log("-- End CLDS Blackboard Ports");
 
-            Debug.Log("-- SGGraphModel GraphDataVariableDeclarationModels");
-            Debug.Assert(VariableDeclarations.Count == VariableDeclarations.OfType<GraphDataVariableDeclarationModel>().Count(), "Found VariableDeclarations of unexpected type.");
-            foreach (var v in VariableDeclarations.OfType<GraphDataVariableDeclarationModel>())
+            Debug.Log($"-- {nameof(SGGraphModel)} {nameof(SGVariableDeclarationModel)}");
+            Debug.Assert(VariableDeclarations.Count == VariableDeclarations.OfType<SGVariableDeclarationModel>().Count(), "Found VariableDeclarations of unexpected type.");
+            foreach (var v in VariableDeclarations.OfType<SGVariableDeclarationModel>())
             {
                 Debug.Log($"    {v.DisplayTitle} (GUID: {v.Guid}) : {v.InitializationModel.ObjectValue}");
 
@@ -748,7 +748,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 Debug.Assert((v.InitializationModel as BaseShaderGraphConstant).PortName == v.graphDataName, $"Variable {v.graphDataName} linked to wrong CLDS constant {(v.InitializationModel as BaseShaderGraphConstant).PortName}");
                 Debug.Assert(contextNode.GetPort(v.graphDataName) != null, $"Variable {v.DisplayTitle}:{v.graphDataName} not found on blackboard context node.");
             }
-            Debug.Log("-- End SGGraphModel GraphDataVariableDeclarationModels");
+            Debug.Log($"-- End {nameof(SGGraphModel)} {nameof(SGVariableDeclarationModel)}");
 
             Debug.Log("++++++++ Done checking graph sanity");
         }

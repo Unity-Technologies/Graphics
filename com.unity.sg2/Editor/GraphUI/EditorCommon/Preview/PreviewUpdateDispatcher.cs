@@ -22,6 +22,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         double m_LastTimedUpdateTime;
         EditorWindow m_OwningWindowReference;
 
+        internal PreviewService PreviewService => m_PreviewHandlerInstance;
+
         int PreviewWidth => Mathf.FloorToInt(m_MainPreviewModel.mainPreviewSize.x);
         int PreviewHeight => Mathf.FloorToInt(m_MainPreviewModel.mainPreviewSize.y);
 

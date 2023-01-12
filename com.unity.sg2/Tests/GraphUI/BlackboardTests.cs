@@ -15,10 +15,42 @@ using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-
-    // TODO (Sai): Add test coverage for adding all types of blackboard items
     class BlackboardTests : BaseGraphWindowTest
     {
+        T GetFirstBlackboardElementOfType<T>() where T : VisualElement
+        {
+            var decl = GraphModel.VariableDeclarations.FirstOrDefault();
+            Assert.IsNotNull(decl, "Menu item should have created underlying variable declaration");
+
+            var views = new List<ModelView>();
+            decl.GetAllViews(m_BlackboardView, v => v is T, views);
+
+            if (views.FirstOrDefault() is T view)
+                return view;
+
+            return null;
+        }
+
+        static readonly (string, Type)[] k_ExpectedFieldTypes =
+        {
+            // name of item in blackboard create menu, type of initialization field (or null if it should not exist)
+            ("Create Integer", typeof(IntegerField)),
+            ("Create Float", typeof(FloatField)),
+            ("Create Boolean", typeof(Toggle)),
+            ("Create Vector 2", typeof(Vector2Field)),
+            ("Create Vector 3", typeof(Vector3Field)),
+            ("Create Vector 4", typeof(Vector4Field)),
+            ("Create Color", typeof(ColorField)),
+            ("Create Matrix 2", typeof(MatrixField)),
+            ("Create Matrix 3", typeof(MatrixField)),
+            ("Create Matrix 4", typeof(MatrixField)),
+            ("Create Texture2D", typeof(ObjectField)),
+            ("Create Texture2DArray", typeof(ObjectField)),
+            ("Create Texture3D", typeof(ObjectField)),
+            ("Create Cubemap", typeof(ObjectField)),
+            ("Create SamplerStateData", null),
+        };
+
         protected override bool hideOverlayWindows => false;
         BlackboardView m_BlackboardView;
 
@@ -45,10 +77,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             return blackboardView;
         }
 
-        // TODO (Brett) This is commented out to bring tests to a passing status.
-        // TODO (Brett) This test was not removed because it is indicating a valuable failure
-        // TODO (Brett) that should be addressed.
-
         [Test]
         public void ExpectedFieldTypesIsUpToDate()
         {
@@ -56,7 +84,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var createMenu = new List<Stencil.MenuItem>();
             stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
 
-            var expected = new HashSet<string>(ExpectedFieldTypes.Select(e => e.Item1));
+            var expected = new HashSet<string>(k_ExpectedFieldTypes.Select(e => e.Item1));
             var menu = new HashSet<string>(createMenu.Select(e => e.name));
             expected.SymmetricExceptWith(menu);
 
@@ -70,14 +98,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
         [UnityTest]
         public IEnumerator TestPropertyLoadsWithCorrectFieldType(
-            [ValueSource(nameof(ExpectedFieldTypes))] (string, Type) testCase
+            [ValueSource(nameof(k_ExpectedFieldTypes))] (string, Type) testCase
         )
         {
             var (createItemName, fieldType) = testCase;
 
             void ValidateCreatedField()
             {
-                var view = GetFirstBlackboardElementOfType<GraphDataBlackboardVariablePropertyView>();
+                var view = GetFirstBlackboardElementOfType<SGBlackboardVariablePropertyView>();
                 Assert.IsNotNull(view, "View for created property was not found");
 
                 var field = view.Q<BaseModelPropertyField>(className: "ge-inline-value-editor");
@@ -149,15 +177,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             var variableNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Vector 4");
 
-            // NOTE: Unlike in GraphNodeTests where the graph view already has focus, if we don't
-            // send focus to the graph view visual element first (after interacting with the blackboard),
-            // the commands don't go through
-            m_TestEventHelper.SendMouseDownEvent(m_GraphView);
-            m_TestEventHelper.SendMouseUpEvent(m_GraphView);
-
             m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, variableNodeModel));
             yield return null;
 
+            m_GraphView.Focus();
             Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
             yield return null;
 
@@ -169,10 +192,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsNull(variableNodeHandler, "Node should also be removed from CLDS after delete operation");
         }
 
-
-        // TODO (Sai) : Find out why we can't use TestEventHelpers.SelectAndCopyNodes() here
         [UnityTest]
-        public IEnumerator TestVariableNodeCanBeCopied()
+        public IEnumerator TestVariableNodeCanBeDuplicated()
         {
             yield return TestVariableNodeCanBeAdded();
 
@@ -189,33 +210,59 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(m_MainWindow.GetNodeModelsFromGraphByName("Vector 4").Count == 2, "Should be two variable nodes after copy");
         }
 
-        // TODO (Brett) This is commented out to bring tests to a passing status.
-        // TODO (Brett) This test was not removed because it is indicating a valuable failure
-        // TODO (Brett) that should be addressed.
-        // [UnityTest]
-        // public IEnumerator TestItemValueChangeAffectsPreview()
-        // {
-        //     yield return TestVariableNodeCanBeAdded();
-        //
-        //     var variableNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Vector 4");
-        //     Assert.IsNotNull(variableNodeModel);
-        //
-        //     yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
-        //
-        //     m_TestInteractionHelper.ConnectNodes("Vector 4", "Add", "Output", "A");
-        //
-        //     var graphDataVariable = variableNodeModel as GraphDataVariableNodeModel;
-        //     m_GraphView.Dispatch(new UpdateConstantValueCommand(
-        //         graphDataVariable.VariableDeclarationModel.InitializationModel,
-        //         new Vector4(1, 0, 0, 0),
-        //         graphDataVariable.VariableDeclarationModel));
-        //
-        //     var nodePreviewMaterial = m_MainWindow.previewUpdateDispatcher.(graphDataVariable.graphDataName);
-        //     Assert.IsNotNull(nodePreviewMaterial);
-        //     Assert.AreEqual(Color.red, SampleMaterialColor(nodePreviewMaterial));
-        // }
+        [UnityTest]
+        public IEnumerator TestVariableValueChangeAffectsPreview()
+        {
+            yield return TestVariableNodeCanBeAdded();
 
-        // TODO: (Sai) Make these generalized to keywords also when those come in
+            var variableNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Vector 4") as SGVariableNodeModel;
+            Assert.IsNotNull(variableNodeModel);
+
+            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
+
+            m_TestInteractionHelper.ConnectNodes("Vector 4", "Add", "Output", "A");
+
+            m_GraphView.Dispatch(new UpdateConstantValueCommand(
+                variableNodeModel.VariableDeclarationModel.InitializationModel,
+                new Vector4(1, 0, 0, 0),
+                variableNodeModel.VariableDeclarationModel));
+
+            yield return null;
+
+            var addNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add") as SGNodeModel;
+            Assert.IsNotNull(addNodeModel);
+
+            var status = m_MainWindow.previewUpdateDispatcher.PreviewService.RequestNodePreviewTexture(addNodeModel.graphDataName, out var texture, out _);
+            var maxRetry = 100;
+            while (maxRetry > 0 && status != PreviewService.PreviewOutputState.Complete)
+            {
+                maxRetry--;
+                yield return null;
+            }
+
+            Assert.AreEqual(PreviewService.PreviewOutputState.Complete, status, "Could not get preview quickly enough.");
+
+            yield return null;
+
+            Texture2D output = new(1, 1, TextureFormat.ARGB32, false);
+            var color = Color.black;
+            var rt = texture as RenderTexture;
+            while (maxRetry > 0 && color != Color.red)
+            {
+                var prevActive = RenderTexture.active;
+                RenderTexture.active = rt;
+                output.ReadPixels(new Rect(0, 0, 1, 1), 0, 0);
+                RenderTexture.active = prevActive;
+                color = output.GetPixel(0, 0);
+                maxRetry--;
+                yield return null;
+            }
+
+            Debug.Log($"GetPixel {maxRetry}");
+
+            Assert.AreEqual(Color.red, color);
+        }
+
         [UnityTest]
         public IEnumerator TestAllPropertyTypesCanBeCreated()
         {
@@ -308,7 +355,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
         }
 
-        // TODO: (Sai) Make these generalized to keywords also when those come in
         [UnityTest]
         public IEnumerator TestAllPropertyTypesCanBeDuplicated()
         {
@@ -348,7 +394,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
         }
 
-        // TODO: (Sai) Make these generalized to keywords also when those come in
         [UnityTest]
         public IEnumerator TestAllPropertyTypesCanBeCutPasted()
         {
@@ -398,7 +443,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
         }
 
-        // TODO: (Sai) Make these generalized to keywords also when those come in
         [UnityTest]
         public IEnumerator TestAllPropertyTypesCanBeCopiedBetweenGraphs()
         {
@@ -406,10 +450,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             while (GraphModel == null)
                 yield return null;
 
-            var secondGraphPath = CreateSecondGraph(out ShaderGraphAsset secondGraphAsset, out var secondEditorWindow, out var secondWindowTestHelper);
-            // Cache these so we can do cleanup later
-            m_ExtraWindows.Add(secondEditorWindow);
-            m_ExtraGraphAssets.Add(secondGraphPath);
+            CreateGraphInNewWindow(out var secondGraphAsset, out var secondEditorWindow, out var secondWindowTestHelper);
 
             // Wait till second graph is loaded as well
             while (secondGraphAsset.GraphModel == null)
@@ -474,14 +515,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         }
 
         // TODO: (Sai) Make these generalized to keywords also when those come in
-        /*[UnityTest]
+        [UnityTest]
         public IEnumerator TestAllPropertyTypesCanBeCutBetweenGraphs()
         {
             // Wait till first graph is loaded
             while (GraphModel == null)
                 yield return null;
 
-            var secondGraphPath = CreateSecondGraph(out ShaderGraphAsset secondGraphAsset, out var secondEditorWindow, out var secondWindowTestHelper);
+            CreateGraphInNewWindow(out var secondGraphAsset, out var secondEditorWindow, out var secondWindowTestHelper);
+            var secondBlackboardView = FindBlackboardView(secondEditorWindow);
 
             // Wait till second graph is loaded
             while (secondGraphAsset.GraphModel == null)
@@ -511,15 +553,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 m_MainWindow.Focus();
                 yield return null;
 
-                // Select item
-                m_TestEventHelper.SendMouseDownEvent(m_BlackboardView);
-                m_TestEventHelper.SendMouseUpEvent(m_BlackboardView);
-
                 var declarationModel = originalItems[index];
+
+                SetVariableValue(declarationModel);
+                var originalValue = declarationModel.InitializationModel.ObjectValue;
+
                 m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, declarationModel));
                 yield return null;
 
                 // Cut Item from first graph
+                m_BlackboardView.Focus();
                 Assert.IsTrue(m_TestEventHelper.SendCutCommand());
                 yield return null;
 
@@ -528,21 +571,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 secondEditorWindow.Focus();
                 yield return null;
 
-                secondWindowTestHelper.SendMouseDownEvent(secondEditorWindow.blackboardView);
-                secondWindowTestHelper.SendMouseUpEvent(secondEditorWindow.blackboardView);
-
                 // Paste in second graph
+                secondBlackboardView.Focus();
                 Assert.IsTrue(secondWindowTestHelper.SendPasteCommand());
                 yield return null;
 
                 // Check to make sure the copy worked and there is one of the copied type in the target graph
                 Assert.IsTrue(secondGraphAsset.GraphModel.VariableDeclarations.Count(model => model.DataType == declarationModel.DataType) == 1);
-            }
 
-            // Close second window
-            secondEditorWindow.Close();
-            // Remove second graph asset
-            AssetDatabase.DeleteAsset(secondGraphPath);
-        }*/
+                // Check that values are preserved.
+                var copied = secondGraphAsset.GraphModel.VariableDeclarations.First(model => model.DataType == declarationModel.DataType);
+                Assert.AreEqual(originalValue, copied.InitializationModel.ObjectValue);
+            }
+        }
     }
 }
