@@ -7,14 +7,43 @@ namespace UnityEditor.ShaderGraph.Defs
         public static string Name => "Arctangent2";
         public static int Version => 1;
 
-        public static FunctionDescriptor FunctionDescriptor => new(
+        public static NodeDescriptor NodeDescriptor => new(
+            Version,
             Name,
-            "    Out = atan2(A, B);",
-            new ParameterDescriptor[]
-            {
-                new ParameterDescriptor("A", TYPE.Vector, Usage.In),
-                new ParameterDescriptor("B", TYPE.Vector, Usage.In),
-                new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+            functions: new FunctionDescriptor[] {
+                new(
+                    "Default",
+                    "    Out = atan2(A, B);",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("B", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
+                ),
+                new(
+                    "Fast",
+@"   t0 = max( abs(B), abs(A) );
+   t3 = min( abs(B), abs(A) ) / t0;
+   t4 = t3 * t3;
+   t0 =         + 0.0872929;
+   t0 = t0 * t4 - 0.301895;
+   t0 = t0 * t4 + 1.0;
+   t3 = t0 * t3;
+   t3 = abs(A) > abs(B) ? (0.5 * 3.1415926) - t3 : t3;
+   t3 = B < 0 ? 3.1415926 - t3 : t3;
+   t3 = A < 0 ? -t3 : t3;
+   Out = t3;",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor("A", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("B", TYPE.Vector, Usage.In),
+                        new ParameterDescriptor("t0", TYPE.Vector, Usage.Local),
+                        new ParameterDescriptor("t3", TYPE.Vector, Usage.Local),
+                        new ParameterDescriptor("t4", TYPE.Vector, Usage.Local),
+                        new ParameterDescriptor("Out", TYPE.Vector, Usage.Out)
+                    }
+                )
             }
         );
 
@@ -25,6 +54,11 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the arctangent of input A divided by input B.",
             category: "Math/Trigonometry",
             synonyms: new string[1] { "atan2" },
+            selectableFunctions: new()
+            {
+                { "Default", "Default" },
+                { "Fast", "Fast" }
+            },
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",
