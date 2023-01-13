@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         protected override void BuildPartList()
         {
-            PartList.AppendPart(InOutPortContainerPart.Create(portContainerPartName, Model, this, ussClassName));
+            PartList.AppendPart(InOutPortContainerPart.Create(portContainerPartName, Model, this, float.PositiveInfinity, ussClassName));
             AddToClassList("sg-redirect-node");
             this.AddStylesheet("RedirectNode.uss");
         }
