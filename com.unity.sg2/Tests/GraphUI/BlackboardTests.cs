@@ -233,7 +233,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsNotNull(addNodeModel);
 
             var status = m_MainWindow.previewUpdateDispatcher.PreviewService.RequestNodePreviewTexture(addNodeModel.graphDataName, out var texture, out _);
-            var maxRetry = 100;
+            var maxRetry = 60;
             while (maxRetry > 0 && status != PreviewService.PreviewOutputState.Complete)
             {
                 maxRetry--;
@@ -257,8 +257,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 maxRetry--;
                 yield return null;
             }
-
-            Debug.Log($"GetPixel {maxRetry}");
 
             Assert.AreEqual(Color.red, color);
         }
