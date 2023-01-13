@@ -41,6 +41,8 @@ public static class SetupProject
             if (Options.TryGetValue(arg, out action))
                 action();
         }
+
+        UnityEditor.TestTools.Graphics.SetupProject.ApplySettings();
     }
 
     [MenuItem("Graphic Tests/Project Setup/RP: Deferred")]
