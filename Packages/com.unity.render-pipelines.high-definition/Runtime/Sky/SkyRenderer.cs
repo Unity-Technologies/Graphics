@@ -92,5 +92,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return false;
         }
+
+        internal void Reset()
+        {
+            m_LastFrameUpdate = -1;
+        }
     }
 }

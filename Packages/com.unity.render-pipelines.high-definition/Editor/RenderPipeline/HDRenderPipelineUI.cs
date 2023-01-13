@@ -876,8 +876,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.customBufferFormat, Styles.customBufferFormatContent);
                 --EditorGUI.indentLevel;
             }
-
+            
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (serialized.renderPipelineSettings.supportRayTracing.boolValue)
+                    HDRenderPipelineGlobalSettings.instance.EnsureRayTracingResources(forceReload: false);
+                else
+                    HDRenderPipelineGlobalSettings.instance.ClearRayTracingResources();
+            }
+
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
             {
                 ++EditorGUI.indentLevel;
