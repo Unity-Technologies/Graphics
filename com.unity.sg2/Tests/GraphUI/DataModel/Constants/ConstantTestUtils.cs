@@ -1,5 +1,8 @@
+using NUnit.Framework;
+using Unity.GraphToolsFoundation;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
 {
@@ -15,6 +18,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
             var portHandler = NodeBuilderUtils.ParameterDescriptorToField(param, TYPE.Any, nodeHandler, model.GraphHandler.registry);
 
             return (nodeHandler, portHandler);
+        }
+
+        public static BaseShaderGraphConstant MakeAndBindConstant(SGGraphModel graphModel, TypeHandle typeHandle, NodeHandler nodeHandler, PortHandler portHandler)
+        {
+            var node = graphModel.CreateConstantNode(typeHandle, "c", Vector2.zero);
+            var constant = node.Value as BaseShaderGraphConstant;
+            Assert.IsNotNull(constant);
+
+            constant.BindTo(nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
+            return constant;
         }
     }
 }

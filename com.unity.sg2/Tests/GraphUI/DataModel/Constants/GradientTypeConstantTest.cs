@@ -30,9 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
             var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, TYPE.Gradient);
             GradientTypeHelpers.SetGradient(portHandler.GetTypeField(), k_TestGradient);
 
-            var constant = new GradientTypeConstant();
-            constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
-
+            var constant = ConstantTestUtils.MakeAndBindConstant(GraphModel, ShaderGraphExampleTypes.GradientTypeHandle, nodeHandler, portHandler);
             Assert.AreEqual(k_TestGradient, constant.ObjectValue);
         }
 
@@ -40,9 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
         public void TestSetObjectValue_MatchingType_WritesField()
         {
             var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, TYPE.Gradient);
-
-            var constant = new GradientTypeConstant();
-            constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
+            var constant = ConstantTestUtils.MakeAndBindConstant(GraphModel, ShaderGraphExampleTypes.GradientTypeHandle, nodeHandler, portHandler);
 
             constant.ObjectValue = k_TestGradient;
             Assert.AreEqual(k_TestGradient, GradientTypeHelpers.GetGradient(portHandler.GetTypeField()));
@@ -52,8 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
         public void TestGetType_IsGradientType()
         {
             var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, TYPE.Gradient);
-            var constant = new GradientTypeConstant();
-            constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
+            var constant = ConstantTestUtils.MakeAndBindConstant(GraphModel, ShaderGraphExampleTypes.GradientTypeHandle, nodeHandler, portHandler);
 
             Assert.AreEqual(typeof(Gradient), constant.Type);
         }
@@ -62,8 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
         public void TestGetTypeHandle_IsGradientTypeHandle()
         {
             var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, TYPE.Gradient);
-            var constant = new GradientTypeConstant();
-            constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
+            var constant = ConstantTestUtils.MakeAndBindConstant(GraphModel, ShaderGraphExampleTypes.GradientTypeHandle, nodeHandler, portHandler);
 
             Assert.AreEqual(ShaderGraphExampleTypes.GradientTypeHandle, constant.GetTypeHandle());
         }

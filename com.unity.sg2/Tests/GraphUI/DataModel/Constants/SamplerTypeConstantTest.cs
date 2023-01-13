@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
     {
         static readonly SamplerStateData k_TestSamplerStateData = new()
         {
-            aniso = SamplerStateType.Aniso.Ansio8,
+            aniso = SamplerStateType.Aniso.Aniso8,
             filter = SamplerStateType.Filter.Point,
             wrap = SamplerStateType.Wrap.Mirror,
             depthCompare = true
@@ -26,8 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
             SamplerStateType.SetWrap(typeField, k_TestSamplerStateData.wrap);
             SamplerStateType.SetDepthComparison(typeField, k_TestSamplerStateData.depthCompare);
 
-            var constant = new SamplerStateTypeConstant();
-            constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
+            var constant = ConstantTestUtils.MakeAndBindConstant(GraphModel, ShaderGraphExampleTypes.SamplerStateTypeHandle, nodeHandler, portHandler);
 
             Assert.AreEqual(k_TestSamplerStateData, constant.ObjectValue);
         }
@@ -38,8 +37,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
             var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, TYPE.SamplerState);
             var typeField = portHandler.GetTypeField();
 
-            var constant = new SamplerStateTypeConstant();
-            constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
+            var constant = ConstantTestUtils.MakeAndBindConstant(GraphModel, ShaderGraphExampleTypes.SamplerStateTypeHandle, nodeHandler, portHandler);
 
             constant.ObjectValue = k_TestSamplerStateData;
             Assert.AreEqual(k_TestSamplerStateData.aniso, SamplerStateType.GetAniso(typeField));
@@ -52,8 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
         public void TestGetType_IsSamplerStateType()
         {
             var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, TYPE.SamplerState);
-            var constant = new SamplerStateTypeConstant();
-            constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
+            var constant = ConstantTestUtils.MakeAndBindConstant(GraphModel, ShaderGraphExampleTypes.SamplerStateTypeHandle, nodeHandler, portHandler);
 
             Assert.AreEqual(typeof(SamplerStateData), constant.Type);
         }
@@ -62,8 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel.Constants
         public void TestGetTypeHandle_IsSamplerStateTypeHandle()
         {
             var (nodeHandler, portHandler) = ConstantTestUtils.MakeTestField(GraphModel, TYPE.SamplerState);
-            var constant = new SamplerStateTypeConstant();
-            constant.Initialize(GraphModel, nodeHandler.ID.LocalPath, portHandler.ID.LocalPath);
+            var constant = ConstantTestUtils.MakeAndBindConstant(GraphModel, ShaderGraphExampleTypes.SamplerStateTypeHandle, nodeHandler, portHandler);
 
             Assert.AreEqual(ShaderGraphExampleTypes.SamplerStateTypeHandle, constant.GetTypeHandle());
         }
