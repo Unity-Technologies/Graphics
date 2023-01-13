@@ -436,6 +436,9 @@ namespace UnityEngine.Rendering.Universal
             SetupRenderingLayers(ref renderingData);
 
             CreateRenderGraphCameraRenderTargets(renderGraph, ref renderingData);
+
+            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRendering);
+
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, isActiveTargetBackBuffer);
 
             DebugHandler?.Setup(ref renderingData);
@@ -472,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnOffscreenDepthTextureRendering(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRendering, RenderPassEvent.BeforeRenderingOpaques);
+            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
             m_RenderOpaqueForwardPass.Render(renderGraph, resources.GetTexture(UniversalResource.BackBufferColor), TextureHandle.nullHandle, TextureHandle.nullHandle, TextureHandle.nullHandle, ref renderingData);
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingSkybox);
             m_DrawSkyboxPass.Render(renderGraph, context, resources.GetTexture(UniversalResource.BackBufferColor), TextureHandle.nullHandle, ref renderingData);
@@ -485,9 +488,6 @@ namespace UnityEngine.Rendering.Universal
         }
         private void OnBeforeRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
-            // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.BeforeRendering injected passes should only be called before the first camera in the stack
-            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRendering);
-
             m_ForwardLights.PreSetup(ref renderingData);
 
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRenderingShadows);

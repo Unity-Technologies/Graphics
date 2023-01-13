@@ -61,12 +61,10 @@ namespace UnityEngine.Rendering.Universal
                 return TextureHandle.nullHandle;
             }
 
-            Hash128 key = GetKey(id);
+            if (m_TextureHandles.TryGetValue(GetKey(id), out TextureHandle handle))
+                return handle;
 
-            if (!m_TextureHandles.ContainsKey(key))
-                return TextureHandle.nullHandle;
-
-            return m_TextureHandles[key];
+            return TextureHandle.nullHandle;
         }
 
         /// <summary>
