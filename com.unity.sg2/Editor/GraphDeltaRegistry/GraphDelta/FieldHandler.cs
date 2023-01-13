@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Profiling;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEngine;
 using static UnityEditor.ShaderGraph.GraphDelta.GraphStorage;
@@ -8,6 +9,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public class FieldHandler : GraphDataHandler
     {
+        static ProfilerMarker s_AddSubField = new ProfilerMarker("FieldHandler.AddSubField");
+
         internal const string k_dataRecon = "_ReconcretizeOnDataChange";
         internal FieldHandler(ElementID elementID, GraphDelta owner, Registry registry, string defaultLayer = GraphDelta.k_user)
             : base(elementID, owner, registry, defaultLayer)
@@ -66,6 +69,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
         public FieldHandler<T> AddSubField<T>(string localID, T value, bool reconcretizeOnDataChange = false)
         {
+            using var scope = s_AddSubField.Auto();
+
             Writer.AddChild(localID, value).SetHeader(new FieldHeader<T>());
             var output = new FieldHandler<T>(ID.FullPath + $".{localID}", Owner, Registry, DefaultLayer) ;
             if(reconcretizeOnDataChange)
@@ -82,6 +87,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     public class FieldHandler<T> : FieldHandler
     {
+        static ProfilerMarker s_SetData = new ProfilerMarker("FieldHandler<T>.SetData");
+
         internal FieldHandler(ElementID elementID, GraphDelta owner, Registry registry, string defaultLayer = GraphDelta.k_user)
             : base(elementID, owner, registry, defaultLayer)
         {
@@ -113,6 +120,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
         public void SetData(T value)
         {
+            using var scope = s_SetData.Auto();
+
             T prev = GetData();
             Writer.SetData(value);
             if(DefaultLayer.Equals(GraphDelta.k_user) && !prev.Equals(value) && HasMetadata(k_dataRecon))
