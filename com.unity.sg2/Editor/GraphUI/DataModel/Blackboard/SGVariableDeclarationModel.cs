@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class GraphDataVariableDeclarationModel : VariableDeclarationModel
+    class SGVariableDeclarationModel : VariableDeclarationModel
     {
         [SerializeField]
         [HideInInspector]

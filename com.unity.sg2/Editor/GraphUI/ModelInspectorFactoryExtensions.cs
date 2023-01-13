@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [ModelInspectorCreateSectionMethodsCache(typeof(ModelInspectorView))]
     static class ModelInspectorViewFactoryExtensions
     {
-        public static MultipleModelsView CreateVariableDeclarationInspector(this ElementBuilder elementBuilder, IEnumerable<GraphDataVariableDeclarationModel> models)
+        public static MultipleModelsView CreateVariableDeclarationInspector(this ElementBuilder elementBuilder, IEnumerable<SGVariableDeclarationModel> models)
         {
             var ui = new ShaderGraphModelInspector();
             ui.Setup(models, elementBuilder.View, elementBuilder.Context);
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public static MultipleModelsView CreateVariableNodeInspector(this ElementBuilder elementBuilder, IEnumerable<SGVariableNodeModel> models)
         {
-            return elementBuilder.CreateVariableDeclarationInspector(models.Select(m => (GraphDataVariableDeclarationModel)m.VariableDeclarationModel));
+            return elementBuilder.CreateVariableDeclarationInspector(models.Select(m => (SGVariableDeclarationModel)m.VariableDeclarationModel));
         }
 
         public static MultipleModelsView CreateContextSectionInspector(this ElementBuilder elementBuilder, IEnumerable<SGContextNodeModel> models)

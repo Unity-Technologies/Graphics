@@ -17,13 +17,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
             VariableSetting s
         )
             : base(commandTarget, models, null, s.Label, null,
-                (newValue, field) => field.CommandTarget.Dispatch(new SetVariableSettingCommand(models.First() as GraphDataVariableDeclarationModel, s, newValue)),
-                _ => (T)s.GetAsObject(models.First() as GraphDataVariableDeclarationModel)) { }
+                (newValue, field) => field.CommandTarget.Dispatch(new SetVariableSettingCommand(models.First() as SGVariableDeclarationModel, s, newValue)),
+                _ => (T)s.GetAsObject(models.First() as SGVariableDeclarationModel)) { }
     }
 
     class GraphDataVariableSettingsInspector : SGFieldsInspector
     {
-        IEnumerable<GraphDataVariableDeclarationModel> graphDataModel => m_Models.OfType<GraphDataVariableDeclarationModel>();
+        IEnumerable<SGVariableDeclarationModel> graphDataModel => m_Models.OfType<SGVariableDeclarationModel>();
 
         public GraphDataVariableSettingsInspector(string name, IEnumerable<Model> models, RootView rootView, string parentClassName)
             : base(name, models, rootView, parentClassName) { }
