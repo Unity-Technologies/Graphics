@@ -210,7 +210,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(m_MainWindow.GetNodeModelsFromGraphByName("Vector 4").Count == 2, "Should be two variable nodes after copy");
         }
 
-        [UnityTest]
+        [UnityTest, Explicit("Time dependent test, which often means this will be an unstable test.")]
         public IEnumerator TestVariableValueChangeAffectsPreview()
         {
             yield return TestVariableNodeCanBeAdded();
