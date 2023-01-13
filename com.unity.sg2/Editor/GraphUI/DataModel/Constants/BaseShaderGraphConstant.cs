@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         SGGraphModel graphModel => OwnerModel?.GraphModel as SGGraphModel;
 
-        GraphHandler graphHandler => graphModel.GraphHandler;
+        GraphHandler graphHandler => graphModel?.GraphHandler;
 
         // TODO: shouldn't need to special case if we're a searcher preview.
         NodeHandler nodeHandler => graphHandler?.GetNode(nodeName)
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        public void BindTo(string nodeName, string portName)
+        public virtual void BindTo(string nodeName, string portName)
         {
             this.nodeName = nodeName;
             this.portName = portName;

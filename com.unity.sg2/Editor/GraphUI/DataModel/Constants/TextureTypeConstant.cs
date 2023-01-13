@@ -1,8 +1,8 @@
-
 using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using Unity.GraphToolsFoundation;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -16,18 +16,26 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void SetValue(object value) => BaseTextureType.SetTextureAsset(GetField(), (Texture)value);
         public override object DefaultValue => null;
 
-        public void SetTextureType(BaseTextureType.TextureType textype)
-            => BaseTextureType.SetTextureType(GetField(), textype);
+        BaseTextureType.TextureType GetTextureType() => BaseTextureType.GetTextureType(GetField());
 
-        public BaseTextureType.TextureType GetTextureType()
-            => BaseTextureType.GetTextureType(GetField());
+        /// <inheritdoc />
+        public override void BindTo(string nodeName, string portName)
+        {
+            base.BindTo(nodeName, portName);
+
+            if (OwnerModel is NodeModel nodeModel)
+            {
+                nodeModel.DefineNode();
+            }
+        }
 
         public override Type Type
         {
             get
             {
                 if (!IsBound)
-                    return typeof(Texture);
+                    return typeof(Texture2D);
+
                 switch (GetTextureType())
                 {
                     case BaseTextureType.TextureType.Texture3D: return typeof(Texture3D);
@@ -41,6 +49,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override TypeHandle GetTypeHandle()
         {
+            if (!IsBound)
+                return ShaderGraphExampleTypes.Texture2DTypeHandle;
+
             switch (GetTextureType())
             {
                 case BaseTextureType.TextureType.Texture3D: return ShaderGraphExampleTypes.Texture3DTypeHandle;

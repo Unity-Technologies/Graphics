@@ -2,7 +2,7 @@ using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 using Unity.GraphToolsFoundation;
-using UnityEngine.Assertions;
+using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -23,9 +23,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (field == null)
                 return DefaultValue;
 
-            if (!IsBound)
-                return GraphTypeHelpers.GetAsVec4(field);
-
             return GraphTypeHelpers.GetFieldValue(field) ?? DefaultValue;
         }
 
@@ -34,9 +31,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var field = GetField();
             if (field == null)
                 return;
-
-            if (!IsBound)
-                GraphTypeHelpers.SetAsVec4(field, (Vector4)value);
 
             GraphTypeHelpers.SetFieldValue(field, value);
         }
@@ -93,35 +87,36 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override TypeHandle GetTypeHandle()
         {
-            try
+            switch (GetHeight())
             {
-                switch (GetHeight())
-                {
-                    case GraphType.Height.Four: return ShaderGraphExampleTypes.Matrix4;
-                    case GraphType.Height.Three: return ShaderGraphExampleTypes.Matrix3;
-                    case GraphType.Height.Two: return ShaderGraphExampleTypes.Matrix2;
-                }
-
-                switch (GetLength())
-                {
-                    case GraphType.Length.Two: return TypeHandle.Vector2;
-                    case GraphType.Length.Three: return TypeHandle.Vector3;
-                    case GraphType.Length.Four: return TypeHandle.Vector4;
-                    default:
-                        switch (GetPrimitive())
-                        {
-                            case GraphType.Primitive.Int: return TypeHandle.Int;
-                            case GraphType.Primitive.Bool: return TypeHandle.Bool;
-                            default: return TypeHandle.Float;
-                        }
-                }
+                case GraphType.Height.Four: return ShaderGraphExampleTypes.Matrix4;
+                case GraphType.Height.Three: return ShaderGraphExampleTypes.Matrix3;
+                case GraphType.Height.Two: return ShaderGraphExampleTypes.Matrix2;
             }
-            catch(Exception e)
+
+            switch (GetLength())
             {
-                // TODO: (Sai) Currently, when a blackboard item is deleted, the inspector still tries to draw it after
-                // this causes exceptions due to missing graph data, need to investigate more
-                Debug.LogException(e);
-                return TypeHandle.Unknown;
+                case GraphType.Length.Two: return TypeHandle.Vector2;
+                case GraphType.Length.Three: return TypeHandle.Vector3;
+                case GraphType.Length.Four: return TypeHandle.Vector4;
+                default:
+                    switch (GetPrimitive())
+                    {
+                        case GraphType.Primitive.Int: return TypeHandle.Int;
+                        case GraphType.Primitive.Bool: return TypeHandle.Bool;
+                        default: return TypeHandle.Float;
+                    }
+            }
+        }
+
+        /// <inheritdoc />
+        public override void BindTo(string nodeName, string portName)
+        {
+            base.BindTo(nodeName, portName);
+
+            if (OwnerModel is NodeModel nodeModel)
+            {
+                nodeModel.DefineNode();
             }
         }
 
