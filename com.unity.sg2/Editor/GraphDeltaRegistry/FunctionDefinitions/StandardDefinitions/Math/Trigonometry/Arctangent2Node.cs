@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
 @"   t0 = max( abs(B), abs(A) );
    t3 = min( abs(B), abs(A) ) / t0;
    t4 = t3 * t3;
-   t0 =         + 0.0872929;
+   t0 = + 0.0872929;
    t0 = t0 * t4 - 0.301895;
    t0 = t0 * t4 + 1.0;
    t3 = t0 * t3;
