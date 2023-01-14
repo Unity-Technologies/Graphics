@@ -14,7 +14,7 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 // "Edit/Rendering/Generate Core CommandBuffers" menu option.
 // This will generate the new command buffer C# files in the project root.
 //
-// Note that wile automated,this doesn't mean you won't have to think. Please consider any new methods on the command
+// Note that while automated,this doesn't mean you won't have to think. Please consider any new methods on the command
 // buffer if they are safe to be executed on the async compute queue or not, if they can be executed inside a
 // native render pass or not,... and add the function to the appropriate lists in CommandBufferGenerator.cs in the
 // com.unity.render-pipelines.core\Editor\CommandBuffers\CommandBufferGenerator\CommandBufferGenerator.cs.
@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering
     /// <summary>
     /// This interface declares functions shared by several command buffer types.
     /// </summary>
-    public interface IBaseCommandBuffer
+    public interface IBaseCommandBuffer 
     {
 
         /// <summary>Wraps [SetInvertCulling](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetInvertCulling.html) on a CommandBuffer.</summary>

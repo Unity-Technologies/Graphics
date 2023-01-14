@@ -14,7 +14,7 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 // "Edit/Rendering/Generate Core CommandBuffers" menu option.
 // This will generate the new command buffer C# files in the project root.
 //
-// Note that wile automated,this doesn't mean you won't have to think. Please consider any new methods on the command
+// Note that while automated,this doesn't mean you won't have to think. Please consider any new methods on the command
 // buffer if they are safe to be executed on the async compute queue or not, if they can be executed inside a
 // native render pass or not,... and add the function to the appropriate lists in CommandBufferGenerator.cs in the
 // com.unity.render-pipelines.core\Editor\CommandBuffers\CommandBufferGenerator\CommandBufferGenerator.cs.
@@ -30,8 +30,6 @@ namespace UnityEngine.Experimental.Rendering
 
     /// <summary>
     /// A command buffer that is used with a lowlevel render graph pass.
-    /// This commandbuffer can record certain commands that are not available in other commandbuffers eg.SetRenderTarget. It is only to be used in special situations and will break the native renderpasses in RenderGraph.
-    /// One example use case is to optmize lightmap mipmap data setup pass at the begining of the frame - by combining multiple blit passes into one lowlevel pass, it reduces the overall frame complexity and graph compiling cost.
     /// </summary>
     public class LowLevelCommandBuffer : BaseCommandBuffer, ILowLevelCommandBuffer
     {
@@ -59,13 +57,6 @@ namespace UnityEngine.Experimental.Rendering
         public void DisableScissorRect()  {  m_WrappedCommandBuffer.DisableScissorRect(); }
 
         /// <summary>Wraps [ClearRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html) on a CommandBuffer.</summary>
-        /// <param name="clearFlags">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
-        /// <param name="backgroundColor">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
-        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
-        /// <param name="stencil">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
-        public void ClearRenderTarget(RTClearFlags clearFlags, Color backgroundColor, float depth, uint stencil)  {  m_WrappedCommandBuffer.ClearRenderTarget(clearFlags, backgroundColor, depth, stencil); }
-
-        /// <summary>Wraps [ClearRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html) on a CommandBuffer.</summary>
         /// <param name="clearDepth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
         /// <param name="clearColor">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
         /// <param name="backgroundColor">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
@@ -77,6 +68,28 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="backgroundColor">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
         /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
         public void ClearRenderTarget(bool clearDepth, bool clearColor, Color backgroundColor, float depth)  {  m_WrappedCommandBuffer.ClearRenderTarget(clearDepth, clearColor, backgroundColor, depth); }
+
+        /// <summary>Wraps [ClearRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="clearDepth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="clearColor">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="backgroundColor">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="stencil">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        public void ClearRenderTarget(bool clearDepth, bool clearColor, Color backgroundColor, float depth, uint stencil)  {  m_WrappedCommandBuffer.ClearRenderTarget(clearDepth, clearColor, backgroundColor, depth, stencil); }
+
+        /// <summary>Wraps [ClearRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="clearFlags">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="backgroundColor">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="stencil">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        public void ClearRenderTarget(RTClearFlags clearFlags, Color backgroundColor, float depth, uint stencil)  {  m_WrappedCommandBuffer.ClearRenderTarget(clearFlags, backgroundColor, depth, stencil); }
+
+        /// <summary>Wraps [ClearRenderTarget](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html) on a CommandBuffer.</summary>
+        /// <param name="clearFlags">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="backgroundColors">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        /// <param name="stencil">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.ClearRenderTarget.html)</param>
+        public void ClearRenderTarget(RTClearFlags clearFlags, Color[] backgroundColors, float depth, uint stencil)  {  m_WrappedCommandBuffer.ClearRenderTarget(clearFlags, backgroundColors, depth, stencil); }
 
         /// <summary>Wraps [SetGlobalFloat](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalFloat.html) on a CommandBuffer.</summary>
         /// <param name="nameID">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalFloat.html)</param>

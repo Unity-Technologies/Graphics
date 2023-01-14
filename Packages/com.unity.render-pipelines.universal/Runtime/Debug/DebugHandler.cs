@@ -344,143 +344,183 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #region DebugRenderPasses
-
-        private class DebugRenderPassEnumerable : IEnumerable<DebugRenderSetup>
+        #region DebugRendererLists
+        
+        internal DebugRendererLists CreateRendererListsWithDebugRenderState(
+             ScriptableRenderContext context,
+             ref RenderingData renderingData,
+             ref DrawingSettings drawingSettings,
+             ref FilteringSettings filteringSettings,
+             ref RenderStateBlock renderStateBlock)
         {
-            private class Enumerator : IEnumerator<DebugRenderSetup>
-            {
-                private readonly DebugHandler m_DebugHandler;
-                readonly FilteringSettings m_FilteringSettings;
-                private readonly int m_NumIterations;
-
-                private int m_Index;
-
-                public DebugRenderSetup Current { get; private set; }
-                object IEnumerator.Current => Current;
-
-                public Enumerator(DebugHandler debugHandler,
-                    FilteringSettings filteringSettings)
-                {
-                    DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
-
-                    m_DebugHandler = debugHandler;
-                    m_FilteringSettings = filteringSettings;
-                    m_NumIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) ||
-                        (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe))
-                        ? 2
-                        : 1;
-
-                    m_Index = -1;
-                }
-
-                #region IEnumerator<DebugRenderSetup>
-
-                public bool MoveNext()
-                {
-                    Current?.Dispose();
-
-                    if (++m_Index >= m_NumIterations)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        Current = new DebugRenderSetup(m_DebugHandler, m_Index, m_FilteringSettings);
-                        return true;
-                    }
-                }
-
-                public void Reset()
-                {
-                    if (Current != null)
-                    {
-                        Current.Dispose();
-                        Current = null;
-                    }
-
-                    m_Index = -1;
-                }
-
-                public void Dispose()
-                {
-                    Current?.Dispose();
-                }
-
-                #endregion
-            }
-
-            private readonly DebugHandler m_DebugHandler;
-            readonly FilteringSettings m_FilteringSettings;
-
-            public DebugRenderPassEnumerable(DebugHandler debugHandler,
-                FilteringSettings filteringSettings)
-            {
-                m_DebugHandler = debugHandler;
-                m_FilteringSettings = filteringSettings;
-            }
-
-            #region IEnumerable<DebugRenderSetup>
-
-            public IEnumerator<DebugRenderSetup> GetEnumerator()
-            {
-                return new Enumerator(m_DebugHandler, m_FilteringSettings);
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            #endregion
+            DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
+            debug.CreateRendererListsWithDebugRenderState(context, ref renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            return debug;
         }
 
-        private DebugRenderPassEnumerable CreateDebugRenderSetupEnumerable(FilteringSettings filteringSettings)
-        {
-            return new DebugRenderPassEnumerable(this, filteringSettings);
-        }
-
-        private DebugRenderPassEnumerable m_DebugRenderPassEnumerable;
-        internal void CreateRendererListWithDebugRenderState(
-            ScriptableRenderContext context,
-            ref RenderingData renderingData,
-            ref DrawingSettings drawingSettings,
-            ref FilteringSettings filteringSettings,
-            ref RenderStateBlock renderStateBlock)
-        {
-            m_DebugRenderPassEnumerable = CreateDebugRenderSetupEnumerable(filteringSettings);
-            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderPassEnumerable)
-            {
-                DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
-                RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
-                debugRenderSetup.CreateRendererList(context, ref renderingData, ref debugDrawingSettings, ref filteringSettings, ref debugRenderStateBlock);
-            }
-        }
-
-        internal void CreateRendererListWithDebugRenderState(
+        internal DebugRendererLists CreateRendererListsWithDebugRenderState(
             RenderGraph renderGraph,
             ref RenderingData renderingData,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
         {
-            m_DebugRenderPassEnumerable = CreateDebugRenderSetupEnumerable(filteringSettings);
-            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderPassEnumerable)
+            DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
+            debug.CreateRendererListsWithDebugRenderState(renderGraph, ref renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            return debug;
+        }
+        #endregion
+    }
+
+    internal class DebugRendererLists : IEnumerable<DebugRenderSetup>
+    {
+        private class Enumerator : IEnumerator<DebugRenderSetup>
+        {
+            private readonly DebugHandler m_DebugHandler;
+            readonly FilteringSettings m_FilteringSettings;
+            private readonly int m_NumIterations;
+
+            private int m_Index;
+
+            public DebugRenderSetup Current { get; private set; }
+            object IEnumerator.Current => Current;
+
+            public Enumerator(DebugHandler debugHandler,
+                FilteringSettings filteringSettings)
+            {
+                DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
+
+                m_DebugHandler = debugHandler;
+                m_FilteringSettings = filteringSettings;
+                m_NumIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) ||
+                    (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe))
+                    ? 2
+                    : 1;
+
+                m_Index = -1;
+            }
+
+            #region IEnumerator<DebugRenderSetup>
+
+            public bool MoveNext()
+            {
+                Current?.Dispose();
+
+                if (++m_Index >= m_NumIterations)
+                {
+                    return false;
+                }
+                else
+                {
+                    Current = new DebugRenderSetup(m_DebugHandler, m_Index, m_FilteringSettings);
+                    return true;
+                }
+            }
+
+            public void Reset()
+            {
+                if (Current != null)
+                {
+                    Current.Dispose();
+                    Current = null;
+                }
+
+                m_Index = -1;
+            }
+
+            public void Dispose()
+            {
+                Current?.Dispose();
+            }
+
+            #endregion
+        }
+
+        private readonly DebugHandler m_DebugHandler;
+        readonly FilteringSettings m_FilteringSettings;
+
+        public DebugRendererLists(DebugHandler debugHandler,
+            FilteringSettings filteringSettings)
+        {
+            m_DebugHandler = debugHandler;
+            m_FilteringSettings = filteringSettings;
+        }
+
+        readonly List<RendererList> m_ActiveDebugRendererList = new List<RendererList>();
+        readonly List<RendererListHandle> m_ActiveDebugRendererListHdl = new List<RendererListHandle>();
+
+        internal void CreateRendererListsWithDebugRenderState(
+             ScriptableRenderContext context,
+             ref RenderingData renderingData,
+             ref DrawingSettings drawingSettings,
+             ref FilteringSettings filteringSettings,
+             ref RenderStateBlock renderStateBlock)
+        {
+            foreach (DebugRenderSetup debugRenderSetup in this)
             {
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
-                debugRenderSetup.CreateRendererList(renderGraph, ref renderingData, ref debugDrawingSettings, ref filteringSettings, ref debugRenderStateBlock);
+                RendererList rendererList = new RendererList();
+                RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererList);
+                m_ActiveDebugRendererList.Add((rendererList));
+            }
+        }
+
+        internal void CreateRendererListsWithDebugRenderState(
+            RenderGraph renderGraph,
+            ref RenderingData renderingData,
+            ref DrawingSettings drawingSettings,
+            ref FilteringSettings filteringSettings,
+            ref RenderStateBlock renderStateBlock)
+        {
+            foreach (DebugRenderSetup debugRenderSetup in this)
+            {
+                DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
+                RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
+                RendererListHandle rendererListHdl = new RendererListHandle();
+                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererListHdl);
+                m_ActiveDebugRendererListHdl.Add((rendererListHdl));
+            }
+        }
+
+        internal void PrepareRendererListForRasterPass(IRasterRenderGraphBuilder builder)
+        {
+            foreach (RendererListHandle rendererListHdl in m_ActiveDebugRendererListHdl)
+            {
+                builder.UseRendererList(rendererListHdl);
             }
         }
 
         internal void DrawWithRendererList(RasterCommandBuffer cmd)
         {
-            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderPassEnumerable)
+            foreach (DebugRenderSetup debugRenderSetup in this)
             {
                 debugRenderSetup.Begin(cmd);
-                debugRenderSetup.DrawWithRendererList(cmd);
+                RendererList rendererList = new RendererList();
+                if (m_ActiveDebugRendererList.Count > 0)
+                {
+                    rendererList = m_ActiveDebugRendererList[debugRenderSetup.GetIndex()];
+                }
+                else if(m_ActiveDebugRendererListHdl.Count > 0)
+                {
+                    rendererList = m_ActiveDebugRendererListHdl[debugRenderSetup.GetIndex()];
+                }
+
+                debugRenderSetup.DrawWithRendererList(cmd, ref rendererList);
                 debugRenderSetup.End(cmd);
             }
+        }
+
+        #region IEnumerable<DebugRenderSetup>
+
+        public IEnumerator<DebugRenderSetup> GetEnumerator()
+        {
+            return new Enumerator(m_DebugHandler, m_FilteringSettings);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
         #endregion
     }

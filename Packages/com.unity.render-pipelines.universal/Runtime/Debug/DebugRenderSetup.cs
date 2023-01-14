@@ -7,10 +7,8 @@ namespace UnityEngine.Rendering.Universal
     class DebugRenderSetup : IDisposable
     {
         private readonly DebugHandler m_DebugHandler;
+        private readonly FilteringSettings m_FilteringSettings;
         private readonly int m_Index;
-        readonly FilteringSettings m_FilteringSettings;
-        private RendererList m_RendererList;
-        private RendererListHandle m_RendererListHandle;
         private DebugDisplaySettingsMaterial MaterialSettings => m_DebugHandler.DebugDisplaySettings.materialSettings;
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.renderingSettings;
         private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.lightingSettings;
@@ -23,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 case DebugSceneOverrideMode.Wireframe:
                 {
-                    // RasterCmd TODO: Manage wireframe mode using RasterCommandBuffer
+                    cmd.SetWireframe(true);
                     break;
                 }
 
@@ -32,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (m_Index == 1)
                     {
-                        // RasterCmd TODO: Manage wireframe mode using RasterCommandBuffer
+                        cmd.SetWireframe(true);
                     }
                     break;
                 }
@@ -49,9 +47,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 case DebugSceneOverrideMode.Wireframe:
                 {
-                    // RasterCmd TODO: Manage wireframe mode using RasterCommandBuffer
-                    //m_Context.Submit();
-                    //GL.wireframe = false;
+                    cmd.SetWireframe(false);
                     break;
                 }
 
@@ -60,9 +56,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (m_Index == 1)
                     {
-                        // RasterCmd TODO: Manage wireframe mode using RasterCommandBuffer
-                        //m_Context.Submit();
-                        //GL.wireframe = false;
+                        cmd.SetWireframe(false);
                     }
                     break;
                 }
@@ -74,8 +68,8 @@ namespace UnityEngine.Rendering.Universal
             FilteringSettings filteringSettings)
         {
             m_DebugHandler = debugHandler;
-            m_Index = index;
             m_FilteringSettings = filteringSettings;
+            m_Index = index;
         }
 
         internal void CreateRendererList(
@@ -83,9 +77,10 @@ namespace UnityEngine.Rendering.Universal
             ref RenderingData renderingData,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
-            ref RenderStateBlock renderStateBlock)
+            ref RenderStateBlock renderStateBlock,
+            ref RendererList rendererList)
         {
-            RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, drawingSettings, filteringSettings, renderStateBlock, ref m_RendererList);
+            RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, drawingSettings, filteringSettings, renderStateBlock, ref rendererList);
         }
 
         internal void CreateRendererList(
@@ -93,17 +88,16 @@ namespace UnityEngine.Rendering.Universal
             ref RenderingData renderingData,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
-            ref RenderStateBlock renderStateBlock)
+            ref RenderStateBlock renderStateBlock,
+            ref RendererListHandle rendererListHdl)
         {
-            RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, drawingSettings, filteringSettings, renderStateBlock, ref m_RendererListHandle);
+            RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, drawingSettings, filteringSettings, renderStateBlock, ref rendererListHdl);
         }
 
-        internal void DrawWithRendererList(RasterCommandBuffer cmd)
+        internal void DrawWithRendererList(RasterCommandBuffer cmd, ref RendererList rendererList)
         {
-            if(m_RendererList.isValid)
-                cmd.DrawRendererList(m_RendererList);
-            else if (m_RendererListHandle.IsValid())
-                cmd.DrawRendererList(m_RendererListHandle);
+            if(rendererList.isValid)
+                cmd.DrawRendererList(rendererList);
         }
 
         internal DrawingSettings CreateDrawingSettings(DrawingSettings drawingSettings)
@@ -168,6 +162,8 @@ namespace UnityEngine.Rendering.Universal
 
             return renderStateBlock;
         }
+
+        internal int GetIndex() { return m_Index; }
 
         public void Dispose()
         {
