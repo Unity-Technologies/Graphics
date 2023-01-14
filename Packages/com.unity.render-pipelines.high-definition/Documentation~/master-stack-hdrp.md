@@ -10,6 +10,7 @@ It then describes the HDRP-specific material types you can create with Shader Gr
 
 * [Decal Master Stack](master-stack-decal.md)
 * [Eye Master Stack](master-stack-eye.md)
+* [Water Master Stack](master-stack-water.md)
 * [Fabric Master Stack](master-stack-fabric.md)
 * [Hair Master Stack](master-stack-hair.md)
 * [Lit Master Stack](master-stack-lit.md)

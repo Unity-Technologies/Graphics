@@ -66,6 +66,26 @@ As the Camera moves, Unity shows different LODs to provide a good balance betwee
 
 For more information, see the [LOD Cross Fade](../universalrp-asset.md#lod-cross-fade) property.
 
+### Temporal anti-aliasing (TAA)
+
+Temporal anti-aliasing (TAA) is a spatial multi-frame anti-aliasing technique that uses results from current and previous rendered frames to remove jaggies in the current frame and reduce temporal judder between frames.
+
+TAA uses Motion Vectors to reduce or avoid shimmer and ghosting artifacts caused by moving objects that end up being in different pixel locations in different frames.
+
+To enable TAA for a Camera:
+
+* Select the Camera.
+
+* In the Inspector, in the **Rendering** section, select **Temporal Anti-aliasing (TAA)** in the **Anti-aliasing** property.
+
+The following image shows a frame with TAA off:
+
+![TAA off](../Images/whats-new/urp-15/taa-example-off.png)
+
+The following image shows a frame with TAA on:
+
+![TAA on](../Images/whats-new/urp-15/taa-example-on.png)
+
 ## Improvements
 
 This section contains the overview of the major improvements in this release.

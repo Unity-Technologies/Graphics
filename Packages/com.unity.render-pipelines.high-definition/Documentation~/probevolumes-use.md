@@ -10,8 +10,13 @@ This page provides the basic workflow you need to use Probe Volumes in your proj
 2. Expand **Lighting** > **Light Probe Lighting**.
 3. For **Light Probe System**, select **Probe Volumes**.
 4. Select **Graphics** > **HDRP Global Settings**.
-5. Under **Frame Settings**, expand **Camera** > **Lighting**.
-6. Enable **Probe Volume**. 
+5. Go to **Frame Settings**.
+6. Expand **Camera** > **Lighting** and enable **Probe Volumes**.
+
+To make sure Reflection Probes also capture lighting data from Probe Volumes, you should also do the following:
+
+1. Expand **Realtime Reflection** > **Lighting** and enable **Probe Volumes**.
+2. Expand **Baked or Custom Reflection** > **Lighting** and enable **Probe Volumes**.
 
 ### Add a Probe Volume to the Scene
 

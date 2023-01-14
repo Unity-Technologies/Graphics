@@ -1,5 +1,3 @@
-**Important:** This page is subject to change during the 2019.1 beta cycle.
-
 # Particles Unlit Shader
 
 Use this Shader for Particles that don’t need lighting. Because there are no time-consuming lighting calculations or lookups, this Shader is optimal for lower-end hardware. The Unlit Shader uses the most simple [shading model](shading-model.md) in the Universal Render Pipeline (URP).
