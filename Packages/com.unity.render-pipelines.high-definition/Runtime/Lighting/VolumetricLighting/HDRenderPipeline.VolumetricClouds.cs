@@ -609,7 +609,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ConstantBuffer.Push(ctx.cmd, data.cloudsCB, data.cloudsCombineMaterial, HDShaderIDs._ShaderVariablesClouds);
                         data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, data.volumetricCloudsBuffer);
-                        HDUtils.DrawFullScreen(ctx.cmd, data.cloudsCombineMaterial, colorBuffer, null, 0);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.cloudsCombineMaterial, data.colorBuffer, null, 0);
                     });
             }
         }
