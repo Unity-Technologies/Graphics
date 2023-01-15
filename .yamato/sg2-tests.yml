@@ -15,7 +15,7 @@ ShaderGraph2_Win:
   variables:
     UTR_VERSION: "current"
     TEST_FILTER: .*
-    EDITOR_BRANCH: "sg2/staging"
+    EDITOR_BRANCH: "sg2/2023-01-05-working-editor"
   commands:
     -  command: NetSh Advfirewall set allprofiles state off
     -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -39,7 +39,7 @@ ShaderGraph2_Mac:
   variables:
     UTR_VERSION: "current"
     TEST_FILTER: .*
-    EDITOR_BRANCH: "sg2/staging"
+    EDITOR_BRANCH: "sg2/2023-01-05-working-editor"
   commands:
     -  command: brew install lz4
     -  command: brew tap --force-auto-update Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
