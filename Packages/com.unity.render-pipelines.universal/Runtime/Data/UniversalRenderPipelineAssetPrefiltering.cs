@@ -1,6 +1,6 @@
 #if UNITY_EDITOR
-using System;
 using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
+using HDRKeywords = UnityEngine.Rendering.HDROutputUtils.ShaderKeywords;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -9,28 +9,50 @@ namespace UnityEngine.Rendering.Universal
     // be removed early in the Shader Processing stage based on the settings in each URP Asset
     public partial class UniversalRenderPipelineAsset
     {
-        private enum PrefilteringMode
+        internal enum PrefilteringMode
         {
-            Remove,    // Removes the keyword
-            Select,    // Keeps the keyword
-            SelectOnly // Selects the keyword and removes others
+            Remove,     // Removes the keyword
+            Select,     // Keeps the keyword
+            SelectOnly  // Selects the keyword and removes others
         }
 
-        // Defaults for renderer features that are not dependent on other settings.
-        // These are the filter rules if no such renderer features are present.
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
-
-        // TODO: decal settings needs some rework before we can filter DBufferMRT/DecalNormalBlend.
-        // Atm the setup depends on the technique but settings are present for both at the same time.
-        //[ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.DBufferMRT1, ShaderKeywordStrings.DBufferMRT2, ShaderKeywordStrings.DBufferMRT3})]
-        //[ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] {ShaderKeywordStrings.DecalNormalBlendLow, ShaderKeywordStrings.DecalNormalBlendMedium, ShaderKeywordStrings.DecalNormalBlendHigh})]
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DecalLayers)]
-        private const bool k_RendererFeatureDefaults = true;
+        internal enum PrefilteringModeAdditionalLights
+        {
+            Remove,             // Removes the keyword
+            SelectVertex,       // Selects Vertex & Removes OFF variant
+            SelectVertexAndOff, // Selects Vertex & OFF variant
+            SelectPixel,        // Selects Pixel  & Removes OFF variant
+            SelectPixelAndOff,  // Selects Pixel  & OFF variant
+        }
 
         // Platform specific filtering overrides
         [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.WriteRenderingLayers)]
         private const bool k_CommonGLDefaults = true;
+
+        // User can change cascade count at runtime so we have to include both MainLightShadows and MainLightShadowCascades.
+        // ScreenSpaceShadows renderer feature has separate filter attribute for keeping MainLightShadowScreen.
+        // NOTE: off variants are atm always removed when shadows are supported
+        [ShaderKeywordFilter.SelectIf(true,  keywordNames: ShaderKeywordStrings.MainLightShadows)]
+        [ShaderKeywordFilter.SelectIf(false, keywordNames: new string[] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
+        [SerializeField] private bool m_PrefilterMainLightShadows = false;
+
+        // Additional Lights
+        // clustered renderer can override PerVertex/PerPixel to be disabled
+        // NOTE: off variants are atm always kept when additional lights are enabled due to XR perf reasons
+        // multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+        [ShaderKeywordFilter.RemoveIf(PrefilteringModeAdditionalLights.Remove,            keywordNames: new string[] {ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectVertex,      keywordNames: ShaderKeywordStrings.AdditionalLightsVertex)]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectVertexAndOff,keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsVertex})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectPixel,       keywordNames: ShaderKeywordStrings.AdditionalLightsPixel)]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectPixelAndOff, keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsPixel})]
+        [SerializeField] private PrefilteringModeAdditionalLights m_PrefilteringModeAdditionalLight = PrefilteringModeAdditionalLights.SelectPixelAndOff;
+
+        // Additional Lights Shadows
+        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select, keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightShadows})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
+        [SerializeField] private PrefilteringMode m_PrefilteringModeAdditionalLightShadows = PrefilteringMode.Select;
 
         // Foveated Rendering
         #if ENABLE_VR && ENABLE_XR_MODULE
@@ -40,111 +62,151 @@ namespace UnityEngine.Rendering.Universal
         private const bool k_PrefilterFoveatedRenderingNonUniformRaster = true;
 
         // XR Specific keywords
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] { ShaderKeywordStrings.DisableTexture2DXArray, ShaderKeywordStrings.BlitSingleSlice, ShaderKeywordStrings.XROcclusionMeshCombined})]
-        [SerializeField] private bool m_PrefilterXRKeywords = true;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new [] {
+            ShaderKeywordStrings.BlitSingleSlice, ShaderKeywordStrings.XROcclusionMeshCombined
+        })]
+        [SerializeField] private bool m_PrefilterXRKeywords = false;
 
         // Forward+
         [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove,     keywordNames: ShaderKeywordStrings.ForwardPlus)]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new string[] { "", ShaderKeywordStrings.ForwardPlus })]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new [] { "", ShaderKeywordStrings.ForwardPlus })]
         [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.ForwardPlus)]
-        [SerializeField] private PrefilteringMode m_PrefilterForwardPlus = PrefilteringMode.Remove;
+        [SerializeField] private PrefilteringMode m_PrefilteringModeForwardPlus = PrefilteringMode.Select;
 
         // Deferred Rendering
-        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove, keywordNames: new string[] {    ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT, ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, ShaderKeywordStrings._GBUFFER_NORMALS_OCT})]
-        [SerializeField] private PrefilteringMode m_PrefilterDeferredRendering = PrefilteringMode.Remove;
+        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove, keywordNames: new [] {
+            ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT,
+            ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, ShaderKeywordStrings._GBUFFER_NORMALS_OCT
+        })]
+        [SerializeField] private PrefilteringMode m_PrefilteringModeDeferredRendering = PrefilteringMode.Select;
 
         // Rendering Debugger
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new string[] { ShaderKeywordStrings.DEBUG_DISPLAY })]
-        [SerializeField] private bool m_PrefilterDebugKeywords = true;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new [] {ShaderKeywordStrings.DEBUG_DISPLAY})]
+        [SerializeField] private bool m_PrefilterDebugKeywords = false;
 
         // Filters out WriteRenderingLayers if nothing requires the feature
         // TODO: Implement a different filter triggers for different passes (i.e. per-pass filter attributes)
-        //[ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.WriteRenderingLayers)]
-        //[SerializeField] private bool m_PrefilterWriteRenderingLayers = true;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.WriteRenderingLayers)]
+        [SerializeField] private bool m_PrefilterWriteRenderingLayers = false;
 
-        internal void SetupShaderKeywordPrefiltering(bool isDevelopmentBuild, bool usesXR)
+        // HDR Output
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new [] {
+            HDRKeywords.HDR_COLORSPACE_CONVERSION,
+            HDRKeywords.HDR_ENCODING_LINEAR, HDRKeywords.HDR_ENCODING_PQ,
+            HDRKeywords.HDR_COLORSPACE_REC709, HDRKeywords.HDR_COLORSPACE_REC2020,
+        })]
+        [SerializeField] private bool m_PrefilterHDROutput = false;
+
+        // Screen Space Ambient Occlusion (SSAO)
+        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove,     keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new [] {"", ShaderKeywordStrings.ScreenSpaceOcclusion})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
+        [SerializeField] private PrefilteringMode m_PrefilteringModeScreenSpaceOcclusion = PrefilteringMode.Select;
+
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthNormalsKeyword)]
+        [SerializeField] private bool m_PrefilterSSAODepthNormals = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword)]
+        [SerializeField] private bool m_PrefilterSSAOSourceDepthLow = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthMediumKeyword)]
+        [SerializeField] private bool m_PrefilterSSAOSourceDepthMedium = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthHighKeyword)]
+        [SerializeField] private bool m_PrefilterSSAOSourceDepthHigh = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_AOInterleavedGradientKeyword)]
+        [SerializeField] private bool m_PrefilterSSAOInterleaved = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_AOBlueNoiseKeyword)]
+        [SerializeField] private bool m_PrefilterSSAOBlueNoise = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SampleCountLowKeyword)]
+        [SerializeField] private bool m_PrefilterSSAOSampleCountLow = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SampleCountMediumKeyword)]
+        [SerializeField] private bool m_PrefilterSSAOSampleCountMedium = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SampleCountHighKeyword)]
+        [SerializeField] private bool m_PrefilterSSAOSampleCountHigh = false;
+
+        // Decals
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT1)]
+        [SerializeField] private bool m_PrefilterDBufferMRT1 = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT2)]
+        [SerializeField] private bool m_PrefilterDBufferMRT2 = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT3)]
+        [SerializeField] private bool m_PrefilterDBufferMRT3 = false;
+
+        // Screen Coord Override
+        // Controlled by the Global Settings
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SCREEN_COORD_OVERRIDE)]
+        [SerializeField] private bool m_PrefilterScreenCoord = false;
+
+        // Native Render Pass
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.RenderPassEnabled)]
+        [SerializeField] private bool m_PrefilterNativeRenderPass = false;
+
+        /// <summary>
+        /// Data used for Shader Prefiltering. Gathered after going through the URP Assets,
+        /// Renderers and Renderer Features in OnPreprocessBuild() inside ShaderPreprocessor.cs.
+        /// </summary>
+        internal struct ShaderPrefilteringData
         {
-            SetupGlobalPrefiltering(isDevelopmentBuild, usesXR);
-            SetupRendererPrefiltering();
+            public PrefilteringMode forwardPrefilteringMode;
+            public PrefilteringMode forwardPlusPrefilteringMode;
+            public PrefilteringMode deferredPrefilteringMode;
+            public PrefilteringMode additionalLightsShadowsPrefilteringMode;
+            public PrefilteringModeAdditionalLights additionalLightsPrefilteringMode;
+
+            public bool stripXRKeywords;
+            public bool stripHDRKeywords;
+            public bool stripDebugDisplay;
+            public bool stripWriteRenderingLayers;
+            public bool stripScreenCoordOverride;
+            public bool stripMainLightShadows;
+            public bool stripDBufferMRT1;
+            public bool stripDBufferMRT2;
+            public bool stripDBufferMRT3;
+            public bool stripNativeRenderPass;
+
+            public PrefilteringMode screenSpaceOcclusionPrefilteringMode;
+            public bool stripSSAOBlueNoise;
+            public bool stripSSAOInterleaved;
+            public bool stripSSAODepthNormals;
+            public bool stripSSAOSourceDepthLow;
+            public bool stripSSAOSourceDepthMedium;
+            public bool stripSSAOSourceDepthHigh;
+            public bool stripSSAOSampleCountLow;
+            public bool stripSSAOSampleCountMedium;
+            public bool stripSSAOSampleCountHigh;
         }
 
-        private void SetupGlobalPrefiltering(bool isDevelopmentBuild, bool usesXR)
+        /// <summary>
+        /// Uses the data collected in the OnPreprocessBuild() to set the Shader Prefiltering variables.
+        /// </summary>
+        /// <param name="prefilteringData"></param>
+        internal void UpdateShaderKeywordPrefiltering(ref ShaderPrefilteringData prefilteringData)
         {
-            if (isDevelopmentBuild)
-            {
-                UniversalRenderPipelineGlobalSettings globalSettings = UniversalRenderPipelineGlobalSettings.instance;
-                m_PrefilterDebugKeywords = globalSettings == null || globalSettings.stripDebugVariants;
-            }
-            else
-            {
-                m_PrefilterDebugKeywords = true;
-            }
+            m_PrefilteringModeForwardPlus            = prefilteringData.forwardPlusPrefilteringMode;
+            m_PrefilteringModeDeferredRendering      = prefilteringData.deferredPrefilteringMode;
+            m_PrefilteringModeAdditionalLight        = prefilteringData.additionalLightsPrefilteringMode;
+            m_PrefilteringModeAdditionalLightShadows = prefilteringData.additionalLightsShadowsPrefilteringMode;
 
-            m_PrefilterXRKeywords = !usesXR;
-        }
+            m_PrefilterXRKeywords                  = prefilteringData.stripXRKeywords;
+            m_PrefilterHDROutput                   = prefilteringData.stripHDRKeywords;
+            m_PrefilterDebugKeywords               = prefilteringData.stripDebugDisplay;
+            m_PrefilterWriteRenderingLayers        = prefilteringData.stripWriteRenderingLayers;
+            m_PrefilterScreenCoord                 = prefilteringData.stripScreenCoordOverride;
+            m_PrefilterMainLightShadows            = prefilteringData.stripMainLightShadows;
 
-        private void SetupRendererPrefiltering()
-        {
-            // Gather the rendering modes from the Renderers inside the URP Asset
-            bool hasForwardPlus = false;
-            bool onlyForwardPlus = true;
-            bool hasDeferred = false;
-            bool onlyDeferred = true;
-            bool usesRenderingLayers = false;
-            for (int i = 0; i < m_RendererDataList.Length; i++)
-            {
-                UniversalRendererData universalRendererData = m_RendererDataList[i] as UniversalRendererData;
-                if (universalRendererData == null)
-                    continue;
+            m_PrefilterDBufferMRT1                 = prefilteringData.stripDBufferMRT1;
+            m_PrefilterDBufferMRT2                 = prefilteringData.stripDBufferMRT2;
+            m_PrefilterDBufferMRT3                 = prefilteringData.stripDBufferMRT3;
+            m_PrefilterNativeRenderPass            = prefilteringData.stripNativeRenderPass;
 
-                switch (universalRendererData.renderingMode)
-                {
-                    case RenderingMode.Forward:
-                        onlyDeferred = false;
-                        onlyForwardPlus = false;
-                        break;
-                    case RenderingMode.ForwardPlus:
-                        onlyDeferred = false;
-                        hasForwardPlus = true;
-                        break;
-                    case RenderingMode.Deferred:
-                        hasDeferred = true;
-                        onlyForwardPlus = false;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
-                if (usesRenderingLayers)
-                    continue;
-
-                // To stop prefiltering of Rendering Layers we only need:
-                // 1) A renderer feature requiring the feature
-                // 2) Deferred Renderer + with Rendering Layers feature enabled in the URP Asset
-                if (useRenderingLayers && universalRendererData.renderingMode == RenderingMode.Deferred)
-                    usesRenderingLayers = true;
-                else
-                    usesRenderingLayers = RenderingLayerUtils.RequireRenderingLayers(universalRendererData);
-            }
-
-            // Set up the filtering settings
-            if (onlyForwardPlus)
-            {
-                m_PrefilterForwardPlus       = PrefilteringMode.SelectOnly;
-                m_PrefilterDeferredRendering = PrefilteringMode.Remove;
-            }
-            else if (onlyDeferred)
-            {
-                m_PrefilterForwardPlus       = PrefilteringMode.Remove;
-                m_PrefilterDeferredRendering = PrefilteringMode.SelectOnly;
-            }
-            else
-            {
-                m_PrefilterForwardPlus       = hasForwardPlus ? PrefilteringMode.Select : PrefilteringMode.Remove;
-                m_PrefilterDeferredRendering = hasDeferred ? PrefilteringMode.Select : PrefilteringMode.Remove;
-            }
-
-            //m_PrefilterWriteRenderingLayers = !usesRenderingLayers;
+            m_PrefilteringModeScreenSpaceOcclusion = prefilteringData.screenSpaceOcclusionPrefilteringMode;
+            m_PrefilterSSAOBlueNoise               = prefilteringData.stripSSAOBlueNoise;
+            m_PrefilterSSAOInterleaved             = prefilteringData.stripSSAOInterleaved;
+            m_PrefilterSSAODepthNormals            = prefilteringData.stripSSAODepthNormals;
+            m_PrefilterSSAOSourceDepthLow          = prefilteringData.stripSSAOSourceDepthLow;
+            m_PrefilterSSAOSourceDepthMedium       = prefilteringData.stripSSAOSourceDepthMedium;
+            m_PrefilterSSAOSourceDepthHigh         = prefilteringData.stripSSAOSourceDepthHigh;
+            m_PrefilterSSAOSampleCountLow          = prefilteringData.stripSSAOSampleCountLow;
+            m_PrefilterSSAOSampleCountMedium       = prefilteringData.stripSSAOSampleCountMedium;
+            m_PrefilterSSAOSampleCountHigh         = prefilteringData.stripSSAOSampleCountHigh;
         }
     }
 }

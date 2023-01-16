@@ -465,31 +465,12 @@ namespace UnityEngine.Rendering.Universal
 
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
-
-#if UNITY_EDITOR // multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-        // User can change cascade count at runtime so we have to include both MainLightShadows and MainLightShadowCascades.
-        // ScreenSpaceShadows renderer feature has separate filter attribute for keeping MainLightShadowScreen.
-        // NOTE: off variants are atm always removed when shadows are supported
-        [ShaderKeywordFilter.SelectIf(true, keywordNames: new string[] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
-        [ShaderKeywordFilter.RemoveIf(false, keywordNames: new string[] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades, ShaderKeywordStrings.MainLightShadowScreen})]
-#endif
         [SerializeField] bool m_MainLightShadowsSupported = true;
         [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
 
         // Additional lights settings
-#if UNITY_EDITOR // multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-        // clustered renderer can override PerVertex/PerPixel to be disabled
-        // NOTE: off variants are atm always kept when additional lights are enabled due to XR perf reasons
-        [ShaderKeywordFilter.SelectIf(LightRenderingMode.PerVertex, keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsVertex})]
-        [ShaderKeywordFilter.RemoveIf(LightRenderingMode.PerVertex, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
-        [ShaderKeywordFilter.SelectIf(LightRenderingMode.PerPixel, keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsPixel})]
-        [ShaderKeywordFilter.RemoveIf(LightRenderingMode.Disabled, keywordNames: new string[] {ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel})]
-#endif
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
-#if UNITY_EDITOR // multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
-        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
-#endif
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
         [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
 

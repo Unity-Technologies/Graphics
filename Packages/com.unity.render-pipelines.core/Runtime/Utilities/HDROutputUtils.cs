@@ -20,22 +20,37 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>Shader keywords for communicating with the HDR Output shader implementation.</summary>
-        static class ShaderKeywords
+        public static class ShaderKeywords
         {
+            /// <summary>Keyword string for converting to the correct output color space. </summary>
+            public const string HDR_COLORSPACE_CONVERSION = "HDR_COLORSPACE_CONVERSION";
+
+            /// <summary>Keyword string for the Rec.709 color space (Rec.709 color primaries, D65 white point).</summary>
+            public const string HDR_COLORSPACE_REC709 = "HDR_COLORSPACE_REC709";
+
+            /// <summary>Keyword string for the Rec.2020 color space (Rec.2020 color primaries, D65 white point). </summary>
+            public const string HDR_COLORSPACE_REC2020 = "HDR_COLORSPACE_REC2020";
+
+            /// <summary>Keyword string for the linear encoding (1 = SDR reference white nits).</summary>
+            public const string HDR_ENCODING_LINEAR = "HDR_ENCODING_LINEAR";
+
+            /// <summary>Keyword string for the ST 2084 PQ encoding.</summary>
+            public const string HDR_ENCODING_PQ = "HDR_ENCODING_PQ";
+
             /// <summary>Keyword for converting to the correct output color space. </summary>
-            public static readonly ShaderKeyword HDRColorSpaceConversion = new ShaderKeyword("HDR_COLORSPACE_CONVERSION");
+            internal static readonly ShaderKeyword HDRColorSpaceConversion = new ShaderKeyword(HDR_COLORSPACE_CONVERSION);
 
             /// <summary>Keyword for the Rec.709 color space (Rec.709 color primaries, D65 white point).</summary>
-            public static readonly ShaderKeyword HDRColorSpaceRec709 = new ShaderKeyword("HDR_COLORSPACE_REC709");
+            internal static readonly ShaderKeyword HDRColorSpaceRec709 = new ShaderKeyword(HDR_COLORSPACE_REC709);
 
             /// <summary>Keyword for the Rec.2020 color space (Rec.2020 color primaries, D65 white point). </summary>
-            public static readonly ShaderKeyword HDRColorSpaceRec2020 = new ShaderKeyword("HDR_COLORSPACE_REC2020");
+            internal static readonly ShaderKeyword HDRColorSpaceRec2020 = new ShaderKeyword(HDR_COLORSPACE_REC2020);
 
             /// <summary>Keyword for the linear encoding (1 = SDR reference white nits).</summary>
-            public static readonly ShaderKeyword HDREncodingLinear = new ShaderKeyword("HDR_ENCODING_LINEAR");
+            internal static readonly ShaderKeyword HDREncodingLinear = new ShaderKeyword(HDR_ENCODING_LINEAR);
 
             /// <summary>Keyword for the ST 2084 PQ encoding.</summary>
-            public static readonly ShaderKeyword HDREncodingPQ = new ShaderKeyword("HDR_ENCODING_PQ");
+            internal static readonly ShaderKeyword HDREncodingPQ = new ShaderKeyword(HDR_ENCODING_PQ);
         }
 
         private static bool GetColorSpaceKeyword(ColorGamut gamut, out string keyword)

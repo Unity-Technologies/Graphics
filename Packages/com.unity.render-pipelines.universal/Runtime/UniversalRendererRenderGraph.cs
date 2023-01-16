@@ -589,7 +589,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.hasValidOcclusionMesh)
-                m_XROcclusionMeshPass.Render(renderGraph, resources.GetTexture(UniversalResource.CameraDepth), ref renderingData);
+                m_XROcclusionMeshPass.Render(renderGraph, activeDepthTexture, ref renderingData);
 #endif
 
             if (isDeferred)

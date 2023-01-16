@@ -37,16 +37,6 @@ namespace UnityEngine.Rendering.Universal
         // Constants
         private const string k_SSAOTextureName = "_ScreenSpaceOcclusionTexture";
         private const string k_SSAOAmbientOcclusionParamName = "_AmbientOcclusionParam";
-        private const string k_AOInterleavedGradientKeyword = "_INTERLEAVED_GRADIENT";
-        private const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
-        private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
-        private const string k_SourceDepthLowKeyword = "_SOURCE_DEPTH_LOW";
-        private const string k_SourceDepthMediumKeyword = "_SOURCE_DEPTH_MEDIUM";
-        private const string k_SourceDepthHighKeyword = "_SOURCE_DEPTH_HIGH";
-        private const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
-        private const string k_SampleCountLowKeyword = "_SAMPLE_COUNT_LOW";
-        private const string k_SampleCountMediumKeyword = "_SAMPLE_COUNT_MEDIUM";
-        private const string k_SampleCountHighKeyword = "_SAMPLE_COUNT_HIGH";
 
         // Statics
         private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
@@ -205,13 +195,13 @@ namespace UnityEngine.Rendering.Universal
             passData.material.SetVectorArray(s_CameraViewZExtentID, passData.cameraZExtent);
 
             // Update keywords
-            CoreUtils.SetKeyword(passData.material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
-            CoreUtils.SetKeyword(passData.material, k_AOBlueNoiseKeyword, false);
-            CoreUtils.SetKeyword(passData.material, k_AOInterleavedGradientKeyword, false);
+            CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
+            CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_AOBlueNoiseKeyword, false);
+            CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_AOInterleavedGradientKeyword, false);
             switch (passData.settings.AOMethod)
             {
                 case ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise:
-                    CoreUtils.SetKeyword(passData.material, k_AOBlueNoiseKeyword, true);
+                    CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_AOBlueNoiseKeyword, true);
                     passData.blueNoiseTextureIndex = (passData.blueNoiseTextureIndex + 1) % passData.blueNoiseTextures.Length;
                     passData.blurRandomOffsetX = Random.value;
                     passData.blurRandomOffsetY = Random.value;
@@ -234,7 +224,7 @@ namespace UnityEngine.Rendering.Universal
                     ));
                     break;
                 case ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.InterleavedGradient:
-                    CoreUtils.SetKeyword(passData.material, k_AOInterleavedGradientKeyword, true);
+                    CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_AOInterleavedGradientKeyword, true);
 
                     // Update SSAO parameters in the material
                     passData.material.SetVector(s_SSAOParamsID, new Vector4(
@@ -248,44 +238,44 @@ namespace UnityEngine.Rendering.Universal
                     throw new ArgumentOutOfRangeException();
             }
 
-            CoreUtils.SetKeyword(passData.material, k_SampleCountLowKeyword, false);
-            CoreUtils.SetKeyword(passData.material, k_SampleCountMediumKeyword, false);
-            CoreUtils.SetKeyword(passData.material, k_SampleCountHighKeyword, false);
+            CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SampleCountLowKeyword, false);
+            CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SampleCountMediumKeyword, false);
+            CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SampleCountHighKeyword, false);
             switch (passData.settings.Samples)
             {
                 case ScreenSpaceAmbientOcclusionSettings.AOSampleOption.High:
-                    CoreUtils.SetKeyword(passData.material, k_SampleCountHighKeyword, true);
+                    CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SampleCountHighKeyword, true);
                     break;
                 case ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium:
-                    CoreUtils.SetKeyword(passData.material, k_SampleCountMediumKeyword, true);
+                    CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SampleCountMediumKeyword, true);
                     break;
                 default:
-                    CoreUtils.SetKeyword(passData.material, k_SampleCountLowKeyword, true);
+                    CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SampleCountLowKeyword, true);
                     break;
             }
 
-            CoreUtils.SetKeyword(passData.material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
+            CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
 
             // Set the source keywords...
             if (passData.settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
             {
-                CoreUtils.SetKeyword(passData.material, k_SourceDepthNormalsKeyword, false);
+                CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthNormalsKeyword, false);
                 switch (passData.settings.NormalSamples)
                 {
                     case ScreenSpaceAmbientOcclusionSettings.NormalQuality.Low:
-                        CoreUtils.SetKeyword(passData.material, k_SourceDepthLowKeyword, true);
-                        CoreUtils.SetKeyword(passData.material, k_SourceDepthMediumKeyword, false);
-                        CoreUtils.SetKeyword(passData.material, k_SourceDepthHighKeyword, false);
+                        CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword, true);
+                        CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthMediumKeyword, false);
+                        CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthHighKeyword, false);
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium:
-                        CoreUtils.SetKeyword(passData.material, k_SourceDepthLowKeyword, false);
-                        CoreUtils.SetKeyword(passData.material, k_SourceDepthMediumKeyword, true);
-                        CoreUtils.SetKeyword(passData.material, k_SourceDepthHighKeyword, false);
+                        CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword, false);
+                        CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthMediumKeyword, true);
+                        CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthHighKeyword, false);
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.NormalQuality.High:
-                        CoreUtils.SetKeyword(passData.material, k_SourceDepthLowKeyword, false);
-                        CoreUtils.SetKeyword(passData.material, k_SourceDepthMediumKeyword, false);
-                        CoreUtils.SetKeyword(passData.material, k_SourceDepthHighKeyword, true);
+                        CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword, false);
+                        CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthMediumKeyword, false);
+                        CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthHighKeyword, true);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -293,10 +283,10 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                CoreUtils.SetKeyword(passData.material, k_SourceDepthLowKeyword, false);
-                CoreUtils.SetKeyword(passData.material, k_SourceDepthMediumKeyword, false);
-                CoreUtils.SetKeyword(passData.material, k_SourceDepthHighKeyword, false);
-                CoreUtils.SetKeyword(passData.material, k_SourceDepthNormalsKeyword, true);
+                CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword, false);
+                CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthMediumKeyword, false);
+                CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthHighKeyword, false);
+                CoreUtils.SetKeyword(passData.material, ScreenSpaceAmbientOcclusion.k_SourceDepthNormalsKeyword, true);
             }
         }
 

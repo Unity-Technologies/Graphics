@@ -6,9 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/170_ForwardPlus_Many.unity
-    guid: 26e7c5c73aa4db043b3fa9560cde2ea1
-  - enabled: 1
     path: Assets/Scenes/001_SimpleCube.unity
     guid: d0462e56cffa64b7e86823f437fc329c
   - enabled: 1
@@ -87,17 +84,17 @@ EditorBuildSettings:
     path: Assets/Scenes/022_Lighting_BasicSpot.unity
     guid: 332a75631f7a3420ab1e02475d98a1fc
   - enabled: 1
-    path: Assets/Scenes/026_Shader_PBRscene.unity
-    guid: bcb8635ea84c143f0ae0823f1e9b6f25
-  - enabled: 1
-    path: Assets/Scenes/026_Shader_PBRscene_AccurateGBuffer.unity
-    guid: 67452eee845c5ce41a417a871b58cd3d
-  - enabled: 1
     path: Assets/Scenes/024_Shader_PBRvalidation_Specular.unity
     guid: 2b6b74b7929ae4191b3b936c12236e0a
   - enabled: 1
     path: Assets/Scenes/025_Shader_PBRvalidation_Metallic.unity
     guid: a770620fcd2f84f248d06edf3744b2c0
+  - enabled: 1
+    path: Assets/Scenes/026_Shader_PBRscene.unity
+    guid: bcb8635ea84c143f0ae0823f1e9b6f25
+  - enabled: 1
+    path: Assets/Scenes/026_Shader_PBRscene_AccurateGBuffer.unity
+    guid: 67452eee845c5ce41a417a871b58cd3d
   - enabled: 1
     path: Assets/Scenes/029_Particles.unity
     guid: 65d99b408a8134214906126ccdea532f
@@ -114,6 +111,12 @@ EditorBuildSettings:
     path: Assets/Scenes/046_Camera_OpaqueTexture.unity
     guid: 2614aae0a36c9456b9e20ac481fbda4c
   - enabled: 1
+    path: Assets/Scenes/050_Shader_Graph_ScreenCoordinates.unity
+    guid: e983e6ee0e89e14478c8f616dfbc3e20
+  - enabled: 1
+    path: Assets/Scenes/050_Shader_Graph_ScreenCoordinates_DynamicRez.unity
+    guid: ea8e093d73ca555418eb5f7ae5fb9b3d
+  - enabled: 1
     path: Assets/Scenes/050_Shader_Graphs.unity
     guid: 6e7a83866a1e446b3becf7972371c5d0
   - enabled: 1
@@ -125,12 +128,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/050_Shader_Graphs_Override.unity
     guid: 773767ac5b09198408c0c084dc243abc
-  - enabled: 1
-    path: Assets/Scenes/050_Shader_Graph_ScreenCoordinates.unity
-    guid: e983e6ee0e89e14478c8f616dfbc3e20
-  - enabled: 1
-    path: Assets/Scenes/050_Shader_Graph_ScreenCoordinates_DynamicRez.unity
-    guid: ea8e093d73ca555418eb5f7ae5fb9b3d
   - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
@@ -195,12 +192,6 @@ EditorBuildSettings:
     path: Assets/Scenes/124_CameraStackingClearRT.unity
     guid: 2fac616c9e61b45ccb7fcfa4fb18ae60
   - enabled: 1
-    path: Assets/Scenes/126_SampleDepth.unity
-    guid: d66b74ae4e7264d62bdb2c4f56261030
-  - enabled: 1
-    path: Assets/Scenes/126_SampleDepth_CopyDepth.unity
-    guid: 3340af13204ec234b9db1f26da2c1cb3
-  - enabled: 1
     path: Assets/Scenes/126_RendererFeatureActive.unity
     guid: 92276052d376244eb94e9548db46b27f
   - enabled: 1
@@ -261,6 +252,15 @@ EditorBuildSettings:
     path: Assets/Scenes/161_FP16_BackBuffer.unity
     guid: e4bd4cb963e384819a1d8a13bc5127a8
   - enabled: 1
+    path: Assets/Scenes/170_ForwardPlus_Many.unity
+    guid: 26e7c5c73aa4db043b3fa9560cde2ea1
+  - enabled: 1
+    path: Assets/Scenes/190_SampleDepth.unity
+    guid: d66b74ae4e7264d62bdb2c4f56261030
+  - enabled: 1
+    path: Assets/Scenes/191_SampleDepth_CopyDepth.unity
+    guid: 3340af13204ec234b9db1f26da2c1cb3
+  - enabled: 1
     path: Assets/Scenes/200_DepthDeferred.unity
     guid: 3bbe19bef8dcc4e65b7aaa710c4114c6
   - enabled: 1
@@ -288,20 +288,8 @@ EditorBuildSettings:
     path: Assets/Scenes/205_SSAO_BackBuffer.unity
     guid: 72491ed40bf654eec9fef43f455e3916
   - enabled: 1
-    path: Assets/Scenes/207_SSAO_BackBuffer_AfterOpaque.unity
+    path: Assets/Scenes/205_SSAO_BackBuffer_AfterOpaque.unity
     guid: f1e2273404277234a8497f4bc0f9f229
-  - enabled: 1
-    path: Assets/Scenes/230_Decal_Projector.unity
-    guid: 443214b3f73466742a19acf21b430d0d
-  - enabled: 1
-    path: Assets/Scenes/231_Decal_Mesh.unity
-    guid: 8a4a76dbf4743fc4bb21e40f08c759a0
-  - enabled: 1
-    path: Assets/Scenes/245_Normal_Reconstruction.unity
-    guid: 99abb841000951945931ee709e2370a4
-  - enabled: 1
-    path: Assets/Scenes/246_Normal_Reconstruction_Orthographic.unity
-    guid: 87e5a8f1555fbd541bf94257b7cb34e7
   - enabled: 1
     path: Assets/Scenes/206_Motion_Vectors.unity
     guid: aa08e99a89c77574e9a00b9888fc75ce
@@ -318,30 +306,43 @@ EditorBuildSettings:
     path: Assets/Scenes/209_Motion_Vectors_Camera_And_Objects.unity
     guid: d84ff56928dab4734b69906d7e13638d
   - enabled: 1
-    path: Assets/Scenes/250_ScreenSpaceShadows.unity
+    path: Assets/Scenes/220_ScreenSpaceShadows.unity
     guid: 0ed880bcaac387e4eaef5f365a545090
   - enabled: 1
-    path: Assets/Scenes/252_RenderRequest.unity
-    guid: 81446d3c9a10ff94a873a19e2d8804e9	 
+    path: Assets/Scenes/230_Decal_Projector.unity
+    guid: 443214b3f73466742a19acf21b430d0d
+  - enabled: 1
+    path: Assets/Scenes/231_Decal_Mesh.unity
+    guid: 8a4a76dbf4743fc4bb21e40f08c759a0
+  - enabled: 1
+    path: Assets/Scenes/245_Normal_Reconstruction.unity
+    guid: 99abb841000951945931ee709e2370a4
+  - enabled: 1
+    path: Assets/Scenes/246_Normal_Reconstruction_Orthographic.unity
+    guid: 87e5a8f1555fbd541bf94257b7cb34e7
   - enabled: 1
     path: Assets/Scenes/248_LOD_CrossFade.unity
     guid: 3b4bfea1d564d9541bb3a139484410ef
   - enabled: 1
-    path: Assets/Scenes/250_RenderingLayers.unity
-    guid: 87ee64df2c957224ab067a27a80ea7af
+    path: Assets/Scenes/250_AlphaToCoverage_NonMSAA.unity
+    guid: 55b848c185ee4cb43b24ae0449be53ed
+  - enabled: 1
+    path: Assets/Scenes/250_AlphaToCoverage_MSAA.unity
+    guid: 5a37821ccdba7204096a71421610f99a
   - enabled: 1
     path: Assets/Scenes/251_ReplacementShader.unity
     guid: 5998559ab00db184ba4ce2490fa35a72
   - enabled: 1
-    path: Assets/Scenes/265_RenderingLayers_Surfaces.unity
+    path: Assets/Scenes/252_RenderRequest.unity
+    guid: 81446d3c9a10ff94a873a19e2d8804e9
+  - enabled: 1
+    path: Assets/Scenes/260_RenderingLayers.unity
+    guid: 87ee64df2c957224ab067a27a80ea7af
+  - enabled: 1
+    path: Assets/Scenes/261_RenderingLayers_Surfaces.unity
     guid: 646226f38a4201047a6572d1cb8a620c
   - enabled: 1
-    path: Assets/Scenes/270_Decal_RenderingLayers.unity
+    path: Assets/Scenes/262_RenderingLayers_Decals.unity
     guid: f07beec5ff4e7744383242b8ed2eefff
-  - enabled: 1
-    path: Assets/Scenes/250_AlphaToCoverage/250_AlphaToCoverage_NonMSAA.unity
-    guid: 55b848c185ee4cb43b24ae0449be53ed
-  - enabled: 1
-    path: Assets/Scenes/250_AlphaToCoverage/250_AlphaToCoverage_MSAA.unity
-    guid: 5a37821ccdba7204096a71421610f99a
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0
