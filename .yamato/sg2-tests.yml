@@ -40,7 +40,7 @@ ShaderGraph2_Mac:
     -  command: brew install lz4
     -  command: brew tap --force-auto-update Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
     -  command: brew install Unity-Technologies/homebrew-unity/unity-downloader-cli
-    -  command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
+    -  command: unity-downloader-cli -u $EDITOR_BRANCH -c editor --fast --wait
     -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
        retries: 2
     -  command: chmod +x utr
