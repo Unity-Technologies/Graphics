@@ -41,27 +41,25 @@ namespace UnityEngine.Rendering.HighDefinition
             material.SetInt(HDShaderIDs._DecalColorMask2, (int)mask2);
             material.SetInt(HDShaderIDs._DecalColorMask3, (int)mask3);
 
-            // First reset the pass (in case new shader graph add or remove a pass)
-            bool enableDBufferMeshPass = true;
-            bool enableDBufferProjectorPass = true;
-            bool enableDecalMeshForwardEmissivePass = true;
-            bool enableDecalProjectorForwardEmissivePass = true;
+            bool enableDBufferPass = ((int)mask0 + (int)mask1 + (int)mask2 + (int)mask3) != 0;
+            bool enableForwardEmissivePass = material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f;
 
-            // Then disable pass is they aren't needed
+            // Disable the passes that aren't needed
+            // We have to check that the passes can be found on the material before touching them
+            // This is important because in some cases, HDRP validation code may be run before HDRP initialization
+            // This happens when importing with clean Library a project that needs to run the material upgrader
+            // Consequence is that Shader.globalRenderPipeline is not set so FindPadd will ignore passes marked with HDRP tag
+            // So in this code, we have to assume that even if we don't find a pass, it may still exist
+            
             if (material.FindPass(HDShaderPassNames.s_DBufferMeshStr) != -1)
-                enableDBufferMeshPass = ((int)mask0 + (int)mask1 + (int)mask2 + (int)mask3) != 0;
+                material.SetShaderPassEnabled(HDShaderPassNames.s_DBufferMeshStr, enableDBufferPass);
             if (material.FindPass(HDShaderPassNames.s_DBufferProjectorStr) != -1)
-                enableDBufferProjectorPass = ((int)mask0 + (int)mask1 + (int)mask2 + (int)mask3) != 0;
-            if (material.FindPass(HDShaderPassNames.s_DecalMeshForwardEmissiveStr) != -1)
-                enableDecalMeshForwardEmissivePass = material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f;
-            if (material.FindPass(HDShaderPassNames.s_DecalProjectorForwardEmissiveStr) != -1)
-                enableDecalProjectorForwardEmissivePass = material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f;
+                material.SetShaderPassEnabled(HDShaderPassNames.s_DBufferProjectorStr, enableDBufferPass);
 
-            // Apply once
-            material.SetShaderPassEnabled(HDShaderPassNames.s_DBufferMeshStr, enableDBufferMeshPass);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_DBufferProjectorStr, enableDBufferProjectorPass);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_DecalMeshForwardEmissiveStr, enableDecalMeshForwardEmissivePass);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_DecalProjectorForwardEmissiveStr, enableDecalProjectorForwardEmissivePass);
+            if (material.FindPass(HDShaderPassNames.s_DecalMeshForwardEmissiveStr) != -1)
+                material.SetShaderPassEnabled(HDShaderPassNames.s_DecalMeshForwardEmissiveStr, enableForwardEmissivePass);
+            if (material.FindPass(HDShaderPassNames.s_DecalProjectorForwardEmissiveStr) != -1)
+                material.SetShaderPassEnabled(HDShaderPassNames.s_DecalProjectorForwardEmissiveStr, enableForwardEmissivePass);
 
             // Set stencil state
             material.SetInt(kDecalStencilWriteMask, (int)StencilUsage.Decals);

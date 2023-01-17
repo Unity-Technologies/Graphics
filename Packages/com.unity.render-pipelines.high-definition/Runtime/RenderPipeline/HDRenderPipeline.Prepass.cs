@@ -102,6 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 clearBuffer = clear,
                 name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil",
                 disableFallBackToImportedTexture = true,
+                fallBackToBlackTexture = true,
 #if UNITY_2020_2_OR_NEWER
                 fastMemoryDesc = fastMemDesc,
 #endif

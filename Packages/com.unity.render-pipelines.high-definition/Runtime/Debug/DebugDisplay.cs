@@ -1414,6 +1414,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     nameAndTooltip = LightingStrings.HDROutput,
                     children =
                     {
+                        new DebugUI.MessageBox
+                        {
+                            displayName = "No HDR monitor detected.",
+                            style = DebugUI.MessageBox.Style.Warning,
+                            isHiddenCallback = () => HDRenderPipeline.HDROutputIsActive()
+                        },
+                        new DebugUI.MessageBox
+                        {
+                            displayName = "To display the Gamut View, Gamut Clip, Paper White modes without affecting them, the overlay will be hidden.",
+                            style = DebugUI.MessageBox.Style.Info,
+                            isHiddenCallback = () => !HDRenderPipeline.HDROutputIsActive()
+                        },
                         new DebugUI.EnumField
                         {
                             nameAndTooltip = LightingStrings.HDROutputDebugMode,
@@ -1422,7 +1434,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             autoEnum = typeof(HDRDebugMode),
                             getIndex = () => data.hdrDebugModeEnumIndex,
                             setIndex = value => data.hdrDebugModeEnumIndex = value
-                        }
+                        },
                     }
                 };
 

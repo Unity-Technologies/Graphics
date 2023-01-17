@@ -535,11 +535,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera) || VolumetricCloudsRequireMaxZ(hdCamera))
             {
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
-                {
-                    return renderGraph.defaultResources.blackTextureXR;
-                }
-
                 using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
                 {
                     //TODO: move the entire vbuffer to hardware DRS mode. When Hardware DRS is enabled we will save performance
