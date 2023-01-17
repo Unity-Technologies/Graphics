@@ -90,12 +90,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             try
             {
-                if (graphDataName == null)
-                {
-                    reader = registry.GetDefaultTopology(m_PreviewRegistryKey);
-                    return true;
-                }
-                reader = graphHandler.GetNode(graphDataName);
+                reader = graphDataName == null ?
+                    registry.GetDefaultTopology(m_PreviewRegistryKey) :
+                    graphHandler.GetNode(graphDataName);
+
                 return reader != null;
             }
             catch (Exception exception)
