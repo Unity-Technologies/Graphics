@@ -57,10 +57,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (!existsInGraphData)
                     return m_PreviewRegistryKey;
 
-                Assert.IsTrue(TryGetNodeHandler(out var reader));
+                Debug.Assert(TryGetNodeHandler(out var handler));
+
                 // Store the registry key to use for node duplication
-                duplicationRegistryKey = reader.GetRegistryKey();
-                return reader.GetRegistryKey();
+                duplicationRegistryKey = handler.GetRegistryKey();
+                return handler.GetRegistryKey();
             }
         }
 
@@ -212,9 +213,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void ChangeNodeFunction(string newFunctionName)
         {
-            NodeHandler nodeHandler = graphHandler.GetNode(graphDataName);
-            string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-            FieldHandler selectedFunctionField = nodeHandler.GetField<string>(fieldName);
+            if (!existsInGraphData)
+            {
+                Debug.LogError("Attempted to change the function of a node that doesn't exist on the graph.");
+                return;
+            }
+
+            // existsInGraphData implies that TryGetNodeHandler will succeed.
+            Debug.Assert(TryGetNodeHandler(out var nodeHandler));
+
+            var fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
+            var selectedFunctionField = nodeHandler.GetField<string>(fieldName);
+
             if (selectedFunctionField == null)
             {
                 Debug.LogError("Unable to update selected function. Node has no selected function field.");

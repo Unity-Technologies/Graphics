@@ -122,5 +122,62 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
             var nodeModel = MakeNodeWithoutBackingData();
             Assert.IsFalse(nodeModel.existsInGraphData);
         }
+
+        [Test]
+        public void TestGetRegistryKey_NodeOnGraph_MatchesHandler()
+        {
+            var (nodeHandler, nodeModel) = MakeNode();
+            Assert.AreEqual(nodeHandler.GetRegistryKey(), nodeModel.registryKey);
+        }
+
+        [Test]
+        public void TestGetRegistryKey_NodeInSearcher_IsPreviewKey()
+        {
+            var nodeModel = MakeSearcherPreviewNode(k_EmptyNodeKey);
+            Assert.AreEqual(k_EmptyNodeKey, nodeModel.registryKey);
+        }
+
+        [Test]
+        public void TestGetRegistryKey_MissingNode_IsEmptyKey()
+        {
+            var nodeModel = MakeNodeWithoutBackingData();
+            Assert.AreEqual(default(RegistryKey), nodeModel.registryKey);
+        }
+
+        [Test]
+        public void TestChangeNodeFunction_NodeOnGraph_WithFunctionField_UpdatesFunctionField()
+        {
+            var (nodeHandler, nodeModel) = MakeNode(k_MultiFunctionKey);
+
+            nodeModel.ChangeNodeFunction(k_MultiFunctionAltFunc);
+            Assert.AreEqual(k_MultiFunctionAltFunc, nodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME).GetData());
+        }
+
+        [Test]
+        public void TestChangeNodeFunction_NodeOnGraph_WithoutFunctionField_LogsError()
+        {
+            var (nodeHandler, nodeModel) = MakeNode(k_MultiFunctionKey);
+            Assert.IsNull(nodeHandler.GetField(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME));
+
+            nodeModel.ChangeNodeFunction("NotValid");
+            LogAssert.Expect(LogType.Error, "Unable to update selected function. Node has no selected function field.");
+            Assert.IsNull(nodeHandler.GetField(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME));
+        }
+
+        [Test]
+        public void TestChangeNodeFunction_NodeInSearcher_LogsError()
+        {
+            var nodeModel = MakeSearcherPreviewNode(k_MultiFunctionKey);
+            nodeModel.ChangeNodeFunction("NotValid");
+            LogAssert.Expect(LogType.Error, "Attempted to change the function of a node that doesn't exist on the graph.");
+        }
+
+        [Test]
+        public void TestChangeNodeFunction_MissingNode_LogsError()
+        {
+            var nodeModel = MakeNodeWithoutBackingData();
+            nodeModel.ChangeNodeFunction("NotValid");
+            LogAssert.Expect(LogType.Error, "Attempted to change the function of a node that doesn't exist on the graph.");
+        }
     }
 }
