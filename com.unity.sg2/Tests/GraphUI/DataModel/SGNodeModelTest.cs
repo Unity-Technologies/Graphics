@@ -80,10 +80,47 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         }
 
         [Test]
+        public void TestTryGetNodeHandler_NodeInSearcher_GetsDefaultHandler()
+        {
+            var nodeModel = MakeSearcherPreviewNode();
+            Assert.IsTrue(nodeModel.TryGetNodeHandler(out var handler));
+            Assert.AreEqual(graphModel.RegistryInstance.DefaultTopologies.graphDelta, handler.Owner);
+        }
+
+        [Test]
+        public void TestTryGetNodeHandler_NodeOnGraph_GetsHandler()
+        {
+            var (nodeHandler, nodeModel) = MakeNode();
+            Assert.IsTrue(nodeModel.TryGetNodeHandler(out var retrievedHandler));
+            Assert.AreEqual(nodeHandler.ID.FullPath, retrievedHandler.ID.FullPath);
+        }
+
+        [Test]
+        public void TestTryGetNodeHandler_MissingNode_Fails()
+        {
+            var nodeModel = MakeNodeWithoutBackingData();
+            Assert.IsFalse(nodeModel.TryGetNodeHandler(out _));
+        }
+
+        [Test]
+        public void TestExistsInGraphData_NodeInSearcher_IsFalse()
+        {
+            var nodeModel = MakeSearcherPreviewNode();
+            Assert.IsFalse(nodeModel.existsInGraphData);
+        }
+
+        [Test]
         public void TestExistsInGraphData_NodeOnGraph_IsTrue()
         {
             var (_, nodeModel) = MakeNode();
             Assert.IsTrue(nodeModel.existsInGraphData);
+        }
+
+        [Test]
+        public void TestExistsInGraphData_MissingNode_IsFalse()
+        {
+            var nodeModel = MakeNodeWithoutBackingData();
+            Assert.IsFalse(nodeModel.existsInGraphData);
         }
     }
 }
