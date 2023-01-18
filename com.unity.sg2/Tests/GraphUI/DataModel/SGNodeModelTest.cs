@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         }
 
         [Test]
-        public void TestTryGetNodeHandler_NodeInSearcher_GetsDefaultHandler()
+        public void TestTryGetNodeHandler_NodeInSearcher_GetsDefaultTopologyHandler()
         {
             var nodeModel = MakeSearcherPreviewNode();
             Assert.IsTrue(nodeModel.TryGetNodeHandler(out var handler));
@@ -157,11 +157,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         public void TestChangeNodeFunction_NodeOnGraph_WithoutFunctionField_LogsError()
         {
             var (nodeHandler, nodeModel) = MakeNode(k_MultiFunctionKey);
-            Assert.IsNull(nodeHandler.GetField(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME));
+            Assert.IsNull(nodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME));
 
             nodeModel.ChangeNodeFunction("NotValid");
             LogAssert.Expect(LogType.Error, "Unable to update selected function. Node has no selected function field.");
-            Assert.IsNull(nodeHandler.GetField(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME));
+            Assert.IsNull(nodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME));
         }
 
         [Test]
