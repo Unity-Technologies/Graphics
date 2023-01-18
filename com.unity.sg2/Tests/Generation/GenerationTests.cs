@@ -116,7 +116,6 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
         //     }
         // }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public static void TestGraphReferenceNode()
         {
@@ -145,7 +144,6 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
 
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public static void TestMaterialPropertyGeneration()
         {
@@ -249,7 +247,6 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             }
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public void TestUV()
         {
@@ -298,7 +295,6 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
 
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public void DuplicateTest()
         {
@@ -322,7 +318,6 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             }
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public void DuplicateMultiTest()
         {
@@ -362,7 +357,6 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
             }
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public void CopyTest()
         {
@@ -405,7 +399,6 @@ namespace UnityEditor.ShaderGraph.Generation.UnitTests
 
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [Test]
         public void TestAllCasts()
         {

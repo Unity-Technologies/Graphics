@@ -19,14 +19,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         /// <inheritdoc />
         protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
 
-        [Ignore("Returns null when run headless (PR tester).", Until="2023-01-10")]
         [UnityTest]
         public IEnumerator CreateAddNodeFromSearcherTest()
         {
             return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
         }
 
-        [Ignore("Returns null when run headless (PR tester).", Until="2023-01-10")]
         [UnityTest]
         public IEnumerator NodeCollapseExpandTest()
         {
@@ -114,7 +112,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //     Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context nodes should not be deleted from selection");
         // }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [UnityTest]
         public IEnumerator TestContextNodesCannotBeCopied()
         {
@@ -128,7 +125,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context node should not be duplicated by copy/paste");
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [UnityTest]
         public IEnumerator TestOutdatedNodeGetsUpgradeBadge()
         {
@@ -144,7 +140,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(errors[0].ErrorType == LogType.Warning, "Graph processing error should be a warning");
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [UnityTest]
         public IEnumerator TestUpToDateNodeDoesNotGetUpgradeBadge()
         {
@@ -158,7 +153,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsTrue(errors.Count == 0, "Up-to-date node should not have any warnings");
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [UnityTest]
         public IEnumerator TestNodeCanBeUpgraded()
         {
@@ -174,7 +168,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.AreEqual(3, node.registryKey.Version, "Upgrading a node should set it to the latest version");
         }
 
-        [Ignore("Disabled due to problems with Generation", Until="2023-01-7")]
         [UnityTest]
         public IEnumerator TestDismissingUpgradeRemovesBadge()
         {
@@ -246,7 +239,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //     Assert.IsFalse(m_GraphView.GraphModel.NodeModels.Contains(middleNode), "Deleted node should be removed from the graph");
         // }
 
-        [Ignore("Returns null when run headless (PR tester).", Until="2023-01-10")]
         [UnityTest]
         public IEnumerator TestDynamicPortsUpdate()
         {
@@ -279,7 +271,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
         }
 
-        [Ignore("Returns null when run headless (PR tester).", Until="2023-01-10")]
         [UnityTest]
         public IEnumerator TestDynamicPortUpdatesPropagate()
         {
