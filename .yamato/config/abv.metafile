@@ -15,14 +15,11 @@ jobs:
     job_id: graphics_repo_nightly
     dependencies:
       - .yamato/_templates.yml#all_template_ci_<TRACK>
-      - .yamato/all-postprocessing.yml#PostProcessing_<TRACK>
       - .yamato/all-urp_template.yml#URP_Template_<TRACK>
     triggers:
         recurring:
-          -  branch: master
+          -  branch: 2023.1/staging
              frequency: 1 * * ?
-        allow_on:
-          - trunk
 
   - name: Nightly
     job_id: all_project_ci_nightly

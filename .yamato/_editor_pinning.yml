@@ -3,7 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2023.1.metafile -%}
 
 ---
 
@@ -28,8 +28,8 @@ editor-pinning-update:
       -  git checkout $GIT_BRANCH
       -  git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git
       -  cd gfx-sdet-tools && git rev-parse HEAD
-      -  python3 gfx-sdet-tools/scripts/update_revisions.py --track trunk --unity-branch $ONO_BRANCH_TRUNK --api-key $GITHUB_CDS_SSH_PRIVKEY --commit-and-push --nr-commits-to-retrieve 1 --vcs git
+      -  python3 gfx-sdet-tools/scripts/update_revisions.py --track 2023.1 --unity-branch 2023.1/staging --api-key $GITHUB_CDS_SSH_PRIVKEY --commit-and-push --nr-commits-to-retrieve 1 --vcs git
     triggers:
         recurring:
-          -  branch: master
+          -  branch: 2023.1/staging
              frequency: 21 * * ?

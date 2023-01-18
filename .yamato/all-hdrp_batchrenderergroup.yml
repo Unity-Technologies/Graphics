@@ -3,53 +3,53 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2023.1.metafile -%}
 
 ---
 
-PR_HDRP_BatchRendererGroup_trunk:
-    name: PR HDRP_BatchRendererGroup on trunk
+PR_HDRP_BatchRendererGroup_2023.1:
+    name: PR HDRP_BatchRendererGroup on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/hdrp_batchrenderergroup-win-dx11.yml#HDRP_BatchRendererGroup_Win_DX11_playmode_mono_Linear_trunk
+      -  path: .yamato/hdrp_batchrenderergroup-win-dx11.yml#HDRP_BatchRendererGroup_Win_DX11_playmode_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/hdrp_batchrenderergroup-win-dx11.yml#HDRP_BatchRendererGroup_Win_DX11_Standalone_mono_Linear_trunk
+      -  path: .yamato/hdrp_batchrenderergroup-win-dx11.yml#HDRP_BatchRendererGroup_Win_DX11_Standalone_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/hdrp_batchrenderergroup-win-dx12.yml#HDRP_BatchRendererGroup_Win_DX12_playmode_mono_Linear_trunk
+      -  path: .yamato/hdrp_batchrenderergroup-win-dx12.yml#HDRP_BatchRendererGroup_Win_DX12_playmode_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/hdrp_batchrenderergroup-win-dx12.yml#HDRP_BatchRendererGroup_Win_DX12_Standalone_mono_Linear_trunk
+      -  path: .yamato/hdrp_batchrenderergroup-win-dx12.yml#HDRP_BatchRendererGroup_Win_DX12_Standalone_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/hdrp_batchrenderergroup-win-vulkan.yml#HDRP_BatchRendererGroup_Win_Vulkan_playmode_mono_Linear_trunk
+      -  path: .yamato/hdrp_batchrenderergroup-win-vulkan.yml#HDRP_BatchRendererGroup_Win_Vulkan_playmode_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/hdrp_batchrenderergroup-win-vulkan.yml#HDRP_BatchRendererGroup_Win_Vulkan_Standalone_mono_Linear_trunk
+      -  path: .yamato/hdrp_batchrenderergroup-win-vulkan.yml#HDRP_BatchRendererGroup_Win_Vulkan_Standalone_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/hdrp_batchrenderergroup-linux-vulkan.yml#HDRP_BatchRendererGroup_Linux_Vulkan_playmode_mono_Linear_trunk
+      -  path: .yamato/hdrp_batchrenderergroup-linux-vulkan.yml#HDRP_BatchRendererGroup_Linux_Vulkan_playmode_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/hdrp_batchrenderergroup-linux-vulkan.yml#HDRP_BatchRendererGroup_Linux_Vulkan_Standalone_mono_Linear_trunk
+      -  path: .yamato/hdrp_batchrenderergroup-linux-vulkan.yml#HDRP_BatchRendererGroup_Linux_Vulkan_Standalone_mono_Linear_2023.1
          rerun: on_new_revision
-Extra_HDRP_BatchRendererGroup_trunk:
-    name: Extra HDRP_BatchRendererGroup on trunk
+Extra_HDRP_BatchRendererGroup_2023.1:
+    name: Extra HDRP_BatchRendererGroup on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies: []
-HDRP_BatchRendererGroup_trunk:
-    name: HDRP_BatchRendererGroup on trunk
+HDRP_BatchRendererGroup_2023.1:
+    name: HDRP_BatchRendererGroup on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-hdrp_batchrenderergroup.yml#PR_HDRP_BatchRendererGroup_trunk
+      -  path: .yamato/all-hdrp_batchrenderergroup.yml#PR_HDRP_BatchRendererGroup_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp_batchrenderergroup.yml#Extra_HDRP_BatchRendererGroup_trunk
+      -  path: .yamato/all-hdrp_batchrenderergroup.yml#Extra_HDRP_BatchRendererGroup_2023.1
          rerun: on_new_revision
 PR_HDRP_BatchRendererGroup_CUSTOM-REVISION:
     name: PR HDRP_BatchRendererGroup on CUSTOM-REVISION
