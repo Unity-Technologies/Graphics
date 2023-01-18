@@ -3,89 +3,89 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2023.1.metafile -%}
 
 ---
 
-PR_URP_trunk:
-    name: PR URP on trunk
+PR_URP_2023.1:
+    name: PR URP on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-universal_split.yml#PR_Universal_Split_trunk
+      -  path: .yamato/all-universal_split.yml#PR_Universal_Split_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_trunk
+      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2023.1
          rerun: on_new_revision
-      -  path: .yamato/_abv.yml#General_Checks_trunk
+      -  path: .yamato/_abv.yml#General_Checks_2023.1
          rerun: on_new_revision
-Extra_URP_trunk:
-    name: Extra URP on trunk
+Extra_URP_2023.1:
+    name: Extra URP on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-universal_split.yml#Extra_Universal_Split_trunk
+      -  path: .yamato/all-universal_split.yml#Extra_Universal_Split_2023.1
          rerun: on_new_revision
-URP_trunk:
-    name: URP on trunk
+URP_2023.1:
+    name: URP on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-urp.yml#PR_URP_trunk
+      -  path: .yamato/all-urp.yml#PR_URP_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-urp.yml#Extra_URP_trunk
+      -  path: .yamato/all-urp.yml#Extra_URP_2023.1
          rerun: on_new_revision
-Nightly_URP_trunk:
-    name: Nightly URP on trunk
+Nightly_URP_2023.1:
+    name: Nightly URP on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-urp.yml#URP_trunk
+      -  path: .yamato/all-urp.yml#URP_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-universal_stereo.yml#Universal_Stereo_trunk
+      -  path: .yamato/all-universal_stereo.yml#Universal_Stereo_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-urpupdate.yml#URPUpdate_trunk
+      -  path: .yamato/all-urpupdate.yml#URPUpdate_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-urp_perf.yml#URP_Perf_trunk
+      -  path: .yamato/all-urp_perf.yml#URP_Perf_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_trunk
+      -  path: .yamato/all-urpupdate_top_asset_store.yml#URPUpdate_Top_Asset_Store_2023.1
          rerun: on_new_revision
-      -  path: .yamato/urp_upgrade.yml#URP_Upgrade_test_win_trunk
+      -  path: .yamato/urp_upgrade.yml#URP_Upgrade_test_win_2023.1
          rerun: on_new_revision
-All_URP_on_Win_DX11_playmode_trunk:
-    name: All URP on Win DX11 playmode on trunk
+All_URP_on_Win_DX11_playmode_2023.1:
+    name: All URP on Win DX11 playmode on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_trunk
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_trunk
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_trunk
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_mono_Linear_trunk
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_mono_Linear_2023.1
          rerun: on_new_revision
-      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_mono_Linear_trunk
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_mono_Linear_2023.1
          rerun: on_new_revision
 PR_URP_CUSTOM-REVISION:
     name: PR URP on CUSTOM-REVISION

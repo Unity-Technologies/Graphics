@@ -3,45 +3,45 @@
 # Introduce any changes under .yamato/config/*.metafile files and rerun yaml-generation (or check #devs-automation-tooling).
 
 {% metadata_file .yamato/_cache_config.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2023.1.metafile -%}
 
 ---
 
-BatchRendererGroup_trunk:
-    name: BatchRendererGroup on trunk
+BatchRendererGroup_2023.1:
+    name: BatchRendererGroup on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-batchrenderergroup.yml#PR_BatchRendererGroup_trunk
+      -  path: .yamato/all-batchrenderergroup.yml#PR_BatchRendererGroup_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-batchrenderergroup.yml#Extra_BatchRendererGroup_trunk
+      -  path: .yamato/all-batchrenderergroup.yml#Extra_BatchRendererGroup_2023.1
          rerun: on_new_revision
-PR_BatchRendererGroup_trunk:
-    name: PR BatchRendererGroup on trunk
+PR_BatchRendererGroup_2023.1:
+    name: PR BatchRendererGroup on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-universal_batchrenderergroup.yml#PR_Universal_BatchRendererGroup_trunk
+      -  path: .yamato/all-universal_batchrenderergroup.yml#PR_Universal_BatchRendererGroup_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp_batchrenderergroup.yml#PR_HDRP_BatchRendererGroup_trunk
+      -  path: .yamato/all-hdrp_batchrenderergroup.yml#PR_HDRP_BatchRendererGroup_2023.1
          rerun: on_new_revision
-Extra_BatchRendererGroup_trunk:
-    name: Extra BatchRendererGroup on trunk
+Extra_BatchRendererGroup_2023.1:
+    name: Extra BatchRendererGroup on 2023.1
     variables:
         CACHE_ARGS: '{{cache.flags}}'
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
-      -  path: .yamato/all-universal_batchrenderergroup.yml#Extra_Universal_BatchRendererGroup_trunk
+      -  path: .yamato/all-universal_batchrenderergroup.yml#Extra_Universal_BatchRendererGroup_2023.1
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp_batchrenderergroup.yml#Extra_HDRP_BatchRendererGroup_trunk
+      -  path: .yamato/all-hdrp_batchrenderergroup.yml#Extra_HDRP_BatchRendererGroup_2023.1
          rerun: on_new_revision
 BatchRendererGroup_CUSTOM-REVISION:
     name: BatchRendererGroup on CUSTOM-REVISION
