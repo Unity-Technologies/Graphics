@@ -60,22 +60,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         //    GetWindow<ShaderGraphEditorWindow>(sceneView);
         //}
 
-        void InitializeOverlayWindows()
-        {
-            TryGetOverlay("gtf-inspector", out var gtfInspector);
-            overlayCanvas.Remove(gtfInspector);
-
-            TryGetOverlay("gtf-blackboard", out var gtfBlackboard);
-            overlayCanvas.Remove(gtfBlackboard);
-        }
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-
-            InitializeOverlayWindows();
-        }
-
         protected override void OnDisable()
         {
             if (!shouldCloseWindowNoPrompt && !PromptSaveIfDirtyOnQuit())
