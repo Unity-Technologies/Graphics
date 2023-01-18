@@ -1,8 +1,8 @@
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2023.1.metafile -%}
 
 name: URP_Upgrade
 test_editors:
-  - name: trunk
+  - name: 2023.1
   - name: CUSTOM-REVISION
 test_platforms:
   - name: win
@@ -24,8 +24,8 @@ test_platforms:
         flavor: {{ platform.flavor}}
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        {% if editor.name == 'trunk' %}
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        {% if editor.name == '2023.1' %}
+        CUSTOM_REVISION: '{{2023_1.changeset.id}}'
         {% elsif editor.name == 'CUSTOM-REVISION' %}
         CUSTOM_REVISION: custom_revision_not_set
         {% endif %}
