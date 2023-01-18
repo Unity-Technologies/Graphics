@@ -322,69 +322,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             AbstractNodeModel sourceNodeModel,
             Vector2 delta)
         {
-            var pastedNodeModel = sourceNodeModel.Clone();
-            // Set GraphModel BEFORE OnDefineNode as it is commonly used during it
-            pastedNodeModel.GraphModel = this;
-            pastedNodeModel.AssignNewGuid();
+            // We don't want to be able to duplicate context nodes,
+            if (sourceNodeModel is SGContextNodeModel)
+                return null;
 
-            switch (pastedNodeModel)
-            {
-                // We don't want to be able to duplicate context nodes,
-                // also they subclass from GraphDataNodeModel so need to handle first
-                case SGContextNodeModel:
-                    return null;
-                case SGNodeModel newCopiedNode when sourceNodeModel is SGNodeModel sourceGraphDataNode:
-                {
-                    newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
-
-                    var sourceNodeHandler = GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
-                    if (isCutOperation // In a cut operation the original node handlers have since been deleted, so we need to add from scratch
-                        || sourceNodeHandler == null) // If no node handler found, we're copying from a different graph so also add from scratch
-                    {
-                        GraphHandler.AddNode(sourceGraphDataNode.duplicationRegistryKey, newCopiedNode.graphDataName);
-                    }
-                    else
-                    {
-                        GraphHandler.DuplicateNode(sourceNodeHandler, false, newCopiedNode.graphDataName);
-                    }
-
-                    break;
-                }
-                case SGVariableNodeModel { DeclarationModel: SGVariableDeclarationModel declarationModel } newCopiedVariableNode:
-                {
-                    // if the blackboard property/keyword this variable node is referencing
-                    // doesn't exist in the graph, it has probably been copied from another graph
-                    if (!VariableDeclarations.Contains(declarationModel))
-                    {
-                        // Search for the equivalent property/keyword that GTF code
-                        // will have created to replace the missing reference
-                        newCopiedVariableNode.DeclarationModel = VariableDeclarations.FirstOrDefault(model => model.Guid == declarationModel.Guid);
-                        // Restore the Guid from its graph data name (as currently we need to align the Guids and graph data names)
-                        newCopiedVariableNode.graphDataName = new SerializableGUID(newCopiedVariableNode.graphDataName.Replace("_", String.Empty)).ToString();
-                        // Make sure this reference is up to date
-                        declarationModel = (SGVariableDeclarationModel)newCopiedVariableNode.DeclarationModel;
-                    }
-                    else
-                        newCopiedVariableNode.graphDataName = newCopiedVariableNode.Guid.ToString();
-
-                    // Every time a variable node is duplicated, add a reference node pointing back
-                    // to the property/keyword that is wrapped by the VariableDeclarationModel, on the CLDS level
-                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName);
-                    break;
-                }
-            }
-
-            pastedNodeModel.Position += delta;
-            AddNode(pastedNodeModel);
-            pastedNodeModel.OnDuplicateNode(sourceNodeModel);
-
-            if (pastedNodeModel is IGraphElementContainer container)
-            {
-                foreach (var element in container.GraphElementModels)
-                    RegisterElement(element);
-            }
-
-            return pastedNodeModel;
+            return base.DuplicateNode(sourceNodeModel, delta);
         }
 
         public static PortModel FindInputPortByName(AbstractNodeModel nodeModel, string portID)
