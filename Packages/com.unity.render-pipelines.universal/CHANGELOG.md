@@ -4,12 +4,44 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+
+## [15.0.4] - 2023-01-18
+
+This version is compatible with Unity 2023.1.0b2.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [15.0.3] - 2022-12-02
 
 This version is compatible with Unity 2023.1.0a23.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Improved shadow atlas building performance when there are a lot of lights.
+- Deprecated ScriptableRenderPipelineExtensionAttributeand LightingExplorerExtensionAttribute.
+- Removed support for GLES2.0 and WebGL1.0.
+- Disabled HDRP Global Settings when HDRP is not active.
+- Removed shader parameters used by additional lights when additional lights are disabled in URP Assets.
+- Added Shader Keyword Prefiltering for LOD Crossfade.
+- Improved the stability and robustness of the Lens Flare Screen Space effect.
+
+### Fixed
+- Fixed an issue where a ParticlesUnlit.mat warning appeared when creating a new material.
+- Fixed **High Dynamic Range** Grading Mode variants getting needlessly stripped when **Strip Unused Post Processing Variants** was selected (even though it's not a volume feature and is part of the UPR asset).
+- Fixed an issue in deferred rendering mode where the Material inspector would log errors about color and depth dimensions not matching.
+- Fixed decals for foveated rendering.
+- Fixed artifacts that could appear in _MotionVectorTexture for some platforms.
+- Released render targets of non-used renderers.
+- Fixed post-process effects in scene view shaded mode.
+- Fixed an issue with slower build-times caused by large Additional Light Shadows arrays in URP Shaders.
+- Fixed ComplexLit mixed lighting by matching ComplexLit shader keywords with the Lit shader.
+- Fixed an issue causing materials using Shader Graphs with material override to disappear when using the Deferred rendering path if alpha clipping is enabled in the material.
+- Enabled Global Settings to always upgrade when opening an old URP project.
+- Fixed a missing keyword in ParticleLit for Lightmap shadow mixing.
+- Enabled RenderObjects Render Features to now render correctly when injected after rendering.
+- Fixed an issue causing GPU hangs when using Forward+ for the default renderer while using Forward or Deferred for the active camera renderer.
+- Fixed 2D game view flickering when using URP Pixel Perfect and Cinemachine Pixel Perfect Extension.
+- Fixed an issue where the Universal Renderer could incorrectly clear the render target during the forward opaques pass even if the render target contains valid rendering data produced by a pass that ran before opaque rendering.
 
 ## [15.0.2] - 2022-11-04
 

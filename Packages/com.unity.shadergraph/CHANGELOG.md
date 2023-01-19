@@ -5,12 +5,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [15.0.4] - 2023-01-18
+
+This version is compatible with Unity 2023.1.0b2.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [15.0.3] - 2022-12-02
 
 This version is compatible with Unity 2023.1.0a23.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed multiple memory leaks in ShaderGraph so that windows and view elements now dispose of resources properly.
+- Fixed rare line-ending conflict in shader graph node templates when source control rewrites EOL markers.
 
 ## [15.0.2] - 2022-11-04
 

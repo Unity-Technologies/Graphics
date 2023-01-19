@@ -5,12 +5,83 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [15.0.4] - 2023-01-18
+
+This version is compatible with Unity 2023.1.0b2.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [15.0.3] - 2022-12-02
 
 This version is compatible with Unity 2023.1.0a23.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Updated the platform support message for consoles.
+- Improved water line detection.
+- Improved optimization for the HDRP Volumetric Clouds.
+- Deprecated ScriptableRenderPipelineExtensionAttribute and LightingExplorerExtensionAttribute.
+- Disabled HDRP Global Settings when HDRP is not active.
+- Changed the type of Surface Texture on HDAdditionalLightData from Texture2D to Texture.
+- Added automatic distance fade for water displacement.
+
+### Fixed
+- Fixed warning in LensFlare shader.
+- Fixed motion vectors overwriting rendering layers.
+- Fixed Motion Vector for Vertex Animation with Add Precomputed Velocity.
+- Fixed the parent transform so it is now longer ignored for pools and rivers when creating a water surface.
+- Fixed the excluder's renderer so it is now properly serialized.
+- Fixed foam appearing outside of a water mask when setting.
+- Renamed Amplitude Multipliers to Amplitude Dimmers for the water surface.
+- Fixed Ray Tracing Mixed Mode Collisions.
+- Fixed minor bug in the shadow ray culling for the cone spot light.
+- Fixed zfighting artifacts for ray tracing.
+- Fixed the indirect diffuse lighting in ray tracing so it now always works properly.
+- Added clarification on HDR Output not supporting Scene View.
+- Fixed Missing tooltip for Screen Weight Distance in Screen Space Refraction Override.
+- Fixed missing tag on decal shader properties.
+- Fixed mouse position in debug menu with scaled screens in Editor.
+- Fixed null reference error in the rendering debugger when there is no camera available.
+- Fixed a black screen issue with master builds on HDRP.
+- Fixed the fallback section so it now disappears when hiding the additional data.
+- Fixed black line in ray traced reflections.
+- Renamed IOR output in Eye shadergraph for clarification.
+- Fixed Text alignment in Transparency Inputs section.
+- Fixed an issue with Bloom and Depth of Field in game view when filtering in the hierarchy.
+- Fixed the ray tracing shadow denoiser s it no longer produces leaks at the edge of spotlight shadows.
+- Fixed the volumetric clouds presets so it now propagates their values if changed by script.
+- Fixed the deformer reset function so it now loads the presets.
+- Re-enabled XR tests for 004-CloudsFlaresDecals and 005-DistortCloudsParallax.
+- Fixed GI debug mode for terrains.
+- Fixed scalarization issues on a console platform.
+- Fixed the volumetric clouds presets so that they now propagate their values if changed by the script.
+- Fixed the deformer reset function so it now loads the presets.
+- Enabled SSR transparent in default framesettings.
+- Fixed the warning when compute thickness doesn't have LayerMask selected.
+- Fixed Baked GI override and Baked GI node to now take APV into account.
+- ComputeThicknes control Rendering group.
+- Fixed stripping on shadergraph depth prepass.
+- Improved the script linking the directional light to a Custom Render Target calling the RenderPipeline function `GetMainLight()`.
+- Fixed underwater refraction.
+- Fixed an issue where Fog Volume Voxelization would serialize execution of the compute pipe.
+- Excluded Main Light node from CustomRenderTexture Target.
+- Fixed water normal redirection factor.
+- Fixed env smoothness attenuation on pools.
+- Fixed disabling of the last foam generator.
+- Fixed water position on Mac and in debug modes.
+- Fixed disabling water foam in HDRP Asset.
+- Fixed resetting water surface component.
+- Fixed issues with renderer list culling.
+- Fixed coat mask when using iridescence.
+- Fixed motion blur issues caused on fast movements.
+- Fixed forward materials with motion vectors rendered twice.
+- Fixed stripping on shadergraph depth prepass.
+- Fixed an issue where calling `HDCamera.Reset()` would not reset internal frame count of individual sky and cloud renderers.
+- Removed visibility of Vertex Density debug mode on console platforms.
+- Fixed enabling raytracing in the HDRP asset if resources are in a bad state.
+- Enabled evaluation of stacked area lights in the path tracer.
+- Fixed an issue with flickering game view when using HDR output and a realtime reflection probe.
 
 ## [15.0.2] - 2022-11-04
 
