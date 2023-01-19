@@ -124,7 +124,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             return output;
         }
 
-
         internal static Color SampleMaterialColor(Material material)
         {
             var outputTexture = DrawMaterialToTexture(material);
@@ -188,8 +187,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             return graphHandler;
         }
 
-
-    [Test]
+        [Test]
         public void MainPreview_SingleColor_Material()
         {
             // Instantiate the graph
@@ -463,7 +461,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // Code generated should be different after a change was made
             Assert.IsTrue(shaderCodev1 != shaderCodev2);
         }
-
 
         [Test]
         public void MainPreview_ValidShaderCode()

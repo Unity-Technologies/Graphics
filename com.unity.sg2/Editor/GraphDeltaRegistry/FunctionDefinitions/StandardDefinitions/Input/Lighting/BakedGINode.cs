@@ -31,11 +31,13 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(
                     name: "Position",
-                    tooltip: "Mesh vertex/fragment's Position"
+                    tooltip: "Mesh vertex/fragment's Position",
+                    options: REF.OptionList.Positions
                 ),
                 new ParameterUIDescriptor(
                     name: "Normal",
-                    tooltip: "Mesh vertex/fragment's Normal"
+                    tooltip: "Mesh vertex/fragment's Normal",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "StaticUV",

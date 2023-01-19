@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
 @"PackedWaterData packedWaterData;
 ZERO_INITIALIZE(PackedWaterData, packedWaterData);
-PackWaterVertexData(PositionWS, Displacement, LowFrequencyHeight, SSSMask, packedWaterData);
+PackWaterVertexData(PositionWS, NormalWS, Displacement, LowFrequencyHeight, packedWaterData);
 PositionOS = packedWaterData.positionOS;
 NormalOS = packedWaterData.normalOS;
 uv0 = packedWaterData.uv0;
@@ -19,9 +19,9 @@ uv1 = packedWaterData.uv1;",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("PositionWS", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("NormalWS", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("Displacement", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("LowFrequencyHeight", TYPE.Float, Usage.In),
-                new ParameterDescriptor("SSSMask", TYPE.Float, Usage.In),
                 new ParameterDescriptor("PositionOS", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("NormalOS", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("uv0", TYPE.Vec4, Usage.Out),

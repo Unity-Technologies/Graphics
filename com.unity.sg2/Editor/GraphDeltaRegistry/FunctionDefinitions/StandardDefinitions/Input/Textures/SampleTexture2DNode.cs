@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Biasfunction", "Bias" }
             },
             functionSelectorLabel: "Mip Sampling Mode",
-            parameters: new ParameterUIDescriptor[13] {
+            parameters: new ParameterUIDescriptor[14] {
                 new ParameterUIDescriptor(
                     name: "Texture",
                     tooltip: "the texture asset to sample"
@@ -142,6 +142,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Sampler",
                     tooltip: "the texture sampler to use for sampling the texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Type",
+                    tooltip: "standard, tangent normal, or object normal"
                 ),
                 new ParameterUIDescriptor(
                     name: "LOD",
