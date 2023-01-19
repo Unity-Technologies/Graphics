@@ -60,11 +60,11 @@ namespace UnityEditor.Rendering
                 var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
                 if (renderPipelineAssetType != null && (renderPipelineAssetType.Name == "HDRenderPipelineAsset" || renderPipelineAssetType.Name == "UniversalRenderPipelineAsset"))
                 {
-                    EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
+                    EditorGUILayout.HelpBox("Probe Volumes are not enabled within the current Render Pipeline.", MessageType.Error, wide: true);
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox("The probe volumes feature is not enabled or not available on current SRP.", MessageType.Warning, wide: true);
+                    EditorGUILayout.HelpBox("The probe volumes feature is not available on current SRP.", MessageType.Warning, wide: true);
                 }
 
                 drawInspector = false;
