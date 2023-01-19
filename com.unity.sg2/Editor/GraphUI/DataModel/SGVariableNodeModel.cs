@@ -11,13 +11,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// Represents an instance of a blackboard property/keyword on the graph
     /// </summary>
-    class SGVariableNodeModel : VariableNodeModel, IGraphDataOwner
+    [Serializable]
+    class SGVariableNodeModel : VariableNodeModel, IGraphDataOwner<SGVariableNodeModel>
     {
+        [SerializeField]
+        RegistryKey m_RegistryKey;
+
         [SerializeField]
         string m_GraphDataName;
 
         /// <summary>
-        /// Graph data name associated with this node.
+        /// The <see cref="IGraphDataOwner{T}"/> interface for this object.
+        /// </summary>
+        IGraphDataOwner<SGVariableNodeModel> graphDataOwner => this;
+
+        /// <summary>
+        /// The identifier/unique name used to represent this entity and retrieve info. regarding it from CLDS.
         /// </summary>
         public string graphDataName
         {
@@ -26,25 +35,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         /// <summary>
-        /// This node's registry key. If graphDataName is set, this is read from the graph.
+        /// The <see cref="RegistryKey"/> that represents the concrete type within the Registry, of this object.
         /// </summary>
         public RegistryKey registryKey
         {
             get
             {
-                Assert.IsTrue(TryGetNodeReader(out var reader));
-                return reader.GetRegistryKey();
+                if (!m_RegistryKey.Valid() && graphDataOwner.TryGetNodeHandler(out var reader))
+                {
+                    m_RegistryKey = reader.GetRegistryKey();
+                }
+
+                return m_RegistryKey;
             }
         }
 
         public SGPortModel outputPortModel => (SGPortModel)m_MainPortModel;
-
-        /// <summary>
-        /// Determines whether or not this node has a valid backing representation at the data layer.
-        /// </summary>
-        public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
-
-        GraphHandler graphHandler => ((SGGraphModel)GraphModel).GraphHandler;
 
         protected override void OnDefineNode()
         {
@@ -81,26 +87,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnDuplicateNode(sourceNode);
         }
 
-        public bool TryGetNodeReader(out NodeHandler reader)
-        {
-            try
-            {
-                reader = graphHandler.GetNode(graphDataName);
-                return reader != null;
-            }
-            catch (Exception exception)
-            {
-                AssertHelpers.Fail("Failed to retrieve node due to exception:" + exception);
-                reader = null;
-                return false;
-            }
-        }
-
         protected override PortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
             PortType portType,
             TypeHandle dataType, string portId, PortModelOptions options)
         {
             return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
+        }
+
+        /// <inheritdoc />
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+
+            if (graphDataOwner.TryGetNodeHandler(out var reader))
+            {
+                m_RegistryKey = reader.GetRegistryKey();
+            }
         }
     }
 }

@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void UpdatePartFromModel()
         {
             if (m_Model is not SGNodeModel sgNodeModel) return;
-            if (!sgNodeModel.TryGetNodeHandler(out var handler)) return;
+            if (!sgNodeModel.graphDataOwner.TryGetNodeHandler(out var handler)) return;
 
             var channelVec = GraphTypeHelpers.GetAsVec3(handler.GetPort(m_CurrentChannel).GetTypeField());
             m_SliderR.SetValueWithoutNotify(channelVec.x);
