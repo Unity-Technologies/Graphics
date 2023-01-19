@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (!models.Any()) yield break;
 
             var nodeModel = models.First();
-            if (!nodeModel.TryGetNodeHandler(out var nodeReader)) yield break;
+            if (!nodeModel.graphDataOwner.TryGetNodeHandler(out var nodeReader)) yield break;
 
             var graphModel = (SGGraphModel)nodeModel.GraphModel;
             var stencil = (ShaderGraphStencil)graphModel.Stencil;

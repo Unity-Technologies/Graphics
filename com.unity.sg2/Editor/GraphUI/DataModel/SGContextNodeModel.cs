@@ -9,27 +9,44 @@ using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class SGContextNodeModel : ContextNodeModel, IPreviewUpdateListener, IGraphDataOwner
+    [Serializable]
+    class SGContextNodeModel : ContextNodeModel, IPreviewUpdateListener, IGraphDataOwner<SGContextNodeModel>
     {
+        [SerializeField]
+        RegistryKey m_RegistryKey;
+
         [SerializeField]
         string m_GraphDataName;
 
+        /// <summary>
+        /// The <see cref="IGraphDataOwner{T}"/> interface for this object.
+        /// </summary>
+        public IGraphDataOwner<SGContextNodeModel> graphDataOwner => this;
+
+        /// <summary>
+        /// The identifier/unique name used to represent this entity and retrieve info. regarding it from CLDS.
+        /// </summary>
         public string graphDataName
         {
             get => m_GraphDataName;
             set => m_GraphDataName = value;
         }
 
-        public bool existsInGraphData => m_GraphDataName != null && TryGetNodeHandler(out _);
-        GraphHandler graphHandler => ((SGGraphModel)GraphModel).GraphHandler;
         SGGraphModel sgGraphModel => GraphModel as SGGraphModel;
 
+        /// <summary>
+        /// The <see cref="RegistryKey"/> that represents the concrete type within the Registry, of this object.
+        /// </summary>
         public RegistryKey registryKey
         {
             get
             {
-                Assert.IsTrue(TryGetNodeHandler(out var reader));
-                return reader.GetRegistryKey();
+                if (!m_RegistryKey.Valid() && graphDataOwner.TryGetNodeHandler(out var reader))
+                {
+                    m_RegistryKey = reader.GetRegistryKey();
+                }
+
+                return m_RegistryKey;
             }
         }
 
@@ -41,21 +58,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Deletable);
             m_Capabilities.Remove(Unity.GraphToolsFoundation.Editor.Capabilities.Copiable);
-        }
-
-        public bool TryGetNodeHandler(out NodeHandler reader)
-        {
-            try
-            {
-                reader = graphHandler.GetNode(graphDataName);
-                return reader != null;
-            }
-            catch (Exception exception)
-            {
-                AssertHelpers.Fail("Failed to retrieve node due to exception:" + exception);
-                reader = null;
-                return false;
-            }
         }
 
         public void AddBlocksFromGraphDelta()
@@ -75,7 +77,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // something like a list of SGPortViewModels when more information (i.e., display names) is available.
         public IEnumerable<string> GetContextEntryNames()
         {
-            if (!TryGetNodeHandler(out var nodeReader))
+            if (!graphDataOwner.TryGetNodeHandler(out var nodeReader))
             {
                 yield break;
             }
@@ -142,21 +144,21 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void CreateEntry(string entryName, TypeHandle typeHandle)
         {
-            if (!TryGetNodeHandler(out var nodeHandler)) return;
+            if (!graphDataOwner.TryGetNodeHandler(out var nodeHandler)) return;
 
             ContextBuilder.AddContextEntry(nodeHandler, typeHandle.GetBackingDescriptor(), entryName, nodeHandler.Registry);
-            graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
+            graphDataOwner.graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
             CreateAndInsertBlockForEntry(entryName);
         }
 
         public void RemoveEntry(string entryName)
         {
-            if (!TryGetNodeHandler(out var nodeHandler)) return;
+            if (!graphDataOwner.TryGetNodeHandler(out var nodeHandler)) return;
 
             nodeHandler.RemovePort(entryName);
             nodeHandler.RemovePort("out_" + entryName);
 
-            graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
+            graphDataOwner.graphHandler.ReconcretizeNode(nodeHandler.ID.FullPath);
 
             if (TryGetBlockForContextEntry(entryName, out var blockNode))
             {
@@ -165,5 +167,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         #endregion
+
+        /// <inheritdoc />
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+
+            if (graphDataOwner.TryGetNodeHandler(out var reader))
+            {
+                m_RegistryKey = reader.GetRegistryKey();
+            }
+        }
     }
 }

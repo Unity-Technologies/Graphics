@@ -336,7 +336,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             multiply1.Title = "Multiply 1";
 
             Assert.IsNotNull(multiply1.graphDataName);
-            Assert.DoesNotThrow(() => multiply1.TryGetNodeHandler(out _));
+            Assert.DoesNotThrow(() => multiply1.graphDataOwner.TryGetNodeHandler(out _));
 
             var currentCount = GraphModel.NodeModels.Count;
 
@@ -354,7 +354,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             Assert.IsNotNull(newNode.graphDataName);
             Assert.AreNotEqual(multiply1.graphDataName, newNode.graphDataName);
-            Assert.DoesNotThrow(() => newNode.TryGetNodeHandler(out _));
+            Assert.DoesNotThrow(() => newNode.graphDataOwner.TryGetNodeHandler(out _));
         }
 
         [UnityTest]
@@ -364,7 +364,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             multiply1.Title = "Multiply 1";
 
             Assert.IsNotNull(multiply1.graphDataName);
-            Assert.DoesNotThrow(() => multiply1.TryGetNodeHandler(out _));
+            Assert.DoesNotThrow(() => multiply1.graphDataOwner.TryGetNodeHandler(out _));
 
             var currentCount = GraphModel.NodeModels.Count;
 
@@ -386,7 +386,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             Assert.IsNotNull(newNode.graphDataName);
             Assert.AreNotEqual(multiply1.graphDataName, newNode.graphDataName);
-            Assert.DoesNotThrow(() => newNode.TryGetNodeHandler(out _));
+            Assert.DoesNotThrow(() => newNode.graphDataOwner.TryGetNodeHandler(out _));
         }
     }
 }

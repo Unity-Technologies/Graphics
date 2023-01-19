@@ -59,6 +59,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             info.AddValue("Name", Name);
             info.AddValue("Version", Version);
         }
+
+        public bool Valid()
+        {
+            return Name != default;
+        }
     }
 
     [Flags] public enum RegistryFlags
