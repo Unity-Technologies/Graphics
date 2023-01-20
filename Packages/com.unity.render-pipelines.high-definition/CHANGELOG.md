@@ -5,12 +5,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [12.1.10] - 2023-01-18
+
+This version is compatible with Unity 2021.3.18f1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [12.1.9] - 2022-12-12
 
 This version is compatible with Unity 2021.3.16f1.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Re-enabled XR tests for 004-CloudsFlaresDecals and 005-DistortCloudsParallax.
+- Fixed scalarization issues on Gamecore.
 
 ## [12.1.8] - 2022-11-04
 

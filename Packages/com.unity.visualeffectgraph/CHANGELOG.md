@@ -5,12 +5,27 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [12.1.10] - 2023-01-18
+
+This version is compatible with Unity 2021.3.18f1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [12.1.9] - 2022-12-12
 
 This version is compatible with Unity 2021.3.16f1.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Added a Visual Effect Graph to the scene did not take the default parent into account.
+- Fixed an issue that VisualEffect spawned behind the camera were always updated until visible and culled.
+- Removed unexpected GC.Alloc while accessing to `state.vfxEventAttribute` in [VFXSpawnerCallbacks](https://docs.unity3d.com/ScriptReference/VFX.VFXSpawnerCallbacks.OnUpdate.html).
+- Fixed the **Preserve Specular Lighting** mode on non-Shader Graph lit outputs.
+- Fixed robustness issues with Collision with SDF.
+- Fixed an issue to avoid unnessary allocations in the SDF Baker by using Mesh Buffer API.
+- Removed unneeded nodes in Ribbon template.
+- Fixed bounds padding being ignored.
 
 ## [12.1.8] - 2022-11-04
 

@@ -5,12 +5,25 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [12.1.10] - 2023-01-18
+
+This version is compatible with Unity 2021.3.18f1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [12.1.9] - 2022-12-12
 
 This version is compatible with Unity 2021.3.16f1.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Shader parameters used by additional lights are now removed when additional lights are disabled in URP Assets.
+
+### Fixed
+- Set default contribution to 0 for ColorLookup VolumeComponent, which makes the interpolation with the implicit default global volume behave as expected.
+- Fixed an issue with slower build-times caused by large Additional Light Shadows arrays in URP Shaders.
+- Fixed a bug where lights with different blend styles may have missing shadows.
 
 ## [12.1.8] - 2022-11-04
 
