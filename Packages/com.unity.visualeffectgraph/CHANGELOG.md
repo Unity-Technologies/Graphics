@@ -5,12 +5,29 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [14.0.6] - 2023-01-18
+
+This version is compatible with Unity 2022.2.4f1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [14.0.5] - 2022-12-12
 
 This version is compatible with Unity 2022.2.2f1.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Fixed lightmap range limitations.
+
+### Fixed
+- Fixed crash when loading a subscene with VFX in DOTS
+- Fixed NRE when the Vector2 is configured as a range, it was preventing Decal output context creation.
+- Added a Visual Effect Graph to the scene did not take the default parent into account.
+- Six-way lighting fixes.
+- Removed unexpected GC.Alloc while accessing to `state.vfxEventAttribute` in [VFXSpawnerCallbacks](https://docs.unity3d.com/ScriptReference/VFX.VFXSpawnerCallbacks.OnUpdate.html).
+- Fixed an issue with the out of range exception on GPU when multiple spawn context are plugged to the same initialize system.
+- Fixed an issue that VisualEffect spawned behind the camera were always updated until visible and culled.
 
 ## [14.0.4] - 2022-11-04
 
