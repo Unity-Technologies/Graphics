@@ -26,9 +26,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         protected virtual string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
         protected virtual bool hideOverlayWindows => true;
 
-        // Need to match the values specified by the BlackboardOverlay and ModelInspectorOverlay in GTFO
-        protected const string k_BlackboardOverlayId = SGBlackboardOverlay.k_OverlayID;
-        protected const string k_InspectorOverlayId = SGInspectorOverlay.k_OverlayID;
+        protected const string k_BlackboardOverlayId = BlackboardOverlay_Internal.idValue;
+        protected const string k_InspectorOverlayId = ModelInspectorOverlay_Internal.idValue;
 
         internal enum GraphInstantiation
         {
