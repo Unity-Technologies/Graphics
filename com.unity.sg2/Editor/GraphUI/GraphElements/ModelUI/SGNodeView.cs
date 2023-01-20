@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         DynamicPartHolder m_StaticFieldParts;
         SGNodeModel graphDataNodeModel => NodeModel as SGNodeModel;
 
+        public SGNodeView()
+        {
+            AddToClassList("sg-node-view");
+        }
+
         protected override void BuildPartList()
         {
             base.BuildPartList();
@@ -97,12 +102,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 nodeHasPreview;
 
             if (shouldShowPreview)
+            {
                 m_NodePreviewPart = new NodePreviewPart(
                     "node-preview",
                     GraphElementModel,
                     this,
                     ussClassName);
-            PartList.AppendPart(m_NodePreviewPart);
+                PartList.AppendPart(m_NodePreviewPart);
+
+                PartList.RemovePart(nodeCachePartName);
+
+                PartList.AppendPart( SGNodeCachePart.Create(nodeCachePartName,Model,this,ussClassName));
+            }
         }
 
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
