@@ -519,9 +519,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = pragmas,
-                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { keywords },
-                    includes = LitIncludes.Forward,
+                    defines = new DefineCollection { CoreDefines.UseFragmentFog },
+                    keywords = new KeywordCollection { keywords },
+                    includes = new IncludeCollection { LitIncludes.Forward },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -568,7 +568,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = CorePragmas.GBufferSM45,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.GBuffer },
-                    includes = LitIncludes.GBuffer,
+                    includes = new IncludeCollection { LitIncludes.GBuffer },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -683,8 +683,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { CoreKeywords.DOTSDepthNormal },
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    keywords = new KeywordCollection { CoreKeywords.DOTSDepthNormal },
+                    includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -724,7 +724,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection() { CoreKeywords.DOTSDepthNormal },
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
