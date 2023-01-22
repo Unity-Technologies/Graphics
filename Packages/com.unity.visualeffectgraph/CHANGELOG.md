@@ -5,12 +5,31 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [16.0.0] - 2023-01-18
+
+This version is compatible with Unity 2023.2.0a1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [15.0.3] - 2022-12-02
 
 This version is compatible with Unity 2023.1.0a23.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed wrong particle count if read before first readback.
+- Fixed subgraph edition causing error **An infinite import loop has been detected.** while saving.
+- Enabled renamed blackboard categories that have been duplicated to stay on screen.
+- Removed blackboard category with only spaces in the name.
+- Fixed the VFX compute shader so it now compiles when the name of a custom attribute contains a space.
+- Fixed a rare issue with VFXCullResults.
+- Fixed the play / pause button in the VFX Graph control panel so it now switches the icon depending on the current state.
+- Removed exception when more than 5 flow inputs are exposed in subgraph.
+- Fixed an issue with the out of range exception on GPU when multiple spawn context are plugged to the same initialize system.
+- Prevented overflow on baked curve and gradient.
+- Enabled easier usage of the toggle Support VFX Graph instead to avoid confusing creation of VFX Target.
+- Fixed a crash when drag & dropping a VFX on another VFX with a circular dependency.
 
 ## [15.0.2] - 2022-11-04
 

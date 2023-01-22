@@ -5,12 +5,31 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [16.0.0] - 2023-01-18
+
+This version is compatible with Unity 2023.2.0a1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [15.0.3] - 2022-12-02
 
 This version is compatible with Unity 2023.1.0a23.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added HDR output utilities to handle keywords and shader stripping.
+
+### Changed
+- Deprecated the VolumeComponentMenuForRenderPipeline.
+
+### Fixed
+- Fixed volume profile field state when asset is removed.
+- Fixed ColorCurves volume leaking Texture2D objects under certain circumstances.
+- Fixed virtual offset pushing probes outside of geometry.
+- Added Local mode to fit Probe Volumes to scene.
+- Fixed APV so it is now present in the light explorer.
+- Fixed reset of APV debug.
 
 ## [15.0.2] - 2022-11-04
 
