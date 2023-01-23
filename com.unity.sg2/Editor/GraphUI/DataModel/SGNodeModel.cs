@@ -80,11 +80,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool existsInGraphData =>
             m_GraphDataName != null && TryGetNodeHandler(out _);
 
-        protected GraphHandler graphHandler =>
+        GraphHandler graphHandler =>
             ((SGGraphModel)GraphModel).GraphHandler;
 
         ShaderGraphRegistry registry =>
-            ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
+            ((SGGraphModel)GraphModel).RegistryInstance;
 
         public bool TryGetNodeHandler(out NodeHandler reader)
         {
@@ -421,21 +421,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
-            if (!TryGetNodeHandler(out var nodeReader))
+            if (!TryGetNodeHandler(out var nodeHandler))
             {
                 Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
                 return;
             }
 
-            NodeUIDescriptor nodeUIDescriptor = new();
-            if(GraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
-                nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey, nodeReader);
-
-            bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
-            m_NodeViewModel = CreateNodeViewModel(nodeUIDescriptor, nodeReader);
+            var nodeUIDescriptor = registry.GetNodeUIDescriptor(registryKey, nodeHandler);
+            var nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
+            m_NodeViewModel = CreateNodeViewModel(nodeUIDescriptor, nodeHandler);
 
             // TODO: Convert this to a NodePortsPart maybe?
-            foreach (var portReader in nodeReader.GetPorts().Where(e => !e.LocalID.Contains("out_")))
+            foreach (var portReader in nodeHandler.GetPorts().Where(e => !e.LocalID.Contains("out_")))
             {
                 if (!portReader.IsHorizontal)
                     continue;
@@ -449,7 +446,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 // var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
                 var type = ShaderGraphExampleTypes.GetGraphType(portReader);
-                var nodeId = nodeReader.ID;
+                var nodeId = nodeHandler.ID;
                 void initCallback(Constant e)
                 {
                     var constant = e as BaseShaderGraphConstant;
@@ -476,7 +473,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     var newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
-                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
+                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeHandler.ID.LocalPath, portReader.LocalID);
                 }
                 else
                     this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);

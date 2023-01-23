@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         private bool isSubGraph = false;
 
         internal GraphHandler GraphHandler => graphHandlerBox.Graph;
-        internal ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
+        internal virtual ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
         internal List<JsonData<Target>> Targets => targetSettingsBox.Targets; // TODO: Store the active editing target in the box?
         internal Target ActiveTarget => Targets.FirstOrDefault();
         internal SGMainPreviewModel MainPreviewData => mainPreviewModel;
@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal void Init(GraphHandler graph, bool isSubGraph, Target target)
         {
-            graphHandlerBox.Init(graph);
+            graphHandlerBox.Init(graph, RegistryInstance.Registry);
             this.isSubGraph = isSubGraph;
             if (!isSubGraph && target != null)
             {
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void OnEnable()
         {
-            graphHandlerBox.OnEnable(false);
+            graphHandlerBox.OnEnable(RegistryInstance.Registry, false);
 
             targetSettingsBox.OnEnable();
             foreach (var target in Targets)
