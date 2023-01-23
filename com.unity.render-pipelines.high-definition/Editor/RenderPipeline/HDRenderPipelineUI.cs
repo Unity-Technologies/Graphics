@@ -15,43 +15,57 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         #region Expandable States
 
-        internal enum Expandable
+        internal enum ExpandableGroup
         {
-            // Obsolete values
             Rendering = 1 << 4,
             Lighting = 1 << 5,
-            Material = 1 << 6,
-            LightLoop = 1 << 7,
-            Cookie = 1 << 8,
-            Reflection = 1 << 9,
-            Sky = 1 << 10,
-            Shadow = 1 << 11,
-            Decal = 1 << 12,
-            PostProcess = 1 << 13,
-            DynamicResolution = 1 << 14,
-            LowResTransparency = 1 << 15,
-            PostProcessQuality = 1 << 16,
-            DepthOfFieldQuality = 1 << 17,
-            MotionBlurQuality = 1 << 18,
-            BloomQuality = 1 << 19,
-            ChromaticAberrationQuality = 1 << 20,
-            XR = 1 << 21,
-            LightLayer = 1 << 22,
-            SSAOQuality = 1 << 23,
-            ContactShadowQuality = 1 << 24,
-            LightingQuality = 1 << 25,
-            SSRQuality = 1 << 26,
-            VirtualTexturing = 1 << 27,
-            FogQuality = 1 << 28,
-            Volumetric = 1 << 29,
-            ProbeVolume = 1 << 30,
-            RTAOQuality = 1 << 31,
-            RTRQuality = 1 << 32,
-            RTGIQuality = 1 << 33,
-            SSGIQuality = 1 << 34,
-            Water = 1 << 35,
-            ComputeThickness = 1 << 36,
-            HighQualityLineRendering = 1 << 37,
+            LightingQuality = 1 << 6,
+            Material = 1 << 7,
+            PostProcess = 1 << 8,
+            PostProcessQuality = 1 << 9,
+            XR = 1 << 10,
+            VirtualTexturing = 1 << 11
+        }
+
+        internal enum ExpandableRendering
+        {
+            Decal = 1 << 0,
+            DynamicResolution = 1 << 1,
+            LowResTransparency = 1 << 2,
+            Water = 1 << 3,
+            ComputeThickness = 1 << 4,
+            HighQualityLineRendering = 1 << 5
+        }
+
+        internal enum ExpandableLighting
+        {
+            Volumetric = 1 << 0,
+            ProbeVolume = 1 << 1,
+            Cookie = 1 << 2,
+            Reflection = 1 << 3,
+            Sky = 1 << 4,
+            Shadow = 1 << 5,
+            LightLoop = 1 << 6
+        }
+
+        internal enum ExpandableLightingQuality
+        {
+            SSAOQuality = 1 << 0,
+            RTAOQuality = 1 << 1,
+            ContactShadowQuality = 1 << 2,
+            SSRQuality = 1 << 3,
+            RTRQuality = 1 << 4,
+            FogQuality = 1 << 5,
+            RTGIQuality = 1 << 6,
+            SSGIQuality = 1 << 7
+        }
+
+        internal enum ExpandablePostProcessQuality
+        {
+            DepthOfFieldQuality = 1 << 0,
+            MotionBlurQuality = 1 << 1,
+            BloomQuality = 1 << 2,
+            ChromaticAberrationQuality = 1 << 3
         }
 
         enum ExpandableShadows
@@ -68,12 +82,18 @@ namespace UnityEditor.Rendering.HighDefinition
             High = 1 << 3,
         }
 
-        static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new(Expandable.Rendering, "HDRP");
+        static readonly ExpandedState<ExpandableGroup, HDRenderPipelineAsset> k_ExpandedGroupState = new(0, "HDRP");
+        static readonly ExpandedState<ExpandableRendering, HDRenderPipelineAsset> k_ExpandableRenderingState = new(0, "HDRP");
+        static readonly ExpandedState<ExpandableLighting, HDRenderPipelineAsset> k_ExpandableLightingState = new(0, "HDRP");
+        static readonly ExpandedState<ExpandableLightingQuality, HDRenderPipelineAsset> k_ExpandableLightingQualityState = new(0, "HDRP");
+        static readonly ExpandedState<ExpandablePostProcessQuality, HDRenderPipelineAsset> k_ExpandablePostProcessQualityState = new(0, "HDRP");
+
         static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP");
 
         static readonly Dictionary<GUIContent, ExpandedState<ExpandableQualities, HDRenderPipelineAsset>>
         k_QualityExpandedStates = new();
-        private static CED.IDrawer QualityDrawer(GUIContent content, Expandable expandable, Action<SerializedHDRenderPipelineAsset, int> qualityActionForTier)
+        private static CED.IDrawer QualityDrawer<TEnum>(GUIContent content, TEnum mask, ExpandedStateBase<TEnum> state, Action<SerializedHDRenderPipelineAsset, int> qualityActionForTier)
+            where TEnum : struct, IConvertible
         {
             // Make sure that the section is not registered
             if (k_QualityExpandedStates.TryGetValue(content, out var key))
@@ -84,14 +104,13 @@ namespace UnityEditor.Rendering.HighDefinition
             k_QualityExpandedStates[content] = key;
 
             const FoldoutOption options = FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd;
-            return CED.FoldoutGroup(content, expandable, k_ExpandedState, options,
+            return CED.FoldoutGroup(content, mask, state, options,
                 CED.FoldoutGroup(Styles.lowQualityContent, ExpandableQualities.Low, key, options, (s, _) => qualityActionForTier(s, (int)ScalableSettingLevelParameter.Level.Low)),
                 CED.FoldoutGroup(Styles.mediumQualityContent, ExpandableQualities.Medium, key, options, (s, _) => qualityActionForTier(s, (int)ScalableSettingLevelParameter.Level.Medium)),
                 CED.FoldoutGroup(Styles.highQualityContent, ExpandableQualities.High, key, options, (s, _) => qualityActionForTier(s, (int)ScalableSettingLevelParameter.Level.High)));
         }
 
         #endregion
-
 
         enum ShadowResolutionValue
         {
@@ -118,54 +137,55 @@ namespace UnityEditor.Rendering.HighDefinition
         static HDRenderPipelineUI()
         {
             Inspector = CED.Group(
-                CED.FoldoutGroup(Styles.renderingSectionTitle, Expandable.Rendering, k_ExpandedState,
+                SubInspectors[ExpandableGroup.Rendering] = CED.FoldoutGroup(Styles.renderingSectionTitle, ExpandableGroup.Rendering, k_ExpandedGroupState,
                     CED.Group(GroupOption.Indent, Drawer_SectionRenderingUnsorted),
-                    CED.FoldoutGroup(Styles.decalsSubTitle, Expandable.Decal, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
-                    CED.FoldoutGroup(Styles.dynamicResolutionSubTitle, Expandable.DynamicResolution, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings),
-                    CED.FoldoutGroup(Styles.lowResTransparencySubTitle, Expandable.LowResTransparency, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLowResTransparentSettings),
-                    CED.FoldoutGroup(Styles.waterSubTitle, Expandable.Water, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionWaterSettings),
-                    CED.FoldoutGroup(Styles.computeThicknessSubTitle, Expandable.ComputeThickness, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionComputeThicknessSettings),
-                    CED.FoldoutGroup(Styles.highQualityLineRenderingSubTitle, Expandable.HighQualityLineRendering, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionHighQualityLineRenderingSettings)
+                    CED.FoldoutGroup(Styles.decalsSubTitle, ExpandableRendering.Decal, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
+                    CED.FoldoutGroup(Styles.dynamicResolutionSubTitle, ExpandableRendering.DynamicResolution, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings),
+                    CED.FoldoutGroup(Styles.lowResTransparencySubTitle, ExpandableRendering.LowResTransparency, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLowResTransparentSettings),
+                    CED.FoldoutGroup(Styles.waterSubTitle, ExpandableRendering.Water, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionWaterSettings),
+                    CED.FoldoutGroup(Styles.computeThicknessSubTitle, ExpandableRendering.ComputeThickness, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionComputeThicknessSettings),
+                    CED.FoldoutGroup(Styles.highQualityLineRenderingSubTitle, ExpandableRendering.HighQualityLineRendering, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionHighQualityLineRenderingSettings)
                     ),
-                CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
+                SubInspectors[ExpandableGroup.Lighting] = CED.FoldoutGroup(Styles.lightingSectionTitle, ExpandableGroup.Lighting, k_ExpandedGroupState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
-                    CED.FoldoutGroup(Styles.volumetricSubTitle, Expandable.Volumetric, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_Volumetric),
-                    CED.FoldoutGroup(Styles.lightProbeSubTitle, Expandable.ProbeVolume, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionProbeVolume),
-                    CED.FoldoutGroup(Styles.cookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
-                    CED.FoldoutGroup(Styles.reflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
-                    CED.FoldoutGroup(Styles.skySubTitle, Expandable.Sky, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionSky),
-                    CED.FoldoutGroup(Styles.shadowSubTitle, Expandable.Shadow, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout,
+                    CED.FoldoutGroup(Styles.volumetricSubTitle, ExpandableLighting.Volumetric, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_Volumetric),
+                    CED.FoldoutGroup(Styles.lightProbeSubTitle, ExpandableLighting.ProbeVolume, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionProbeVolume),
+                    CED.FoldoutGroup(Styles.cookiesSubTitle, ExpandableLighting.Cookie, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
+                    CED.FoldoutGroup(Styles.reflectionsSubTitle, ExpandableLighting.Reflection, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
+                    CED.FoldoutGroup(Styles.skySubTitle, ExpandableLighting.Sky, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionSky),
+                    CED.FoldoutGroup(Styles.shadowSubTitle, ExpandableLighting.Shadow, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout,
                         CED.Group(Drawer_SectionShadows),
                         CED.FoldoutGroup(Styles.punctualLightshadowSubTitle, ExpandableShadows.PunctualLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_PunctualLightSectionShadows),
                         CED.FoldoutGroup(Styles.directionalLightshadowSubTitle, ExpandableShadows.DirectionalLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_DirectionalLightSectionShadows),
                         CED.FoldoutGroup(Styles.areaLightshadowSubTitle, ExpandableShadows.AreaLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_AreaLightSectionShadows)
                         ),
-                    CED.FoldoutGroup(Styles.lightLoopSubTitle, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop)
+                    CED.FoldoutGroup(Styles.lightLoopSubTitle, ExpandableLighting.LightLoop, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop)
                     ),
-                CED.FoldoutGroup(Styles.lightingQualitySettings, Expandable.LightingQuality, k_ExpandedState,
-                    QualityDrawer(Styles.SSAOQualitySettingSubTitle, Expandable.SSAOQuality, DrawAOQualitySetting),
-                    QualityDrawer(Styles.RTAOQualitySettingSubTitle, Expandable.RTAOQuality, DrawRTAOQualitySetting),
-                    QualityDrawer(Styles.contactShadowsSettingsSubTitle, Expandable.ContactShadowQuality, DrawContactShadowQualitySetting),
-                    QualityDrawer(Styles.SSRSettingsSubTitle, Expandable.SSRQuality, DrawSSRQualitySetting),
-                    QualityDrawer(Styles.RTRSettingsSubTitle, Expandable.RTRQuality, DrawRTRQualitySetting),
-                    QualityDrawer(Styles.FogSettingsSubTitle, Expandable.FogQuality, DrawVolumetricFogQualitySetting),
-                    QualityDrawer(Styles.RTGISettingsSubTitle, Expandable.RTGIQuality, DrawRTGIQualitySetting),
-                    QualityDrawer(Styles.SSGISettingsSubTitle, Expandable.SSGIQuality, DrawSSGIQualitySetting)
+                SubInspectors[ExpandableGroup.LightingQuality] = CED.FoldoutGroup(Styles.lightingQualitySettings, ExpandableGroup.LightingQuality, k_ExpandedGroupState,
+                    QualityDrawer(Styles.SSAOQualitySettingSubTitle, ExpandableLightingQuality.SSAOQuality, k_ExpandableLightingQualityState, DrawAOQualitySetting),
+                    QualityDrawer(Styles.RTAOQualitySettingSubTitle, ExpandableLightingQuality.RTAOQuality, k_ExpandableLightingQualityState, DrawRTAOQualitySetting),
+                    QualityDrawer(Styles.contactShadowsSettingsSubTitle, ExpandableLightingQuality.ContactShadowQuality, k_ExpandableLightingQualityState, DrawContactShadowQualitySetting),
+                    QualityDrawer(Styles.SSRSettingsSubTitle, ExpandableLightingQuality.SSRQuality, k_ExpandableLightingQualityState, DrawSSRQualitySetting),
+                    QualityDrawer(Styles.RTRSettingsSubTitle, ExpandableLightingQuality.RTRQuality, k_ExpandableLightingQualityState, DrawRTRQualitySetting),
+                    QualityDrawer(Styles.FogSettingsSubTitle, ExpandableLightingQuality.FogQuality, k_ExpandableLightingQualityState, DrawVolumetricFogQualitySetting),
+                    QualityDrawer(Styles.RTGISettingsSubTitle, ExpandableLightingQuality.RTGIQuality, k_ExpandableLightingQualityState, DrawRTGIQualitySetting),
+                    QualityDrawer(Styles.SSGISettingsSubTitle, ExpandableLightingQuality.SSGIQuality, k_ExpandableLightingQualityState, DrawSSGIQualitySetting)
                     ),
-                CED.FoldoutGroup(Styles.materialSectionTitle, Expandable.Material, k_ExpandedState, Drawer_SectionMaterialUnsorted),
-                CED.FoldoutGroup(Styles.postProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings),
-                CED.FoldoutGroup(Styles.postProcessQualitySubTitle, Expandable.PostProcessQuality, k_ExpandedState,
-                    QualityDrawer(Styles.depthOfFieldQualitySettings, Expandable.DepthOfFieldQuality, DrawDepthOfFieldQualitySetting),
-                    QualityDrawer(Styles.motionBlurQualitySettings, Expandable.MotionBlurQuality, DrawMotionBlurQualitySetting),
-                    QualityDrawer(Styles.bloomQualitySettings, Expandable.BloomQuality, DrawBloomQualitySetting),
-                    QualityDrawer(Styles.chromaticAberrationQualitySettings, Expandable.ChromaticAberrationQuality, DrawChromaticAberrationQualitySetting)
+                SubInspectors[ExpandableGroup.Material] = CED.FoldoutGroup(Styles.materialSectionTitle, ExpandableGroup.Material, k_ExpandedGroupState, Drawer_SectionMaterialUnsorted),
+                SubInspectors[ExpandableGroup.PostProcess] = CED.FoldoutGroup(Styles.postProcessSectionTitle, ExpandableGroup.PostProcess, k_ExpandedGroupState, Drawer_SectionPostProcessSettings),
+                SubInspectors[ExpandableGroup.PostProcessQuality] = CED.FoldoutGroup(Styles.postProcessQualitySubTitle, ExpandableGroup.PostProcessQuality, k_ExpandedGroupState,
+                    QualityDrawer(Styles.depthOfFieldQualitySettings, ExpandablePostProcessQuality.DepthOfFieldQuality, k_ExpandablePostProcessQualityState, DrawDepthOfFieldQualitySetting),
+                    QualityDrawer(Styles.motionBlurQualitySettings, ExpandablePostProcessQuality.MotionBlurQuality, k_ExpandablePostProcessQualityState, DrawMotionBlurQualitySetting),
+                    QualityDrawer(Styles.bloomQualitySettings, ExpandablePostProcessQuality.BloomQuality, k_ExpandablePostProcessQualityState, DrawBloomQualitySetting),
+                    QualityDrawer(Styles.chromaticAberrationQualitySettings, ExpandablePostProcessQuality.ChromaticAberrationQuality, k_ExpandablePostProcessQualityState, DrawChromaticAberrationQualitySetting)
                     ),
-                CED.FoldoutGroup(Styles.xrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings),
-                CED.FoldoutGroup(Styles.virtualTexturingTitle, Expandable.VirtualTexturing, k_ExpandedState, Drawer_SectionVTSettings)
+                SubInspectors[ExpandableGroup.XR] = CED.FoldoutGroup(Styles.xrTitle, ExpandableGroup.XR, k_ExpandedGroupState, Drawer_SectionXRSettings),
+                SubInspectors[ExpandableGroup.VirtualTexturing] = CED.FoldoutGroup(Styles.virtualTexturingTitle, ExpandableGroup.VirtualTexturing, k_ExpandedGroupState, Drawer_SectionVTSettings)
             );
         }
 
         public static readonly CED.IDrawer Inspector;
+        internal static Dictionary<ExpandableGroup, CED.IDrawer> SubInspectors = new Dictionary<ExpandableGroup, CED.IDrawer>();
 
         static void Drawer_Volumetric(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
@@ -933,7 +953,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (serialized.renderPipelineSettings.supportRayTracing.boolValue)
+                    HDRenderPipelineGlobalSettings.instance.EnsureRayTracingResources(forceReload: false);
+                else
+                    HDRenderPipelineGlobalSettings.instance.ClearRayTracingResources();
+            }
+
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
             {
                 ++EditorGUI.indentLevel;

@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Stencil state for unlit:
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, null, false, unlitData.enableShadowMatte);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, null, false, unlitData.enableShadowMatte, supportForward);
         }
     }
 }

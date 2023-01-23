@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering
         {
             if (!isInitialized) return;
 
-            using (new ProfilingScope(null, ProfilingSampler.Get(CoreProfileId.APVCellStreamingUpdate)))
+            using (new ProfilingScope(ProfilingSampler.Get(CoreProfileId.APVCellStreamingUpdate)))
             {
                 var cameraPosition = camera.transform.position;
                 if (!probeVolumeDebug.freezeStreaming)
@@ -392,7 +392,7 @@ namespace UnityEngine.Rendering
 
         void UpdateIndexDefragmentation()
         {
-            using (new ProfilingScope(null, ProfilingSampler.Get(CoreProfileId.APVIndexDefragUpdate)))
+            using (new ProfilingScope(ProfilingSampler.Get(CoreProfileId.APVIndexDefragUpdate)))
             {
                 int numberOfCellsToProcess = Mathf.Min(m_IndexDefragCells.size, m_NumberOfCellsLoadedPerFrame);
                 for (int i = 0; i < numberOfCellsToProcess; ++i)

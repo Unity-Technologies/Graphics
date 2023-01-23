@@ -12,7 +12,8 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local_fragment _ DITHER
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
-        #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB FUTURE_HDR_OUTPUT
+        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020 FUTURE_HDR_OUTPUT
+        #pragma multi_compile_local_fragment _ HDR_ENCODING_LINEAR HDR_ENCODING_PQ
 
         #pragma multi_compile_local_fragment _ CATMULL_ROM_4 RCAS BYPASS
         #define DEBUG_UPSCALE_POINT 0
@@ -24,7 +25,7 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
-#if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
+#if defined(HDR_ENCODING_LINEAR) || defined(HDR_ENCODING_PQ)
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 #endif
 
@@ -180,7 +181,7 @@ Shader "Hidden/HDRP/FinalPass"
             // Apply AfterPostProcess target
             #if APPLY_AFTER_POST
             float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
-            #ifdef HDR_OUTPUT
+            #ifdef HDR_ENCODING
                 afterPostColor.rgb = ProcessUIForHDR(afterPostColor.rgb, _PaperWhite, _MaxNits);
             #endif
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -188,7 +189,7 @@ Shader "Hidden/HDRP/FinalPass"
             #endif
 
 
-            #ifdef HDR_OUTPUT
+            #ifdef HDR_ENCODING
             // Screen space overlay blending.
             {
                 float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);

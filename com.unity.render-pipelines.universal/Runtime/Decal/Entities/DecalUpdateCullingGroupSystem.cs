@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Execute(Camera camera)
         {
-            using (new ProfilingScope(null, m_Sampler))
+            using (new ProfilingScope(m_Sampler))
             {
                 m_Camera = camera;
                 for (int i = 0; i < m_EntityManager.chunkCount; ++i)

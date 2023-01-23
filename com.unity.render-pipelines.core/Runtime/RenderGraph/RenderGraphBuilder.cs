@@ -55,21 +55,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             if (!m_Resources.IsRenderGraphResourceImported(input.handle) && m_Resources.TextureNeedsFallback(input))
             {
+                var textureResource = m_Resources.GetTextureResource(input.handle);
+
+                // Ensure we get a fallback to black
+                textureResource.desc.clearBuffer = true;
+                textureResource.desc.clearColor = Color.black;
+
                 // If texture is read from but never written to, return a fallback black texture to have valid reads
                 // Return one from the preallocated default textures if possible
-                var desc = m_Resources.GetTextureResourceDesc(input.handle);
-                if (!desc.bindTextureMS)
-                {
-                    if (desc.dimension == TextureXR.dimension)
-                        return m_RenderGraph.defaultResources.blackTextureXR;
-                    else if (desc.dimension == TextureDimension.Tex3D)
-                        return m_RenderGraph.defaultResources.blackTexture3DXR;
-                    else
-                        return m_RenderGraph.defaultResources.blackTexture;
-                }
-                // If not, force a write to the texture so that it gets allocated, and ensure it gets initialized with a clear color
-                if (!desc.clearBuffer)
-                    m_Resources.ForceTextureClear(input.handle, Color.black);
+                if (m_RenderGraph.GetImportedFallback(textureResource.desc, out var fallback))
+                    return fallback;
+
+                // If not, simulate a write to the texture so that it gets allocated
                 WriteTexture(input);
             }
 

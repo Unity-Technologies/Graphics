@@ -16,7 +16,7 @@ Additional Post-Processing Data gives you access to Textures you can use with po
 
 - Lens Dirt Textures (designed for use in [Bloom](Post-Processing-Bloom.md)).
 - Spectral Look-up Textures (designed for use in [Chromatic Aberrations](Post-Processing-Chromatic-Aberration.md)).
-- Look-Up Textures.
+- [Look-Up Textures](Authoring-LUTs.md).
 
 ## Procedural Sky
 

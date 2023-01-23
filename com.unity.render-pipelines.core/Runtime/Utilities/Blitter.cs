@@ -161,6 +161,11 @@ namespace UnityEngine.Rendering
             return useTexArray ? (singleSlice ? s_BlitTexArraySingleSlice : s_BlitTexArray) : s_Blit;
         }
 
+        static private void DrawTriangle(RasterCommandBuffer cmd, Material material, int shaderPass)
+        {
+            DrawTriangle(cmd.m_WrappedCommandBuffer, material, shaderPass);
+        }
+
         static private void DrawTriangle(CommandBuffer cmd, Material material, int shaderPass)
         {
             if (SystemInfo.graphicsShaderLevel < 30)
@@ -185,6 +190,11 @@ namespace UnityEngine.Rendering
         /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
         /// <param name="mipLevel">Mip level to blit.</param>
         /// <param name="bilinear">Enable bilinear filtering.</param>
+        public static void BlitTexture(RasterCommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
+        {
+            BlitTexture(cmd.m_WrappedCommandBuffer, source, scaleBias, mipLevel, bilinear);
+        }
+
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
@@ -199,6 +209,11 @@ namespace UnityEngine.Rendering
         /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
         /// <param name="mipLevel">Mip level to blit.</param>
         /// <param name="bilinear">Enable bilinear filtering.</param>
+        public static void BlitTexture2D(RasterCommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
+        {
+            BlitTexture2D(cmd.m_WrappedCommandBuffer, source, scaleBias, mipLevel, bilinear);
+        }
+
         public static void BlitTexture2D(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
@@ -214,6 +229,11 @@ namespace UnityEngine.Rendering
         /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
         /// <param name="mipLevel">Mip level to blit.</param>
         /// <param name="blitDepth">Enable depth blit.</param>
+        public static void BlitColorAndDepth(RasterCommandBuffer cmd, Texture sourceColor, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel, bool blitDepth)
+        {
+            BlitColorAndDepth(cmd.m_WrappedCommandBuffer, sourceColor, sourceDepth, scaleBias, mipLevel, blitDepth);
+        }
+
         public static void BlitColorAndDepth(CommandBuffer cmd, Texture sourceColor, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel, bool blitDepth)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
@@ -232,6 +252,11 @@ namespace UnityEngine.Rendering
         /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
         /// <param name="material">Material to invoke when blitting.</param>
         /// <param name="pass">Pass idx within the material to invoke.</param>
+        public static void BlitTexture(RasterCommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
+        {
+            BlitTexture(cmd.m_WrappedCommandBuffer, source, scaleBias, material, pass);
+        }
+
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
         {
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBias);
@@ -247,6 +272,11 @@ namespace UnityEngine.Rendering
         /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
         /// <param name="material">Material to invoke when blitting.</param>
         /// <param name="pass">Pass idx within the material to invoke.</param>
+        public static void BlitTexture(RasterCommandBuffer cmd, RenderTargetIdentifier source, Vector4 scaleBias, Material material, int pass)
+        {
+            BlitTexture(cmd.m_WrappedCommandBuffer, source, scaleBias, material, pass);
+        }
+
         public static void BlitTexture(CommandBuffer cmd, RenderTargetIdentifier source, Vector4 scaleBias, Material material, int pass)
         {
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBias);
@@ -286,6 +316,19 @@ namespace UnityEngine.Rendering
             // Unfortunately there is no function bind a RenderTargetIdentifier with a property block so we have to bind it globally.
             cmd.SetGlobalTexture(BlitShaderIDs._BlitTexture, source);
             cmd.SetRenderTarget(destination, loadAction, storeAction);
+            DrawTriangle(cmd, material, pass);
+        }
+
+        /// <summary>
+        /// Blit a Texture with a given Material. Unity uses the reference name `_BlitTexture` to bind the input texture. Set the destination parameter before using this method.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="scaleBias">Scale and bias values for sampling the input texture.</param>
+        /// <param name="material">Material to invoke when blitting.</param>
+        /// <param name="pass">Pass index within the Material to invoke.</param>
+        public static void BlitTexture(CommandBuffer cmd, Vector4 scaleBias, Material material, int pass)
+        {
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBias);
             DrawTriangle(cmd, material, pass);
         }
 

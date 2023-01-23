@@ -1,0 +1,16 @@
+// Depth Normal pass
+Pass
+{
+	Name ${VFXPassDepthNormal}
+	Tags { "LightMode"=${VFXPassDepthNormal} }
+
+	ZWrite On
+	Blend Off
+
+	HLSLPROGRAM
+	#define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
+	#define WRITE_NORMAL_BUFFER
+	${VFXPassDepthAdditionalPragma}
+	${VFXInclude("Shaders/ParticleMeshes/PassDepthOrMV.template")}
+	ENDHLSL
+}

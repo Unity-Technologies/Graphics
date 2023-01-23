@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <inheritdoc />
         public override IEnumerable<string> GetElementIds()
         {
-            return new[] { SGBlackboardPanelToggle.id, SGInspectorPanelToggle.id, PreviewPanelToggle.id, MiniMapPanelToggle.id };
+            return new[] { BlackboardPanelToggle.id, InspectorPanelToggle.id, PreviewPanelToggle.id, MiniMapPanelToggle.id };
         }
     }
 }

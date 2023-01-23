@@ -10,12 +10,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Water", "PackVertexData_Water (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Water", "PackVertexData_Water")]
     class PackVertexData_Water : AbstractMaterialNode, IGeneratesBodyCode
     {
         public PackVertexData_Water()
         {
-            name = "Pack Water Vertex Data (Preview)";
+            name = "Pack Water Vertex Data";
             UpdateNodeAfterDeserialization();
         }
 

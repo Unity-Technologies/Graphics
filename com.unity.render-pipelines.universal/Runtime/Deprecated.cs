@@ -16,59 +16,6 @@ namespace UnityEngine.Rendering.Universal
         public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
     }
 
-    /// <summary>
-    /// Default renderer for Universal RP.
-    /// This renderer is supported on all Universal RP supported platforms.
-    /// It uses a classic forward rendering strategy with per-object light culling.
-    /// </summary>
-    [Obsolete("ForwardRenderer has been deprecated (UnityUpgradable) -> UniversalRenderer", true)]
-    public sealed class ForwardRenderer : ScriptableRenderer
-    {
-        private static readonly string k_ErrorMessage = "ForwardRenderer has been deprecated. Use UniversalRenderer instead";
-
-        /// <inheritdoc/>
-        public ForwardRenderer(ForwardRendererData data) : base(data)
-        {
-            throw new NotSupportedException(k_ErrorMessage);
-        }
-
-        /// <inheritdoc/>
-        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            throw new NotSupportedException(k_ErrorMessage);
-        }
-
-        /// <inheritdoc/>
-        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            throw new NotSupportedException(k_ErrorMessage);
-        }
-
-        /// <inheritdoc/>
-        public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
-        {
-            throw new NotSupportedException(k_ErrorMessage);
-        }
-
-        /// <inheritdoc/>
-        public override void FinishRendering(CommandBuffer cmd)
-        {
-            throw new NotSupportedException(k_ErrorMessage);
-        }
-
-        /// <inheritdoc/>
-        internal override void SwapColorBuffer(CommandBuffer cmd)
-        {
-            throw new NotSupportedException(k_ErrorMessage);
-        }
-
-        /// <inheritdoc/>
-        internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     namespace Internal
     {
         public partial class AdditionalLightsShadowCasterPass
@@ -77,14 +24,14 @@ namespace UnityEngine.Rendering.Universal
             /// The ID for the additional shadows buffer ID.
             /// This has been deprecated. Shadow slice matrix is now passed to the GPU using an entry in buffer m_AdditionalLightsWorldToShadow_SSBO.
             /// </summary>
-            [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsBufferId was deprecated. Shadow slice matrix is now passed to the GPU using an entry in buffer m_AdditionalLightsWorldToShadow_SSBO", false)]
+            [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsBufferId was deprecated. Shadow slice matrix is now passed to the GPU using an entry in buffer m_AdditionalLightsWorldToShadow_SSBO", true)]
             public static int m_AdditionalShadowsBufferId;
 
             /// <summary>
             /// The ID for the additional shadows buffer ID.
             /// This has been deprecated. hadow slice index is now passed to the GPU using last member of an entry in buffer m_AdditionalShadowParams_SSBO.
             /// </summary>
-            [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsIndicesId was deprecated. Shadow slice index is now passed to the GPU using last member of an entry in buffer m_AdditionalShadowParams_SSBO", false)]
+            [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsIndicesId was deprecated. Shadow slice index is now passed to the GPU using last member of an entry in buffer m_AdditionalShadowParams_SSBO", true)]
             public static int m_AdditionalShadowsIndicesId;
         }
     }
@@ -92,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Previously contained the settings to control how many cascades to use. It is now deprecated.
     /// </summary>
-    [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
+    [Obsolete("This is obsolete, please use shadowCascadeCount instead.", true)]
     public enum ShadowCascadesOption
     {
         /// <summary>
@@ -113,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
     /// Specifies the logging level for shader variants.
     /// This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.
     /// </summary>
-    [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", false)]
+    [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", true)]
     public enum ShaderVariantLogLevel
     {
         /// <summary>Disable all log for shader variants.</summary>
@@ -136,7 +83,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Previously returned the shader variant log level for this Render Pipeline Asset but is now deprecated.
         /// </summary>
-        [Obsolete("Use UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel", false)]
+        [Obsolete("Use UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel", true)]
         public ShaderVariantLogLevel shaderVariantLogLevel
         {
             get { return (ShaderVariantLogLevel)UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel; }
@@ -151,7 +98,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Previously used insted of shadowCascadeCount. Please use that instead.
         /// </summary>
-        [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
+        [Obsolete("This is obsolete, please use shadowCascadeCount instead.", true)]
         public ShadowCascadesOption shadowCascadeOption
         {
             get
@@ -193,7 +140,7 @@ namespace UnityEngine.Rendering.Universal
         /// The render target identifier for camera depth.
         /// This is obsolete, cameraDepth has been renamed to cameraDepthTarget.
         /// </summary>
-        [Obsolete("cameraDepth has been renamed to cameraDepthTarget. (UnityUpgradable) -> cameraDepthTarget")]
+        [Obsolete("cameraDepth has been renamed to cameraDepthTarget. (UnityUpgradable) -> cameraDepthTarget", true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public RenderTargetIdentifier cameraDepth
         {
@@ -208,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
         /// The number of final iterations to skip in the effect processing sequence.
         /// This is obsolete, please use maxIterations instead.
         /// </summary>
-        [Obsolete("This is obsolete, please use maxIterations instead.", false)]
+        [Obsolete("This is obsolete, please use maxIterations instead.", true)]
         [Tooltip("The number of final iterations to skip in the effect processing sequence.")]
         public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
     }

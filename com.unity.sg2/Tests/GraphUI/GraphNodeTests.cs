@@ -19,12 +19,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         /// <inheritdoc />
         protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
 
+        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-25")]
         [UnityTest]
         public IEnumerator CreateAddNodeFromSearcherTest()
         {
             return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
         }
 
+        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-25")]
         [UnityTest]
         public IEnumerator NodeCollapseExpandTest()
         {
@@ -239,6 +241,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //     Assert.IsFalse(m_GraphView.GraphModel.NodeModels.Contains(middleNode), "Deleted node should be removed from the graph");
         // }
 
+        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-25")]
         [UnityTest]
         public IEnumerator TestDynamicPortsUpdate()
         {
@@ -271,6 +274,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
         }
 
+        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-25")]
         [UnityTest]
         public IEnumerator TestDynamicPortUpdatesPropagate()
         {

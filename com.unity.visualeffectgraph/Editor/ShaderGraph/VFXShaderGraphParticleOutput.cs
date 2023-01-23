@@ -4,11 +4,14 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.VFX.UI;
+
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityObject = UnityEngine.Object;
 
+using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -242,6 +245,14 @@ namespace UnityEditor.VFX
             return support;
         }
 
+        public override void OnSettingModified(VFXSetting setting)
+        {
+            if (setting.name == nameof(shaderGraph))
+            {
+                VFXAnalytics.GetInstance().OnSpecificSettingChanged($"{GetType().Name}.{setting.name}");
+            }
+        }
+
         public BlendMode GetMaterialBlendMode()
         {
             var blendMode = BlendMode.Opaque;
@@ -263,20 +274,61 @@ namespace UnityEditor.VFX
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
-                // In certain scenarios the context might not be configured with any serialized material information
-                // when assigned a shader graph for the first time. In this case we sync the settings to the incoming material,
-                // which will be pre-configured by shader graph with the render state & other properties (i.e. a SG with Transparent surface).
                 if (materialSettings.NeedsSync())
                 {
-                    materialSettings.SyncFromMaterial(material);
-                    Invalidate(InvalidationCause.kSettingChanged);
-                    return;
+                    var sgAssetPath = AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID());
+                    var vfxAssetPath = AssetDatabase.GetAssetPath(this);
+
+                    Debug.LogErrorFormat("Unexpected missing material settings on VFX '{0}' using ShaderGraph '{1}'.\nThis invalid state can lead to an incorrect sort mode.", vfxAssetPath, sgAssetPath);
                 }
 
                 materialSettings.ApplyToMaterial(material);
                 VFXLibrary.currentSRPBinder.SetupMaterial(material, hasMotionVector, hasShadowCasting, shaderGraph);
 
                 OnMaterialChange?.Invoke();
+            }
+        }
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.OnInvalidate(model, cause);
+            if (cause == InvalidationCause.kSettingChanged)
+            {
+                LazyUpdateMaterialSettingsFromShaderGraph();
+            }
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 13)
+            {
+                // Before move of NeedsSync in OnInvalidate, it was possible to miss an initial setup after assignment of shaderGraph
+                // It caused the exception with SetupMaterial 'Unexpected Setup Material called without invalidation.' during import.
+                LazyUpdateMaterialSettingsFromShaderGraph();
+            }
+            base.Sanitize(version);
+        }
+
+        private void LazyUpdateMaterialSettingsFromShaderGraph()
+        {
+            // In certain scenarios the context might not be configured with any serialized material information
+            // when assigned a shader graph for the first time. In this case we sync the settings to the incoming material,
+            // which will be pre-configured by shader graph with the render state & other properties (i.e. a SG with Transparent surface).
+            // Use default material reference to initial properties setup (provide the correct state for sorting)
+            if (materialSettings.NeedsSync())
+            {
+                var shaderGraph = GetOrRefreshShaderGraphObject();
+                if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+                {
+                    var assetPath = AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID());
+                    var materialReference = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+                    if (materialReference == null)
+                    {
+                        Debug.LogErrorFormat("Unable to retrieve the reference material at path: {0}", assetPath);
+                        return;
+                    }
+
+                    materialSettings.SyncFromMaterial(materialReference);
+                }
             }
         }
 
@@ -612,7 +664,8 @@ namespace UnityEditor.VFX
             passInfos = new Dictionary<string, PassInfo>()
             {
                 { "Forward", new PassInfo()  { vertexPorts = new int[] {}, pixelPorts = new int[] { ShaderGraphVfxAsset.ColorSlotId, ShaderGraphVfxAsset.EmissiveSlotId, ShaderGraphVfxAsset.AlphaSlotId, ShaderGraphVfxAsset.AlphaThresholdSlotId } } },
-                { "DepthOnly", new PassInfo()  { vertexPorts = new int[] {}, pixelPorts = new int[] { ShaderGraphVfxAsset.AlphaSlotId, ShaderGraphVfxAsset.AlphaThresholdSlotId } } }
+                { "DepthOnly", new PassInfo()  { vertexPorts = new int[] {}, pixelPorts = new int[] { ShaderGraphVfxAsset.AlphaSlotId, ShaderGraphVfxAsset.AlphaThresholdSlotId } } },
+                { "DepthNormals", new PassInfo()  { vertexPorts = new int[] {}, pixelPorts = new int[] { ShaderGraphVfxAsset.AlphaSlotId, ShaderGraphVfxAsset.AlphaThresholdSlotId, ShaderGraphVfxAsset.NormalSlotId } } }
             }
         };
         protected static readonly RPInfo hdrpLitInfo = new RPInfo

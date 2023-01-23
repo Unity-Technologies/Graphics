@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Screen space shadows shader.
             /// </summary>
-            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
+            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature", true)]
             public Shader screenSpaceShadowPS;
 
             /// <summary>
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Material error shader.
             /// </summary>
-            [Obsolete("Use fallbackErrorPS instead")]
+            [Obsolete("Use fallbackErrorPS instead", true)]
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
 

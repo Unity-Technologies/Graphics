@@ -222,6 +222,16 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             return displacementMode;
         }
+
+        public static bool HasPass(this Material material, string pass)
+        {
+            for (int i = 0, passCount = material.passCount; i < passCount; ++i)
+            {
+                if (material.GetPassName(i).Equals(pass, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
     }
 }
 

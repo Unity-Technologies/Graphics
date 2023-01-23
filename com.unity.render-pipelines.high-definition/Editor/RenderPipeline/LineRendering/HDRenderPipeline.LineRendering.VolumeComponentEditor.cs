@@ -33,7 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support High Quality Line Rendering.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.supportHighQualityLineRendering");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering,
+                    HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportHighQualityLineRendering");
                 return;
             }
 

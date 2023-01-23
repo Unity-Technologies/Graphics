@@ -320,7 +320,7 @@ namespace UnityEditor.Rendering
             {
                 throw new ArgumentNullException(nameof(path));
             }
-            return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase);
+            return path.HasExtension(".mat");
         }
 
         static MaterialUpgrader GetUpgrader(List<MaterialUpgrader> upgraders, Material material)

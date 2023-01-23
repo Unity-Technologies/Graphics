@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using System.Diagnostics;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -36,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns a mesh that you can use with <see cref="CommandBuffer.DrawMesh(Mesh, Matrix4x4, Material)"/> to render full-screen effects.
         /// </summary>
-        [Obsolete("Use Blitter.BlitCameraTexture instead of CommandBuffer.DrawMesh(fullscreenMesh, ...)")]
+        [Obsolete("Use Blitter.BlitCameraTexture instead of CommandBuffer.DrawMesh(fullscreenMesh, ...)")]  // TODO OBSOLETE: need to fix the URP test failures when bumping
         public static Mesh fullscreenMesh
         {
             get
@@ -123,7 +124,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="viewMatrix">View matrix to be set.</param>
         /// <param name="projectionMatrix">Projection matrix to be set.</param>
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
-        public static void SetViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, bool setInverseMatrices)
+        public static void SetViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, bool setInverseMatrices) { SetViewAndProjectionMatrices(CommandBufferHelpers.GetRasterCommandBuffer(cmd), viewMatrix, projectionMatrix, setInverseMatrices); }
+        internal static void SetViewAndProjectionMatrices(RasterCommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, bool setInverseMatrices)
         {
             Matrix4x4 viewAndProjectionMatrix = projectionMatrix * viewMatrix;
             cmd.SetGlobalMatrix(ShaderPropertyId.viewMatrix, viewMatrix);
@@ -141,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void SetScaleBiasRt(CommandBuffer cmd, in RenderingData renderingData, RTHandle rTHandle)
+        internal static void SetScaleBiasRt(RasterCommandBuffer cmd, in RenderingData renderingData, RTHandle rTHandle)
         {
             // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
             CameraData cameraData = renderingData.cameraData;
@@ -154,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
         }
 
-        internal static void SetScaleBiasRt(CommandBuffer cmd, in RenderingData renderingData)
+        internal static void SetScaleBiasRt(RasterCommandBuffer cmd, in RenderingData renderingData)
         {
             var renderer = renderingData.cameraData.renderer;
             // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
@@ -243,7 +245,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                     loadAction, storeAction, // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                cmd.Blit(source.nameID, destination.nameID);
+                cmd.SetGlobalVector("_BlitScaleBias", scaleBias);
+                cmd.Blit(source.nameID, destination.nameID, material, passIndex);
             }
             else if (source.rt == null)
                 Blitter.BlitTexture(cmd, source.nameID, scaleBias, material, passIndex);  // Obsolete usage of RTHandle aliasing a RenderTargetIdentifier
@@ -254,14 +257,8 @@ namespace UnityEngine.Rendering.Universal
         // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, CommandBuffer cmd)
+        internal static void CreateRendererParamsObjectsWithError(ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, ref RendererListParams param)
         {
-            // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
-            // This might be in a point that some resources required for the pipeline are not finished importing yet.
-            // Proper fix is to add a fence on asset import.
-            if (errorMaterial == null)
-                return;
-
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
             DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
             {
@@ -272,14 +269,55 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
                 errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
 
-            var param = new RendererListParams(cullResults, errorSettings, filterSettings);
-            var rl = context.CreateRendererList(ref param);
+            param = new RendererListParams(cullResults, errorSettings, filterSettings);
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal static void CreateRendererListObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, ref RendererList rl)
+        {
+            // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
+            // This might be in a point that some resources required for the pipeline are not finished importing yet.
+            // Proper fix is to add a fence on asset import.
+            if (errorMaterial == null)
+            {
+                rl = RendererList.nullRendererList;
+                return;
+            }
+
+            RendererListParams param = new RendererListParams();
+            CreateRendererParamsObjectsWithError(ref cullResults, camera, filterSettings, sortFlags, ref param);
+            rl = context.CreateRendererList(ref param);
+        }
+
+        // This is used to render materials that contain built-in shader passes not compatible with URP.
+        // It will render those legacy passes with error/pink shader.
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal static void CreateRendererListObjectsWithError(RenderGraph renderGraph, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags, ref RendererListHandle rl)
+        {
+            // TODO: When importing project, AssetPreviewUpdater::CreatePreviewForAsset will be called multiple times.
+            // This might be in a point that some resources required for the pipeline are not finished importing yet.
+            // Proper fix is to add a fence on asset import.
+            if (errorMaterial == null)
+            {
+                rl = new RendererListHandle();
+                return;
+            }
+
+            RendererListParams param = new RendererListParams();
+            CreateRendererParamsObjectsWithError(ref cullResults, camera, filterSettings, sortFlags, ref param);
+            rl = renderGraph.CreateRendererList(param);
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal static void DrawRendererListObjectsWithError(RasterCommandBuffer cmd, ref RendererList rl)
+        {
             cmd.DrawRendererList(rl);
         }
 
-        // Drawing a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
-        internal static void DrawRendererListWithRenderStateBlock(ScriptableRenderContext context, CommandBuffer cmd, RenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb)
+        // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
+        internal static void CreateRendererListWithRenderStateBlock(ScriptableRenderContext context, RenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererList rl)
         {
+            RendererListParams param = new RendererListParams();
             unsafe
             {
                 // Taking references to stack variables in the current function does not require any pinning (as long as you stay within the scope)
@@ -302,21 +340,38 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 // Create & schedule the RL
-                var param = new RendererListParams(data.cullResults, ds, fs)
+                param = new RendererListParams(data.cullResults, ds, fs)
                 {
                     tagValues = tagValues,
                     stateBlocks = stateBlocks
 
                 };
-                var rl = context.CreateRendererList(ref param);
-                cmd.DrawRendererList(rl);
+
+                rl = context.CreateRendererList(ref param);
 
                 // we need to explicitly release the SafetyHandle
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.Release(safetyHandle);
 #endif
-
             }
+        }
+
+        static ShaderTagId[] s_ShaderTagValues = new ShaderTagId[1];
+        static RenderStateBlock[] s_RenderStateBlocks = new RenderStateBlock[1];
+        // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
+        internal static void CreateRendererListWithRenderStateBlock(RenderGraph renderGraph, RenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererListHandle rl)
+        {
+            s_ShaderTagValues[0] = ShaderTagId.none;
+            s_RenderStateBlocks[0] = rsb;
+            NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(s_ShaderTagValues, Allocator.Temp);
+            NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(s_RenderStateBlocks, Allocator.Temp);
+            var param = new RendererListParams(data.cullResults, ds, fs)
+            {
+                tagValues = tagValues,
+                stateBlocks = stateBlocks,
+                isPassTagName = false
+            };
+            rl = renderGraph.CreateRendererList(param);
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.
@@ -396,7 +451,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
-        [Obsolete("Use RTHandles for colorBuffers")]
+        [Obsolete("Use RTHandles for colorBuffers")]  // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         internal static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
         {
             uint nonNullColorBuffers = 0;
@@ -435,7 +490,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
-        [Obsolete("Use RTHandles for colorBuffers")]
+        [Obsolete("Use RTHandles for colorBuffers")]  // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
         internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
         {
             return GetValidColorBufferCount(colorBuffers) > 1;
@@ -601,6 +656,36 @@ namespace UnityEngine.Rendering.Universal
                 handle.rt.anisoLevel != anisoLevel ||
                 handle.rt.mipMapBias != mipMapBias ||
                 handle.name != name;
+        }
+
+        /// <summary>
+        /// Returns the RenderTargetIdentifier of the current camera target.
+        /// </summary>
+        /// <param name="renderingData"></param>
+        /// <returns></returns>
+        internal static RenderTargetIdentifier GetCameraTargetIdentifier(ref RenderingData renderingData)
+        {
+            // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
+            // Overlay cameras need to output to the target described in the base camera while doing camera stack.
+            ref CameraData cameraData = ref renderingData.cameraData;
+
+            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                if (cameraData.xr.singlePassEnabled)
+                {
+                    cameraTarget = cameraData.xr.renderTarget;
+                }
+                else
+                {
+                    int depthSlice = cameraData.xr.GetTextureArraySlice();
+                    cameraTarget = new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
+                }
+            }
+#endif
+
+            return cameraTarget;
         }
 
         /// <summary>

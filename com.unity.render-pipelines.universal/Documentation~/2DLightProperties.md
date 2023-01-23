@@ -30,7 +30,7 @@ The following are the common properties used by the different Light types.
 | **Color**                                                    | Use the color picker to set the color of the emitted light.  |
 | **[Intensity](#intensity)**                                  | Enter the desired brightness value of the Light. The default value is 1. |
 | **Target Sorting Layers**                                    | Select the sorting layers that this Light targets and affects. |
-| **[Blend Style](LightBlendStyles.md)**                       | Select the blend style used by this Light. Different blend styles can be customized in the [2D Renderer Asset](2DRendererData_overview.md). |
+| **[Blend Style](LightBlendStyles.md)**                       | Select the blend style used by this Light. Different blend styles can be customized in the [2D Renderer Asset](2DRendererData-overview.md). |
 | **[Light Order](#light-order)** (unavailable for **Global Lights**) | Enter a value here to specify the rendering order of this Light relative to other Lights on the same sorting layer(s). Lights with lower values are rendered first, and negative values are valid. |
 | **[Overlap Operation](#overlap-operation)**        | Select the overlap operation used by this light The operations available are **Additive**, and **Alpha Blend**. |
 | **Shadow Strength**                                         | Use the slider to control the amount of light that **Shadow Caster 2Ds** block when they obscure this Light. The value scales from 0 (no light is blocked) to 1 (all light is blocked). |

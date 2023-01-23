@@ -1,6 +1,10 @@
 # Deferred Rendering Path in URP
 
-URP Universal Renderer supports two Rendering Paths: Forward and Deferred.
+URP Universal Renderer supports the following Rendering Paths:
+
+* Forward
+* Forward+
+* Deferred
 
 For information on differences between the rendering paths, see section [Rendering Path comparison](../urp-universal-renderer.md#rendering-path-comparison).
 

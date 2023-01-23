@@ -16,10 +16,11 @@
 #pragma multi_compile _ LENS_DISTORTION
 #pragma multi_compile _ ENABLE_ALPHA
 #pragma multi_compile _ GAMMA2_OUTPUT
-#pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
+#pragma multi_compile_local _ HDR_COLORSPACE_REC2020 HDR_COLORSPACE_REC709
+#pragma multi_compile_local _ HDR_COLORSPACE_CONVERSION
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
-#if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
+#if defined(HDR_COLORSPACE_CONVERSION)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 #endif
 
@@ -230,7 +231,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Move from linear to LogC
         float3 colorLutSpace = saturate(LinearToLogC(color.xyz));
 
-#ifndef HDR_OUTPUT
+#ifndef HDR_COLORSPACE_CONVERSION
         // Color lookup in the LogC lut
         color.xyz = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
 #else

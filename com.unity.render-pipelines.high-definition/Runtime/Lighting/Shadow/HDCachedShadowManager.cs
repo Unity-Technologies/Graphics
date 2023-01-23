@@ -371,6 +371,16 @@ namespace UnityEngine.Rendering.HighDefinition
             directionalShadowHasRendered[(uint)shadowIdx] = true;
         }
 
+        internal void OverrideShadowResolutionRequestWithCachedData(ref HDShadowResolutionRequest request, int shadowIdx, ShadowMapType shadowMapType)
+        {
+            if (shadowMapType == ShadowMapType.PunctualAtlas)
+                punctualShadowAtlas.OverrideShadowResolutionRequestWithCachedData(ref request, shadowIdx);
+            else if (shadowMapType == ShadowMapType.AreaLightAtlas)
+                areaShadowAtlas.OverrideShadowResolutionRequestWithCachedData(ref request, shadowIdx);
+            else if (shadowMapType == ShadowMapType.CascadedDirectional)
+                request.cachedAtlasViewport = request.dynamicAtlasViewport;
+        }
+
         internal void UpdateDebugSettings(LightingDebugSettings lightingDebugSettings)
         {
             punctualShadowAtlas.UpdateDebugSettings(lightingDebugSettings);
@@ -412,6 +422,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal bool LightIsPendingPlacement(int lightIdxForCachedShadows, ShadowMapType shadowMapType)
+        {
+            if (shadowMapType == ShadowMapType.PunctualAtlas)
+                return punctualShadowAtlas.LightIsPendingPlacement(lightIdxForCachedShadows);
+            if (shadowMapType == ShadowMapType.AreaLightAtlas)
+                return areaShadowAtlas.LightIsPendingPlacement(lightIdxForCachedShadows);
+
+            return false;
+        }
 
         internal void GetUnmanagedDataForShadowRequestJobs(ref HDCachedShadowManagerDataForShadowRequestUpdateJob dataForShadowRequestUpdateJob)
         {

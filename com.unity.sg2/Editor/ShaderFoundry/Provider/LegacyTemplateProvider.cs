@@ -322,6 +322,7 @@ namespace UnityEditor.ShaderFoundry
 
         Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<NameOverride> nameMappings, Dictionary<string, string> defaultVariableValues, List<FieldDescriptor> fieldDescriptors)
         {
+            blockName = $"Default{blockName}";
             var mainBlockBuilder = new Block.Builder(Container, blockName);
 
             // Collect some values for quick lookups by name

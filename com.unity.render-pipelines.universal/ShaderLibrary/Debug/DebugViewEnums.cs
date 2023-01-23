@@ -229,6 +229,22 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// HDR debug mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum HDRDebugMode
+    {
+        /// <summary>No HDR debugging.</summary>
+        None,
+        /// <summary>Gamut view: show the gamuts and what part of the gamut the image shows.</summary>
+        GamutView,
+        /// <summary>Gamut clip: show what part of the Scene is covered by the Rec709 gamut and which parts are in the Rec2020 gamut.</summary>
+        GamutClip,
+        /// <summary>If the luminance value exceeds the paper white value, show the exceeding value in colors between yellow and red. Shows luminance values otherwise.</summary>
+        ValuesAbovePaperWhite
+    }
+
+    /// <summary>
     /// Debug mode that allows selective disabling of individual lighting components.
     /// </summary>
     [GenerateHLSL, Flags]

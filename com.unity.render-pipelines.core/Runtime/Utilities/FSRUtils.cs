@@ -1,5 +1,6 @@
 using System;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -86,6 +87,12 @@ namespace UnityEngine.Rendering
             cmd.SetGlobalVector(ShaderConstants._FsrEasuConstants3, constants3);
         }
 
+        public static void SetEasuConstants(BaseCommandBuffer cmd, Vector2 inputViewportSizeInPixels,
+            Vector2 inputImageSizeInPixels, Vector2 outputImageSizeInPixels)
+        {
+            SetEasuConstants(cmd.m_WrappedCommandBuffer, inputViewportSizeInPixels, inputImageSizeInPixels, outputImageSizeInPixels);
+        }
+
         /// <summary>
         /// The maximum sharpness value in stops before the effect of RCAS is no longer visible.
         /// This value is used to map between linear and stops.
@@ -147,6 +154,11 @@ namespace UnityEngine.Rendering
             float sharpnessStops = (1.0f - sharpnessLinear) * kMaxSharpnessStops;
 
             SetRcasConstants(cmd, sharpnessStops);
+        }
+
+        public static void SetRcasConstantsLinear(RasterCommandBuffer cmd, float sharpnessLinear = kDefaultSharpnessLinear)
+        {
+            SetRcasConstantsLinear(cmd.m_WrappedCommandBuffer, sharpnessLinear);
         }
 
         /// <summary>

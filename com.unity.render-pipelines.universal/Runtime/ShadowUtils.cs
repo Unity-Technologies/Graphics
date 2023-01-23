@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -211,6 +212,21 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
         }
 
+        internal static void RenderShadowSlice(RasterCommandBuffer cmd,
+            ref ShadowSliceData shadowSliceData, ref RendererList shadowRendererList,
+            Matrix4x4 proj, Matrix4x4 view)
+        {
+            cmd.SetGlobalDepthBias(1.0f, 2.5f); // these values match HDRP defaults (see https://github.com/Unity-Technologies/Graphics/blob/9544b8ed2f98c62803d285096c91b44e9d8cbc47/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowAtlas.cs#L197 )
+
+            cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
+            cmd.SetViewProjectionMatrices(view, proj);
+            if(shadowRendererList.isValid)
+                cmd.DrawRendererList(shadowRendererList);
+
+            cmd.DisableScissorRect();
+            cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
+        }
+
         /// <summary>
         /// Renders shadows to a shadow slice.
         /// </summary>
@@ -393,6 +409,11 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowBias"></param>
         public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
+            SetupShadowCasterConstantBuffer(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref shadowLight, shadowBias);
+        }
+
+        internal static void SetupShadowCasterConstantBuffer(RasterCommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
+        {
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
 
             // Light direction is currently used in shadow caster pass to apply shadow normal offset (normal bias).
@@ -420,7 +441,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="height">The height of the texture.</param>
         /// <param name="bits">The number of depth bits.</param>
         /// <returns>A shadow render texture.</returns>
-        [Obsolete("Use AllocShadowRT or ShadowRTReAllocateIfNeeded")]
+        [Obsolete("Use AllocShadowRT or ShadowRTReAllocateIfNeeded", true)]
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
         {
             var rtd = GetTemporaryShadowTextureDescriptor(width, height, bits);
@@ -537,6 +558,42 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return softShadows;
+        }
+
+        internal static bool IsValidShadowCastingLight(ref LightData lightData, int i)
+        {
+            if (i == lightData.mainLightIndex)
+                return false;
+
+            ref VisibleLight shadowLight = ref lightData.visibleLights.UnsafeElementAt(i);
+
+            // Directional and light shadows are not supported in the shadow map atlas
+            if (shadowLight.lightType == LightType.Directional)
+                return false;
+
+            Light light = shadowLight.light;
+            return light != null && light.shadows != LightShadows.None && !Mathf.Approximately(light.shadowStrength, 0.0f);
+        }
+
+        internal static int GetPunctualLightShadowSlicesCount(in LightType lightType)
+        {
+            switch (lightType)
+            {
+                case LightType.Spot:
+                    return 1;
+                case LightType.Point:
+                    return 6;
+                default:
+                    return 0;
+            }
+        }
+
+        internal const int kMinimumPunctualLightHardShadowResolution = 8;
+        internal const int kMinimumPunctualLightSoftShadowResolution = 16;
+        // Minimal shadow map resolution required to have meaningful shadows visible during lighting
+        internal static int MinimalPunctualLightShadowResolution(bool softShadow)
+        {
+            return softShadow ? kMinimumPunctualLightSoftShadowResolution : kMinimumPunctualLightHardShadowResolution;
         }
     }
 }

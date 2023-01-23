@@ -119,5 +119,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_VolumetricClouds != null;
         }
+
+        public void Reset()
+        {
+            if (skyRenderer != null)
+                skyRenderer.Reset();
+            if (cloudRenderer != null)
+                cloudRenderer.Reset();
+        }
     }
 }

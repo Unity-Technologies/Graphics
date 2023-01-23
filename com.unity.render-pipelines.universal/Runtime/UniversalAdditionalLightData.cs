@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The layer(s) this light belongs to.
         /// </summary>
-        [Obsolete("This is obsolete, please use renderingLayerMask instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMask instead.", true)]
         public LightLayerEnum lightLayerMask
         {
             get { return m_LightLayerMask; }
@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The layer(s) for shadow.
         /// </summary>
-        [Obsolete("This is obsolete, please use shadowRenderingLayerMask instead.", false)]
+        [Obsolete("This is obsolete, please use shadowRenderingLayerMask instead.", true)]
         public LightLayerEnum shadowLayerMask
         {
             get { return m_ShadowLayerMask; }

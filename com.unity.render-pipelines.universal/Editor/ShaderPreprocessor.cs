@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1L << 28),
         AdditionalLightsKeepOffVariants = (1L << 29),
         ShadowsKeepOffVariants = (1L << 30),
-        LODCrossFade = (1L << 31),
+        // Unused = (1L << 31),
         DecalLayers = (1L << 32),
         OpaqueWriteRenderingLayers = (1L << 33),
         GBufferWriteRenderingLayers = (1L << 34),
@@ -117,7 +117,6 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ForwardPlus;
         LocalKeyword m_FoveatedRenderingNonUniformRaster;
         LocalKeyword m_EditorVisualization;
-        LocalKeyword m_LODFadeCrossFade;
         LocalKeyword m_LightCookies;
 
         LocalKeyword m_LocalDetailMulx2;
@@ -187,7 +186,6 @@ namespace UnityEditor.Rendering.Universal
             m_ForwardPlus = TryGetLocalKeyword(shader, ShaderKeywordStrings.ForwardPlus);
             m_FoveatedRenderingNonUniformRaster = TryGetLocalKeyword(shader, ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
-            m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
             m_LightCookies = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightCookies);
 
             m_LocalDetailMulx2 = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
@@ -358,44 +356,18 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
-            bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || globalSettings.stripDebugVariants);
-
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
-            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
-            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
-            {
-                stripDebugDisplayShaders = true;
-            }
-
-            // XRTODO: We need to figure out what's the proper way to detect HL target platform when building. For now, HL is the only XR platform available on WSA so we assume this case targets HL platform.
-            var wsaTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.WSA);
-            if (wsaTargetSettings != null && wsaTargetSettings.AssignedSettings != null && wsaTargetSettings.AssignedSettings.activeLoaders.Count > 0)
-            {
-                // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
-                features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
-            }
-
-            var questTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
-            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null && questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
-            {
-                // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
-                features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
-            }
-#endif
-
+            bool stripDebugDisplayShaders = ShaderBuildPreprocessor.s_StripDebugDisplayShaders;
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
             {
                 return true;
             }
 
-            if (globalSettings != null && globalSettings.stripScreenCoordOverrideVariants && compilerData.shaderKeywordSet.IsEnabled(m_ScreenCoordOverride))
+            if (ShaderBuildPreprocessor.s_StripScreenCoordOverrideVariants && compilerData.shaderKeywordSet.IsEnabled(m_ScreenCoordOverride))
             {
                 return true;
             }
 
-            var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
-            var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants, compilerData.shaderCompilerPlatform);
+            var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, ShaderBuildPreprocessor.s_StripUnusedVariants, compilerData.shaderCompilerPlatform);
 
             // strip main light shadows, cascade and screen variants
             if (IsFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants, features))
@@ -565,19 +537,8 @@ namespace UnityEditor.Rendering.Universal
                 m_DecalNormalBlendHigh, ShaderFeatures.DecalNormalBlendHigh))
                 return true;
 
-            var stripUnusedLODCrossFadeVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedLODCrossFadeVariants == true;
-            if (stripUnusedLODCrossFadeVariants &&
-                stripTool.StripMultiCompileKeepOffVariant(m_LODFadeCrossFade, ShaderFeatures.LODCrossFade))
-                return true;
-
             if (stripTool.StripMultiCompileKeepOffVariant(m_LightCookies, ShaderFeatures.LightCookies))
                 return true;
-
-            string keywordNames = "";
-            foreach (var keyword in compilerData.shaderKeywordSet.GetShaderKeywords())
-            {
-                keywordNames += " " + keyword.name;
-            }
 
             // Write Rendering Layers
             if (IsGLDevice(compilerData))
@@ -610,8 +571,7 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
-            var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants, compilerData.shaderCompilerPlatform);
+            var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, ShaderBuildPreprocessor.s_StripUnusedVariants, compilerData.shaderCompilerPlatform);
 
             if (stripTool.StripMultiCompileKeepOffVariant(m_LensDistortion, VolumeFeatures.LensDistortion))
                 return true;
@@ -680,6 +640,10 @@ namespace UnityEditor.Rendering.Universal
             if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
+            // HDR Output
+            if (!HDROutputUtils.IsShaderVariantValid(compilerData.shaderKeywordSet, PlayerSettings.useHDRDisplay))
+                return true;
+
             return false;
         }
 
@@ -708,7 +672,7 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedPass(features, snippetData, compilerData))
                 return true;
 
-            if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true)
+            if (ShaderBuildPreprocessor.s_StripUnusedVariants)
             {
                 if (StripUnusedShaders(features, shader))
                     return true;
@@ -740,7 +704,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == true)
+            if (ShaderBuildPreprocessor.s_StripUnusedPostProcessingVariants)
             {
                 if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader,
                     shaderVariant, shaderCompilerData))
@@ -765,6 +729,12 @@ namespace UnityEditor.Rendering.Universal
         , IPostprocessBuildWithReport
 #endif
     {
+        public static bool s_IsDevelopmentBuild;
+        public static bool s_StripUnusedVariants;
+        public static bool s_StripDebugDisplayShaders;
+        public static bool s_StripUnusedPostProcessingVariants;
+        public static bool s_StripScreenCoordOverrideVariants;
+
         public static List<ShaderFeatures> supportedFeaturesList
         {
             get
@@ -794,13 +764,14 @@ namespace UnityEditor.Rendering.Universal
         {
             Profiler.enabled = false;
         }
-
 #endif
 
         public void OnPreprocessBuild(BuildReport report)
         {
+            GatherSettings(report);
             FetchAllSupportedFeatures();
             FetchAllSupportedFeaturesFromVolumes();
+
 #if PROFILE_BUILD
             Profiler.enableBinaryLog = true;
             Profiler.logFile = "profilerlog.raw";
@@ -808,8 +779,57 @@ namespace UnityEditor.Rendering.Universal
 #endif
         }
 
+        private static void GatherSettings(BuildReport report)
+        {
+            s_IsDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
+
+            var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
+            if (globalSettings)
+            {
+                s_StripUnusedPostProcessingVariants = globalSettings.stripUnusedPostProcessingVariants;
+                s_StripDebugDisplayShaders = !s_IsDevelopmentBuild || globalSettings.stripDebugVariants;
+                s_StripUnusedVariants = globalSettings.stripUnusedVariants;
+                s_StripScreenCoordOverrideVariants = globalSettings.stripScreenCoordOverrideVariants;
+            }
+            else
+            {
+                s_StripDebugDisplayShaders = true;
+            }
+
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
+            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                s_StripDebugDisplayShaders = true;
+            }
+#endif
+        }
+
         private static void FetchAllSupportedFeatures()
         {
+            bool keepOffVariantForAdditionalLights = false;
+            bool usesXR = false;
+
+            #if XR_MANAGEMENT_4_0_1_OR_NEWER
+            var generalSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
+            usesXR = generalSettings != null && generalSettings.Manager != null && generalSettings.Manager.activeLoaders.Count > 0;
+
+            // XRTODO: We need to figure out what's the proper way to detect HL target platform when building. For now, HL is the only XR platform available on WSA so we assume this case targets HL platform.
+            var wsaTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.WSA);
+            if (wsaTargetSettings != null && wsaTargetSettings.AssignedSettings != null && wsaTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                // Due to the performance consideration, keep additional light off variant to avoid extra ALU cost related to dummy additional light handling.
+                keepOffVariantForAdditionalLights = true;
+            }
+
+            var questTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
+            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null && questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                // Due to the performance consideration, keep additional light off variant to avoid extra ALU cost related to dummy additional light handling.
+                keepOffVariantForAdditionalLights = true;
+            }
+            #endif
+
             using (ListPool<UniversalRenderPipelineAsset>.Get(out var urps))
             {
                 EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(urps);
@@ -817,20 +837,21 @@ namespace UnityEditor.Rendering.Universal
 
                 foreach (UniversalRenderPipelineAsset urp in urps)
                 {
-                    if (urp != null)
-                    {
-                        int rendererCount = urp.m_RendererDataList.Length;
+                    if (urp == null)
+                        continue;
 
-                        for (int i = 0; i < rendererCount; ++i)
-                            s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i));
-                    }
+                    urp.SetupShaderKeywordPrefiltering(s_IsDevelopmentBuild, usesXR);
+
+                    int rendererCount = urp.m_RendererDataList.Length;
+                    for (int i = 0; i < rendererCount; ++i)
+                        s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i, keepOffVariantForAdditionalLights));
                 }
             }
         }
 
         private static void FetchAllSupportedFeaturesFromVolumes()
         {
-            if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == false)
+            if (!s_StripUnusedPostProcessingVariants)
                 return;
 
             s_VolumeFeatures = VolumeFeatures.Calculated;
@@ -866,7 +887,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        private static ShaderFeatures GetSupportedShaderFeatures(UniversalRenderPipelineAsset pipelineAsset, int rendererIndex)
+        private static ShaderFeatures GetSupportedShaderFeatures(UniversalRenderPipelineAsset pipelineAsset, int rendererIndex, bool keepOffVariantForAdditionalLights)
         {
             ShaderFeatures shaderFeatures;
             shaderFeatures = ShaderFeatures.MainLight;
@@ -899,9 +920,6 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.useRenderingLayers)
                 shaderFeatures |= ShaderFeatures.LightLayers;
 
-            if (pipelineAsset.enableLODCrossFade)
-                shaderFeatures |= ShaderFeatures.LODCrossFade;
-
             if (pipelineAsset.supportsLightCookies)
                 shaderFeatures |= ShaderFeatures.LightCookies;
 
@@ -933,7 +951,7 @@ namespace UnityEditor.Rendering.Universal
                 if (!renderer.stripShadowsOffVariants)
                     shaderFeatures |= ShaderFeatures.ShadowsKeepOffVariants;
 
-                if (!renderer.stripAdditionalLightOffVariants)
+                if (keepOffVariantForAdditionalLights || !renderer.stripAdditionalLightOffVariants)
                     shaderFeatures |= ShaderFeatures.AdditionalLightsKeepOffVariants;
 
                 ScriptableRendererData rendererData = pipelineAsset.m_RendererDataList[rendererIndex];
@@ -1050,8 +1068,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            bool anyShadows = pipelineAsset.supportsMainLightShadows ||
-                (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
+            bool anyShadows = pipelineAsset.supportsMainLightShadows || (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
             if (pipelineAsset.supportsSoftShadows && anyShadows)
                 shaderFeatures |= ShaderFeatures.SoftShadows;
 

@@ -146,11 +146,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             LocalVolumetricFogEngineData data = new LocalVolumetricFogEngineData();
 
-            data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
-            data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector4)albedo);
+            data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath), (Vector4)albedo);
 
             data.blendingMode = blendingMode;
-            data.albedo = (Vector3)(Vector4)albedo;
 
             data.textureScroll = textureOffset;
             data.textureTiling = textureTiling;
@@ -191,19 +189,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Action shich should be performed after updating the texture.</summary>
         public Action OnTextureUpdated;
 
+        MaterialPropertyBlock m_RenderingProperties;
+        int m_GlobalIndex;
+
+        [NonSerialized]
+        internal Material textureMaterial;
 
         /// <summary>Gather and Update any parameters that may have changed.</summary>
-        internal void PrepareParameters(float time)
+        internal void PrepareParameters(float time, int globalIndex)
         {
+            m_GlobalIndex = globalIndex;
             parameters.Update(time);
-        }
-
-        private void NotifyUpdatedTexure()
-        {
-            if (OnTextureUpdated != null)
-            {
-                OnTextureUpdated();
-            }
         }
 
         private void OnEnable()
@@ -212,17 +208,106 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // Handle scene visibility
-            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateLocalVolumetricFogVisibility;
-            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateLocalVolumetricFogVisibility;
+            SceneVisibilityManager.visibilityChanged -= UpdateLocalVolumetricFogVisibility;
+            SceneVisibilityManager.visibilityChanged += UpdateLocalVolumetricFogVisibility;
             SceneView.duringSceneGui -= UpdateLocalVolumetricFogVisibilityPrefabStage;
             SceneView.duringSceneGui += UpdateLocalVolumetricFogVisibilityPrefabStage;
 #endif
         }
 
+        internal int GetGlobalIndex() => m_GlobalIndex;
+
+        void LateUpdate()
+        {
+            if (!LocalVolumetricFogManager.manager.IsInitialized())
+                return;
+
+            if (m_RenderingProperties == null)
+                m_RenderingProperties = new MaterialPropertyBlock();
+            m_RenderingProperties.Clear();
+
+            m_RenderingProperties.SetInteger(HDShaderIDs._VolumetricFogGlobalIndex, m_GlobalIndex);
+
+            Material material = parameters.materialMask;
+
+            // Setup parameters for the default volumetric fog ShaderGraph
+            if (parameters.maskMode == LocalVolumetricFogMaskMode.Texture)
+            {
+                bool alphaTexture = false;
+                if (textureMaterial == null)
+                    textureMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.currentPipeline.GetDefaultFogVolumeShader());
+
+                // Setup properties for material:
+                FogVolumeAPI.SetupFogVolumeBlendMode(textureMaterial, parameters.blendingMode);
+
+                material = textureMaterial;
+                if (parameters.volumeMask != null)
+                {
+
+                    m_RenderingProperties.SetTexture(HDShaderIDs._VolumetricMask, parameters.volumeMask);
+                    textureMaterial.EnableKeyword("_ENABLE_VOLUMETRIC_FOG_MASK");
+                    if (parameters.volumeMask is Texture3D t3d)
+                        alphaTexture = t3d.format == TextureFormat.Alpha8;
+                }
+                else
+                {
+                    textureMaterial.DisableKeyword("_ENABLE_VOLUMETRIC_FOG_MASK");
+                }
+
+                m_RenderingProperties.SetVector(HDShaderIDs._VolumetricScrollSpeed, parameters.textureScrollingSpeed);
+                m_RenderingProperties.SetVector(HDShaderIDs._VolumetricTiling, parameters.textureTiling);
+                m_RenderingProperties.SetFloat(HDShaderIDs._AlphaOnlyTexture, alphaTexture ? 1 : 0);
+
+                m_RenderingProperties.SetFloat(FogVolumeAPI.k_FogDistanceProperty, parameters.meanFreePath);
+                m_RenderingProperties.SetColor(FogVolumeAPI.k_SingleScatteringAlbedoProperty, parameters.albedo.gamma);
+            }
+
+            if (material == null)
+                return;
+
+            // We can put this in global
+            m_RenderingProperties.SetBuffer(HDShaderIDs._VolumetricMaterialData, HDRenderPipeline.currentPipeline.m_VolumetricMaterialDataBuffer);
+
+            // Send local properties inside constants instead of structured buffer to optimize GPU reads
+            var engineData = parameters.ConvertToEngineData();
+            var tr = transform;
+            var position = tr.position;
+            var bounds = new OrientedBBox(Matrix4x4.TRS(position, tr.rotation, parameters.size));
+            m_RenderingProperties.SetVector(HDShaderIDs._VolumetricMaterialObbRight, bounds.right);
+            m_RenderingProperties.SetVector(HDShaderIDs._VolumetricMaterialObbUp, bounds.up);
+            m_RenderingProperties.SetVector(HDShaderIDs._VolumetricMaterialObbExtents, new Vector3(bounds.extentX, bounds.extentY, bounds.extentZ));
+            m_RenderingProperties.SetVector(HDShaderIDs._VolumetricMaterialObbCenter, bounds.center);
+
+            m_RenderingProperties.SetVector(HDShaderIDs._VolumetricMaterialRcpPosFaceFade, engineData.rcpPosFaceFade);
+            m_RenderingProperties.SetVector(HDShaderIDs._VolumetricMaterialRcpNegFaceFade, engineData.rcpNegFaceFade);
+            m_RenderingProperties.SetInteger(HDShaderIDs._VolumetricMaterialInvertFade, engineData.invertFade);
+
+            m_RenderingProperties.SetFloat(HDShaderIDs._VolumetricMaterialRcpDistFadeLen, engineData.rcpDistFadeLen);
+            m_RenderingProperties.SetFloat(HDShaderIDs._VolumetricMaterialEndTimesRcpDistFadeLen, engineData.endTimesRcpDistFadeLen);
+            m_RenderingProperties.SetInteger(HDShaderIDs._VolumetricMaterialFalloffMode, (int)engineData.falloffMode);
+
+            var renderParams = new RenderParams
+            {
+                layer = gameObject.layer,
+                rendererPriority = parameters.priority,
+                worldBounds = new Bounds(position, parameters.size),
+                motionVectorMode = MotionVectorGenerationMode.ForceNoMotion,
+                reflectionProbeUsage = ReflectionProbeUsage.Off,
+                renderingLayerMask = 0xFFFFFFFF,
+                material = material,
+                matProps = m_RenderingProperties,
+                shadowCastingMode = ShadowCastingMode.Off,
+                receiveShadows = false,
+                lightProbeUsage = LightProbeUsage.Off,
+            };
+
+            Graphics.RenderPrimitivesIndexedIndirect(renderParams, MeshTopology.Triangles, HDRenderPipeline.currentPipeline.m_VolumetricMaterialIndexBuffer, LocalVolumetricFogManager.manager.globalIndirectBuffer, 1, m_GlobalIndex);
+        }
+
 #if UNITY_EDITOR
         void UpdateLocalVolumetricFogVisibility()
         {
-            bool isVisible = !UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject);
+            bool isVisible = !SceneVisibilityManager.instance.IsHidden(gameObject);
             UpdateLocalVolumetricFogVisibility(isVisible);
         }
 
@@ -263,7 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
             LocalVolumetricFogManager.manager.DeRegisterVolume(this);
 
 #if UNITY_EDITOR
-            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateLocalVolumetricFogVisibility;
+            SceneVisibilityManager.visibilityChanged -= UpdateLocalVolumetricFogVisibility;
             SceneView.duringSceneGui -= UpdateLocalVolumetricFogVisibilityPrefabStage;
 #endif
         }

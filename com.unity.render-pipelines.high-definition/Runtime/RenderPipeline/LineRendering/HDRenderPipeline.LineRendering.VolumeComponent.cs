@@ -5,7 +5,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for High Quality Line Rendering.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Rendering/High Quality Lines", typeof(HDRenderPipeline))]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [Serializable, VolumeComponentMenu("Rendering/High Quality Lines")]
     public class HighQualityLineRenderingVolumeComponent : VolumeComponent
     {
         /// <summary>

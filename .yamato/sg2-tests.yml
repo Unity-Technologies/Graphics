@@ -1,0 +1,53 @@
+ShaderGraph2_Win_pr_trigger:
+  name: ShaderGraph2 - PR Tests Trigger
+  triggers:
+    expression: pull_request.source match "(?:^|.+\/)sg2\/.+" AND NOT pull_request.draft # this triggers the job on pull request exclusively on sg2/ branches
+    cancel_old_ci: true
+  dependencies:
+    - .yamato/sg2-tests.yml#ShaderGraph2_Mac
+    - .yamato/sg2-tests.yml#ShaderGraph2_Win
+ShaderGraph2_Win:
+  name: ShaderGraph2 Tests - Win
+  agent:
+    type: Unity::VM
+    image: sdet/gamecode_win10:stable
+    flavor: b1.large
+  variables:
+    EDITOR_BRANCH: sg2/staging
+  commands:
+    -  command: NetSh Advfirewall set allprofiles state off
+    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+       retries: 2
+    -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+       retries: 2
+    -  command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
+       retries: 2
+    -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground
+  artifacts:
+    logs:
+      paths:
+        -  "**/test-results/**"
+        -  "ShaderGraphPlayground/Logs/*.log"
+ShaderGraph2_Mac:
+  name: ShaderGraph2 Tests - Mac
+  agent:
+    type: Unity::VM::osx
+    image: slough-ops/macos-11-xcode:v0.0.1-973582
+    flavor: m1.mac
+  variables:
+    EDITOR_BRANCH: sg2/staging
+  commands:
+    -  command: brew install lz4
+    -  command: brew tap --force-auto-update Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+    -  command: brew install Unity-Technologies/homebrew-unity/unity-downloader-cli
+    -  command: unity-downloader-cli -u $EDITOR_BRANCH -c editor --fast --wait
+    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+       retries: 2
+    -  command: chmod +x utr
+    -  command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground
+       retries: 2
+  artifacts:
+    logs:
+      paths:
+        -  "**/test-results/**"
+        -  "ShaderGraphPlayground/Logs/*.log"

@@ -1,0 +1,177 @@
+#pragma kernel CSMain
+${VFXPragmaOnlyRenderers}
+${VFXPragmaRequire}
+
+${VFXGlobalInclude}
+${VFXGlobalDeclaration}
+${VFXInclude("Shaders/VFXParticleCommon.template")}
+
+// Indirect draw is always enabled for volumetric fog output
+RWStructuredBuffer<uint> indirectBuffer;
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/HDRenderPipeline.VolumetricLighting.cs.hlsl"
+
+#if VFX_FEATURE_FRUSTUM_CULL
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+
+bool IsSphereOutsideFrustum(float3 pos, float radius, float4 frustumPlanes[6])
+{
+    bool outside = false;
+    [unroll]
+    for (int i = 0; i < 6; ++i)
+        outside = outside || DistanceFromPlane(pos, frustumPlanes[i]) < -radius;
+    return outside;
+}
+#endif
+
+uint DistanceToSlice(float distance)
+{
+    float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+    float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
+
+    float e1 = EncodeLogarithmicDepthGeneralized(max(t0, distance), _VBufferDistanceEncodingParams);
+    e1 -= de;
+    e1 /= de;
+
+    return uint(max(0, e1 - 0.5));
+}
+
+RWStructuredBuffer<uint> maxSliceCount;
+RWStructuredBuffer<uint> maxSliceTempBuffer;
+
+RWByteAddressBuffer attributeBuffer;
+
+#if defined(VFX_VOLUMETRIC_FOG_PASS_1)
+RWStructuredBuffer<uint> outputBuffer;
+#endif
+
+CBUFFER_START(updateParamsConst)
+    uint dispatchWidth;
+    ${VFXInstancingConstants}
+    float3 cameraXRSettings;
+CBUFFER_END
+
+${VFXPerPassInclude}
+
+#define IndirectOutputType uint
+
+${VFXDeclareAppendOutputIndirectBuffer}
+
+${VFXGeneratedBlockFunction}
+
+groupshared uint maxSliceCountLDS[NB_THREADS_PER_GROUP];
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSMain(uint3 groupId          : SV_GroupID,
+            uint3 groupThreadId    : SV_GroupThreadID)
+{
+    uint id = GetThreadId(groupId, groupThreadId, dispatchWidth);
+    //uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;
+
+    uint index = GetThreadId(groupId, 0, dispatchWidth);
+    ${VFXInitInstancing}
+    index += groupThreadId.x;
+
+    ContextData contextData = instancingContextData[instanceActiveIndex];
+    uint systemSeed = contextData.systemSeed;
+    uint maxParticleCount = contextData.maxParticleCount;
+    uint threadIdInGroup = groupThreadId.x;
+
+#if defined(VFX_VOLUMETRIC_FOG_PASS_CLEAR)
+    maxSliceTempBuffer[index] = 0;
+    if (index <= instanceActiveIndex)
+        maxSliceCount[instanceActiveIndex] = 0;
+    return;
+#endif
+
+    ${VFXLoadGraphValues}
+
+    VFXAttributes attributes = (VFXAttributes)0;
+    VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
+
+    // Load static matrix for compute shader access to local to world
+#if VFX_LOCAL_SPACE
+    ${VFXLoadParameter:{localToWorld}}
+    vfxLocalToWorld = localToWorld;
+#else
+    vfxLocalToWorld = k_identity4x4;
+#endif
+    vfxWorldToLocal = k_identity4x4;
+
+    ${VFXLoadAttributes}
+    {
+        ${VFXProcessBlocks}
+    }
+
+    // Compute the max amount of slices hit by the particles
+    uint hitSliceCount = 0;
+    uint startSliceIndex = 0;
+    if (index < maxParticleCount)
+    {
+        ${VFXLoadSize}
+
+        float3x3 rot = GetEulerMatrix(radians(float3(attributes.angleX,attributes.angleY,attributes.angleZ)));
+        float4x4 elementToVFX = GetElementToVFXMatrix(
+            attributes.axisX,
+            attributes.axisY,
+            attributes.axisZ,
+            rot,
+            float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+            size3,
+            attributes.position);
+
+        float3 vPos = mul(elementToVFX,float4(0, 0, 0,1.0f)).xyz;
+        float3 vPosWS = TransformPositionVFXToWorld(vPos);
+
+#ifdef VFX_WORLD_SPACE
+        vPosWS = GetCameraRelativePositionWS(vPosWS);
+#endif
+
+        float radius = attributes.size * attributes.scaleX * 0.5;
+        float distanceToCamera = length(vPosWS);
+        uint stopSliceIndex = 0;
+        startSliceIndex = max(DistanceToSlice(distanceToCamera - radius), 0);
+        bool fogParticleVisible = startSliceIndex <= uint(_MaxSliceCount);
+
+#if defined(VFX_FEATURE_FRUSTUM_CULL)
+        if (!IsSphereOutsideFrustum(vPosWS, radius, _FrustumPlanes))
+#endif
+
+        if (attributes.alive && fogParticleVisible)
+        {
+            stopSliceIndex = min(DistanceToSlice(distanceToCamera + radius), uint(_MaxSliceCount));
+            hitSliceCount = clamp(stopSliceIndex - startSliceIndex, 0, uint(_MaxSliceCount));
+        }
+    }
+
+#if defined(VFX_VOLUMETRIC_FOG_PASS_0)
+
+    // Load slice hit count in LDS
+    maxSliceCountLDS[threadIdInGroup] = clamp(hitSliceCount, 0, int(_MaxSliceCount) - startSliceIndex);
+
+    // Perform reduction on LDS to get the max slice count in the final buffer
+    GroupMemoryBarrierWithGroupSync();
+    for (uint s = NB_THREADS_PER_GROUP / 2; s > 0; s >>= 1)
+    {
+        if (threadIdInGroup < s)
+            maxSliceCountLDS[threadIdInGroup] = max(maxSliceCountLDS[threadIdInGroup], maxSliceCountLDS[threadIdInGroup + s]);
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // Aggregate final result in maxSliceCount buffer with an interlocked op
+    if (threadIdInGroup == 0)
+        InterlockedMax(maxSliceCount[instanceActiveIndex], maxSliceCountLDS[0]);
+
+#elif defined(VFX_VOLUMETRIC_FOG_PASS_1)
+
+    // Fill indirect buffer
+    if (attributes.alive && maxSliceCount[instanceActiveIndex] > 0 && hitSliceCount > 0)
+    {
+        AppendOutputBuffer(outputBuffer, index, instanceActiveIndex, maxSliceCount[0]);
+    }
+
+#endif
+}

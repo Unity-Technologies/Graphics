@@ -14,8 +14,10 @@ using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.ShaderGraph
 {
-    sealed class VFXTarget : Target, ILegacyTarget, IMaySupportVFX
+    sealed class VFXTarget : Target, ILegacyTarget, IMaySupportVFX, IMayObsolete
     {
+        public const string kVisualEffectTargetListedKey = "VFX.VisualEffectTargetListed";
+
         [SerializeField]
         bool m_Lit;
 
@@ -24,7 +26,7 @@ namespace UnityEditor.ShaderGraph
 
         public VFXTarget()
         {
-            displayName = "Visual Effect";
+            displayName = "Visual Effect (deprecated)";
         }
 
         public bool lit
@@ -146,6 +148,11 @@ namespace UnityEditor.ShaderGraph
 
         public bool SupportsVFX() => true;
         public bool CanSupportVFX() => true;
+        public bool IsObsolete()
+        {
+            var isObsolete = !EditorPrefs.GetBool(kVisualEffectTargetListedKey, false);
+            return isObsolete;
+        }
     }
 }
 #endif

@@ -58,23 +58,31 @@ namespace UnityEngine.Rendering.Universal
                             continue;
 
                         var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric);
+                        var lightMesh = light.lightMesh;
 
-                        RendererLighting.SetGeneralLightShaderGlobals(cmd, light);
+                        // For Batching.
+                        var index = light.batchSlotIndex;
+                        var slotIndex = RendererLighting.lightBatch.SlotIndex(index);
+                        bool canBatch = RendererLighting.lightBatch.CanBatch(light, lightMaterial, index, out int lightHash);
+
+                        RendererLighting.SetGeneralLightShaderGlobals(cmd, light, slotIndex, passData.isVolumetric, false, LightBatch.isBatchingSupported);
 
                         if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
-                            RendererLighting.SetPointLightShaderGlobals(passData.rendererData, cmd, light);
+                            RendererLighting.SetPointLightShaderGlobals(passData.rendererData, cmd, light, slotIndex, LightBatch.isBatchingSupported);
 
                         if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                             cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
-                        if (light.lightType == Light2D.LightType.Point)
+                        if (LightBatch.isBatchingSupported)
                         {
-                            RendererLighting.DrawPointLight(cmd, light, light.lightMesh, lightMaterial);
+                            RendererLighting.lightBatch.AddBatch(light, lightMaterial, light.GetMatrix(), lightMesh, 0, lightHash, index);
+                            RendererLighting.lightBatch.Flush(cmd);
                         }
                         else
                         {
-                            cmd.DrawMesh(light.lightMesh, light.transform.localToWorldMatrix, lightMaterial);
+                            cmd.DrawMesh(lightMesh, light.GetMatrix(), lightMaterial);
                         }
+
                     }
 
                     RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, false);

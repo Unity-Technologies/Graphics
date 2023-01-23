@@ -14,10 +14,17 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma never_use_dxc metal
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
+        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020
+        #pragma multi_compile_local_fragment _ HDR_ENCODING_LINEAR HDR_ENCODING_PQ
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"
+#if defined(HDR_ENCODING_LINEAR) || defined(HDR_ENCODING_PQ)
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
+#endif
+
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
@@ -37,6 +44,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         TEXTURE2D(_InternalLut);
         TEXTURE2D(_UserLut);
         TEXTURE2D(_BlueNoise_Texture);
+        TEXTURE2D_X(_OverlayUITexture);
 
         float4 _Lut_Params;
         float4 _UserLut_Params;
@@ -56,6 +64,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         float4 _Grain_TilingParams;
         float4 _Bloom_Texture_TexelSize;
         float4 _Dithering_Params;
+        float4 _HDROutputLuminanceParams;
 
         #define DistCenter              _Distortion_Params1.xy
         #define DistAxis                _Distortion_Params1.zw
@@ -96,6 +105,10 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
         #define DitheringScale          _Dithering_Params.xy
         #define DitheringOffset         _Dithering_Params.zw
+
+        #define MinNits                 _HDROutputLuminanceParams.x
+        #define MaxNits                 _HDROutputLuminanceParams.y
+        #define PaperWhite              _HDROutputLuminanceParams.z
 
         float2 DistortUV(float2 uv)
         {
@@ -245,6 +258,14 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 // Assume color > 0 and prevent 0 - ditherNoise.
                 // Negative colors can cause problems if fed back to the postprocess via render to FP16 texture.
                 color = max(color, 0);
+            }
+            #endif
+
+            #ifdef HDR_ENCODING
+            {
+                float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
+                color.rgb = SceneUIComposition(uiSample, color.rgb, PaperWhite, MaxNits);
+                color.rgb = OETF(color.rgb);
             }
             #endif
 

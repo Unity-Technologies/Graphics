@@ -377,9 +377,22 @@ real3 TransmittanceColorAtDistanceToAbsorption(real3 transmittanceColor, real at
     return -log(transmittanceColor + REAL_EPS) / max(atDistance, REAL_EPS);
 }
 
+float ApplyExponentialFadeFactor(float fade, bool exponential, bool multiplyBlendMode)
+{
+    if (exponential)
+    {
+        if (multiplyBlendMode)
+            fade = 1 - PositivePow(abs(fade - 1), 2.2);
+        else
+            fade = PositivePow(fade, 2.2);
+    }
+    return fade;
+}
+
 float ComputeVolumeFadeFactor(float3 coordNDC, float dist,
                         float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
-                        float rcpDistFadeLen, float endTimesRcpDistFadeLen, bool exponentialFalloff)
+                        float rcpDistFadeLen, float endTimesRcpDistFadeLen,
+                        bool exponentialFalloff, bool multiplyBlendMode)
 {
     float3 posF = Remap10(coordNDC, rcpPosFaceFade, rcpPosFaceFade);
     float3 negF = Remap01(coordNDC, rcpNegFaceFade, 0);
@@ -387,12 +400,17 @@ float ComputeVolumeFadeFactor(float3 coordNDC, float dist,
     float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
 
     // We only apply exponential falloff on the Blend Distance and not Distance Fade
-    if (exponentialFalloff)
-        fade = PositivePow(fade, 2.2);
+    fade = ApplyExponentialFadeFactor(fade, exponentialFalloff, multiplyBlendMode);
 
     fade = dstF * (invertFade ? (1 - fade) : fade);
 
     return fade;
+}
+
+float ExtinctionFromMeanFreePath(float meanFreePath)
+{
+    // Keep in sync with kMinFogDistance
+    return rcp(max(0.05, meanFreePath));
 }
 
 #endif // UNITY_VOLUME_RENDERING_INCLUDED

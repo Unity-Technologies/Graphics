@@ -218,6 +218,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
 #endif
 
+            // HDR Output
+            if (!HDROutputUtils.IsShaderVariantValid(inputData.shaderKeywordSet, PlayerSettings.useHDRDisplay))
+                return true;
+
             return false;
         }
     }

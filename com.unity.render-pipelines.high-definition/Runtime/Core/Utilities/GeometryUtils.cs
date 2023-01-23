@@ -307,5 +307,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return DistanceToOriginAABB(axisAlignedPoint, float3(obb.extentX, obb.extentY, obb.extentZ));
         }
+
+        public static Bounds OBBToAABB(float3 right, float3 up, float3 forward, float3 extent, float3 center)
+        {
+            float3 aabbExtents = abs(right * extent.x) + abs(up * extent.y) + abs(forward * extent.z);
+            return new Bounds(center, aabbExtents);
+        }
     } // class GeometryUtils
 }

@@ -81,22 +81,22 @@ real map01(real value, real min, real max)
     return Remap01(value, r, min * r);
 }
 
-real2 scaleUV(real2 uv, real2 center, real scale, bool invert, bool polar)
+float2 scaleUV(float2 uv, float2 center, real scale, bool invert, bool polar)
 {
     if (polar)
     {
         scale = rcp(scale);
         // Correctly map the UV before doing polar conversion
-        uv = real2(LensFlareScreenSpaceWarpedScaleX * map01To(uv.x, -scale, scale), LensFlareScreenSpaceWarpedScaleY * map01To(uv.y, -scale, scale));
+        uv = float2(LensFlareScreenSpaceWarpedScaleX * map01To(uv.x, -scale, scale), LensFlareScreenSpaceWarpedScaleY * map01To(uv.y, -scale, scale));
 
         // Polar coordinate conversion
-        real x = SafeSqrt(SafePositivePow(uv.x, 2) + SafePositivePow(uv.y, 2));
-        real x1 = map01(x, 0.0, sqrt(2.0));
+        float x = SafeSqrt(SafePositivePow(uv.x, 2) + SafePositivePow(uv.y, 2));
+        float x1 = map01(x, 0.0, sqrt(2.0));
 
-        real y = FastAtan2(uv.x, uv.y);
-        real y1 = 1.0 - map01(y, -PI, PI);
+        float y = FastAtan2(uv.x, uv.y);
+        float y1 = 1.0 - map01(y, -PI, PI);
 
-        uv = real2(y1, invert ? (1.0 - x1) : x1);
+        uv = float2(y1, invert ? (1.0 - x1) : x1);
     }
     else
     {
@@ -117,7 +117,7 @@ real2 scaleUV(real2 uv, real2 center, real scale, bool invert, bool polar)
     return uv;
 }
 
-real3 GetFlareTexture(real2 uv, real scale, real intensity, bool polar, bool regularFlarePass)
+real3 GetFlareTexture(float2 uv, real scale, real intensity, bool polar, bool regularFlarePass)
 {
     bool invert = scale < 0.0;
     bool distortUV = (scale != 1 || polar);
@@ -126,12 +126,12 @@ real3 GetFlareTexture(real2 uv, real scale, real intensity, bool polar, bool reg
     bool chromaticAberration = (LensFlareScreenSpaceChromaIntensity > 0);
 
     //Chromatic
-    real2 coords = 2.0 * uv - 1.0;
-    real2 end = uv - coords * dot(coords, coords) * LensFlareScreenSpaceChromaIntensity;
-    real2 diff = end - uv;
+    float2 coords = 2.0 * uv - 1.0;
+    float2 end = uv - coords * dot(coords, coords) * LensFlareScreenSpaceChromaIntensity;
+    float2 diff = end - uv;
 
     if (distortUV)
-        uv = scaleUV(uv, real2(0.5, 0.5), abs(scale), invert, polar);
+        uv = scaleUV(uv, float2(0.5, 0.5), abs(scale), invert, polar);
 
 #if defined (HDRP_LENS_FLARE_SCREEN_SPACE)
 
@@ -182,7 +182,9 @@ real3 GetFlareTexture(real2 uv, real scale, real intensity, bool polar, bool reg
     }
     real3 result = sum / filterSum;
 
-#else
+#endif
+
+#if defined (URP_LENS_FLARE_SCREEN_SPACE)
 
     // Taken from URP UberPost Implementation
     real3 result = 0.0;
@@ -233,14 +235,9 @@ VaryingsSSLF vert(AttributesSSLF input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#if SHADER_API_GLES
-    real4 positionCS = input.positionCS;
-    real2 uv = input.uv;
-#else
     real4 positionCS = real4(2.0, 2.0, 1.0, 1.0) * GetQuadVertexPosition(input.vertexID) - real4(1.0, 1.0, 0.0, 0.0);
-    real2 uv = GetQuadTexCoord(input.vertexID);
+    float2 uv = GetQuadTexCoord(input.vertexID);
     uv.y = 1.0 - uv.y;
-#endif
 
     output.positionCS = positionCS;
     output.texcoord = uv;
@@ -253,21 +250,23 @@ real4 FragmentPrefilter(VaryingsSSLF input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    real2 uv = input.texcoord;
+    float2 uv = input.texcoord;
 #if defined (HDRP_LENS_FLARE_SCREEN_SPACE)
     uv /= _RTHandlePostProcessScale.xy;
 #endif
 
-    real dy = GetAnamorphism().x * _BloomTexture_TexelSize.y;
-    real dx = GetAnamorphism().y * _BloomTexture_TexelSize.x;
+    float dy = GetAnamorphism().x * _BloomTexture_TexelSize.y;
+    float dx = GetAnamorphism().y * _BloomTexture_TexelSize.x;
 
-    real2 u0 = saturate(real2(uv.x - dx, uv.y - dy));
-    real2 u1 = saturate(real2(uv.x + dx, uv.y + dy));
+    float2 u0 = saturate(float2(uv.x - dx, uv.y - dy));
+    float2 u1 = saturate(float2(uv.x + dx, uv.y + dy));
 
 #if defined (HDRP_LENS_FLARE_SCREEN_SPACE)
     real3 c0 = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(u0)), 0.0).xyz;
     real3 c1 = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(u1)), 0.0).xyz;
-#else
+#endif
+
+#if defined (URP_LENS_FLARE_SCREEN_SPACE)
     real3 c0 = SAMPLE_TEXTURE2D_X(_BloomTexture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(u0)).xyz;
     real3 c1 = SAMPLE_TEXTURE2D_X(_BloomTexture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(u1)).xyz;
 #endif
@@ -285,20 +284,20 @@ real4 FragmentDownsample(VaryingsSSLF input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    real2 uv = input.texcoord.xy;
+    float2 uv = input.texcoord.xy;
 #if defined (HDRP_LENS_FLARE_SCREEN_SPACE)
     uv /= _RTHandlePostProcessScale.xy;
 #endif
 
-    real dy = GetAnamorphism().y * _LensFlareScreenSpaceStreakTex_TexelSize.y * LensFlareScreenSpaceStreakLength * ((real)_LensFlareScreenSpaceMipLevel + 1.0) / LensFlareScreenSpaceRatio;
-    real dx = GetAnamorphism().x * _LensFlareScreenSpaceStreakTex_TexelSize.x * LensFlareScreenSpaceStreakLength * ((real)_LensFlareScreenSpaceMipLevel + 1.0) / LensFlareScreenSpaceRatio;
+    float dy = GetAnamorphism().y * _LensFlareScreenSpaceStreakTex_TexelSize.y * LensFlareScreenSpaceStreakLength * ((real)_LensFlareScreenSpaceMipLevel + 1.0) / LensFlareScreenSpaceRatio;
+    float dx = GetAnamorphism().x * _LensFlareScreenSpaceStreakTex_TexelSize.x * LensFlareScreenSpaceStreakLength * ((real)_LensFlareScreenSpaceMipLevel + 1.0) / LensFlareScreenSpaceRatio;
 
-    real2 u0 = saturate(real2(uv.x - dx * 5.0, uv.y - dy * 5.0));
-    real2 u1 = saturate(real2(uv.x - dx * 3.0, uv.y - dy * 3.0));
-    real2 u2 = saturate(real2(uv.x - dx * 1.0, uv.y - dy * 1.0));
-    real2 u3 = saturate(real2(uv.x + dx * 1.0, uv.y + dy * 1.0));
-    real2 u4 = saturate(real2(uv.x + dx * 3.0, uv.y + dy * 3.0));
-    real2 u5 = saturate(real2(uv.x + dx * 5.0, uv.y + dy * 5.0));
+    float2 u0 = saturate(float2(uv.x - dx * 5.0, uv.y - dy * 5.0));
+    float2 u1 = saturate(float2(uv.x - dx * 3.0, uv.y - dy * 3.0));
+    float2 u2 = saturate(float2(uv.x - dx * 1.0, uv.y - dy * 1.0));
+    float2 u3 = saturate(float2(uv.x + dx * 1.0, uv.y + dy * 1.0));
+    float2 u4 = saturate(float2(uv.x + dx * 3.0, uv.y + dy * 3.0));
+    float2 u5 = saturate(float2(uv.x + dx * 5.0, uv.y + dy * 5.0));
 
 #if defined (HDRP_LENS_FLARE_SCREEN_SPACE)
     real3 c0 = 1.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(u0))).xyz / 12.0;
@@ -307,7 +306,9 @@ real4 FragmentDownsample(VaryingsSSLF input) : SV_Target
     real3 c3 = 3.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(u3))).xyz / 12.0;
     real3 c4 = 2.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(u4))).xyz / 12.0;
     real3 c5 = 1.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(u5))).xyz / 12.0;
-#else
+#endif
+
+#if defined (URP_LENS_FLARE_SCREEN_SPACE)
     real3 c0 = 1.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(u0)).xyz / 12.0;
     real3 c1 = 2.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(u1)).xyz / 12.0;
     real3 c2 = 3.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(u2)).xyz / 12.0;
@@ -324,23 +325,25 @@ real4 FragmentUpsample(VaryingsSSLF input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    real2 uv = input.texcoord;
+    float2 uv = input.texcoord;
 #if defined (HDRP_LENS_FLARE_SCREEN_SPACE)
     uv /= _RTHandlePostProcessScale.xy;
 #endif
 
-    real dy = GetAnamorphism().y * _LensFlareScreenSpaceStreakTex_TexelSize.y * LensFlareScreenSpaceStreakLength * 1.5 * ((real)_LensFlareScreenSpaceMipLevel + 1.0) / LensFlareScreenSpaceRatio;
-    real dx = GetAnamorphism().x * _LensFlareScreenSpaceStreakTex_TexelSize.x * LensFlareScreenSpaceStreakLength * 1.5 * ((real)_LensFlareScreenSpaceMipLevel + 1.0) / LensFlareScreenSpaceRatio;
+    float dy = GetAnamorphism().y * _LensFlareScreenSpaceStreakTex_TexelSize.y * LensFlareScreenSpaceStreakLength * 1.5 * ((real)_LensFlareScreenSpaceMipLevel + 1.0) / LensFlareScreenSpaceRatio;
+    float dx = GetAnamorphism().x * _LensFlareScreenSpaceStreakTex_TexelSize.x * LensFlareScreenSpaceStreakLength * 1.5 * ((real)_LensFlareScreenSpaceMipLevel + 1.0) / LensFlareScreenSpaceRatio;
 
-    real2 u0 = saturate(real2(uv.x - dx, uv.y - dy));
-    real2 u1 = saturate(real2(uv.x, uv.y));
-    real2 u2 = saturate(real2(uv.x + dx, uv.y + dx));
+    float2 u0 = saturate(float2(uv.x - dx, uv.y - dy));
+    float2 u1 = saturate(float2(uv.x, uv.y));
+    float2 u2 = saturate(float2(uv.x + dx, uv.y + dx));
 
 #if defined (HDRP_LENS_FLARE_SCREEN_SPACE)
     real3 c0 = 1.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(u0))).xyz / 4.0;
     real3 c1 = 2.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(u1))).xyz / 4.0;
     real3 c2 = 1.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture(SCREEN_COORD_REMOVE_SCALEBIAS(u2))).xyz / 4.0;
-#else
+#endif
+
+#if defined (URP_LENS_FLARE_SCREEN_SPACE)
     real3 c0 = 1.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(u0)).xyz / 4.0;
     real3 c1 = 2.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(u1)).xyz / 4.0;
     real3 c2 = 1.0 * SAMPLE_TEXTURE2D_X(_LensFlareScreenSpaceStreakTex, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(u2)).xyz / 4.0;
@@ -353,7 +356,7 @@ real4 FragmentComposition(VaryingsSSLF input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    real2 uv = input.texcoord;
+    float2 uv = input.texcoord;
 
     real3 streakFlare = 0.0;
     real3 regularFlare = 0.0;
@@ -374,10 +377,10 @@ real4 FragmentComposition(VaryingsSSLF input) : SV_Target
     real vignetteSquaredness = 2.0; // 1.0 and lower means more star shaped, 2.0 ellipsis, above more squared
 
     // Vignette textures
-    real2 uvVignette = scaleUV(uv, real2(0.5, 0.5), vignetteScale, false, false);
-    real vignetteX = saturate(SafePositivePow(abs(2.0 * uvVignette.x - 1.0), (vignetteSquaredness)));
-    real vignetteY = saturate(SafePositivePow(abs(2.0 * uvVignette.y - 1.0), (vignetteSquaredness)));
-    real vignetteRound = saturate(SafePositivePow((vignetteX + vignetteY), (vignettePow)));
+    float2 uvVignette = scaleUV(uv, float2(0.5, 0.5), vignetteScale, false, false);
+    float vignetteX = saturate(SafePositivePow(abs(2.0 * uvVignette.x - 1.0), (vignetteSquaredness)));
+    float vignetteY = saturate(SafePositivePow(abs(2.0 * uvVignette.y - 1.0), (vignetteSquaredness)));
+    float vignetteRound = saturate(SafePositivePow((vignetteX + vignetteY), (vignettePow)));
 
     // Texture to have flares only on the edges of the screen
     vignetteRound = lerp(1, vignetteRound, LensFlareScreenSpaceVignetteIntensity);

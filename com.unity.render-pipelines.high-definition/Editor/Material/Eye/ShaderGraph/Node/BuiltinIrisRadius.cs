@@ -6,12 +6,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.ShaderGraph
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "Builtin Iris Radius (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "Builtin Iris Radius")]
     class BuiltinIrisRadius : AbstractMaterialNode, IGeneratesBodyCode
     {
         public BuiltinIrisRadius()
         {
-            name = "Builtin Iris Radius (Preview)";
+            name = "Builtin Iris Radius";
             UpdateNodeAfterDeserialization();
         }
 
