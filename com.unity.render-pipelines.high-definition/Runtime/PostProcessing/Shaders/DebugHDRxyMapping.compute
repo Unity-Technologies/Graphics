@@ -15,7 +15,7 @@ RW_TEXTURE2D_X(float, _xyBuffer);
 
 float4 _HDRxyBufferDebugParams;
 #define _SizePerDim _HDRxyBufferDebugParams.xy
-#define _IsRec709 (int)(_HDRxyBufferDebugParams.w == 1)
+#define _IsRec709 (int)(_HDRxyBufferDebugParams.w == 0)
 
 float2 RGBtoxy(float3 rgb)
 {

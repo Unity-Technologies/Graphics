@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering
         /// A value which determines which Volume is being used when Volumes have an equal amount of influence on the Scene. Volumes with a higher priority will override lower ones.
         /// </summary>
         [Tooltip("A value which determines which Volume is being used when Volumes have an equal amount of influence on the Scene. Volumes with a higher priority will override lower ones.")]
+        [Delayed]
         public float priority = 0f;
 
         /// <summary>

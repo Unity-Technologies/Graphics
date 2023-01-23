@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering
     /// This attribute allows you to add commands to the <strong>Add Override</strong> popup menu
     /// on Volumes and specify for which render pipelines will be supported
     /// </summary>
+    [Obsolete(@"VolumeComponentMenuForRenderPipelineAttribute is deprecated. Use VolumeComponentMenu with SupportedOnCurrentPipeline instead. #from(2023.1)", false)]
     public class VolumeComponentMenuForRenderPipeline : VolumeComponentMenu
     {
         /// <summary>
@@ -323,6 +324,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void Release()
         {
+            if (parameters == null)
+                return;
+
             for (int i = 0; i < parameters.Count; i++)
             {
                 if (parameters[i] != null)

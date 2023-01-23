@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_UseForwardPlus)
             {
-                using var _ = new ProfilingScope(null, m_ProfilingSamplerFPSetup);
+                using var _ = new ProfilingScope(m_ProfilingSamplerFPSetup);
 
                 if (!m_CullingHandle.IsCompleted)
                 {
@@ -384,18 +384,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
             var cmd = renderingData.commandBuffer;
-            using (new ProfilingScope(null, m_ProfilingSampler))
+            using (new ProfilingScope(m_ProfilingSampler))
             {
                 if (m_UseForwardPlus)
                 {
                     m_ReflectionProbeManager.UpdateGpuData(cmd, ref renderingData);
 
-                    using (new ProfilingScope(null, m_ProfilingSamplerFPComplete))
+                    using (new ProfilingScope(m_ProfilingSamplerFPComplete))
                     {
                         m_CullingHandle.Complete();
                     }
 
-                    using (new ProfilingScope(null, m_ProfilingSamplerFPUpload))
+                    using (new ProfilingScope(m_ProfilingSamplerFPUpload))
                     {
                         m_ZBinsBuffer.SetData(m_ZBins.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));
                         m_TileMasksBuffer.SetData(m_TileMasks.Reinterpret<float4>(UnsafeUtility.SizeOf<uint>()));

@@ -13,7 +13,7 @@ ShaderGraph2_Win:
     image: sdet/gamecode_win10:stable
     flavor: b1.large
   variables:
-    EDITOR_BRANCH: sg2/2023-01-05-working-editor
+    EDITOR_BRANCH: sg2/staging
   commands:
     -  command: NetSh Advfirewall set allprofiles state off
     -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
@@ -35,7 +35,7 @@ ShaderGraph2_Mac:
     image: slough-ops/macos-11-xcode:v0.0.1-973582
     flavor: m1.mac
   variables:
-    EDITOR_BRANCH: sg2/2023-01-05-working-editor
+    EDITOR_BRANCH: sg2/staging
   commands:
     -  command: brew install lz4
     -  command: brew tap --force-auto-update Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git

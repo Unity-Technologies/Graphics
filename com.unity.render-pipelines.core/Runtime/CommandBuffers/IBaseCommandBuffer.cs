@@ -133,6 +133,11 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="value">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetKeyword.html)</param>
         public void SetKeyword(ComputeShader computeShader, ref LocalKeyword keyword, bool value) ;
 
+        /// <summary>Wraps [SetViewProjectionMatrices](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewProjectionMatrices.html) on a CommandBuffer.</summary>
+        /// <param name="view">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewProjectionMatrices.html)</param>
+        /// <param name="proj">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetViewProjectionMatrices.html)</param>
+        public void SetViewProjectionMatrices(Matrix4x4 view, Matrix4x4 proj) ;
+
         /// <summary>Wraps [SetGlobalDepthBias](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalDepthBias.html) on a CommandBuffer.</summary>
         /// <param name="bias">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalDepthBias.html)</param>
         /// <param name="slopeBias">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalDepthBias.html)</param>
@@ -193,6 +198,14 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>Wraps [IncrementUpdateCount](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.IncrementUpdateCount.html) on a CommandBuffer.</summary>
         /// <param name="dest">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.IncrementUpdateCount.html)</param>
         public void IncrementUpdateCount(RenderTargetIdentifier dest) ;
+
+        /// <summary>Wraps [SetupCameraProperties](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetupCameraProperties.html) on a CommandBuffer.</summary>
+        /// <param name="camera">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetupCameraProperties.html)</param>
+        public void SetupCameraProperties(Camera camera) ;
+
+        /// <summary>Wraps [InvokeOnRenderObjectCallbacks](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.InvokeOnRenderObjectCallbacks.html) on a CommandBuffer.</summary>
+
+        public void InvokeOnRenderObjectCallbacks() ;
 
         /// <summary>Wraps [SetGlobalFloat](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalFloat.html) on a CommandBuffer.</summary>
         /// <param name="name">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetGlobalFloat.html)</param>

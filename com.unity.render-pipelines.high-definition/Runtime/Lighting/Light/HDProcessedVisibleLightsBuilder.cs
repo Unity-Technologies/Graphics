@@ -18,6 +18,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool isBakedShadowMask;
     }
 
+    internal struct ShadowIndicesAndVisibleLightData
+    {
+        public HDAdditionalLightDataUpdateInfo additionalLightUpdateInfo;
+        public VisibleLight visibleLight;
+        public int dataIndex;
+        public int lightIndex;
+        public HDShadowRequestSetHandle shadowRequestSetHandle;
+        public HDLightType lightType;
+        public int splitCount;
+        public int shadowRequestCount;
+        public int sortKeyIndex;
+        public bool willRenderShadowMap;
+        public BitArray8 isSplitValidArray;
+    }
+
     //Class representing lights in the context of a view.
     internal partial class HDProcessedVisibleLightsBuilder
     {
@@ -36,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int sortedDirectionalLightCounts => m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.DirectionalLights];
         public int sortedNonDirectionalLightCounts => sortedLightCounts - sortedDirectionalLightCounts;
         public int bakedShadowsCount => m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.BakedShadows];
+        public int shadowLightCount => m_ProcessVisibleLightCounts[(int)ProcessLightsCountSlots.ShadowLights];
 
         //Indexed by VisibleLights
         public NativeArray<LightBakingOutput> visibleLightBakingOutput => m_VisibleLightBakingOutput;
@@ -43,6 +59,29 @@ namespace UnityEngine.Rendering.HighDefinition
         public NativeArray<int> visibleLightEntityDataIndices => m_VisibleLightEntityDataIndices;
         public NativeArray<LightVolumeType> processedLightVolumeType => m_ProcessedLightVolumeType;
         public NativeArray<HDProcessedVisibleLight> processedEntities => m_ProcessedEntities;
+        public NativeArray<HDShadowCullingSplit> shadowCullingSplitBuffer => m_ShadowCullingSplitBuffer;
+        public NativeArray<ShadowIndicesAndVisibleLightData> visibleLightsAndIndicesBuffer => m_VisibleLightsAndIndicesBuffer;
+        public NativeList<ShadowIndicesAndVisibleLightData> splitVisibleLightsAndIndicesBuffer => m_SplitVisibleLightsAndIndicesBuffer;
+
+        // Bucketed lights. Those lists are aliasing the splitVisibleLightsAndIndicesBuffer above so they must not be disposed.
+        public UnsafeList<ShadowIndicesAndVisibleLightData> dynamicPointVisibleLightsAndIndices;
+        public UnsafeList<ShadowIndicesAndVisibleLightData> cachedPointVisibleLightsAndIndices;
+        public UnsafeList<ShadowIndicesAndVisibleLightData> dynamicSpotVisibleLightsAndIndices;
+        public UnsafeList<ShadowIndicesAndVisibleLightData> cachedSpotVisibleLightsAndIndices;
+        public UnsafeList<ShadowIndicesAndVisibleLightData> dynamicAreaRectangleVisibleLightsAndIndices;
+        public UnsafeList<ShadowIndicesAndVisibleLightData> cachedAreaRectangleVisibleLightsAndIndices;
+        public UnsafeList<ShadowIndicesAndVisibleLightData> dynamicDirectionalVisibleLightsAndIndices;
+        public UnsafeList<ShadowIndicesAndVisibleLightData> cachedDirectionalVisibleLightsAndIndices;
+
+        // Bucketed HDShadowCullingSplit. Those lists are aliasing the shadowCullingSplitBuffer above so they must not be disposed.
+        public UnsafeList<HDShadowCullingSplit> dynamicPointHDSplits;
+        public UnsafeList<HDShadowCullingSplit> cachedPointHDSplits;
+        public UnsafeList<HDShadowCullingSplit> dynamicSpotHDSplits;
+        public UnsafeList<HDShadowCullingSplit> cachedSpotHDSplits;
+        public UnsafeList<HDShadowCullingSplit> dynamicAreaRectangleHDSplits;
+        public UnsafeList<HDShadowCullingSplit> cachedAreaRectangleHDSplits;
+        public UnsafeList<HDShadowCullingSplit> dynamicDirectionalHDSplits;
+        public UnsafeList<HDShadowCullingSplit> cachedDirectionalHDSplits;
 
         //Indexed by sorted lights.
         public NativeArray<uint> sortKeys => m_SortKeys;
@@ -75,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
             StartProcessVisibleLightJob(hdCamera, rayTracingState, cullingResult.visibleLights, lightLoopSettings, debugDisplaySettings);
             CompleteProcessVisibleLightJob();
             SortLightKeys();
-            ProcessShadows(hdCamera, shadowManager, inShadowInitParameters, cullingResult);
+            ProcessShadows(hdCamera, shadowManager, debugDisplaySettings.data.lightingDebugSettings, inShadowInitParameters, cullingResult);
         }
 
         #endregion
@@ -101,6 +140,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeArray<LightShadows> m_VisibleLightShadows;
         private NativeArray<LightVolumeType> m_ProcessedLightVolumeType;
         private NativeArray<HDProcessedVisibleLight> m_ProcessedEntities;
+        private NativeArray<HDShadowCullingSplit> m_ShadowCullingSplitBuffer;
+        private NativeArray<ShadowIndicesAndVisibleLightData> m_VisibleLightsAndIndicesBuffer;
+        private NativeList<ShadowIndicesAndVisibleLightData> m_SplitVisibleLightsAndIndicesBuffer;
+        private UnsafeList<ShadowIndicesAndVisibleLightData> m_PointVisibleLightsAndIndices;
 
         private int m_Capacity = 0;
         private int m_Size = 0;
@@ -119,8 +162,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ProcessedLightVolumeType.ResizeArray(m_Capacity);
             m_ProcessedEntities.ResizeArray(m_Capacity);
+            m_ShadowCullingSplitBuffer.ResizeArray(m_Capacity * HDShadowUtils.k_MaxShadowSplitCount);
+            m_VisibleLightsAndIndicesBuffer.ResizeArray(m_Capacity);
             m_SortKeys.ResizeArray(m_Capacity);
             m_ShadowLightsDataIndices.ResizeArray(m_Capacity);
+
+            if (!m_SplitVisibleLightsAndIndicesBuffer.IsCreated)
+                m_SplitVisibleLightsAndIndicesBuffer = new NativeList<ShadowIndicesAndVisibleLightData>(Allocator.Persistent);
+
+            m_SplitVisibleLightsAndIndicesBuffer.Capacity = m_Capacity;
         }
 
         public void Cleanup()
@@ -140,8 +190,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ProcessedLightVolumeType.Dispose();
             m_ProcessedEntities.Dispose();
+            m_ShadowCullingSplitBuffer.Dispose();
+            m_VisibleLightsAndIndicesBuffer.Dispose();
             m_SortKeys.Dispose();
             m_ShadowLightsDataIndices.Dispose();
+            m_SplitVisibleLightsAndIndicesBuffer.Dispose();
 
             m_Capacity = 0;
             m_Size = 0;

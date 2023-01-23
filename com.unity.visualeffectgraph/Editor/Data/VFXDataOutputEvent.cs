@@ -42,7 +42,8 @@ namespace UnityEditor.VFX
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
-            Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
+            VFXCompiledData compiledData,
+            IEnumerable<VFXContext> compilableContexts,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
@@ -61,7 +62,7 @@ namespace UnityEditor.VFX
                 return;
             }
 
-            var allMatchingVFXOutputEvent = contextToCompiledData.Keys.Where(context =>
+            var allMatchingVFXOutputEvent = compilableContexts.Where(context =>
             {
                 if (context.contextType == VFXContextType.OutputEvent)
                 {

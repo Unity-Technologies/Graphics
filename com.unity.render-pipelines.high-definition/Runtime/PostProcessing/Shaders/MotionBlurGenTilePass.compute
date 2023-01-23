@@ -23,7 +23,7 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 motionVec)
 {
     uint packedMotionVec = PackMotionVec(motionVec);
     float motionVecLength = MotionVecLengthFromEncoded(motionVec);
-    float minMotionVecLen = 0.0f;
+    float minMotionVecLen = 99999.0f;
     uint  maxMotionVecPacked = 0.0f;
 
 #if USE_WAVE_INTRINSICS // This works only with multiple of 8 for TILE_SIZE.
@@ -90,19 +90,25 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
     uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
 
     float2 motionVec = LOAD_TEXTURE2D_X(_MotionVecAndDepth, id.xy).xy;
-
+    float2 maxMotionVec = motionVec;
+    float minMotionVecLength = length(motionVec);
     float3 minMaxMotionVec = ParallelReduction(gid, threadIdx, motionVec);
-    float minMotionVecLength = minMaxMotionVec.x;
-    float2 maxMotionVec = minMaxMotionVec.yz;
+
+    if (all(id.xy < uint2(_ScreenSize.xy - TILE_SIZE)))
+    {
+        minMotionVecLength = minMaxMotionVec.x;
+        maxMotionVec = minMaxMotionVec.yz;
+    }
 
     if (threadIdx == 0)
     {
 #ifdef SCATTERING
         _TileToScatterMax[COORD_TEXTURE2D_X(groupID.xy)] = PackMotionVec(maxMotionVec);
-        _TileToScatterMin[COORD_TEXTURE2D_X(groupID.xy)] = f32tof16(minMotionVecLength);
+        _TileToScatterMin[COORD_TEXTURE2D_X(groupID.xy)] = (minMotionVecLength);
 #else
         _TileMinMaxMotionVec[COORD_TEXTURE2D_X(groupID.xy)] = float3(maxMotionVec.x, maxMotionVec.y, minMotionVecLength);
 #endif
     }
+
 
 }

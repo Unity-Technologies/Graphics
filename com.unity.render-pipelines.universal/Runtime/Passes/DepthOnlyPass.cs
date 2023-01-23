@@ -77,55 +77,56 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        private static void ExecutePass(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
         {
-            var cmd = renderingData.commandBuffer;
-            var shaderTagId = passData.shaderTagId;
-            var filteringSettings = passData.filteringSettings;
-
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
             {
-                var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = RenderingUtils.CreateDrawingSettings(shaderTagId, ref renderingData, sortFlags);
-                drawSettings.perObjectData = PerObjectData.None;
-
-                var param = new RendererListParams(renderingData.cullResults, drawSettings, filteringSettings);
-                var rl = context.CreateRendererList(ref param);
-                cmd.DrawRendererList(rl);
+                cmd.DrawRendererList(rendererList);
             }
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_PassData.shaderTagId = this.shaderTagId;
-            m_PassData.filteringSettings = m_FilteringSettings;
-            ExecutePass(context, m_PassData, ref renderingData);
+            m_PassData.renderingData = renderingData;
+            var param = InitRendererListParams(ref renderingData);
+            RendererList rendererList = context.CreateRendererList(ref param);
+
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, ref renderingData);
         }
 
         private class PassData
         {
-            internal TextureHandle cameraDepthTexture;
             internal RenderingData renderingData;
-            internal ShaderTagId shaderTagId;
-            internal FilteringSettings filteringSettings;
+            internal RendererListHandle rendererList;
+        }
+
+        private RendererListParams InitRendererListParams(ref RenderingData renderingData)
+        {
+            var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
+            var drawSettings = RenderingUtils.CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
+            drawSettings.perObjectData = PerObjectData.None;
+            return new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
         }
 
         internal void Render(RenderGraph renderGraph, ref TextureHandle cameraDepthTexture, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("DepthOnly Prepass", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("DepthOnly Prepass", out var passData, base.profilingSampler))
             {
-                passData.cameraDepthTexture = builder.UseDepthBuffer(cameraDepthTexture, DepthAccess.Write);
                 passData.renderingData = renderingData;
-                passData.shaderTagId = this.shaderTagId;
-                passData.filteringSettings = m_FilteringSettings;
+                var param = InitRendererListParams(ref renderingData);
+                passData.rendererList = renderGraph.CreateRendererList(param);
+                builder.UseRendererList(passData.rendererList);
+
+                builder.UseTextureFragmentDepth(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.renderContext, data, ref data.renderingData);
+                    ExecutePass(context.cmd, data, data.rendererList, ref data.renderingData);
                 });
             }
 

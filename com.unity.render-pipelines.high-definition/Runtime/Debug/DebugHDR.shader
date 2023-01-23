@@ -12,6 +12,7 @@ Shader "Hidden/HDRP/DebugHDR"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 
     #pragma vertex Vert
     #pragma target 4.5
@@ -27,7 +28,7 @@ Shader "Hidden/HDRP/DebugHDR"
     #define _MaxNits    _HDROutputParams.y
     #define _PaperWhite _HDROutputParams.z
     #define _RangeReductionMode    (int)_HDROutputParams2.x
-    #define _IsRec709 (int)(_HDROutputParams.w == 1)
+    #define _IsRec709 (int)(_HDROutputParams.w == 0)
 
     #define _TonemapType _HDRDebugParams.w
 
@@ -79,23 +80,6 @@ Shader "Hidden/HDRP/DebugHDR"
         return (dot(normalize(perpDir), dirToPt1));
     }
 
-    float4 DrawSegment(float2 uv, float2 p1, float2 p2, float thickness, float3 color) {
-
-        float a = abs(distance(p1, uv));
-        float b = abs(distance(p2, uv));
-        float c = abs(distance(p1, p2));
-
-        if (a >= c || b >= c) return 0;
-
-        float p = (a + b + c) * 0.5;
-        float h = 2 / c * sqrt(p * (p - a) * (p - b) * (p - c));
-
-
-        float lineAlpha =  lerp(1.0, 0.0, smoothstep(0.5 * thickness, 1.5 * thickness, h));
-        return float4(color * lineAlpha, lineAlpha);
-    }
-
-
     float2 RGBtoxy(float3 rgb)
     {
         float3 XYZ = 0;
@@ -127,30 +111,6 @@ Shader "Hidden/HDRP/DebugHDR"
         linearRGB *= scale;
 
         return linearRGB;
-    }
-
-    float3 Barycentric(float2 p, float2 a, float2 b, float2 c)
-    {
-        float2 v0 = b - a;
-        float2 v1 = c - a;
-        float2 v2 = p - a;
-        float d00 = dot(v0, v0);
-        float d01 = dot(v0, v1);
-        float d11 = dot(v1, v1);
-        float d20 = dot(v2, v0);
-        float d21 = dot(v2, v1);
-        float denom = d00 * d11 - d01 * d01;
-        float3 bary = 0;
-        bary.y = (d11 * d20 - d01 * d21) / denom;
-        bary.z = (d00 * d21 - d01 * d20) / denom;
-        bary.x = 1.0f - bary.y - bary.z;
-        return bary;
-    }
-
-    bool PointInTriangle(float2 p, float2 a, float2 b, float2 c)
-    {
-        float3 bar = Barycentric(p, a, b, c);
-        return (bar.x >= 0 && bar.x <= 1 && bar.y >= 0 && bar.y <= 1 && (bar.x + bar.y) <= 1);
     }
 
     bool IsInImage(float2 xy)
@@ -189,11 +149,11 @@ Shader "Hidden/HDRP/DebugHDR"
         if (displayClip)
         {
             float clipAlpha = 0.2f;
-            if (PointInTriangle(xy, r_709, g_709, b_709))
+            if (IsPointInTriangle(xy, r_709, g_709, b_709))
             {
                 color.rgb = (color.rgb * (1 - clipAlpha) + clipAlpha * rec709Color);
             }
-            else if (PointInTriangle(xy, r_2020, g_2020, b_2020))
+            else if (IsPointInTriangle(xy, r_2020, g_2020, b_2020))
             {
                 color.rgb = (color.rgb * (1 - clipAlpha) + clipAlpha * rec2020Color);
             }
@@ -210,13 +170,13 @@ Shader "Hidden/HDRP/DebugHDR"
 
             float3 linearRGB = 0;
             bool pointInRec709 = true;
-            if (PointInTriangle(uv, r_2020, g_2020, b_2020))
+            if (IsPointInTriangle(uv, r_2020, g_2020, b_2020))
             {
                 linearRGB = uvToGamut(uv);
 
                 if (displayClip)
                 {
-                    if (PointInTriangle(uv, r_709, g_709, b_709))
+                    if (IsPointInTriangle(uv, r_709, g_709, b_709))
                     {
                         linearRGB.rgb = rec709ColorDesat;
                     }

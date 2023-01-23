@@ -170,7 +170,7 @@ namespace UnityEditor.VFX.URP
             }
         };
 
-        static StructDescriptor AppendVFXInterpolator(StructDescriptor interpolator, VFXContext context, VFXContextCompiledData contextData)
+        static StructDescriptor AppendVFXInterpolator(StructDescriptor interpolator, VFXContext context, VFXTaskCompiledData contextData)
         {
             var fields = interpolator.fields.ToList();
 
@@ -210,7 +210,7 @@ namespace UnityEditor.VFX.URP
             return interpolator;
         }
 
-        static IEnumerable<FieldDescriptor> GenerateSurfaceDescriptionInput(VFXContext context, VFXContextCompiledData contextData)
+        static IEnumerable<FieldDescriptor> GenerateSurfaceDescriptionInput(VFXContext context, VFXTaskCompiledData contextData)
         {
             // VFX Material Properties
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
@@ -243,7 +243,7 @@ namespace UnityEditor.VFX.URP
             }
         }
 
-        public override ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXContextCompiledData data)
+        public override ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXTaskCompiledData data)
         {
             var surfaceDescriptionInputWithVFX = new StructDescriptor
             {

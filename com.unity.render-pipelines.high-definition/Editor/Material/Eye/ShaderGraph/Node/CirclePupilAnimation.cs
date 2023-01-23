@@ -5,12 +5,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.ShaderGraph
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "CirclePupilAnimation (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "CirclePupilAnimation")]
     class CirclePupilAnimation : CodeFunctionNode
     {
         public CirclePupilAnimation()
         {
-            name = "Circle Pupil Animation (Preview)";
+            name = "Circle Pupil Animation";
         }
 
         public override bool hasPreview

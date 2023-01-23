@@ -30,6 +30,12 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             [Reload("Shaders/Debug/DebugReplacement.shader")]
             public Shader debugReplacementPS;
+
+            /// <summary>
+            /// Debug shader used to output HDR Chromacity mapping.
+            /// </summary>
+            [Reload("Shaders/Debug/HDRDebugView.shader")]
+            public Shader hdrDebugViewPS;
         }
 
         /// <summary>

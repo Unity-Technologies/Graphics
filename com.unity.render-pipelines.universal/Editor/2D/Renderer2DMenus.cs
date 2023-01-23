@@ -102,6 +102,7 @@ namespace UnityEditor.Rendering.Universal
         {
             GameObject go = ObjectFactory.CreateGameObject("Light 2D", typeof(Light2D));
             Light2D light2D = go.GetComponent<Light2D>();
+            light2D.batchSlotIndex = LightBatch.batchSlotIndex;
             light2D.lightType = type;
 
             if (shapePath != null && shapePath.Length > 0)

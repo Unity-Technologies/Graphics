@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     // This is a class making it a struct wouldn't help as we pas it around as an interface which means it would be boxed/unboxed anyway
     // Publicly this class has different faces to help the users with different pass types through type safety but internally
     // we just have a single implementation for all builders
-    internal class RenderGraphBuilders : IBaseRenderGraphBuilder, IComputeRenderGraphBuilder, IRasterRenderGraphBuilder
+    internal class RenderGraphBuilders : IBaseRenderGraphBuilder, IComputeRenderGraphBuilder, IRasterRenderGraphBuilder, ILowLevelRenderGraphBuilder
     {
         RenderGraphPass m_RenderPass;
         RenderGraphResourceRegistry m_Resources;
@@ -216,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public TextureHandle UseTexture(in TextureHandle input, IBaseRenderGraphBuilder.AccessFlags flags)
         {
-            CheckNotUseFragment(input, flags);
+            CheckUseFragment(input, flags);
             TextureHandle h = new TextureHandle();
             h.handle = UseResource(input.handle, flags);
             return h;
@@ -235,19 +235,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             // even though it should theoretically work (and we might do so in the future) for now we're overly strict.,
             bool alreadyUsed = false;
 
-            //TODO: Check grab textures here and allow if it's grabbed. For now
-            // UseTextureFragment()
-            // UseTexture(grab)
-            // will work but not the other way around
-            for (int i = 0; i < m_RenderPass.resourceReadLists[tex.handle.iType].Count; i++)
-            {
-                if (m_RenderPass.resourceReadLists[tex.handle.iType][i].index == tex.handle.index)
-                {
-                    alreadyUsed = true;
-                    break;
-                }
-            }
-
             for (int i = 0; i < m_RenderPass.resourceWriteLists[tex.handle.iType].Count; i++)
             {
                 if (m_RenderPass.resourceWriteLists[tex.handle.iType][i].index == tex.handle.index)
@@ -260,7 +247,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (alreadyUsed)
             {
                 var name = m_Resources.GetRenderGraphResourceName(tex.handle);
-                throw new InvalidOperationException($"Trying to UseTextureFragment on a texture that is already used through UseTexture. Consider using a Grab access mode or update your code. (pass {m_RenderPass.name} resource{name}).");
+                throw new InvalidOperationException($"Trying to UseTextureFragment on a texture that is already used through UseTexture/UseTextureFragment. Consider using a Grab access mode or update your code. (pass {m_RenderPass.name} resource{name}).");
             }
 #endif
         }
@@ -296,6 +283,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, RasterGraphContext> renderFunc) where PassData : class, new()
         {
             ((RasterRenderGraphPass<PassData>)m_RenderPass).renderFunc = renderFunc;
+        }
+
+        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, LowLevelGraphContext> renderFunc) where PassData : class, new()
+        {
+            ((LowLevelRenderGraphPass<PassData>)m_RenderPass).renderFunc = renderFunc;
         }
 
         public void UseRendererList(in RendererListHandle input)

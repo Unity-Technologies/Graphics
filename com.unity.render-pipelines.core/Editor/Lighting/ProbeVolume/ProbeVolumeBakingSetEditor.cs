@@ -153,7 +153,7 @@ namespace UnityEditor.Rendering
 
                 SimplificationLevelsSlider();
 
-                int levels = m_SimplificationLevels.intValue;
+                int levels = m_SimplificationLevels.intValue + 1;
                 MessageType helpBoxType = MessageType.Info;
                 string helpBoxText = $"Probe Volumes can use a maximum of {levels} subdivision levels.";
                 if (levels == 5)

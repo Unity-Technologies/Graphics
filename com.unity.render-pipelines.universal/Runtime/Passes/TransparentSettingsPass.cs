@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -29,10 +31,10 @@ namespace UnityEngine.Rendering.Universal
         {
             // Get a command buffer...
             var cmd = renderingData.commandBuffer;
-            ExecutePass(cmd, m_shouldReceiveShadows);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_shouldReceiveShadows);
         }
 
-        public static void ExecutePass(CommandBuffer cmd, bool shouldReceiveShadows)
+        public static void ExecutePass(RasterCommandBuffer cmd, bool shouldReceiveShadows)
         {
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {

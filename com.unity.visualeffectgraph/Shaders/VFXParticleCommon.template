@@ -143,7 +143,7 @@ if (index >= asuint(nbMax) - deadCount)
 #if USE_GEOMETRY_SHADER
 	return; // cull
 #else
-	o.pos.x = VFX_NAN;
+	o.VFX_VARYING_POSCS.x = VFX_NAN;
 	return o; // cull
 #endif
 }
@@ -159,7 +159,7 @@ ${VFXLoadAttributes:{alive}}
 #if !HAS_STRIPS
 if (!attributes.alive)
 {
-	o.pos.x = VFX_NAN;
+	o.VFX_VARYING_POSCS.x = VFX_NAN;
 	return o; // cull
 }
 #endif
@@ -286,9 +286,14 @@ void frag(ps_input i
     , out float4 outMotionVector : SV_Target0
     #endif
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
-    #ifdef WRITE_MSAA_DEPTH
+    #if defined(WRITE_MSAA_DEPTH)
+	#if defined(WRITE_NORMAL_BUFFER)
+	#error Unexpected depth setup mssa + depth normal
+	#endif
     , out float4 outDepthColor : SV_Target0
-    #else
+    #elif defined(WRITE_NORMAL_BUFFER)
+	, out float4 outNormalBuffer : SV_Target0
+	#else
     , out float4 dummy : SV_Target0
     #endif
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION || VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
@@ -325,6 +330,15 @@ void frag(ps_input i
 		#endif
 	#endif
 
+	#ifdef WRITE_NORMAL_BUFFER
+		#ifdef VFX_VARYING_NORMAL
+			VFXComputePixelOutputToNormalBuffer(normalWS, outNormalBuffer);
+		#else
+			//Fallback for point and lines, render normal as if those are face camera plane
+			VFXComputePixelOutputToNormalBuffer(VFXGetWorldToViewRotMatrix()[2], outNormalBuffer);
+		#endif
+	#endif
+
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 		${VFXComputeOutputMotionVector}
 		outMotionVector = encodedMotionVector;
@@ -333,7 +347,7 @@ void frag(ps_input i
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
 		outSelection = _SelectionID;
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
-		#ifndef WRITE_MSAA_DEPTH
+		#if !defined(WRITE_MSAA_DEPTH) && !defined(WRITE_NORMAL_BUFFER)
 		    dummy = float4(i.VFX_VARYING_POSCS.z, 0,0,0);
 		#endif
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
@@ -430,14 +444,16 @@ VFXGetInstanceCurrentIndex(index);
 ${VFXEnd}
 
 ${VFXBegin:VFXDeclareAppendOutputIndirectBuffer}
-void AppendOutputBuffer(RWStructuredBuffer<IndirectOutputType> outputBuffer, IndirectOutputType output, uint instanceActiveIndex)
+void AppendOutputBuffer(RWStructuredBuffer<IndirectOutputType> outputBuffer, IndirectOutputType output, uint instanceActiveIndex, uint increment = 1)
 {
     uint indirectIndex;
+
 #if VFX_FEATURE_SORT
-    InterlockedAdd(outputBuffer[instanceActiveIndex].index, 1, indirectIndex);
+    InterlockedAdd(outputBuffer[instanceActiveIndex].index, increment, indirectIndex);
 #else
-    InterlockedAdd(outputBuffer[instanceActiveIndex], 1, indirectIndex);
+    InterlockedAdd(outputBuffer[instanceActiveIndex], increment, indirectIndex);
 #endif
+    indirectIndex /= increment;
     indirectIndex += instancingBatchSize + instanceActiveIndex * RAW_CAPACITY;
     outputBuffer[indirectIndex] = output;
 }

@@ -215,6 +215,8 @@ namespace UnityEngine.Rendering
 
             foreach (var set in m_ObsoleteSerializedBakingSets)
             {
+                if (set.profile == null)
+                    continue;
                 set.profile.Migrate(set);
                 AddBakingSet(set.profile);
                 EditorUtility.SetDirty(set.profile);
@@ -337,7 +339,7 @@ namespace UnityEngine.Rendering
             );
         }
 
-        internal void UpdateSceneBounds(Scene scene)
+        internal void UpdateSceneBounds(Scene scene, bool updateGlobalVolumes)
         {
             var volumes = Object.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
@@ -367,11 +369,12 @@ namespace UnityEngine.Rendering
             Bounds newBound = new Bounds();
             foreach (var volume in volumes)
             {
-                if (volume.gameObject.scene != scene)
+                bool forceUpdate = updateGlobalVolumes && volume.mode == ProbeVolume.Mode.Global;
+                if (!forceUpdate && volume.gameObject.scene != scene)
                     continue;
 
-                if (volume.globalVolume)
-                    volume.UpdateGlobalVolume();
+                if (volume.mode != ProbeVolume.Mode.Local)
+                    volume.UpdateGlobalVolume(volume.mode == ProbeVolume.Mode.Global ? GIContributors.ContributorFilter.All : GIContributors.ContributorFilter.Scene);
 
                 var transform = volume.gameObject.transform;
                 var obb = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(transform.position, transform.rotation, volume.GetExtents()), 0, 0);
@@ -426,9 +429,12 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void OnSceneSaved(Scene scene)
+        internal void OnSceneSaving(Scene scene, string path = null)
         {
-            UpdateSceneBounds(scene);
+            // If we are called from the scene callback, we want to update all global volumes that are potentially affected
+            bool updateGlobalVolumes = path != null;
+
+            UpdateSceneBounds(scene, updateGlobalVolumes);
             EnsurePerSceneData(scene);
         }
 

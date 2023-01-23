@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
             {
                 EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportRayTracing");
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportRayTracing");
                 return;
             }
 

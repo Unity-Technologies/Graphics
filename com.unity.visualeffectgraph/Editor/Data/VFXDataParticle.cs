@@ -210,6 +210,9 @@ namespace UnityEditor.VFX
 
     class VFXDataParticle : VFXData, ISpaceable
     {
+        public static readonly string k_IndirectBufferName = "indirectBuffer";
+        public static readonly string k_SortedIndirectBufferName = "sortedIndirectBuffer";
+
         public VFXDataParticle()
         {
             m_GraphValuesLayout.uniformBlocks = new List<List<VFXExpression>>();
@@ -758,7 +761,8 @@ namespace UnityEditor.VFX
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
-            Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
+            VFXCompiledData compiledData,
+            IEnumerable<VFXContext> compilableContexts,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
@@ -902,7 +906,8 @@ namespace UnityEditor.VFX
                     .Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
             if (m_Contexts.Count() > 0 && m_Contexts.First().contextType == VFXContextType.Init) // TODO This test can be removed once we ensure priorly the system is valid
             {
-                var mapper = contextToCompiledData[m_Contexts.First()].cpuMapper;
+                var firstTaskOfContext = compiledData.contextToCompiledData[m_Contexts.First()].tasks.First();
+                var mapper = compiledData.taskToCompiledData[firstTaskOfContext].cpuMapper;
 
                 var boundsCenterExp = mapper.FromNameAndId("bounds_center", -1);
                 var boundsSizeExp = mapper.FromNameAndId("bounds_size", -1);
@@ -925,18 +930,51 @@ namespace UnityEditor.VFX
             foreach (var uniform in m_GraphValuesLayout.uniformBlocks.SelectMany(o => o))
                 systemValueMappings.Add(new VFXMapping(m_SystemUniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 
-            Dictionary<VFXContext, VFXOutputUpdate> indirectOutputToCuller = null;
+            HashSet<VFXContext> indirectOutputHasTaskDependency = null;
+
             bool needsIndirectBuffer = NeedsIndirectBuffer();
             int globalIndirectBufferIndex = -1;
             bool needsGlobalIndirectBuffer = false;
             if (needsIndirectBuffer)
             {
-                indirectOutputToCuller = new Dictionary<VFXContext, VFXOutputUpdate>();
+                indirectOutputHasTaskDependency = new();
+
+                // First link the tasks that output an indirect buffer to the particle output
+                foreach (var output in m_Contexts.OfType<VFXAbstractParticleOutput>())
+                {
+                    var outputTasks = compiledData.contextToCompiledData[output].tasks;
+
+                    // Find the VFXTask providing the indirect buffer to the output.
+                    // In case the Output has multiple tasks and one of them uses an indirect buffer, it has the priority over the OutputUpate
+
+                    foreach (var task in Enumerable.Reverse(outputTasks))
+                    {
+                        if ((task.type & VFXTaskType.Update) != 0)
+                        {
+                            if (task.needsIndirectBuffer)
+                            {
+                                indirectOutputHasTaskDependency.Add(output);
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 foreach (var cullCompute in m_Contexts.OfType<VFXOutputUpdate>())
                     if (cullCompute.HasFeature(VFXOutputUpdate.Features.IndirectDraw))
-                        indirectOutputToCuller.Add(cullCompute.output, cullCompute);
+                    {
+                        if (cullCompute.output.contextType != VFXContextType.Output)
+                            throw new Exception("Context types expect to be an output.");
 
-                var allIndirectOutputs = owners.OfType<VFXAbstractParticleOutput>().Where(o => o.HasIndirectDraw());
+                        // If the has only one output task, then we find the last task using the indirect buffer in the OutputUpdate
+                        if (!indirectOutputHasTaskDependency.Contains(cullCompute.output))
+                        {
+                            var indirectOutputUpdateTask = Enumerable.Reverse(compiledData.contextToCompiledData[cullCompute].tasks).FirstOrDefault(t => t.needsIndirectBuffer);
+                            if (indirectOutputUpdateTask == null)
+                                throw new InvalidOperationException("The type " + cullCompute + " did not return a task using indirect buffer even though the output requires it.");
+                            indirectOutputHasTaskDependency.Add(cullCompute.output);
+                        }
+                    }
 
                 needsGlobalIndirectBuffer = NeedsGlobalIndirectBuffer();
                 if (needsGlobalIndirectBuffer)
@@ -945,37 +983,103 @@ namespace UnityEditor.VFX
                     systemBufferMappings.Add(new VFXMapping("indirectBuffer0", outBufferDescs.Count));
                     outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = capacity + 1, stride = 4 });
                 }
+            }
 
-                int currentIndirectBufferIndex = globalIndirectBufferIndex == -1 ? 0 : 1;
-                foreach (var indirectOutput in allIndirectOutputs)
+            // Flatten all the buffer descriptors
+            List<VFXContextBufferDescriptor> bufferDescriptorList = new();
+            foreach (var context in m_Contexts)
+            {
+                foreach (var buffer in compiledData.contextToCompiledData[context].buffers)
+                    bufferDescriptorList.Add(buffer);
+            }
+
+            Dictionary<string, int> bufferNameToIndex = new();
+            Dictionary<VFXTask, int> taskGroups = new(); // Identify groups of tasks that shares the same buffers
+            int groupIndex = 0;
+            foreach (var cullCompute in m_Contexts.OfType<VFXOutputUpdate>())
+                if (cullCompute.HasFeature(VFXOutputUpdate.Features.IndirectDraw))
                 {
-                    if (indirectOutputToCuller.ContainsKey(indirectOutput))
-                    {
-                        VFXOutputUpdate culler = indirectOutputToCuller[indirectOutput];
-                        uint bufferCount = culler.bufferCount;
-                        culler.bufferIndex = outBufferDescs.Count;
-                        bool perCamera = culler.isPerCamera;
-                        uint bufferStride = culler.HasFeature(VFXOutputUpdate.Features.Sort) ? 8u : 4u;
-                        for (uint i = 0; i < bufferCount; ++i)
-                        {
-                            string bufferName = "indirectBuffer" + currentIndirectBufferIndex++;
-                            if (perCamera)
-                                bufferName += "PerCamera";
-                            systemBufferMappings.Add(new VFXMapping(bufferName, outBufferDescs.Count));
-                            outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = capacity + 1, stride = bufferStride });
-                        }
+                    // Gather all the tasks in the update + output and assign them to the same group so they don't share buffers with another pair.
+                    foreach (var task in compiledData.contextToCompiledData[cullCompute.output].tasks)
+                        taskGroups[task] = groupIndex;
+                    foreach (var task in compiledData.contextToCompiledData[cullCompute].tasks)
+                        taskGroups[task] = groupIndex;
 
-                        if (culler.HasFeature(VFXOutputUpdate.Features.Sort))
+                    groupIndex++;
+                }
+
+            // Allocate the buffers based on their binding order in the tasks
+            uint prefixIndex = 0;
+            foreach (var context in m_Contexts)
+            {
+                foreach (var task in compiledData.contextToCompiledData[context].tasks)
+                {
+                    foreach (var bufferMapping in task.bufferMappings)
+                    {
+                        var bufferDescriptors = compiledData.contextToCompiledData[context].buffers;
+                        if (context is VFXAbstractParticleOutput particleOutput)
+                            foreach (var outputUpdate in m_Contexts.OfType<VFXOutputUpdate>().Where(o => o.output == particleOutput))
+                                bufferDescriptors.AddRange(compiledData.contextToCompiledData[outputUpdate].buffers);
+
+                        // Add fallback descriptors at the end of the list in case a pass needs a buffer not declared in output update or output
+                        bufferDescriptors.AddRange(bufferDescriptorList);
+
+                        // Find the buffer descriptor from it's name:
+                        var bufferDescriptor = bufferDescriptors.FirstOrDefault(b => b.baseName == bufferMapping.bufferName);
+                        if (bufferDescriptor.baseName == null)
+                            continue;
+
+                        string name = bufferDescriptor.baseName;
+                        if (taskGroups.TryGetValue(task, out var taskGroupIndex))
+                            name += taskGroupIndex;
+
+                        if (bufferNameToIndex.ContainsKey(name))
+                            continue;
+
+                        bufferNameToIndex[name] = outBufferDescs.Count;
+                        for (int i = 0; i < bufferDescriptor.bufferCount; i++)
                         {
-                            culler.sortedBufferIndex = outBufferDescs.Count;
-                            for (uint i = 0; i < bufferCount; ++i)
-                                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity + 1, stride = 4 });
+                            string bufferName = $"{bufferDescriptor.baseName + i}_{VFXCodeGeneratorHelper.GeneratePrefix(prefixIndex++)}";
+                            if (bufferDescriptor.isPerCamera)
+                                bufferName += "PerCamera";
+                            if (bufferDescriptor.includeInSystemMappings)
+                                systemBufferMappings.Add(new VFXMapping(bufferName, outBufferDescs.Count));
+
+                            uint size;
+                            switch (bufferDescriptor.bufferSizeMode)
+                            {
+                                default:
+                                case VFXContextBufferSizeMode.ScaleWithCapacity:
+                                    size = (uint)Math.Ceiling(capacity * (double)bufferDescriptor.capacityScaleMultiplier);
+                                    break;
+                                case VFXContextBufferSizeMode.FixedSize:
+                                    size = bufferDescriptor.size;
+                                    break;
+                                case VFXContextBufferSizeMode.FixedSizePlusScaleWithCapacity:
+                                    size = (uint)Math.Ceiling(capacity * (double)bufferDescriptor.capacityScaleMultiplier) + bufferDescriptor.size;
+                                    break;
+                            }
+
+                            outBufferDescs.Add(new VFXGPUBufferDesc
+                            {
+                                type = bufferDescriptor.bufferType, size = size, stride = bufferDescriptor.stride
+                            });
                         }
-                        else
-                            culler.sortedBufferIndex = culler.bufferIndex;
                     }
                 }
             }
+
+            int GetBufferIndex(VFXTask task, string baseName)
+            {
+                if (taskGroups.TryGetValue(task, out var taskGroupIndex))
+                    baseName += taskGroupIndex;
+
+                bufferNameToIndex.TryGetValue(baseName, out int index);
+                return index;
+            }
+
+            // Duplicate indirect buffers in case there are mulitple outputs
+
 
             int batchedInitParamsIndex = -1;
             int graphValuesBufferIndex = -1;
@@ -1047,23 +1151,38 @@ namespace UnityEditor.VFX
             var uniformMappings = new List<VFXMapping>();
             var additionalParameters = new List<VFXMapping>();
 
+            List<(VFXContext context, VFXTask task, VFXContextCompiledData contextCompiledData, long sortKey)> sortedTaskList = new();
+
             for (int i = 0; i < m_Contexts.Count; ++i)
             {
-                var temporaryBufferMappings = new List<VFXMappingTemporary>();
-
                 var context = m_Contexts[i];
-                if (!contextToCompiledData.TryGetValue(context, out var contextData))
+                var contextCompiledData = compiledData.contextToCompiledData[context];
+
+                var tasks = contextCompiledData.tasks;
+
+                if (!tasks.Any(t => compiledData.taskToCompiledData.ContainsKey(t)))
                     throw new InvalidOperationException("Unexpected context which hasn't been compiled : " + context);
 
-                var taskDesc = new VFXEditorTaskDesc();
-                taskDesc.type = (UnityEngine.VFX.VFXTaskType)context.taskType;
+                foreach (var task in tasks)
+                {
+                    long genericType = (int)task.type & 0xF0000000;
+                    long sortKey = (genericType << 32) | (uint)i;
+                    sortedTaskList.Add((context, task, contextCompiledData, sortKey));
+                }
+            }
+
+            // Ensures that the outputs are always after all the per camera update tasks while keeping the original declaration order of the contexts
+            sortedTaskList = sortedTaskList.OrderBy(t => t.sortKey).ToList();
+
+            foreach (var (context, task, contextCompiledData, contextIndex) in sortedTaskList)
+            {
+                var temporaryBufferMappings = new List<VFXMappingTemporary>();
 
                 bufferMappings.Clear();
                 additionalParameters.Clear();
 
-                if (context is VFXOutputUpdate)
+                if (context is VFXOutputUpdate update)
                 {
-                    var update = (VFXOutputUpdate)context;
                     if (update.HasFeature(VFXOutputUpdate.Features.MotionVector))
                     {
                         var currentIndex = elementToVFXBufferMotionVector[update.output];
@@ -1146,17 +1265,16 @@ namespace UnityEditor.VFX
                     if (instancesPrefixSumBufferIndex != -1 && (context.contextType == VFXContextType.Init || context.contextType == VFXContextType.Output))
                         bufferMappings.Add(new VFXMapping("instancingPrefixSum", instancesPrefixSumBufferIndex));
 
-                    switch (context.contextType)
-                    {
-                        case VFXContextType.Init:
-                        case VFXContextType.Update:
-                        case VFXContextType.Filter:
-                            if (instancingIndirectBufferIndex != -1)
-                                bufferMappings.Add(new VFXMapping("instancingIndirect", instancingIndirectBufferIndex));
+                    bool mapIndirectBuffers = contextCompiledData.tasks.Any(t => (t.type & (VFXTaskType.Update | VFXTaskType.Initialize)) != 0);
+                    mapIndirectBuffers |= (context.contextType & (VFXContextType.Init | VFXContextType.Update | VFXContextType.Filter)) != 0;
 
-                            if (instancingActiveIndirectBufferIndex != -1)
-                                bufferMappings.Add(new VFXMapping("instancingActiveIndirect", instancingActiveIndirectBufferIndex));
-                            break;
+                    if (mapIndirectBuffers)
+                    {
+                        if (instancingIndirectBufferIndex != -1)
+                            bufferMappings.Add(new VFXMapping("instancingIndirect", instancingIndirectBufferIndex));
+
+                        if (instancingActiveIndirectBufferIndex != -1)
+                            bufferMappings.Add(new VFXMapping("instancingActiveIndirect", instancingActiveIndirectBufferIndex));
                     }
                 }
 
@@ -1167,35 +1285,50 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping("attachedStripDataBuffer", dependentBuffers.stripBuffers[stripData]));
                 }
 
-                if (needsIndirectBuffer)
+                if (needsIndirectBuffer && task.needsIndirectBuffer)
                 {
                     systemFlag |= VFXSystemFlag.SystemHasIndirectBuffer;
 
-                    if (context.contextType == VFXContextType.Output && (context as VFXAbstractParticleOutput).HasIndirectDraw())
+                    if ((task.type & VFXTaskType.Output) != 0 && context is VFXAbstractParticleOutput outputContext && outputContext.HasIndirectDraw())
                     {
-                        bool hasCuller = indirectOutputToCuller.ContainsKey(context);
-                        additionalParameters.Add(new VFXMapping("indirectIndex", hasCuller ? indirectOutputToCuller[context].bufferIndex : globalIndirectBufferIndex));
-                        bufferMappings.Add(new VFXMapping("indirectBuffer", hasCuller ? indirectOutputToCuller[context].sortedBufferIndex : globalIndirectBufferIndex));
-                    }
+                        bool hasUpdateTask = indirectOutputHasTaskDependency.Contains(context);
 
-                    if (context.contextType == VFXContextType.Update)
-                    {
-                        if (context.taskType == VFXTaskType.Update && needsGlobalIndirectBuffer)
-                            bufferMappings.Add(new VFXMapping("indirectBuffer", globalIndirectBufferIndex));
+                        int sortBufferIndex = hasUpdateTask ? (outputContext.HasSorting() ? GetBufferIndex(task, k_SortedIndirectBufferName) : GetBufferIndex(task, k_IndirectBufferName)) : globalIndirectBufferIndex;
+                        int indirectBufferIndex = hasUpdateTask ? GetBufferIndex(task, k_IndirectBufferName) : globalIndirectBufferIndex;
+                        additionalParameters.Add(new VFXMapping("indirectIndex", indirectBufferIndex == -1 ? 0 : indirectBufferIndex));
+                        bufferMappings.Add(new VFXMapping(k_IndirectBufferName, sortBufferIndex == -1 ? 0 : sortBufferIndex));
                     }
+                }
 
-                    if (context.contextType == VFXContextType.Filter)
+                if (context.contextType == VFXContextType.Update)
+                {
+                    if (context.taskType == VFXTaskType.Update && needsGlobalIndirectBuffer)
+                        bufferMappings.Add(new VFXMapping(k_IndirectBufferName, globalIndirectBufferIndex));
+                }
+
+                if (context.contextType == VFXContextType.Filter)
+                {
+                    if (context.taskType == VFXTaskType.GlobalSort && needsGlobalIndirectBuffer)
+                        bufferMappings.Add(new VFXMapping("inputBuffer", globalIndirectBufferIndex));
+                }
+
+                // Generate task mappings from the required buffers
+                foreach (var map in task.bufferMappings)
+                {
+                    int index = GetBufferIndex(task, map.bufferName);
+                    if (index == -1)
+                        continue;
+
+                    if (map.useBufferCountIndexInName && context is VFXOutputUpdate outputUpdate)
                     {
-                        if (context.taskType == VFXTaskType.GlobalSort && needsGlobalIndirectBuffer)
-                            bufferMappings.Add(new VFXMapping("inputBuffer", globalIndirectBufferIndex));
-                        else if (context is VFXOutputUpdate)
-                        {
-                            var outputUpdate = (VFXOutputUpdate)context;
-                            int startIndex = outputUpdate.bufferIndex;
-                            uint bufferCount = outputUpdate.bufferCount;
-                            for (int j = 0; j < bufferCount; ++j)
-                                bufferMappings.Add(new VFXMapping("outputBuffer" + j, startIndex + j));
-                        }
+                        for (int j = 0; j < outputUpdate.bufferCount; j++) // TODO: we can refactor this by generating the list of buffers directly in the PrepareCompiledData()
+                            bufferMappings.Add(new VFXMapping(map.mappingName + j, index + j));
+                    }
+                    else
+                    {
+                        // Check for duplicated mapping
+                        if (bufferMappings.All(m => m.name != map.mappingName))
+                            bufferMappings.Add(new VFXMapping(map.mappingName, index));
                     }
                 }
 
@@ -1218,8 +1351,9 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping(string.Format("eventListOut_{0}", prefix), gpuTarget[indexTarget]));
                 }
 
-                uniformMappings.Clear();
+                var contextData = compiledData.taskToCompiledData[task];
 
+                uniformMappings.Clear();
                 foreach (var buffer in contextData.uniformMapper.buffers)
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(buffer), expressionGraph.GetFlattenedIndex(buffer)));
                 foreach (var texture in contextData.uniformMapper.textures)
@@ -1242,11 +1376,14 @@ namespace UnityEditor.VFX
                     }
                 }
 
+                var taskDesc = new VFXEditorTaskDesc();
+                taskDesc.type = (UnityEngine.VFX.VFXTaskType)task.type;
+
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.temporaryBuffers = temporaryBufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).Concat(additionalParameters).ToArray();
-                taskDesc.shaderSourceIndex = contextToCompiledData[context].indexInShaderSource;
+                taskDesc.shaderSourceIndex = compiledData.taskToCompiledData[task].indexInShaderSource;
                 taskDesc.model = context;
 
                 if (context is IVFXMultiMeshOutput) // If the context is a multi mesh output, split and patch task desc into several tasks
@@ -1264,13 +1401,12 @@ namespace UnityEditor.VFX
                     taskDescs.Add(taskDesc);
 
                 // if task is a per output update with sorting, add sort tasks
-                if (context is VFXOutputUpdate)
+                // TODO: Replace this hardcoded pass by a task in the OutputUpdate context.
+                if (context is VFXOutputUpdate outUpdate)
                 {
-                    var update = (VFXOutputUpdate)context;
-
-                    if (update.HasFeature(VFXOutputUpdate.Features.CameraSort) || update.HasFeature(VFXOutputUpdate.Features.Sort))
+                    if (outUpdate.HasFeature(VFXOutputUpdate.Features.CameraSort) || outUpdate.HasFeature(VFXOutputUpdate.Features.Sort))
                     {
-                        for (int j = 0; j < update.bufferCount; ++j)
+                        for (int j = 0; j < outUpdate.bufferCount; ++j)
                         {
                             VFXEditorTaskDesc sortTaskDesc = new VFXEditorTaskDesc();
                             sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerOutputSort;
@@ -1278,7 +1414,7 @@ namespace UnityEditor.VFX
                             sortTaskDesc.model = context;
 
                             sortTaskDesc.buffers = new VFXMapping[3];
-                            sortTaskDesc.buffers[0] = new VFXMapping("srcBuffer", update.bufferIndex + j);
+                            sortTaskDesc.buffers[0] = new VFXMapping("srcBuffer", GetBufferIndex(task, k_IndirectBufferName) + j);
                             if (capacity > 4096) // Add scratch buffer
                             {
                                 sortTaskDesc.buffers[1] = new VFXMapping("scratchBuffer", outBufferDescs.Count);
@@ -1286,17 +1422,18 @@ namespace UnityEditor.VFX
                             }
                             else
                                 sortTaskDesc.buffers[1] = new VFXMapping("scratchBuffer", -1); // No scratchBuffer needed
-                            sortTaskDesc.buffers[2] = new VFXMapping("dstBuffer", update.sortedBufferIndex + j);
+                            sortTaskDesc.buffers[2] = new VFXMapping("dstBuffer", GetBufferIndex(task, k_SortedIndirectBufferName) + j);
 
                             sortTaskDesc.parameters = new VFXMapping[2];
                             sortTaskDesc.parameters[0] = new VFXMapping("globalSort", 0);
-                            sortTaskDesc.parameters[1] = new VFXMapping("isPerCameraSort", update.isPerCamera ? 1 : 0);
+                            sortTaskDesc.parameters[1] = new VFXMapping("isPerCameraSort", outUpdate.isPerCamera ? 1 : 0);
 
                             taskDescs.Add(sortTaskDesc);
                         }
                     }
                 }
             }
+
 
             string nativeName = string.Empty;
             if (systemNames != null)
@@ -1479,7 +1616,7 @@ namespace UnityEditor.VFX
             set { m_GraphValuesLayout = value; }
         }
 
-        public void GenerateSystemUniformMapper(VFXExpressionGraph graph, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        public void GenerateSystemUniformMapper(VFXExpressionGraph graph, VFXCompiledData compiledData)
         {
             VFXUniformMapper uniformMapper = null;
             foreach (var context in m_Contexts)
@@ -1488,16 +1625,19 @@ namespace UnityEditor.VFX
                 var contextUniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, true);
 
                 // Add gpu and uniform mapper
-                var contextData = contextToCompiledData[context];
-                contextData.gpuMapper = gpuMapper;
-                contextData.uniformMapper = contextUniformMapper;
-                contextToCompiledData[context] = contextData;
-
-                if (uniformMapper == null)
-                    uniformMapper = new VFXUniformMapper(gpuMapper, true, true);
-                else
+                foreach (var task in compiledData.contextToCompiledData[context].tasks)
                 {
-                    uniformMapper.AppendMapper(gpuMapper);
+                    var contextData = compiledData.taskToCompiledData[task];
+                    contextData.gpuMapper = gpuMapper;
+                    contextData.uniformMapper = contextUniformMapper;
+                    compiledData.taskToCompiledData[task] = contextData;
+
+                    if (uniformMapper == null)
+                        uniformMapper = new VFXUniformMapper(gpuMapper, true, true);
+                    else
+                    {
+                        uniformMapper.AppendMapper(gpuMapper);
+                    }
                 }
             }
 

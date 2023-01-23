@@ -261,27 +261,30 @@ You can find a ray tracing project that contains all the effects mentioned above
 This Project is already set up with ray tracing support.
 
 ## Limitations
+### Platform support
 
-This section contains information on the limitations of HDRP's ray tracing implementation. Mainly, this is a list of features that HDRP supports in its rasterized render pipeline, but not in its ray-traced render pipeline.
+HDRP supports ray tracing for DirectX 12 and specific console platforms. Consult console-specific documentation for more information.
 
-### Unsupported features of ray tracing
+### Feature compatibility
 
-There is no support for ray tracing on platforms other than DX12 for now.
+HDRP ray tracing in Unity isn't compatible with the following features:
 
-HDRP ray tracing in Unity has the following limitations:
+- Vertex animation, for example wind deformation of vegetation.
+- [Decals](Decal.md).
+- Ray tracing is not compatible with the detail meshes and trees in the [Terrain system](https://docs.unity3d.com/Manual/script-Terrain.html). It is compatible with terrain geometry. To include detailed meshes and trees in ray traced reflections, use [mixed tracing](Override-Screen-Space-Reflection.md#mixed-tracing).
+- Volumetric [fog](Override-Fog.md).
+- [Tessellation](Tessellation.md).
+- Per-pixel displacement techniques such as parallax occlusion mapping, depth offset, and non-terrain height maps.
+- VFX.
+- MSAA.
+- [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
+- [Orthographic projection](HDRP-Camera.md). If you enable orthographic projection mode, you might experience rendering problems with transparent materials, volumetrics, and planar reflections.
+- Ray Traced and Screen Space effects. These don't appear recursively in [Ray Traced Reflections](Ray-Traced-Reflections.md), [Ray Traced Global Illumination](Ray-Traced-Global-Illumination.md) or [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md). This means, for example, you can't see [Screen Space Global Illumination](Override-Screen-Space-GI.md) in [ray-traced reflections](Ray-Traced-Reflections.md).
+- Fully accurate shadow culling. You might see missing shadows in ray-traced effects. You can use **Extend Shadow Culling** to improve accuracy. See [Ray Tracing Settings](Ray-Tracing-Settings.md) for more information.
 
-- Doesn't support vertex animation.
-- Doesn't support decals.
-- Doesn't support the volumetric part of the [fog](Override-Fog.md).
-- Doesn't support tessellation.
-- Doesn't support per pixel displacement (parallax occlusion mapping, height map, depth offset).
-- Doesn't support VFX and Terrain.
-- Doesn't have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
-- Doesn't support MSAA.
-- Doesn't support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
-- Ray tracing isn't supported when rendering [Reflection Probes](Reflection-Probe.md).
-- HDRP doesn't support [orthographic projection](HDRP-Camera.md). If you enable orthographic projection mode, you might experience rendering problems for Transparent Materials, volumetrics and planar reflections.
-- Ray Traced and Screen Space effects won't appear recursively in [Ray Traced Reflections](Ray-Traced-Reflections.md), [Ray Traced Global Illumination](Ray-Traced-Global-Illumination.md) or [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md). This means, for example, you won't be able to see [Screen Space Global Illumination](Override-Screen-Space-GI.md) in [ray-traced reflection](Ray-Traced-Reflections.md).
+#### Reflection Probes
+
+Although ray-traced rendering results include data from [Reflection Probes](Reflection-Probe.md), Reflection Probes do not capture geometry that HDRP renders with ray tracing.
 
 ### Unsupported shader graph nodes for ray tracing
 

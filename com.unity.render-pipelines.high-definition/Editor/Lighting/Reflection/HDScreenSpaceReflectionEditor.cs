@@ -234,7 +234,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     RayTracingQualityModeGUI();
                 else
                     HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error,
-                        HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportedRayTracingMode");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportedRayTracingMode");
             }
             else
             {
@@ -250,7 +250,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Reflection.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Reflection, "m_RenderPipelineSettings.supportSSR");
+                    HDRenderPipelineUI.ExpandableGroup.Lighting,
+                    HDRenderPipelineUI.ExpandableLighting.Reflection, "m_RenderPipelineSettings.supportSSR");
                 return;
             }
 
@@ -265,8 +266,16 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Transparent Screen Space Reflection.", MessageType.Info, wide: true);
+                if (!currentAsset.currentPlatformRenderPipelineSettings.supportSSRTransparent)
+                {
+                    HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Transparent Screen Space Reflection.", MessageType.Info,
+                        HDRenderPipelineUI.ExpandableGroup.Lighting, HDRenderPipelineUI.ExpandableLighting.Reflection, "m_RenderPipelineSettings.supportSSRTransparent");
+                }
+                else
+                {
+                    HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Transparent Depth Prepass.\nIt is required for Transparent Screen Space Reflection.", MessageType.Info,
+                        HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportTransparentDepthPrepass");
+                }
             }
 
             // If ray tracing is supported display the tracing choice

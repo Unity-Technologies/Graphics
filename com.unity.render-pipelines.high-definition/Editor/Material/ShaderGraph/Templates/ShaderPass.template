@@ -327,8 +327,9 @@ Pass
         #endif
 
         // override sampleBakedGI - not used by Unlit
-        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
-        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
+		// When overriding GI, we need to force the isLightmap flag to make sure we don't add APV (sampled in the lightloop) on top of the overridden value (set at GBuffer stage)
+        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI; builtinData.isLightmap = 1;
+        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI; builtinData.isLightmap = 1;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 

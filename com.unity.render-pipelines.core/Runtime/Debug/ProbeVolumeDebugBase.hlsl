@@ -58,10 +58,7 @@ struct v2f
 
 void DoCull(inout v2f o)
 {
-    o.vertex = float4(0, 0, 0, 0);
-    o.normal = float3(0, 0, 0);
-    o.color = float4(0, 0, 0, 0);
-    o.texCoord = float2(0, 0);
+    ZERO_INITIALIZE(v2f, o);
     o.samplingFactor_ValidityWeight = float2(0.0f, 1.0f);
 }
 
@@ -204,13 +201,14 @@ bool ShouldCull(inout v2f o)
     float4 position = float4(UNITY_MATRIX_M._m03_m13_m23, 1);
     int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
 
-    if(distance(position.xyz, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
+    bool shouldCull = false;
+    if (distance(position.xyz, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
     {
         DoCull(o);
-        return true;
+        shouldCull = true;
     }
 
-    return false;
+    return shouldCull;
 }
 
 float3 EvalL1(float3 L0, float3 L1_R, float3 L1_G, float3 L1_B, float3 N)

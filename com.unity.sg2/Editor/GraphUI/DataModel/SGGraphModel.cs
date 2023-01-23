@@ -13,12 +13,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class SGGraphModel : GraphModel
     {
+        [HideInInspector]
         [SerializeField]
         private SerializableGraphHandler graphHandlerBox = new();
+        [HideInInspector]
         [SerializeField]
         private SerializableTargetSettings targetSettingsBox = new();
+        [HideInInspector]
         [SerializeField]
         private SGMainPreviewModel mainPreviewModel;
+        [HideInInspector]
         [SerializeField]
         private bool isSubGraph = false;
 

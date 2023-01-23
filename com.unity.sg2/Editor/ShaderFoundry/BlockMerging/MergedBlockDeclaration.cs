@@ -62,7 +62,8 @@ namespace UnityEditor.ShaderFoundry
                 var blockInputInstance = blockLinkInstance.InputInstance;
                 var blockOutputInstance = blockLinkInstance.OutputInstance;
                 FixInstanceName(ref blockInputInstance.Name, blockInputInstance.Type.Name.ToLower());
-                FixInstanceName(ref blockOutputInstance.Name, blockOutputInstance.Type.Name.ToLower());
+                if(blockLinkInstance.IsLegacy)
+                    FixInstanceName(ref blockOutputInstance.Name, blockOutputInstance.Type.Name.ToLower());
 
                 fnBuilder.AddVariableDeclarationStatement(blockBuilder, blockInputInstance.Type, blockInputInstance.Name);
                 foreach (var input in blockInputInstance.Fields)
@@ -70,7 +71,10 @@ namespace UnityEditor.ShaderFoundry
                     if (input.Source != null)
                         DeclareMatchAssignment(input);
                 }
-                fnBuilder.AddCallStatementWithNewReturn(block.EntryPointFunction, blockOutputInstance.Name, blockInputInstance.Name);
+                if(blockLinkInstance.IsLegacy)
+                    fnBuilder.AddCallStatementWithNewReturn(block.EntryPointFunction, blockOutputInstance.Name, blockInputInstance.Name);
+                else
+                    fnBuilder.CallFunction(block.EntryPointFunction, blockInputInstance.Name);
 
                 // Add a newline between blocks for readability
                 fnBuilder.NewLine();

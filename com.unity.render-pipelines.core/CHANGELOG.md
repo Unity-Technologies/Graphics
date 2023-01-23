@@ -5,30 +5,109 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [15.0.2] - 2022-11-04
+## [15.0.3] - 2022-12-02
+
+This version is compatible with Unity 2023.1.0a23.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.2] - 2022-11-04
+
+This version is compatible with Unity 2023.1.0a19.
+
+### Added
+- Extended RendererList to handle UI, WireFrame, CameraSetup and Gizmo draw.
+- Added bigQuery Nested columns extensions.
+
+### Changed
+- Restructured the APV indirection buffer to decrease the amount of memory required when an high number of subdivision levels is used.
+- Allow setting order for panels on the rendering debugger.
+- Enabled VolumeComponent BoolParameter UI to display enabled/disabled dropdown instead of checkboxes.
+
+### Fixed
+- Fixed a FreeCamera printing an error when using old InputSystem.
+- Fixed an issue where shaders from any SRP not are completely stripped when building for Built-in renderer.
+- Fixed dropdowns for multiple editors.
+- Fixed the behaviour preventing the bake to restart if probe volumes are changed while a bake has started.
+- Fixed global probe volumes not fitting to all objects.
+- Fixed shadow cascade editor so the snatches now appear and the gradient appearance is improved.
+- Fixed missing subdivision label when looking at APV realtime subdivision preview.
+- Updated the Volumes when the Volume Info is collapsed.
+- Fixed changing current value by mouse click on DebugUI.ObjectFields on the runtime UI.
+- Fixed missing documentation and documentation links on Rendering-Debugger and components used for the Runtime UI.
+- Fixed popup showing multiple time when trying to remove additional data while in multi selection.
+- Fixed VolumeComponent visibility without additional attributes.
+- Fixed null exception while selecting a camera on the Rendering Debugger > Volumes > Camera.
 
 ## [15.0.1] - 2022-08-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2023.1.0a6.
 
+### Added
+- An extension method to fetch the Render Pipeline assets from a BuildTarget.
+- Added new XRSystem API to allow SRPs override the XR built-in stereo matrices.
+
+### Changed
+- Tooltips improvement across SRPs.
+
+### Fixed
+- Fixed a Volume Component Editor issue where Foldouts states were stored by position instead of state.
+- Fixed a SerializedObjectNotCreatableException on Volume Component Editors.
+- Fixed a null reference exception when settings null Render Pipeline Global settings on the Settings provider.
+- Fixed a swaping Volume Component issue in a Volume profile when there was mixed pipeline Volume Components did not override correctly.
+- Fixed a serialization error when Recovering Default Volume Profile after it was deleted from the project folder.
+- Fixed an editor drawer for Value tuples in the Rendering Debugger.
+- Fixed an issue where Asset Icons and MonoBehaviour for SRP's where not unified.
 
 ## [15.0.0] - 2022-06-13
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2023.1.0a1.
+
+### Added
+- Extension method to fetch the Render Pipeline assets from a BuildTarget.
+- New XRSystem API to allow SRPs override the XR built-in stereo matrices.
+
+### Changed
+- Improved performance of APV baking.
+- Allow setting order for panels on the rendering debugger.
+- Allow VolumeComponent BoolParameter UI to display enabled/disabled dropdown instead of checkboxes.
+
+### Fixed
+- Fixed the reset of APV volume placement when using multi selection.
+- Fixed an issue so that APV dilated data not being written back to disk.
+- Fixed realtime subdivision so it culls empty cells.
+- Hid the warning on the reflection probe if you disable APV.
+- Fixed so that data isn't cleared for probes to be dilated into, to avoid bright colored splotches.
+- Fixed probes so that the max distance between then are respected.
+- Fixed uninitialized memory for virtual offset.
+- Fixed NaN when you bake high intensity lights.
+- Fixed the APV touchup volume test so it uses OBB instead of AABB.
+- Fixed null reference when you enable the Camera in a project with multiple SRPs installed.
+- Volume Component Editor Foldouts states are now stored by type instead of by position.
+- Fixed SerializedObjectNotCreatableException on Volume Component Editors.
+- Fixed null reference exception when settings null Render Pipeline Global settings on the Settings provider.
+- Fixed swapping Volume Component in a Volume profile with mixed pipeline Volume Components.
+- Default Volume Profile can now be recovered when it is being deleted from the project folder.
+- Fixed editor drawer for Value tuples in the Rendering Debugger.
+- Fixed an issue where FreeCamera would print an error when using old InputSystem.
+- Fixed missing subdivision label when looking at APV realtime subdivision preview.
+- Fixed shadow cascade editor so the snatches now appear and the gradient appearance is improved.
+- Fixed the behaviour preventing the bake to restart if probe volumes are changed while a bake has started.
+- Fixed global probe volumes not fitting to all objects.
+- Fixed dropdowns for multiple editors.
+- Fixed Light Editor didn't apply changes to SerializedObject.
 
 ## [14.0.3] - 2021-05-09
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2022.2.0a14.
 
+### Fixed
+- Added Shader Stripping Watcher so you get notifications when a Shader Variant is stripped.
 
 ## [14.0.2] - 2021-02-04
+
+This version is compatible with Unity 2022.2.0a8.
 
 ### Added
 - Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.

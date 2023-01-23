@@ -217,8 +217,10 @@ namespace UnityEditor.VFX.UI
         void DisconnectController(VFXViewController previousController)
         {
             if (previousController.model && previousController.graph)
+            {
+                previousController.graph.ForceShaderDebugSymbols(VFXViewPreference.generateShadersWithDebugSymbols, false); // Remove debug symbols override from view but don't reimport (this is done by the SetCompilation below)
                 previousController.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
-
+            }
 
             previousController.UnregisterHandler(this);
             previousController.useCount--;
@@ -405,6 +407,11 @@ namespace UnityEditor.VFX.UI
 
         public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
+            if (d.category == "System")
+            {
+                VFXAnalytics.GetInstance().OnSystemTemplateCreated(d.name);
+            }
+
             UpdateSelectionWithNewNode();
             var groupNode = GetPickedGroupNode(mPos);
 
@@ -483,6 +490,7 @@ namespace UnityEditor.VFX.UI
 
         VFXNodeProvider m_NodeProvider;
         bool m_IsRuntimeMode;
+        bool m_ForceShaderDebugSymbols;
         bool m_ForceShaderValidation;
 
 
@@ -686,6 +694,7 @@ namespace UnityEditor.VFX.UI
         }
 
         internal bool GetIsRuntimeMode() => m_IsRuntimeMode;
+        internal bool GetForceShaderDebugSymbols() => m_ForceShaderDebugSymbols;
 
         public void Dispose()
         {
@@ -726,6 +735,12 @@ namespace UnityEditor.VFX.UI
         {
             m_IsRuntimeMode = !m_IsRuntimeMode;
             controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
+        }
+
+        internal void ToggleForceShaderDebugSymbols()
+        {
+            m_ForceShaderDebugSymbols = !m_ForceShaderDebugSymbols;
+            controller.graph.ForceShaderDebugSymbols(m_ForceShaderDebugSymbols);
         }
 
         internal bool GetShaderValidation() => m_ForceShaderValidation;
@@ -1707,6 +1722,9 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+
+            // Only for testing purpose
+            //VFXAnalytics.GetInstance().OnSaveVFXAsset(this);
         }
 
         internal void SaveAs(string newPath)
@@ -1864,12 +1882,13 @@ namespace UnityEditor.VFX.UI
                 return controllers
                     .Where(x => !x.isSubgraphActivation)
                     .Select(t => (Port)GetDataAnchorByController(t))
+                    .Where(t => t != null)
                     .ToList();
             }
             else
             {
                 var controllers = controller.GetCompatiblePorts((startAnchor as VFXFlowAnchor).controller, nodeAdapter);
-                return controllers.Select(t => (Port)GetFlowAnchorByController(t)).ToList();
+                return controllers.Select(t => (Port)GetFlowAnchorByController(t)).Where(t => t != null).ToList();
             }
         }
 
@@ -2872,6 +2891,31 @@ namespace UnityEditor.VFX.UI
                 : DisplayStyle.None;
         }
 
+        internal DragAndDropVisualMode GetDragAndDropModeForVisualEffectObject(VisualEffectObject visualEffectObject)
+        {
+            if (visualEffectObject != null && visualEffectObject != controller.model.visualEffectObject)
+            {
+                var isOperator = visualEffectObject is VisualEffectSubgraphOperator;
+                var graph = visualEffectObject.GetResource().GetOrCreateGraph();
+                graph.BuildSubgraphDependencies();
+                var draggedObjectDependencies = graph.subgraphDependencies;
+
+                // Circular dependency
+                if (draggedObjectDependencies.Contains(controller.model.visualEffectObject))
+                {
+                    return DragAndDropVisualMode.Rejected;
+                }
+
+                var vfxIntoVfx = !isOperator && !controller.model.isSubgraph; // dropping a vfx into a vfx
+
+                return vfxIntoVfx || isOperator
+                    ? DragAndDropVisualMode.Link
+                    : DragAndDropVisualMode.None;
+            }
+
+            return DragAndDropVisualMode.Rejected;
+        }
+
         void OnDragUpdated(DragUpdatedEvent e)
         {
             if (controller == null || !IsAssetEditable())
@@ -2879,7 +2923,7 @@ namespace UnityEditor.VFX.UI
 
             if (DragAndDrop.GetGenericData("DragSelection") != null && selection.Any(t => t is VFXBlackboardField && (t as VFXBlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
             {
-                VFXBlackboardField selectedField = selection.OfType<VFXBlackboardField>().Where(t => t.GetFirstAncestorOfType<VFXBlackboardRow>() != null).First();
+                VFXBlackboardField selectedField = selection.OfType<VFXBlackboardField>().First(t => t.GetFirstAncestorOfType<VFXBlackboardRow>() != null);
 
                 if (selectedField.controller.isOutput && selectedField.controller.nodeCount > 0)
                 {
@@ -2891,30 +2935,21 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var references = DragAndDrop.objectReferences.OfType<VisualEffectAsset>().Cast<VisualEffectObject>().Concat(DragAndDrop.objectReferences.OfType<VisualEffectSubgraphOperator>());
-                VisualEffectObject draggedObject = references.FirstOrDefault();
-                bool isOperator = draggedObject is VisualEffectSubgraphOperator;
-
-                if (draggedObject != null && draggedObject != controller.model.visualEffectObject)
-                {
-                    var draggedObjectDependencies = draggedObject.GetResource().GetOrCreateGraph().subgraphDependencies;
-                    bool vfxIntovfx = !isOperator && !controller.model.isSubgraph && !draggedObjectDependencies.Contains(controller.model.subgraph); // dropping a vfx into a vfx
-                    bool operatorIntovfx = isOperator && !controller.model.isSubgraph; //dropping an operator into a vfx
-                    bool operatorIntoOperator = isOperator && controller.model.visualEffectObject is VisualEffectSubgraphOperator && !draggedObjectDependencies.Contains(controller.model.visualEffectObject); //dropping an operator into a vfx
-                    if (vfxIntovfx || operatorIntovfx || operatorIntoOperator)
-                    {
-                        DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-                        e.StopPropagation();
-                    }
-                    return;
-                }
-
-                var droppedBlocks = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>();
-                if (droppedBlocks.Count() > 0 && !controller.model.isSubgraph)
+                var modes = DragAndDrop.objectReferences
+                    .OfType<VisualEffectObject>()
+                    .Select(GetDragAndDropModeForVisualEffectObject)
+                    .Distinct()
+                    .ToArray();
+                if (modes.Contains(DragAndDropVisualMode.Link))
                 {
                     DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-                    e.StopPropagation();
                 }
+                else if (modes.Contains(DragAndDropVisualMode.Rejected))
+                {
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                }
+
+                e.StopPropagation();
             }
         }
 
@@ -2945,40 +2980,41 @@ namespace UnityEditor.VFX.UI
             else
             {
                 DragAndDrop.AcceptDrag();
-                var references = DragAndDrop.objectReferences.OfType<VisualEffectAsset>().Cast<VisualEffectObject>().Concat(DragAndDrop.objectReferences.OfType<VisualEffectSubgraphOperator>());
+                var offset = Vector2.zero;
 
-                VisualEffectObject draggedObject = references.FirstOrDefault();
-                bool isOperator = draggedObject is VisualEffectSubgraphOperator;
-
-                if (draggedObject != null && draggedObject != controller.model.visualEffectObject)
+                foreach (var draggedObject in DragAndDrop.objectReferences)
                 {
-                    var draggedObjectDependencies = draggedObject.GetResource().GetOrCreateGraph().subgraphDependencies;
-                    bool vfxIntovfx = !isOperator && !controller.model.isSubgraph && !draggedObjectDependencies.Contains(controller.model.subgraph); // dropping a vfx into a vfx
-                    bool operatorIntovfx = isOperator && !controller.model.isSubgraph; //dropping an operator into a vfx
-                    bool operatorIntoOperator = isOperator && controller.model.visualEffectObject is VisualEffectSubgraphOperator && !draggedObjectDependencies.Contains(controller.model.visualEffectObject); //dropping an operator into a vfx
-                    if (vfxIntovfx || operatorIntovfx || operatorIntoOperator)
+                    var mousePosition = contentViewContainer.WorldToLocal(e.mousePosition) + offset;
+
+                    var dropMode = GetDragAndDropModeForVisualEffectObject((VisualEffectObject)draggedObject);
+                    if (dropMode == DragAndDropVisualMode.Rejected)
                     {
-                        Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
-                        VFXModel newModel = (references.First() is VisualEffectAsset) ? VFXSubgraphContext.CreateInstance<VFXSubgraphContext>() as VFXModel : VFXSubgraphOperator.CreateInstance<VFXSubgraphOperator>() as VFXModel;
+                        Debug.LogWarning($"Could not drag & drop asset '{draggedObject.name}' because it's not compatible with the graph");
+                        continue;
+                    }
+                    if (dropMode == DragAndDropVisualMode.None)
+                    {
+                        Debug.LogWarning($"Could not drag & drop asset '{draggedObject.name}' because a VFX Graph cannot be dropped into a subgraph");
+                        continue;
+                    }
+
+                    if (draggedObject is VisualEffectAsset || draggedObject is VisualEffectSubgraphOperator)
+                    {
+                        VFXModel newModel = draggedObject is VisualEffectAsset
+                            ? ScriptableObject.CreateInstance<VFXSubgraphContext>()
+                            : ScriptableObject.CreateInstance<VFXSubgraphOperator>();
 
                         UpdateSelectionWithNewNode();
                         controller.AddVFXModel(mousePosition, newModel);
 
-                        newModel.SetSettingValue("m_Subgraph", references.First());
+                        newModel.SetSettingValue("m_Subgraph", draggedObject);
 
                         //TODO add to picked groupnode
                         e.StopPropagation();
                     }
-                }
-                else if (!controller.model.isSubgraph) //can't drag a vfx subgraph block in a subgraph operator or a subgraph block
-                {
-                    var droppedBlocks = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>();
-                    VisualEffectSubgraphBlock droppedBlock = droppedBlocks.FirstOrDefault();
-                    if (droppedBlock != null)
+                    else if (draggedObject is VisualEffectSubgraphBlock subgraphBlock && !controller.model.isSubgraph) //can't drag a vfx subgraph block in a subgraph operator or a subgraph block
                     {
-                        Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
-
-                        VFXContextType contextKind = droppedBlocks.First().GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType;
+                        VFXContextType contextKind = subgraphBlock.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType;
                         VFXModelDescriptor<VFXContext> contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicInitialize));
                         if ((contextKind & VFXContextType.Update) == VFXContextType.Update)
                             contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicUpdate));
@@ -2990,17 +3026,23 @@ namespace UnityEditor.VFX.UI
                         UpdateSelectionWithNewNode();
                         VFXContext ctx = controller.AddVFXContext(mousePosition, contextType);
 
-                        VFXModel newModel = VFXSubgraphBlock.CreateInstance<VFXSubgraphBlock>();
+                        VFXModel newModel = ScriptableObject.CreateInstance<VFXSubgraphBlock>();
 
-                        newModel.SetSettingValue("m_Subgraph", droppedBlocks.First());
+                        newModel.SetSettingValue("m_Subgraph", subgraphBlock);
 
                         UpdateSelectionWithNewNode();
                         ctx.AddChild(newModel);
 
-
                         //TODO add to picked groupnode
                         e.StopPropagation();
                     }
+                    else
+                    {
+                        Debug.LogWarning($"Could not drag & drop asset '{draggedObject.name}' because subgraph blocks cannot be added to a subgraph operator or subgraph block");
+                        continue;
+                    }
+
+                    offset += new Vector2(20, 20);
                 }
             }
         }
@@ -3052,15 +3094,14 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var blackboardCategory in selection.OfType<VFXBlackboardCategory>())
                 {
-                    var newCategory = blackboard.AddCategory(blackboardCategory.title);
+                    var newCategoryName = blackboard.AddCategory(blackboardCategory.title);
 
                     var parameters = blackboardCategory
                         .Children()
                         .OfType<VFXBlackboardRow>()
                         .Select(x => DuplicateBlackboardField(x.field))
                         .ToList();
-                    parameters.ForEach(x => x.model.category = newCategory.title);
-                    newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
+                    parameters.ForEach(x => x.model.category = newCategoryName);
                 }
             }
         }

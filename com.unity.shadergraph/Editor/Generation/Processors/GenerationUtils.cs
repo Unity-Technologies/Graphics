@@ -57,6 +57,12 @@ namespace UnityEditor.ShaderGraph
                 else
                     builder.AppendLine("// Queue: <None>");
 
+                // DisableBatching tag
+                if (!string.IsNullOrEmpty(descriptor.disableBatchingTag))
+                    builder.AppendLine($"\"DisableBatching\"=\"{descriptor.disableBatchingTag}\"");
+                else
+                    builder.AppendLine("// DisableBatching: <None>");
+
                 // ShaderGraphShader tag (so we can tell what shadergraph built)
                 builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
 

@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportVolumetrics ?? false)
             {
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support volumetric fog.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportVolumetrics");
+                    HDRenderPipelineUI.ExpandableGroup.Lighting, "m_RenderPipelineSettings.supportVolumetrics");
             }
 
             LocalVolumetricFogUI.Inspector.Draw(m_SerializedLocalVolumetricFog, this);

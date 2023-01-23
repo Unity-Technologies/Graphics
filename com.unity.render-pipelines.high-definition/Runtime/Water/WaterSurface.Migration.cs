@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             First,
             GenericRenderingLayers,
+            AutomaticFading,
 
             Count,
         }
@@ -23,6 +24,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 uint decal = (uint)s.decalLayerMask << 8;
                 s.renderingLayerMask = (RenderingLayerMask)decal | s.lightLayerMask;
 #pragma warning restore 618
+            }),
+            MigrationStep.New(Version.AutomaticFading, (WaterSurface s) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                s.largeBand0FadeMode = s.largeBand0FadeToggle ? FadeMode.Custom : FadeMode.None;
+                s.largeBand1FadeMode = s.largeBand1FadeToggle ? FadeMode.Custom : FadeMode.None;
+                s.ripplesFadeMode = s.ripplesFadeToggle ? FadeMode.Custom : FadeMode.None;
+#pragma warning restore 618
             })
         );
 
@@ -33,6 +42,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Specifies the light layers that affect the water surface.</summary>
         [SerializeField, Obsolete("Use renderingLayerMask instead @from(2023.1) (UnityUpgradable) -> renderingLayerMask")]
         public RenderingLayerMask lightLayerMask = RenderingLayerMask.LightLayerDefault;
+
+        /// <summary></summary>
+        [SerializeField, Obsolete("Use largeBand0FadeMode instead @from(2023.1)")]
+        public bool largeBand0FadeToggle = true;
+
+        /// <summary></summary>
+        [SerializeField, Obsolete("Use largeBand1FadeMode instead @from(2023.1)")]
+        public bool largeBand1FadeToggle = true;
+
+        /// <summary></summary>
+        [SerializeField, Obsolete("Use ripplesFadeMode instead @from(2023.1)")]
+        public bool ripplesFadeToggle = true;
 
 
         /// <summary>

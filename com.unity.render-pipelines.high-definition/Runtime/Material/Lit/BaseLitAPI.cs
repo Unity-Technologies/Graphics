@@ -91,7 +91,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static public void SetupStencil(Material material, bool receivesLighting, bool receivesSSR, bool useSplitLighting)
         {
-            ComputeStencilProperties(receivesLighting, receivesSSR, useSplitLighting, out int stencilRef, out int stencilWriteMask,
+            // To determine if the shader is forward only, we can't rely on the presence of GBuffer pass because that depends on the active subshader, which
+            // depends on the active render pipeline, giving an inconsistent result. The properties of a shader are always the same so it's ok to check them
+            bool forwardOnly = material.shader.FindPropertyIndex(kZTestGBuffer) == -1;
+
+            ComputeStencilProperties(receivesLighting, forwardOnly, receivesSSR, useSplitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
@@ -124,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static public void ComputeStencilProperties(bool receivesLighting, bool receivesSSR, bool useSplitLighting, out int stencilRef, out int stencilWriteMask,
+        static public void ComputeStencilProperties(bool receivesLighting, bool forwardOnly, bool receivesSSR, bool useSplitLighting, out int stencilRef, out int stencilWriteMask,
             out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
             out int stencilRefMV, out int stencilWriteMaskMV)
         {
@@ -151,6 +155,10 @@ namespace UnityEngine.Rendering.HighDefinition
             stencilWriteMaskGBuffer = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
             stencilRefMV = (int)StencilUsage.ObjectMotionVector;
             stencilWriteMaskMV = (int)StencilUsage.ObjectMotionVector;
+
+            // ForwardOnly materials with motion vectors are rendered after GBuffer, so we need to clear the deferred bit in the stencil
+            if (forwardOnly)
+                stencilWriteMaskMV |= (int)StencilUsage.RequiresDeferredLighting;
 
             if (useSplitLighting)
             {

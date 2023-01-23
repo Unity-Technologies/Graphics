@@ -5,14 +5,23 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal abstract class ShadowShape2D
+    /// <summary>
+    /// Class <c>ShadowShape2D</c> stores outline geometry for use with a shadow caster.
+    /// </summary>
+    public abstract class ShadowShape2D
     {
         /// <summary>
         /// Used when calling SetShape to describe the supplied indicies
         /// </summary>
         public enum OutlineTopology
         {
+            /// <summary>
+            /// Describes an index array where a set of two consecutive points describes a line segment.
+            /// </summary>
             Lines,
+            /// <summary>
+            /// Describes an index array where a set of three consecutive points describes a triangle.
+            /// </summary>
             Triangles
         }
 
@@ -21,7 +30,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public enum WindingOrder
         {
+            /// <summary>
+            /// Describes an index array where all polygons have vertices in a clockwise order
+            /// </summary>
             Clockwise,
+            /// <summary>
+            /// Describes an index array where all polygons have vertices in a counterclockwise order
+            /// </summary>
             CounterClockwise
         }
 
@@ -42,7 +57,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The value to initialize the trim when created
         /// </summary>
-        public abstract void SetDefaultTrim(float scale);
+        /// <param name="trim"> Specifies the starting trim value.</param>
+        public abstract void SetDefaultTrim(float trim);
 
         /// <summary>
         /// SetShape creates shadow geometry using the supplied geometry
@@ -53,6 +69,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="transform"> The transform used to create the shadow geometry.</param>
         /// <param name="windingOrder">The winding order of the supplied geometry.</param>
         /// <param name="allowContraction">Specifies if the ShadowCaster2D is allowed to contract the supplied shape(s).</param>
+        /// <param name="createInteriorGeometry">Specifies if the ShadowCaster2D should create interior geometry. Required for shadow casters that do not use renderers as their source.</param>
         public abstract void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<float> radii, Matrix4x4 transform, WindingOrder windingOrder = WindingOrder.Clockwise, bool allowContraction = true, bool createInteriorGeometry = false);
 
         /// <summary>
@@ -63,6 +80,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="outlineTopology">The settings to create the renderer with.</param>
         /// <param name="windingOrder">The winding order of the supplied geometry.</param>
         /// <param name="allowContraction">Specifies if the ShadowCaster2D is allowed to contract the supplied shape(s).</param>
+        /// <param name="createInteriorGeometry">Specifies if the ShadowCaster2D should create interior geometry. Required for shadow casters that do not use renderers as their source.</param>
         public abstract void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, OutlineTopology outlineTopology, WindingOrder windingOrder = WindingOrder.Clockwise, bool allowContraction = true, bool createInteriorGeometry = false);
     }
 }

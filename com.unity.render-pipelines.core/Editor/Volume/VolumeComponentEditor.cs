@@ -195,6 +195,8 @@ namespace UnityEditor.Rendering
         List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
+        SupportedOnRenderPipelineAttribute m_SupportedOnRenderPipelineAttribute;
+        Type[] m_LegacyPipelineTypes;
 
         static VolumeComponentEditor()
         {
@@ -271,29 +273,33 @@ namespace UnityEditor.Rendering
 
             InitParameters();
             OnEnable();
+
+            var volumeComponentType = volumeComponent.GetType();
+            m_SupportedOnRenderPipelineAttribute = volumeComponentType.GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
+
+#pragma warning disable CS0618
+            var supportedOn = volumeComponentType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
+            m_LegacyPipelineTypes = supportedOn != null ? supportedOn.pipelineTypes : Array.Empty<Type>();
+#pragma warning restore CS0618
         }
 
-        internal void DetermineVisibility()
+        internal void DetermineVisibility(Type renderPipelineAssetType, Type renderPipelineType)
         {
-            if (!GraphicsSettings.isScriptableRenderPipelineEnabled)
+            if (renderPipelineAssetType == null)
             {
                 visible = false;
                 return;
             }
 
-            var volumeComponentType = volumeComponent.GetType();
-            var supportedOnRenderPipelines = volumeComponentType.GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
-            if (supportedOnRenderPipelines != null)
+            if (m_SupportedOnRenderPipelineAttribute != null)
             {
-                visible = supportedOnRenderPipelines.isSupportedOnCurrentPipeline;
+                visible = m_SupportedOnRenderPipelineAttribute.GetSupportedMode(renderPipelineAssetType) != SupportedOnRenderPipelineAttribute.SupportedMode.Unsupported;
                 return;
             }
 
-            var supportedOn = volumeComponentType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
-            var pipelineTypes = supportedOn != null ? supportedOn.pipelineTypes : Array.Empty<Type>();
-            if (RenderPipelineManager.currentPipeline != null && pipelineTypes.Length > 0)
+            if (renderPipelineType != null && m_LegacyPipelineTypes.Length > 0)
             {
-                visible = pipelineTypes.Contains(RenderPipelineManager.currentPipeline.GetType());
+                visible = m_LegacyPipelineTypes.Contains(renderPipelineType);
                 return;
             }
 
@@ -415,9 +421,11 @@ namespace UnityEditor.Rendering
             if(supportedOn !=null)
                 return EditorGUIUtility.TrTextContent(title, string.Join(", ", supportedOn.renderPipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name))));
 
+#pragma warning disable CS0618
             var volumeComponentMenuForRenderPipelineAttribute = targetType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>(false);
             if (volumeComponentMenuForRenderPipelineAttribute != null)
                 return EditorGUIUtility.TrTextContent(title, string.Join(", ", volumeComponentMenuForRenderPipelineAttribute.pipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name))));
+#pragma warning restore CS0618
 
             return EditorGUIUtility.TrTextContent(title,  string.Empty);
         }

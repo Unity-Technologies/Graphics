@@ -10,7 +10,7 @@ You can now make your own 2D Lighting model.
 The new Shader Graph target "Custom Lit Shader Graph" provides a great starting point to create a custom lithing model shader. It does not sample the Light Textures but it does have a Normal pass and a fallback Forward pass for use in non 2D Renderer.
 
 ## 2D Light Texture
-2D Light Textures are Render Textures created by the 2D Renderer that contain the visible lights in the scene. There are up to 4 textures each representing a blend style in the [2D Renderer Data](2DRendererData_overview.md)
+2D Light Textures are Render Textures created by the 2D Renderer that contain the visible lights in the scene. There are up to 4 textures each representing a blend style in the [2D Renderer Data](2DRendererData-overview.md)
 
 The built in Lit shaders will sample these textures and combined them with the Sprite's textures to create the lighting effect.
 

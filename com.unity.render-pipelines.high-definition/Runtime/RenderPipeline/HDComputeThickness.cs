@@ -98,23 +98,5 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_ReindexMapCB;
         }
-
-        /// <summary>
-        /// Set a UserLayersCount for this frame.
-        /// </summary>
-        /// <param name="layersCount">UsesLayersCount for this frame</param>
-        public void SetUsedLayersCount(uint layersCount)
-        {
-            m_UsedLayersCountCurrentFrame = layersCount;
-        }
-
-        /// <summary>
-        /// Get a UserLayersCount for this frame.
-        /// </summary>
-        /// <returns>UsesLayersCount for this frame</returns>
-        public uint GetUsedLayersCount()
-        {
-            return m_UsedLayersCountCurrentFrame;
-        }
     }
 }

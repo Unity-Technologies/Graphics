@@ -24,6 +24,26 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Checks if the Universal Renderer requires rendering layers texture.
+        /// </summary>
+        /// <param name="universalRendererData"></param>
+        /// <returns>True if <see cref="UniversalRendererData"/> will require rendering layers texture.</returns>
+        public static bool RequireRenderingLayers(UniversalRendererData universalRendererData)
+        {
+            bool isDeferred = universalRendererData.renderingMode == RenderingMode.Deferred;
+            foreach (var rendererFeature in universalRendererData.rendererFeatures)
+            {
+                if (!rendererFeature.isActive)
+                    continue;
+
+                if (rendererFeature.RequireRenderingLayers(isDeferred, out Event rendererEvent, out MaskSize rendererMaskSize))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Returns True if <see cref="UniversalRendererData"/> will require rendering layers texture.
         /// </summary>
         /// <param name="universalRendererData"></param>
@@ -47,7 +67,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Rendering layers can not use MSSA resolve, because it encodes integer
+            // Rendering layers can not use MSAA resolve, because it encodes integer
             if (msaaSampleCount > 1 && combinedEvent == Event.Opaque && !isDeferred)
                 combinedEvent = Event.DepthNormalPrePass;
 
@@ -86,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Rendering layers can not use MSSA resolve, because it encodes integer
+            // Rendering layers can not use MSAA resolve, because it encodes integer
             if (msaaSampleCount > 1 && combinedEvent == Event.Opaque)
                 combinedEvent = Event.DepthNormalPrePass;
 
@@ -106,7 +126,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd">Used command buffer</param>
         /// <param name="maskSize">The mask size of rendering layers texture</param>
-        public static void SetupProperties(CommandBuffer cmd, MaskSize maskSize)
+        public static void SetupProperties(CommandBuffer cmd, MaskSize maskSize) { SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), maskSize); }
+        internal static void SetupProperties(RasterCommandBuffer cmd, MaskSize maskSize)
         {
             int bits = GetBits(maskSize);
 

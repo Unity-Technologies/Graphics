@@ -190,31 +190,36 @@ namespace UnityEditor.ShaderGraph
 
             if (instancedCount > 0)
             {
-                builder.AppendLine("// Hybrid instanced properties");
+                builder.AppendLine("#ifndef UNITY_INSTANCING_ENABLED");
                 foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
                     h.AppendTo(builder);
+                builder.AppendLine("#endif");
+                builder.AppendLine("");
             }
             builder.AppendLine("CBUFFER_END");
 
+            builder.AppendLine("");
             if (instancedCount > 0)
             {
-                builder.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
 
+                builder.AppendLine("#ifdef UNITY_INSTANCING_ENABLED");
                 builder.AppendLine("// DOTS instancing definitions");
-                builder.AppendLine("UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)");
+                builder.AppendLine("UNITY_INSTANCING_BUFFER_START(MaterialPropertyMetadata)");
                 foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
                 {
                     var n = h.name;
                     string type = h.GetValueTypeString();
-                    builder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP({type}, {n})");
+                    builder.AppendLine($"    UNITY_DEFINE_INSTANCED_PROP({type}, {n})");
                 }
-                builder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
+                builder.AppendLine("UNITY_INSTANCING_BUFFER_END(MaterialPropertyMetadata)");
 
                 builder.AppendLine("// DOTS instancing usage macros");
-                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var)");
+                builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) UNITY_ACCESS_INSTANCED_PROP(MaterialPropertyMetadata, var)");
+
                 builder.AppendLine("#else");
                 builder.AppendLine("#define UNITY_ACCESS_HYBRID_INSTANCED_PROP(var, type) var");
                 builder.AppendLine("#endif");
+
             }
 
             builder.AppendNewLine();

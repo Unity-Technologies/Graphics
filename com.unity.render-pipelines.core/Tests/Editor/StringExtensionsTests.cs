@@ -24,5 +24,15 @@ namespace UnityEditor.Rendering.Tests
         {
             return input.ReplaceInvalidFileNameCharacters();
         }
+
+        [Test]
+        public void CheckExtensionTests(
+            [Values("Folder1/file.testextension", "Folder1/file.TestExtension", "Folder1/file.TESTEXTENSION", "file.testextension", "Folder1/Folder2/Folder3/file.testextension")] string input,
+            [Values(".testextension", ".TESTEXTENSION", ".TestExtension", ".wrong")]string extension)
+        {
+            bool expected = input.ToLower().EndsWith(extension.ToLower());
+            bool actual = input.HasExtension(extension);
+            Assert.AreEqual(expected, actual);
+        }
     }
 }

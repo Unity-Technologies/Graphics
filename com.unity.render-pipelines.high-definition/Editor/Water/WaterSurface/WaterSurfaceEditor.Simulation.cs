@@ -74,13 +74,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Band0
             m_LargeBand0Multiplier = o.Find(x => x.largeBand0Multiplier);
-            m_LargeBand0FadeToggle = o.Find(x => x.largeBand0FadeToggle);
+            m_LargeBand0FadeToggle = o.Find(x => x.largeBand0FadeMode);
             m_LargeBand0FadeStart = o.Find(x => x.largeBand0FadeStart);
             m_LargeBand0FadeDistance = o.Find(x => x.largeBand0FadeDistance);
 
             // Band1
             m_LargeBand1Multiplier = o.Find(x => x.largeBand1Multiplier);
-            m_LargeBand1FadeToggle = o.Find(x => x.largeBand1FadeToggle);
+            m_LargeBand1FadeToggle = o.Find(x => x.largeBand1FadeMode);
             m_LargeBand1FadeStart = o.Find(x => x.largeBand1FadeStart);
             m_LargeBand1FadeDistance = o.Find(x => x.largeBand1FadeDistance);
 
@@ -107,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RipplesCurrentMapInfluence = o.Find(x => x.ripplesCurrentMapInfluence);
 
             // Fade
-            m_RipplesFadeToggle = o.Find(x => x.ripplesFadeToggle);
+            m_RipplesFadeToggle = o.Find(x => x.ripplesFadeMode);
             m_RipplesFadeStart = o.Find(x => x.ripplesFadeStart);
             m_RipplesFadeDistance = o.Find(x => x.ripplesFadeDistance);
             #endregion
@@ -224,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         using (new BoldLabelScope())
                             EditorGUILayout.PropertyField(serialized.m_LargeBand0FadeToggle, k_SwellFadeToggle);
 
-                        if (serialized.m_LargeBand0FadeToggle.boolValue)
+                        if (serialized.m_LargeBand0FadeToggle.intValue == (int)WaterSurface.FadeMode.Custom)
                         {
                             using (new IndentLevelScope())
                             {
@@ -256,7 +256,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Fade of the ripples
                         using (new BoldLabelScope())
                             EditorGUILayout.PropertyField(serialized.m_LargeBand1FadeToggle, k_SwellFadeToggle);
-                        if (serialized.m_LargeBand1FadeToggle.boolValue)
+                        if (serialized.m_LargeBand1FadeToggle.intValue == (int)WaterSurface.FadeMode.Custom)
                         {
                             using (new IndentLevelScope())
                             {
@@ -292,7 +292,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Fade of the ripples
                         using (new BoldLabelScope())
                             EditorGUILayout.PropertyField(serialized.m_RipplesFadeToggle, k_RipplesFadeToggle);
-                        if (serialized.m_RipplesFadeToggle.boolValue)
+                        if (serialized.m_RipplesFadeToggle.intValue == (int)WaterSurface.FadeMode.Custom)
                         {
                             using (new IndentLevelScope())
                             {
@@ -340,7 +340,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Fade of the agitation
                     using (new BoldLabelScope())
                         EditorGUILayout.PropertyField(serialized.m_LargeBand0FadeToggle, k_SwellFadeToggle);
-                    if (serialized.m_LargeBand0FadeToggle.boolValue)
+                    if (serialized.m_LargeBand0FadeToggle.intValue == (int)WaterSurface.FadeMode.Custom)
                     {
                         using (new IndentLevelScope())
                         {
@@ -370,7 +370,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Fade of the ripples
                         using (new BoldLabelScope())
                             EditorGUILayout.PropertyField(serialized.m_RipplesFadeToggle, k_RipplesFadeToggle);
-                        if (serialized.m_RipplesFadeToggle.boolValue)
+                        if (serialized.m_RipplesFadeToggle.intValue == (int)WaterSurface.FadeMode.Custom)
                         {
                             using (new IndentLevelScope())
                             {
@@ -404,7 +404,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Fade of the ripples
                         using (new BoldLabelScope())
                             EditorGUILayout.PropertyField(serialized.m_RipplesFadeToggle, k_RipplesFadeToggle);
-                        if (serialized.m_RipplesFadeToggle.boolValue)
+                        if (serialized.m_RipplesFadeToggle.intValue == (int)WaterSurface.FadeMode.Custom)
                         {
                             using (new IndentLevelScope())
                             {

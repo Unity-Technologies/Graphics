@@ -5,62 +5,367 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [15.0.2] - 2022-11-04
+## [15.0.3] - 2022-12-02
+
+This version is compatible with Unity 2023.1.0a23.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [15.0.2] - 2022-11-04
+
+This version is compatible with Unity 2023.1.0a19.
+
+### Changed
+- Allowed non square reflection probe atlas sizes.
+- Enabled Progressive Exposure Adaptation in scene view.
+- Added more options to run TAA Sharpening.
+- Improved the name for Dynamic Resolution property.
+- Improved performance of subsurface scattering pass for high resolution.
+- Updated an out-of-date guide in TextureStack.hlsl.
+- Improved CPU shadow performance with burst.
+- Replaced CustomEditorForRenderPipeline and VolumeComponentMenuForRenderPipeline with separate attributes.
+- Improved performance of HD light LateUpdates by combining their callbacks.
+
+### Fixed
+- Fixed the majority of GCAllocs with realtime planar probes and on demand update of reflection probes.
+- Fixed an issue to initialize Volume before diffusion profile list.
+- Fixed broken denoiser for ray traced shadows in HDRP.
+- Fixed history transform management not being properly handeled for ray traced area shadows.
+- Fixed RTHandle sampling out of bounds on previous frame pyramid color. This causes sometimes bad pixel values to be reflected.
+- Fixed an issue to initialize DLSS at loading of HDRP asset. Previously intialization was too late (ad HDRP pipeline constructor). Moved initialization to OnEnable of SRP asset.
+- Fixed scalarization not scalarizing properly.
+- Fixed transmission for box lights.
+- Fixed upperHemisphereLuxValue when changing HDRI Sky.
+- Fixed the ray traced ambient occlusion not rejecting the history when it should leading to severe ghosting.
+- Fixed volumetric clouds fog history issue that leads to severe ghosting.
+- Fixed tonemapping not being applied when using the Show Cascades debug view.
+- Fixed Geometric AA tooltip.
+- Fixed shadow dimmer not affecting screen space shadows.
+- Fixed HDR Output behaviour when platform doesn't give back properly detected data.
+- Fixed sky rendering in the first frame of path tracing. This also fixes issues with auto-exposure.
+- Fixed bad undo behaviour with light layers and shadows.
+- Fixed a null ref exception when destroying a used decal material.
+- Fixed color grading issue when multiple cameras have same volume properties but different frame settings.
+- Fixed discrepency in the fog in RT reflections and RTGI between perf and quality.
+- Fixed tessellation in XR.
+- Fixed the error message saying the HDRP is not supported on a certain platform.
+- Removed "Sprite Mask" from scene view draw modes as it is not supported by HDRP.
+- Fixed Depth Of Field compute shader warnings on metal.
+- Fixed the material rendering pass not correctly changed with multi-selection.
+- Fixed an issue that the Shaders now correctly fallback to error shader.
+- Fixed shader compilation errors when adding OpenGL in an HDRP project.
+- Fixed an issue where AlphaInjection and ChromaKeying custom post processes were not running only if they are used.
+- Fixed an error regarding the reflection atlas size after upgrading a project.
+- Fixed saving after auto register of a diffusion profile.
+- Fixed material preview with SSS.
+- Fixed missing RT shader passes for the LOD terrain mesh.
+- Fixed issues with ray traced area light shadows.
+- Display Stats is now always shown in the first position on the Rendering Debugger.
+- Fixed HDRP test framework by adding the possibility to capture from Back Buffer instead of just Render Texture.
+- Fixed a regression issue which breaks XR font rendering.
+- Fixed an issue that the Lens Flare Data Driven are now occluded by cloud layer.
+- Fixed interleaved sampling for secondary rays in the path tracer.
+- Fixed a bug in path tracing dirtiness check.
+- Fixed shadows in transparent unlit shadow matte.
+- Fixed sky/background alpha in path tracing (affects post processing).
+- Fixed the water system causing exceptions when enabling MSAA.
+- Fixed Ray Tracing leaks due to not supporting APV.
+- Fixed an error regarding the max number of visible local volumetric fog in the view.
+- Fixed nullref exception when trying to use the HD Wizard "fix all" button.
+- Fixed unlit pixels contributing to screen space effects.
+- Fixed scroll speed in Local Density Volumes not updating.
+- Fixed missing limitation in path tracing documentation regarding Local Volumetric Fog.
+- Fixed the ray tracing reflection denoiser being partially broken.
+- Fixed ambient probe for volumetric clouds.
+- Removed unwanted RTAO effect on indirect specular lighting.
+- Fixed a number of outdated reference to "HDRP Default Settings" in the UI.
+- Fixed unnecessary loss of precision when all post processing are disabled.
+- Fixed bad rendering when using contact shadows on xbox.
+- Fixed decal material validation after saving.
+- Fixed Layer List is not duplicated when duplicating a LayeredLit Material.
+- Worked around exception when enabling raytracing when resources for raytracing have not been built.
+- Fixed graphics issues with sky and fog in game view when filtering objects in the hierarchy.
+- Fixed performance when volumetric fog is disabled.
+- Improved the motion and receiver rejection tooltips for RTGI and RTAO.
+- Fixed black dots when clouds rendered in local mode.
+- Fixed embedding the config package when it's not a direct dependency.
+- Fixed scene depth node not working in the Decal ShaderGraph material type.
+- Changed Gate Fit Mode default value.
+- Fixed TAA when path tracing is not supported.
+- Moved Debug Shader Variants to Shader Stripping section on HDRP Global Settings.
+- Implemented proper interactions between the water and the cloud system.
+- Fixed the sky in path traced interleaved tiled rendering.
+- Fixed an implementation problem related to the environment lights and ray tracing.
+- Fixed APV leaking into preview rendering.
+- Enabled APV on newly created projects.
+- Fixed error for VT node on decal subtargets.
+- Fixed cloud layer so it now matches with ambient lighting.
+- Fixed the volumetric samples.
+- Fixed migration of diffusion profiles on read only packages.
+- Fixed issue introduced by a VFX PR which broke DXR VFX.
+- Fixed color grading so it no longer outputs negative colors.
+- Fixed range of spill removal parameter in graphics compositor UI.
+- Fixed exposure of recorded frames with path tracing and auto exposure.
+- Fixed volumetric cloud so it now correctly displays in lighting debug mode.
 
 ## [15.0.1] - 2022-08-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2023.1.0a6.
 
+### Changed
+- Tooltips improvement.
+- Improved rendering by adding caustics support for cinematic eye shader in HDRP material samples eye graph.
+- Enabled multi-editing for Diffusion Profiles.
+- Displayed selection for common values on the Rendering Debugger for Material -> Material.
+
+### Fixed
+- Fixed motion vector debug visualization suite to provide a way to visualize intensities.
+- Fixed the clamp happening on the sum of ray tracing samples instead of per sample.
+- Fixed quad artifacts on TAA and fixed an issue on bicubic filtering.
+- Fixed specular occlusion fallback on normal when bent normal is not available.
+- Fixed a NullReferenceException when importing empty material.
+- Fixed grey out profile list button instead of throwing error.
+- Fixed a rounding issue in ray traced reflections at half resolution.
+- Fixed cull mode toggle in transparent material inspector shifting the UI.
+- Fixed a discrepency between recursive rendering and path tracing for refraction models.
+- Fixed duplicated code sample in the custom pass documentation.
+- Disabled Volumetric Clouds for Default Sky Volumes.
+- Fixed re-ordering issue in the custom pass list.
+- Fixed the default DXR volume not having any DXR effects enabled.
+- Updated misleading tooltip in the environment lighting in HDRP.
+- Fixed isssue with up direction of the light anchor tool sometime getting wrong.
+- Fixed reflection issue upon scene filtering.
+- Fixed leaks in ray tracing effects due to missing ambient probe for ray tracing effects.
+- Fixed artifacts on PBR DOF camera cuts such as the COC sticking around with blurry values.
+- Fixed a render graph error when rendering a scene with no opaque objects in forward.
+- Fixed an issue with DOTS and Look Dev tool causing entities in the tool to be drawn in the game view.
+- Fixed [HDRP] Noisy top shadows when using 'High' Filtering Quality with Tesselated Meshes (Lit Tesselation).
+- Fixed incorrect false positives in shadow culling.
+- Added async compute support doc.
+- Fixed Decal Layer Texture lifetime in rendergraph.
+- Added missing using statements in one of the example scripts in the documentation for the accumulation API.
+- Fixed artifacts on quarter and half res depth of field when dynamic resolution jumps between resolutions.
+- Fixed incorrect distortion when hardware DRS is enabled.
+- Fixed blinking Ray traced reflection with dynamic resolution.
+- Fixed blinking SSGI with dynamic resolution.
+- Fixed SSGI using garbage outside the frustum.
+- Fixed an issue that Data Driven Lens Flare are not occluded with the volumetric clouds.
+- Fixed an issue where the HDRP Wizzard showed up when opening the Standalone Profiler.
+- Fixed an issue where Shadow near plane could not be set to 0,  and clamped to 0.01 can only occur on Cone, Pyramid and Point Lights.
+- Fixed hard eges on volumetric clouds.
+- Prevent users from clicking the denoising package install button multiple times while waiting for the installation to finish.
+- Fixed an issue where the SRP Lens flares occlusion did not work as well as it should.
 
 ## [15.0.0] - 2022-06-13
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2023.1.0a1.
+
+### Changed
+- New iteration on the water system.
+- Removed diffusion profiles from global settings.
+- Changed DiffusionProfileOverride so that now it accumulates profiles instead of replacing when interpolating at runtime.
+- Changed ACES luminance fit to allow pure whites.
+- Further improved the consistency of non-physical depth of field at varying native rendering resolutions and resolution scales.
+- Added a new sample for fullscreen master node.
+- Improved Material sample by adding 3 scenes about stacking transparent materials in the 3 different rendering path (Raster, Ray Tracing, Path Tracing).
+- Improved area light soft shadow - when the new **Very High** shadow filtering quality level is selected, area lights use improved PCSS filtering for wider penumbras and better contacts.
+- Added Screen space for the Transform node.
+- Changed the reflection probes cube texture array cache to be a 2D texture atlas in the octahedral projection.
+- Reflection probe resolution resolution can be chosen individually.
+- Reflection probes and planar reflection probes atlas's are combined in a single atlas.
+- Changed `DiffusionProfileOverride` to accumulate profiles instead of replacing when interpolating at runtime.
+- Added Volumetric Material samples.
+
+### Fixed
+- Fixed blending artifacts with physically based DoF.
+- Fixed tiling artifacts with physically based DoF.
+- Fixed Virtual texturing streaming loading to be no longer hindered by transparent materials. Transparent materials, depending on their transmitance or alpha, will let the VT streaming system requests textures appropiately.
+- Fixed the blend mode label field.
+- Fixed a render error when you disable both motion vectors and opaques.
+- Fixed a render graph error when you open a project with default lighting enabled and clouds in the scene.
+- Fixed a NaN resulting from path traced hair materials with certain base color inputs.
+- Improved the default state of newly created Planar Reflection Probes.
+- Fixed accumulation when shutter interval is zero.
+- Added  a mechanism in HDRP to strip `FragInputs`, to strip some interpolators in the pixel shader for shader graphs.
+- Updated accumulation API scripts to solve issue with screen shot capture in certain Unity Editor workflows.
+- Fixed custom post-processes not released correctly when you switch HDRP assets.
+- Fixed a render graph error when using Output AOV in non-dev builds.
+- Fixed errors in CPU lights so that `includeForRaytracing` and `lightDimmer` work for `HDAdditionalLightData` and camera relative rendering.
+- Fixed path tracing to better match transparent object behavior observed in rasterization.
+- Fixed an issue with the ray traced screen space shadows slots/indices.
+- Fixed some artifacts that happened when ray traced shadows are evaluated for a surface that is far from the camera.
+- Allowed you to select the multiscattering method from SG advanced settings.
+- Fixed Volumetric Clouds texture input fields.
+- Fixed the documentation for recursive rendering so it's clear enough for the smoothness' behavior.
+- Disabled camera jittering in path tracing.
+- Fixed errors in the HDR comparison doc.
+- Fixed Cloud Layer rendering on Nvidia GPUs.
+- Fixed errors when you switch to SMAA.
+- Fixed a performance issue with Single Shadow debug mode.
+- Fixed an issue with decals not scaling with a parent transform.
+- Fixed the Texture2D and Texture3D parameters to accept `None` as value.
+- Fixed scalarization issues on Gamecore.
+- Fixed the ambient probe for the volumetric clouds for the sky cubemap so they're ready at the first frame.
+- Fixed artifacts on the edges of the screen when you enable volumetric clouds.
+- Added a blendable perceptual blending parameter on volumetric clouds to get rid of over exposure artifacts.
+- Fixed the SSR so it works properly on deferred with tiles with multiple variants.
+- Fixed artifacts on the volumetric clouds when you enable the fog.
+- Fixed realtime reflection probes using a mode of every frame to update at most once per frame.
+- Added the ability to remap the occlusion to anything via a curve for `LensFlareOcclusionSRP` (DataDriven).
+- Fixed reflection probes allowing clear depth.
+- Fixed the HDRP path tracer denoising when resetting denoising with AOVs is enabled.
+- Fixed the HDRP path tracer denoising temporal mode when rt handle scale is not one.
+- Fixed a crash on standalone profiler executing the HDRP Upgrader
+- URP: Fixed a crash on standalone profiler executing the URP Upgrader.
+- Added a check to prevent users from clicking the denoising package install button multiple times while waiting for the installation to finish.
+- Added a specular occlusion fallback on normal when bent normal is not available.
+- Fixed an issue by greying out the profile list button instead of throwing an error.
+- Fixed noisy top shadows when using 'High' Filtering Quality with Tesselated Meshes (Lit Tesselation).
+- Fixed an issue with RTHandle sampling out of bounds on previous frame pyramid color. This occasionally caused bad pixel values to be reflected.
+- Improved SRP Lens flares occlusion.
+- Shadow near plane can now be set to 0, clamped to 0.01 only on Cone, Pyramid and Point Lights.
+- Fixed stencil state not set correctly when depth write is enabled in custom passes.
+- SRP Lens flares occlusion improvements.
+- Fixed the new ray tracing quality nodes not working.
+- Clear custom pass color and depth buffers when the fullscreen debug modes are enabled.
+- Fixed SpeedTree importer when shader has no diffusion profile.
+- Fixed custom pass UI not refreshed when changing the injection point.
+- Fixed refraction fallback when object center is out of screen.
+- Clamp negative absorption distance.
+- Fixed spams in the console related to the water inspector.
+- Fixed the display of the water surfaces in prefab mode.
+- Fixed unwanted menu item related to water amplitude generation.
+- Fixed light layers when using motion vectors.
+- Fixed an issue to initialize Volume before diffusion profile list.
+- Fixed hard edges on volumetric clouds.
+- Fixed volumetric fog samples description docs.
+- Fixed sky in path traced interleaved tiled rendering.
+- Fixed bug in path tracing dirtiness check.
+- Fixed shadergraph using derivatives and Raytracing Quality keyword.
+- Removed misleading part of a LensFlare tooltip.
+- Removed unused voluimetric clouds volume component on new scenes templates.
+- Fixed texture wrapping of cloud layer.
+- Fixed custom pass scaling issues with dynamic resolution.
+- Fixed an issue with low resolution depth of field producing a cropped result in some scenarios.
+- Fixed transmission on directional lights.
+- Fixed slight change of color in background when changing scene hierarchy.
+- Fixed volumetric cloud incorrectly display in lighting debug mode
+- Fixed Ray Tracing Mixed Mode Collisions.
+- Fixed minor bug in the shadow ray culling for the cone spot light.
+- Fixed zfighting artifacts for ray tracing.
+- Fixed the indirect diffuse lighting in ray tracing so it now always works properly.
+- Added clarification on HDR Output not supporting Scene View.
+- Fixed Missing tooltip for Screen Weight Distance in Screen Space Refraction Override.
+- Fixed missing tag on decal shader properties.
+- Fixed mouse position in debug menu with scaled screens in editor.
+- Fixed null reference error in the rendering debugger when no camera is available.
+- Fixed a black screen issue with master builds on HDRP.
+- Fixed the fallback section so it now disappears when hiding the additional data.
+- Fixed black line in ray traced reflections.
+- Renamed IOR output in Eye shadergraph for clarification.
+- Fixed Text alignment in Transparency Inputs section.
+- Fixed an issue with Bloom and Depth of Field in game view when filtering in the hierarchy.
+- Fixed the ray tracing shadow denoiser s it no longer produces leaks at the edge of spotlight shadows.
+- Re-enabled XR tests for 004-CloudsFlaresDecals and 005-DistortCloudsParallax.
 
 ## [14.0.3] - 2021-05-09
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-## [14.0.2] - 2021-02-04
+This version is compatible with Unity 2022.2.0a14.
 
 ### Added
-- Added denoising for the path tracer.
-- Added an initial version of under water rendering for the water system.
-- Added option to animate APV sample noise to smooth it out when TAA is enabled.
-- Added default DOTS compatible loading shader (MaterialLoading.shader)
-- Add #pragma editor_sync_compilation directive to MaterialError.shader
-- Added the culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
-- Added an optional CPU simulation for the water system.
-- Added new Unity material ball matching the new Unity logo.
+- Denoising for the path tracer.
+- An initial version of under water rendering for the water system.
+- A new option to animate APV sample noise to smooth it out when TAA is enabled.
+- Default DOTS compatible loading shader (MaterialLoading.shader).
+- #pragma editor_sync_compilation directive to MaterialError.shader.
+- The culling matrix and near plane for lights, so that they can be custom-culled with the BatchRenderGroup API.
+- An optional CPU simulation for the water system.
+- New Unity material ball matching the new Unity logo.
 - Adding injection points options for DLSS (After Depth of Field and After Post) which should mitigate some of the performance cost in post process.
 
 ### Changed
-- Moved custom Sensor Lidar path tracing code to the SensorSDK package.
-- Optimized real time probe rendering by avoid an unnecessary copy per face.
+- Moved some custom path tracing code to the SensorSDK package.
+- Stopped unnecessary copy per fave to optimize real-time probe rendering.
+- Fixed so that Decal Materials aren't always saved when you save a scene.
+- Added a new/clone button to lens flare data picker.
+- Added an error message in the custom pass volume editor when custom passes are disabled in the HDRP asset.
+- Fixed a missing menu item to create reflection proxy volume.
+- Renamed the *Ambient Occlusion Volume Component* to *Screen Space Ambient Occlusion*.
+- Fixed so the Rendering Debugger isn't recreated on UI changes.
+- Used anti leaking in reflection probes and changed the default values for APV.
+- Added clamp to reflection probe normalization factor computed from APV.
+- Changed default size of the debug APV probes, moved the menu entry for the APV baking window and clarified the tooltip for APV simplification levels.
+- Changed the way HDRP volumetric clouds presets are handled to allow blending.
 
 ### Fixed
 - Fixed couple bugs in the volumetric clouds shader code.
-- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization.
 - Fixed the list of included HDRP asset used for stripping in the build process.
 - Fixed HDRP camera debug panel rendering foldout.
 - Fixed issue with Final Image Histogram displaying a flat histogram on certain GPUs and APIs.
 - Fixed various issues with render graph viewer when entering playmode.
 - Fixed Probe Debug view misbehaving with fog.
 - Fixed issue showing controls for Probe Volumes when Enlighten is enabled and therefore Probe Volumes are not supported.
-- Fixed null reference issue in CollectLightsForRayTracing (case 1398381)
-- Fixed camera motion vector pass reading last frame depth texture
-- Fixed issue with shader graph custom velocity and VFX (case 1388149)
-- Fixed motion vector rendering with shader graph with planar primitive (case 1398313)
+- Fixed null reference issue in CollectLightsForRayTracing.
+- Fixed camera motion vector pass reading last frame depth texture.
+- Fixed issue with shader graph custom velocity and VFX.
+- Fixed motion vector rendering with shader graph with planar primitive.
 - Fixed issue in APV with scenes saved only once when creating them.
 - Fixed probe volume baking not generating any probes on mac.
-- Fix a few UX issues in APV.
-- Fixed issue with detail normals when scale is null (case 1399548).
+- Fixed a few UX issues in APV.
+- Fixed issue with detail normals when scale is null.
+- Fixed some fields of the light explorer so they don't allow out of range values.
+- Fixed the behavior of the multi-selection on the material field **Motion Vector For Vertex Animation**.
+- Fixed a leak when creating and destroying manually reflection probes.
+- Fixed a compilation error when editor color space is gamma.
+- Fixed min percentage of dynamic resolution in HDRenderPipeline not clamped (case 1408155).
+- Updated frame diagram image in documentation (missing Flim grain and Dithering).
+- Fixed custom pass material editor not displaying correctly read-only materials.
+- Fixed HDRP Wizard windows duplicated when entering in play mode.
+- Fixed error on lens flare enabled causing motion vectors to be faulty.
+- Fixed error on LitTessellation material editor when Planar or Triplanar UVMapping is selected.
+- Fixed issue with overblown exposure when doing scene filtering.
+- Fixed pivot position in the eye material sample scene.
+- Fixed volumetric fog being clamped by the max shadow distance on metal.
+- Fixed an issue so you can build and run a HDRP Project for the first time without an error.
+- Fixed prefab mode context visibility so it hides passes, decals, and local volumetric fog objects.
+- Fixed volumetric fog being clamped by the max shadow distance on metal.
+- Fixed MinMax of Transparent Thickness.
+- Improved error reporting from exceptional RenderGraph states.
+- Fixed an invalid undo step when you edit some values on the Rendering Debugger.
+- Fixed so that when you perform a reset on the rendering debugger, it hides elements.
+- Fixed errors when cancelling an APV bake and trigger a bake right after.
+- Fixed the unloading of scenes so it doesn't cause the unload of APV data of other scenes.
+- Fixed a compilation warning when installing the procedural sky HDRP sample.
+- Fixed a warning on first frame when a realtime probe is set to OnEnable.
+- Fixed raytrace shader not working in final player build.
+- Fixed constant repaint when static sky set to none.
+- Fixed label for background clouds in Environment Lighting tab.
+- Fixed Planar Probe not rendering when sky is None.
+- Fixed black screen with MSAA and TAAU both enabled.
+- Added the volumetric clouds to the feature list of HDRP.
+- Fixed decal angle fade for decal projectors.
+- Fixed the UX for baked reflection probes.
+- Removed clamping for ray traced reflections on transparent objects.
+- Fixed an issue regarding the scaling of texture read from the after-post-process injection point.
+- Fixed so volumetric fog color doesn't height fog when disabled.
+- Fixed issue with specular occlusion being wrongly quantized when APV is enabled in HDRP.
+- Added the option to automatically register diffusion profiles on import.
+- Fixed water simulation so it stops when you enter pause mode in the unity editor.
+- Fixed path tracer denoising in player builds.
+- Changed the Box Model name to Planar Model.
+- Updated DLSS test images for a driver update.
+
+## [14.0.2] - 2021-02-04
+
+This version is compatible with Unity 2022.2.0a8.
+
+### Changed
+- Moved custom Sensor Lidar path tracing code to the SensorSDK package.
+- Optimized real time probe rendering by avoid an unnecessary copy per face.
+
+### Fixed
 - Fixed compilation errors on ps5 shaders.
 
 ## [14.0.1] - 2021-12-07

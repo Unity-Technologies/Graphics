@@ -1,0 +1,291 @@
+#pragma target 4.5
+
+#define SHADERPASS SHADERPASS_VOLUMETRIC_FOG_VFX_VOXELIZATION
+
+// Note: picking is not possible with HDRP Volumetric Fog
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+int _ObjectId;
+int _PassValue;
+#endif
+
+struct VertexToFragment
+{
+    float4 positionCS : SV_POSITION;
+    nointerpolation float4 sphereInfo : TEXCOORD0;
+    nointerpolation float4 colorAndDensity : TEXCOORD1;
+    nointerpolation float4 densityData : TEXCOORD2;
+#if defined(HDRP_VOLUMETRIC_MASK)
+    float3 uv : TEXCOORD3;
+#endif
+    float3 viewDirectionWS : TEXCOORD4;
+    nointerpolation uint depthSlice : SV_RenderTargetArrayIndex;
+};
+
+${VFXPerPassInclude}
+${VFXGeneratedBlockFunction}
+
+struct vs_input
+{
+    VFX_DECLARE_INSTANCE_ID
+    uint vertexId : SV_VertexID;
+};
+
+#define VFX_VARYING_POSCS positionCS
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/HDRenderPipeline.VolumetricLighting.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Editor/Material/FogVolume/ShaderGraph/VolumetricMaterialUtils.hlsl"
+
+int DistanceToSlice(float distance)
+{
+    float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+    float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
+
+    float e1 = EncodeLogarithmicDepthGeneralized(distance, _VBufferDistanceEncodingParams);
+    e1 -= de;
+    e1 /= de;
+
+    return int(max(0, e1 - 0.5));
+}
+
+StructuredBuffer<uint> maxSliceCount;
+
+VertexToFragment Vert(vs_input i)
+{
+    VertexToFragment o = (VertexToFragment)0;
+
+    UNITY_SETUP_INSTANCE_ID(i);
+
+    // Call manually init instancing to get the correct batch index needed to compute the particle ID and call VFXInitInstancing with the correct parameters.
+    uint batchIndex, unused;
+    VFXInitInstancing(0, unused, batchIndex);
+
+    uint id = i.vertexId + VFX_GET_INSTANCE_ID(i) * 2048 * 4;
+    uint quadCountPerParticle = maxSliceCount[batchIndex];
+    uint quadIndex = id / 4;
+    uint quadIndexPerParticle = quadIndex % quadCountPerParticle;
+    uint particleId = (quadIndex / quadCountPerParticle);
+    uint index = particleId;
+    uint viewIndex = unity_StereoEyeIndex;
+
+    // Cull particles in case more draw calls were issued than necessary, this happens quite a lot when dispatching large number of quads
+    if (quadIndex > indirectBuffer[0])
+        return o;
+
+    ${VFXInitInstancing}
+
+    ContextData contextData = instancingContextData[instanceActiveIndex];
+    uint systemSeed = contextData.systemSeed;
+    uint nbMax = contextData.maxParticleCount;
+
+    ${VFXLoadGraphValues}
+    VFXAttributes attributes = (VFXAttributes)0;
+    VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
+    index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
+    ${VFXLoadAttributes}
+    ${VFXProcessBlocks}
+
+    ${VFXLoadParameter:{fadeRadius}}
+    ${VFXLoadParameter:{density}}
+    ${VFXLoadParameter:{falloffMode}}
+    ${VFXLoadParameter:{fogBlendMode}}
+#if defined(HDRP_VOLUMETRIC_MASK)
+    ${VFXLoadParameter:{isTextureAlpha8}}
+#else
+    float isTextureAlpha8 = 0;
+#endif
+
+    o.densityData = float4(fadeRadius, falloffMode, fogBlendMode, isTextureAlpha8);
+
+    ${VFXLoadSize}
+    float uSize = size3.x * 0.5f;
+
+	float3x3 rot = GetEulerMatrix(radians(float3(attributes.angleX,attributes.angleY,attributes.angleZ)));
+	float4x4 elementToVFX = GetElementToVFXMatrix(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		rot,
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+		size3,
+		attributes.position);
+
+	float3 vPos = mul(elementToVFX,float4(0, 0, 0, 1.0f)).xyz;
+    float3 particleCenterWorldPosition = TransformPositionVFXToWorld(vPos);
+
+#ifdef VFX_WORLD_SPACE
+    particleCenterWorldPosition = GetCameraRelativePositionWS(particleCenterWorldPosition);
+#endif
+
+    float distanceToCamera = length(particleCenterWorldPosition);
+    float scale = 1.0f - (1.0f - unity_OrthoParams.w) * uSize / distanceToCamera;
+
+    o.sphereInfo.xyz = particleCenterWorldPosition;
+    o.sphereInfo.w = uSize;
+
+    float vBufferNearplane = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+    float distanceToParticleSphere = distanceToCamera - uSize;
+    bool cameraInsideParticle = distanceToParticleSphere <= 0;
+    distanceToParticleSphere = max(distanceToParticleSphere, vBufferNearplane);
+
+    // Calculate the start slice index from the front position of the particle
+    uint startSliceIndex = DistanceToSlice(distanceToParticleSphere);
+    uint sliceIndex = startSliceIndex + quadIndexPerParticle;
+    o.depthSlice = sliceIndex + viewIndex * _VBufferSliceCount;
+    float sliceDistanceToCamera = VBufferDistanceToSliceIndex(sliceIndex);
+
+    float distanceFadeFactor = 1.0f;
+#if defined(HDRP_VOLUMETRIC_DISTANCE_FADING)
+    ${VFXLoadParameter:{rcpDistanceFadeLength}}
+    ${VFXLoadParameter:{endTimesRcpDistanceFadeLength}}
+
+    distanceFadeFactor = Remap10(sliceDistanceToCamera, rcpDistanceFadeLength, endTimesRcpDistanceFadeLength);
+#endif
+    o.colorAndDensity = float4(attributes.color.rgb, attributes.alpha * density * distanceFadeFactor);
+
+    float distanceBetweenCenterAndSlice = abs(distanceToCamera) - sliceDistanceToCamera;
+
+    float3 viewDirection = -normalize(particleCenterWorldPosition);
+
+    if (cameraInsideParticle)
+        viewDirection = -normalize(UNITY_MATRIX_V[2].xyz);
+
+    // When the camera is inside we need to change which algorithm is used to place the slice otherwise the quad
+    // may end up being coplanar to the camera which makes the particle disappear.
+    float3 offsetPositionRWS;
+    if (cameraInsideParticle)
+    {
+        float3 sliceCenterPosition = viewDirection * sliceDistanceToCamera;
+        float3 dir = -normalize(particleCenterWorldPosition - sliceCenterPosition);
+        distanceBetweenCenterAndSlice = length(particleCenterWorldPosition - sliceCenterPosition);
+        offsetPositionRWS = particleCenterWorldPosition + distanceBetweenCenterAndSlice * dir;
+    }
+    else
+    {
+        offsetPositionRWS = particleCenterWorldPosition + (distanceBetweenCenterAndSlice) * viewDirection;
+    }
+
+    // Calculate the exact size of the quad to fit the sphere at a certain position.
+    float distanceInSphere = length(offsetPositionRWS - particleCenterWorldPosition);
+    float normalizedSliceDistanceToCenter = saturate(distanceInSphere / uSize);
+    float sphereScale = saturate(sqrt(1 - abs(normalizedSliceDistanceToCenter * normalizedSliceDistanceToCenter))); // sin(acos(distance))
+
+    // Due the the froxel buffer having cone shaped froxel, we need to  disable the sphere scaling as it doesn't take in account the curvature of the froxel
+    if (cameraInsideParticle)
+        sphereScale = 1;
+
+    // Hack to avoid quad artifacts when getting close to the sphere (still due to the shape of the froxel buffer, the quad size is not accurate)
+    sphereScale = lerp(sphereScale, 2, 1.0 - saturate(distanceToParticleSphere / uSize));
+
+    // Manually compute the world position without clip space to reduct SGPR pressure
+    float3 tmpCameraRight = UNITY_MATRIX_V[0].xyz;
+    float3 cameraUp = normalize(cross(viewDirection, tmpCameraRight));
+    float3 cameraRight = normalize(cross(viewDirection, cameraUp));
+
+    // Scale quad depending on how the slice cut the sphere
+    float2 quad = float2(float(id & 1), (id & 2) * 0.5f) * 2 - 1;
+    float3 positionWS = offsetPositionRWS + cameraUp * uSize * quad.y * sphereScale + cameraRight * uSize * quad.x * sphereScale;
+
+    o.positionCS = TransformWorldToHClip(positionWS);
+
+    o.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
+
+#if defined(HDRP_VOLUMETRIC_MASK)
+    o.uv = ((positionWS - o.sphereInfo.xyz) / (attributes.scaleX * attributes.size)) + 0.5; // We don't need to multiply by 0.5 because it's already included in the divide by size.
+
+#if defined(VFX_APPLY_ANGULAR_ROTATION)
+    o.uv = o.uv * 2 - 1;
+    float3x3 r = mul((float3x3(attributes.axisX, attributes.axisY, attributes.axisZ)), rot);
+    o.uv = mul(r, o.uv);
+    o.uv = o.uv * 0.5 + 0.5;
+#endif
+
+    ${VFXLoadParameter:{uvScale}}
+    ${VFXLoadParameter:{uvBias}}
+    o.uv *= uvScale;
+    o.uv += uvBias;
+#endif
+
+    return o;
+}
+
+float2 sphIntersect( in float3 ro, in float3 rd, in float3 ce, float ra )
+{
+    float3 oc = ro - ce;
+    float b = dot( oc, rd );
+    float c = dot( oc, oc ) - ra*ra;
+    float h = b*b - c;
+    if( h<0.0 ) return -1.0; // no intersection
+    h = sqrt( h );
+    return float2( -b-h, -b+h );
+}
+
+float3 CalculateVoxelCenterWS(VertexToFragment i)
+{
+    float sliceDepth = VBufferDistanceToSliceIndex(i.depthSlice % _VBufferSliceCount);
+    // Compute voxel center position and test against volume OBB
+    float3 raycenterDirWS = normalize(-i.viewDirectionWS);
+    float3 rayoriginWS    = GetCurrentViewPosition();
+    float3 voxelCenterWS = rayoriginWS + sliceDepth * raycenterDirWS;
+
+    return voxelCenterWS;
+}
+
+float4 Frag(VertexToFragment i) : SV_Target0
+{
+    float3 voxelCenterWS = CalculateVoxelCenterWS(i);
+    float distanceToCenter = length(voxelCenterWS - i.sphereInfo.xyz);
+
+    if (distanceToCenter > i.sphereInfo.w)
+        clip(-1);
+
+    // Fade radius
+    float fade = i.densityData.x <= 0 ? 1 : saturate((i.sphereInfo.w - distanceToCenter) / i.densityData.x);
+    bool multiplyBlendMode = i.densityData.z == LOCALVOLUMETRICFOGBLENDINGMODE_MULTIPLY;
+    bool exponential = i.densityData.y == LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL;
+
+    ApplyExponentialFadeFactor(fade, exponential, multiplyBlendMode);
+
+    float3 albedo = i.colorAndDensity.xyz;
+    float extinction = i.colorAndDensity.w;
+
+#if defined(HDRP_VOLUMETRIC_MASK)
+    float4 maskValue = SAMPLE_TEXTURE3D(mask, samplermask, i.uv);
+    if (i.densityData.w == 1) // Alpha8 texture handling
+        maskValue = float4(1, 1, 1, maskValue.a);
+    albedo *= maskValue.rgb;
+    extinction *= maskValue.a;
+#endif
+
+    if (multiplyBlendMode)
+    {
+        return max(0, lerp(float4(1.0, 1.0, 1.0, 1.0), float4(saturate(albedo * extinction), extinction), fade.xxxx));
+    }
+    else
+    {
+        extinction *= fade;
+        return max(0, float4(saturate(albedo * extinction), extinction));
+    }
+}
+
+float4 FragmentSceneSelection(VertexToFragment i) : SV_Target0
+{
+    float3 voxelCenterWS = CalculateVoxelCenterWS(i);
+    float distanceToCenter = length(voxelCenterWS - i.sphereInfo.xyz);
+
+    if (distanceToCenter > i.sphereInfo.w)
+        clip(-1);
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+	return float4(_ObjectId, _PassValue, 1.0, 1.0);
+#else
+    return 0;
+#endif
+}
+
+float4 FragmentOverdrawDebug(VertexToFragment i) : SV_Target0
+{
+    return float4(1, 1, 1, _VBufferRcpSliceCount);
+}

@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
+using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
@@ -14,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     ///
     [ExecuteAlways, DisallowMultipleComponent]
-    [MovedFrom(false, "UnityEngine.Experimental.Rendering.Universal", "com.unity.render-pipelines.universal")]
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal", "Unity.RenderPipelines.Universal.Runtime")]
     [AddComponentMenu("Rendering/2D/Light 2D")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     public sealed partial class Light2D : Light2DBase, ISerializationCallbackReceiver
@@ -177,6 +178,9 @@ namespace UnityEngine.Rendering.Universal
         int m_PreviousLightCookieSprite;
         internal Vector3 m_CachedPosition;
 
+        // We use Blue Channel of LightMesh's vertex color to indicate Slot Index.
+        int m_BatchSlotIndex = 0;
+        internal int batchSlotIndex { get { return m_BatchSlotIndex; } set {  m_BatchSlotIndex = value; } }
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
@@ -369,7 +373,13 @@ namespace UnityEngine.Rendering.Universal
                 m_Vertices = new LightUtility.LightMeshVertex[1];
                 m_Triangles = new ushort[1];
             }
-            return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
+            return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite, LightBatch.GetBatchColor(batchSlotIndex));
+        }
+
+        internal void UpdateBatchSlotIndex()
+        {
+            if (lightMesh && lightMesh.colors != null && lightMesh.colors.Length != 0)
+                m_BatchSlotIndex = LightBatch.GetBatchSlotIndex(lightMesh.colors[0].b);
         }
 
         internal void UpdateMesh(bool forceUpdate = false)
@@ -388,21 +398,25 @@ namespace UnityEngine.Rendering.Universal
             // Mesh Rebuilding
             if (hashChanged || forceUpdate)
             {
+                var batchChannelColor = LightBatch.GetBatchColor(batchSlotIndex);
+
                 switch (m_LightType)
                 {
                     case LightType.Freeform:
-                        m_LocalBounds = LightUtility.GenerateShapeMesh(this, m_ShapePath, m_ShapeLightFalloffSize);
+                        m_LocalBounds = LightUtility.GenerateShapeMesh(this, m_ShapePath, m_ShapeLightFalloffSize, batchChannelColor);
                         break;
                     case LightType.Parametric:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, batchChannelColor);
                         break;
                     case LightType.Sprite:
                         m_LocalBounds = UpdateSpriteMesh();
                         break;
                     case LightType.Point:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, 1.412135f, 0, 0, 4);
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, 1.412135f, 0, 0, 4, batchChannelColor);
                         break;
                 }
+
+                UpdateBatchSlotIndex();
             }
         }
 
@@ -434,6 +448,17 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        internal Matrix4x4 GetMatrix()
+        {
+            var matrix = transform.localToWorldMatrix;
+            if (lightType == Light2D.LightType.Point)
+            {
+                var scale = new Vector3(pointLightOuterRadius, pointLightOuterRadius, pointLightOuterRadius);
+                matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
+            }
+            return matrix;
+        }
+
         private void Awake()
         {
 #if UNITY_EDITOR
@@ -453,6 +478,8 @@ namespace UnityEngine.Rendering.Universal
                     lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
                 }
             }
+
+            UpdateBatchSlotIndex();
         }
 
         void OnEnable()

@@ -21,6 +21,8 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle afterPostProcessColor;
             internal TextureHandle upscaleTexture;
             internal TextureHandle cameraSortingLayerTexture;
+
+            internal TextureHandle overlayUITexture;
         }
 
         private Attachments m_Attachments = new Attachments();
@@ -187,21 +189,21 @@ namespace UnityEngine.Rendering.Universal
             m_Attachments.afterPostProcessColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, postProcessDesc, "_AfterPostProcessTexture", true);
         }
 
-        internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context,  ref RenderingData renderingData)
         {
             CreateResources(renderGraph, ref renderingData);
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, false);
 
-            DebugHandler?.Setup(context, ref renderingData);
+            DebugHandler?.Setup(ref renderingData);
 
-            OnMainRendering(renderGraph, context, ref renderingData);
+            OnMainRendering(renderGraph, ref renderingData);
 
-            OnAfterRendering(renderGraph, context, ref renderingData);
+            OnAfterRendering(renderGraph, ref renderingData);
         }
 
-        private void OnMainRendering(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        private void OnMainRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
-            var cameraData = renderingData.cameraData;
+            ref var cameraData = ref renderingData.cameraData;
             RTClearFlags clearFlags = RTClearFlags.None;
 
             if (cameraData.renderType == CameraRenderType.Base)
@@ -264,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void OnAfterRendering(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
+        private void OnAfterRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             bool drawGizmos = UniversalRenderPipelineDebugDisplaySettings.Instance.renderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None;
@@ -305,14 +307,14 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                m_FinalBlitPass.Render(renderGraph, ref renderingData, finalTextureHandle, m_Attachments.backBufferColor);
+                m_FinalBlitPass.Render(renderGraph, ref renderingData, finalTextureHandle, m_Attachments.backBufferColor, m_Attachments.overlayUITexture);
             }
 
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, m_Attachments.backBufferColor, m_Attachments.depthAttachment, GizmoSubset.PostImageEffects, ref renderingData);
         }
 
-        internal override void OnFinishRenderGraphRendering(ScriptableRenderContext context, ref RenderingData renderingData)
+        internal override void OnFinishRenderGraphRendering(ref RenderingData renderingData)
         {
         }
 

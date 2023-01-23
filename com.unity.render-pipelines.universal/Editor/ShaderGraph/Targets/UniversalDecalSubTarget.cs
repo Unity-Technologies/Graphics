@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddCustomEditorForRenderPipeline("UnityEditor.Rendering.Universal.DecalShaderGraphGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
 
             {
-                SubShaderDescriptor subShader = SubShaders.Decal;
+                SubShaderDescriptor subShader = SubShaders.Decal(decalData.supportLodCrossFade ? $"{UnityEditor.ShaderGraph.DisableBatching.LODFading}" : $"{UnityEditor.ShaderGraph.DisableBatching.False}");
 
                 var passes = new PassCollection();
                 foreach (var pass in subShader.passes)
@@ -309,24 +309,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor Decal = new SubShaderDescriptor()
+            public static SubShaderDescriptor Decal(string disableBatchingTag)
             {
-                pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = "\"PreviewType\"=\"Plane\"",
-                generatesPreview = true,
-                passes = new PassCollection
+                return new SubShaderDescriptor()
                 {
-                    { DecalPasses.DBufferProjector, new FieldCondition(AffectsDBuffer, true) },
-                    { DecalPasses.ForwardEmissiveProjector, new FieldCondition(AffectsEmission, true) },
-                    { DecalPasses.ScreenSpaceProjector, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.GBufferProjector, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.DBufferMesh, new FieldCondition(AffectsDBuffer, true) },
-                    { DecalPasses.ForwardEmissiveMesh, new FieldCondition(AffectsEmission, true) },
-                    { DecalPasses.ScreenSpaceMesh, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.GBufferMesh, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.ScenePicking, new FieldCondition(DecalDefault, true) },
-                },
-            };
+                    pipelineTag = UniversalTarget.kPipelineTag,
+                    customTags = "\"PreviewType\"=\"Plane\"",
+                    disableBatchingTag = disableBatchingTag,
+                    generatesPreview = true,
+                    passes = new PassCollection
+                    {
+                        { DecalPasses.DBufferProjector, new FieldCondition(AffectsDBuffer, true) },
+                        { DecalPasses.ForwardEmissiveProjector, new FieldCondition(AffectsEmission, true) },
+                        { DecalPasses.ScreenSpaceProjector, new FieldCondition(DecalDefault, true) },
+                        { DecalPasses.GBufferProjector, new FieldCondition(DecalDefault, true) },
+                        { DecalPasses.DBufferMesh, new FieldCondition(AffectsDBuffer, true) },
+                        { DecalPasses.ForwardEmissiveMesh, new FieldCondition(AffectsEmission, true) },
+                        { DecalPasses.ScreenSpaceMesh, new FieldCondition(DecalDefault, true) },
+                        { DecalPasses.GBufferMesh, new FieldCondition(DecalDefault, true) },
+                        { DecalPasses.ScenePicking, new FieldCondition(DecalDefault, true) },
+                    },
+                };
+            }
         }
         #endregion
 

@@ -137,9 +137,20 @@ namespace UnityEngine.VFX.Utility
             if (depth == null && color == null)
                 return;
 
-            component.SetVector3(m_Position, AdditionalData.transform.position);
-            component.SetVector3(m_Angles, AdditionalData.transform.eulerAngles);
-            component.SetVector3(m_Scale, AdditionalData.transform.lossyScale);
+            var targetSpace = component.visualEffectAsset.GetExposedSpace(m_Position);
+            Matrix4x4 readTransform;
+            if (targetSpace == VFXSpace.Local)
+            {
+                readTransform = component.transform.worldToLocalMatrix * AdditionalData.transform.localToWorldMatrix;
+            }
+            else
+            {
+                readTransform = AdditionalData.transform.localToWorldMatrix;
+            }
+
+            component.SetVector3(m_Position, readTransform.GetPosition());
+            component.SetVector3(m_Angles, readTransform.rotation.eulerAngles);
+            component.SetVector3(m_Scale, readTransform.lossyScale);
 
             // While field of View is set in degrees for the camera, it is expected in radians in VFX
             component.SetFloat(m_FieldOfView, Mathf.Deg2Rad * m_Camera.fieldOfView);

@@ -353,6 +353,7 @@
 #define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitAnd)
 #define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitOr)
 #define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
+#define WaveIsHelperLane ERROR_ON_UNSUPPORTED_FUNCTION(WaveIsHelperLane)
 #endif
 
 #if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)

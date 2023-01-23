@@ -1106,6 +1106,20 @@ namespace UnityEngine.Rendering
                 cmd.DisableShaderKeyword(keyword);
         }
 
+        /// <summary>
+        /// Set a global keyword using a RasterCommandBuffer
+        /// </summary>
+        /// <param name="cmd">CommandBuffer on which to set the global keyword.</param>
+        /// <param name="keyword">Keyword to be set.</param>
+        /// <param name="state">Value of the keyword to be set.</param>
+        public static void SetKeyword(BaseCommandBuffer cmd, string keyword, bool state)
+        {
+            if (state)
+                cmd.m_WrappedCommandBuffer.EnableShaderKeyword(keyword);
+            else
+                cmd.m_WrappedCommandBuffer.DisableShaderKeyword(keyword);
+        }
+
         // Caution: such a call should not be use interlaced with command buffer command, as it is immediate
         /// <summary>
         /// Set a keyword immediatly on a Material.

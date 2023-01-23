@@ -4,12 +4,12 @@ namespace UnityEditor.VFX
 {
     interface IRequireVFXContext
     {
-        void ConfigureContextData(VFXContext context, VFXContextCompiledData data);
+        void ConfigureContextData(VFXContext context, VFXTaskCompiledData data);
     }
 
     static class RequireVFXContextExtensions
     {
-        public static bool TryConfigureContextData(this Target target, VFXContext context, VFXContextCompiledData data)
+        public static bool TryConfigureContextData(this Target target, VFXContext context, VFXTaskCompiledData data)
         {
             if (!(target is IRequireVFXContext vfxTarget))
                 return false;

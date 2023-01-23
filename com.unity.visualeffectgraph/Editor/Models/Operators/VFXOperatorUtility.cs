@@ -766,5 +766,12 @@ namespace UnityEditor.VFX
             var zero = ZeroExpression[VFXValueType.Float3];
             return new VFXExpressionTRSToMatrix(zero, zero, scale3);
         }
+
+        static public VFXExpression TextureFormatEquals(VFXExpression texture, TextureFormat format)
+        {
+            var textureFormat = new VFXExpressionTextureFormat(texture);
+            return new VFXExpressionCondition(VFXValueType.Uint32, VFXCondition.Equal,
+                textureFormat, VFXValue.Constant((uint)format));
+        }
     }
 }

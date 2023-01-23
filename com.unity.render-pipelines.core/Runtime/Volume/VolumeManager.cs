@@ -80,8 +80,10 @@ namespace UnityEngine.Rendering
                             path = attrMenu.menu;
                             if(supportedOnRenderPipelines != null && supportedOnRenderPipelines.GetSupportedMode(currentPipelineAsset) == SupportedOnRenderPipelineAttribute.SupportedMode.Unsupported)
                                 skipComponent = true;
+#pragma warning disable CS0618
                             else if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
                                 skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
+#pragma warning restore CS0618
                             break;
                         }
                         case HideInInspector attrHide:
@@ -155,7 +157,8 @@ namespace UnityEngine.Rendering
         // we want to be able to switch to the default one through the ResetMainStack() function.
         VolumeStack m_DefaultStack = null;
 
-        VolumeManager()
+ 		// Internal for tests
+        internal VolumeManager()
         {
             m_SortedVolumes = new Dictionary<int, List<Volume>>();
             m_Volumes = new List<Volume>();
