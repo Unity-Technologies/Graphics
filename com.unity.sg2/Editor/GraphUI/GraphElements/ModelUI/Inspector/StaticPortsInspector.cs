@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var graphModel = (SGGraphModel)nodeModel.GraphModel;
             var stencil = (ShaderGraphStencil)graphModel.Stencil;
-            var nodeUIDescriptor = stencil.GetUIHints(nodeModel.registryKey, nodeReader);
+            var nodeUIDescriptor = graphModel.RegistryInstance.GetNodeUIDescriptor(nodeModel.registryKey, nodeReader);
 
             foreach (var port in nodeReader.GetPorts())
             {
