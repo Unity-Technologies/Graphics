@@ -53,11 +53,11 @@ namespace UnityEditor.ShaderGraph.Defs
             Parameters = parametersList.ToList().AsReadOnly();
             FunctionSelectorLabel = functionSelectorLabel;
             // Description can either be a string or a string that represents a path
-            if (description != null && description.StartsWith("file://"))
+            if (description != null && description.StartsWith("pkg://"))
             {
                 try
                 {
-                    description = File.ReadAllText("Packages/com.unity.sg2/" + description[7..]);
+                    description = File.ReadAllText("Packages/com.unity.sg2/" + description[6..]);
                 }
                 catch (Exception e)
                 {
