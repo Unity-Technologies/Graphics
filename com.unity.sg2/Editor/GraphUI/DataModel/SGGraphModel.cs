@@ -117,31 +117,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override bool CanBeSubgraph() => isSubGraph;
         protected override Type GetWireType(PortModel toPort, PortModel fromPort)
         {
-            return typeof(SGEdgeModel);
-        }
-        public override Type GetSectionModelType()
-        {
-            return typeof(SectionModel);
+            return typeof(SGWireModel);
         }
 
         public override WireModel CreateWire(PortModel toPort, PortModel fromPort, SerializableGUID guid = default)
         {
-            PortModel resolvedEdgeSource;
-            List<PortModel> resolvedEdgeDestinations;
-            resolvedEdgeSource = HandleRedirectNodesCreation(toPort, fromPort, out resolvedEdgeDestinations);
+            var resolvedWireSource = HandleRedirectNodesCreation(toPort, fromPort, out var resolvedWireDestinations);
 
-            var edgeModel = base.CreateWire(toPort, fromPort, guid);
-            if (resolvedEdgeSource is not SGPortModel fromDataPort)
-                return edgeModel;
+            var wireModel = base.CreateWire(toPort, fromPort, guid);
+            if (resolvedWireSource is not SGPortModel fromDataPort)
+                return wireModel;
 
             // Make the corresponding connections in CLDS data model
-            foreach (var toDataPort in resolvedEdgeDestinations.OfType<SGPortModel>())
+            foreach (var toDataPort in resolvedWireDestinations.OfType<SGPortModel>())
             {
               // Validation should have already happened in GraphModel.IsCompatiblePort.
               Assert.IsTrue(TryConnect(fromDataPort, toDataPort));
             }
 
-            return edgeModel;
+            return wireModel;
         }
 
         public override void DeleteWires(IReadOnlyCollection<WireModel> edgeModels)
