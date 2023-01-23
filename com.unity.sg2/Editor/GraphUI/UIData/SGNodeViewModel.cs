@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// <summary>
     /// This struct holds the Application/Tool-side info. about the UI data relevant to a node
     /// </summary>
-    class SGNodeViewModel
+    struct SGNodeViewModel
     {
         public int Version { get; }
         public string Name { get; }
