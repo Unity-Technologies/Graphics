@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
@@ -49,6 +52,19 @@ namespace UnityEditor.ShaderGraph.Defs
             var parametersList = parameters ?? new ParameterUIDescriptor[0];
             Parameters = parametersList.ToList().AsReadOnly();
             FunctionSelectorLabel = functionSelectorLabel;
+            // Description can either be a string or a string that represents a path
+            if (description != null && description.StartsWith("pkg://"))
+            {
+                try
+                {
+                    description = File.ReadAllText("Packages/com.unity.sg2/" + description[6..]);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Could not read node description at {description}");
+                    description = null;
+                }
+            }
             Description = description;
         }
 
@@ -63,6 +79,5 @@ namespace UnityEditor.ShaderGraph.Defs
 
 			return new ParameterUIDescriptor();
         }
-
     }
 }
