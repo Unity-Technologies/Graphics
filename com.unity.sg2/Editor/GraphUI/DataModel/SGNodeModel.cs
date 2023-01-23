@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // By default every node's preview uses the inherit mode
         [SerializeField]
-        [ModelSetting]
+        [NodeOption]
         PreviewRenderMode m_NodePreviewMode;
         public PreviewRenderMode NodePreviewMode
         {

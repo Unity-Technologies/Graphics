@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (inspectorSectionContext.Section.SectionType)
                 {
-                    case SectionType.Settings:
+                    case SectionType.Options:
                     {
                         var variableInspector = new GraphDataVariableSettingsInspector(ModelInspector.fieldsPartName, models, ui.RootView, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(variableInspector);
@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (inspectorSectionContext.Section.SectionType)
                 {
-                    case SectionType.Settings:
+                    case SectionType.Options:
                     {
                         // TODO GTF UPGRADE: support edition of multiple models.
                         var model = models.First();
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 switch (inspectorSectionContext.Section.SectionType)
                 {
-                    case SectionType.Settings:
+                    case SectionType.Options:
                     {
                         var upgradePrompt = new NodeUpgradePart("sg-node-upgrade", models, elementBuilder.View, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(upgradePrompt);
@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 {
                     switch (inspectorSectionContext.Section.SectionType)
                     {
-                        case SectionType.Settings:
+                        case SectionType.Options:
                         {
                             var targetSettingsField = new TargetSettingsInspector(graphAsset.SGGraphModel.Targets, ModelInspector.fieldsPartName, models, view, ModelInspector.ussClassName);
                             ui.PartList.AppendPart(targetSettingsField);
