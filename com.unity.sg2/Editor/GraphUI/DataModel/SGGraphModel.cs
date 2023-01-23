@@ -99,27 +99,32 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns></returns>
         public bool GetNodeViewModel(RegistryKey registryKey, out SGNodeViewModel nodeViewModel)
         {
-            return m_NodeUIData.TryGetValue(registryKey, out nodeViewModel);
+            m_NodeUIData ??= new();
+
+            if (!m_NodeUIData.TryGetValue(registryKey, out nodeViewModel))
+            {
+                nodeViewModel = CreateUIData(registryKey);
+                m_NodeUIData[registryKey] = nodeViewModel;
+            }
+
+            return nodeViewModel != null;
         }
 
         /// <summary>
         /// Called after the graph model is loaded
         /// Creates the application side UI data by extracting it from the UI Descriptors
         /// </summary>
-        public void CreateUIData()
+        SGNodeViewModel CreateUIData(RegistryKey registryKey)
         {
-            if (Stencil is ShaderGraphStencil stencil && m_NodeUIData == null)
+            SGNodeViewModel viewModel = null;
+            if (Stencil is ShaderGraphStencil stencil)
             {
-                m_NodeUIData = new();
-                foreach (var registryKey in RegistryInstance.Registry.BrowseRegistryKeys())
+                var nodeUIInfo = stencil.GetUIHints(registryKey);
+
+                var portViewModels = new List<SGPortViewModel>();
+                var nodeTopology = RegistryInstance.GetDefaultTopology(registryKey);
+                if (nodeTopology != null)
                 {
-                    var nodeUIInfo = stencil.GetUIHints(registryKey);
-
-                    var portViewModels = new List<SGPortViewModel>();
-                    var nodeTopology = RegistryInstance.GetDefaultTopology(registryKey);
-                    if(nodeTopology == null)
-                        continue;
-
                     // By default we assume all types need preview output, unless they opt out
                     var showPreviewForType = true;
 
@@ -127,11 +132,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     foreach (var parameter in nodeUIInfo.Parameters)
                     {
                         var portInfo = portTopologies.FirstOrDefault(port => port.ID.LocalPath == parameter.Name);
-                        if(CreatePortViewModel(portInfo, parameter, out var portViewModel, out showPreviewForType))
+                        if (CreatePortViewModel(portInfo, parameter, out var portViewModel, out showPreviewForType))
                             portViewModels.Add(portViewModel);
                     }
 
                     var selectedFunctionID = String.Empty;
+
                     // If the node has multiple possible topologies, show the selector.
                     if (nodeUIInfo.SelectableFunctions.Count > 0)
                     {
@@ -143,22 +149,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     var shouldShowPreview = nodeUIInfo.HasPreview && showPreviewForType;
 
                     var functionDictionary = nodeUIInfo.SelectableFunctions.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                    var nodeUIData = new SGNodeViewModel(
-                                            nodeUIInfo.Version,
-                                            nodeUIInfo.Name,
-                                            nodeUIInfo.Tooltip,
-                                            nodeUIInfo.Category,
-                                            nodeUIInfo.Synonyms.ToArray(),
-                                            nodeUIInfo.DisplayName,
-                                            shouldShowPreview,
-                                            functionDictionary,
-                                            portViewModels.ToArray(),
-                                            nodeUIInfo.FunctionSelectorLabel,
-                                            selectedFunctionID);
-                    if(!m_NodeUIData.TryAdd(registryKey, nodeUIData))
-                        Debug.LogWarning("Tried to add duplicate to Node UI Data with value: " + registryKey);
+                    viewModel = new SGNodeViewModel(
+                        nodeUIInfo.Version,
+                        nodeUIInfo.Name,
+                        nodeUIInfo.Tooltip,
+                        nodeUIInfo.Category,
+                        nodeUIInfo.Synonyms.ToArray(),
+                        nodeUIInfo.DisplayName,
+                        shouldShowPreview,
+                        functionDictionary,
+                        portViewModels.ToArray(),
+                        nodeUIInfo.FunctionSelectorLabel,
+                        selectedFunctionID);
                 }
             }
+
+            return viewModel;
         }
 
         /// <summary>
