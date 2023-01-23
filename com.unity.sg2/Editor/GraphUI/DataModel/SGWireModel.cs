@@ -11,8 +11,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [MovedFrom(false, null,null, "SGEdgeModel")]
     class SGWireModel : WireModel
     {
-        public SGWireModel()
-        {
-        }
     }
 }

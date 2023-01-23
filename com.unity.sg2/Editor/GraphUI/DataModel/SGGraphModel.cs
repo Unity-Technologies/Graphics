@@ -11,6 +11,7 @@ using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    [Serializable]
     class SGGraphModel : GraphModel
     {
         [HideInInspector]
@@ -26,29 +27,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [SerializeField]
         private bool isSubGraph = false;
 
+        string m_BlackboardContextName;
+        string m_DefaultContextName;
+
         internal GraphHandler GraphHandler => graphHandlerBox.Graph;
         internal virtual ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
         internal List<JsonData<Target>> Targets => targetSettingsBox.Targets; // TODO: Store the active editing target in the box?
         internal Target ActiveTarget => Targets.FirstOrDefault();
         internal SGMainPreviewModel MainPreviewData => mainPreviewModel;
         internal bool IsSubGraph => CanBeSubgraph();
-        internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
-        internal string DefaultContextName => Registry.ResolveKey<ShaderGraphContext>().Name;
+        internal string BlackboardContextName => m_BlackboardContextName ??= Registry.ResolveKey<PropertyContext>().Name;
+        internal string DefaultContextName => m_DefaultContextName ??= Registry.ResolveKey<ShaderGraphContext>().Name;
 
         [NonSerialized]
         SGContextNodeModel m_DefaultContextNode;
-
-        [NonSerialized]
-        public GraphModelStateComponent graphModelStateComponent;
-
-        #region CopyPasteData
-        /// <summary>
-        /// ShaderGraphViewSelection and SGBlackboardViewSelection sets this to true
-        /// prior to a cut operation as we need to handle it a little differently
-        /// </summary>
-        [NonSerialized]
-        public bool isCutOperation;
-        #endregion CopyPasteData
 
         // TODO: This should be customizable through the UI: https://jira.unity3d.com/browse/GSG-777
         // TODO: Default should be changed back to "Shader Graphs" before release: https://jira.unity3d.com/browse/GSG-1431

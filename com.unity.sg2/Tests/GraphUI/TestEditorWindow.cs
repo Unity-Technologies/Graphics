@@ -6,8 +6,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     class TestEditorWindow : ShaderGraphEditorWindow
     {
-        public BlackboardView blackboardView => m_BlackboardView;
-
         protected override GraphView CreateGraphView()
         {
             GraphTool.Preferences.SetInitialItemLibrarySize(ItemLibraryService.Usage.CreateNode, new Vector2(425, 100), 2.0f);

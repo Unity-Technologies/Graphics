@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
@@ -12,8 +11,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     class ShaderGraphEditorWindow : GraphViewEditorWindow
     {
-        ShaderGraphGraphTool m_GraphTool;
-
         MainPreviewView m_MainPreviewView;
         public MainPreviewView MainPreviewView => m_MainPreviewView;
 
@@ -25,8 +22,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         // We store the preview size that the overlays load in with here to pass to the preview systems
         Vector2 m_PreviewSize;
 
-        protected BlackboardView m_BlackboardView;
-
         // We setup a reference to the MainPreview when the overlay containing it is created
         // We do this because the resources needed to initialize the preview are not available at overlay creation time
         internal void SetMainPreviewReference(MainPreviewView mainPreviewView)
@@ -37,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 SetDefaultMainPreviewUpdateListener(shaderGraphModel);
         }
 
-        internal GraphAsset Asset => m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
+        GraphAsset Asset => GraphTool.ToolState.CurrentGraph.GetGraphAsset();
 
         // This Flag gets set when the editor window is closed with the graph still in a dirty state,
         // letting various sub-systems and the user know on window re-open that the graph is still dirty
@@ -133,53 +128,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         private string GetSaveChangesMessage()
         {
             return "Do you want to save the changes you made in the Shader Graph?\n\n" +
-                m_GraphTool.ToolState.CurrentGraph.GetGraphAsset() +
+                GraphTool.ToolState.CurrentGraph.GetGraphAsset() +
                 "\n\nYour changes will be lost if you don't save them.";
-        }
-
-        bool DisplayDeletedFromDiskDialog()
-        {
-            bool saved = false;
-            bool okToClose = false;
-
-            var originalAssetPath = m_GraphTool.ToolState.CurrentGraph.GetGraphAsset();
-            int option = EditorUtility.DisplayDialogComplex(
-                "Graph removed from project",
-                "The file has been deleted or removed from the project folder.\n\n" +
-                originalAssetPath +
-                "\n\nWould you like to save your Graph Asset?",
-                "Save As...", "Cancel", "Discard Graph and Close Window");
-
-            if (option == 0)
-            {
-                var savedPath = GraphAssetUtils.SaveOpenGraphAssetAs(GraphTool);
-                if (savedPath != null)
-                {
-                    saved = true;
-                }
-            }
-            else if (option == 2)
-            {
-                okToClose = true;
-            }
-            else if (option == 1)
-            {
-                // continue in deleted state...
-            }
-
-            return (saved || okToClose);
-        }
-
-        bool DoesAssetFileExist()
-        {
-            var assetPath = m_GraphTool.ToolState.CurrentGraph.GetGraphAssetPath();
-            return File.Exists(assetPath);
         }
 
         protected override BaseGraphTool CreateGraphTool()
         {
-            m_GraphTool = CsoTool.Create<ShaderGraphGraphTool>();
-            return m_GraphTool;
+            return CsoTool.Create<ShaderGraphGraphTool>();
         }
 
         protected override GraphView CreateGraphView()
@@ -193,28 +148,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public static T GetStateComponentOfType<T>(IState stateStore) where T : class
         {
             return stateStore.AllStateComponents.FirstOrDefault(stateComponent => stateComponent is T) as T;
-        }
-
-        static void RegisterBlackboardOverrideCommandHandlers(BlackboardView blackboardView, IState stateStore)
-        {
-            var undoStateComponent = GetStateComponentOfType<UndoStateComponent>(stateStore);
-            var graphModelStateComponent = blackboardView.BlackboardViewModel.GraphModelState;
-            var selectionStateComponent = blackboardView.BlackboardViewModel.SelectionState;
-
-            // Note: Currently we don't have any blackboard overrides but this is a space for it
-        }
-
-        public override BlackboardView CreateBlackboardView()
-        {
-            if (GraphView != null)
-            {
-                m_BlackboardView = new BlackboardView(this, GraphView,
-                    (view, model) => new SGBlackboardViewSelection(view, model));
-
-                // Register blackboard commands
-                RegisterBlackboardOverrideCommandHandlers(m_BlackboardView, m_GraphTool.State);
-            }
-            return m_BlackboardView;
         }
 
         protected override BlankPage CreateBlankPage()
@@ -249,7 +182,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             SetDefaultMainPreviewUpdateListener(graphModel);
 
-            ShaderGraphCommands.RegisterCommandHandlers(m_GraphTool, m_PreviewUpdateDispatcher);
+            ShaderGraphCommands.RegisterCommandHandlers(GraphTool, m_PreviewUpdateDispatcher);
 
             PreviewCommands.RegisterCommandHandlers(
                 GraphTool,
@@ -289,9 +222,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void Update()
         {
-            if (Asset == null)
-                return;
-
             base.Update();
 
             m_PreviewUpdateDispatcher.Update();
