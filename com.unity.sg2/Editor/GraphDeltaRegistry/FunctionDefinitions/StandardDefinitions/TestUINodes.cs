@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Test",
             synonyms: Array.Empty<string>(),
             displayName: "Test Descriptor Node",
-            description: "file://Documentation~/previews/Test.md",
+            description: "pkg://Documentation~/previews/Test.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[]
             {
