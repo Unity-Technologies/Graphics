@@ -69,13 +69,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }, _ => DropdownMenuAction.Status.Normal);
         }
 
-        // This calls CopySelection()
-        protected override void CutSelection()
-        {
-            graphModel.isCutOperation = true;
-            base.CutSelection();
-        }
-
         List<GraphElementModel> AddInputEdgesToSelection()
         {
             using (var updater = m_SelectionState.UpdateScope)
@@ -111,12 +104,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             AddInputEdgesToSelection();
             base.DuplicateSelection();
-        }
-
-        protected override void Paste()
-        {
-            base.Paste();
-            graphModel.isCutOperation = false;
         }
     }
 }
