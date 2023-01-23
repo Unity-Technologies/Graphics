@@ -332,8 +332,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestNodeCanBeDuplicated()
         {
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply1 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
+            var multiply1 = CreateNodeByName("Multiply", Vector2.zero);
             multiply1.Title = "Multiply 1";
 
             Assert.IsNotNull(multiply1.graphDataName);
@@ -361,8 +360,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestNodeCanBeCutPasted()
         {
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply1 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
+            var multiply1 = CreateNodeByName("Multiply", Vector2.zero);
             multiply1.Title = "Multiply 1";
 
             Assert.IsNotNull(multiply1.graphDataName);
