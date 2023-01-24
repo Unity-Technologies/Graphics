@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Defs;
@@ -156,7 +155,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         [Test]
         public void TestChangeNodeFunction_NodeOnGraph_WithoutFunctionField_LogsError()
         {
-            var (nodeHandler, nodeModel) = MakeNode(k_MultiFunctionKey);
+            var (nodeHandler, nodeModel) = MakeNode(k_EmptyNodeKey);
             Assert.IsNull(nodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME));
 
             nodeModel.ChangeNodeFunction("NotValid");
