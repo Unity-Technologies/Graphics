@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
 {
-    internal partial struct GPUPrefixSum
+    public partial struct GPUPrefixSum
     {
         [GenerateHLSL]
         internal static class ShaderDefs
@@ -37,24 +37,37 @@ namespace UnityEngine.Rendering
         [GenerateHLSL(PackingRules.Exact, false, false)]
         internal struct LevelOffsets
         {
-            public uint count;
-            public uint offset;
-            public uint parentOffset;
+            internal uint count;
+            internal uint offset;
+            internal uint parentOffset;
         }
 
-        internal struct RenderGraphResources
+        /// <summary>
+        /// Utility for adapting to render graph usage.
+        /// </summary>
+        public struct RenderGraphResources
         {
-            public int alignedElementCount;
-            public int maxBufferCount;
-            public int maxLevelCount;
+            internal int alignedElementCount;
+            internal int maxBufferCount;
+            internal int maxLevelCount;
 
-            public BufferHandle prefixBuffer0;
-            public BufferHandle prefixBuffer1;
-            public BufferHandle totalLevelCountBuffer;
-            public BufferHandle levelOffsetBuffer;
-            public BufferHandle indirectDispatchArgsBuffer;
+            internal BufferHandle prefixBuffer0;
+            internal BufferHandle prefixBuffer1;
+            internal BufferHandle totalLevelCountBuffer;
+            internal BufferHandle levelOffsetBuffer;
+            internal BufferHandle indirectDispatchArgsBuffer;
+
+            /// <summary>The prefix sum result.</summary>
             public BufferHandle output => prefixBuffer0;
 
+            /// <summary>
+            /// Creates the render graph buffer resources from an input count.
+            /// </summary>
+            /// <param name="newMaxElementCount"></param>
+            /// <param name="renderGraph">Render Graph</param>
+            /// <param name="builder">Render Graph Builder</param>
+            /// <param name="outputIsTemp">Whether or not to allocate a transient resource.</param>
+            /// <returns>The created Render Graph Resources.</returns>
             public static RenderGraphResources Create(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder, bool outputIsTemp = false)
             {
                 var resources = new RenderGraphResources();
@@ -79,20 +92,30 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal struct SupportResources
+        /// <summary>
+        /// Data structure containing the runtime resources that are bound by the command buffer.
+        /// </summary>
+        public struct SupportResources
         {
-            public bool ownsResources;
-            public int  alignedElementCount;
-            public int  maxBufferCount;
-            public int  maxLevelCount;
+            internal bool ownsResources;
+            internal int  alignedElementCount;
+            internal int  maxBufferCount;
+            internal int  maxLevelCount;
 
-            public GraphicsBuffer prefixBuffer0;
-            public GraphicsBuffer prefixBuffer1;
-            public GraphicsBuffer totalLevelCountBuffer;
-            public GraphicsBuffer levelOffsetBuffer;
-            public GraphicsBuffer indirectDispatchArgsBuffer;
+            internal GraphicsBuffer prefixBuffer0;
+            internal GraphicsBuffer prefixBuffer1;
+            internal GraphicsBuffer totalLevelCountBuffer;
+            internal GraphicsBuffer levelOffsetBuffer;
+            internal GraphicsBuffer indirectDispatchArgsBuffer;
+
+            /// <summary>The prefix sum result.</summary>
             public GraphicsBuffer output => prefixBuffer0;
 
+            /// <summary>
+            /// Allocate support resources to accomodate a max count.
+            /// </summary>
+            /// <param name="maxElementCount">The max element count.</param>
+            /// <returns>The created support resources.</returns>
             public static SupportResources Create(int maxElementCount)
             {
                 var resources = new SupportResources() { alignedElementCount = 0, ownsResources = true };
@@ -100,6 +123,11 @@ namespace UnityEngine.Rendering
                 return resources;
             }
 
+            /// <summary>
+            /// Load supporting resources from Render Graph Resources.
+            /// </summary>
+            /// <param name="shaderGraphResources">Render Graph Resources</param>
+            /// <returns>The created support resources.</returns>
             public static SupportResources Load(RenderGraphResources shaderGraphResources)
             {
                 var resources = new SupportResources() { alignedElementCount = 0, ownsResources = false };
@@ -107,7 +135,7 @@ namespace UnityEngine.Rendering
                 return resources;
             }
 
-            public void Resize(int newMaxElementCount)
+            internal void Resize(int newMaxElementCount)
             {
                 if (!ownsResources)
                     throw new Exception("Cannot resize resources unless they are owned. Use GpuPrefixSumSupportResources.Create() for this.");
@@ -143,6 +171,9 @@ namespace UnityEngine.Rendering
                 indirectDispatchArgsBuffer = (GraphicsBuffer)shaderGraphResources.indirectDispatchArgsBuffer;
             }
 
+            /// <summary>
+            /// Dispose the supporting resources.
+            /// </summary>
             public void Dispose()
             {
                 if (alignedElementCount == 0 || !ownsResources)
@@ -167,34 +198,55 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal struct DirectArgs
+        /// <summary>
+        /// Arguments for a direct prefix sum.
+        /// </summary>
+        public struct DirectArgs
         {
+            /// <summary>An inclusive or exclusive prefix sum.</summary>
             public bool             exclusive;
+            /// <summary>The size of the input list.</summary>
             public int              inputCount;
+            /// <summary>The input list.</summary>
             public GraphicsBuffer   input;
+            /// <summary>Required runtime resources.</summary>
             public SupportResources supportResources;
         }
 
-        internal struct IndirectDirectArgs
+        /// <summary>
+        /// Arguments for an indirect prefix sum.
+        /// </summary>
+        public struct IndirectDirectArgs
         {
+            /// <summary>An inclusive or exclusive prefix sum.</summary>
             public bool             exclusive;
+            /// <summary>Byte offset of the count inside the input count buffer.</summary>
             public int              inputCountBufferByteOffset;
+            /// <summary>GPU buffer defining the size of the input list.</summary>
             public ComputeBuffer    inputCountBuffer;
+            /// <summary>The input list.</summary>
             public GraphicsBuffer   input;
+            /// <summary>Required runtime resources.</summary>
             public SupportResources supportResources;
         }
 
-        internal struct SystemResources
+        /// <summary>
+        /// Structure defining any required assets used by the GPU sort.
+        /// </summary>
+        public struct SystemResources
         {
+            /// <summary>
+            /// The compute asset that defines all of the kernels for the GPU prefix sum.
+            /// </summary>
             public ComputeShader computeAsset;
 
-            public int kernelCalculateLevelDispatchArgsFromConst;
-            public int kernelCalculateLevelDispatchArgsFromBuffer;
-            public int kernelPrefixSumOnGroup;
-            public int kernelPrefixSumOnGroupExclusive;
-            public int kernelPrefixSumNextInput;
-            public int kernelPrefixSumResolveParent;
-            public int kernelPrefixSumResolveParentExclusive;
+            internal int kernelCalculateLevelDispatchArgsFromConst;
+            internal int kernelCalculateLevelDispatchArgsFromBuffer;
+            internal int kernelPrefixSumOnGroup;
+            internal int kernelPrefixSumOnGroupExclusive;
+            internal int kernelPrefixSumNextInput;
+            internal int kernelPrefixSumResolveParent;
+            internal int kernelPrefixSumResolveParentExclusive;
 
             internal void LoadKernels()
             {

@@ -3,6 +3,9 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Utility class for sorting (key, value) pairs on the GPU.
+    /// </summary>
     public partial struct GPUSort
     {
         private const uint kWorkGroupSize = 1024;
@@ -20,6 +23,10 @@ namespace UnityEngine.Rendering
 
         private SystemResources resources;
 
+        /// <summary>
+        /// Initializes a re-usable GPU sorting instance.
+        /// </summary>
+        /// <param name="resources">The required system resources.</param>
         public GPUSort(SystemResources resources)
         {
             this.resources = resources;
@@ -67,6 +74,11 @@ namespace UnityEngine.Rendering
 
         internal static int DivRoundUp(int x, int y) => (x + y - 1) / y;
 
+        /// <summary>
+        /// Sorts a list of (key, value) pairs.
+        /// </summary>
+        /// <param name="cmd">Command buffer for recording the sorting commands.</param>
+        /// <param name="args">Runtime arguments for the sorting.</param>
         public void Dispatch(CommandBuffer cmd, Args args)
         {
             var n = args.count;

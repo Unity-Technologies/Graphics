@@ -1,8 +1,8 @@
 namespace UnityEngine.Rendering
 {
-    internal partial struct GPUPrefixSum
+    public partial struct GPUPrefixSum
     {
-        static class ShaderIDs
+        private static class ShaderIDs
         {
             public static readonly int _InputBuffer                   = Shader.PropertyToID("_InputBuffer");
             public static readonly int _OutputBuffer                  = Shader.PropertyToID("_OutputBuffer");
