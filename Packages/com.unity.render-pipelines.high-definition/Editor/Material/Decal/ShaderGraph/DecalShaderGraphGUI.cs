@@ -42,6 +42,12 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Sets up the keywords and passes for a Decal Shader Graph material.
+        /// </summary>
+        /// <param name="material">The selected material.</param>
+        public static void SetupDecalKeywordsAndPass(Material material) => DecalAPI.SetupCommonDecalMaterialKeywordsAndPass(material);
+
+        /// <summary>
         /// Sets up the keywords and passes for the current selected material.
         /// </summary>
         /// <param name="material">The selected material.</param>
