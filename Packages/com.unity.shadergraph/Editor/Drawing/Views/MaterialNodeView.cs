@@ -144,9 +144,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             base.expanded = node.drawState.expanded;
             AddSlots(node.GetSlots<MaterialSlot>());
 
-            if (node is SubGraphNode)
+            switch (node)
             {
-                RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
+                case SubGraphNode:
+                    RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
+                    m_UnregisterAll += () => { UnregisterCallback<MouseDownEvent>(OnSubGraphDoubleClick); };
+                    break;
             }
 
             m_TitleContainer = this.Q("title");
@@ -166,7 +169,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            m_UnregisterAll += () => { UnregisterCallback<MouseEnterEvent>(OnMouseHover); };
+
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            m_UnregisterAll += () => { UnregisterCallback<MouseLeaveEvent>(OnMouseHover); };
 
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTitle;
         }

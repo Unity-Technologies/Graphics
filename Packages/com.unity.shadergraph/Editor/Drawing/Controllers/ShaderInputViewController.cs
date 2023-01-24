@@ -299,7 +299,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (changeDisplayNameAction.shaderInputReference == Model)
                     {
                         ViewModel.inputName = Model.displayName;
-                        DirtyNodes(ModificationScope.Topological);
+                        DirtyNodes(ModificationScope.Layout);
                         m_SgBlackboardField.UpdateFromViewModel();
                     }
                     break;
@@ -309,6 +309,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         // TODO: This should communicate to node controllers instead of searching for the nodes themselves everytime, but that's going to take a while...
         internal void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
+            foreach (var observer in Model.InputObservers)
+            {
+                observer.OnShaderInputUpdated(modificationScope);
+            }
+
             switch (Model)
             {
                 case AbstractShaderProperty property:
@@ -320,37 +325,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     colorManager.SetNodesDirty(nodes);
                     colorManager.UpdateNodeViews(nodes);
-
-                    foreach (var node in DataStore.State.GetNodes<PropertyNode>())
-                    {
-                        node.Dirty(modificationScope);
-                    }
                     break;
                 case ShaderKeyword keyword:
-                    foreach (var node in DataStore.State.GetNodes<KeywordNode>())
-                    {
-                        node.UpdateNode();
-                        node.Dirty(modificationScope);
-                    }
-
                     // Cant determine if Sub Graphs contain the keyword so just update them
                     foreach (var node in DataStore.State.GetNodes<SubGraphNode>())
                     {
                         node.Dirty(modificationScope);
                     }
+
                     break;
                 case ShaderDropdown dropdown:
-                    foreach (var node in DataStore.State.GetNodes<DropdownNode>())
-                    {
-                        node.UpdateNode();
-                        node.Dirty(modificationScope);
-                    }
-
                     // Cant determine if Sub Graphs contain the dropdown so just update them
                     foreach (var node in DataStore.State.GetNodes<SubGraphNode>())
                     {
                         node.Dirty(modificationScope);
                     }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -362,8 +352,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_SgBlackboardField == null)
                 return;
 
+            Model?.ClearObservers();
+
             base.Dispose();
             Cleanup();
+
             BlackboardItemView.Dispose();
             m_SgBlackboardField.Dispose();
 
