@@ -80,21 +80,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public IEnumerable<ContextEntry> GetEntries()
             => new List<ContextEntry>()
             {
-                new ContextEntry {
+                new ContextEntry
+                {
                     fieldName = "ObjectSpacePosition",
                     precision = GraphType.Precision.Single,
                     primitive = GraphType.Primitive.Float,
                     length = GraphType.Length.Three,
                     height = GraphType.Height.One
                 },
-                new ContextEntry {
+                new ContextEntry
+                {
                     fieldName = "ObjectSpaceNormal",
                     precision = GraphType.Precision.Single,
                     primitive = GraphType.Primitive.Float,
                     length = GraphType.Length.Three,
                     height = GraphType.Height.One
                 },
-                new ContextEntry {
+                new ContextEntry
+                {
                     fieldName = "ObjectSpaceTangent",
                     precision = GraphType.Precision.Single,
                     primitive = GraphType.Primitive.Float,
@@ -103,7 +106,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
             };
 
-public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
         public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
     }
 

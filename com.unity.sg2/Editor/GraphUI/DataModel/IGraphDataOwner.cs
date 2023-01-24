@@ -73,4 +73,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return reader != null;
         }
     }
+
+    static class GraphDataOwnerExtensions
+    {
+        public static RegistryKey GetRegistryKeyFromNodeHandler<T>(this IGraphDataOwner<T> self) where T : AbstractNodeModel, IGraphDataOwner<T>
+        {
+            if (!string.IsNullOrEmpty(self.graphDataName))
+            {
+                var nodeHandler = self.graphHandler.GetNode(self.graphDataName);
+                return nodeHandler.GetRegistryKey();
+            }
+
+            return default;
+        }
+    }
 }
