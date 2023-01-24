@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 using UnityEditor.VFX.Block;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VersionControl;
+using UnityEngine.TestTools;
 
 namespace UnityEditor.VFX.Test
 {
@@ -306,6 +307,139 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(1, outputContext.inputSlots.Count);
                 CollectionAssert.AreEqual(new [] { "mainTexture" }, outputContext.inputSlots.Select(x => x.name));
             }
+        }
+
+        string ShaderGraphOutputPrepare(string shaderGraphPath, VFXAbstractRenderedOutput.BlendMode blendMode, VFXAbstractParticleOutput.SortActivationMode sortMode = VFXAbstractParticleOutput.SortActivationMode.Auto)
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var outputContext = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            var shaderGraph = string.IsNullOrEmpty(shaderGraphPath) ? null : GetShaderGraphFromTempFile(shaderGraphPath);
+            outputContext.SetSettingValue("blendMode", blendMode);
+            outputContext.SetSettingValue("shaderGraph", shaderGraph);
+            outputContext.SetSettingValue("sort", sortMode);
+
+            graph.AddChild(spawnerContext);
+            graph.AddChild(initContext);
+            graph.AddChild(updateContext);
+            graph.AddChild(outputContext);
+
+            spawnerContext.LinkTo(initContext);
+            initContext.LinkTo(updateContext);
+            updateContext.LinkTo(outputContext);
+
+            graph.GetResource().WriteAsset();
+            var vfxPath = AssetDatabase.GetAssetPath(graph);
+            AssetDatabase.ImportAsset(vfxPath);
+
+            return vfxPath;
+        }
+
+        void ShaderGraphSortingVerify(string vfxPath, bool expectingSorting)
+        {
+            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            var outputContext = ((VFXGraph)vfxAsset.GetResource().graph).children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault();
+            Assert.IsNotNull(outputContext);
+
+            var generatedComputeShaders = AssetDatabase.LoadAllAssetsAtPath(vfxPath).OfType<ComputeShader>().ToArray();
+            if (expectingSorting)
+            {
+                Assert.IsTrue(outputContext.HasSorting());
+                Assert.AreEqual(3, generatedComputeShaders.Length);
+            }
+            else
+            {
+                Assert.IsFalse(outputContext.HasSorting());
+                Assert.AreEqual(2, generatedComputeShaders.Length);
+            }
+        }
+
+        [Test]
+        public void ShaderGraph_Opaque_Expecting_No_Sorting()
+        {
+            var vfxPath = ShaderGraphOutputPrepare("Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/sg-for-autotest-unlit-opaque.shadergraph_1", VFXAbstractRenderedOutput.BlendMode.Alpha);
+            ShaderGraphSortingVerify(vfxPath, false);
+        }
+
+        [Test]
+        public void ShaderGraph_Opaque_Expecting_Sorting_When_Forced()
+        {
+            var vfxPath = ShaderGraphOutputPrepare("Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/sg-for-autotest-unlit-opaque.shadergraph_1", VFXAbstractRenderedOutput.BlendMode.Alpha, VFXAbstractParticleOutput.SortActivationMode.On);
+            ShaderGraphSortingVerify(vfxPath, true);
+        }
+
+        [Test]
+        public void ShaderGraph_AlphaBlend_Expecting_Sorting()
+        {
+            var vfxPath = ShaderGraphOutputPrepare("Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/sg-for-autotest-unlit-alphablend.shadergraph_1", VFXAbstractRenderedOutput.BlendMode.Opaque);
+            ShaderGraphSortingVerify(vfxPath, true);
+        }
+
+        [Test]
+        public void ShaderGraph_Null_Opaque_Expecting_Sorting_When_Forced()
+        {
+            var vfxPath = ShaderGraphOutputPrepare(null, VFXAbstractRenderedOutput.BlendMode.Opaque, VFXAbstractParticleOutput.SortActivationMode.On);
+            ShaderGraphSortingVerify(vfxPath, true);
+        }
+
+        [Test]
+        public void ShaderGraph_Null_AlphaBlend_Expecting_Sorting()
+        {
+            var vfxPath = ShaderGraphOutputPrepare(null, VFXAbstractRenderedOutput.BlendMode.Alpha);
+            ShaderGraphSortingVerify(vfxPath, true);
+        }
+
+        [Test]
+        public void ShaderGraph_Null_AlphaBlend_Expecting_No_Sorting()
+        {
+            var vfxPath = ShaderGraphOutputPrepare(null, VFXAbstractRenderedOutput.BlendMode.Additive);
+            ShaderGraphSortingVerify(vfxPath, false);
+        }
+
+        public class WrapperWindow : EditorWindow
+        {
+            public Action onGUIDelegate;
+            public bool testRun;
+
+            public void OnGUI()
+            {
+                try
+                {
+                    onGUIDelegate.Invoke();
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogError(exception);
+                }
+                testRun = true;
+                Close();
+            }
+        }
+
+        [UnityTest, Description("Cover UUM-8053")]
+        public IEnumerator ShaderGraph_Unlit_Transparent_Inspector()
+        {
+            var vfxPath = ShaderGraphOutputPrepare("Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/sg-for-autotest-unlit-alphablend.shadergraph_1", VFXAbstractRenderedOutput.BlendMode.Alpha, VFXAbstractParticleOutput.SortActivationMode.On);
+            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            var outputContext = ((VFXGraph)vfxAsset.GetResource().graph).children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault();
+
+            var window = ScriptableObject.CreateInstance<WrapperWindow>();
+            window.position = new Rect(0, 0, 512, 512);
+            window.onGUIDelegate += () =>
+            {
+                var editor = Editor.CreateEditor(outputContext);
+                editor.serializedObject.Update();
+                editor.OnInspectorGUI();
+                editor.serializedObject.ApplyModifiedProperties();
+            };
+            window.Show();
+            yield return null;
+
+            Assert.IsTrue(window.testRun);
+            ScriptableObject.DestroyImmediate(window);
         }
 
         private ShaderGraphVfxAsset GetShaderGraphFromTempFile(string tempFile)
