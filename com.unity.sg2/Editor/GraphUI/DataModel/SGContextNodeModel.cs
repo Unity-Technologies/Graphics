@@ -41,9 +41,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             get
             {
-                if (!m_RegistryKey.Valid() && graphDataOwner.TryGetNodeHandler(out var reader))
+                if (!m_RegistryKey.Valid())
                 {
-                    m_RegistryKey = reader.GetRegistryKey();
+                    m_RegistryKey = this.GetRegistryKeyFromNodeHandler();
                 }
 
                 return m_RegistryKey;
