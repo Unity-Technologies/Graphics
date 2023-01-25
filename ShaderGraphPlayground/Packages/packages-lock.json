@@ -51,7 +51,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.15",
+      "version": "3.0.18",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -60,19 +60,12 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.14",
+      "version": "2.0.17",
       "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.test-framework": "1.1.9"
       },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.ide.vscode": {
-      "version": "1.1.3",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.mathematics": {
@@ -204,7 +197,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework.build": {
-      "version": "0.0.1-preview.3",
+      "version": "0.0.1-preview.14",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -213,7 +206,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework.utp-reporter": {
-      "version": "1.0.2-preview",
+      "version": "1.1.0-preview",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -223,24 +216,24 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.8.14-preview",
+      "version": "7.12.0-exp.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.xr.management": "4.0.5",
         "com.unity.external.test-protocol": "1.0.0-preview",
-        "com.unity.nuget.newtonsoft-json": "2.0.0-preview",
-        "com.unity.subsystemregistration": "1.0.6",
-        "com.unity.xr.legacyinputhelpers": "2.1.6",
+        "com.unity.nuget.newtonsoft-json": "2.0.0",
+        "com.unity.xr.legacyinputhelpers": "2.1.8",
         "com.unity.modules.xr": "1.0.0",
         "com.unity.modules.vr": "1.0.0",
         "com.unity.addressables": "1.17.15",
-        "com.unity.modules.imageconversion": "1.0.0"
+        "com.unity.modules.imageconversion": "1.0.0",
+        "com.unity.testtools.codecoverage": "1.2.0"
       },
       "url": "https://packages.unity.com"
     },
     "com.unity.testtools.codecoverage": {
-      "version": "1.1.0",
+      "version": "1.2.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -287,8 +280,8 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.xr.management": {
-      "version": "4.2.0",
-      "depth": 1,
+      "version": "4.2.1",
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.modules.subsystems": "1.0.0",
