@@ -359,6 +359,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphEditorView.HandleGraphChanges(true);
                     graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
+                    graphObject.graph.RegisterShaderInputObservers();
                 }
 
                 if (graphObject.isDirty || wasUndoRedoPerformed)
@@ -414,7 +415,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDisable()
         {
-            m_GraphEditorView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            m_GraphEditorView?.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             m_GraphEditorView?.Dispose();
             messageManager.ClearAll();
 
@@ -1243,6 +1244,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     MultiJson.Deserialize(graphObject.graph, m_LastSerializedFileContents);
                     graphObject.graph.OnEnable();
                     graphObject.graph.ValidateGraph();
+                    graphObject.graph.RegisterShaderInputObservers();
                 }
 
                 using (CreateGraphEditorViewMarker.Auto())

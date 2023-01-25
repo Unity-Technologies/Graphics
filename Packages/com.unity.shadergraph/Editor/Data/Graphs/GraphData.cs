@@ -1859,8 +1859,9 @@ namespace UnityEditor.ShaderGraph
             GraphConcretization.ConcretizeGraph(this);
             GraphValidation.ValidateGraph(this);
 
-            foreach (var edge in m_AddedEdges.ToList())
+            for (int i = 0; i < m_AddedEdges.Count; ++i)
             {
+                var edge = m_AddedEdges[i];
                 if (!ContainsNode(edge.outputSlot.node) || !ContainsNode(edge.inputSlot.node))
                 {
                     Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}\n{2}", edge.outputSlot.node.objectId, edge.inputSlot.node.objectId, Environment.StackTrace);
@@ -1868,16 +1869,15 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            foreach (var groupChange in m_ParentGroupChanges.ToList())
+            for (int i = 0; i < m_ParentGroupChanges.Count; ++i)
             {
-                if (groupChange.groupItem is AbstractMaterialNode node && !ContainsNode(node))
+                var groupChange = m_ParentGroupChanges[i];
+                switch (groupChange.groupItem)
                 {
-                    m_ParentGroupChanges.Remove(groupChange);
-                }
-
-                if (groupChange.groupItem is StickyNoteData stickyNote && !m_StickyNoteDatas.Contains(stickyNote))
-                {
-                    m_ParentGroupChanges.Remove(groupChange);
+                    case AbstractMaterialNode node when !ContainsNode(node):
+                    case StickyNoteData stickyNote when !m_StickyNoteDatas.Contains(stickyNote):
+                        m_ParentGroupChanges.Remove(groupChange);
+                        break;
                 }
             }
 
@@ -1890,9 +1890,33 @@ namespace UnityEditor.ShaderGraph
                 m_CategoryData.Clear();
             }
 
-
             ValidateCustomBlockLimit();
             ValidateContextBlocks();
+        }
+
+        public void RegisterShaderInputObservers()
+        {
+            // Clear any existing shader input observer data
+            foreach (var property in properties)
+                property.ClearObservers();
+            foreach (var keyword in keywords)
+                keyword.ClearObservers();
+            foreach (var dropdown in dropdowns)
+                dropdown.ClearObservers();
+
+            // Scan and establish info. regarding observers of shader inputs
+            var propertyNodes = GetNodes<PropertyNode>();
+            var keywordNodes = GetNodes<KeywordNode>();
+            var dropdownNodes = GetNodes<DropdownNode>();
+
+            foreach (var node in propertyNodes)
+                node.property?.AddObserver(node);
+
+            foreach (var node in keywordNodes)
+                node.keyword?.AddObserver(node);
+
+            foreach (var node in dropdownNodes)
+                node.dropdown?.AddObserver(node);
         }
 
         public void AddValidationError(string id, string errorMessage,
