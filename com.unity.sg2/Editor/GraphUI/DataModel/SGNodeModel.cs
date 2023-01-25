@@ -215,7 +215,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (!existsInGraphData)
             {
-                Debug.LogError("Attempted to change the function of a node that doesn't exist on the graph.");
                 return;
             }
 
@@ -253,7 +252,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="optionIndex">Index of the Option in the port's parameter descriptor to use.</param>
         public void SetPortOption(string portName, int optionIndex)
         {
-            if (!TryGetNodeHandler(out var handler)) return;
+            // If not backed by real data (i.e., we are a searcher preview), changing options doesn't make sense.
+            if (!existsInGraphData)
+            {
+                return;
+            }
+
+            Debug.Assert(TryGetNodeHandler(out var handler));
+
             var parameterInfo = GetViewModel().GetParameterInfo(portName);
             var (_, optionValue) = parameterInfo.Options[optionIndex];
 
@@ -285,7 +291,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns>Index into the Options list for the given port, or -1 if there are no options or no option is selected.</returns>
         public int GetCurrentPortOption(string portName)
         {
-            var paramInfo = GetViewModel().GetParameterInfo(portName);
             if (!existsInGraphData) return 0;  // default to first option
 
             if (!TryGetNodeHandler(out var handler)) return -1;
@@ -294,6 +299,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var connection = graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID);
             if (connection == null) return -1;
 
+            var paramInfo = GetViewModel().GetParameterInfo(portName);
             for (var i = 0; i < paramInfo.Options.Count; i++)
             {
                 var (_, value) = paramInfo.Options[i];
@@ -308,11 +314,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             PreviewTexture = newTexture;
             PreviewShaderIsCompiling = false;
-        }
-
-        public void OnPreviewShaderCompiling()
-        {
-            PreviewShaderIsCompiling = true;
         }
 
         SGNodeViewModel CreateNodeViewModel(NodeUIDescriptor nodeUIInfo, NodeHandler node)

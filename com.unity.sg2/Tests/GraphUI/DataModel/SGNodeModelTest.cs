@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Defs;
@@ -10,7 +11,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
 {
     class SGNodeModelTest
     {
-        #region Test Nodes
+        #region Test Definitions
 
         // Empty node: no inputs, no outputs, no body.
         static readonly RegistryKey k_EmptyNodeKey = new() {Name = "TestEmpty", Version = 1};
@@ -20,14 +21,34 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         static readonly RegistryKey k_MultiFunctionKey = new() {Name = "TestMultiFunction", Version = 1};
         const string k_MultiFunctionMainFunc = "Main";
         const string k_MultiFunctionAltFunc = "Alternate";
-        static readonly NodeDescriptor k_MultiFunctionDescriptor = new(k_MultiFunctionKey.Version,
+        static readonly NodeDescriptor k_MultiFunctionDescriptor = new(
+            k_MultiFunctionKey.Version,
             k_MultiFunctionKey.Name,
             k_MultiFunctionMainFunc,
             new FunctionDescriptor(k_MultiFunctionMainFunc, "", Array.Empty<ParameterDescriptor>()),
             new FunctionDescriptor(k_MultiFunctionAltFunc, "", Array.Empty<ParameterDescriptor>())
         );
 
-        // TODO: Options node: one port with two referable options, OptionA and OptionB.
+        // Options node: two options "OptionA" and "OptionB" on a Vec4 port called In.
+        static readonly RegistryKey k_OptionsNodeKey = new() {Name = "TestOptions", Version = 1};
+        static readonly string k_OptionsNodeValueA = "OptionA";
+        static readonly string k_OptionsNodeValueB = "OptionB";
+        static readonly NodeDescriptor k_OptionsNodeDescriptor = new(
+            k_OptionsNodeKey.Version,
+            k_OptionsNodeKey.Name,
+            "Main",
+            new FunctionDescriptor("Main", "", new ParameterDescriptor[] { new("In", TYPE.Vec4, GraphType.Usage.In, new ReferenceValueDescriptor(k_OptionsNodeValueA)) }));
+        static readonly NodeUIDescriptor k_OptionsNodeUIDescriptor = new(
+            k_OptionsNodeKey.Version,
+            k_OptionsNodeKey.Name,
+            "Tooltip", "Category", new string[] { }, "Options", parameters: new ParameterUIDescriptor[]
+            {
+                new ("In", options: new List<(string, object)>
+                {
+                    (k_OptionsNodeValueA, new ReferenceValueDescriptor(k_OptionsNodeValueA)),
+                    (k_OptionsNodeValueB, new ReferenceValueDescriptor(k_OptionsNodeValueB)),
+                }),
+            });
 
         #endregion
 
@@ -49,8 +70,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
 
             registry.Register(k_EmptyNodeDescriptor, 1);
             registry.Register(k_MultiFunctionDescriptor);
+            registry.Register(k_OptionsNodeDescriptor, k_OptionsNodeUIDescriptor);
 
             graphModel = SGGraphModelMock.CreateWithGraphHandler(registry);
+
+            var optionsCtx = graphModel.GraphHandler.AddContextNode("OptionsNodeContext");
+            ContextBuilder.AddContextEntry(optionsCtx, TYPE.Vec4, k_OptionsNodeValueA, graphModel.RegistryInstance.Registry);
+            ContextBuilder.AddContextEntry(optionsCtx, TYPE.Vec4, k_OptionsNodeValueB, graphModel.RegistryInstance.Registry);
         }
 
         (NodeHandler, SGNodeModel) MakeNode(RegistryKey? key = null)
@@ -164,19 +190,65 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         }
 
         [Test]
-        public void TestChangeNodeFunction_NodeInSearcher_LogsError()
+        public void TestChangeNodeFunction_NodeInSearcher_DoesNothing()
         {
             var nodeModel = MakeSearcherPreviewNode(k_MultiFunctionKey);
+            Assert.IsTrue(nodeModel.TryGetNodeHandler(out var previewNodeHandler));
+            Assert.AreEqual(k_MultiFunctionMainFunc, previewNodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME).GetData());
+
             nodeModel.ChangeNodeFunction("NotValid");
-            LogAssert.Expect(LogType.Error, "Attempted to change the function of a node that doesn't exist on the graph.");
+            Assert.AreEqual(k_MultiFunctionMainFunc, previewNodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME).GetData());
         }
 
         [Test]
-        public void TestChangeNodeFunction_MissingNode_LogsError()
+        public void TestChangeNodeFunction_MissingNode_DoesNothing()
         {
             var nodeModel = MakeNodeWithoutBackingData();
-            nodeModel.ChangeNodeFunction("NotValid");
-            LogAssert.Expect(LogType.Error, "Attempted to change the function of a node that doesn't exist on the graph.");
+            Assert.DoesNotThrow(() => { nodeModel.ChangeNodeFunction("NotValid"); });
+        }
+
+        [Test]
+        public void TestSetPortOption_NodeOnGraph_UpdatesDefaultConnection()
+        {
+            var (nodeHandler, nodeModel) = MakeNode(k_OptionsNodeKey);
+
+            var inPort = nodeHandler.GetPort("In");
+            Assert.AreEqual("out_" + k_OptionsNodeValueA, inPort.GetFirstConnectedPort().ID.LocalPath);
+
+            nodeModel.SetPortOption("In", 1);
+            Assert.AreEqual("out_" + k_OptionsNodeValueB, inPort.GetFirstConnectedPort().ID.LocalPath);
+        }
+
+        [Test]
+        public void TestSetPortOption_NodeInSearcher_DoesNothing()
+        {
+            var nodeModel = MakeSearcherPreviewNode(k_OptionsNodeKey);
+            Assert.IsTrue(nodeModel.TryGetNodeHandler(out var previewHandler));
+
+            Assert.IsNull(previewHandler.GetPort("In").GetFirstConnectedPort());
+            nodeModel.SetPortOption("In", 1);
+            Assert.IsNull(previewHandler.GetPort("In").GetFirstConnectedPort());
+        }
+
+        [Test]
+        public void TestGetCurrentPortOption_NodeOnGraph_MatchesDefaultConnection()
+        {
+            var (nodeHandler, nodeModel) = MakeNode(k_OptionsNodeKey);
+
+            Assert.AreEqual(0, nodeModel.GetCurrentPortOption("In"));
+
+            var inPort = nodeHandler.GetPort("In");
+            inPort.Owner.RemoveDefaultConnection(k_OptionsNodeValueA, inPort.ID, graphModel.RegistryInstance.Registry);
+            inPort.Owner.AddDefaultConnection(k_OptionsNodeValueB, inPort.ID, graphModel.RegistryInstance.Registry);
+
+            Assert.AreEqual(1, nodeModel.GetCurrentPortOption("In"));
+        }
+
+        [Test]
+        public void TestGetCurrentPortOption_NodeInSearcher_IsDefaultOption()
+        {
+            var nodeModel = MakeSearcherPreviewNode(k_OptionsNodeKey);
+            Assert.AreEqual(0, nodeModel.GetCurrentPortOption("In"));
         }
     }
 }
