@@ -170,7 +170,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void UpgradeToLatestVersion()
         {
-            var nodeHandler = graphHandler.GetNode(graphDataName);
+            if (!existsInGraphData)
+            {
+                return;
+            }
+
+            Debug.Assert(TryGetNodeHandler(out var nodeHandler));
 
             if (latestAvailableVersion < currentVersion)
             {
@@ -291,15 +296,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns>Index into the Options list for the given port, or -1 if there are no options or no option is selected.</returns>
         public int GetCurrentPortOption(string portName)
         {
-            if (!existsInGraphData) return 0;  // default to first option
-
             if (!TryGetNodeHandler(out var handler)) return -1;
+            if (string.IsNullOrEmpty(m_GraphDataName)) return 0;  // default to first option
+
+            var paramInfo = GetViewModel().GetParameterInfo(portName);
+            if (paramInfo.Options == null || paramInfo.Options.Count < 1) return -1;
+
             var port = handler.GetPort(portName);
 
             var connection = graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID);
             if (connection == null) return -1;
 
-            var paramInfo = GetViewModel().GetParameterInfo(portName);
             for (var i = 0; i < paramInfo.Options.Count; i++)
             {
                 var (_, value) = paramInfo.Options[i];
