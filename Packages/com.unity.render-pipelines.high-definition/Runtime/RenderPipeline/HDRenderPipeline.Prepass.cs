@@ -100,9 +100,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 bindTextureMS = msaa,
                 msaaSamples = msaaSamples,
                 clearBuffer = clear,
-                name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
+                name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil",
+                fallBackToBlackTexture = true,
 #if UNITY_2020_2_OR_NEWER
-                , fastMemoryDesc = fastMemDesc
+                fastMemoryDesc = fastMemDesc,
 #endif
             };
 
