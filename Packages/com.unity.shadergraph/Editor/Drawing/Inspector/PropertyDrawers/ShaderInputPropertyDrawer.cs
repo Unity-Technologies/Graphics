@@ -279,7 +279,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         else
                             m_DisplayNameField.AddToClassList("modified");
 
-                        this._postChangeValueCallback(true, ModificationScope.Topological);
+                        this._postChangeValueCallback(true, ModificationScope.Layout);
                     }
                 });
 
