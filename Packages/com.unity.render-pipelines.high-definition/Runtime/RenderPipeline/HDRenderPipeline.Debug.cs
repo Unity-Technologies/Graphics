@@ -831,8 +831,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.debugViewTilesMaterial.SetVector(HDShaderIDs._ClusterDebugLightViewportSize, data.lightingViewportSize);
                                 data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, data.tileList);
                                 data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, data.dispatchIndirect);
-                                data.debugViewTilesMaterial.EnableKeyword("USE_FPTL_LIGHTLIST");
-                                data.debugViewTilesMaterial.DisableKeyword("USE_CLUSTERED_LIGHTLIST");
+                                CoreUtils.SetKeyword(ctx.cmd, "USE_FPTL_LIGHTLIST", true);
+                                CoreUtils.SetKeyword(ctx.cmd, "USE_CLUSTERED_LIGHTLIST", false);
+
                                 data.debugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
                                 data.debugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
                                 if (DeferredUseComputeAsPixel(data.hdCamera.frameSettings))
@@ -857,8 +858,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListCluster, data.perVoxelLightList);
 
                             data.debugViewTilesMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramidTexture);
-                            data.debugViewTilesMaterial.EnableKeyword(bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                            data.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                            CoreUtils.SetKeyword(ctx.cmd, "USE_FPTL_LIGHTLIST", !bUseClustered);
+                            CoreUtils.SetKeyword(ctx.cmd, "USE_CLUSTERED_LIGHTLIST", bUseClustered);
+
                             data.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                             data.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
                             if (!bUseClustered && data.hdCamera.msaaEnabled)
