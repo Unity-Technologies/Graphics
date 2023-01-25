@@ -14,7 +14,7 @@
     "performance"
   ],
   "dependencies": {
-    "com.unity.test-framework.performance": "2.0.8-preview",
+    "com.unity.test-framework.performance": "2.8.1-preview",
     "com.unity.shaderanalysis": "10.0.0-preview.1"
   }
 }
