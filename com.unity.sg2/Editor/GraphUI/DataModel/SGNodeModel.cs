@@ -486,6 +486,28 @@ namespace UnityEditor.ShaderGraph.GraphUI
             HasPreview = nodeHasPreview;
         }
 
+        /// <inheritdoc />
+        public override void OnDuplicateNode(AbstractNodeModel sourceNode)
+        {
+            if (sourceNode is SGNodeModel sourceGraphDataNode)
+            {
+                graphDataName = Guid.ToString();
+
+                var sourceNodeHandler = graphModel.GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
+
+                if (sourceNodeHandler == null) // If no node handler found, it is a new node for this graph
+                {
+                    graphModel.GraphHandler.AddNode(sourceGraphDataNode.duplicationRegistryKey, graphDataName);
+                }
+                else
+                {
+                    graphModel.GraphHandler.DuplicateNode(sourceNodeHandler, false, graphDataName);
+                }
+            }
+
+            base.OnDuplicateNode(sourceNode);
+        }
+
         protected override PortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
             PortType portType,
             TypeHandle dataType, string portId, PortModelOptions options)
