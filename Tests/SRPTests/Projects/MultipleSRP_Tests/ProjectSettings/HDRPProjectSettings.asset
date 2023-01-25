@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ProjectSettingFolderPath: HDRPDefaultResources
   m_WizardPopupAtStart: 0
-  m_LastMaterialVersion: 12
+  m_LastMaterialVersion: 13
   m_HDShaderGraphLastSeenVersion: 0
   m_PluginMaterialVersions:
     m_Keys: []
