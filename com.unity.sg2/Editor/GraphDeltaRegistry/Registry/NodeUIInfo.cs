@@ -10,9 +10,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     internal class StaticNodeUIDescriptorBuilder : INodeUIDescriptorBuilder
     {
-        private NodeUIDescriptor descriptor;
-        public StaticNodeUIDescriptorBuilder(NodeUIDescriptor descriptor) => this.descriptor = descriptor;
-        public NodeUIDescriptor CreateDescriptor(NodeHandler handler) => descriptor;
+        private readonly NodeUIDescriptor _descriptor;
+
+        public StaticNodeUIDescriptorBuilder(NodeUIDescriptor descriptor)
+        {
+            this._descriptor = descriptor;
+        }
+
+        public NodeUIDescriptor CreateDescriptor(NodeHandler handler) => _descriptor;
     }
 
     /// <summary>
@@ -21,16 +26,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     /// </summary>
     internal class NodeUIInfo
     {
-        readonly Dictionary<RegistryKey, INodeUIDescriptorBuilder> builders = new ();
+        private readonly Dictionary<RegistryKey, INodeUIDescriptorBuilder> _builders = new ();
 
         public void Register(RegistryKey key, NodeUIDescriptor descriptor)
             => Register(key, new StaticNodeUIDescriptorBuilder(descriptor));
 
         public void Register(RegistryKey key, INodeUIDescriptorBuilder descriptor)
-            => builders[key] = descriptor;
+            => _builders[key] = descriptor;
 
         public NodeUIDescriptor GetNodeUIDescriptor(RegistryKey key, NodeHandler nodeInstance)
-            => builders.ContainsKey(key) ? builders[key].CreateDescriptor(nodeInstance) : CreateDefaultDescriptor(key);
+            => _builders.ContainsKey(key) ? _builders[key].CreateDescriptor(nodeInstance) : CreateDefaultDescriptor(key);
 
         private static NodeUIDescriptor CreateDefaultDescriptor(RegistryKey key)
         {

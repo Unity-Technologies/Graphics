@@ -9,7 +9,6 @@ using UnityEngine.UIElements;
 using UnityEngine;
 using Unity.GraphToolsFoundation;
 using UnityEngine.TestTools;
-using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
@@ -19,14 +18,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         /// <inheritdoc />
         protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
 
-        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-25")]
+        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-26")]
         [UnityTest]
         public IEnumerator CreateAddNodeFromSearcherTest()
         {
             return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
         }
 
-        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-25")]
+        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-26")]
         [UnityTest]
         public IEnumerator NodeCollapseExpandTest()
         {
@@ -241,7 +240,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //     Assert.IsFalse(m_GraphView.GraphModel.NodeModels.Contains(middleNode), "Deleted node should be removed from the graph");
         // }
 
-        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-25")]
+        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-26")]
         [UnityTest]
         public IEnumerator TestDynamicPortsUpdate()
         {
@@ -274,7 +273,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
         }
 
-        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-25")]
+        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-26")]
         [UnityTest]
         public IEnumerator TestDynamicPortUpdatesPropagate()
         {
@@ -328,6 +327,66 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             {
                 Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Second multiply node in a series should react to upstream change to Float");
             }
+        }
+
+        [UnityTest]
+        public IEnumerator TestNodeCanBeDuplicated()
+        {
+            var multiply1 = CreateNodeByName("Multiply", Vector2.zero);
+            multiply1.Title = "Multiply 1";
+
+            Assert.IsNotNull(multiply1.graphDataName);
+            Assert.DoesNotThrow(() => multiply1.TryGetNodeHandler(out _));
+
+            var currentCount = GraphModel.NodeModels.Count;
+
+            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, multiply1));
+            yield return null;
+
+            m_GraphView.Focus();
+            m_TestEventHelper.SendDuplicateCommand();
+            yield return null;
+
+            Assert.AreEqual(currentCount + 1, GraphModel.NodeModels.Count);
+
+            var newNode = GraphModel.NodeModels.OfType<SGNodeModel>().FirstOrDefault(n => n.Title == multiply1.Title && n.Guid != multiply1.Guid);
+            Assert.IsNotNull(newNode);
+
+            Assert.IsNotNull(newNode.graphDataName);
+            Assert.AreNotEqual(multiply1.graphDataName, newNode.graphDataName);
+            Assert.DoesNotThrow(() => newNode.TryGetNodeHandler(out _));
+        }
+
+        [UnityTest]
+        public IEnumerator TestNodeCanBeCutPasted()
+        {
+            var multiply1 = CreateNodeByName("Multiply", Vector2.zero);
+            multiply1.Title = "Multiply 1";
+
+            Assert.IsNotNull(multiply1.graphDataName);
+            Assert.DoesNotThrow(() => multiply1.TryGetNodeHandler(out _));
+
+            var currentCount = GraphModel.NodeModels.Count;
+
+            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, multiply1));
+            yield return null;
+
+            m_GraphView.Focus();
+            m_TestEventHelper.SendCutCommand();
+            yield return null;
+
+            m_GraphView.Focus();
+            m_TestEventHelper.SendPasteCommand();
+            yield return null;
+
+            Assert.AreEqual(currentCount, GraphModel.NodeModels.Count);
+
+            var newNode = GraphModel.NodeModels.OfType<SGNodeModel>().FirstOrDefault(n => n.Title == multiply1.Title && n.Guid != multiply1.Guid);
+            Assert.IsNotNull(newNode);
+
+            Assert.IsNotNull(newNode.graphDataName);
+            Assert.AreNotEqual(multiply1.graphDataName, newNode.graphDataName);
+            Assert.DoesNotThrow(() => newNode.TryGetNodeHandler(out _));
         }
     }
 }

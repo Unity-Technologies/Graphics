@@ -189,5 +189,46 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 throw;
             }
         }
+
+        /// <summary>
+        /// Creates a node by using the node type name displayed in the ItemLibrary and adds it to the graph model.
+        /// </summary>
+        /// <param name="name">Type name of the node to create, as displayed in the Item Library.</param>
+        /// <param name="position">Node position.</param>
+        /// <returns>The created node.</returns>
+        protected SGNodeModel CreateNodeByName(string name, Vector2 position)
+        {
+            var registry = GraphModel.RegistryInstance;
+
+            var versionCounts = new Dictionary<string, int>();
+            foreach (var registryKey in registry.Registry.BrowseRegistryKeys())
+            {
+                versionCounts[registryKey.Name] = versionCounts.GetValueOrDefault(registryKey.Name, 0) + 1;
+            }
+
+            foreach (var registryKey in registry.Registry.BrowseRegistryKeys())
+            {
+                if (GraphModel.ShouldBeInSearcher(registryKey))
+                {
+                    var uiInfo = registry.GetNodeUIDescriptor(registryKey);
+                    string searcherItemName = uiInfo.DisplayName;
+
+                    if (versionCounts[registryKey.Name] > 1)
+                    {
+                        searcherItemName += $" (v{uiInfo.Version})";
+                    }
+
+                    if (searcherItemName == name)
+                    {
+                        return GraphModel.CreateGraphDataNode(
+                            registryKey,
+                            uiInfo.DisplayName,
+                            position);
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 }
