@@ -250,17 +250,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static internal BoundingSphere CalculateBoundingSphere(NativeArray<Vector3> inVertices)
+        static internal Bounds CalculateLocalBounds(NativeArray<Vector3> inVertices)
         {
             if (inVertices.Length <= 0)
-                return new BoundingSphere(Vector3.zero, 0);
+                return new Bounds(Vector3.zero, Vector3.zero);
 
-            float minX = float.MaxValue;
-            float maxX = float.MinValue;
-            float minY = float.MaxValue;
-            float maxY = float.MinValue;
-
-            Vector3 origin = new Vector3();
+            Vector2 minVec = Vector2.positiveInfinity;
+            Vector2 maxVec = Vector2.negativeInfinity;
 
             unsafe
             {
@@ -270,29 +266,14 @@ namespace UnityEngine.Rendering.Universal
                 // Add outline vertices
                 for (int i = 0; i < inVerticesLength; i++)
                 {
-                    Vector3 vertex = inVerticesPtr[i];
+                    Vector2 vertex = new Vector2(inVerticesPtr[i].x, inVerticesPtr[i].y);
 
-                    if (minX > vertex.x)
-                        minX = vertex.x;
-                    if (maxX < vertex.x)
-                        maxX = vertex.x;
-
-                    if (minY > vertex.y)
-                        minY = vertex.y;
-                    if (maxY < vertex.y)
-                        maxY = vertex.y;
+                    minVec = Vector2.Min(minVec, vertex);
+                    maxVec = Vector2.Max(maxVec, vertex);
                 }
             }
 
-            // Calculate bounding sphere (circle)
-            origin.x = 0.5f * (minX + maxX);
-            origin.y = 0.5f * (minY + maxY);
-
-            float deltaX = maxX - minX;
-            float deltaY = maxY - minY;
-            float radius = 0.5f * Mathf.Sqrt(deltaX * deltaX + deltaY * deltaY);
-
-            return new BoundingSphere(origin, radius);
+            return new Bounds { max = maxVec, min = minVec };
         }
 
         static void GenerateInteriorMesh(NativeArray<ShadowMeshVertex> inVertices, NativeArray<int> inIndices, NativeArray<ShadowEdge> inEdges, out NativeArray<ShadowMeshVertex> outVertices, out NativeArray<int> outIndices, out int outStartIndex, out int outIndexCount)
@@ -354,7 +335,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         //inEdges is expected to be contiguous
-        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, bool fill, ShadowShape2D.OutlineTopology topology)
+        static public Bounds GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, bool fill, ShadowShape2D.OutlineTopology topology)
         {
             // Setup our buffers
             int meshVertexCount = inVertices.Length + k_AdditionalVerticesPerEdge * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
@@ -398,8 +379,8 @@ namespace UnityEngine.Rendering.Universal
             finalVertices.Dispose();
             finalIndices.Dispose();
 
-            BoundingSphere retBoundingSphere = CalculateBoundingSphere(inVertices);
-            return retBoundingSphere;
+            Bounds retLocalBound = CalculateLocalBounds(inVertices);
+            return retLocalBound;
         }
 
         static public int GetFirstUnusedIndex(NativeArray<bool> usedValues)
