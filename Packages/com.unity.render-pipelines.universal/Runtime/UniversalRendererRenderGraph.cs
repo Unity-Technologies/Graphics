@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-            	m_ActiveDepthID = UniversalResource.BackBufferDepth;
+                m_ActiveDepthID = UniversalResource.BackBufferDepth;
             }
             #endregion
 
@@ -686,7 +686,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTransparentForwardPass.m_ShouldTransparentsReceiveShadows = !m_TransparentSettingsPass.Setup(ref renderingData);
                 m_RenderTransparentForwardPass.Render(renderGraph, activeColorTexture, activeDepthTexture, mainShadowsTexture, additionalShadowsTexture, ref renderingData);
             }
-            
+
             // Custom passes come before built-in passes to keep parity with non-RG code path where custom passes are added before renderer Setup.
 
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingTransparents);

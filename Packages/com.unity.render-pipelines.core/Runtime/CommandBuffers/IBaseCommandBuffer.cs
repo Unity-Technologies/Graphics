@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering
     /// <summary>
     /// This interface declares functions shared by several command buffer types.
     /// </summary>
-    public interface IBaseCommandBuffer 
+    public interface IBaseCommandBuffer
     {
 
         /// <summary>Wraps [SetInvertCulling](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetInvertCulling.html) on a CommandBuffer.</summary>

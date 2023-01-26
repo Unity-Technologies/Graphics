@@ -698,7 +698,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
             bool skipCloudRendering = m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) || !HasVolumetricClouds(hdCamera, in settings);
 #if UNITY_EDITOR
-            skipCloudRendering |= !hdCamera.camera.renderCloudsInSceneView; 
+            skipCloudRendering |= !hdCamera.camera.renderCloudsInSceneView;
 #endif
             if (skipCloudRendering)
             {

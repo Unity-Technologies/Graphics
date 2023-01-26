@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region DebugRendererLists
-        
+
         internal DebugRendererLists CreateRendererListsWithDebugRenderState(
              ScriptableRenderContext context,
              ref RenderingData renderingData,

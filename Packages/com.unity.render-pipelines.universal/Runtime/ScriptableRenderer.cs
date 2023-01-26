@@ -1081,7 +1081,7 @@ namespace UnityEngine.Rendering.Universal
         internal void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_Resources.InitFrame();
-            
+
             using (new ProfilingScope(Profiling.sortRenderPasses))
             {
                 // Sort the render pass queue
