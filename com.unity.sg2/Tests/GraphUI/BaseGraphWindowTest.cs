@@ -10,25 +10,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     class BaseGraphWindowTest
     {
-        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2( /*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
-        protected TestEditorWindow m_MainWindow;
-        protected TestGraphView m_GraphView;
-        protected List<TestEditorWindow> m_ExtraWindows = new();
-        protected List<string> m_ExtraGraphAssets = new();
-        protected SGGraphModel GraphModel => m_GraphView.GraphModel as SGGraphModel;
-
-        // Used to send events to the highest shader graph editor window
-        protected TestEventHelpers m_TestEventHelper;
-
-        // Used to simulate interactions within the shader graph editor window
-        protected TestInteractionHelpers m_TestInteractionHelper;
-
-        protected virtual string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
-        protected virtual bool hideOverlayWindows => true;
-
-        protected const string k_BlackboardOverlayId = BlackboardOverlay_Internal.idValue;
-        protected const string k_InspectorOverlayId = ModelInspectorOverlay_Internal.idValue;
-
         internal enum GraphInstantiation
         {
             None,
@@ -38,6 +19,21 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Disk,
             DiskSubGraph
         }
+
+        private List<TestEditorWindow> _extraWindows = new();
+        private List<string> _extraGraphAssets = new();
+        protected const string k_BlackboardOverlayId = BlackboardOverlay_Internal.idValue;
+        protected const string k_InspectorOverlayId = ModelInspectorOverlay_Internal.idValue;
+        protected TestEditorWindow m_MainWindow;
+        protected TestGraphView m_GraphView;
+        protected TestEventHelpers m_TestEventHelper; // Used to send events to the highest shader graph editor window
+        protected TestInteractionHelpers m_TestInteractionHelper; // Used to simulate interactions within the shader graph editor window
+
+        protected virtual string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
+
+        protected virtual bool hideOverlayWindows => true;
+
+        protected SGGraphModel GraphModel => m_GraphView.GraphModel as SGGraphModel;
 
         protected virtual GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
 
@@ -111,9 +107,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             AssetDatabase.DeleteAsset(testAssetPath);
 
             // Close any extra windows and delete extra assets
-            foreach (var extraWindow in m_ExtraWindows)
+            foreach (var extraWindow in _extraWindows)
                 extraWindow.Close();
-            foreach (var extraGraphAsset in m_ExtraGraphAssets)
+            foreach (var extraGraphAsset in _extraGraphAssets)
                 AssetDatabase.DeleteAsset(extraGraphAsset);
 
         }
@@ -188,47 +184,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 Console.WriteLine(e);
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Creates a node by using the node type name displayed in the ItemLibrary and adds it to the graph model.
-        /// </summary>
-        /// <param name="name">Type name of the node to create, as displayed in the Item Library.</param>
-        /// <param name="position">Node position.</param>
-        /// <returns>The created node.</returns>
-        protected SGNodeModel CreateNodeByName(string name, Vector2 position)
-        {
-            var registry = GraphModel.RegistryInstance;
-
-            var versionCounts = new Dictionary<string, int>();
-            foreach (var registryKey in registry.Registry.BrowseRegistryKeys())
-            {
-                versionCounts[registryKey.Name] = versionCounts.GetValueOrDefault(registryKey.Name, 0) + 1;
-            }
-
-            foreach (var registryKey in registry.Registry.BrowseRegistryKeys())
-            {
-                if (GraphModel.ShouldBeInSearcher(registryKey))
-                {
-                    var uiInfo = registry.GetNodeUIDescriptor(registryKey);
-                    string searcherItemName = uiInfo.DisplayName;
-
-                    if (versionCounts[registryKey.Name] > 1)
-                    {
-                        searcherItemName += $" (v{uiInfo.Version})";
-                    }
-
-                    if (searcherItemName == name)
-                    {
-                        return GraphModel.CreateGraphDataNode(
-                            registryKey,
-                            uiInfo.DisplayName,
-                            position);
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }
