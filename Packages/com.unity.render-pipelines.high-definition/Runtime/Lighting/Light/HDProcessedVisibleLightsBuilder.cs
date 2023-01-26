@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public int dataIndex;
         public GPULightType gpuLightType;
-        public HDLightType lightType;
+        public LightType lightType;
         public float lightDistanceFade;
         public float lightVolumetricDistanceFade;
         public float distanceToCamera;
@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int dataIndex;
         public int lightIndex;
         public HDShadowRequestSetHandle shadowRequestSetHandle;
-        public HDLightType lightType;
+        public LightType lightType;
         public int splitCount;
         public int shadowRequestCount;
         public int sortKeyIndex;

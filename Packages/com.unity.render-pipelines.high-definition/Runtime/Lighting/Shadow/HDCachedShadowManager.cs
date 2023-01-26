@@ -52,13 +52,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="shadowResolution">The resolution of the hypothetical shadow map that we are assessing.</param>
         /// <param name="lightType">The type of the light that cast the hypothetical shadow map that we are assessing.</param>
         /// <returns>True if the shadow map would fit in the atlas, false otherwise.</returns>
-        public bool WouldFitInAtlas(int shadowResolution, HDLightType lightType)
+        public bool WouldFitInAtlas(int shadowResolution, LightType lightType)
         {
             bool fits = true;
             int x = 0;
             int y = 0;
 
-            if (lightType == HDLightType.Point)
+            if (lightType == LightType.Point)
             {
                 int fitted = 0;
                 for (int i = 0; i < 6; ++i)
@@ -86,10 +86,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (lightType == HDLightType.Spot)
+            if (lightType.IsSpot())
                 fits = fits && HDShadowManager.cachedShadowManager.punctualShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
 
-            if (lightType == HDLightType.Area)
+            if (lightType.IsArea())
                 fits = fits && HDShadowManager.cachedShadowManager.areaShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
 
             return fits;
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (lightData.legacyLight.shadows != LightShadows.None)
             {
-                var lightType = lightData.type;
+                var lightType = lightData.legacyLight.type;
                 var resolution = lightData.GetResolutionFromSettings(lightData.GetShadowMapType(lightType), m_InitParams);
                 return WouldFitInAtlas(resolution, lightType);
             }
@@ -117,11 +117,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// as dirty and they will be re-rendered as soon the light will come into view for the first time after this function call.
         /// </summary>
         /// <param name="lightType">The type of the light contained in the atlas that need defragmentation.</param>
-        public void DefragAtlas(HDLightType lightType)
+        public void DefragAtlas(LightType lightType)
         {
-            if (lightType == HDLightType.Area)
+            if (lightType.IsArea())
                 instance.areaShadowAtlas.DefragmentAtlasAndReRender(instance.m_InitParams);
-            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+            if (lightType.IsSpot() || lightType == LightType.Point)
                 instance.punctualShadowAtlas.DefragmentAtlasAndReRender(instance.m_InitParams);
         }
 
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="lightData">The light to evict from the atlas.</param>
         public void ForceEvictLight(HDAdditionalLightData lightData)
         {
-            EvictLight(lightData);
+            EvictLight(lightData, lightData.legacyLight.type);
             lightData.lightIdxForCachedShadows = -1;
         }
 
@@ -156,12 +156,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if the shadow map is already placed in the atlas, false otherwise.</returns>
         public bool LightHasBeenPlacedInAtlas(HDAdditionalLightData lightData)
         {
-            var lightType = lightData.type;
-            if (lightType == HDLightType.Area)
+            var lightType = lightData.legacyLight.type;
+            if (lightType.IsArea())
                 return instance.areaShadowAtlas.LightIsPlaced(lightData);
-            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+            if (lightType.IsSpot() || lightType == LightType.Point)
                 return instance.punctualShadowAtlas.LightIsPlaced(lightData);
-            if (lightType == HDLightType.Directional)
+            if (lightType == LightType.Directional)
                 return !lightData.ShadowIsUpdatedEveryFrame();
 
             return false;
@@ -175,16 +175,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if the shadow map is already placed in the atlas and rendered at least once, false otherwise.</returns>
         public bool LightHasBeenPlaceAndRenderedAtLeastOnce(HDAdditionalLightData lightData, int numberOfCascades = 0)
         {
-            var lightType = lightData.type;
-            if (lightType == HDLightType.Area)
+            var lightType = lightData.legacyLight.type;
+            if (lightType.IsArea())
             {
                 return instance.areaShadowAtlas.LightIsPlaced(lightData) && instance.areaShadowAtlas.FullLightShadowHasRenderedAtLeastOnce(lightData);
             }
-            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+            if (lightType.IsSpot() || lightType == LightType.Point)
             {
                 return instance.punctualShadowAtlas.LightIsPlaced(lightData) && instance.punctualShadowAtlas.FullLightShadowHasRenderedAtLeastOnce(lightData);
             }
-            if (lightType == HDLightType.Directional)
+            if (lightType == LightType.Directional)
             {
                 Debug.Assert(numberOfCascades <= m_MaxShadowCascades, "numberOfCascades is bigger than the maximum cascades allowed");
                 bool hasRendered = true;
@@ -206,23 +206,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if the shadow map is already placed in the atlas and rendered at least once, false otherwise.</returns>
         public bool ShadowHasBeenPlaceAndRenderedAtLeastOnce(HDAdditionalLightData lightData, int shadowIndex)
         {
-            var lightType = lightData.type;
-            if (lightType == HDLightType.Area)
+            var lightType = lightData.legacyLight.type;
+            if (lightType.IsArea())
             {
                 return instance.areaShadowAtlas.LightIsPlaced(lightData) && instance.areaShadowAtlas.ShadowHasRenderedAtLeastOnce(lightData.lightIdxForCachedShadows);
             }
-            if (lightType == HDLightType.Spot)
+            if (lightType.IsSpot())
             {
                 return instance.punctualShadowAtlas.LightIsPlaced(lightData) && instance.punctualShadowAtlas.ShadowHasRenderedAtLeastOnce(lightData.lightIdxForCachedShadows);
             }
-            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+            if (lightType == LightType.Point)
             {
-                if (lightType == HDLightType.Point)
-                    Debug.Assert(shadowIndex < 6, "Shadow Index is bigger than the available sub-shadows");
-
+                Debug.Assert(shadowIndex < 6, "Shadow Index is bigger than the available sub-shadows");
                 return instance.punctualShadowAtlas.LightIsPlaced(lightData) && instance.punctualShadowAtlas.ShadowHasRenderedAtLeastOnce(lightData.lightIdxForCachedShadows + shadowIndex);
             }
-            if (lightType == HDLightType.Directional)
+            if (lightType == LightType.Directional)
             {
                 Debug.Assert(shadowIndex < m_MaxShadowCascades, "Shadow Index is bigger than the maximum cascades allowed");
                 return !lightData.ShadowIsUpdatedEveryFrame() && directionalShadowHasRendered[(uint)shadowIndex];
@@ -306,55 +304,53 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return;
             }
-            HDLightType lightType = lightData.type;
+            LightType lightType = lightData.legacyLight.type;
 
-            if (lightType == HDLightType.Directional)
+            if (lightType == LightType.Directional)
             {
                 lightData.lightIdxForCachedShadows = 0;
                 MarkAllDirectionalShadowsForUpdate();
             }
 
-            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+            if (lightType.IsSpot() || lightType == LightType.Point)
             {
                 punctualShadowAtlas.RegisterLight(lightData);
             }
 
-            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area && lightData.areaLightShape == AreaLightShape.Rectangle)
+            if (ShaderConfig.s_AreaLights == 1 && lightType == LightType.Rectangle)
             {
                 areaShadowAtlas.RegisterLight(lightData);
             }
         }
 
-        internal void EvictLight(HDAdditionalLightData lightData)
+        internal void EvictLight(HDAdditionalLightData lightData, LightType cachedLightType)
         {
-            HDLightType lightType = lightData.type;
-
-            if (lightType == HDLightType.Directional)
+            if (cachedLightType == LightType.Directional)
             {
                 lightData.lightIdxForCachedShadows = -1;
                 MarkAllDirectionalShadowsForUpdate();
             }
 
-            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+            if (cachedLightType.IsSpot() || cachedLightType == LightType.Point)
             {
-                punctualShadowAtlas.EvictLight(lightData);
+                punctualShadowAtlas.EvictLight(lightData, cachedLightType);
             }
 
-            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
+            if (ShaderConfig.s_AreaLights == 1 && cachedLightType.IsArea())
             {
-                areaShadowAtlas.EvictLight(lightData);
+                areaShadowAtlas.EvictLight(lightData, cachedLightType);
             }
         }
 
         internal void RegisterTransformToCache(HDAdditionalLightData lightData)
         {
-            HDLightType lightType = lightData.type;
+            LightType lightType = lightData.legacyLight.type;
 
-            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+            if (lightType.IsSpot() || lightType == LightType.Point)
                 punctualShadowAtlas.RegisterTransformCacheSlot(lightData);
-            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
+            if (ShaderConfig.s_AreaLights == 1 && lightType.IsArea())
                 areaShadowAtlas.RegisterTransformCacheSlot(lightData);
-            if (lightType == HDLightType.Directional)
+            if (lightType == LightType.Directional)
                 m_CachedDirectionalAngles = lightData.transform.eulerAngles;
         }
 
@@ -392,12 +388,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ScheduleShadowUpdate(HDAdditionalLightData light)
         {
-            var lightType = light.type;
-            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+            var lightType = light.legacyLight.type;
+            if (lightType == LightType.Point || lightType.IsSpot())
                 punctualShadowAtlas.ScheduleShadowUpdate(light);
-            else if (lightType == HDLightType.Area)
+            else if (lightType.IsArea())
                 areaShadowAtlas.ScheduleShadowUpdate(light);
-            else if (lightType == HDLightType.Directional)
+            else if (lightType == LightType.Directional)
             {
                 MarkAllDirectionalShadowsForUpdate();
             }
@@ -405,17 +401,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ScheduleShadowUpdate(HDAdditionalLightData light, int subShadowIndex)
         {
-            var lightType = light.type;
-            if (lightType == HDLightType.Spot)
+            var lightType = light.legacyLight.type;
+            if (lightType.IsSpot())
                 punctualShadowAtlas.ScheduleShadowUpdate(light);
-            if (lightType == HDLightType.Area)
+            if (lightType.IsArea())
                 areaShadowAtlas.ScheduleShadowUpdate(light);
-            if (lightType == HDLightType.Point)
+            if (lightType == LightType.Point)
             {
                 Debug.Assert(subShadowIndex < 6);
                 punctualShadowAtlas.ScheduleShadowUpdate(light.lightIdxForCachedShadows + subShadowIndex);
             }
-            if (lightType == HDLightType.Directional)
+            if (lightType == LightType.Directional)
             {
                 Debug.Assert(subShadowIndex < m_MaxShadowCascades);
                 directionalShadowPendingUpdate[(uint)subShadowIndex] = true;

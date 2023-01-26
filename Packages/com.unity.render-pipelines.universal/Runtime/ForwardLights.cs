@@ -637,7 +637,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    perObjectLightIndexMap[i] -= globalDirectionalLightsCount;
+                    if (lightData.visibleLights[i].lightType == LightType.Directional ||
+                        lightData.visibleLights[i].lightType == LightType.Spot ||
+                        lightData.visibleLights[i].lightType == LightType.Point)
+                    {
+                        // Light type is supported
+                        perObjectLightIndexMap[i] -= globalDirectionalLightsCount;
+                    }
+                    else
+                    {
+                        // Light type is not supported. Skip the light.
+                        perObjectLightIndexMap[i] = -1;
+                    }
+
                     ++additionalLightsCount;
                 }
             }

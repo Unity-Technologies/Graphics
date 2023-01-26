@@ -1,5 +1,6 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -20,7 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty affectDiffuse;
         public SerializedProperty affectSpecular;
         public SerializedProperty nonLightmappedOnly;
-        public SerializedProperty spotLightShape;
         public SerializedProperty shapeWidth;
         public SerializedProperty shapeHeight;
         public SerializedProperty barnDoorAngle;
@@ -106,9 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty slopeBias;
         public SerializedProperty normalBias;
 
-        internal SerializedProperty pointLightHDType;
-        private SerializedProperty areaLightShapeProperty;
-
         private GameObject[] emissiveMeshes;
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
@@ -121,86 +118,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         //contain serialized property that are mainly used to draw inspector
         public LightEditor.Settings settings { get; }
-
-        //type is converted on the fly each time so we cannot have SerializedProperty on it
-        public HDLightType type
-        {
-            get => haveMultipleTypeValue
-            ? (HDLightType)(-1)     //as serialize property on enum when mixed value state happens
-            : (serializedObject.targetObjects[0] as HDAdditionalLightData).type;
-            set
-            {
-                //Note: type is split in both component
-                var undoObjects = serializedObject.targetObjects.SelectMany((Object x) => new Object[] { x, (x as HDAdditionalLightData).legacyLight }).ToArray();
-                Undo.RecordObjects(undoObjects, "Change light type");
-                var objects = serializedObject.targetObjects;
-                for (int index = 0; index < objects.Length; ++index)
-                    (objects[index] as HDAdditionalLightData).type = value;
-                serializedObject.Update();
-            }
-        }
-
-        bool haveMultipleTypeValue
-        {
-            get
-            {
-                var objects = serializedObject.targetObjects;
-                HDLightType value = (objects[0] as HDAdditionalLightData).type;
-                for (int index = 1; index < objects.Length; ++index)
-                    if (value != (objects[index] as HDAdditionalLightData).type)
-                        return true;
-                return false;
-            }
-        }
-
-        //areaLightShape need to be accessed by its property to always report modification in the right way
-        public AreaLightShape areaLightShape
-        {
-            get => haveMultipleAreaLightShapeValue
-            ? (AreaLightShape)(-1)     //as serialize property on enum when mixed value state happens
-            : (serializedObject.targetObjects[0] as HDAdditionalLightData).areaLightShape;
-            set
-            {
-                //Note: Disc is actually changing legacyLight.type to Disc
-                var undoObjects = serializedObject.targetObjects.SelectMany((Object x) => new Object[] { x, (x as HDAdditionalLightData).legacyLight }).ToArray();
-                Undo.RecordObjects(undoObjects, "Change light area shape");
-                var objects = serializedObject.targetObjects;
-                for (int index = 0; index < objects.Length; ++index)
-                    (objects[index] as HDAdditionalLightData).areaLightShape = value;
-                serializedObject.Update();
-            }
-        }
-
-        bool haveMultipleAreaLightShapeValue
-        {
-            get
-            {
-                var objects = serializedObject.targetObjects;
-                AreaLightShape value = (objects[0] as HDAdditionalLightData).areaLightShape;
-                for (int index = 1; index < objects.Length; ++index)
-                    if (value != (objects[index] as HDAdditionalLightData).areaLightShape)
-                        return true;
-                return false;
-            }
-        }
-
-        // This scope is here mainly to keep pointLightHDType and areaLightShapeProperty isolated
-        public struct AreaLightShapeEditionScope : System.IDisposable
-        {
-            public AreaLightShapeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
-            {
-                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
-                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
-                EditorGUI.BeginProperty(rect, label, serialized.areaLightShapeProperty);
-            }
-
-            void System.IDisposable.Dispose()
-            {
-                EditorGUI.EndProperty();
-                EditorGUI.EndProperty();
-                EditorGUI.EndProperty();
-            }
-        }
 
         struct AreaLightEmissiveMeshEditionScope : System.IDisposable
         {
@@ -331,7 +248,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 affectDiffuse = o.Find("m_AffectDiffuse");
                 affectSpecular = o.Find("m_AffectSpecular");
                 nonLightmappedOnly = o.Find("m_NonLightmappedOnly");
-                spotLightShape = o.Find("m_SpotLightShape");
                 shapeWidth = o.Find("m_ShapeWidth");
                 shapeHeight = o.Find("m_ShapeHeight");
                 barnDoorAngle = o.Find("m_BarnDoorAngle");
@@ -405,10 +321,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 slopeBias = o.Find("m_SlopeBias");
                 normalBias = o.Find("m_NormalBias");
-
-                // private references for prefab handling
-                pointLightHDType = o.Find("m_PointlightHDType");
-                areaLightShapeProperty = o.Find("m_AreaLightShape");
 
                 // emission mesh
                 areaLightEmissiveMeshCastShadow = o.Find("m_AreaLightEmissiveMeshShadowCastingMode");
@@ -484,5 +396,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public void Apply() => ApplyInternal(withDeportedEmissiveMeshData: true);
+
+        public bool HasMultipleLightTypes(Editor owner)
+        {
+            return owner.serializedObject.FindProperty("m_Type").hasMultipleDifferentValues;
+        }
     }
 }

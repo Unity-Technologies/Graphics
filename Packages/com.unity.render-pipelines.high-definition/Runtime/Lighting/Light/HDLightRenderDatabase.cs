@@ -22,9 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
     //TODO: as a next round of optimizations, this should be reorganized to be cache friendly, and possibly split into SoAs for that matter.
     internal struct HDLightRenderData
     {
-        public HDAdditionalLightData.PointLightHDType pointLightType;
-        public SpotLightShape spotLightShape;
-        public AreaLightShape areaLightShape;
         public uint renderingLayerMask;
         public float fadeDistance;
         public float distance;
@@ -62,16 +59,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
     internal struct HDAdditionalLightDataUpdateInfo
     {
-        const int SpotLightShapeTypeDataIndex = 0;
-        const int AreaLightShapeTypeDataIndex = 1;
-        const int ShadowUpdateModeTypeDataIndex = 2;
-        const int PointLightHDTypeTypeDataIndex = 3;
+        const int ShadowUpdateModeTypeDataIndex = 0;
 
         const int UseCustomSpotLightShadowConeFlagsIndex = 0;
         const int AlwaysDrawDynamicShadowsFlagsIndex = 1;
         const int UpdateUponLightMovementFlagsIndex = 2;
 
-        public HDLightType lightType;
         public float shadowNearPlane;
         public float normalBias;
         public float shapeHeight;
@@ -111,28 +104,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return (byte)((typeData >> (typeIndex * 2)) & 0b11);
         }
 
-        public SpotLightShape spotLightShape
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (SpotLightShape)GetTypeData(SpotLightShapeTypeDataIndex);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => SetTypeData(SpotLightShapeTypeDataIndex, (byte)value);
-        }
-
-        public AreaLightShape areaLightShape
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (AreaLightShape)GetTypeData(AreaLightShapeTypeDataIndex);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => SetTypeData(AreaLightShapeTypeDataIndex, (byte)value);
-        }
-
         public ShadowUpdateMode shadowUpdateMode
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (ShadowUpdateMode)GetTypeData(ShadowUpdateModeTypeDataIndex);
             [MethodImpl(MethodImplOptions.AggressiveInlining)] set => SetTypeData(ShadowUpdateModeTypeDataIndex, (byte)value);
-        }
-
-        public HDAdditionalLightData.PointLightHDType pointLightHDType
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (HDAdditionalLightData.PointLightHDType)GetTypeData(PointLightHDTypeTypeDataIndex);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => SetTypeData(PointLightHDTypeTypeDataIndex, (byte)value);
         }
 
         public bool useCustomSpotLightShadowCone
@@ -155,7 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Set(HDAdditionalLightData additionalLightData)
         {
-            lightType = additionalLightData.type;
             shadowNearPlane = additionalLightData.shadowNearPlane;
             normalBias = additionalLightData.normalBias;
             shapeHeight = additionalLightData.shapeHeight;
@@ -180,13 +154,10 @@ namespace UnityEngine.Rendering.HighDefinition
             kernelSize = (byte)additionalLightData.kernelSize;
             evsmBlurPasses = (byte)additionalLightData.evsmBlurPasses;
             lightIdxForCachedShadows = additionalLightData.lightIdxForCachedShadows;
-            spotLightShape = additionalLightData.spotLightShape;
-            areaLightShape = additionalLightData.areaLightShape;
             shadowUpdateMode = additionalLightData.shadowUpdateMode;
             useCustomSpotLightShadowCone = additionalLightData.useCustomSpotLightShadowCone;
             alwaysDrawDynamicShadows = additionalLightData.alwaysDrawDynamicShadows;
             updateUponLightMovement = additionalLightData.updateUponLightMovement;
-            pointLightHDType = additionalLightData.pointLightHDType;
         }
     }
     //Class representing a rendering side database of lights in the world
@@ -263,36 +234,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalLightDataUpdateInfo* data = (HDAdditionalLightDataUpdateInfo*)m_AdditionalLightDataUpdateInfos.GetUnsafePtr<HDAdditionalLightDataUpdateInfo>() + dataIndex;
                 return ref UnsafeUtility.AsRef<HDAdditionalLightDataUpdateInfo>(data);
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetPointLightType(in HDLightRenderEntity entity, HDAdditionalLightData.PointLightHDType pointLightType)
-        {
-            if (!entity.valid)
-                return;
-
-            EditLightDataAsRef(entity).pointLightType = pointLightType;
-            EditAdditionalLightUpdateDataAsRef(entity).pointLightHDType = pointLightType;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAreaLightShape(in HDLightRenderEntity entity, AreaLightShape areaLightShape)
-        {
-            if (!entity.valid)
-                return;
-
-            EditLightDataAsRef(entity).areaLightShape = areaLightShape;
-            EditAdditionalLightUpdateDataAsRef(entity).areaLightShape = areaLightShape;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetSpotLightShape(in HDLightRenderEntity entity, SpotLightShape spotLightShape)
-        {
-            if (!entity.valid)
-                return;
-
-            EditLightDataAsRef(entity).spotLightShape = spotLightShape;
-            EditAdditionalLightUpdateDataAsRef(entity).spotLightShape = spotLightShape;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

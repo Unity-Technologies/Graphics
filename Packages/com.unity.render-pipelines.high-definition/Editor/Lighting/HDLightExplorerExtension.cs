@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -97,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent Weight = EditorGUIUtility.TrTextContent("Weight");
 
             public static readonly GUIContent[] LightTypeTitles = { EditorGUIUtility.TrTextContent("Spot"), EditorGUIUtility.TrTextContent("Directional"), EditorGUIUtility.TrTextContent("Point"), EditorGUIUtility.TrTextContent("Area") };
-            public static readonly int[] LightTypeValues = { (int)HDLightType.Spot, (int)HDLightType.Directional, (int)HDLightType.Point, (int)HDLightType.Area };
+            public static readonly int[] LightTypeValues = { (int)LightType.Spot, (int)LightType.Directional, (int)LightType.Point, (int)LightType.Rectangle };
             internal static readonly GUIContent DrawProbes = EditorGUIUtility.TrTextContent("Draw");
             internal static readonly GUIContent DebugColor = EditorGUIUtility.TrTextContent("Debug Color");
             internal static readonly GUIContent ResolutionX = EditorGUIUtility.TrTextContent("Resolution X");
@@ -226,16 +228,32 @@ namespace UnityEditor.Rendering.HighDefinition
                         return;
                     }
 
-                    HDLightType lightType = lightData.type;
+                    HDLightUI.LightArchetype archetype = HDLightUI.GetArchetype(lightData.legacyLight.type);
 
                     EditorGUI.BeginProperty(r, GUIContent.none, prop);
                     EditorGUI.BeginChangeCheck();
-                    lightType = (HDLightType)EditorGUI.IntPopup(r, (int)lightType, HDStyles.LightTypeTitles, HDStyles.LightTypeValues);
+                    archetype = (HDLightUI.LightArchetype)EditorGUI.EnumPopup(r, archetype);
 
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObjects(new Object[] { prop.serializedObject.targetObject, lightData }, "Changed light type");
-                        lightData.type = lightType;
+                        switch (archetype)
+                        {
+                            case HDLightUI.LightArchetype.Spot:
+                                lightData.legacyLight.type = LightType.Spot;
+                                break;
+                            case HDLightUI.LightArchetype.Directional:
+                                lightData.legacyLight.type = LightType.Directional;
+                                break;
+                            case HDLightUI.LightArchetype.Point:
+                                lightData.legacyLight.type = LightType.Point;
+                                break;
+                            case HDLightUI.LightArchetype.Area:
+                                lightData.legacyLight.type = LightType.Rectangle;
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
                     }
                     EditorGUI.EndProperty();
                 }, (lprop, rprop) =>
@@ -246,14 +264,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (IsNullComparison(lLightData, rLightData, out var order))
                             return order;
 
-                        return ((int)lLightData.type).CompareTo((int)rLightData.type);
+                        return ((int)lLightData.legacyLight.type).CompareTo((int)rLightData.legacyLight.type);
                     }, (target, source) =>
                     {
                         if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                             return;
 
                         Undo.RecordObjects(new Object[] { target.serializedObject.targetObject, tLightData }, "Changed light type");
-                        tLightData.type = sLightData.type;
+                        tLightData.legacyLight.type = sLightData.legacyLight.type;
                     }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Mode, "m_Lightmapping", 90),                                    // 3: Mixed mode
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Range, "m_Range", 60),                                         // 4: Range
@@ -323,7 +341,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.BeginChangeCheck();
 
                     LightUnit unit = lightData.lightUnit;
-                    unit = HDLightUI.DrawLightIntensityUnitPopup(r, unit, lightData.type, lightData.spotLightShape);
+                    unit = HDLightUI.DrawLightIntensityUnitPopup(r, unit, lightData.legacyLight.type);
 
                     if (EditorGUI.EndChangeCheck())
                     {
@@ -442,7 +460,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     var shadowResolution = lightData.shadowResolution;
                     int shadowRes = 0;
-                    var lightType = lightData.type;
+                    var lightType = lightData.legacyLight.type;
 
                     if (shadowResolution.useOverride)
                     {
@@ -473,11 +491,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         var hdrp = HDRenderPipeline.currentAsset;
 
-                        var lightType = lLightData.type;
+                        var lightType = lLightData.legacyLight.type;
 
                         bool lFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lLightData);
 
-                        lightType = rLightData.type;
+                        lightType = rLightData.legacyLight.type;
 
                         bool rFit = rLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(rLightData);
 
@@ -509,7 +527,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     else
                     {
-                        var lightType = lightData.type;
+                        var lightType = lightData.legacyLight.type;
                         var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
 
                         using (new EditorGUI.DisabledScope(true))
@@ -528,8 +546,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                         var lShadowResolution = lLightData.shadowResolution;
                         var rShadowResolution = rLightData.shadowResolution;
-                        var lLightShape = lLightData.type;
-                        var rLightShape = rLightData.type;
+                        var lLightShape = lLightData.legacyLight.type;
+                        var rLightShape = rLightData.legacyLight.type;
 
                         int lResolution = lShadowResolution.useOverride ? lShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(lLightShape, hdrp)[lShadowResolution.level]);
                         int rResolution = rShadowResolution.useOverride ? rShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(rLightShape, hdrp)[rShadowResolution.level]);

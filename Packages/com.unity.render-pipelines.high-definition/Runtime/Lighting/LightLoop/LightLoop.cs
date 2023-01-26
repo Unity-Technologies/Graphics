@@ -1455,8 +1455,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 light.bakingOutput.occlusionMaskChannel != -1;     // We need to have an occlusion mask channel assign, else we have no shadow mask
         }
 
-        internal static void EvaluateGPULightType(HDLightType lightType, SpotLightShape spotLightShape, AreaLightShape areaLightShape,
-            ref LightCategory lightCategory, ref GPULightType gpuLightType, ref LightVolumeType lightVolumeType)
+        internal static void EvaluateGPULightType(LightType lightType, ref LightCategory lightCategory,
+            ref GPULightType gpuLightType, ref LightVolumeType lightVolumeType)
         {
             lightCategory = LightCategory.Count;
             gpuLightType = GPULightType.Point;
@@ -1464,67 +1464,54 @@ namespace UnityEngine.Rendering.HighDefinition
 
             switch (lightType)
             {
-                case HDLightType.Spot:
+                case LightType.Spot:
                     lightCategory = LightCategory.Punctual;
-
-                    switch (spotLightShape)
-                    {
-                        case SpotLightShape.Cone:
-                            gpuLightType = GPULightType.Spot;
-                            lightVolumeType = LightVolumeType.Cone;
-                            break;
-                        case SpotLightShape.Pyramid:
-                            gpuLightType = GPULightType.ProjectorPyramid;
-                            lightVolumeType = LightVolumeType.Cone;
-                            break;
-                        case SpotLightShape.Box:
-                            gpuLightType = GPULightType.ProjectorBox;
-                            lightVolumeType = LightVolumeType.Box;
-                            break;
-                        default:
-                            Debug.Assert(false, "Encountered an unknown SpotLightShape.");
-                            break;
-                    }
+                    gpuLightType = GPULightType.Spot;
+                    lightVolumeType = LightVolumeType.Cone;
                     break;
 
-                case HDLightType.Directional:
+                case LightType.Pyramid:
+                    lightCategory = LightCategory.Punctual;
+                    gpuLightType = GPULightType.ProjectorPyramid;
+                    lightVolumeType = LightVolumeType.Cone;
+                    break;
+
+                case LightType.Box:
+                    lightCategory = LightCategory.Punctual;
+                    gpuLightType = GPULightType.ProjectorBox;
+                    lightVolumeType = LightVolumeType.Box;
+                    break;
+
+                case LightType.Directional:
                     lightCategory = LightCategory.Punctual;
                     gpuLightType = GPULightType.Directional;
                     // No need to add volume, always visible
                     lightVolumeType = LightVolumeType.Count; // Count is none
                     break;
 
-                case HDLightType.Point:
+                case LightType.Point:
                     lightCategory = LightCategory.Punctual;
                     gpuLightType = GPULightType.Point;
                     lightVolumeType = LightVolumeType.Sphere;
                     break;
 
-                case HDLightType.Area:
+                case LightType.Rectangle:
                     lightCategory = LightCategory.Area;
+                    gpuLightType = GPULightType.Rectangle;
+                    lightVolumeType = LightVolumeType.Box;
+                    break;
 
-                    switch (areaLightShape)
-                    {
-                        case AreaLightShape.Rectangle:
-                            gpuLightType = GPULightType.Rectangle;
-                            lightVolumeType = LightVolumeType.Box;
-                            break;
+                case LightType.Tube:
+                    lightCategory = LightCategory.Area;
+                    gpuLightType = GPULightType.Tube;
+                    lightVolumeType = LightVolumeType.Box;
+                    break;
 
-                        case AreaLightShape.Tube:
-                            gpuLightType = GPULightType.Tube;
-                            lightVolumeType = LightVolumeType.Box;
-                            break;
-
-                        case AreaLightShape.Disc:
-                            //not used in real-time at the moment anyway
-                            gpuLightType = GPULightType.Disc;
-                            lightVolumeType = LightVolumeType.Sphere;
-                            break;
-
-                        default:
-                            Debug.Assert(false, "Encountered an unknown AreaLightShape.");
-                            break;
-                    }
+                case LightType.Disc:
+                    lightCategory = LightCategory.Area;
+                    //not used in real-time at the moment anyway
+                    gpuLightType = GPULightType.Disc;
+                    lightVolumeType = LightVolumeType.Sphere;
                     break;
 
                 default:
@@ -2013,19 +2000,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_EnableBakeShadowMask;
         }
 
-        internal void ReserveCookieAtlasTexture(HDAdditionalLightData hdLightData, Light light, HDLightType lightType)
+        internal void ReserveCookieAtlasTexture(HDAdditionalLightData hdLightData, Light light, LightType lightType)
         {
             // Note: light component can be null if a Light is used for shuriken particle lighting.
-            lightType = light == null ? HDLightType.Point : lightType;
+            lightType = light == null ? LightType.Point : lightType;
             switch (lightType)
             {
-                case HDLightType.Directional:
+                case LightType.Directional:
                 {
                     m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
                     m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie);
                     break;
                 }
-                case HDLightType.Point:
+                case LightType.Point:
                     if (light?.cookie != null && hdLightData.IESPoint != null && light.cookie != hdLightData.IESPoint)
                         m_TextureCaches.lightCookieManager.ReserveSpaceCube(light.cookie, hdLightData.IESPoint);
                     else if (light?.cookie != null)
@@ -2033,7 +2020,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     else if (hdLightData.IESPoint != null)
                         m_TextureCaches.lightCookieManager.ReserveSpaceCube(hdLightData.IESPoint);
                     break;
-                case HDLightType.Spot:
+                case LightType.Spot:
+                case LightType.Pyramid:
+                case LightType.Box:
                     if (light?.cookie != null && hdLightData.IESSpot != null && light.cookie != hdLightData.IESSpot)
                         m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie, hdLightData.IESSpot);
                     else if (light?.cookie != null)
@@ -2041,20 +2030,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     else if (hdLightData.IESSpot != null)
                         m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.IESSpot);
                     // Projectors lights must always have a cookie texture.
-                    else if (hdLightData.spotLightShape != SpotLightShape.Cone)
+                    else if (lightType != LightType.Spot)
                         m_TextureCaches.lightCookieManager.ReserveSpace(Texture2D.whiteTexture);
                     break;
-                case HDLightType.Area:
+                case LightType.Rectangle:
                     // Only rectangle can have cookies
-                    if (hdLightData.areaLightShape == AreaLightShape.Rectangle)
-                    {
-                        if (hdLightData.IESSpot != null && hdLightData.areaLightCookie != null && hdLightData.IESSpot != hdLightData.areaLightCookie)
-                            m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie, hdLightData.IESSpot);
-                        else if (hdLightData.IESSpot != null)
-                            m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.IESSpot);
-                        else if (hdLightData.areaLightCookie != null)
-                            m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie);
-                    }
+                    if (hdLightData.IESSpot != null && hdLightData.areaLightCookie != null && hdLightData.IESSpot != hdLightData.areaLightCookie)
+                        m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie, hdLightData.IESSpot);
+                    else if (hdLightData.IESSpot != null)
+                        m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.IESSpot);
+                    else if (hdLightData.areaLightCookie != null)
+                        m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie);
+                    break;
+                case LightType.Tube:
+                case LightType.Disc:
+                    // These light types can't have cookies
                     break;
             }
         }

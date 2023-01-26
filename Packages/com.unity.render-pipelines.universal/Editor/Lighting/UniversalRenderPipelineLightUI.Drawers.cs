@@ -138,7 +138,23 @@ namespace UnityEditor.Rendering.Universal
             var rect = EditorGUILayout.GetControlRect();
             EditorGUI.BeginProperty(rect, Styles.Type, serializedLight.settings.lightType);
             EditorGUI.BeginChangeCheck();
-            int type = EditorGUI.IntPopup(rect, Styles.Type, selectedLightType, Styles.LightTypeTitles, Styles.LightTypeValues);
+            int type;
+            if (Styles.LightTypeValues.Contains(selectedLightType))
+            {
+                // ^ The currently selected light type is supported in the
+                // current pipeline.
+                type = EditorGUI.IntPopup(rect, Styles.Type, selectedLightType, Styles.LightTypeTitles, Styles.LightTypeValues);
+            }
+            else
+            {
+                // ^ The currently selected light type is not supported in
+                // the current pipeline. Add it to the dropdown, since it
+                // would show up as a blank entry.
+                string currentTitle = ((LightType)selectedLightType).ToString();
+                GUIContent[] titles = Styles.LightTypeTitles.Append(EditorGUIUtility.TrTextContent(currentTitle)).ToArray();
+                int[] values = Styles.LightTypeValues.Append(selectedLightType).ToArray();
+                type = EditorGUI.IntPopup(rect, Styles.Type, selectedLightType, titles, values);
+            }
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -146,6 +162,14 @@ namespace UnityEditor.Rendering.Universal
                 serializedLight.settings.lightType.intValue = type;
             }
             EditorGUI.EndProperty();
+
+            if (!Styles.LightTypeValues.Contains(type))
+            {
+                EditorGUILayout.HelpBox(
+                    "This light type is not supported in the current active render pipeline. Change the light type or the active Render Pipeline to use this light.",
+                    MessageType.Info
+                );
+            }
 
             Light light = serializedLight.settings.light;
             var lightType = light.type;

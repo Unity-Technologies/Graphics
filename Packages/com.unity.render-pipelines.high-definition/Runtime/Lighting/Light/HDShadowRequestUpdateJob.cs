@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref ShadowIndicesAndVisibleLightData shadowIndicesAndVisibleLightData = ref cachedDirectionalVisibleLightsAndIndices.ElementAt(i);
 
                     HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;
-                    ShadowMapUpdateType cachedDirectionalUpdateType = HDAdditionalLightData.GetShadowUpdateType(HDLightType.Directional, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
+                    ShadowMapUpdateType cachedDirectionalUpdateType = HDAdditionalLightData.GetShadowUpdateType(LightType.Directional, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
 
                     int lightIdxForCachedShadows = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.lightIdxForCachedShadows;
                     bool shadowHasAtlasPlacement = lightIdxForCachedShadows != -1;
@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref ShadowIndicesAndVisibleLightData shadowIndicesAndVisibleLightData = ref dynamicDirectionalVisibleLightsAndIndices.ElementAt(i);
 
                     HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;
-                    var updateType = HDAdditionalLightData.GetShadowUpdateType(HDLightType.Directional, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
+                    var updateType = HDAdditionalLightData.GetShadowUpdateType(LightType.Directional, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
                     bool hasCachedComponent = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode != ShadowUpdateMode.EveryFrame;
                     bool isSampledFromCache = (updateType == ShadowMapUpdateType.Cached);
 
@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update cached area rectangle:
             using (cachedAreaRectangleRequestsMarker.Auto())
             {
-                UpdateNonDirectionalCachedRequests(HDLightType.Area,
+                UpdateNonDirectionalCachedRequests(LightType.Rectangle,
                     shadowManager.cachedShadowManager.areaShadowAtlas,
                     shadowManager.areaShadowAtlas,
                     cachedAreaRectangleVisibleLightsAndIndices, cachedAreaRectangleUpdateInfos,
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update cached point:
             using (cachedPointRequestsMarker.Auto())
             {
-                UpdateNonDirectionalCachedRequests(HDLightType.Point,
+                UpdateNonDirectionalCachedRequests(LightType.Point,
                     shadowManager.cachedShadowManager.punctualShadowAtlas,
                     shadowManager.atlas,
                     cachedPointVisibleLightsAndIndices, cachedPointUpdateInfos,
@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update cached spot:
             using (cachedSpotRequestsMarker.Auto())
             {
-                UpdateNonDirectionalCachedRequests(HDLightType.Spot,
+                UpdateNonDirectionalCachedRequests(LightType.Spot,
                     shadowManager.cachedShadowManager.punctualShadowAtlas,
                     shadowManager.atlas,
                     cachedSpotVisibleLightsAndIndices, cachedSpotUpdateInfos,
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update dynamic area rectangle:
             using (dynamicAreaRectangleRequestsMarker.Auto())
             {
-                UpdateNonDirectionalDynamicRequests(HDLightType.Area,
+                UpdateNonDirectionalDynamicRequests(LightType.Rectangle,
                     shadowManager.cachedShadowManager.areaShadowAtlas,
                     shadowManager.areaShadowAtlas,
                     dynamicAreaRectangleVisibleLightsAndIndices, dynamicAreaRectangleUpdateInfos,
@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update dynamic point:
             using (dynamicPointRequestsMarker.Auto())
             {
-                UpdateNonDirectionalDynamicRequests(HDLightType.Point,
+                UpdateNonDirectionalDynamicRequests(LightType.Point,
                     shadowManager.cachedShadowManager.punctualShadowAtlas,
                     shadowManager.atlas,
                     dynamicPointVisibleLightsAndIndices, dynamicPointUpdateInfos,
@@ -311,7 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update dynamic point:
             using (dynamicSpotRequestsMarker.Auto())
             {
-                UpdateNonDirectionalDynamicRequests(HDLightType.Spot,
+                UpdateNonDirectionalDynamicRequests(LightType.Spot,
                     shadowManager.cachedShadowManager.punctualShadowAtlas,
                     shadowManager.atlas,
                     dynamicSpotVisibleLightsAndIndices, dynamicSpotUpdateInfos,
@@ -564,7 +564,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void UpdateNonDirectionalCachedRequests(HDLightType hdLightType,
+        public void UpdateNonDirectionalCachedRequests(LightType lightType,
             HDCachedShadowAtlasDataForShadowRequestUpdateJob cachedShadowAtlas,
             HDDynamicShadowAtlasDataForShadowRequestUpdateJob dynamicShadowAtlas,
             UnsafeList<ShadowIndicesAndVisibleLightData> visibleLightsAndIndices,
@@ -614,7 +614,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                var updateType = HDAdditionalLightData.GetShadowUpdateType(hdLightType, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
+                var updateType = HDAdditionalLightData.GetShadowUpdateType(lightType, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
                 bool isSampledFromCache = (updateType == ShadowMapUpdateType.Cached);
 
                 HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;
@@ -675,7 +675,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void UpdateNonDirectionalDynamicRequests(HDLightType hdLightType,
+        public void UpdateNonDirectionalDynamicRequests(LightType lightType,
             HDCachedShadowAtlasDataForShadowRequestUpdateJob cachedShadowAtlas,
             HDDynamicShadowAtlasDataForShadowRequestUpdateJob dynamicShadowAtlas,
             UnsafeList<ShadowIndicesAndVisibleLightData> visibleLightsAndIndices,
@@ -685,7 +685,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < visibleLightsAndIndices.Length; i++)
             {
                 ref ShadowIndicesAndVisibleLightData shadowIndicesAndVisibleLightData = ref visibleLightsAndIndices.ElementAt(i);
-                var updateType = HDAdditionalLightData.GetShadowUpdateType(hdLightType, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
+                var updateType = HDAdditionalLightData.GetShadowUpdateType(lightType, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
                 bool hasCachedComponent = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode != ShadowUpdateMode.EveryFrame;
                 bool isSampledFromCache = (updateType == ShadowMapUpdateType.Cached);
                 HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;

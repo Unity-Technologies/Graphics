@@ -158,9 +158,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             private HDProcessedVisibleLightsBuilder.ShadowMapFlags EvaluateShadowState(
                 LightShadows shadows,
-                HDLightType lightType,
+                LightType lightType,
                 GPULightType gpuLightType,
-                AreaLightShape areaLightShape,
                 bool useScreenSpaceShadowsVal,
                 bool useRayTracingShadowsVal,
                 float shadowDimmerVal,
@@ -178,11 +177,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     return flags;
 
                 // If the shadow is too far away, we don't render it
-                bool isShadowInRange = lightType == HDLightType.Directional || distanceToCamera < shadowFadeDistanceVal;
+                bool isShadowInRange = lightType == LightType.Directional || distanceToCamera < shadowFadeDistanceVal;
                 if (!isShadowInRange)
                     return flags;
 
-                if (lightType == HDLightType.Area && areaLightShape != AreaLightShape.Rectangle)
+                if (lightType == LightType.Tube || lightType == LightType.Disc)
                     return flags;
 
                 // First we reset the ray tracing and screen space shadow data
@@ -254,24 +253,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float3 lightPosition = visibleLight.GetPosition();
                 float distanceToCamera = math.distance(cameraPosition, lightPosition);
-                var lightType = HDAdditionalLightData.TranslateLightType(visibleLight.lightType, lightRenderData.pointLightType);
+                var lightType = visibleLight.lightType;
                 var lightCategory = LightCategory.Count;
                 var gpuLightType = GPULightType.Point;
-                var areaLightShape = lightRenderData.areaLightShape;
 
-                if (!enableAreaLights && (lightType == HDLightType.Area && (areaLightShape == AreaLightShape.Rectangle || areaLightShape == AreaLightShape.Tube)))
+                if (!enableAreaLights && (lightType == LightType.Rectangle || lightType == LightType.Tube))
                     return;
 
-                var spotLightShape = lightRenderData.spotLightShape;
                 var lightVolumeType = LightVolumeType.Count;
                 var isBakedShadowMaskLight =
                     bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
                     bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask &&
                     bakingOutput.occlusionMaskChannel != -1;    // We need to have an occlusion mask channel assign, else we have no shadow mask
-                HDRenderPipeline.EvaluateGPULightType(lightType, spotLightShape, areaLightShape,
-                    ref lightCategory, ref gpuLightType, ref lightVolumeType);
+                HDRenderPipeline.EvaluateGPULightType(lightType, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
-                if (debugFilterMode != DebugLightFilterMode.None && debugFilterMode.IsEnabledFor(gpuLightType, spotLightShape))
+                if (debugFilterMode != DebugLightFilterMode.None && debugFilterMode.IsEnabledFor(gpuLightType))
                     return;
 
                 float lightDistanceFade = gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(distanceToCamera, lightRenderData.fadeDistance);
@@ -281,9 +277,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 contributesToLighting = contributesToLighting && (lightDistanceFade > 0);
 
                 var shadowMapFlags = EvaluateShadowState(
-                    shadows, lightType, gpuLightType, areaLightShape,
-                    lightRenderData.useScreenSpaceShadows, lightRenderData.useRayTracedShadows,
-                    lightRenderData.shadowDimmer, lightRenderData.shadowFadeDistance, distanceToCamera, lightVolumeType);
+                    shadows, lightType, gpuLightType, lightRenderData.useScreenSpaceShadows,
+                    lightRenderData.useRayTracedShadows, lightRenderData.shadowDimmer,
+                    lightRenderData.shadowFadeDistance, distanceToCamera, lightVolumeType);
 
                 if (!contributesToLighting)
                     return;

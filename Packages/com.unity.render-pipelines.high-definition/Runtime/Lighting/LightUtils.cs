@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -226,9 +227,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="initialIntensity"></param>
         /// <param name="enableSpotReflector"></param>
         /// <returns></returns>
-        public static float ConvertPunctualLightLumenToCandela(HDLightType lightType, float lumen, float initialIntensity, bool enableSpotReflector)
+        public static float ConvertPunctualLightLumenToCandela(LightType lightType, float lumen, float initialIntensity, bool enableSpotReflector)
         {
-            if (lightType == HDLightType.Spot && enableSpotReflector)
+            if (lightType.IsSpot() && enableSpotReflector)
             {
                 // We have already calculate the correct value, just assign it
                 return initialIntensity;
@@ -245,7 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="enableSpotReflector"></param>
         /// <param name="distance"></param>
         /// <returns></returns>
-        public static float ConvertPunctualLightLumenToLux(HDLightType lightType, float lumen, float initialIntensity, bool enableSpotReflector, float distance)
+        public static float ConvertPunctualLightLumenToLux(LightType lightType, float lumen, float initialIntensity, bool enableSpotReflector, float distance)
         {
             float candela = ConvertPunctualLightLumenToCandela(lightType, lumen, initialIntensity, enableSpotReflector);
             return ConvertCandelaToLux(candela, distance);
@@ -255,28 +256,30 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Convert a punctual light intensity in Candela to Lumen
         /// </summary>
         /// <param name="lightType"></param>
-        /// <param name="spotLightShape"></param>
         /// <param name="candela"></param>
         /// <param name="enableSpotReflector"></param>
         /// <param name="spotAngle"></param>
         /// <param name="aspectRatio"></param>
         /// <returns></returns>
-        public static float ConvertPunctualLightCandelaToLumen(HDLightType lightType, SpotLightShape spotLightShape, float candela, bool enableSpotReflector, float spotAngle, float aspectRatio)
+        public static float ConvertPunctualLightCandelaToLumen(LightType lightType, float candela, bool enableSpotReflector, float spotAngle, float aspectRatio)
         {
-            if (lightType == HDLightType.Spot && enableSpotReflector)
+            if (lightType.IsSpot() && enableSpotReflector)
             {
                 // We just need to multiply candela by solid angle in this case
-                if (spotLightShape == SpotLightShape.Cone)
+                if (lightType == LightType.Spot)
                     return ConvertSpotLightCandelaToLumen(candela, spotAngle * Mathf.Deg2Rad, true);
-                else if (spotLightShape == SpotLightShape.Pyramid)
+                else if (lightType == LightType.Pyramid)
                 {
                     float angleA, angleB;
                     CalculateAnglesForPyramid(aspectRatio, spotAngle * Mathf.Deg2Rad, out angleA, out angleB);
 
                     return ConvertFrustrumLightCandelaToLumen(candela, angleA, angleB);
                 }
-                else // Box
+                else
+                {
+                    Assert.IsTrue(lightType == LightType.Box);
                     return ConvertPointLightCandelaToLumen(candela);
+                }
             }
             return ConvertPointLightCandelaToLumen(candela);
         }
@@ -285,17 +288,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Convert a punctual light intensity in Lux to Lumen
         /// </summary>
         /// <param name="lightType"></param>
-        /// <param name="spotLightShape"></param>
         /// <param name="lux"></param>
         /// <param name="enableSpotReflector"></param>
         /// <param name="spotAngle"></param>
         /// <param name="aspectRatio"></param>
         /// <param name="distance"></param>
         /// <returns></returns>
-        public static float ConvertPunctualLightLuxToLumen(HDLightType lightType, SpotLightShape spotLightShape, float lux, bool enableSpotReflector, float spotAngle, float aspectRatio, float distance)
+        public static float ConvertPunctualLightLuxToLumen(LightType lightType, float lux, bool enableSpotReflector, float spotAngle, float aspectRatio, float distance)
         {
             float candela = ConvertLuxToCandela(lux, distance);
-            return ConvertPunctualLightCandelaToLumen(lightType, spotLightShape, candela, enableSpotReflector, spotAngle, aspectRatio);
+            return ConvertPunctualLightCandelaToLumen(lightType, candela, enableSpotReflector, spotAngle, aspectRatio);
         }
 
         // This is not correct, we use candela instead of luminance but this is request from artists to support EV100 on punctual light
@@ -304,16 +306,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// This is not physically correct but it's handy to have EV100 for punctual lights.
         /// </summary>
         /// <param name="lightType"></param>
-        /// <param name="spotLightShape"></param>
         /// <param name="ev"></param>
         /// <param name="enableSpotReflector"></param>
         /// <param name="spotAngle"></param>
         /// <param name="aspectRatio"></param>
         /// <returns></returns>
-        public static float ConvertPunctualLightEvToLumen(HDLightType lightType, SpotLightShape spotLightShape, float ev, bool enableSpotReflector, float spotAngle, float aspectRatio)
+        public static float ConvertPunctualLightEvToLumen(LightType lightType, float ev, bool enableSpotReflector, float spotAngle, float aspectRatio)
         {
             float candela = ConvertEvToCandela(ev);
-            return ConvertPunctualLightCandelaToLumen(lightType, spotLightShape, candela, enableSpotReflector, spotAngle, aspectRatio);
+            return ConvertPunctualLightCandelaToLumen(lightType, candela, enableSpotReflector, spotAngle, aspectRatio);
         }
 
         // This is not correct, we use candela instead of luminance but this is request from artists to support EV100 on punctual light
@@ -326,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="initialIntensity"></param>
         /// <param name="enableSpotReflector"></param>
         /// <returns></returns>
-        public static float ConvertPunctualLightLumenToEv(HDLightType lightType, float lumen, float initialIntensity, bool enableSpotReflector)
+        public static float ConvertPunctualLightLumenToEv(LightType lightType, float lumen, float initialIntensity, bool enableSpotReflector)
         {
             float candela = ConvertPunctualLightLumenToCandela(lightType, lumen, initialIntensity, enableSpotReflector);
             return ConvertCandelaToEv(candela);
@@ -335,20 +336,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Convert area light intensity in Lumen to Luminance(nits)
         /// </summary>
-        /// <param name="areaLightShape"></param>
         /// <param name="lumen"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        public static float ConvertAreaLightLumenToLuminance(AreaLightShape areaLightShape, float lumen, float width, float height = 0)
+        public static float ConvertAreaLightLumenToLuminance(LightType lightType, float lumen, float width, float height = 0)
         {
-            switch (areaLightShape)
+            switch (lightType)
             {
-                case AreaLightShape.Tube:
+                case LightType.Tube:
                     return LightUtils.CalculateLineLightLumenToLuminance(lumen, width);
-                case AreaLightShape.Rectangle:
+                case LightType.Rectangle:
                     return LightUtils.ConvertRectLightLumenToLuminance(lumen, width, height);
-                case AreaLightShape.Disc:
+                case LightType.Disc:
                     return LightUtils.ConvertDiscLightLumenToLuminance(lumen, width);
             }
             return lumen;
@@ -357,20 +357,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Convert area light intensity in Luminance(nits) to Lumen
         /// </summary>
-        /// <param name="areaLightShape"></param>
+        /// <param name="lightType"></param>
         /// <param name="luminance"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        public static float ConvertAreaLightLuminanceToLumen(AreaLightShape areaLightShape, float luminance, float width, float height = 0)
+        public static float ConvertAreaLightLuminanceToLumen(LightType lightType, float luminance, float width, float height = 0)
         {
-            switch (areaLightShape)
+            switch (lightType)
             {
-                case AreaLightShape.Tube:
+                case LightType.Tube:
                     return LightUtils.CalculateLineLightLuminanceToLumen(luminance, width);
-                case AreaLightShape.Rectangle:
+                case LightType.Rectangle:
                     return LightUtils.ConvertRectLightLuminanceToLumen(luminance, width, height);
-                case AreaLightShape.Disc:
+                case LightType.Disc:
                     return LightUtils.ConvertDiscLightLuminanceToLumen(luminance, width);
             }
             return luminance;
@@ -379,29 +379,29 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Convert area light intensity in Lumen to EV100
         /// </summary>
-        /// <param name="AreaLightShape"></param>
+        /// <param name="lightType"></param>
         /// <param name="lumen"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        public static float ConvertAreaLightLumenToEv(AreaLightShape AreaLightShape, float lumen, float width, float height)
+        public static float ConvertAreaLightLumenToEv(LightType lightType, float lumen, float width, float height)
         {
-            float luminance = ConvertAreaLightLumenToLuminance(AreaLightShape, lumen, width, height);
+            float luminance = ConvertAreaLightLumenToLuminance(lightType, lumen, width, height);
             return ConvertLuminanceToEv(luminance);
         }
 
         /// <summary>
         /// Convert area light intensity in EV100 to Lumen
         /// </summary>
-        /// <param name="AreaLightShape"></param>
+        /// <param name="lightType"></param>
         /// <param name="ev"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        public static float ConvertAreaLightEvToLumen(AreaLightShape AreaLightShape, float ev, float width, float height)
+        public static float ConvertAreaLightEvToLumen(LightType lightType, float ev, float width, float height)
         {
             float luminance = ConvertEvToLuminance(ev);
-            return ConvertAreaLightLuminanceToLumen(AreaLightShape, luminance, width, height);
+            return ConvertAreaLightLuminanceToLumen(lightType, luminance, width, height);
         }
 
         /// <summary>
@@ -470,10 +470,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             float intensity = hdLight.intensity;
             float luxAtDistance = hdLight.luxAtDistance;
-            HDLightType lightType = hdLight.ComputeLightType(light);
+            LightType lightType = light.type;
 
             // For punctual lights
-            if (lightType != HDLightType.Area)
+            if (!lightType.IsArea())
             {
                 // Lumen ->
                 if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Candela)
@@ -484,14 +484,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     intensity = LightUtils.ConvertPunctualLightLumenToEv(lightType, intensity, light.intensity, hdLight.enableSpotReflector);
                 // Candela ->
                 else if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Lumen)
-                    intensity = LightUtils.ConvertPunctualLightCandelaToLumen(lightType, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector, light.spotAngle, hdLight.aspectRatio);
+                    intensity = LightUtils.ConvertPunctualLightCandelaToLumen(lightType, intensity, hdLight.enableSpotReflector, light.spotAngle, hdLight.aspectRatio);
                 else if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Lux)
                     intensity = LightUtils.ConvertCandelaToLux(intensity, hdLight.luxAtDistance);
                 else if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Ev100)
                     intensity = LightUtils.ConvertCandelaToEv(intensity);
                 // Lux ->
                 else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Lumen)
-                    intensity = LightUtils.ConvertPunctualLightLuxToLumen(lightType, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
+                    intensity = LightUtils.ConvertPunctualLightLuxToLumen(lightType, intensity, hdLight.enableSpotReflector,
                         light.spotAngle, hdLight.aspectRatio, hdLight.luxAtDistance);
                 else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Candela)
                     intensity = LightUtils.ConvertLuxToCandela(intensity, hdLight.luxAtDistance);
@@ -499,7 +499,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     intensity = LightUtils.ConvertLuxToEv(intensity, hdLight.luxAtDistance);
                 // EV100 ->
                 else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
-                    intensity = LightUtils.ConvertPunctualLightEvToLumen(lightType, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
+                    intensity = LightUtils.ConvertPunctualLightEvToLumen(lightType, intensity, hdLight.enableSpotReflector,
                         light.spotAngle, hdLight.aspectRatio);
                 else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Candela)
                     intensity = LightUtils.ConvertEvToCandela(intensity);
@@ -509,17 +509,17 @@ namespace UnityEngine.Rendering.HighDefinition
             else  // For area lights
             {
                 if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Nits)
-                    intensity = LightUtils.ConvertAreaLightLumenToLuminance(hdLight.areaLightShape, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                    intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightType, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
                 if (oldLightUnit == LightUnit.Nits && newLightUnit == LightUnit.Lumen)
-                    intensity = LightUtils.ConvertAreaLightLuminanceToLumen(hdLight.areaLightShape, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                    intensity = LightUtils.ConvertAreaLightLuminanceToLumen(lightType, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
                 if (oldLightUnit == LightUnit.Nits && newLightUnit == LightUnit.Ev100)
                     intensity = LightUtils.ConvertLuminanceToEv(intensity);
                 if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Nits)
                     intensity = LightUtils.ConvertEvToLuminance(intensity);
                 if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
-                    intensity = LightUtils.ConvertAreaLightEvToLumen(hdLight.areaLightShape, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                    intensity = LightUtils.ConvertAreaLightEvToLumen(lightType, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
                 if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Ev100)
-                    intensity = LightUtils.ConvertAreaLightLumenToEv(hdLight.areaLightShape, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                    intensity = LightUtils.ConvertAreaLightLumenToEv(lightType, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
             }
 
             hdLight.intensity = intensity;

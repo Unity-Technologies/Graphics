@@ -19,10 +19,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 return null;
 
             Texture texture = null;
-            var type = additionalData.type;
-            if (type == HDLightType.Point)
+            var type = additionalData.legacyLight.type;
+            if (type == LightType.Point)
                 texture = additionalData.IESPoint;
-            else if (type == HDLightType.Spot || (type == HDLightType.Area && additionalData.areaLightShape == AreaLightShape.Rectangle))
+            else if (type.IsSpot() || type == LightType.Rectangle)
                 texture = additionalData.IESSpot;
             if (texture == null)
                 return null;

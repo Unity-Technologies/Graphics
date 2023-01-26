@@ -229,7 +229,14 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Assert.AreEqual(a.GetType(), b.GetType(), "Type mismatch");
 
             foreach (FieldInfo fieldInfo in GetAllField(a.GetType()))
+            {
+                if (fieldInfo.GetCustomAttribute(typeof(ObsoleteAttribute), false) != null)
+                {
+                    // This field is marked as obsolete. Don't check it.
+                    continue;
+                }
                 AssertOneFieldMatch(a, b, fieldInfo);
+            }
         }
 
         void AssertOneFieldMatch(object a, object b, FieldInfo fieldInfo)

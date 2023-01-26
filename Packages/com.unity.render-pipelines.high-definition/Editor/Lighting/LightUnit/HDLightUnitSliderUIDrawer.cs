@@ -30,11 +30,11 @@ namespace UnityEditor.Rendering.HighDefinition
             k_ExposureSlider.SetSerializedObject(serializedObject);
         }
 
-        public void Draw(HDLightType type, LightUnit lightUnit, SerializedProperty value, Rect rect, SerializedHDLight light, Editor owner)
+        public void Draw(LightType type, LightUnit lightUnit, SerializedProperty value, Rect rect, SerializedHDLight light, Editor owner)
         {
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
-                if (type == HDLightType.Directional)
+                if (type == LightType.Directional)
                     DrawDirectionalUnitSlider(value, rect);
                 else
                     DrawPunctualLightUnitSlider(lightUnit, value, rect, light, owner);

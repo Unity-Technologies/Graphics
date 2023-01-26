@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ProcessLightDataShadowIndex(
             CommandBuffer cmd,
             in HDShadowInitParameters shadowInitParams,
-            HDLightType lightType,
+            LightType lightType,
             Light lightComponent,
             HDAdditionalLightData additionalLightData,
             int shadowIndex,
@@ -144,15 +144,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (lightComponent != null &&
                 (
-                    (lightType == HDLightType.Spot && (lightComponent.cookie != null || additionalLightData.IESPoint != null)) ||
-                    ((lightType == HDLightType.Area && lightData.lightType == GPULightType.Rectangle) && (lightComponent.cookie != null || additionalLightData.IESSpot != null)) ||
-                    (lightType == HDLightType.Point && (lightComponent.cookie != null || additionalLightData.IESPoint != null))
+                    (lightType.IsSpot() && (lightComponent.cookie != null || additionalLightData.IESPoint != null)) ||
+                    ((lightType.IsArea() && lightData.lightType == GPULightType.Rectangle) && (lightComponent.cookie != null || additionalLightData.IESSpot != null)) ||
+                    (lightType == LightType.Point && (lightComponent.cookie != null || additionalLightData.IESPoint != null))
                 )
             )
             {
                 switch (lightType)
                 {
-                    case HDLightType.Spot:
+                    case LightType.Spot:
+                    case LightType.Pyramid:
+                    case LightType.Box:
                         lightData.cookieMode = (lightComponent.cookie?.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
                         if (additionalLightData.IESSpot != null && lightComponent.cookie != null && additionalLightData.IESSpot != lightComponent.cookie)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie, additionalLightData.IESSpot);
@@ -163,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
                         break;
-                    case HDLightType.Point:
+                    case LightType.Point:
                         lightData.cookieMode = CookieMode.Repeat;
                         if (additionalLightData.IESPoint != null && lightComponent.cookie != null && additionalLightData.IESPoint != lightComponent.cookie)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie, additionalLightData.IESPoint);
@@ -172,7 +174,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         else if (additionalLightData.IESPoint != null)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, additionalLightData.IESPoint);
                         break;
-                    case HDLightType.Area:
+                    case LightType.Rectangle:
+                    case LightType.Tube:
+                    case LightType.Disc:
                         lightData.cookieMode = CookieMode.Clamp;
                         if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
@@ -183,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                 }
             }
-            else if (lightType == HDLightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
+            else if (lightType == LightType.Pyramid || lightType == LightType.Box)
             {
                 // Projectors lights must always have a cookie texture.
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
@@ -349,7 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void CalculateLightDataTextureInfo(
             ref LightData lightData, CommandBuffer cmd, in Light lightComponent, HDAdditionalLightData additionalLightData, in HDShadowInitParameters shadowInitParams,
             in HDCamera hdCamera, BoolScalableSetting contactShadowScalableSetting,
-            HDLightType lightType, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, bool rayTracingEnabled, int lightDataIndex, int shadowIndex)
+            LightType lightType, HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowFlags, bool rayTracingEnabled, int lightDataIndex, int shadowIndex)
         {
             ProcessLightDataShadowIndex(
                 cmd,
@@ -444,7 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     //We utilize a raw light data pointer to avoid copying the entire structure
                     HDProcessedVisibleLight* processedEntityPtr = processedLightArrayPtr + lightIndex;
                     ref HDProcessedVisibleLight processedEntity = ref UnsafeUtility.AsRef<HDProcessedVisibleLight>(processedEntityPtr);
-                    HDLightType lightType = processedEntity.lightType;
+                    LightType lightType = processedEntity.lightType;
 
                     Light lightComponent = additionalLightData.legacyLight;
 
@@ -624,7 +628,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDProcessedVisibleLight* processedEntityPtr = processedLightArrayPtr + lightIndex;
                         ref HDProcessedVisibleLight processedEntity = ref UnsafeUtility.AsRef<HDProcessedVisibleLight>(processedEntityPtr);
                         ref HDAdditionalLightDataUpdateInfo updateInfo = ref UnsafeUtility.AsRef<HDAdditionalLightDataUpdateInfo>(updateInfosUnsafePtr + additionalLightDataIndex);
-                        HDLightType lightType = processedEntity.lightType;
 
                         if (needToUpdateCachedContent)
                         {
@@ -1040,7 +1043,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             MakeViewAndViewProjectionCameraRelative(ref shadowRequest, ref invViewProjection, shaderConfigCameraRelativeRendering, cameraPos);
 
-            bool isBoxShape = additionalLightData.spotLightShape == SpotLightShape.Box;
+            bool isBoxShape = visibleLight.lightType == LightType.Box;
             float nearPlane = additionalLightData.shadowNearPlane;
             float minimumConeAndPyramidNearPlane = Mathf.Max(nearPlane, HDShadowUtils.k_MinShadowNearPlane);
             nearPlane = isBoxShape ? nearPlane : minimumConeAndPyramidNearPlane;

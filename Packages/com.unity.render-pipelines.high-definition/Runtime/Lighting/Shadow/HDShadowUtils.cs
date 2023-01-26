@@ -43,22 +43,22 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
-        public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality, bool reverseZ,
+        public static void ExtractSpotLightData(float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality, bool reverseZ,
             out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Vector4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
             // There is no aspect ratio for non pyramid spot lights
-            if (shape != SpotLightShape.Pyramid)
+            if (visibleLight.lightType != LightType.Pyramid)
                 aspectRatio = 1.0f;
 
-            if (shape != SpotLightShape.Box)
+            if (visibleLight.lightType != LightType.Box)
                 nearPlane = Mathf.Max(HDShadowUtils.k_MinShadowNearPlane, nearPlane);
 
             float guardAngle = CalcGuardAnglePerspective(spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 180.0f - spotAngle);
             ExtractSpotLightMatrix(visibleLight, forwardOffset: 0, spotAngle, nearPlane, guardAngle, aspectRatio, reverseZ, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
 
-            if (shape == SpotLightShape.Box)
+            if (visibleLight.lightType == LightType.Box)
             {
                 projection = ExtractBoxLightProjectionMatrix(visibleLight.range, shapeWidth, shapeHeight, nearPlane);
                 Matrix4x4 deviceProjectionMatrix = GetGPUProjectionMatrix(projection, false, reverseZ);
