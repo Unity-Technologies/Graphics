@@ -1,16 +1,27 @@
 {
     "name": "Unity.Testing.VisualEffectGraph.Tests",
+    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.Testing.VisualEffectGraph",
         "Unity.Testing.XR.Runtime",
         "Unity.VisualEffectGraph.Editor",
         "Unity.VisualEffectGraph.Runtime",
-        "UnityEngine.TestTools.Graphics"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
+        "UnityEngine.TestTools.Graphics",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
