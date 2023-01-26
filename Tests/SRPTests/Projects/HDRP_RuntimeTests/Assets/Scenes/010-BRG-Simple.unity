@@ -67,9 +67,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -367,6 +364,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.001
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
+    RMSEThreshold: 0
     AverageCorrectnessThreshold: 0.001
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
@@ -379,12 +377,67 @@ MonoBehaviour:
       m_Calls: []
   captureFramerate: 0
   waitFrames: 8
+  waitForFrameCountMultiple: 0
+  frameCountMultiple: 8
   xrCompatible: 1
   xrThresholdMultiplier: 1
   checkMemoryAllocation: 1
   renderPipelineAsset: {fileID: 11400000, guid: a2b3940bdd38ca54880a3ae1fe6be80f,
     type: 2}
   forceCameraRenderDuringSetup: 0
+  containsVFX: 0
+--- !u!1 &240550905
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 240550907}
+  - component: {fileID: 240550906}
+  m_Layer: 0
+  m_Name: brg_sg_unlit
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &240550906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 240550905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3133f72e884e52e4c8bb2d46f5b0aa7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_material: {fileID: 2100000, guid: 6e15516f4d3cc454e861c7bb32195220, type: 2}
+  m_center: {x: 24, y: 0, z: 12}
+  m_spacingFactor: 2
+  m_unlitHdrp: 0
+  m_culling: 0
+  m_customBrgColor: 1
+  itemGridSize: 4
+--- !u!4 &240550907
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 240550905}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &297437559
 GameObject:
   m_ObjectHideFlags: 0
@@ -431,10 +484,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   m_material: {fileID: 2100000, guid: b2a1cbc5978dd354899aa2378a59eb86, type: 2}
-  m_center: {x: 16, y: 10, z: 0}
+  m_center: {x: 16, y: 10, z: -4}
   m_spacingFactor: 1.1
   m_unlitHdrp: 1
   m_culling: 0
+  m_customBrgColor: 0
   itemGridSize: 16
 --- !u!1 &399818633
 GameObject:
@@ -703,6 +757,58 @@ MonoBehaviour:
   m_spacingFactor: 1
   m_unlitHdrp: 0
   m_culling: 0
+--- !u!1 &1244855623
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1244855625}
+  - component: {fileID: 1244855624}
+  m_Layer: 0
+  m_Name: brg_sg_lit
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1244855624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1244855623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3133f72e884e52e4c8bb2d46f5b0aa7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_material: {fileID: 2100000, guid: ed7a6a6325ce5d64fa5c1ac3e860e874, type: 2}
+  m_center: {x: 16, y: 0, z: 12}
+  m_spacingFactor: 2
+  m_unlitHdrp: 0
+  m_culling: 0
+  m_customBrgColor: 1
+  itemGridSize: 4
+--- !u!4 &1244855625
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1244855623}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2107406114
 GameObject:
   m_ObjectHideFlags: 0
@@ -738,6 +844,7 @@ MonoBehaviour:
   m_spacingFactor: 1
   m_unlitHdrp: 0
   m_culling: 1
+  m_customBrgColor: 0
   itemGridSize: 30
 --- !u!4 &2107406116
 Transform:
