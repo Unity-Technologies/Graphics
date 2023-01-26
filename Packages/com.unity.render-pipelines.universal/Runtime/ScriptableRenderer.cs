@@ -109,6 +109,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler sortRenderPasses = new ProfilingSampler($"Sort Render Passes");
             public static readonly ProfilingSampler setupLights = new ProfilingSampler($"{k_Name}.{nameof(SetupLights)}");
             public static readonly ProfilingSampler setupCamera = new ProfilingSampler($"Setup Camera Parameters");
+            public static readonly ProfilingSampler vfxProcessCamera = new ProfilingSampler($"VFX Process Camera");
             public static readonly ProfilingSampler addRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(AddRenderPasses)}");
             public static readonly ProfilingSampler setupRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(SetupRenderPasses)}");
             public static readonly ProfilingSampler clearRenderingState = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
@@ -903,6 +904,30 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        private class VFXProcessCameraPassData
+        {
+            internal CullingResults cullResults;
+            internal Camera camera;
+        };
+
+        internal void ProcessVFXCameraCommand(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddRenderPass<VFXProcessCameraPassData>("ProcessVFXCameraCommand", out var passData,
+                       Profiling.vfxProcessCamera))
+            {
+                passData.camera = renderingData.cameraData.camera;
+                passData.cullResults = renderingData.cullResults;
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((VFXProcessCameraPassData data, RenderGraphContext context) =>
+                {
+                    //Triggers dispatch per camera, all global parameters should have been setup at this stage.
+                    VFX.VFXManager.ProcessCameraCommand(data.camera, context.cmd, new VFX.VFXCameraXRSettings(), data.cullResults);
+                });
+
+            }
+        }
         internal void SetupRenderGraphCameraProperties(RenderGraph renderGraph, ref RenderingData renderingData, bool isTargetBackbuffer)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("SetupCameraProperties", out var passData,
@@ -1144,6 +1169,23 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal void SetPerCameraProperties(ScriptableRenderContext context, ref CameraData cameraData, Camera camera,
+            CommandBuffer cmd)
+        {
+            if (cameraData.renderType == CameraRenderType.Base)
+            {
+                context.SetupCameraProperties(camera);
+                SetPerCameraShaderVariables(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref cameraData);
+            }
+            else
+            {
+                // Set new properties
+                SetPerCameraShaderVariables(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref cameraData);
+                SetPerCameraClippingPlaneProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref cameraData);
+                SetPerCameraBillboardProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref cameraData);
+            }
+        }
+
         /// <summary>
         /// Execute the enqueued render passes. This automatically handles editor and stereo rendering.
         /// </summary>
@@ -1214,6 +1256,18 @@ namespace UnityEngine.Rendering.Universal
                     SetupLights(context, ref renderingData);
                 }
 
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+                using (new ProfilingScope(Profiling.setupCamera))
+                {
+                    //Camera variables need to be setup for the VFXManager.ProcessCameraCommand to work properly.
+                    //VFXManager.ProcessCameraCommand needs to be called before any rendering (incl. shadows)
+                    SetPerCameraProperties(context, ref cameraData, camera, cmd);
+
+                    //Triggers dispatch per camera, all global parameters should have been setup at this stage.
+                    VFX.VFXManager.ProcessCameraCommand(camera, cmd, new VFX.VFXCameraXRSettings(), renderingData.cullResults);
+                }
+#endif
+
                 // Before Render Block. This render blocks always execute in mono rendering.
                 // Camera is not setup.
                 // Used to render input textures like shadowmaps.
@@ -1236,26 +1290,10 @@ namespace UnityEngine.Rendering.Universal
                     // is because this need to be called for each eye in multi pass VR.
                     // The side effect is that this will override some shader properties we already setup and we will have to
                     // reset them.
-                    if (cameraData.renderType == CameraRenderType.Base)
-                    {
-                        context.SetupCameraProperties(camera);
-                        SetPerCameraShaderVariables(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref cameraData);
-                    }
-                    else
-                    {
-                        // Set new properties
-                        SetPerCameraShaderVariables(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref cameraData);
-                        SetPerCameraClippingPlaneProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref cameraData);
-                        SetPerCameraBillboardProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), ref cameraData);
-                    }
+                    SetPerCameraProperties(context, ref cameraData, camera, cmd);
 
                     // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
                     SetShaderTimeValues(CommandBufferHelpers.GetRasterCommandBuffer(cmd), time, deltaTime, smoothDeltaTime);
-
-#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                    //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    VFX.VFXManager.ProcessCameraCommand(camera, cmd, new VFX.VFXCameraXRSettings(), renderingData.cullResults);
-#endif
                 }
 
                 context.ExecuteCommandBuffer(cmd);

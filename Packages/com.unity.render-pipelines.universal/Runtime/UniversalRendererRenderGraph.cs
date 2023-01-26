@@ -440,8 +440,11 @@ namespace UnityEngine.Rendering.Universal
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRendering);
 
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, isActiveTargetBackBuffer);
-
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            ProcessVFXCameraCommand(renderGraph, ref renderingData);
+#endif
             DebugHandler?.Setup(ref renderingData);
+
 
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
