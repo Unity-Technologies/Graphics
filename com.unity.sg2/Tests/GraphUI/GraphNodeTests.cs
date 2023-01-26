@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.IsNotNull(addNodeModel, $"Could not add a node with the name {addNodeName} to the graph.");
 
             // allow the tool observers to run
+            // We could update the GraphTool with m_GraphView.GraphTool.Update() but it does not refresh custom visual elements.
             yield return null;
 
             var nodeGraphElement = m_GraphView.GetGraphElement(addNodeModel);
