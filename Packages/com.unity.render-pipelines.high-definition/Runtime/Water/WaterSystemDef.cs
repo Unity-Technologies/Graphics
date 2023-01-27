@@ -524,6 +524,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ambient probe of the water system
         public Vector4 _WaterAmbientProbe;
 
+        // Offset applied to the caustics LOD
+        public float _CausticsMaxLOD;
+        public float _MaxWaterDeformation;
+        public float _CausticsTilingFactor;
+        public float _PaddingWR2;
+
         // Transform of the water surface
         public Matrix4x4 _WaterSurfaceTransformRWS;
         public Matrix4x4 _WaterSurfaceTransform_Inverse;

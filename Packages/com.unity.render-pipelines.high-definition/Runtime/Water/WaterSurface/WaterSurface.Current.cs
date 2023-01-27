@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Swell / Agitation
             NativeArray<uint> currentBuffer = largeCurrentMapSynchronizer.CurrentBuffer();
-            if (largeCurrentMap != null && currentBuffer.Length > 0)
+            if (largeCurrentMap != null && currentBuffer.Length > 0 && largeCurrentMapSynchronizer.CurrentResolution().x != 0)
             {
                 wsd.activeGroup0CurrentMap = true;
                 wsd.group0CurrentMap = currentBuffer;
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ripples
             currentBuffer = ripplesCurrentMapSynchronizer.CurrentBuffer();
-            if (ripplesCurrentMap != null && currentBuffer.Length > 0)
+            if (ripplesCurrentMap != null && currentBuffer.Length > 0 && ripplesCurrentMapSynchronizer.CurrentResolution().x != 0)
             {
                 wsd.activeGroup1CurrentMap = true;
                 wsd.group1CurrentMap = currentBuffer;
