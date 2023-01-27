@@ -1059,19 +1059,23 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void Check_Directory_Not_Imported()
         {
-            var folderEndingWithVFX = "FolderTest.vfx";
-            Assert.DoesNotThrow(() => AssetDatabase.CreateFolder("Assets", folderEndingWithVFX));
-            Task.Delay(100).ContinueWith(x =>
-            {
-                Assert.IsTrue(AssetDatabase.DeleteAsset($"Assets/{folderEndingWithVFX}"));
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+            var folderEndingWithVFX = "Assets/FolderTest.vfx";
+            Directory.CreateDirectory(folderEndingWithVFX);
+// See this PR https://github.com/Unity-Technologies/Graphics/pull/6890
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            Assert.False(VisualEffectAssetModificationProcessor.HasVFXExtension(folderEndingWithVFX));
+#else
+            Assert.True(VisualEffectAssetModificationProcessor.HasVFXExtension(folderEndingWithVFX));
+#endif
+
+            Directory.Delete(folderEndingWithVFX);
         }
 
         [Test]
         public void Check_Null_Or_Empty_Path_Not_Imported()
         {
-            Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(null));
-            Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(string.Empty));
+            Assert.False(VisualEffectAssetModificationProcessor.HasVFXExtension(null));
+            Assert.False(VisualEffectAssetModificationProcessor.HasVFXExtension(string.Empty));
         }
 
         [Test(Description = "Cover issue 1403202")]

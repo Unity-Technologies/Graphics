@@ -32,7 +32,7 @@ namespace UnityEditor.VFX
 
             foreach (var assetPath in importedAssets)
             {
-                bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
+                bool isVFX = VisualEffectAssetModificationProcessor.HasVFXExtension(assetPath);
                 if (isVFX)
                 {
                     VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -257,21 +257,31 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
+    class VisualEffectAssetModificationProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool HasVFXExtension(string filePath)
         {
-            if (!System.IO.File.Exists(filePath))
-                return false;
-            return filePath.EndsWith(VisualEffectResource.Extension, StringComparison.InvariantCultureIgnoreCase)
-                || filePath.EndsWith(VisualEffectSubgraphBlock.Extension, StringComparison.InvariantCultureIgnoreCase)
-                || filePath.EndsWith(VisualEffectSubgraphOperator.Extension, StringComparison.InvariantCultureIgnoreCase);
+            if (!string.IsNullOrEmpty(filePath) &&
+                (filePath.EndsWith(VisualEffectResource.Extension, StringComparison.OrdinalIgnoreCase)
+              || filePath.EndsWith(VisualEffectSubgraphBlock.Extension, StringComparison.OrdinalIgnoreCase)
+              || filePath.EndsWith(VisualEffectSubgraphOperator.Extension, StringComparison.OrdinalIgnoreCase)))
+            {
+
+// See this PR https://github.com/Unity-Technologies/Graphics/pull/6890
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+                return !AssetDatabase.IsValidFolder(filePath);
+#else
+                return true;
+#endif
+            }
+
+            return false;
         }
 
         static string[] OnWillSaveAssets(string[] paths)
         {
-            Profiler.BeginSample("VisualEffectAssetModicationProcessor.OnWillSaveAssets");
-            foreach (string path in paths.Where(t => HasVFXExtension(t)))
+            Profiler.BeginSample("VisualEffectAssetModificationProcessor.OnWillSaveAssets");
+            foreach (var path in paths.Where(HasVFXExtension))
             {
                 var vfxResource = VisualEffectResource.GetResourceAtPath(path);
                 if (vfxResource != null)
