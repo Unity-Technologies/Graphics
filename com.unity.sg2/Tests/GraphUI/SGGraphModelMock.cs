@@ -1,20 +1,9 @@
 using System;
-using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    class ShaderGraphAssetMock : ShaderGraphAsset
-    {
-        GraphModel m_MockGraphModel;
-
-        public override bool Dirty { get; set; }
-        public override GraphModel GraphModel => m_MockGraphModel;
-
-        public void SetGraphModel(GraphModel mockGraphModel) => m_MockGraphModel = mockGraphModel;
-    }
-
     /// <summary>
     /// This is a mock ShaderGraphModel, intended to be used in unit testing.
     ///
@@ -30,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         internal SGGraphModelMock(ShaderGraphRegistry registry)
         {
             RegistryInstance = registry;
-            Stencil = new ShaderGraphStencil();
+            Stencil = new ShaderGraphStencilMock();
 
             var sgAsset = ScriptableObject.CreateInstance<ShaderGraphAssetMock>();
             Asset = sgAsset;
