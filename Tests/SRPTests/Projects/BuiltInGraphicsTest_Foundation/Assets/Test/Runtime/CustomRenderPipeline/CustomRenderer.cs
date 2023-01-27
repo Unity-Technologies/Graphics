@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+            ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
 
             foreach (var feature in rendererFeatures)
                 feature.AddRenderPasses(this, ref renderingData);

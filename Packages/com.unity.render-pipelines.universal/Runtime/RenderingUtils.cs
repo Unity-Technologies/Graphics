@@ -451,26 +451,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
-        [Obsolete("Use RTHandles for colorBuffers")]  // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
-        internal static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
-        {
-            uint nonNullColorBuffers = 0;
-            if (colorBuffers != null)
-            {
-                foreach (var identifier in colorBuffers)
-                {
-                    if (identifier != 0)
-                        ++nonNullColorBuffers;
-                }
-            }
-            return nonNullColorBuffers;
-        }
-
-        /// <summary>
-        /// Return the number of items in colorBuffers actually referring to an existing RenderTarget
-        /// </summary>
-        /// <param name="colorBuffers"></param>
-        /// <returns></returns>
         internal static uint GetValidColorBufferCount(RTHandle[] colorBuffers)
         {
             uint nonNullColorBuffers = 0;
@@ -483,17 +463,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
             return nonNullColorBuffers;
-        }
-
-        /// <summary>
-        /// Return true if colorBuffers is an actual MRT setup
-        /// </summary>
-        /// <param name="colorBuffers"></param>
-        /// <returns></returns>
-        [Obsolete("Use RTHandles for colorBuffers")]  // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
-        internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
-        {
-            return GetValidColorBufferCount(colorBuffers) > 1;
         }
 
         /// <summary>
@@ -528,15 +497,23 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="source"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        internal static int IndexOf(RTHandle[] source, RenderTargetIdentifier value)
         {
             for (int i = 0; i < source.Length; ++i)
             {
-                if (source[i] == value)
+                if (source[i].nameID == value)
                     return i;
             }
             return -1;
         }
+
+        /// <summary>
+        /// Return the index where value was found source. Otherwise, return -1. (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static int IndexOf(RTHandle[] source, RTHandle value) => IndexOf(source, value.nameID);
 
         /// <summary>
         /// Return the number of RenderTargetIdentifiers in "source" that are valid (not 0) and different from "value" (without recurring to Linq)
@@ -544,12 +521,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="source"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal static uint CountDistinct(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        internal static uint CountDistinct(RTHandle[] source, RTHandle value)
         {
             uint count = 0;
             for (int i = 0; i < source.Length; ++i)
             {
-                if (source[i] != value && source[i] != 0)
+                if (source[i].nameID != value.nameID && source[i].nameID != 0)
                     ++count;
             }
             return count;
@@ -560,11 +537,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        internal static int LastValid(RenderTargetIdentifier[] source)
+        internal static int LastValid(RTHandle[] source)
         {
             for (int i = source.Length - 1; i >= 0; --i)
             {
-                if (source[i] != 0)
+                if (source[i] != null && source[i].nameID != 0)
                     return i;
             }
             return -1;
@@ -587,13 +564,13 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        internal static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
+        internal static bool SequenceEqual(RTHandle[] left, RTHandle[] right)
         {
             if (left.Length != right.Length)
                 return false;
 
             for (int i = 0; i < left.Length; ++i)
-                if (left[i] != right[i])
+                if (left[i].nameID != right[i].nameID)
                     return false;
 
             return true;

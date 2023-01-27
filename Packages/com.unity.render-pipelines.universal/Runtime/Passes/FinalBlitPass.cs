@@ -49,11 +49,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
-        [Obsolete("Use RTHandles for colorHandle")] // TODO OBSOLETE: need to fix the URP test failures when bumping
+        [Obsolete("Use RTHandles for colorHandle", true)]
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
-            if (m_Source?.nameID != colorHandle.Identifier())
-                m_Source = RTHandles.Alloc(colorHandle.Identifier());
+            throw new NotSupportedException("Setup with RenderTargetHandle has been deprecated. Use it with RTHandles instead.");
         }
 
         /// <summary>

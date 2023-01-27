@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.Universal
                         AttachmentDescriptor currentAttachmentDescriptor =
                             new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha));
 
-                        var colorHandle = pass.overrideCameraTarget ? pass.colorAttachmentHandles[i] : m_CameraColorTarget.handle;
+                        var colorHandle = pass.overrideCameraTarget ? pass.colorAttachmentHandles[i] : m_CameraColorTarget;
 
                         int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(colorHandle.nameID, m_ActiveColorAttachmentDescriptors);
 
@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.Universal
                             bool passHasClearColor = (pass.clearFlag & ClearFlag.Color) != 0;
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(colorHandle.nameID, !passHasClearColor, true);
 
-                            if (pass.colorAttachmentHandles[i] == m_CameraColorTarget.handle && needCustomCameraColorClear && (cameraClearFlag & ClearFlag.Color) != 0)
+                            if (pass.colorAttachmentHandles[i].nameID == m_CameraColorTarget.nameID && needCustomCameraColorClear && (cameraClearFlag & ClearFlag.Color) != 0)
                                 m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(cameraData.backgroundColor, 1.0f, 0);
                             else if (passHasClearColor)
                                 m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(pass.clearColor), 1.0f, 0);

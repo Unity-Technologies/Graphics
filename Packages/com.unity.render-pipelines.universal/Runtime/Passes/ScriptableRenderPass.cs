@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// RTHandle alias for BuiltinRenderTextureType.CameraTarget which is the backbuffer.
         /// </summary>
-        static public RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
+        public static RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
         /// <summary>
         /// The event when the render pass executes.
@@ -186,107 +186,68 @@ namespace UnityEngine.Rendering.Universal
         /// The render target identifiers for color attachments.
         /// This is obsolete, use colorAttachmentHandles instead.
         /// </summary>
-        [Obsolete("Use colorAttachmentHandles")] // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
-        public RenderTargetIdentifier[] colorAttachments
-        {
-            get => m_ColorAttachmentIds;
-        }
+        [Obsolete("Use colorAttachmentHandles", true)]
+        public RenderTargetIdentifier[] colorAttachments => throw new NotSupportedException("colorAttachments has been deprecated. Use colorAttachmentHandles instead.");
 
         /// <summary>
         /// The render target identifier for color attachment.
         /// This is obsolete, use colorAttachmentHandle instead.
         /// </summary>
-        [Obsolete("Use colorAttachmentHandle")] // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
-        public RenderTargetIdentifier colorAttachment
-        {
-            get => m_ColorAttachmentIds[0];
-        }
+        [Obsolete("Use colorAttachmentHandle", true)]
+        public RenderTargetIdentifier[] colorAttachment => throw new NotSupportedException("colorAttachment has been deprecated. Use colorAttachmentHandle instead.");
 
         /// <summary>
         /// The render target identifier for depth attachment.
         /// This is obsolete, use depthAttachmentHandle instead.
         /// </summary>
-        [Obsolete("Use depthAttachmentHandle")]  // TODO OBSOLETE: remove pragma warnings in ScriptableRenderer.SetRenderPassAttachments
-        public RenderTargetIdentifier depthAttachment
-        {
-            get => m_UsesRTHandles ? new RenderTargetIdentifier(m_DepthAttachment.nameID, 0, CubemapFace.Unknown, -1) : m_DepthAttachmentId;
-        }
+        [Obsolete("Use depthAttachmentHandle", true)]
+        public RenderTargetIdentifier depthAttachment => throw new NotSupportedException("depthAttachment has been deprecated. Use depthAttachmentHandle instead.");
 
         /// <summary>
         /// List for the g-buffer attachment handles.
         /// </summary>
-        public RTHandle[] colorAttachmentHandles
-        {
-            get => m_ColorAttachments;
-        }
+        public RTHandle[] colorAttachmentHandles => m_ColorAttachments;
 
         /// <summary>
         /// The main color attachment handle.
         /// </summary>
-        public RTHandle colorAttachmentHandle
-        {
-            get => m_ColorAttachments[0];
-        }
+        public RTHandle colorAttachmentHandle => m_ColorAttachments[0];
 
         /// <summary>
         /// The depth attachment handle.
         /// </summary>
-        public RTHandle depthAttachmentHandle
-        {
-            get => m_DepthAttachment;
-        }
+        public RTHandle depthAttachmentHandle => m_DepthAttachment;
 
         /// <summary>
         /// The store actions for Color.
         /// </summary>
-        public RenderBufferStoreAction[] colorStoreActions
-        {
-            get => m_ColorStoreActions;
-        }
+        public RenderBufferStoreAction[] colorStoreActions => m_ColorStoreActions;
 
         /// <summary>
         /// The store actions for Depth.
         /// </summary>
-        public RenderBufferStoreAction depthStoreAction
-        {
-            get => m_DepthStoreAction;
-        }
+        public RenderBufferStoreAction depthStoreAction => m_DepthStoreAction;
 
-        internal bool[] overriddenColorStoreActions
-        {
-            get => m_OverriddenColorStoreActions;
-        }
+        internal bool[] overriddenColorStoreActions => m_OverriddenColorStoreActions;
 
-        internal bool overriddenDepthStoreAction
-        {
-            get => m_OverriddenDepthStoreAction;
-        }
+        internal bool overriddenDepthStoreAction => m_OverriddenDepthStoreAction;
 
         /// <summary>
         /// The input requirements for the <c>ScriptableRenderPass</c>, which has been set using <c>ConfigureInput</c>
         /// </summary>
         /// <seealso cref="ConfigureInput"/>
-        public ScriptableRenderPassInput input
-        {
-            get => m_Input;
-        }
+        public ScriptableRenderPassInput input => m_Input;
 
         /// <summary>
         /// The flag to use when clearing.
         /// </summary>
         /// <seealso cref="ClearFlag"/>
-        public ClearFlag clearFlag
-        {
-            get => m_ClearFlag;
-        }
+        public ClearFlag clearFlag => m_ClearFlag;
 
         /// <summary>
         /// The color value to use when clearing.
         /// </summary>
-        public Color clearColor
-        {
-            get => m_ClearColor;
-        }
+        public Color clearColor => m_ClearColor;
 
         RenderBufferStoreAction[] m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store };
         RenderBufferStoreAction m_DepthStoreAction = RenderBufferStoreAction.Store;
@@ -315,13 +276,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
 
-        internal bool m_UsesRTHandles;
         RTHandle[] m_ColorAttachments;
-        RenderTargetIdentifier[] m_ColorAttachmentIds;
         internal RTHandle[] m_InputAttachments = new RTHandle[8];
         internal bool[] m_InputAttachmentIsTransient = new bool[8];
         RTHandle m_DepthAttachment;
-        RenderTargetIdentifier m_DepthAttachmentId;
 
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -340,19 +298,15 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ScriptableRenderPass()
         {
-            m_UsesRTHandles = true;
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RTHandle[] { k_CameraTarget, null, null, null, null, null, null, null };
             m_InputAttachments = new RTHandle[] { null, null, null, null, null, null, null, null };
             m_InputAttachmentIsTransient = new bool[] { false, false, false, false, false, false, false, false };
-            m_DepthAttachment = k_CameraTarget;
             m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthStoreAction = RenderBufferStoreAction.Store;
             m_OverriddenColorStoreActions = new bool[] { false, false, false, false, false, false, false, false };
             m_OverriddenDepthStoreAction = false;
             m_DepthAttachment = k_CameraTarget;
-            m_DepthAttachmentId = m_DepthAttachment.nameID;
-            m_ColorAttachmentIds = new RenderTargetIdentifier[] { k_CameraTarget.nameID, 0, 0, 0, 0, 0, 0, 0 };
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -448,19 +402,15 @@ namespace UnityEngine.Rendering.Universal
         public void ResetTarget()
         {
             overrideCameraTarget = false;
-            m_UsesRTHandles = true;
 
             // Reset depth
-            m_DepthAttachmentId = -1;
             m_DepthAttachment = null;
 
             // Reset colors
             m_ColorAttachments[0] = null;
-            m_ColorAttachmentIds[0] = -1;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
             {
                 m_ColorAttachments[i] = null;
-                m_ColorAttachmentIds[i] = 0;
             }
         }
 
@@ -474,9 +424,7 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("Use RTHandles for colorAttachment and depthAttachment", true)]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
-            m_DepthAttachmentId = depthAttachment;
-            m_DepthAttachment = null;
-            ConfigureTarget(colorAttachment);
+            throw new NotSupportedException("ConfigureTarget with RenderTargetIdentifier has been deprecated. Use RTHandles instead");
         }
 
         /// <summary>
@@ -489,7 +437,6 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment)
         {
             m_DepthAttachment = depthAttachment;
-            m_DepthAttachmentId = m_DepthAttachment.nameID;
             ConfigureTarget(colorAttachment);
         }
 
@@ -503,15 +450,7 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("Use RTHandles for colorAttachments and depthAttachment", true)]
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
-            m_UsesRTHandles = false;
-            overrideCameraTarget = true;
-
-            uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
-            if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
-                Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
-
-            m_ColorAttachmentIds = colorAttachments;
-            m_DepthAttachmentId = depthAttachment;
+            throw new NotSupportedException("ConfigureTarget with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead");
         }
 
         /// <summary>
@@ -523,7 +462,6 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RTHandle[] colorAttachments, RTHandle depthAttachment)
         {
-            m_UsesRTHandles = true;
             overrideCameraTarget = true;
 
             uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
@@ -531,11 +469,6 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
 
             m_ColorAttachments = colorAttachments;
-            if (m_ColorAttachmentIds.Length != m_ColorAttachments.Length)
-                m_ColorAttachmentIds = new RenderTargetIdentifier[m_ColorAttachments.Length];
-            for (var i = 0; i < m_ColorAttachmentIds.Length; ++i)
-                m_ColorAttachmentIds[i] = new RenderTargetIdentifier(colorAttachments[i].nameID, 0, CubemapFace.Unknown, -1);
-            m_DepthAttachmentId = depthAttachment.nameID;
             m_DepthAttachment = depthAttachment;
         }
 
@@ -555,12 +488,7 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("Use RTHandle for colorAttachment", true)]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
-            m_UsesRTHandles = false;
-            overrideCameraTarget = true;
-
-            m_ColorAttachmentIds[0] = colorAttachment;
-            for (int i = 1; i < m_ColorAttachmentIds.Length; ++i)
-                m_ColorAttachmentIds[i] = 0;
+            throw new NotSupportedException("ConfigureTarget with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead");
         }
 
         /// <summary>
@@ -571,15 +499,12 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RTHandle colorAttachment)
         {
-            m_UsesRTHandles = true;
             overrideCameraTarget = true;
 
             m_ColorAttachments[0] = colorAttachment;
-            m_ColorAttachmentIds[0] = new RenderTargetIdentifier(colorAttachment.nameID, 0, CubemapFace.Unknown, -1);
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
             {
                 m_ColorAttachments[i] = null;
-                m_ColorAttachmentIds[i] = 0;
             }
         }
 
@@ -589,10 +514,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachments">Color attachment identifiers.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete("Use RTHandles for colorAttachments")] // TODO OBSOLETE: need to fix the URP test failures when bumping
+        [Obsolete("Use RTHandles for colorAttachments", true)]
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
-            ConfigureTarget(colorAttachments, k_CameraTarget.nameID);
+            throw new NotSupportedException("ConfigureTarget with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead");
         }
 
         /// <summary>
@@ -698,8 +623,7 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("Use RTHandles for source and destination", true)]
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
-            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
-            cmd.Blit(source, destination, material, passIndex);
+            throw new NotSupportedException("Blit with RenderTargetIdentifier has been deprecated. Use RTHandles instead");
         }
 
         /// <summary>

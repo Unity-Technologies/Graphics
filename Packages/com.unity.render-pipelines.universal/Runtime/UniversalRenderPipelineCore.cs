@@ -478,34 +478,7 @@ namespace UnityEngine.Rendering.Universal
             Debug.Assert(renderer != null, "IsCameraProjectionMatrixFlipped is being called outside camera rendering scope.");
 
             if (renderer != null)
-            {
-                var handle = renderer.cameraColorTargetHandle;
-
-                bool flipped;
-#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for renderer using cameraColorTarget instead of cameraColorTargetHandle
-                if (handle == null)
-                {
-                    if (cameraType == CameraType.SceneView)
-                    {
-                        flipped = true;
-                    }
-                    else
-                    {
-                        var handleID = new RenderTargetIdentifier(renderer.cameraColorTarget, 0, CubemapFace.Unknown, 0);
-                        bool isBackbuffer = handleID == BuiltinRenderTextureType.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                        if (xr.enabled)
-                            isBackbuffer |= handleID == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
-#endif
-                        flipped = !isBackbuffer;
-                    }
-                }
-                else
-#pragma warning restore 0618
-                    flipped = IsHandleYFlipped(handle);
-
-                return flipped || targetTexture != null;
-            }
+                return IsHandleYFlipped(renderer.cameraColorTargetHandle) || targetTexture != null;
 
             return true;
         }
