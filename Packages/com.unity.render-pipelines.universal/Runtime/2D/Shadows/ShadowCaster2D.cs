@@ -4,8 +4,8 @@ using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
 using Unity.Collections;
 
-
 #if UNITY_EDITOR
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.EditorTools;
@@ -404,6 +404,11 @@ namespace UnityEngine.Rendering.Universal
                 m_ShadowShape2DProvider.Enabled(m_ShadowShape2DComponent);
 
             m_ShadowCasterGroup = null;
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerAdded += OnSortingLayerAdded;
+            SortingLayer.onLayerRemoved += OnSortingLayerRemoved;
+#endif
         }
 
         /// <summary>
@@ -415,6 +420,11 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_ShadowShape2DProvider != null)
                 m_ShadowShape2DProvider.Disabled(m_ShadowShape2DComponent);
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerAdded -= OnSortingLayerAdded;
+            SortingLayer.onLayerRemoved -= OnSortingLayerRemoved;
+#endif
         }
 
         /// <summary>
@@ -563,12 +573,23 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
+#if UNITY_EDITOR
+        private void OnSortingLayerAdded(SortingLayer layer)
+        {
+            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Append(layer.id).ToArray();
+        }
+
+        private void OnSortingLayerRemoved(SortingLayer layer)
+        {
+            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Where(x => x != layer.id && SortingLayer.IsValid(x)).ToArray();
+        }
+#endif
+
         /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
             m_ComponentVersion = k_CurrentComponentVersion;
         }
-
 
         /// <inheritdoc/>
         public void OnAfterDeserialize()
