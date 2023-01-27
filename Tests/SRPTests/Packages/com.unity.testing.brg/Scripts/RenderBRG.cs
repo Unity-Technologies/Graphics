@@ -14,14 +14,26 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using FrustumPlanes = Unity.Rendering.FrustumPlanes.FrustumPlanes;
 
-public struct RangeKey : IEquatable<RangeKey>
+public struct RangeKey : IEquatable<RangeKey>, IComparable<RangeKey>
 {
+    public int rendererPriority;
     public ShadowCastingMode shadows;
 
-    public bool Equals(RangeKey other)
+    public override int GetHashCode()
     {
-        return shadows == other.shadows;
+        return HashCode.Combine(rendererPriority, shadows);
     }
+
+    public int CompareTo(RangeKey other)
+    {
+        int cmp_rendererPriority = rendererPriority.CompareTo(other.rendererPriority);
+        int cmp_shadows          = shadows.CompareTo(other.shadows);
+
+        if (cmp_rendererPriority != 0) return cmp_rendererPriority;
+        return cmp_shadows;
+    }
+
+    public bool Equals(RangeKey other) => CompareTo(other) == 0;
 }
 
 public struct DrawRange
@@ -33,35 +45,44 @@ public struct DrawRange
 
 public struct DrawKey : IEquatable<DrawKey>, IComparable<DrawKey>
 {
+    public RangeKey rangeKey;
     public BatchID batchID;
     public BatchMeshID meshID;
     public uint submeshIndex;
     public BatchMaterialID material;
-    public ShadowCastingMode shadows;
-
-    public RangeKey RangeKey => new RangeKey { shadows = shadows };
+    public int transparentInstanceID;
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(batchID, meshID, submeshIndex, material, (int)shadows);
+        return HashCode.Combine(rangeKey, batchID, meshID, submeshIndex, material, transparentInstanceID);
     }
 
     public int CompareTo(DrawKey other)
     {
-        int cmp_shadows  = shadows.CompareTo(other.shadows);
+        int cmp_range    = rangeKey.CompareTo(other.rangeKey);
         int cmp_material = material.CompareTo(other.material);
         int cmp_mesh     = meshID.CompareTo(other.meshID);
         int cmp_submesh  = submeshIndex.CompareTo(other.submeshIndex);
+        int cmp_iid      = transparentInstanceID.CompareTo(other.transparentInstanceID);
         int cmp_batch    = batchID.CompareTo(other.batchID);
 
-        if (cmp_shadows  != 0) return cmp_shadows;
+        if (cmp_range    != 0) return cmp_range;
         if (cmp_material != 0) return cmp_material;
         if (cmp_mesh     != 0) return cmp_mesh;
         if (cmp_submesh  != 0) return cmp_submesh;
+        if (cmp_iid      != 0) return cmp_iid;
         return cmp_batch;
     }
     public bool Equals(DrawKey other) => CompareTo(other) == 0;
 
+    public bool isTransparent { get { return transparentInstanceID != 0; } }
+
+    public BatchDrawCommandFlags drawCommandFlags { get { 
+        var flags = BatchDrawCommandFlags.None;
+        if (isTransparent)
+            flags |= BatchDrawCommandFlags.HasSortingPosition;
+        return flags;
+    } }
 }
 
 public struct DrawBatch
@@ -191,6 +212,9 @@ public unsafe class RenderBRG : MonoBehaviour
         public NativeArray<int> rendererIndices;
 
         [ReadOnly]
+        public NativeArray<DrawRenderer> renderers;
+
+        [ReadOnly]
         public NativeList<DrawBatch> drawBatches;
 
         [ReadOnly]
@@ -221,6 +245,7 @@ public unsafe class RenderBRG : MonoBehaviour
             int outIndex = 0;
             int outBatch = 0;
             int outRange = 0;
+            int outSortingPosition = 0;
 
             int activeBatch = 0;
             int internalIndex = 0;
@@ -247,17 +272,29 @@ public unsafe class RenderBRG : MonoBehaviour
                         var visibleCount = outIndex - batchStartIndex;
                         if (visibleCount > 0)
                         {
+                            var key = drawBatches[remappedIndex].key;
+                            int sortingPosition = 0;
+                            if (key.isTransparent)
+                            {
+                                sortingPosition = outSortingPosition;
+                                outSortingPosition += 3;
+
+                                var center = renderers[rendererIndex].bounds.Center;
+                                draws.instanceSortingPositions[sortingPosition] = center.x;
+                                draws.instanceSortingPositions[sortingPosition + 1] = center.y;
+                                draws.instanceSortingPositions[sortingPosition + 2] = center.z;
+                            }
                             draws.drawCommands[outBatch] = new BatchDrawCommand
                             {
                                 visibleOffset = (uint)batchStartIndex,
                                 visibleCount = (uint)visibleCount,
-                                batchID = drawBatches[remappedIndex].key.batchID,
-                                materialID = drawBatches[remappedIndex].key.material,
-                                meshID = drawBatches[remappedIndex].key.meshID,
-                                submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                                batchID = key.batchID,
+                                materialID = key.material,
+                                meshID = key.meshID,
+                                submeshIndex = (ushort)key.submeshIndex,
                                 splitVisibilityMask = (ushort)visibleMaskPrev,
-                                flags = BatchDrawCommandFlags.None,
-                                sortingPosition = 0
+                                flags = key.drawCommandFlags,
+                                sortingPosition = sortingPosition
                             };
                             outBatch++;
                         }
@@ -277,17 +314,27 @@ public unsafe class RenderBRG : MonoBehaviour
                     var visibleCount = outIndex - batchStartIndex;
                     if (visibleCount > 0)
                     {
+                        var key = drawBatches[remappedIndex].key;
+                        int sortingPosition = 0;
+                        if (key.isTransparent)
+                        {
+                            var center = renderers[rendererIndex].bounds.Center;
+                            sortingPosition = 3*outBatch;
+                            draws.instanceSortingPositions[sortingPosition] = center.x;
+                            draws.instanceSortingPositions[sortingPosition + 1] = center.y;
+                            draws.instanceSortingPositions[sortingPosition + 2] = center.z;
+                        }
                         draws.drawCommands[outBatch] = new BatchDrawCommand
                         {
                             visibleOffset = (uint)batchStartIndex,
                             visibleCount = (uint)visibleCount,
-                            batchID = drawBatches[remappedIndex].key.batchID,
-                            materialID = drawBatches[remappedIndex].key.material,
-                            meshID = drawBatches[remappedIndex].key.meshID,
-                            submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                            batchID = key.batchID,
+                            materialID = key.material,
+                            meshID = key.meshID,
+                            submeshIndex = (ushort)key.submeshIndex,
                             splitVisibilityMask = (ushort)visibleMaskPrev,
-                            flags = BatchDrawCommandFlags.None,
-                            sortingPosition = 0
+                            flags = key.drawCommandFlags,
+                            sortingPosition = sortingPosition
                         };
                         outBatch++;
                     }
@@ -310,6 +357,7 @@ public unsafe class RenderBRG : MonoBehaviour
                                 drawCommandsCount = (uint)visibleDrawCount,
                                 filterSettings = new BatchFilterSettings
                                 {
+                                    rendererPriority = drawRanges[activeRange].key.rendererPriority,
                                     renderingLayerMask = 1,
                                     layer = 0,
                                     motionMode = MotionVectorGenerationMode.Camera,
@@ -330,6 +378,7 @@ public unsafe class RenderBRG : MonoBehaviour
             }
 
             draws.drawCommandCount = outBatch;
+            draws.instanceSortingPositionFloatCount = outSortingPosition;
             draws.visibleInstanceCount = outIndex;
             draws.drawRangeCount = outRange;
             drawCommands[0] = draws;
@@ -393,6 +442,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
             var draws = (BatchCullingOutputDrawCommands*)drawCommands.GetUnsafePtr();
             draws->drawCommands = Malloc<BatchDrawCommand>(numDrawCommands);
+            draws->instanceSortingPositions = Malloc<float>(3 * numDrawCommands);
             return *draws;
         }
 
@@ -485,9 +535,15 @@ public unsafe class RenderBRG : MonoBehaviour
 
         // If splits are involved, defer allocation until we know exactly how many we will need
         if (splitCounts.Length > 1)
+        { 
             drawCommands.drawCommands = null;
+            drawCommands.instanceSortingPositions = null;
+        }
         else
+        { 
             drawCommands.drawCommands = Malloc<BatchDrawCommand>(maxDrawCommands);
+            drawCommands.instanceSortingPositions = Malloc<float>(3 * maxDrawCommands);
+        }
 
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
         drawCommands.drawCommandPickingInstanceIDs = needInstanceIDs ? Malloc<int>(m_instanceIndices.Length) : null;
@@ -496,8 +552,6 @@ public unsafe class RenderBRG : MonoBehaviour
         drawCommands.drawRangeCount = 0;
         drawCommands.drawCommandCount = 0;
         drawCommands.visibleInstanceCount = 0;
-
-        drawCommands.instanceSortingPositions = null;
         drawCommands.instanceSortingPositionFloatCount = 0;
 
         cullingOutput.drawCommands[0] = drawCommands;
@@ -519,6 +573,7 @@ public unsafe class RenderBRG : MonoBehaviour
             rendererVisibility = rendererVisibility,
             instanceIndices = m_instanceIndices,
             rendererIndices = m_rendererIndices,
+            renderers = m_renderers,
             drawBatches = m_drawBatches,
             drawRanges = m_drawRanges,
             drawIndices = m_drawIndices,
@@ -880,7 +935,7 @@ public unsafe class RenderBRG : MonoBehaviour
         for (int i = 0; i < m_drawBatches.Length; i++)
         {
             var draw = m_drawBatches[i];
-            if (m_rangeHash.TryGetValue(draw.key.RangeKey, out int drawRangeIndex))
+            if (m_rangeHash.TryGetValue(draw.key.rangeKey, out int drawRangeIndex))
             {
                 var drawRange = m_drawRanges[drawRangeIndex];
                 m_drawIndices[drawRange.drawOffset + internalRangeIndex[drawRangeIndex]] = i;
@@ -895,7 +950,7 @@ public unsafe class RenderBRG : MonoBehaviour
         for (int i = 0; i < m_drawBatches.Length; ++i)
         {
             var drawBatch = m_drawBatches[i];
-            var rangeKey = drawBatch.key.RangeKey;
+            var rangeKey = drawBatch.key.rangeKey;
             m_drawBatches[i] = drawBatch;
 
             if (!m_rangeHash.TryGetValue(rangeKey, out int rangeIndex))
@@ -1049,19 +1104,26 @@ public unsafe class RenderBRG : MonoBehaviour
             var sharedMaterials = new List<Material>();
             renderer.GetSharedMaterials(sharedMaterials);
 
-            var shadows = renderer.shadowCastingMode;
+            var rangeKey = new RangeKey
+            {
+                rendererPriority = renderer.rendererPriority,
+                shadows = renderer.shadowCastingMode,
+            };
 
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
+                bool isTransparent = sharedMaterials[matIndex].renderQueue > (int)RenderQueue.GeometryLast;
+
                 var key = new DrawKey
                 {
+                    rangeKey = rangeKey,
                     batchID = new BatchID(), // This is assigned later
                     material = material,
                     meshID = mesh,
                     submeshIndex = (uint)matIndex,
-                    shadows = shadows,
+                    transparentInstanceID = isTransparent ? renderer.GetInstanceID() : 0,
                 };
 
                 renderersByKey.Add(key, rendererIndex);

@@ -14,4 +14,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SampleScenes/BRGCullingFlags/BRGCullingFlags.unity
     guid: 79a0172b3dedcf74385f9b01bc9e46f6
+  - enabled: 1
+    path: Assets/SampleScenes/BRGSorting/BRGSorting.unity
+    guid: b19fd40c54fd393429e15254043ecd96
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0
