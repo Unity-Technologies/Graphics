@@ -1,11 +1,7 @@
 using System;
-using System.Linq;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
+
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.VFX;
-using System.Runtime.Remoting.Messaging;
 
 namespace UnityEditor.VFX.Operator
 {
