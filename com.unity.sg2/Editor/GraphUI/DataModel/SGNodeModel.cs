@@ -91,10 +91,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             try
             {
-                reader = graphDataName == null ?
-                    registry.GetDefaultTopology(m_PreviewRegistryKey) :
-                    graphHandler.GetNode(graphDataName);
-
+                reader = GetNodeHandler();
                 return reader != null;
             }
             catch (Exception exception)
@@ -103,6 +100,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 reader = null;
                 return false;
             }
+        }
+
+        public NodeHandler GetNodeHandler()
+        {
+            // Use the default topology handler for preview nodes.
+            var isPreview = graphDataName == null;
+            return isPreview ?
+                registry.GetDefaultTopology(m_PreviewRegistryKey) :
+                graphHandler.GetNode(graphDataName);
         }
 
         public virtual bool HasPreview { get; private set; }
@@ -175,7 +181,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            Debug.Assert(TryGetNodeHandler(out var nodeHandler));
+            var nodeHandler = GetNodeHandler();
 
             if (latestAvailableVersion < currentVersion)
             {
@@ -223,9 +229,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            // existsInGraphData implies that TryGetNodeHandler will succeed.
-            Debug.Assert(TryGetNodeHandler(out var nodeHandler));
-
+            var nodeHandler = GetNodeHandler();
             var fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
             var selectedFunctionField = nodeHandler.GetField<string>(fieldName);
 
@@ -263,8 +267,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            Debug.Assert(TryGetNodeHandler(out var handler));
-
+            var nodeHandler = GetNodeHandler();
             var parameterInfo = GetViewModel().GetParameterInfo(portName);
             var (_, optionValue) = parameterInfo.Options[optionIndex];
 
@@ -274,7 +277,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            var port = handler.GetPort(portName);
+            var port = nodeHandler.GetPort(portName);
             var existing = GetCurrentPortOption(portName);
             if (existing != -1)
             {
