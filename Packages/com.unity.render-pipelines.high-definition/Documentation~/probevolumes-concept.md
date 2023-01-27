@@ -6,7 +6,7 @@ A Probe Volume is a group of [Light Probes](https://docs.unity3d.com/Manual/Ligh
 
 | **Feature** | **Original Light Probes** | **Probe Volumes** |
 |---|---|---|
-| Per-pixel lighting | No  | Yes  |
+| Selection of surrounding probes | Per object | Per pixel |
 | Optimize memory use with streaming | No | Yes |
 | Place probes automatically | No | Yes  |
 | Blend between different bakes | No | Yes |
@@ -14,8 +14,8 @@ A Probe Volume is a group of [Light Probes](https://docs.unity3d.com/Manual/Ligh
 
 Probe Volumes have the following advantages:
 
-- Probe Volumes light per-pixel rather than per-object, which means HDRP lights objects more accurately.
-- If you use [volumetric fog](Local-Volumetric-Fog.md), the per-pixel lighting provides more accurate lighting for the variations in a fog mass.
+- Unity selects surrounding probes per-pixel rather than per-object, which means HDRP lights objects more accurately.
+- If you use [volumetric fog](Local-Volumetric-Fog.md), the per-pixel probe selection provides more accurate lighting for the variations in a fog mass.
 - You can adjust Light Probe layouts across a Scene, for example using a denser set of Light Probes in an interior area with more detailed lighting or geometry. See [Display and adjust Probe Volumes](probevolumes-showandadjust.md) for more information.
 - Probe Volumes work well with multiple scenes simultaneously. See [Baking Sets](probevolumes-concept.md#baking-sets)
 - Because Probe Volumes can cover a whole scene, screen space effects can fall back to Light Probes to get lighting data from objects that are off-screen or occluded. See [Screen Space Global Illumination](Override-Screen-Space-GI.md) for more information.
