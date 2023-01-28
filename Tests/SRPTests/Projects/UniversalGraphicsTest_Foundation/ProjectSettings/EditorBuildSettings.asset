@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/170_ForwardPlus_Many.unity
+    path: Assets/Scenes/000_ForwardPlus_Many.unity
     guid: 26e7c5c73aa4db043b3fa9560cde2ea1
   - enabled: 1
     path: Assets/Scenes/001_SimpleCube.unity

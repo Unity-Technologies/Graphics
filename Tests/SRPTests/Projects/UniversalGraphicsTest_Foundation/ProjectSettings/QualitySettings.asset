@@ -350,7 +350,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 3
-    name: 07->170_ForwardPlusRenderer
+    name: 07->000_ForwardPlusRenderer
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
