@@ -218,7 +218,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
                     {
-                        HDAssetFactory.VolumeProfileCreator.CreateAndAssign(HDAssetFactory.VolumeProfileCreator.Kind.Default, globalSettings);
+                        if (globalSettings != null)
+                        {
+                            string path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/VolumeProfile_Default.asset";
+                            VolumeProfileFactory.CreateVolumeProfileWithCallback(path, (volumeProfile) =>
+                            {
+                                globalSettings.volumeProfile = volumeProfile;
+                                EditorUtility.SetDirty(globalSettings);
+                            });
+                        }
+                        else
+                        {
+                            Debug.LogError("Trying to create a Volume Profile for a null HDRP Global Settings. Operation aborted.");
+                        }
                     }
                 }
                 if (asset != null)
@@ -254,7 +266,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
                     {
-                        HDAssetFactory.VolumeProfileCreator.CreateAndAssign(HDAssetFactory.VolumeProfileCreator.Kind.LookDev, globalSettings);
+                        if (globalSettings != null)
+                        {
+                            string path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/LookDevProfile_Default.asset";
+                            VolumeProfileFactory.CreateVolumeProfileWithCallback(path, (volumeProfile) =>
+                            {
+                                globalSettings.lookDevVolumeProfile = volumeProfile;
+                                EditorUtility.SetDirty(globalSettings);
+                            });
+                        }
+                        else
+                        {
+                            Debug.LogError("Trying to create a Volume Profile for a null HDRP Global Settings. Operation aborted.");
+                        }
                     }
                 }
                 if (lookDevAsset != null)
