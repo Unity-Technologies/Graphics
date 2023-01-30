@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -36,7 +37,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Calculates the exponential value of the input.",
             category: "Math/Advanced",
-            synonyms: new string[0] {  },
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Exponential.md",
             selectableFunctions: new()
             {
                 { "BaseE", "BaseE" },

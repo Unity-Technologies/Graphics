@@ -35,6 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Generates an ellipse shape.",
             category: "Procedural/Shape",
             synonyms: new string[1] { "circle" },
+            description: "pkg://Documentation~/previews/Ellipse.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
