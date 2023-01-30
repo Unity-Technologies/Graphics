@@ -352,6 +352,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         // For cubemap
         Pass
         {
+            Name "FragBaking"
             ZWrite Off
             ZTest Always
             Blend Off
@@ -365,6 +366,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         // For fullscreen Sky
         Pass
         {
+            Name "FragRender"
             ZWrite Off
             ZTest LEqual
             Blend Off
@@ -378,6 +380,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         // For fullscreen Sky with Backplate
         Pass
         {
+            Name "FragRenderBackplate"
             ZWrite Off
             ZTest Always
             Blend Off
@@ -391,6 +394,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         // DepthOnly For fullscreen Sky with Backplate
         Pass
         {
+            Name "FragRenderBackplateDepth"
             ZWrite On
             ZTest LEqual
             Blend Off
