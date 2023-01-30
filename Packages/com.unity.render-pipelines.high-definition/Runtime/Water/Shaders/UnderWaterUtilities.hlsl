@@ -40,10 +40,11 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         DecodeFromNormalBuffer(normalBuffer, normalData);
 
         // Evaluate the triplanar weights
-        triplanarW = ComputeTriplanarWeights(mul(_WaterSurfaceTransform_Inverse, float4(normalData.normalWS, 0.0)).xyz);
+        triplanarW = ComputeTriplanarWeights(_WaterProceduralGeometry ? mul(_WaterSurfaceTransform_Inverse, float4(normalData.normalWS, 0.0)).xyz : normalData.normalWS);
 
         // Convert the position to absolute world space and move the position to the water local space
-        float3 causticPosOS = mul(_WaterSurfaceTransform_Inverse, float4(GetAbsolutePositionWS(refractedWaterPosRWS), 1.0)).xyz;
+        float3 causticPosOS = GetAbsolutePositionWS(refractedWaterPosRWS * _CausticsTilingFactor);
+        causticPosOS = _WaterProceduralGeometry ? mul(_WaterSurfaceTransform_Inverse, float4(causticPosOS, 1.0)).xyz : causticPosOS;
 
         // Evaluate the triplanar coodinates
         float3 sampleCoord = causticPosOS / (_CausticsRegionSize * 0.5) + 0.5;
@@ -51,18 +52,12 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         GetTriplanarCoordinate(sampleCoord, uv0, uv1, uv2);
 
         // Evaluate the sharpness of the caustics based on the depth
-        float sharpness = (1.0 - causticWeight) * 2;
+        float sharpness = (1.0 - causticWeight) * _CausticsMaxLOD;
 
         // sample the caustics texture
-#if defined(SHADER_STAGE_COMPUTE)
         causticsValues.x = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv0, sharpness).x;
         causticsValues.y = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
         causticsValues.z = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv2, sharpness).x;
-#else
-        causticsValues.x = SAMPLE_TEXTURE2D_BIAS(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv0, sharpness).x;
-        causticsValues.y = SAMPLE_TEXTURE2D_BIAS(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
-        causticsValues.z = SAMPLE_TEXTURE2D_BIAS(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv2, sharpness).x;
-#endif
     }
 
     // Evaluate the triplanar weights and blend the samples togheter

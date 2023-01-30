@@ -723,7 +723,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Foam
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterFoam, Styles.supportWaterFoamContent);
                 ++EditorGUI.indentLevel;
-                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWaterDeformation.boolValue))
+                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWaterFoam.boolValue))
                 {
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.foamAtlasSize, Styles.foamAtlasSizeContent);
                 }

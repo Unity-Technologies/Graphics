@@ -1,7 +1,7 @@
 #pragma kernel InitializePhillipsSpectrum
 #pragma kernel EvaluateDispersion
-#pragma kernel EvaluateNormalsFoam
-#pragma kernel CopyAdditionalData
+#pragma kernel EvaluateNormals EVALUATE_ADDITIONAL_DATA=EvaluateNormals
+#pragma kernel EvaluateNormalsJacobian EVALUATE_ADDITIONAL_DATA=EvaluateNormalsJacobian EVALUATE_JACOBIAN
 #pragma kernel PrepareCausticsGeometry
 #pragma kernel EvaluateInstanceData EVALUATE_INSTANCE_DATA=EvaluateInstanceData
 #pragma kernel EvaluateInstanceDataInfinite EVALUATE_INSTANCE_DATA=EvaluateInstanceDataInfinite INFINITE_WATER
@@ -92,7 +92,7 @@ Texture2DArray<float4> _PreviousWaterAdditionalDataBuffer;
 RWTexture2DArray<float4> _WaterAdditionalDataBufferRW;
 
 [numthreads(8, 8, 1)]
-void EvaluateNormalsFoam(uint3 currentThread : SV_DispatchThreadID)
+void EVALUATE_ADDITIONAL_DATA(uint3 currentThread : SV_DispatchThreadID)
 {
     // Extract the information about the pixel to process
     uint2 coord = currentThread.xy;
@@ -113,17 +113,16 @@ void EvaluateNormalsFoam(uint3 currentThread : SV_DispatchThreadID)
     // Compute the surface gradients of this band
     float2 surfaceGradient = EvaluateSurfaceGradients(p0, p1, p2);
 
+    // Evaluate the jacobian if required
+    float jacobian = 0.0;
+
+#if defined(EVALUATE_JACOBIAN)
     // Compute the jacobian of this texel
-    float jacobian = EvaluateJacobian(p0, p1, p2, pixelSize);
+    jacobian = EvaluateJacobian(p0, p1, p2, pixelSize);
+#endif
 
     // Output the normal and foam
     _WaterAdditionalDataBufferRW[int3(coord, bandIdx)] = float4(surfaceGradient, jacobian, jacobian);
-}
-
-[numthreads(8, 8, 1)]
-void CopyAdditionalData(uint3 currentThread : SV_DispatchThreadID)
-{
-    _WaterAdditionalDataBufferRW[int3(currentThread.xy, currentThread.z)] = LOAD_TEXTURE2D_ARRAY(_WaterAdditionalDataBuffer, currentThread.xy, currentThread.z);
 }
 
 // Output indices for the caustics buffer
@@ -247,7 +246,7 @@ void EVALUATE_INSTANCE_DATA(uint3 currentThread : SV_DispatchThreadID)
     obb.right = float3(1.0, 0, 0);
     obb.up = float3(0, 1.0, 0);
     obb.extentX = size.x * 0.5 + _MaxWaveDisplacement;
-    obb.extentY = _MaxWaveHeight;
+    obb.extentY = _MaxWaveHeight + _MaxWaterDeformation;
     obb.extentZ = size.y * 0.5 + _MaxWaveDisplacement;
     obb.center = float3(_PatchOffset.x + center.x, _PatchOffset.y, _PatchOffset.z + center.y);
 

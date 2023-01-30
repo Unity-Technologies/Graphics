@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Water Mask
             NativeArray<uint> currentBuffer = waterMaskSynchronizer.CurrentBuffer();
-            if (waterMask != null && currentBuffer.Length > 0)
+            if (waterMask != null && currentBuffer.Length > 0 && waterMaskSynchronizer.CurrentResolution().x != 0)
             {
                 wsd.activeMask = true;
                 wsd.maskBuffer = currentBuffer;

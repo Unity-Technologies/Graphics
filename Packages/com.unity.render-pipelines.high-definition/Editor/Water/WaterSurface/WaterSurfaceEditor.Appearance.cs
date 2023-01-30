@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_Caustics;
         SerializedProperty m_CausticsBand;
         SerializedProperty m_CausticsVirtualPlaneDistance;
+        SerializedProperty m_CausticsTilingFactor;
         SerializedProperty m_CausticsIntensity;
         SerializedProperty m_CausticsResolution;
         SerializedProperty m_CausticsPlaneBlendDistance;
@@ -76,6 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Caustics = o.Find(x => x.caustics);
             m_CausticsBand = o.Find(x => x.causticsBand);
             m_CausticsVirtualPlaneDistance = o.Find(x => x.virtualPlaneDistance);
+            m_CausticsTilingFactor = o.Find(x => x.causticsTilingFactor);
             m_CausticsIntensity = o.Find(x => x.causticsIntensity);
             m_CausticsResolution = o.Find(x => x.causticsResolution);
             m_CausticsPlaneBlendDistance = o.Find(x => x.causticsPlaneBlendDistance);
@@ -260,6 +262,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.m_CausticsVirtualPlaneDistance, k_CausticsVirtualPlaneDistance);
                     serialized.m_CausticsVirtualPlaneDistance.floatValue = Mathf.Max(serialized.m_CausticsVirtualPlaneDistance.floatValue, 0.001f);
 
+                    EditorGUILayout.PropertyField(serialized.m_CausticsTilingFactor, k_CausticsTilingFactor);
+                    serialized.m_CausticsTilingFactor.floatValue = Mathf.Max(serialized.m_CausticsTilingFactor.floatValue, 0.01f);
+                    
                     if (WaterSurfaceUI.ShowAdditionalProperties())
                     {
                         EditorGUILayout.PropertyField(serialized.m_CausticsIntensity, k_CausticsInstensity);
