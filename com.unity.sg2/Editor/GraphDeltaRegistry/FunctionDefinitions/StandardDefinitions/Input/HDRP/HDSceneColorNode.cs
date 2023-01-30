@@ -39,6 +39,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/HDRP",
             synonyms: new string[2] { "screen", "buffer" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/HDSceneColor.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
