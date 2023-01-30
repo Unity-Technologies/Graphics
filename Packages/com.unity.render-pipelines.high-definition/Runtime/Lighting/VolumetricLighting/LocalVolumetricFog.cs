@@ -303,7 +303,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightProbeUsage = LightProbeUsage.Off,
             };
 
-            Debug.Log("Draw call");
             Graphics.RenderPrimitivesIndexedIndirect(renderParams, MeshTopology.Triangles, LocalVolumetricFogManager.manager.volumetricMaterialIndexBuffer, LocalVolumetricFogManager.manager.globalIndirectBuffer, 1, m_GlobalIndex);
         }
 
