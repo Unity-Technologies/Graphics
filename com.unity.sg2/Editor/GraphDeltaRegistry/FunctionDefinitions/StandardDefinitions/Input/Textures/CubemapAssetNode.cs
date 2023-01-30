@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[1] { "environment" },
             displayName: "Cubemap Asset",
+            description: "pkg://Documentation~/previews/CubemapAsset.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(

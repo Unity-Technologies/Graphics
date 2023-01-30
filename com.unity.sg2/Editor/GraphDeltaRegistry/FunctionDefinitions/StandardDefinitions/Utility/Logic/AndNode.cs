@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Checks if input A and input B are true.",
             category: "Utility/Logic",
             synonyms: new string[1] { "&&" },
+            description: "pkg://Documentation~/previews/And.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

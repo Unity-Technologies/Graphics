@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -45,7 +46,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Circle Pupil Animation",
             tooltip: "Applies a deformation to a normalized Iris UV to simulate the opening and closing of the pupil.",
             category: "Utility/HDRP/Eye",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/CirclePupilAnimation.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(

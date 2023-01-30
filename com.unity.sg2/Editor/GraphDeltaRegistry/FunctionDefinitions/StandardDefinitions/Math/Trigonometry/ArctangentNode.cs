@@ -38,6 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the arctangent of each component of the input.",
             category: "Math/Trigonometry",
             synonyms: new string[1] { "atan" },
+            description: "pkg://Documentation~/previews/Arctangent.md",
             selectableFunctions: new()
             {
                 { "Default", "Default" },
