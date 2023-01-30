@@ -406,3 +406,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Unstable
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9d25fa9f3eb332f4dad8f36653f93a14, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: Fails an assert on GLES3
