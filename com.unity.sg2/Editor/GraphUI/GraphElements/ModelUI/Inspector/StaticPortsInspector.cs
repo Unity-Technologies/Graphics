@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var graphModel = (SGGraphModel)nodeModel.GraphModel;
             var stencil = (ShaderGraphStencil)graphModel.Stencil;
-            var nodeUIDescriptor = stencil.GetUIHints(nodeModel.registryKey, nodeReader);
+            var nodeViewModel = nodeModel.GetViewModel();
 
             foreach (var port in nodeReader.GetPorts())
             {
@@ -34,9 +34,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (!isStatic) continue;
 
                 var portName = port.ID.LocalPath;
-                var parameterUIDescriptor = nodeUIDescriptor.GetParameterInfo(portName);
+                var portViewModel = nodeViewModel.GetParameterInfo(portName);
 
-                if (!parameterUIDescriptor.InspectorOnly) continue;
+                if (!portViewModel.InspectorOnly) continue;
 
                 var constant = stencil.CreateConstantValue(ShaderGraphExampleTypes.GetGraphType(port));
                 if (constant is BaseShaderGraphConstant cldsConstant)
