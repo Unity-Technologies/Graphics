@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -26,7 +27,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Sphere Mask",
             tooltip: "Creates a spherical volume mask that starts at a given position.",
             category: "Math/Vector",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/SphereMask.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Coords",

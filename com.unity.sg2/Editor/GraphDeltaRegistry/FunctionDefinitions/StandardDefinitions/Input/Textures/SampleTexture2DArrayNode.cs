@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -125,7 +126,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[3] { "stack", "pile", "tex2darray" },
             displayName: "Sample Texture 2D Array",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SampleTexture2DArray.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Standard", "Standard" },
                 { "LODfunction", "LOD" },

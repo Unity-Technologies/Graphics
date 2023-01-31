@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a wave where the amplitude alternates between fixed min and max values at a steady frequency.",
             category: "Math/Wave",
             synonyms: new string[1] { "triangle wave" },
+            description: "pkg://Documentation~/previews/SquareWave.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

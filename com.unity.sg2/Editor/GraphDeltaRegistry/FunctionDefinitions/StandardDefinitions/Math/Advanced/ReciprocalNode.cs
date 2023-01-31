@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -37,7 +38,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "returns one divided by the input",
             category: "Math/Advanced",
             synonyms: new string[2] { "rcp", "divide" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/Reciprocal.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Default", "Default" },
                 { "Fast", "Fast" }

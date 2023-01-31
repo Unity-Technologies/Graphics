@@ -69,7 +69,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Artistic/Normal",
             synonyms: new string[2] { "convert to normal", "bump map" },
             displayName: "Normal From Height",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/NormalFromHeight.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Tangent", "Tangent" },
                 { "World", "World" },

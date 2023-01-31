@@ -77,6 +77,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a polygon of the specified size and shape, with rounded corners.",
             category: "Procedural/Shape",
             synonyms: new string[1] { "shape" },
+            description: "pkg://Documentation~/previews/RoundedPolygon.md",
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(
                     name: "UV",

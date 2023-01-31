@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             displayName: "Main Light Direction",
             synonyms: new string[1] { "sun" },
+            description: "pkg://Documentation~/previews/MainLightDirection.md",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Direction",

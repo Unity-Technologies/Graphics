@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a new vector mirrored around the axis of the input normal.",
             category: "Math/Vector",
             synonyms: new string[1] { "mirror" },
+            description: "pkg://Documentation~/previews/Reflection.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "In",

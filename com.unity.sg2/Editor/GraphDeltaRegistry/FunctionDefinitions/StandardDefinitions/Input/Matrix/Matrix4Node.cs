@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -23,8 +24,9 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Matrix 4x4",
             tooltip: "make the darks darker and the brights brighter",
             category: "Input/Matrix",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Matrix4x4.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Matrix4x4"
