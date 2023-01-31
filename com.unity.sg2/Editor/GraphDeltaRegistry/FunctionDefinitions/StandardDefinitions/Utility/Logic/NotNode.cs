@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Utility/Logic",
             synonyms: new string[1] { "!" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Not.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

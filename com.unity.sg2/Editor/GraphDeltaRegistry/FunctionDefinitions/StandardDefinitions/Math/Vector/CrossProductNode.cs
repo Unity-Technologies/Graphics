@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates a vector that is perpendicular to the two input vectors.",
             category: "Math/Vector",
             synonyms: new string[1] { "perpendicular" },
+            description: "pkg://Documentation~/previews/CrossProduct.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",

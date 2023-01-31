@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Geometry",
             synonyms: new string[2] { "eye direction", "camera direction" },
             displayName: "View Direction",
+            description: "pkg://Documentation~/previews/ViewDirection.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "ViewDir",

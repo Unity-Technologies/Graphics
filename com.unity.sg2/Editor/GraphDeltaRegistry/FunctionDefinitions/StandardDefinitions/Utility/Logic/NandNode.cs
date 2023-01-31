@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -23,8 +24,9 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Checks if input A and input B are both false.",
             category: "Utility/Logic",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Nand.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",

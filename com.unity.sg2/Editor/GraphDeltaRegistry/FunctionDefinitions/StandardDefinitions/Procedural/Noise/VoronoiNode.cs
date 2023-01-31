@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -128,7 +129,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "creates a cell noise pattern using ranomly-placed points as cell centers",
             category: "Procedural/Noise",
             synonyms: new string[1] { "worley noise" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/Voronoi.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Deterministic", "Deterministic" },
                 { "LegacySine", "Legacy Sine" }

@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -25,7 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Iris Out Of Bound Color Clamp",
             tooltip: "clamps the color of the Iris to a given color",
             category: "Utility/HDRP/Eye",
-            synonyms: new string[0],
+            description: "pkg://Documentation~/previews/IrisOutOfBoundColorClamp.md",
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

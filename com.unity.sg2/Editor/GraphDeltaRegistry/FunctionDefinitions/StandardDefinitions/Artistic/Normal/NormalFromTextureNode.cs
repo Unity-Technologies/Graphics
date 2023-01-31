@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
         TangentMatrix[0] = TangentWS;
         TangentMatrix[1] = BitangentWS;
         TangentMatrix[2] = NormalWS;
-    	Out = TransformWorldToTangent(Out, TangentMatrix);	
+    	Out = TransformWorldToTangent(Out, TangentMatrix);
     }",
                     new ParameterDescriptor[]
                     {
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.Defs
     Offset = pow(Offset, 4) * 0.1;
     if (HeightChannel == 1) channelMask = float4(0,1,0,0);
     if (HeightChannel == 2) channelMask = float4(0,0,1,0);
-    if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
+    if (HeightChannel == 3) channelMask = float4(0,0,0,1);
     va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x - Offset, UV.y)), channelMask);//Bottom
     va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x + Offset, UV.y)), channelMask);//Top
     vb.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x, UV.y + Offset)), channelMask);//Right
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Defs
         TangentMatrix[0] = TangentWS;
         TangentMatrix[1] = BitangentWS;
         TangentMatrix[2] = NormalWS;
-    	Out = TransformWorldToTangent(Out, TangentMatrix);	
+    	Out = TransformWorldToTangent(Out, TangentMatrix);
     }",
                     new ParameterDescriptor[]
                     {
@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.Defs
     Offset = pow(Offset, 5.5) * 0.1;
     if (HeightChannel == 1) channelMask = float4(0,1,0,0);
     if (HeightChannel == 2) channelMask = float4(0,0,1,0);
-    if (HeightChannel == 3) channelMask = float4(0,0,0,1);	
+    if (HeightChannel == 3) channelMask = float4(0,0,0,1);
     va.x = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, UV - Offset), channelMask);                   // top left
     va.y = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x - Offset, UV.y)), channelMask);   	  // left
     va.z = dot(SAMPLE_TEXTURE2D(Texture.tex, Sampler.samplerstate, float2(UV.x - Offset, UV.y + Offset)), channelMask);// bottom left
@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph.Defs
         TangentMatrix[0] = TangentWS;
         TangentMatrix[1] = BitangentWS;
         TangentMatrix[2] = NormalWS;
-        Out = TransformWorldToTangent(Out, TangentMatrix);	
+        Out = TransformWorldToTangent(Out, TangentMatrix);
     }",
                     new ParameterDescriptor[]
                     {
@@ -159,6 +159,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "EightSamples", "8 Samples" }
             },
             functionSelectorLabel: "Sample Count",
+            description: "pkg://Documentation~/previews/NormalFromTexture.md",
             parameters: new ParameterUIDescriptor[8] {
                 new ParameterUIDescriptor(
                     name: "Texture",

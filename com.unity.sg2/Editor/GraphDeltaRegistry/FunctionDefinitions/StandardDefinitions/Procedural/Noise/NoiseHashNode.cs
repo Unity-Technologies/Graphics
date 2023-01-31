@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -85,8 +87,9 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "generates a random value based on the input",
             category: "Procedural/Noise",
             displayName: "Noise Hash",
-            synonyms: new string[0] {  },
-            selectableFunctions: new()
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/NoiseHash.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Hash21", "Vec2 to Float" },
                 { "Hash23", "Vec2 to Vec3" },

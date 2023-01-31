@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -25,7 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Evaluate Water Tip Thickness",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/EvaluateWaterTipThickness.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

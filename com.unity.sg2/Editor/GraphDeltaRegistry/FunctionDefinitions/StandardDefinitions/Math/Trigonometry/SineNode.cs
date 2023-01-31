@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -37,8 +39,9 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Calculates the sine of the input.",
             category: "Math/Trigonometry",
-            synonyms: new string[0],
-            selectableFunctions: new()
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Sine.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Default", "Default" },
                 { "Fast", "Fast" }

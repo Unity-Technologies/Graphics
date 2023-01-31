@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -22,8 +23,9 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gets the unique ID of each vertex.",
             category: "Input/Geometry",
             hasPreview:false,
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
             displayName: "Vertex ID",
+            description: "pkg://Documentation~/previews/VertexID.md",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",

@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -29,7 +30,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Split Texture Transform",
             tooltip: "Separates tiling, offset, and texture data from an input texture.",
-            synonyms: new string[0] {},
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/SplitTextureTransform.md",
             category: "Input/Texture",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[4] {

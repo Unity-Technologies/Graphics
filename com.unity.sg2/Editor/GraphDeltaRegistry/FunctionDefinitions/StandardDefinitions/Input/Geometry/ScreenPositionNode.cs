@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -21,7 +22,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "The location on the screen of the current pixel.",
             category: "Input/Geometry",
-            synonyms: new string[0] {},
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/ScreenPosition.md",
             displayName: "Screen Position",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

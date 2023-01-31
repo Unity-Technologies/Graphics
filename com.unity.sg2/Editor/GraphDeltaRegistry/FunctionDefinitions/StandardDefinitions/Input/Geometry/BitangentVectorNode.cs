@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Geometry",
             synonyms: new string[1] { "binormal" },
             displayName: "Bitangent Vector",
+            description: "pkg://Documentation~/previews/BitangentVector.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "BitangentVector",

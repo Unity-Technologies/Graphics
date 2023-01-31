@@ -32,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[1] { "texture size" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/TextureSize.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Texture",

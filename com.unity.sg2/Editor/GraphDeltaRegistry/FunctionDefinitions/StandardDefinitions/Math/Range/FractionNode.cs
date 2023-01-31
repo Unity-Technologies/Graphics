@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Returns the decimal value of an input and excludes the integer portion.",
             category: "Math/Range",
             synonyms: new string[1] { "remainder" },
+            description: "pkg://Documentation~/previews/Fraction.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

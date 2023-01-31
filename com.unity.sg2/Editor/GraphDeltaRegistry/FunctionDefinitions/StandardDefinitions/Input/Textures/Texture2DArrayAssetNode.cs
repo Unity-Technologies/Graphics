@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[2] { "stack", "pile" },
             displayName: "Texture 2D Array Asset",
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Texture2DArrayAsset.md",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",

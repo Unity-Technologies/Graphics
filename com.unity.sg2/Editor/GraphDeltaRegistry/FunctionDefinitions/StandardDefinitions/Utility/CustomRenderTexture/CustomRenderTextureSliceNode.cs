@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -26,8 +27,9 @@ Texture3DSlice = CustomRenderTexture3DSliceRef;
             Name,
             tooltip: "Return the indexes of the current cubemap face or the current 3d slice.",
             category: "Utility/Custom Render Texture",
-            synonyms: new string[0] {},
+            synonyms: Array.Empty<string>(),
             displayName: "Slice Index / Cubemap Face",
+            description: "pkg://Documentation~/previews/CustomRenderTextureSlice.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

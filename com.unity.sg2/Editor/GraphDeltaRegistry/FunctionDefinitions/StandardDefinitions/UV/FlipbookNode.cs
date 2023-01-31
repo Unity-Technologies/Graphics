@@ -37,12 +37,12 @@ namespace UnityEditor.ShaderGraph.Defs
 	tileCount.y = 1.0 / Height;
 	IWidth = InvertX * Width;
 	IHeight = InvertY * Height;
-	
+
 	Tile1 = floor(fmod(Tile + float(0.00001), Width * Height));
     tileXY.x = IWidth - ((Tile1 - Width * floor(Tile1 * tileCount.x)) + InvertX);
     tileXY.y = IHeight - (floor(Tile1 * tileCount.x) + InvertY);
     UV0 = (UV + abs(tileXY)) * tileCount;
-	
+
 	Tile += 1;
 	Tile2 = floor(fmod(Tile + float(0.00001), Width * Height));
     tileXY.x = IWidth - ((Tile2 - Width * floor(Tile2 * tileCount.x)) + InvertX);
@@ -82,6 +82,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "BlendFrames", "Blend Frames" }
             },
             functionSelectorLabel: "Mode",
+            description: "pkg://Documentation~/previews/Flipbook.md",
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(
                     name: "UV",

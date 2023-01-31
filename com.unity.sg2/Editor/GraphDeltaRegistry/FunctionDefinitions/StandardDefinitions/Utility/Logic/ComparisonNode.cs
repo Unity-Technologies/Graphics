@@ -80,6 +80,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Compares the 2 input values based on the selected condition.",
             category: "Utility/Logic",
             synonyms: new string[6] { "equal", "less", "greater", ">", "<", "=" },
+            description: "pkg://Documentation~/previews/Comparison.md",
             hasPreview: false,
             selectableFunctions: new()
             {

@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -24,7 +25,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Custom Color Buffer",
             tooltip: "Gets the custom color buffer.",
             category: "Input/HDRP",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/CustomColorBuffer.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

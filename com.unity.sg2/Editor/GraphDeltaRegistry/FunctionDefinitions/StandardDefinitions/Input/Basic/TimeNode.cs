@@ -33,6 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Basic",
             synonyms: new string[1] { "delta" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Time.md",
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(
                     name: "Time",

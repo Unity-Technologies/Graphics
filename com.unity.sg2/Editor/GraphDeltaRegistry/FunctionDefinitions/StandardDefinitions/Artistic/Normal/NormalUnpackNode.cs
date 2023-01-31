@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Object", "Object" }
             },
             functionSelectorLabel: "Space",
+            description: "pkg://Documentation~/previews/NormalUnpack.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

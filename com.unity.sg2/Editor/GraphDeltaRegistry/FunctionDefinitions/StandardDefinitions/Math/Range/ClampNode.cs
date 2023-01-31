@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Prevents an input value from going below the specified min or above the specified max.",
             category: "Math/Range",
             synonyms: new string[1] { "limit" },
+            description: "pkg://Documentation~/previews/Clamp.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "In",
