@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -25,7 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Inverse Lerp",
             tooltip: "Calculates the linear parameter that produces the interpolant specified by input T, within the range of input A and input B.",
             category: "Math/Interpolation",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/InverseLerp.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "A",
