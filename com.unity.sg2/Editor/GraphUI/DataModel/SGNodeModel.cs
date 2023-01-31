@@ -57,10 +57,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (!existsInGraphData)
                     return m_PreviewRegistryKey;
 
-                Assert.IsTrue(TryGetNodeHandler(out var reader));
+                Debug.Assert(TryGetNodeHandler(out var handler));
+
                 // Store the registry key to use for node duplication
-                duplicationRegistryKey = reader.GetRegistryKey();
-                return reader.GetRegistryKey();
+                duplicationRegistryKey = handler.GetRegistryKey();
+                return handler.GetRegistryKey();
             }
         }
 
@@ -80,22 +81,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public bool existsInGraphData =>
             m_GraphDataName != null && TryGetNodeHandler(out _);
 
-        protected GraphHandler graphHandler =>
+        GraphHandler graphHandler =>
             ((SGGraphModel)GraphModel).GraphHandler;
 
         ShaderGraphRegistry registry =>
-            ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
+            ((SGGraphModel)GraphModel).RegistryInstance;
 
         public bool TryGetNodeHandler(out NodeHandler reader)
         {
             try
             {
-                if (graphDataName == null)
-                {
-                    reader = registry.GetDefaultTopology(m_PreviewRegistryKey);
-                    return true;
-                }
-                reader = graphHandler.GetNode(graphDataName);
+                reader = GetNodeHandler();
                 return reader != null;
             }
             catch (Exception exception)
@@ -104,6 +100,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 reader = null;
                 return false;
             }
+        }
+
+        public NodeHandler GetNodeHandler()
+        {
+            // Use the default topology handler for preview nodes.
+            var isPreview = graphDataName == null;
+            return isPreview ?
+                registry.GetDefaultTopology(m_PreviewRegistryKey) :
+                graphHandler.GetNode(graphDataName);
         }
 
         public virtual bool HasPreview { get; private set; }
@@ -171,7 +176,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void UpgradeToLatestVersion()
         {
-            var nodeHandler = graphHandler.GetNode(graphDataName);
+            if (!existsInGraphData)
+            {
+                return;
+            }
+
+            var nodeHandler = GetNodeHandler();
 
             if (latestAvailableVersion < currentVersion)
             {
@@ -214,9 +224,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void ChangeNodeFunction(string newFunctionName)
         {
-            NodeHandler nodeHandler = graphHandler.GetNode(graphDataName);
-            string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-            FieldHandler selectedFunctionField = nodeHandler.GetField<string>(fieldName);
+            if (!existsInGraphData)
+            {
+                return;
+            }
+
+            var nodeHandler = GetNodeHandler();
+            var fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
+            var selectedFunctionField = nodeHandler.GetField<string>(fieldName);
+
             if (selectedFunctionField == null)
             {
                 Debug.LogError("Unable to update selected function. Node has no selected function field.");
@@ -245,7 +261,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="optionIndex">Index of the Option in the port's parameter descriptor to use.</param>
         public void SetPortOption(string portName, int optionIndex)
         {
-            if (!TryGetNodeHandler(out var handler)) return;
+            // If not backed by real data (i.e., we are a searcher preview), changing options doesn't make sense.
+            if (!existsInGraphData)
+            {
+                return;
+            }
+
+            var nodeHandler = GetNodeHandler();
             var parameterInfo = GetViewModel().GetParameterInfo(portName);
             var (_, optionValue) = parameterInfo.Options[optionIndex];
 
@@ -255,7 +277,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            var port = handler.GetPort(portName);
+            var port = nodeHandler.GetPort(portName);
             var existing = GetCurrentPortOption(portName);
             if (existing != -1)
             {
@@ -277,10 +299,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns>Index into the Options list for the given port, or -1 if there are no options or no option is selected.</returns>
         public int GetCurrentPortOption(string portName)
         {
-            var paramInfo = GetViewModel().GetParameterInfo(portName);
-            if (!existsInGraphData) return 0;  // default to first option
-
             if (!TryGetNodeHandler(out var handler)) return -1;
+            if (string.IsNullOrEmpty(m_GraphDataName)) return 0;  // default to first option
+
+            var paramInfo = GetViewModel().GetParameterInfo(portName);
+            if (paramInfo.Options == null || paramInfo.Options.Count < 1) return -1;
+
             var port = handler.GetPort(portName);
 
             var connection = graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID);
@@ -300,11 +324,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             PreviewTexture = newTexture;
             PreviewShaderIsCompiling = false;
-        }
-
-        public void OnPreviewShaderCompiling()
-        {
-            PreviewShaderIsCompiling = true;
         }
 
         SGNodeViewModel CreateNodeViewModel(NodeUIDescriptor nodeUIInfo, NodeHandler node)
@@ -421,21 +440,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
-            if (!TryGetNodeHandler(out var nodeReader))
+            if (!TryGetNodeHandler(out var nodeHandler))
             {
                 Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
                 return;
             }
 
-            NodeUIDescriptor nodeUIDescriptor = new();
-            if(GraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
-                nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey, nodeReader);
-
-            bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
-            m_NodeViewModel = CreateNodeViewModel(nodeUIDescriptor, nodeReader);
+            var nodeUIDescriptor = registry.GetNodeUIDescriptor(registryKey, nodeHandler);
+            var nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
+            m_NodeViewModel = CreateNodeViewModel(nodeUIDescriptor, nodeHandler);
 
             // TODO: Convert this to a NodePortsPart maybe?
-            foreach (var portReader in nodeReader.GetPorts().Where(e => !e.LocalID.Contains("out_")))
+            foreach (var portReader in nodeHandler.GetPorts().Where(e => !e.LocalID.Contains("out_")))
             {
                 if (!portReader.IsHorizontal)
                     continue;
@@ -449,7 +465,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 // var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
                 var type = ShaderGraphExampleTypes.GetGraphType(portReader);
-                var nodeId = nodeReader.ID;
+                var nodeId = nodeHandler.ID;
                 void initCallback(Constant e)
                 {
                     var constant = e as BaseShaderGraphConstant;
@@ -476,7 +492,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     var newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
-                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
+                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeHandler.ID.LocalPath, portReader.LocalID);
                 }
                 else
                     this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
