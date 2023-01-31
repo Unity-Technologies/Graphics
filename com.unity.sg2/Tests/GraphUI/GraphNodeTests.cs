@@ -18,53 +18,46 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         /// <inheritdoc />
         protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
 
-        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-26")]
-        [UnityTest]
-        public IEnumerator CreateAddNodeFromSearcherTest()
-        {
-            return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
-        }
-
-        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-26")]
         [UnityTest]
         public IEnumerator NodeCollapseExpandTest()
         {
-            yield return  m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
+            // add an AddNode to the graph
+            var addNodeName = "Add";
+            var addNodeModel = SGGraphTestUtils.CreateNodeByName(GraphModel, addNodeName, Vector2.zero);
+            Assert.IsNotNull(addNodeModel, $"Could not add a node with the name {addNodeName} to the graph.");
 
-            var nodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add");
-            Assert.IsNotNull(nodeModel);
+            // allow the tool observers to run
+            // We could update the GraphTool with m_GraphView.GraphTool.Update() but it does not refresh custom visual elements.
+            yield return null;
 
-            if (nodeModel is SGNodeModel graphDataNodeModel)
-            {
-                var nodeGraphElement = m_GraphView.GetGraphElement(graphDataNodeModel);
-                Assert.IsNotNull(nodeGraphElement);
+            var nodeGraphElement = m_GraphView.GetGraphElement(addNodeModel);
+            Assert.IsNotNull(nodeGraphElement);
 
-                // Test the collapse button
-                var collapseButton = nodeGraphElement.Q("collapse");
-                Assert.IsNotNull(collapseButton);
+            // Test the collapse button
+            var collapseButton = nodeGraphElement.Q("collapse");
+            Assert.IsNotNull(collapseButton);
 
-                var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_MainWindow, collapseButton, true);
-                m_TestEventHelper.SimulateMouseClick(collapseButtonPosition);
-                yield return null;
-                yield return null;
-                yield return null;
-                yield return null;
+            var collapseButtonPosition = TestEventHelpers.GetScreenPosition(m_MainWindow, collapseButton, true);
+            m_TestEventHelper.SimulateMouseClick(collapseButtonPosition);
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
 
-                Assert.IsFalse(graphDataNodeModel.IsPreviewExpanded);
+            Assert.IsFalse(addNodeModel.IsPreviewExpanded);
 
-                // Test the expand button
-                var expandButton = nodeGraphElement.Q("expand");
-                Assert.IsNotNull(expandButton);
+            // Test the expand button
+            var expandButton = nodeGraphElement.Q("expand");
+            Assert.IsNotNull(expandButton);
 
-                var expandButtonPosition = TestEventHelpers.GetScreenPosition(m_MainWindow, expandButton, true);
-                m_TestEventHelper.SimulateMouseClick(expandButtonPosition);
-                yield return null;
-                yield return null;
-                yield return null;
-                yield return null;
+            var expandButtonPosition = TestEventHelpers.GetScreenPosition(m_MainWindow, expandButton, true);
+            m_TestEventHelper.SimulateMouseClick(expandButtonPosition);
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
 
-                Assert.IsTrue(graphDataNodeModel.IsPreviewExpanded);
-            }
+            Assert.IsTrue(addNodeModel.IsPreviewExpanded);
         }
 
         // TODO (Brett) This is commented out to bring tests to a passing status.
@@ -240,90 +233,110 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         //     Assert.IsFalse(m_GraphView.GraphModel.NodeModels.Contains(middleNode), "Deleted node should be removed from the graph");
         // }
 
-        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-26")]
         [UnityTest]
         public IEnumerator TestDynamicPortsUpdate()
         {
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
+            // add a multiply and vector 2 node to the graph
+            string multiplyNodeName = "Multiply";
+            var multiplyNode = SGGraphTestUtils.CreateNodeByName(GraphModel, multiplyNodeName, Vector2.zero);
+            Assert.NotNull(multiplyNode, $"Could not add a node with name {multiplyNodeName} to the graph.");
 
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
-            var vec2 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
+            string vector2NodeName = "Vector 2";
+            var vector2Node = SGGraphTestUtils.CreateNodeByName(GraphModel, vector2NodeName, Vector2.zero);
+            Assert.NotNull(multiplyNode, $"Could not add a node with name {vector2NodeName} to the graph.");
 
-            foreach (var port in multiply.Ports)
+            // check that the multiply node has the right port type
+            foreach (var port in multiplyNode.Ports)
             {
                 Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Multiply node should default to Float");
             }
 
-            m_GraphView.Dispatch(new CreateWireCommand(multiply.InputsById["A"], vec2.OutputsById["Out"]));
+            // create a connection
+            m_GraphView.Dispatch(
+                new CreateWireCommand(
+                    multiplyNode.InputsById["A"],
+                    vector2Node.OutputsById["Out"])
+            );
             yield return null;
 
-            foreach (var port in multiply.Ports)
+            // check that the type has changed
+            foreach (var port in multiplyNode.Ports)
             {
-                Assert.AreEqual(TypeHandle.Vector2, port.DataTypeHandle, "Multiply node connected to Vector 2 should show Vector 2 type");
+                Assert.AreEqual(
+                    TypeHandle.Vector2,
+                    port.DataTypeHandle,
+                    "Multiply node connected to Vector 2 should show Vector 2 type"
+                );
             }
 
-            var createdEdge = vec2.GetConnectedWires().First();
+            var createdEdge = vector2Node.GetConnectedWires().First();
             m_GraphView.Dispatch(new DeleteWireCommand(createdEdge));
             yield return null;
 
-            foreach (var port in multiply.Ports)
+            foreach (var port in multiplyNode.Ports)
             {
-                Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "After disconnecting edges, multiply node should default to Float");
+                Assert.AreEqual(
+                    TypeHandle.Float,
+                    port.DataTypeHandle,
+                    "After disconnecting edges, multiply node should default to Float"
+                );
             }
         }
 
-        [Ignore("Being refactored to test without opening the searcher", Until="2023-01-26")]
         [UnityTest]
         public IEnumerator TestDynamicPortUpdatesPropagate()
         {
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply1 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
-            multiply1.Title = "Multiply 1";
+            // create nodes
+            var multiplyNodeName = "Multiply";
+            var multiplyNodeModel1 = SGGraphTestUtils.CreateNodeByName(GraphModel, multiplyNodeName, Vector2.zero);
+            Assert.NotNull(multiplyNodeModel1, $"Could not add node with the name {multiplyNodeName} to the graph.");
+            multiplyNodeModel1.Title = "Multiply 1";
 
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Multiply");
-            var multiply2 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Multiply");
-            multiply2.Title = "Multiply 2";
+            var multiplyNodeModel2 = SGGraphTestUtils.CreateNodeByName(GraphModel, multiplyNodeName, Vector2.zero);
+            Assert.NotNull(multiplyNodeModel2, $"Could not add a second node with the name {multiplyNodeName} to the graph.");
+            multiplyNodeModel2.Title = "Multiply 2";
 
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Vector 2");
-            var vec2 = (SGNodeModel)m_MainWindow.GetNodeModelFromGraphByName("Vector 2");
+            var vector2NodeName = "Vector 2";
+            var vector2NodeModel = SGGraphTestUtils.CreateNodeByName(GraphModel, vector2NodeName, Vector2.zero);
+            Assert.NotNull(vector2NodeModel, $"Could not add node with the name {multiplyNodeName} to the graph.");
 
-            m_GraphView.Dispatch(new CreateWireCommand(multiply2.InputsById["A"], multiply1.OutputsById["Out"]));
+            // connect nodes
+            m_GraphView.Dispatch(new CreateWireCommand(multiplyNodeModel2.InputsById["A"], multiplyNodeModel1.OutputsById["Out"]));
             yield return null;
 
-            foreach (var port in multiply1.Ports)
+            foreach (var port in multiplyNodeModel1.Ports)
             {
                 Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Multiply node should default to Float");
             }
 
-            foreach (var port in multiply2.Ports)
+            foreach (var port in multiplyNodeModel2.Ports)
             {
                 Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Multiply node should default to Float");
             }
 
-            m_GraphView.Dispatch(new CreateWireCommand(multiply1.InputsById["A"], vec2.OutputsById["Out"]));
+            m_GraphView.Dispatch(new CreateWireCommand(multiplyNodeModel1.InputsById["A"], vector2NodeModel.OutputsById["Out"]));
             yield return null;
 
-            foreach (var port in multiply1.Ports)
+            foreach (var port in multiplyNodeModel1.Ports)
             {
                 Assert.AreEqual(TypeHandle.Vector2, port.DataTypeHandle, "Multiply node connected to Vector 2 should show Vector 2 type");
             }
 
-            foreach (var port in multiply2.Ports)
+            foreach (var port in multiplyNodeModel2.Ports)
             {
                 Assert.AreEqual(TypeHandle.Vector2, port.DataTypeHandle, "Second multiply node in a series should react to upstream change to Vector 2");
             }
 
-            var createdEdge = vec2.GetConnectedWires().First();
+            var createdEdge = vector2NodeModel.GetConnectedWires().First();
             m_GraphView.Dispatch(new DeleteWireCommand(createdEdge));
             yield return null;
 
-            foreach (var port in multiply1.Ports)
+            foreach (var port in multiplyNodeModel1.Ports)
             {
                 Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "After disconnecting edges, multiply node should default to Float");
             }
 
-            foreach (var port in multiply2.Ports)
+            foreach (var port in multiplyNodeModel2.Ports)
             {
                 Assert.AreEqual(TypeHandle.Float, port.DataTypeHandle, "Second multiply node in a series should react to upstream change to Float");
             }
@@ -332,7 +345,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestNodeCanBeDuplicated()
         {
-            var multiply1 = CreateNodeByName("Multiply", Vector2.zero);
+
+            var multiply1 = SGGraphTestUtils.CreateNodeByName(GraphModel, "Multiply", Vector2.zero);
+            Assert.NotNull(multiply1, "Multiply node could not be added to the graph model");
             multiply1.Title = "Multiply 1";
 
             Assert.IsNotNull(multiply1.graphDataName);
@@ -360,7 +375,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest]
         public IEnumerator TestNodeCanBeCutPasted()
         {
-            var multiply1 = CreateNodeByName("Multiply", Vector2.zero);
+            var multiply1 = SGGraphTestUtils.CreateNodeByName(GraphModel, "Multiply", Vector2.zero);
+            Assert.NotNull(multiply1, "Multiply node could not be added to the graph model");
             multiply1.Title = "Multiply 1";
 
             Assert.IsNotNull(multiply1.graphDataName);
