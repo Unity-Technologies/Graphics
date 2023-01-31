@@ -74,6 +74,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Nicest", "Nicest" }
             },
             functionSelectorLabel: " ",
+            description: "pkg://Documentation~/previews/Rectangle.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",

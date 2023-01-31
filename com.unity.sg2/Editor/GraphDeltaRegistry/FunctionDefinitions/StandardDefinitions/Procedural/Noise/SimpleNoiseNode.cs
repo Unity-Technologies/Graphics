@@ -122,7 +122,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "creates a smooth, non-tiling noise pattern using a point lattice",
             category: "Procedural/Noise",
             synonyms: new string[1] { "value noise" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SimpleNoise.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Deterministic", "Deterministic" },
                 { "LegacySine", "Legacy Sine" }

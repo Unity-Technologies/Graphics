@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -25,8 +26,9 @@ HorizontalDisplacement = UV.y;",
             displayName: "Unpack Water Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
+            description: "pkg://Documentation~/previews/UnpackWaterData.md",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "LowFrequencyHeight",

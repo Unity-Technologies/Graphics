@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -47,7 +48,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the partial derivative of the input in relation to the screen-space y-coordinate.",
             category: "Math/Derivative",
             synonyms: new string[2] { "derivative", "slope" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/DDY.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Standard", "Standard" },
                 { "Coarse", "Coarse" },

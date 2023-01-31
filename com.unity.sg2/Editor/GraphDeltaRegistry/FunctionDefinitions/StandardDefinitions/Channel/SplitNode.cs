@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Channel",
             synonyms: new string[1] { "separate" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Split.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "In",

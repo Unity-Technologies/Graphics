@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -66,7 +67,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates square matrices using the input vectors.",
             category: "Math/Matrix",
             synonyms: new string[3] { "create", "build", "construct" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/MatrixConstruction.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Row", "Row" },
                 { "Column", "Column" }

@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Multiplies Base by itself the number of times given by Exp.",
             category: "Math/Basic",
             synonyms: new string[2] { "Exponentiation", "^" },
+            description: "pkg://Documentation~/previews/Power.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "Base",

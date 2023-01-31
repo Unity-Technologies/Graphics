@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -35,7 +36,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Applies a radial shear warping effect to the UVs, similar to a wave.",
             category: "UV",
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/RadialShear.md",
             displayName:"Radial Shear",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

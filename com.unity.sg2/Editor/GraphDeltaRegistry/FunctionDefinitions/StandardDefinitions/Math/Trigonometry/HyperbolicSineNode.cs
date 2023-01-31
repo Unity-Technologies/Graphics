@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -39,7 +40,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the hyperbolic sine of the input.",
             category: "Math/Trigonometry",
             synonyms: new string[1] { "sinh" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/HyperbolicSine.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Default", "Default" },
                 { "Fast", "Fast" }

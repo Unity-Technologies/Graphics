@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -75,7 +76,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Math/Vector",
             synonyms: new string[1] { "pivot" },
             displayName: "Rotate About Axis",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/RotateAboutAxis.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Radians", "Radians" },
                 { "Degrees", "Degrees" }

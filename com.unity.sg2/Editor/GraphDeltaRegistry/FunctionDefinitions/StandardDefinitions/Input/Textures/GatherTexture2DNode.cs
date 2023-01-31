@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
@@ -50,7 +51,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Takes 4 samples (red channel only) to use for bilinear interpolation during sampling.",
             category: "Input/Texture",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/GatherTexture2D.md",
             displayName: "Gather Texture 2D",
             parameters: new ParameterUIDescriptor[9] {
                 new ParameterUIDescriptor(

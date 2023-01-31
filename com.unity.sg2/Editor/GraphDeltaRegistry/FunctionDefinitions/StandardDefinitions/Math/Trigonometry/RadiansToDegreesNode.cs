@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "converts radians to degrees",
             category: "Math/Trigonometry",
             synonyms: new string[3] { "radtodeg", "degrees", "convert" },
+            description: "pkg://Documentation~/previews/RadiansToDegrees.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

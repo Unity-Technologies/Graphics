@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -77,8 +79,9 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Emission",
             tooltip: "allows you to apply emission in your shader",
             category: "Utility/HDRP",
-            synonyms: new string[0] {  },
-            selectableFunctions: new()
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Emission.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Nits", "Nits" },
                 { "EV100", "EV100" }

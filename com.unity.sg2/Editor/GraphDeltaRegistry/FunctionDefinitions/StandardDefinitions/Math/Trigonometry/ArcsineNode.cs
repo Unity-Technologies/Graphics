@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -43,7 +44,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the arcsine of each component of the input.",
             category: "Math/Trigonometry",
             synonyms: new string[1] { "asine" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/Arcsine.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Default", "Default" },
                 { "Fast", "Fast" }

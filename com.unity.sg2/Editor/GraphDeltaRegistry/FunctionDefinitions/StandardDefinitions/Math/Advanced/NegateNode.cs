@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Multiplies the input by -1.",
             category: "Math/Advanced",
             synonyms: new string[3] { "invert", "opposite", "-" },
+            description: "pkg://Documentation~/previews/Negate.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -33,7 +34,8 @@ DeepFoam = waterAdditionalData.deepFoam;
             displayName: "Evaluate Water Simulation Additional Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: new string[0],
+            description: "pkg://Documentation~/previews/EvaluateWaterSimulationAdditionalData.md",
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

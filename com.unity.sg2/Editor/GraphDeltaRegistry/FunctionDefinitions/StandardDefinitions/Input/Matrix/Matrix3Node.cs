@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -23,8 +24,9 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Matrix 3x3",
             tooltip: "creates a static 3x3 matrix",
             category: "Input/Matrix",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Matrix3x3.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Matrix3x3"

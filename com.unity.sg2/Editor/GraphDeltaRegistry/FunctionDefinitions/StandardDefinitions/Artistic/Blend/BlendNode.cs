@@ -319,6 +319,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "mixes a base and blend color with the selected mode",
             category: "Artistic/Blend",
             synonyms: new string[20] { "burn", "darken", "difference", "dodge", "divide", "exclusion", "hard light", "hard mix", "linear burn", "linear dodge", "linear light", "multiply", "negate", "overlay", "pin light", "screen", "soft light", "subtract", "vivid light", "overwrite" },
+            description: "pkg://Documentation~/previews/Blend.md",
             selectableFunctions: new()
             {
                 { "Burn", "Burn" },

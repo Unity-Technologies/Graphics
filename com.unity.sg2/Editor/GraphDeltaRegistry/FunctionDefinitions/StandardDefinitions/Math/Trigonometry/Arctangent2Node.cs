@@ -54,6 +54,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the arctangent of input A divided by input B.",
             category: "Math/Trigonometry",
             synonyms: new string[1] { "atan2" },
+            description: "pkg://Documentation~/previews/Arctangent2.md",
             selectableFunctions: new()
             {
                 { "Default", "Default" },

@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Math/Matrix",
             synonyms: new string[1] { "Transpose" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/MatrixTranspose.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

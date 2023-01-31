@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates a blend of values between input A and input B using the value of input T.",
             category: "Math/Interpolation",
             synonyms: new string[5] { "Mix", "Blend", "Interpolate", "Extrapolate", "Linear Interpolate" },
+            description: "pkg://Documentation~/previews/Lerp.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "A",

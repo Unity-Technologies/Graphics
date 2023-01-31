@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -25,7 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Fresnel Effect",
             tooltip: "Approximates the Fresnel effect by using the surface normal and the view direction to calculate the view angle.",
             category: "Math/Vector",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Fresnel.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "Normal",

@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -22,9 +23,10 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Defines a Texture 2D Asset.",
             category: "Input/Texture",
-            synonyms: new string[0] {  },
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
             displayName: "Texture 2D Asset",
+            description: "pkg://Documentation~/previews/Texture2DAsset.md",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",

@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[2] { "stereo", "3d" },
+            description: "pkg://Documentation~/previews/Fog.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "Position",

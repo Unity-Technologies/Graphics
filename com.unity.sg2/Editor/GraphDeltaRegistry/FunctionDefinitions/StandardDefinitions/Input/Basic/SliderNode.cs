@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterDescriptor[]
             {
                 new ParameterDescriptor("In", TYPE.Float, GraphType.Usage.Static),
-                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)//TODO: need to show slider value and min and max input text boxes 
+                new ParameterDescriptor("Out", TYPE.Float, GraphType.Usage.Out)//TODO: need to show slider value and min and max input text boxes
             }
         );
 
@@ -22,8 +22,9 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Uses a slider to give a float value between a given min and max value.",
             category: "Input/Basic",
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
             hasPreview:false,
+            description: "pkg://Documentation~/previews/Slider.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

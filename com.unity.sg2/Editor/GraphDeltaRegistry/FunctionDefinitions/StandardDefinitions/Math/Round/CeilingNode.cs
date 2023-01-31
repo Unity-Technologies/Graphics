@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "rounds the input up to the nearest whole number",
             category: "Math/Round",
             synonyms: new string[1] { "up" },
+            description: "pkg://Documentation~/previews/Ceiling.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

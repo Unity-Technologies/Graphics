@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -25,7 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Evaluate Water Simulation Caustics",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: new string[0],
+            description: "pkg://Documentation~/previews/EvaluateWaterSimulationCaustics.md",
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

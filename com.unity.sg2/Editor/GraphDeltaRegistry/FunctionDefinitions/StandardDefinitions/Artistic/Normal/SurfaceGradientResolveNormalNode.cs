@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[3] { "blend", "mix", "combine" },
             displayName: "Surface Gradient Resolve Normal",
             hasPreview: false,
+            description: "pkg://Documentation~/previews/SurfaceGradientResolveNormal.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "Normal",

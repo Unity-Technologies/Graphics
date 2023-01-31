@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[2] { "position", "scale" },
+            description: "pkg://Documentation~/previews/Object.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Position",

@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -21,8 +22,9 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Gets a tangent vector in the selected space.",
             category: "Input/Geometry",
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
             displayName: "Tangent Vector",
+            description: "pkg://Documentation~/previews/TangentVector.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "TangentVector",

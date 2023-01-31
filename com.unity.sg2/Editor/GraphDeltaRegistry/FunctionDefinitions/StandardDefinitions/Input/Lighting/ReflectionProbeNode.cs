@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Lighting",
             hasPreview: false,
             synonyms: new string[3] { "light probe", "cube map", "environment" },
+            description: "pkg://Documentation~/previews/ReflectionProbe.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "ViewDir",

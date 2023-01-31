@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -101,7 +102,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the selected interpolation between 0 and 1.",
             category: "Math/Interpolation",
             synonyms: new string[1] { "curve" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/Smoothstep.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Smooth", "Smooth" },
                 { "Smoother", "Smoother" },
