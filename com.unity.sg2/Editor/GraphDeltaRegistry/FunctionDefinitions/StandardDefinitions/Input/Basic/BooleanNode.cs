@@ -24,10 +24,12 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "a true/false check box",
             category: "Input/Basic",
             synonyms: new string[5] { "switch", "true", "false", "on", "off" },
+            description: "pkg://Documentation~/previews/Boolean.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
-                    name: "BoolConst"
+                    name: "BoolConst",
+                    displayName: " "
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",

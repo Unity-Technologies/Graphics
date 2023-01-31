@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "",
             category: "Utility/HDRP/Water",
             synonyms: new string[0],
+            description: "pkg://Documentation~/previews/BlendWaterNormal.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

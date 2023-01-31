@@ -26,7 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "whole number" },
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
-                    name: "IntConst"
+                    name: "IntConst",
+                    displayName: " "
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",

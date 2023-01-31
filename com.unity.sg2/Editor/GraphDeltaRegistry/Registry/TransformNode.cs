@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 tooltip: "converts a point or vector from one space to another",
                 category: "Math/Vector",
                 synonyms: new[] { "world", "object", "tangent", "screen", "view", "convert" },
+                description: "pkg://Documentation~/previews/Transform.md",
                 parameters: new ParameterUIDescriptor[] {
                     new(TransformNode.kInput, "In", tooltip: "Input value"),
                     new(TransformNode.kOutput, "Out", tooltip: "Output value"),
