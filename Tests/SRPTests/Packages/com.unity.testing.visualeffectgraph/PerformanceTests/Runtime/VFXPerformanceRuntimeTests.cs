@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.PerformanceTest
     public class VFXRuntimePerformanceTests : PerformanceTests
     {
 #if UNITY_EDITOR
-        private bool m_PreviousAsyncShaderCompilation;
+        bool m_PreviousAsyncShaderCompilation;
         [OneTimeSetUp]
         public void Init()
         {
@@ -32,6 +32,25 @@ namespace UnityEditor.VFX.PerformanceTest
         public void Clear()
         {
             UnityEditor.EditorSettings.asyncShaderCompilation = m_PreviousAsyncShaderCompilation;
+        }
+#else
+        int m_PreviousVSyncCount;
+        int m_PreviousTargetFrameRate;
+        [OneTimeSetUp]
+        public void Init()
+        {
+            m_PreviousVSyncCount = QualitySettings.vSyncCount;
+            m_PreviousTargetFrameRate = Application.targetFrameRate;
+
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = 1000;
+        }
+
+        [OneTimeTearDown]
+        public void Clear()
+        {
+            QualitySettings.vSyncCount = m_PreviousVSyncCount;
+            Application.targetFrameRate = m_PreviousTargetFrameRate;
         }
 #endif
 
@@ -50,6 +69,10 @@ namespace UnityEditor.VFX.PerformanceTest
         {
             get
             {
+                yield return "PlayerLoop";
+                yield return "PostLateUpdate.PresentAfterDraw";
+                yield return "WaitForTargetFPS";
+                yield return "GPU Frame Time";
                 yield return "VFX.MeshSystem.Render";
                 yield return "VFX.ParticleSystem.CopySpawnEventAttribute";
                 yield return "VFX.ParticleSystem.CopyEventListCountCommand";
@@ -145,7 +168,6 @@ namespace UnityEditor.VFX.PerformanceTest
         {
             yield return Load_And_Prepare(testCase);
 
-            //TODO : Avoid too much garbage here
             var samplers = allMarkerName.Select(name =>
             {
                 (Recorder recorder, SampleGroup cpu, SampleGroup gpu) newSample;
@@ -182,7 +204,7 @@ namespace UnityEditor.VFX.PerformanceTest
     public class VFXRuntimeMemoryTests : PerformanceTests
     {
 #if UNITY_EDITOR
-        private bool m_PreviousAsyncShaderCompilation;
+        bool m_PreviousAsyncShaderCompilation;
         [OneTimeSetUp]
         public void Init()
         {
