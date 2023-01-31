@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "EightSamples", "8 Samples" }
             },
             functionSelectorLabel: "Sample Count",
-            description: "pkg://Documentation~/previews/.mdNormalFromTexture",
+            description: "pkg://Documentation~/previews/NormalFromTexture.md",
             parameters: new ParameterUIDescriptor[8] {
                 new ParameterUIDescriptor(
                     name: "Texture",
