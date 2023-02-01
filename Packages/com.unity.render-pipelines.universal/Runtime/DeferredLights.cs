@@ -795,6 +795,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, hasDeferredShadows);
 
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+
+                    if (m_LightCookieManager != null)
+                    {
+                        int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
+                        CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, cookieLightIndex >= 0);
+                        cmd.SetGlobalInt(ShaderConstants._CookieLightIndex, cookieLightIndex);
+                    }
                 }
 
                 bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;

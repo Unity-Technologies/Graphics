@@ -125,6 +125,29 @@ half4 FragWhite(Varyings input) : SV_Target
     return half4(1.0, 1.0, 1.0, 1.0);
 }
 
+half4 SampleAdditionalLightCookieDeferred(int perObjectLightIndex, float3 samplePositionWS)
+{
+    float4 cookieUvRect = GetLightCookieAtlasUVRect(perObjectLightIndex);
+    float4x4 worldToLight = GetLightCookieWorldToLightMatrix(perObjectLightIndex);
+    float2 cookieUv = float2(0,0);
+
+    #if defined(_SPOT)
+        cookieUv = ComputeLightCookieUVSpot(worldToLight, samplePositionWS, cookieUvRect);
+    #endif
+    #if defined(_POINT)
+        cookieUv = ComputeLightCookieUVPoint(worldToLight, samplePositionWS, cookieUvRect);
+    #endif
+    #if defined(_DIRECTIONAL)
+        cookieUv = ComputeLightCookieUVDirectional(worldToLight, samplePositionWS, cookieUvRect, URP_TEXTURE_WRAP_MODE_REPEAT);
+    #endif
+    half4 cookieColor = SampleAdditionalLightsCookieAtlasTexture(cookieUv);
+    cookieColor = half4(IsAdditionalLightsCookieAtlasTextureRGBFormat() ? cookieColor.rgb
+                        : IsAdditionalLightsCookieAtlasTextureAlphaFormat() ? cookieColor.aaa
+                        : cookieColor.rrr, 1);
+    return cookieColor;
+
+}
+
 Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint materialFlags)
 {
     Light unityLight;
@@ -168,6 +191,15 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
                     unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo);
                 #endif
             }
+
+        	#ifdef _LIGHT_COOKIES
+                // Enable/disable is done toggling the keyword _LIGHT_COOKIES, but we could do a "static if" instead if required.
+                // if(_CookieLightIndex >= 0)
+                {
+                    half3 cookieColor = SampleAdditionalLightCookieDeferred(_CookieLightIndex, posWS).xyz;
+                    unityLight.color *= cookieColor;
+                }
+            #endif
         #endif
     #else
         PunctualLightData light;
@@ -185,19 +217,7 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
             // Enable/disable is done toggling the keyword _LIGHT_COOKIES, but we could do a "static if" instead if required.
             // if(_CookieLightIndex >= 0)
             {
-                float4 cookieUvRect = GetLightCookieAtlasUVRect(_CookieLightIndex);
-                float4x4 worldToLight = GetLightCookieWorldToLightMatrix(_CookieLightIndex);
-                float2 cookieUv = float2(0,0);
-                #if defined(_SPOT)
-                    cookieUv = ComputeLightCookieUVSpot(worldToLight, posWS, cookieUvRect);
-                #endif
-                #if defined(_POINT)
-                    cookieUv = ComputeLightCookieUVPoint(worldToLight, posWS, cookieUvRect);
-                #endif
-                half4 cookieColor = SampleAdditionalLightsCookieAtlasTexture(cookieUv);
-                cookieColor = half4(IsAdditionalLightsCookieAtlasTextureRGBFormat() ? cookieColor.rgb
-                                    : IsAdditionalLightsCookieAtlasTextureAlphaFormat() ? cookieColor.aaa
-                                    : cookieColor.rrr, 1);
+                half3 cookieColor = SampleAdditionalLightCookieDeferred(_CookieLightIndex, posWS).xyz;
                 unityLight.color *= cookieColor;
             }
         #endif

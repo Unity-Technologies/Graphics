@@ -252,6 +252,12 @@ EditorBuildSettings:
     path: Assets/Scenes/147_LightCookies_Shaders.unity
     guid: 66d9465bb28c441c7ba39334a5ad8e68
   - enabled: 1
+    path: Assets/Scenes/148_LightCookies_Many_DirLights.unity
+    guid: d6893e7692f584018918254147096235
+  - enabled: 1
+    path: Assets/Scenes/148_LightCookies_Many_DirLights_deferred.unity
+    guid: 1c5a87b2312f249a991c0a87173f71e3
+  - enabled: 1
     path: Assets/Scenes/161_FP16_BackBuffer.unity
     guid: e4bd4cb963e384819a1d8a13bc5127a8
   - enabled: 1

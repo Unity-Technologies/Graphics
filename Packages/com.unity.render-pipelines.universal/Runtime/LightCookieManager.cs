@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
         private struct LightCookieMapping
         {
             public ushort visibleLightIndex; // Index into visible light (src)
-            public ushort lightBufferIndex;  // Index into light shader data buffer (dst)
+            public ushort lightBufferIndex;  // Index into light shader data buffer(s) (dst) (matches ForwardLights.SetupAdditionalLightConstants())
             public Light light; // Cached built-in light for the visibleLightIndex. Avoids multiple copies on all the gets from native array.
 
             public static Func<LightCookieMapping, LightCookieMapping, int> s_CompareByCookieSize = (LightCookieMapping a, LightCookieMapping b) =>
@@ -476,6 +476,7 @@ namespace UnityEngine.Rendering.Universal
             int visibleLightCount = lightData.visibleLights.Length;
             for (int i = 0; i < visibleLightCount; i++)
             {
+                // Drop main light from additional lights buffer.
                 if (i == skipMainLightIndex)
                 {
                     lightBufferOffset -= 1;
@@ -489,13 +490,12 @@ namespace UnityEngine.Rendering.Universal
                 if (light.cookie == null)
                     continue;
 
-                // Only spot and point lights are supported.
-                // Directional lights are not currently supported,
-                // they have very few use cases for multiple global cookies.
+                // Only spot, point and directional lights are supported.
                 // Warn on dropped lights
                 var lightType = visLight.lightType;
                 if (!(lightType == LightType.Spot ||
-                      lightType == LightType.Point))
+                      lightType == LightType.Point ||
+                      lightType == LightType.Directional))
                 {
                     Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' has a light cookie which will not be visible.", light);
                     continue;
@@ -505,16 +505,15 @@ namespace UnityEngine.Rendering.Universal
 
                 LightCookieMapping lp;
                 lp.visibleLightIndex = (ushort)i;
-                lp.lightBufferIndex = (ushort)(i + lightBufferOffset);
+                lp.lightBufferIndex = (ushort)(i + lightBufferOffset);  // Matching FowardLights.SetupAdditionalLightConstants
                 lp.light = light;
 
-                validLightMappings[validLightCount++] = lp;
-
-                if (validLightCount >= validLightMappings.Length)
+                // Drop lights if we have too many lights or too many cookies to fit ForwardLight data.
+                if (lp.lightBufferIndex >= validLightMappings.Length || validLightCount + 1 >= validLightMappings.Length)
                 {
                     // TODO: Better error system
                     if (visibleLightCount > m_Settings.maxAdditionalLights &&
-                        Time.frameCount - m_PrevWarnFrame > 60 * 60 * 30) // warn throttling: ~60 FPS * 60 secs * 30 mins
+                        Time.frameCount - m_PrevWarnFrame > 60 * 60) // warn throttling: ~60 FPS * 60 secs ~= 1 min
                     {
                         m_PrevWarnFrame = Time.frameCount;
                         Debug.LogWarning($"Max light cookies ({validLightMappings.Length.ToString()}) reached. Some visible lights ({(visibleLightCount - i - 1).ToString()}) might skip light cookie rendering.");
@@ -523,6 +522,8 @@ namespace UnityEngine.Rendering.Universal
                     // Always break, buffer full.
                     break;
                 }
+
+                validLightMappings[validLightCount++] = lp;
             }
 
             return validLightCount;
@@ -804,6 +805,22 @@ namespace UnityEngine.Rendering.Universal
 
                     // world -> light local -> light perspective
                     worldToLights[bufIndex] = perp * worldToLights[bufIndex];
+                }
+
+                // Directional projection
+                else if (visLight.lightType == LightType.Directional)
+                {
+                    Light light = visLight.light;
+                    light.TryGetComponent<UniversalAdditionalLightData>(out var additionalLightData);
+                    {
+                        Matrix4x4 cookieUVTransform = Matrix4x4.identity;
+                        GetLightUVScaleOffset(ref additionalLightData, ref cookieUVTransform);
+
+                        Matrix4x4 cookieMatrix = s_DirLightProj * cookieUVTransform *
+                                                 visLight.localToWorldMatrix.inverse;
+
+                        worldToLights[bufIndex] = cookieMatrix;
+                    }
                 }
             }
 
