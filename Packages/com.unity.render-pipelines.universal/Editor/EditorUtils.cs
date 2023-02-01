@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.Universal
             renderingLayer = EditorGUI.MaskField(controlRect, style, renderingLayer, renderingLayerMaskNames);
 
             if (EditorGUI.EndChangeCheck())
-                property.intValue = renderingLayer;
+                property.uintValue = (uint)renderingLayer;
 
             EditorGUI.EndProperty();
         }
