@@ -42,6 +42,15 @@ namespace UnityEditor.ContextLayeredDataStorage
             this.ID = id;
         }
 
+        public string GetLayerName()
+        {
+            var root = this;
+            while (root.Parent != null)
+                root = root.Parent;
+
+            return owner.GetLayerName(root);
+        }
+
         public T GetData<T>()
         {
             return (this as Element<T>).Data;
@@ -133,7 +142,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
     }
 
-    //Stores a single Element's data 
+    //Stores a single Element's data
     [Serializable]
     internal struct SerializedElementData
     {

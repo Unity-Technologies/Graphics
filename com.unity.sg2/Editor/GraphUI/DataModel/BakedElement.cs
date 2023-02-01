@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Internal;
@@ -51,6 +50,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         static BakedElement Create(Element source, string basePath)
         {
+            if (source.ID.FullPath == null)
+                return null;
+
             switch (source)
             {
                 case Element<string> e:
@@ -120,9 +122,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         [SerializeField]
-        string m_Path;
+        protected string m_Path;
 
-        protected string Path => m_Path;
+        [SerializeField]
+        protected string m_LayerName;
 
         protected BakedElement(Element e, string basePath)
         {
@@ -136,6 +139,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 Debug.LogError($"Element path {m_Path} does not start with {basePath}.");
                 m_Path = null;
             }
+
+            m_LayerName = e.GetLayerName();
         }
 
         protected abstract void ToPort(PortHandler portHandler);
@@ -155,17 +160,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void ToPort(PortHandler portHandler)
         {
-            if (string.IsNullOrEmpty(Path))
+            if (string.IsNullOrEmpty(m_Path))
                 return;
 
-            var field = portHandler.GetField(Path);
+            if (m_LayerName != GraphDelta.GraphDelta.k_user)
+                return;
+
+            var field = portHandler.GetField(m_Path);
             if (field != null)
             {
                 field.SetData(m_Data);
             }
             else
             {
-                portHandler.AddField(Path, m_Data);
+                portHandler.AddField(m_Path, m_Data);
             }
         }
     }
