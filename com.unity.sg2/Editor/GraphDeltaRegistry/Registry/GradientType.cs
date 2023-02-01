@@ -116,10 +116,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     public static class GradientTypeHelpers
     {
-        #region Serializable Gradient Wrappers
+        #region Serializable Key Wrappers
 
         [Serializable]
-        internal struct SerializableColorKey
+        struct SerializableColorKey
         {
             [SerializeField]
             Color color;
@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         [Serializable]
-        internal struct SerializableAlphaKey
+        struct SerializableAlphaKey
         {
             [SerializeField]
             float alpha;
@@ -152,57 +152,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
             public GradientAlphaKey ToGradientAlphaKey() => new(alpha, time);
-        }
-
-        [Serializable]
-        internal class SerializableGradient
-        {
-            [SerializeField]
-            GradientMode m_Mode;
-
-            [SerializeField]
-            List<SerializableColorKey> m_Colors;
-
-            [SerializeField]
-            List<SerializableAlphaKey> m_Alphas;
-
-            public SerializableGradient(Gradient gradient)
-            {
-                m_Mode = gradient.mode;
-
-                m_Colors = new List<SerializableColorKey>(gradient.colorKeys.Length);
-                foreach (var colorKey in gradient.colorKeys)
-                {
-                    m_Colors.Add(new SerializableColorKey(colorKey));
-                }
-
-                m_Alphas = new List<SerializableAlphaKey>(gradient.alphaKeys.Length);
-                foreach (var alphaKey in gradient.alphaKeys)
-                {
-                    m_Alphas.Add(new SerializableAlphaKey(alphaKey));
-                }
-            }
-
-            public Gradient GetGradient()
-            {
-                var g = new Gradient { mode = m_Mode };
-
-                var colors = new GradientColorKey[m_Colors.Count];
-                for (var i = 0; i < m_Colors.Count; ++i)
-                {
-                    colors[i] = m_Colors[i].ToGradientColorKey();
-                }
-
-                var alphas = new GradientAlphaKey[m_Alphas.Count];
-                for (var i = 0; i < m_Alphas.Count; ++i)
-                {
-                    alphas[i] = m_Alphas[i].ToGradientAlphaKey();
-                }
-
-                g.SetKeys(colors, alphas);
-
-                return g;
-            }
         }
 
         #endregion

@@ -33,5 +33,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             _testEventHelper.SimulateKeyPress("V", modifiers: EventModifiers.Control);
             yield return null;
         }
+
+        public void ConnectNodes(string fromNodeName, string toNodeName, string fromPortName = "Out", string toPortName = "In")
+        {
+            var fromNode = _window.GetNodeModelFromGraphByName(fromNodeName);
+            var fromPortModel = SGGraphModel.FindOutputPortByName(fromNode, fromPortName);
+
+            var toNode = _window.GetNodeModelFromGraphByName(toNodeName);
+            var toPortModel =  SGGraphModel.FindInputPortByName(toNode, toPortName);
+
+            _window.GraphView.Dispatch(new CreateWireCommand(toPortModel, fromPortModel));
+        }
     }
 }

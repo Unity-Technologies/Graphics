@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
@@ -16,6 +17,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         [SerializeField]
         protected string portName;
+
+        [SerializeReference]
+        List<BakedElement> m_CopyPasteData;
 
         SGGraphModel graphModel => OwnerModel?.GraphModel as SGGraphModel;
 
@@ -89,9 +93,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         /// <inheritdoc />
-        public abstract void OnBeforeCopy();
+        public virtual void OnBeforeCopy()
+        {
+            m_CopyPasteData?.Clear();
+            m_CopyPasteData ??= new();
+            var portReader = nodeHandler.GetPort(portName);
+            BakedElement.BakePort(portReader, m_CopyPasteData);
+        }
 
         /// <inheritdoc />
-        public abstract void OnAfterPaste();
+        public virtual void OnAfterPaste()
+        {
+            var portReader = nodeHandler.GetPort(portName);
+            BakedElement.UnbakePort(m_CopyPasteData, portReader);
+            m_CopyPasteData.Clear();
+        }
     }
 }

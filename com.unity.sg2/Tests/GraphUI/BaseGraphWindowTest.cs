@@ -47,12 +47,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var newGraphAction = ScriptableObject.CreateInstance<GraphAssetUtils.CreateGraphAssetAction>();
             newGraphAction.Action(0, graphPath, "");
             graphAsset = AssetDatabase.LoadAssetAtPath<ShaderGraphAsset>(graphPath);
-            m_ExtraGraphAssets.Add(graphPath);
+            _extraGraphAssets.Add(graphPath);
 
             // Create second window
             editorWindow = GraphViewEditorWindow.ShowGraphInExistingOrNewWindow<TestEditorWindow>(graphAsset);
             editorWindow.shouldCloseWindowNoPrompt = true;
-            m_ExtraWindows.Add(editorWindow);
+            _extraWindows.Add(editorWindow);
 
             windowTestHelper = new TestEventHelpers(editorWindow);
         }

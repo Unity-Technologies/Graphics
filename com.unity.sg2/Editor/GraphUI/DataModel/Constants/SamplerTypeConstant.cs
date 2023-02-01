@@ -17,9 +17,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
     [Serializable]
     class SamplerStateTypeConstant : BaseShaderGraphConstant
     {
-        [SerializeField]
-        SamplerStateData m_CopyPasteData;
-
         protected override object GetValue()
         {
             return new SamplerStateData {
@@ -43,18 +40,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override Type Type => typeof(SamplerStateData);
 
         public override TypeHandle GetTypeHandle() => ShaderGraphExampleTypes.SamplerStateTypeHandle;
-
-        /// <inheritdoc />
-        public override void OnBeforeCopy()
-        {
-            m_CopyPasteData = (SamplerStateData)ObjectValue;
-        }
-
-        /// <inheritdoc />
-        public override void OnAfterPaste()
-        {
-            ObjectValue = m_CopyPasteData;
-            m_CopyPasteData = default;
-        }
     }
 }

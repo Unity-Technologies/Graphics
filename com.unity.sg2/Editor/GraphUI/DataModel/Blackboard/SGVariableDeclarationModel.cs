@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
+using UnityEditor.ContextLayeredDataStorage;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
+using UnityEngine.Profiling;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -35,7 +39,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_GraphDataName = value;
         }
 
-        SGGraphModel sgGraphModel => GraphModel as SGGraphModel;
+        [SerializeReference]
+        List<BakedElement> m_CopyPasteData;
+
+        SGGraphModel graphModel => GraphModel as SGGraphModel;
 
         internal PortHandler ContextEntry
         {
@@ -44,7 +51,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 if (contextNodeName == null || graphDataName == null)
                     return null;
 
-                return sgGraphModel?.GraphHandler?
+                return graphModel?.GraphHandler?
                     .GetNode(contextNodeName)
                     .GetPort(graphDataName);
             }
@@ -54,7 +61,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// Returns true if this variable declaration's data type is exposable according to the stencil,
         /// false otherwise.
         /// </summary>
-        public bool IsExposable => ((ShaderGraphStencil)sgGraphModel?.Stencil)?.IsExposable(DataType) ?? false;
+        public bool IsExposable => ((ShaderGraphStencil)graphModel?.Stencil)?.IsExposable(DataType) ?? false;
 
         public override bool IsExposed
         {
@@ -75,11 +82,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     value = false;
                 }
 
-                ContextEntry?
-                    .GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage)?
-                    .SetData(value ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded);
-
-                base.IsExposed = value;
+                var field = ContextEntry?.GetField<ContextEntryEnumTags.PropertyBlockUsage>(ContextEntryEnumTags.kPropertyBlockUsage);
+                if (field != null)
+                {
+                    field.SetData(value ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded);
+                    base.IsExposed = field.GetData() == ContextEntryEnumTags.PropertyBlockUsage.Included;
+                }
             }
         }
 
@@ -167,17 +175,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         /// <inheritdoc />
-        public override void OnBeforeSerialize()
+        public override void OnBeforeCopy()
         {
-            base.OnBeforeSerialize();
+            base.OnBeforeCopy();
 
-            base.IsExposed = IsExposed;
+            m_CopyPasteData?.Clear();
+            m_CopyPasteData ??= new();
+            BakedElement.BakePort(ContextEntry, m_CopyPasteData);
         }
 
         public override void OnAfterPaste()
         {
             (InitializationModel as BaseShaderGraphConstant).BindTo(contextNodeName, graphDataName);
             base.OnAfterPaste();
+
+            BakedElement.UnbakePort(m_CopyPasteData, ContextEntry);
+            m_CopyPasteData.Clear();
         }
     }
 }

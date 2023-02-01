@@ -218,7 +218,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var variableNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Vector 4") as SGVariableNodeModel;
             Assert.IsNotNull(variableNodeModel);
 
-            yield return m_TestInteractionHelper.AddNodeFromSearcherAndValidate("Add");
+            SGGraphTestUtils.CreateNodeByName(GraphModel, "Add", Vector2.zero);
+            yield return null;
 
             m_TestInteractionHelper.ConnectNodes("Vector 4", "Add", "Output", "A");
 
@@ -371,12 +372,19 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var originalItems = GraphModel.VariableDeclarations.ToList();
             for(var index = 0; index < originalItems.Count; index++)
             {
-                var declarationModel = originalItems[index];
+                var originalVariable = originalItems[index] as SGVariableDeclarationModel;
 
-                SetVariableValue(declarationModel);
-                var originalValue = declarationModel.InitializationModel.ObjectValue;
+                var originalGuid = originalVariable.Guid;
+                var originalDataType = originalVariable.DataType;
 
-                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, declarationModel));
+                var originalIsExposed = originalVariable.IsExposable && index % 2 == 0;
+                originalVariable.IsExposed = originalIsExposed;
+                Assert.AreEqual(originalIsExposed, originalVariable.IsExposed, $"Failed to set IsExposed field for {originalDataType}.");
+
+                SetVariableValue(originalVariable);
+                var originalValue = originalVariable.InitializationModel.ObjectValue;
+
+                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, originalVariable));
                 yield return null;
 
                 m_BlackboardView.Focus();
@@ -384,11 +392,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 yield return null;
 
                 // Check to make sure the duplication worked and there are now two of the type of the copied item
-                Assert.IsTrue(GraphModel.VariableDeclarations.Count(model => model.DataType == declarationModel.DataType) == 2);
+                Assert.IsTrue(GraphModel.VariableDeclarations.Count(model => model.DataType == originalDataType) == 2);
 
                 // Check that values are preserved.
-                var copied = GraphModel.VariableDeclarations.First(model => model.Guid != declarationModel.Guid && model.DataType == declarationModel.DataType);
+                var copied = GraphModel.VariableDeclarations.First(model => model.Guid != originalGuid && model.DataType == originalDataType);
                 Assert.AreEqual(originalValue, copied.InitializationModel.ObjectValue);
+
+                // Check that IsExposed is preserved.
+                Assert.AreEqual(originalIsExposed, copied.IsExposed, "Failed to copy IsExposed field.");
             }
         }
 
@@ -410,7 +421,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             var originalItems = GraphModel.VariableDeclarations.ToList();
             for(var index = 0; index < originalItems.Count; index++)
             {
-                var originalVariable = originalItems[index];
+                var originalVariable = originalItems[index] as SGVariableDeclarationModel;
+
+                var originalDataType = originalVariable.DataType;
+
+                var originalIsExposed = originalVariable.IsExposable && index % 2 == 0;
+                originalVariable.IsExposed = originalIsExposed;
+                Assert.AreEqual(originalIsExposed, originalVariable.IsExposed, $"Failed to set IsExposed field for {originalDataType}.");
 
                 SetVariableValue(originalVariable);
                 var originalValue = originalVariable.InitializationModel.ObjectValue;
@@ -424,20 +441,23 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
                 // Check to make sure the cut worked and the original item was deleted
                 Assert.IsTrue(GraphModel.VariableDeclarations.FirstOrDefault(model => Equals(model, originalVariable)) == null,
-                    $"Variable of type {originalVariable.DataType} was not cut.");
+                    $"Variable of type {originalDataType} was not cut.");
 
                 m_BlackboardView.Focus();
                 m_TestEventHelper.SendPasteCommand();
                 yield return null;
 
                 // Check to make sure the paste worked and there is only one of the copied item
-                var count = GraphModel.VariableDeclarations.Count(model => model.DataType == originalVariable.DataType);
-                Assert.IsFalse(count == 0, $"Variable of type {originalVariable.DataType} was not pasted.");
-                Assert.IsTrue(count == 1, $"Variable of type {originalVariable.DataType} is present multiple times.");
+                var count = GraphModel.VariableDeclarations.Count(model => model.DataType == originalDataType);
+                Assert.IsFalse(count == 0, $"Variable of type {originalDataType} was not pasted.");
+                Assert.IsTrue(count == 1, $"Variable of type {originalDataType} is present multiple times.");
 
                 // Check that values are preserved.
-                var copied = GraphModel.VariableDeclarations.First(model => model.DataType == originalVariable.DataType);
+                var copied = GraphModel.VariableDeclarations.First(model => model.DataType == originalDataType);
                 Assert.AreEqual(originalValue, copied.InitializationModel.ObjectValue);
+
+                // Check that IsExposed is preserved.
+                Assert.AreEqual(originalIsExposed, copied.IsExposed, "Failed to copy IsExposed field.");
             }
         }
 
@@ -478,12 +498,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 m_MainWindow.Focus();
                 yield return null;
 
-                var declarationModel = originalItems[index];
+                var originalVariable = originalItems[index] as SGVariableDeclarationModel;
 
-                SetVariableValue(declarationModel);
-                var originalValue = declarationModel.InitializationModel.ObjectValue;
+                var originalDataType = originalVariable.DataType;
 
-                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, declarationModel));
+                var originalIsExposed = originalVariable.IsExposable && index % 2 == 0;
+                originalVariable.IsExposed = originalIsExposed;
+                Assert.AreEqual(originalIsExposed, originalVariable.IsExposed, $"Failed to set IsExposed field for {originalDataType}.");
+
+                SetVariableValue(originalVariable);
+                var originalValue = originalVariable.InitializationModel.ObjectValue;
+
+                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, originalVariable));
                 yield return null;
 
                 // Copy Item from first graph
@@ -504,11 +530,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 yield return null;
 
                 // Check to make sure the copy worked and there is one of the copied type in the target graph
-                Assert.IsTrue(secondGraphAsset.GraphModel.VariableDeclarations.Count(model => model.DataType == declarationModel.DataType) == 1);
+                Assert.IsTrue(secondGraphAsset.GraphModel.VariableDeclarations.Count(model => model.DataType == originalDataType) == 1);
 
                 // Check that values are preserved.
-                var copied = secondGraphAsset.GraphModel.VariableDeclarations.First(model => model.DataType == declarationModel.DataType);
+                var copied = secondGraphAsset.GraphModel.VariableDeclarations.First(model => model.DataType == originalDataType);
                 Assert.AreEqual(originalValue, copied.InitializationModel.ObjectValue);
+
+                // Check that IsExposed is preserved.
+                Assert.AreEqual(originalIsExposed, copied.IsExposed, "Failed to copy IsExposed field.");
             }
         }
 
@@ -551,12 +580,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 m_MainWindow.Focus();
                 yield return null;
 
-                var declarationModel = originalItems[index];
+                var originalVariable = originalItems[index] as SGVariableDeclarationModel;
 
-                SetVariableValue(declarationModel);
-                var originalValue = declarationModel.InitializationModel.ObjectValue;
+                var originalDataType = originalVariable.DataType;
 
-                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, declarationModel));
+                var originalIsExposed = originalVariable.IsExposable && index % 2 == 0;
+                originalVariable.IsExposed = originalIsExposed;
+                Assert.AreEqual(originalIsExposed, originalVariable.IsExposed, $"Failed to set IsExposed field for {originalDataType}.");
+
+                SetVariableValue(originalVariable);
+                var originalValue = originalVariable.InitializationModel.ObjectValue;
+
+                m_BlackboardView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, originalVariable));
                 yield return null;
 
                 // Cut Item from first graph
@@ -575,11 +610,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 yield return null;
 
                 // Check to make sure the copy worked and there is one of the copied type in the target graph
-                Assert.IsTrue(secondGraphAsset.GraphModel.VariableDeclarations.Count(model => model.DataType == declarationModel.DataType) == 1);
+                Assert.IsTrue(secondGraphAsset.GraphModel.VariableDeclarations.Count(model => model.DataType == originalDataType) == 1);
 
                 // Check that values are preserved.
-                var copied = secondGraphAsset.GraphModel.VariableDeclarations.First(model => model.DataType == declarationModel.DataType);
+                var copied = secondGraphAsset.GraphModel.VariableDeclarations.First(model => model.DataType == originalDataType);
                 Assert.AreEqual(originalValue, copied.InitializationModel.ObjectValue);
+
+                // Check that IsExposed is preserved.
+                Assert.AreEqual(originalIsExposed, copied.IsExposed, "Failed to copy IsExposed field.");
             }
         }
     }

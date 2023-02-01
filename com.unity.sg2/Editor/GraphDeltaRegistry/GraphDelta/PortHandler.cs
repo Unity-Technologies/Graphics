@@ -49,10 +49,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             return new NodeHandler(ID.FullPath.Replace($".{ID.LocalPath}",""), Owner, Registry, DefaultLayer);
         }
+
         public IEnumerable<FieldHandler> GetFields()
         {
-            throw new Exception();
+            foreach (var child in Reader.GetChildren())
+            {
+                if (child.Element.Header is FieldHeader)
+                {
+                    yield return new FieldHandler(child.Element.ID, Owner, Registry, DefaultLayer);
+                }
+            }
         }
+
         public FieldHandler GetField(string localID)
         {
             return GetHandler(localID)?.ToFieldHandler();
