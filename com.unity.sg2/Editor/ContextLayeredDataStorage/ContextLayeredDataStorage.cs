@@ -40,7 +40,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        
+
         public ContextLayeredDataStorage()
         {
             m_layerList = new LayerList(this);
@@ -90,7 +90,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             if (string.IsNullOrEmpty(layerName))
             {
-                throw new System.ArgumentException("Cannor use a null or empty layer name", "layerName");
+                throw new System.ArgumentException("Cannot use a null or empty layer name", "layerName");
             }
             m_layerList.AddNewTopLayer(layerName);
         }
@@ -413,7 +413,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             return elem.owner == this;
         }
 
-        
+
         protected void Rebalance()
         {
             foreach(var layer in m_layerList)
@@ -422,7 +422,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Rebalance(layer.Value.element, elems);
             }
         }
-        
+
 
         //Get all elements descended from root inclusive in a list
         internal void GatherAll(Element root, out List<Element> elements)
@@ -505,7 +505,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                         recurseList.Remove(c);
                     }
                 }
-                //if this element did not belong in any existing bucket, create a new bucket 
+                //if this element did not belong in any existing bucket, create a new bucket
                 else if (!found)
                 {
                     recurseList.Add((element, new List<Element>()));

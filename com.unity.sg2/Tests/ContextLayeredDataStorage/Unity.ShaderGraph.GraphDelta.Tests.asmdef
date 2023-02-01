@@ -3,7 +3,9 @@
     "rootNamespace": "",
     "references": [
         "ContextLayeredDataStorage",
-        "Unity.ShaderGraph.Editor"
+        "Unity.ShaderGraph.Editor",
+        "Unity.PerformanceTesting.Editor",
+        "Unity.PerformanceTesting"
     ],
     "includePlatforms": [
         "Editor"
