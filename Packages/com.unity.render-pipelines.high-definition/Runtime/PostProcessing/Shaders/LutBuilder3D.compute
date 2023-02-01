@@ -1,7 +1,6 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma multi_compile TONEMAPPING_NONE TONEMAPPING_NEUTRAL TONEMAPPING_ACES_APPROX TONEMAPPING_ACES_FULL TONEMAPPING_CUSTOM TONEMAPPING_EXTERNAL
-#pragma multi_compile_local _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020
 #pragma multi_compile_local _ HDR_COLORSPACE_CONVERSION
 #pragma multi_compile_local GRADE_IN_SRGB GRADE_IN_ACESCG
 
@@ -18,6 +17,7 @@
 #if defined(HDR_COLORSPACE_CONVERSION)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 #endif
+
 TEXTURE3D(_LogLut3D);
 RW_TEXTURE3D(float4, _OutputTexture);
 
