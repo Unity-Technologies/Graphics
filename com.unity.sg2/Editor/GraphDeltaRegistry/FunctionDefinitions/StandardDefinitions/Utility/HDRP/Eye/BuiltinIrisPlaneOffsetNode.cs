@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "",
             category: "Utility/HDRP/Eye",
             synonyms: new string[0],
+            description: "pkg://Documentation~/previews/BuiltinIrisPlaneOffset.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
