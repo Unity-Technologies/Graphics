@@ -270,13 +270,9 @@ namespace UnityEngine.Rendering.Universal
         {
             // Oddly adding and subtracting vectors is expensive here because of the new structures created...
             Vector3 deltaPos;
-            deltaPos.x = boundingSphere.position.x + m_CachedPosition.x;
-            deltaPos.y = boundingSphere.position.y + m_CachedPosition.y;
-            deltaPos.z = boundingSphere.position.z + m_CachedPosition.z;
-
-            deltaPos.x = light.m_CachedPosition.x - deltaPos.x;
-            deltaPos.y = light.m_CachedPosition.y - deltaPos.y;
-            deltaPos.z = light.m_CachedPosition.z - deltaPos.z;
+            deltaPos.x = light.m_CachedPosition.x - boundingSphere.position.x;
+            deltaPos.y = light.m_CachedPosition.y - boundingSphere.position.y;
+            deltaPos.z = light.m_CachedPosition.z - boundingSphere.position.z;
 
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
@@ -472,6 +468,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 ShadowCasterGroup2DManager.AddGroup(this);
             }
+
+            if(m_ShadowMesh != null)
+                m_ShadowMesh.UpdateBoundingSphere(transform);
         }
 
 
