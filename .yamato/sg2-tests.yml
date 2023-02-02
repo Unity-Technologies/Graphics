@@ -1,3 +1,12 @@
+coverage_meta:
+  history_repo: git@github.com:Unity-Technologies/sg2-codecoverage-history.git
+  coverage_history_path: history/win
+  assemblies: # Prepend "+" to the assembly name to include it in the code coverage, prepend "-" to exclude assembly. Globbing can be used in the name.
+    - +ContextLayeredDataStorage
+    - +Unity.ShaderGraph.GraphDeltaRegistry
+    - +Unity.ShaderGraph.GraphUI
+    - +Unity.ShaderGraph.StandardDefinitions
+---
 ShaderGraph2_Win_pr_trigger:
   name: ShaderGraph2 - PR Tests Trigger
   triggers:
@@ -22,12 +31,17 @@ ShaderGraph2_Win:
        retries: 2
     -  command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
        retries: 2
-    -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground
+    -  command: git clone {{coverage_meta.history_repo}} History
+    -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground --enable-code-coverage --coverage-results-path=CodeCoverageResults -coverage-history-path=History/{{coverage_meta.coverage_history_path}} --coverage-options="generateAdditionalMetrics;assemblyFilters:{% for assembly in coverage_meta.assemblies %}{{ assembly }}{%if assembly != coverage_meta.assemblies.last %},{% endif %}{% endfor %};verbosity:warning;generateHtmlReport;generateHtmlReportHistory;"
   artifacts:
     logs:
       paths:
         -  "**/test-results/**"
         -  "ShaderGraphPlayground/Logs/*.log"
+    CodeCoverageResults:
+      paths:
+        - CodeCoverageResults/**
+        - History/{{ coverage_meta.coverage_history_path }}/**
 ShaderGraph2_Mac:
   name: ShaderGraph2 Tests - Mac
   agent:
