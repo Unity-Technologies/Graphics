@@ -350,7 +350,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
             {
                 var camera = cameras[i];
-                camera.allowDynamicResolution = false;
                 if (IsGameCamera(camera))
                 {
                     RenderCameraStack(renderContext, camera);
