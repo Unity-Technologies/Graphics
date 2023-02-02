@@ -70,15 +70,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
             private set => m_RegistryKey = value;
         }
 
+        internal void SyncRegistryKeyFromNodeHandler()
+        {
+            m_RegistryKey = this.GetRegistryKeyFromNodeHandler();
+        }
+
         public NodeHandler GetNodeHandler()
         {
             // Use the default topology handler for preview nodes.
             var isPreview = graphDataName == null;
             return isPreview ?
-                registry.GetDefaultTopology(m_PreviewRegistryKey) :
-                graphHandler.GetNode(graphDataName);
+                graphDataOwner.registry.GetDefaultTopology(registryKey) :
+                graphDataOwner.graphHandler.GetNode(graphDataName);
         }
-		
+
         public virtual bool HasPreview { get; private set; }
 
         // By default every node's preview is visible
@@ -141,7 +146,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         [NonSerialized]
         SGNodeViewModel m_NodeViewModel;
-		
+
         /// </summary>
         /// <param name="key">The CLDS registry key to use for this node.</param>
         /// <param name="spawnFlags">The node spawn flags.</param>
@@ -158,7 +163,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void UpgradeToLatestVersion()
         {
-            if (!existsInGraphData)
+            if (!graphDataOwner.existsInGraphData)
             {
                 return;
             }
@@ -196,7 +201,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public void ChangeNodeFunction(string newFunctionName)
         {
-            if (!existsInGraphData)
+            if (!graphDataOwner.existsInGraphData)
             {
                 return;
             }
@@ -234,7 +239,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public void SetPortOption(string portName, int optionIndex)
         {
             // If not backed by real data (i.e., we are a searcher preview), changing options doesn't make sense.
-            if (!existsInGraphData)
+            if (!graphDataOwner.existsInGraphData)
             {
                 return;
             }
@@ -271,7 +276,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns>Index into the Options list for the given port, or -1 if there are no options or no option is selected.</returns>
         public int GetCurrentPortOption(string portName)
         {
-            if (!TryGetNodeHandler(out var handler)) return -1;
+            if (!graphDataOwner.TryGetNodeHandler(out var handler)) return -1;
             if (string.IsNullOrEmpty(m_GraphDataName)) return 0;  // default to first option
 
             var paramInfo = GetViewModel().GetParameterInfo(portName);
@@ -412,14 +417,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void OnDefineNode()
         {
-            if (!TryGetNodeHandler(out var nodeHandler))
+            if (!graphDataOwner.TryGetNodeHandler(out var nodeHandler))
             {
                 Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
                 return;
             }
 
-            var nodeUIDescriptor = registry.GetNodeUIDescriptor(registryKey, nodeHandler);
-            var nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
+            var nodeUIDescriptor = graphDataOwner.registry.GetNodeUIDescriptor(registryKey, nodeHandler);
+            var nodeHasPreview = nodeUIDescriptor.HasPreview && graphDataOwner.existsInGraphData;
             m_NodeViewModel = CreateNodeViewModel(nodeUIDescriptor, nodeHandler);
 
             // TODO: Convert this to a NodePortsPart maybe?

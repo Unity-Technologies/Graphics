@@ -92,14 +92,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
 
         (NodeHandler, SGNodeModel) MakeNode(RegistryKey? key = null)
         {
-            var nodeHandler = graphModel.GraphHandler.AddNode(key ?? k_EmptyNodeKey, "Test");
-            var node = graphModel.CreateNode<SGNodeModel>("Test", initializationCallback: nm => nm.graphDataName = "Test");
+            var node = graphModel.CreateNode<SGNodeModel>("Test", initializationCallback: nm => nm.Initialize(key ?? k_EmptyNodeKey, SpawnFlags.Default));
+            var nodeHandler = node.GetNodeHandler();
             return (nodeHandler, node);
         }
 
         SGNodeModel MakeSearcherPreviewNode(RegistryKey? key = null)
         {
-            return graphModel.CreateNode<SGNodeModel>("Test", spawnFlags: SpawnFlags.Orphan, initializationCallback: nm => nm.SetSearcherPreviewRegistryKey(key ?? k_EmptyNodeKey));
+            return graphModel.CreateNode<SGNodeModel>("Test", spawnFlags: SpawnFlags.Orphan, initializationCallback: nm => nm.Initialize(key ?? k_EmptyNodeKey, SpawnFlags.Orphan));
         }
 
         SGNodeModel MakeNodeWithoutBackingData()
@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         public void TestTryGetNodeHandler_NodeInSearcher_GetsDefaultTopologyHandler()
         {
             var nodeModel = MakeSearcherPreviewNode();
-            Assert.IsTrue(nodeModel.TryGetNodeHandler(out var handler));
+            Assert.IsTrue(nodeModel.graphDataOwner.TryGetNodeHandler(out var handler));
             Assert.AreEqual(graphModel.RegistryInstance.DefaultTopologies.graphDelta, handler.Owner);
         }
 
@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         public void TestTryGetNodeHandler_NodeOnGraph_GetsHandler()
         {
             var (nodeHandler, nodeModel) = MakeNode();
-            Assert.IsTrue(nodeModel.TryGetNodeHandler(out var retrievedHandler));
+            Assert.IsTrue(nodeModel.graphDataOwner.TryGetNodeHandler(out var retrievedHandler));
             Assert.AreEqual(nodeHandler.ID.FullPath, retrievedHandler.ID.FullPath);
         }
 
@@ -135,28 +135,28 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         public void TestTryGetNodeHandler_MissingNode_Fails()
         {
             var nodeModel = MakeNodeWithoutBackingData();
-            Assert.IsFalse(nodeModel.TryGetNodeHandler(out _));
+            Assert.IsFalse(nodeModel.graphDataOwner.TryGetNodeHandler(out _));
         }
 
         [Test]
         public void TestExistsInGraphData_NodeInSearcher_IsFalse()
         {
             var nodeModel = MakeSearcherPreviewNode();
-            Assert.IsFalse(nodeModel.existsInGraphData);
+            Assert.IsFalse(nodeModel.graphDataOwner.existsInGraphData);
         }
 
         [Test]
         public void TestExistsInGraphData_NodeOnGraph_IsTrue()
         {
             var (_, nodeModel) = MakeNode();
-            Assert.IsTrue(nodeModel.existsInGraphData);
+            Assert.IsTrue(nodeModel.graphDataOwner.existsInGraphData);
         }
 
         [Test]
         public void TestExistsInGraphData_MissingNode_IsFalse()
         {
             var nodeModel = MakeNodeWithoutBackingData();
-            Assert.IsFalse(nodeModel.existsInGraphData);
+            Assert.IsFalse(nodeModel.graphDataOwner.existsInGraphData);
         }
 
         [Test]
@@ -204,7 +204,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         public void TestChangeNodeFunction_NodeInSearcher_DoesNothing()
         {
             var nodeModel = MakeSearcherPreviewNode(k_MultiFunctionKey);
-            Assert.IsTrue(nodeModel.TryGetNodeHandler(out var previewNodeHandler));
+            Assert.IsTrue(nodeModel.graphDataOwner.TryGetNodeHandler(out var previewNodeHandler));
             Assert.AreEqual(k_MultiFunctionMainFunc, previewNodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME).GetData());
 
             nodeModel.ChangeNodeFunction("NotValid");
@@ -234,7 +234,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         public void TestSetPortOption_NodeInSearcher_DoesNothing()
         {
             var nodeModel = MakeSearcherPreviewNode(k_OptionsNodeKey);
-            Assert.IsTrue(nodeModel.TryGetNodeHandler(out var previewHandler));
+            Assert.IsTrue(nodeModel.graphDataOwner.TryGetNodeHandler(out var previewHandler));
 
             Assert.IsNull(previewHandler.GetPort("In").GetFirstConnectedPort());
             nodeModel.SetPortOption("In", 1);
@@ -369,6 +369,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
 
             var fakeKey = new RegistryKey {Name = k_MultiVersionKeyV1.Name, Version = 100};
             nodeHandler.SetMetadata(GraphDelta.GraphDelta.kRegistryKeyName, fakeKey);
+            nodeModel.SyncRegistryKeyFromNodeHandler();
 
             nodeModel.UpgradeToLatestVersion();
             LogAssert.Expect(LogType.Error, $"Node version ({100}) is greater than latest version in registry ({2})");
@@ -379,7 +380,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests.DataModel
         public void TestUpgradeToLatestVersion_NodeInSearcher_DoesNothing()
         {
             var nodeModel = MakeSearcherPreviewNode(k_MultiVersionKeyV1);
-            Assert.IsTrue(nodeModel.TryGetNodeHandler(out var previewHandler));
+            Assert.IsTrue(nodeModel.graphDataOwner.TryGetNodeHandler(out var previewHandler));
             Assert.AreEqual(k_MultiVersionKeyV1, previewHandler.GetMetadata<RegistryKey>(GraphDelta.GraphDelta.kRegistryKeyName));
             Assert.IsEmpty(nodeModel.GetInputPorts());
 

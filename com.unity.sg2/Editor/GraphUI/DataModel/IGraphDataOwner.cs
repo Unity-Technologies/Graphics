@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <summary>
         /// The <see cref="ShaderGraphRegistry"/> for this <see cref="GraphElementModel"/>.
         /// </summary>
-        ShaderGraphRegistry registry => ((ShaderGraphStencil)((GraphElementModel)this).GraphModel.Stencil).GetRegistry();
+        ShaderGraphRegistry registry => ((SGGraphModel)((GraphElementModel)this).GraphModel).RegistryInstance;
 
         /// <summary>
         /// Whether or not this IGraphDataOwner is actually backed by data in the CLDS layer, or whether it is a "fake" entity, like searcher previews for nodes
