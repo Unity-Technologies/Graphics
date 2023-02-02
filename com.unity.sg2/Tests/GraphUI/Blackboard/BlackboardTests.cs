@@ -2,80 +2,19 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
 using Unity.GraphToolsFoundation;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.GraphDelta;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UnityEngine.UIElements;
 using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    class BlackboardTests : BaseGraphWindowTest
+    class BlackboardTests : BlackboardTestsBase
     {
-        T GetFirstBlackboardElementOfType<T>() where T : VisualElement
-        {
-            var decl = GraphModel.VariableDeclarations.FirstOrDefault();
-            Assert.IsNotNull(decl, "Menu item should have created underlying variable declaration");
-
-            var views = new List<ModelView>();
-            decl.GetAllViews(m_BlackboardView, v => v is T, views);
-
-            if (views.FirstOrDefault() is T view)
-                return view;
-
-            return null;
-        }
-
-        static readonly (string, Type)[] k_ExpectedFieldTypes =
-        {
-            // name of item in blackboard create menu, type of initialization field (or null if it should not exist)
-            ("Create Integer", typeof(IntegerField)),
-            ("Create Float", typeof(FloatField)),
-            ("Create Boolean", typeof(Toggle)),
-            ("Create Vector 2", typeof(Vector2Field)),
-            ("Create Vector 3", typeof(Vector3Field)),
-            ("Create Vector 4", typeof(Vector4Field)),
-            ("Create Color", typeof(ColorField)),
-            ("Create Matrix 2", typeof(MatrixField)),
-            ("Create Matrix 3", typeof(MatrixField)),
-            ("Create Matrix 4", typeof(MatrixField)),
-            ("Create Texture2D", typeof(ObjectField)),
-            ("Create Texture2DArray", typeof(ObjectField)),
-            ("Create Texture3D", typeof(ObjectField)),
-            ("Create Cubemap", typeof(ObjectField)),
-            ("Create SamplerStateData", null),
-        };
-
-        protected override bool hideOverlayWindows => false;
-        BlackboardView m_BlackboardView;
-
-        /// <inheritdoc />
-        protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.Disk;
-
-        public override void SetUp()
-        {
-            base.SetUp();
-            m_BlackboardView = FindBlackboardView(m_MainWindow);
-        }
-
-        static BlackboardView FindBlackboardView(TestEditorWindow window)
-        {
-            const string viewFieldName = "m_BlackboardView";
-
-            var found = window.TryGetOverlay(k_BlackboardOverlayId, out var blackboardOverlay);
-            Assert.IsTrue(found, "Blackboard overlay was not found");
-
-            var blackboardView = (BlackboardView)blackboardOverlay.GetType()
-                .GetField(viewFieldName, BindingFlags.NonPublic | BindingFlags.Instance)?
-                .GetValue(blackboardOverlay);
-            Assert.IsNotNull(blackboardView, "Blackboard view was not found");
-            return blackboardView;
-        }
+        protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.Memory;
 
         [Test]
         public void ExpectedFieldTypesIsUpToDate()
@@ -94,54 +33,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
 
             Assert.AreEqual(0, expected.Count);
-        }
-
-        [UnityTest]
-        public IEnumerator TestPropertyLoadsWithCorrectFieldType(
-            [ValueSource(nameof(k_ExpectedFieldTypes))] (string, Type) testCase
-        )
-        {
-            var (createItemName, fieldType) = testCase;
-
-            void ValidateCreatedField()
-            {
-                var view = GetFirstBlackboardElementOfType<SGBlackboardVariablePropertyView>();
-                Assert.IsNotNull(view, "View for created property was not found");
-
-                var field = view.Q<BaseModelPropertyField>(className: "ge-inline-value-editor");
-                if (fieldType is null)
-                {
-                    Assert.IsNull(field, "Created blackboard item should not have an Initialization field");
-                }
-                else
-                {
-                    Assert.IsNotNull(field, "Created blackboard item should have an Initialization field");
-                    var firstChild = field.Children().First();
-                    Assert.IsTrue(firstChild.GetType().IsAssignableFrom(fieldType), $"Property created with \"{createItemName}\" should have field of type {fieldType.Name}");
-                }
-            }
-
-            {
-                var stencil = (ShaderGraphStencil)GraphModel.Stencil;
-
-                var createMenu = new List<Stencil.MenuItem>();
-                stencil.PopulateBlackboardCreateMenu("Properties", createMenu, m_BlackboardView);
-
-                var floatItem = createMenu.FirstOrDefault(i => i.name == createItemName);
-                Assert.IsNotNull(floatItem, $"\"{createItemName}\" item from test case was not found in Blackboard create menu. Are the test cases up-to-date?");
-
-                floatItem.action.Invoke();
-                yield return null;
-
-                ValidateCreatedField();
-            }
-
-            yield return SaveAndReopenGraph();
-
-            {
-                m_BlackboardView = FindBlackboardView(m_MainWindow);
-                ValidateCreatedField();
-            }
         }
 
         [UnityTest]
@@ -213,13 +104,19 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         [UnityTest, Explicit("Time dependent test, which often means this will be an unstable test.")]
         public IEnumerator TestVariableValueChangeAffectsPreview()
         {
-            yield return TestVariableNodeCanBeAdded();
+            var graphViewCenterPosition = TestEventHelpers.GetScreenPosition(m_MainWindow, m_GraphView, true);
 
-            var variableNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Vector 4") as SGVariableNodeModel;
+            var group = GraphModel.GetSectionModel("Properties");
+            var vdm = GraphModel.CreateGraphVariableDeclaration(typeof(SGVariableDeclarationModel), TypeHandle.Vector4, "Vector 4", ModifierFlags.None, true, group);
+            var variableNodeModel = GraphModel.CreateVariableNode(vdm, Vector2.zero);
             Assert.IsNotNull(variableNodeModel);
 
-            SGGraphTestUtils.CreateNodeByName(GraphModel, "Add", Vector2.zero);
+            var addNodeModel = SGGraphTestUtils.CreateNodeByName(GraphModel, "Add", graphViewCenterPosition - new Vector2(100, 100));
+            Assert.IsNotNull(addNodeModel);
             yield return null;
+
+            var nodeGraphElement = m_GraphView.GetGraphElement(addNodeModel);
+            Assert.IsNotNull(nodeGraphElement);
 
             m_TestInteractionHelper.ConnectNodes("Vector 4", "Add", "Output", "A");
 
@@ -230,36 +127,27 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             yield return null;
 
-            var addNodeModel = m_MainWindow.GetNodeModelFromGraphByName("Add") as SGNodeModel;
-            Assert.IsNotNull(addNodeModel);
-
-            var status = m_MainWindow.previewUpdateDispatcher.PreviewService.RequestNodePreviewTexture(addNodeModel.graphDataName, out var texture, out _);
-            var maxRetry = 60;
-            while (maxRetry > 0 && status != PreviewService.PreviewOutputState.Complete)
-            {
-                maxRetry--;
-                yield return null;
-            }
-
-            Assert.AreEqual(PreviewService.PreviewOutputState.Complete, status, "Could not get preview quickly enough.");
-
-            yield return null;
-
             Texture2D output = new(1, 1, TextureFormat.ARGB32, false);
+            var maxRetry = 600;
             var color = Color.black;
-            var rt = texture as RenderTexture;
+            var status = PreviewService.PreviewOutputState.Updating;
             while (maxRetry > 0 && color != Color.red)
             {
+                status = m_MainWindow.previewUpdateDispatcher.PreviewService.RequestNodePreviewTexture(addNodeModel.graphDataName, out var texture, out _);
+
+                var rt = texture as RenderTexture;
                 var prevActive = RenderTexture.active;
                 RenderTexture.active = rt;
                 output.ReadPixels(new Rect(0, 0, 1, 1), 0, 0);
                 RenderTexture.active = prevActive;
                 color = output.GetPixel(0, 0);
+
                 maxRetry--;
                 yield return null;
             }
 
             Assert.AreEqual(Color.red, color);
+            Assert.AreEqual(PreviewService.PreviewOutputState.Complete, status);
         }
 
         [UnityTest]
@@ -276,6 +164,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 yield return null;
             }
         }
+
 
         static void SetVariableValue(VariableDeclarationModel originalVariable)
         {
@@ -340,11 +229,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             }
             else if (originalVariable.DataType == ShaderGraphExampleTypes.SamplerStateTypeHandle)
             {
-                var s = new SamplerStateData {
-                    filter = SamplerStateType.Filter.Linear,
-                    wrap = SamplerStateType.Wrap.Repeat,
-                    depthCompare = true,
-                    aniso = SamplerStateType.Aniso.Aniso2 };
+                var s = new SamplerStateData { filter = SamplerStateType.Filter.Linear, wrap = SamplerStateType.Wrap.Repeat, depthCompare = true, aniso = SamplerStateType.Aniso.Aniso2 };
 
                 originalVariable.InitializationModel.ObjectValue = s;
             }
@@ -370,7 +255,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             // We want a copy of the original blackboard items
             var originalItems = GraphModel.VariableDeclarations.ToList();
-            for(var index = 0; index < originalItems.Count; index++)
+            for (var index = 0; index < originalItems.Count; index++)
             {
                 var originalVariable = originalItems[index] as SGVariableDeclarationModel;
 
@@ -419,7 +304,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             // We want a copy of the original blackboard items
             var originalItems = GraphModel.VariableDeclarations.ToList();
-            for(var index = 0; index < originalItems.Count; index++)
+            for (var index = 0; index < originalItems.Count; index++)
             {
                 var originalVariable = originalItems[index] as SGVariableDeclarationModel;
 
@@ -573,7 +458,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
             // We want a copy of the original blackboard items
             var originalItems = GraphModel.VariableDeclarations.ToList();
-            for(var index = 0; index < originalItems.Count; index++)
+            for (var index = 0; index < originalItems.Count; index++)
             {
                 // Switch back to first graph
                 m_MainWindow.Show();
