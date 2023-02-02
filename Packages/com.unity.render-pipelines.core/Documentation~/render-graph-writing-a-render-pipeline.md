@@ -57,16 +57,16 @@ There are two main types of resources that a render graph uses:
 - **Internal resources**: These resources are internal to a render graph execution and you cannot access them outside of the RenderGraph instance. You also cannot pass these resources from one execution of a graph to another. The render graph handles the lifetime of these resources.
 - **Imported resources**: These usually come from outside the render graph execution. Typical examples are the back buffer (provided by the camera) or buffers that you want the graph to use across multiple frames for temporal effects (like using the camera color buffer for temporal anti-aliasing). You are responsible for handling the lifetime of these resources.
 
-After you create or import a resource, the render graph system represents it as a resource type-specific handle (`TextureHandle`, `ComputeBufferHandle`, or `RendererListHandle`). This way, the render graph can use internal and imported resources in the same way in all of its APIs.
+After you create or import a resource, the render graph system represents it as a resource type-specific handle (`TextureHandle`, `BufferHandle`, or `RendererListHandle`). This way, the render graph can use internal and imported resources in the same way in all of its APIs.
 
 ```c#
 public TextureHandle RenderGraph.CreateTexture(in TextureDesc desc);
-public ComputeBufferHandle RenderGraph.CreateComputeBuffer(in ComputeBufferDesc desc)
+public BufferHandle RenderGraph.CreateComputeBuffer(in ComputeBufferDesc desc)
 public RendererListHandle RenderGraph.CreateRendererList(in RendererListDesc desc);
 
 public TextureHandle RenderGraph.ImportTexture(RTHandle rt);
 public TextureHandle RenderGraph.ImportBackbuffer(RenderTargetIdentifier rt);
-public ComputeBufferHandle RenderGraph.ImportComputeBuffer(ComputeBuffer computeBuffer);
+public BufferHandle RenderGraph.ImportBuffer(ComputeBuffer computeBuffer);
 ```
 
 The main ways to create resources are described above, but there are variations of these functions. For the complete list, see the [API documentation](../api/UnityEngine.Experimental.Rendering.RenderGraphModule.RenderGraph.html). Note that the specific function to use to import the camera back buffer is `RenderTargetIdentifier`.
@@ -140,20 +140,20 @@ The `passData` variable is an instance of the type you provide when you declare 
 
 For an overview of the `RenderGraphBuilder` APIs, see the below table. For more details, see the API documentation:
 
-| Function                                                     | Purpose                                                      |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| TextureHandle ReadTexture(in TextureHandle input)            | Declares that the render pass reads from the `input` texture you pass into the function. |
-| TextureHandle WriteTexture(in TextureHandle input)           | Declares that the render pass writes to the `input` texture you pass into the function. |
-| TextureHandle UseColorBuffer(in TextureHandle input, int index) | Same as `WriteTexture` but also automatically binds the texture as a render texture at the provided binding index at the beginning of the pass. |
-| TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags) | Same as `WriteTexture` but also automatically binds the texture as a depth texture with the access flags you pass into the function. |
-| TextureHandle CreateTransientTexture(in TextureDesc desc)    | Create a transient texture. This texture exists for the duration of the pass. |
-| RendererListHandle UseRendererList(in RendererListHandle input) | Declares that this render pass uses the Renderer List you pass in. The render pass uses the `RendererList.Draw` command to render the list. |
-| ComputeBufferHandle ReadComputeBuffer(in ComputeBufferHandle input) | Declares that the render pass reads from the `input` ComputeBuffer you pass into the function. |
-| ComputeBufferHandle WriteComputeBuffer(in ComputeBufferHandle input) | Declares that the render pass writes to the `input` Compute Buffer you pass into the function. |
-| ComputeBufferHandle CreateTransientComputeBuffer(in ComputeBufferDesc desc) | Create a transient Compute Buffer. This texture exists for the duration of the Compute Buffer. |
+| Function                                                                                    | Purpose                                                      |
+|---------------------------------------------------------------------------------------------| ------------------------------------------------------------ |
+| TextureHandle ReadTexture(in TextureHandle input)                                           | Declares that the render pass reads from the `input` texture you pass into the function. |
+| TextureHandle WriteTexture(in TextureHandle input)                                          | Declares that the render pass writes to the `input` texture you pass into the function. |
+| TextureHandle UseColorBuffer(in TextureHandle input, int index)                             | Same as `WriteTexture` but also automatically binds the texture as a render texture at the provided binding index at the beginning of the pass. |
+| TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags)                     | Same as `WriteTexture` but also automatically binds the texture as a depth texture with the access flags you pass into the function. |
+| TextureHandle CreateTransientTexture(in TextureDesc desc)                                   | Create a transient texture. This texture exists for the duration of the pass. |
+| RendererListHandle UseRendererList(in RendererListHandle input)                             | Declares that this render pass uses the Renderer List you pass in. The render pass uses the `RendererList.Draw` command to render the list. |
+| BufferHandle ReadComputeBuffer(in BufferHandle input)                                       | Declares that the render pass reads from the `input` ComputeBuffer you pass into the function. |
+| BufferHandle WriteComputeBuffer(in BufferHandle input)                        | Declares that the render pass writes to the `input` Compute Buffer you pass into the function. |
+| BufferHandle CreateTransientComputeBuffer(in BufferDesc desc)                 | Create a transient Compute Buffer. This texture exists for the duration of the Compute Buffer. |
 | void SetRenderFunc<PassData>(RenderFunc<PassData> renderFunc) where PassData : class, new() | Set the rendering function for the render pass.              |
-| void EnableAsyncCompute(bool value)                          | Declares that the render pass runs on the asynchronous compute pipeline. |
-| void AllowPassCulling(bool value)                            | Specifies whether Unity should cull the render pass (default is true). This can be useful when the render pass has side effects and you never want the render graph system to cull. |
+| void EnableAsyncCompute(bool value)                                                         | Declares that the render pass runs on the asynchronous compute pipeline. |
+| void AllowPassCulling(bool value)                                                           | Specifies whether Unity should cull the render pass (default is true). This can be useful when the render pass has side effects and you never want the render graph system to cull. |
 
 #### Rendering Code
 
