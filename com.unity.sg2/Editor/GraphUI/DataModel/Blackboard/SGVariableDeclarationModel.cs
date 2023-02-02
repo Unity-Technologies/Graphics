@@ -88,6 +88,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     field.SetData(value ? ContextEntryEnumTags.PropertyBlockUsage.Included : ContextEntryEnumTags.PropertyBlockUsage.Excluded);
                     base.IsExposed = field.GetData() == ContextEntryEnumTags.PropertyBlockUsage.Included;
                 }
+                else
+                {
+                    base.IsExposed = value;
+                }
             }
         }
 
