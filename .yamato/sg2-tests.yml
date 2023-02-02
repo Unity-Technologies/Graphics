@@ -32,7 +32,7 @@ ShaderGraph2_Win:
     -  command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
        retries: 2
     -  command: git clone {{coverage_meta.history_repo}} History
-    -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground --enable-code-coverage --coverage-results-path=CodeCoverageResults -coverage-history-path=History/{{coverage_meta.coverage_history_path}} --coverage-options="generateAdditionalMetrics;assemblyFilters:{% for assembly in coverage_meta.assemblies %}{{ assembly }}{%if assembly != coverage_meta.assemblies.last %},{% endif %}{% endfor %};verbosity:warning;generateHtmlReport;generateHtmlReportHistory;"
+    -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground --enable-code-coverage --coverage-results-path=%CD%/CodeCoverageResults --coverage-history-path=%CD%/History/{{coverage_meta.coverage_history_path}} --coverage-options="generateAdditionalMetrics;assemblyFilters:{% for assembly in coverage_meta.assemblies %}{{ assembly }}{%if assembly != coverage_meta.assemblies.last %},{% endif %}{% endfor %};verbosity:warning;generateHtmlReport;generateHtmlReportHistory;"
   artifacts:
     logs:
       paths:
