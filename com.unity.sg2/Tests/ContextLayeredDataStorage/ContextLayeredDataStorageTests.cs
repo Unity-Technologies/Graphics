@@ -517,80 +517,77 @@ namespace UnityEditor.ContextLayeredDataStorage
                 }
             }
         }
+        
+        [Ignore("GSG-1614", Until="2023-03-15")]
+        [Test]
+        public void TestCopyPaste()
+        {
+            ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
+            clds.AddData("a");
+            clds.AddData("a.b", 13);
+            clds.AddData("a.b.c", 35.4f);
+            clds.AddData("a.b.c.d.e", true);
+            clds.SetMetadata("a.b", "foo", new Color(1, 0, 0));
 
-        // TODO (Brett) This is commented out to bring tests to a passing status.
-        // TODO (Brett) This test was not removed because it is indicating a valuable failure
-        // TODO (Brett) that should be addressed.
+            List<DataReader> elements = new List<DataReader>()
+            {
+                clds.Search("a"),
+                clds.Search("a.b"),
+                clds.Search("a.b.c"),
+                clds.Search("a.b.c.d.e")
+            };
 
-        // [Test]
-        // public void TestCopyPaste()
-        // {
-        //     ContextLayeredDataStorage clds = new ContextLayeredDataStorage();
-        //     clds.AddData("a");
-        //     clds.AddData("a.b", 13);
-        //     clds.AddData("a.b.c", 35.4f);
-        //     clds.AddData("a.b.c.d.e", true);
-        //     clds.SetMetadata("a.b", "foo", new Color(1, 0, 0));
-        //
-        //     List<DataReader> elements = new List<DataReader>()
-        //     {
-        //         clds.Search("a"),
-        //         clds.Search("a.b"),
-        //         clds.Search("a.b.c"),
-        //         clds.Search("a.b.c.d.e")
-        //     };
-        //
-        //     var ser = clds.CopyElementCollection(elements);
-        //
-        //     //Paste into same CLDS
-        //     clds.PasteElementCollection(ser.layer, ser.metadata, "Root", out _);
-        //     var copied = clds.Search("a_1");
-        //     Assert.NotNull(copied);
-        //     Assert.IsTrue(copied.GetChildren().Count() == 1);
-        //     copied = copied.GetChild("b");
-        //     Assert.NotNull(copied);
-        //     Assert.AreEqual(13, copied.GetData<int>());
-        //     Assert.AreEqual(new Color(1, 0, 0), clds.GetMetadata<Color>(copied.Element.ID, "foo"));
-        //     Assert.IsTrue(copied.GetChildren().Count() == 1);
-        //     copied = copied.GetChild("c");
-        //     Assert.NotNull(copied);
-        //     Assert.AreEqual(35.4f, copied.GetData<float>());
-        //     //Okay, so this is a weird one and I want to explain it, since either myself in 3 months or
-        //     //whoever is looking at this code later might think this is a bug. Of course "c" has a child,
-        //     //its "d.e"! But what needs to be remembered is we act on the flat structure, and "GetChildren"
-        //     //will only return the _immediate_ children of a reader (at least in the base DataReader case).
-        //     //That means, if "d" were contained in this structure, it could be returned. But since its not
-        //     //here, and "d.e" wont be seen as an immediate child, its ignored.
-        //     Assert.AreEqual(0, copied.GetChildren().Count());
-        //     //This part though seems to go against that; "c" has no children, why can you getchild on "d.e"
-        //     //and get a correct value? Currently, getchild just appends the rest of the localID onto c's
-        //     //full path ID, and then just searches the graph for that, which will search for "a.b.c.d.e"
-        //     //and find the correct value. The name could potentially be changed, but thats really up to
-        //     //how the reader is implemented.
-        //     copied = copied.GetChild("d.e");
-        //     Assert.NotNull(copied);
-        //     Assert.AreEqual(true, copied.GetData<bool>());
-        //     Assert.IsTrue(copied.GetChildren().Count() == 0);
-        //
-        //     //Paste into new CLDS
-        //     clds = new ContextLayeredDataStorage();
-        //     clds.PasteElementCollection(ser.layer, ser.metadata, "Root", out _);
-        //     copied = clds.Search("a");
-        //     Assert.NotNull(copied);
-        //     Assert.IsTrue(copied.GetChildren().Count() == 1);
-        //     copied = copied.GetChild("b");
-        //     Assert.NotNull(copied);
-        //     Assert.AreEqual(13, copied.GetData<int>());
-        //     Assert.AreEqual(new Color(1, 0, 0), clds.GetMetadata<Color>(copied.Element.ID, "foo"));
-        //     Assert.IsTrue(copied.GetChildren().Count() == 1);
-        //     copied = copied.GetChild("c");
-        //     Assert.NotNull(copied);
-        //     Assert.AreEqual(35.4f, copied.GetData<float>());
-        //     Assert.AreEqual(0, copied.GetChildren().Count());
-        //     copied = copied.GetChild("d.e");
-        //     Assert.NotNull(copied);
-        //     Assert.AreEqual(true, copied.GetData<bool>());
-        //     Assert.IsTrue(copied.GetChildren().Count() == 0);
-        // }
+            var ser = clds.CopyElementCollection(elements);
+
+            //Paste into same CLDS
+            clds.PasteElementCollection(ser.layer, ser.metadata, "Root", out _);
+            var copied = clds.Search("a_1");
+            Assert.NotNull(copied);
+            Assert.IsTrue(copied.GetChildren().Count() == 1);
+            copied = copied.GetChild("b");
+            Assert.NotNull(copied);
+            Assert.AreEqual(13, copied.GetData<int>());
+            Assert.AreEqual(new Color(1, 0, 0), clds.GetMetadata<Color>(copied.Element.ID, "foo"));
+            Assert.IsTrue(copied.GetChildren().Count() == 1);
+            copied = copied.GetChild("c");
+            Assert.NotNull(copied);
+            Assert.AreEqual(35.4f, copied.GetData<float>());
+            //Okay, so this is a weird one and I want to explain it, since either myself in 3 months or
+            //whoever is looking at this code later might think this is a bug. Of course "c" has a child,
+            //its "d.e"! But what needs to be remembered is we act on the flat structure, and "GetChildren"
+            //will only return the _immediate_ children of a reader (at least in the base DataReader case).
+            //That means, if "d" were contained in this structure, it could be returned. But since its not
+            //here, and "d.e" wont be seen as an immediate child, its ignored.
+            Assert.AreEqual(0, copied.GetChildren().Count());
+            //This part though seems to go against that; "c" has no children, why can you getchild on "d.e"
+            //and get a correct value? Currently, getchild just appends the rest of the localID onto c's
+            //full path ID, and then just searches the graph for that, which will search for "a.b.c.d.e"
+            //and find the correct value. The name could potentially be changed, but thats really up to
+            //how the reader is implemented.
+            copied = copied.GetChild("d.e");
+            Assert.NotNull(copied);
+            Assert.AreEqual(true, copied.GetData<bool>());
+            Assert.IsTrue(copied.GetChildren().Count() == 0);
+
+            //Paste into new CLDS
+            clds = new ContextLayeredDataStorage();
+            clds.PasteElementCollection(ser.layer, ser.metadata, "Root", out _);
+            copied = clds.Search("a");
+            Assert.NotNull(copied);
+            Assert.IsTrue(copied.GetChildren().Count() == 1);
+            copied = copied.GetChild("b");
+            Assert.NotNull(copied);
+            Assert.AreEqual(13, copied.GetData<int>());
+            Assert.AreEqual(new Color(1, 0, 0), clds.GetMetadata<Color>(copied.Element.ID, "foo"));
+            Assert.IsTrue(copied.GetChildren().Count() == 1);
+            copied = copied.GetChild("c");
+            Assert.NotNull(copied);
+            Assert.AreEqual(35.4f, copied.GetData<float>());
+            Assert.AreEqual(0, copied.GetChildren().Count());
+            copied = copied.GetChild("d.e");
+            Assert.NotNull(copied);
+            Assert.AreEqual(true, copied.GetData<bool>());
+            Assert.IsTrue(copied.GetChildren().Count() == 0);
+        }
     }
 }
