@@ -517,7 +517,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                 }
             }
         }
-        
+
         [Ignore("GSG-1614", Until="2023-03-15")]
         [Test]
         public void TestCopyPaste()
