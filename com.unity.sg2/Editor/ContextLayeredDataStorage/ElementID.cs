@@ -103,13 +103,13 @@ namespace UnityEditor.ContextLayeredDataStorage
                     {
                         m_pathList.Add(new string(subPath));
                     }
-                    
+
                 }
                 return m_pathList;
             }
         }
 
-        private int PathHash(int index)
+        internal int PathHash(int index)
         {
             if(m_pathHash == null)
             {
@@ -153,7 +153,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                             i++;
                             if(i == index)
                             {
-                                startIndex = j;
+                                startIndex = j+1;
                             }
                             if(i == index+1)
                             {
@@ -167,7 +167,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                                 length++;
                             }
                         }
-                        
+
                     }
                     m_pathHash[index] = GetDeterministicStringHash(m_fullPath, startIndex, length);
                 }
@@ -230,17 +230,17 @@ namespace UnityEditor.ContextLayeredDataStorage
             return m_hash;
         }
 
-        private static int GetDeterministicStringHash(char[] str, int startIndex, int length)
+        internal static int GetDeterministicStringHash(char[] str, int startIndex, int length)
         {
             unchecked
             {
                 int hash1 = (5381 << 16) + 5381;
                 int hash2 = hash1;
 
-                for (int i = startIndex; i < length; i += 2)
+                for (int i = startIndex; i < startIndex + length; i += 2)
                 {
                     hash1 = ((hash1 << 5) + hash1) ^ str[i];
-                    if (i == length - 1)
+                    if (i == (startIndex + length) - 1)
                         break;
                     hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
                 }
