@@ -18,7 +18,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         protected Dictionary<ElementID, Element> m_flatStructureLookup;
         [NonSerialized]
         protected Element m_flatStructure;
-        protected IEnumerable<(string layerName, Element root)> LayerList
+        public IEnumerable<(string layerName, Element root)> LayerList
         {
             get
             {
@@ -361,7 +361,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             return null;
         }
 
-        protected Element SearchRelative(Element elem, ElementID lookup)
+        public Element SearchRelative(Element elem, ElementID lookup)
         {
             const int stackSize = 128;
             Stack<Element> workingSet = new Stack<Element>(stackSize);
