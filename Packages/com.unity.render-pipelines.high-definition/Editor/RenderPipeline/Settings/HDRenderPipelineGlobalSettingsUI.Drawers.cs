@@ -348,6 +348,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowLayerNames = false;
         static void DrawLayerNamesSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
+            if (HDRenderPipelineGlobalSettings.instance == null)
+                return;
+
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
 

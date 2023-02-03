@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.Serialization;
 
@@ -11,7 +10,8 @@ namespace UnityEngine.Rendering.Universal
     /// - light layer names
     /// </summary>
     [URPHelpURL("urp-global-settings")]
-    partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings, ISerializationCallbackReceiver
+    [DisplayInfo(name = "URP Global Settings Asset", order = CoreUtils.Sections.section4 + 2)]
+    partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<UniversalRenderPipelineGlobalSettings, UniversalRenderPipeline>
     {
         #region Version system
 
@@ -78,117 +78,39 @@ namespace UnityEngine.Rendering.Universal
 
             // If the asset version has changed, means that a migration step has been executed
             if (assetVersionBeforeUpgrade != asset.m_AssetVersion)
-                EditorUtility.SetDirty(asset);
+            EditorUtility.SetDirty(asset);
         }
 
 #endif
         #endregion
 
-        private static UniversalRenderPipelineGlobalSettings cachedInstance = null;
-        /// <summary>
-        /// Active URP Global Settings asset. If the value is null then no UniversalRenderPipelineGlobalSettings has been registered to the Graphics Settings with the UniversalRenderPipeline.
-        /// </summary>
-        public static UniversalRenderPipelineGlobalSettings instance
-        {
-            get
-            {
-#if !UNITY_EDITOR
-                // The URP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
-                // In a Player, we do not need to worry about those changes as we only support loading one
-                if (cachedInstance == null)
-#endif
-                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<UniversalRenderPipeline>() as UniversalRenderPipelineGlobalSettings;
-                return cachedInstance;
-            }
-        }
-
-        static internal void UpdateGraphicsSettings(UniversalRenderPipelineGlobalSettings newSettings)
-        {
-            if (newSettings == cachedInstance)
-                return;
-            if (newSettings != null)
-                GraphicsSettings.RegisterRenderPipelineSettings<UniversalRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
-            else
-                GraphicsSettings.UnregisterRenderPipelineSettings<UniversalRenderPipeline>();
-            cachedInstance = newSettings;
-        }
-
         /// <summary>Default name when creating an URP Global Settings asset.</summary>
-        public static readonly string defaultAssetName = "UniversalRenderPipelineGlobalSettings";
+        public const string defaultAssetName = "UniversalRenderPipelineGlobalSettings";
 
 #if UNITY_EDITOR
-        //Making sure there is at least one UniversalRenderPipelineGlobalSettings instance in the project
-        internal static UniversalRenderPipelineGlobalSettings Ensure(string folderPath = "", bool canCreateNewAsset = true)
-        {
-            if (instance == null)
-            {
-                UniversalRenderPipelineGlobalSettings assetCreated = null;
-                string path = $"Assets/{folderPath}/{defaultAssetName}.asset";
-                assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
-                if (assetCreated == null)
-                {
-                    var guidGlobalSettingsAssets = AssetDatabase.FindAssets("t:UniversalRenderPipelineGlobalSettings");
-                    //If we could not find the asset at the default path, find the first one
-                    if (guidGlobalSettingsAssets.Length > 0)
-                    {
-                        var curGUID = guidGlobalSettingsAssets[0];
-                        path = AssetDatabase.GUIDToAssetPath(curGUID);
-                        assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
-                    }
-                    else if (canCreateNewAsset)// or create one altogether
-                    {
-                        if (!AssetDatabase.IsValidFolder("Assets/" + folderPath))
-                            AssetDatabase.CreateFolder("Assets", folderPath);
-                        assetCreated = Create(path);
+        internal static string defaultPath => $"Assets/{defaultAssetName}.asset";
 
-                        // TODO: Reenable after next urp template is published
-                        //Debug.LogWarning("No URP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > URP Settings.");
-                    }
-                    else
-                    {
-                        Debug.LogError("If you are building a Player, make sure to save an URP Global Settings asset by opening the project in the Editor first.");
-                        return null;
-                    }
-                }
-                Debug.Assert(assetCreated, "Could not create URP's Global Settings - URP may not work correctly - Open  Project Settings > Graphics > URP Settings for additional help.");
-                UpdateGraphicsSettings(assetCreated);
+        //Making sure there is at least one UniversalRenderPipelineGlobalSettings instance in the project
+        internal static UniversalRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
+        {
+            UniversalRenderPipelineGlobalSettings currentInstance = GraphicsSettings.
+                GetSettingsForRenderPipeline<UniversalRenderPipeline>() as UniversalRenderPipelineGlobalSettings;
+
+            if (RenderPipelineGlobalSettingsUtils.TryEnsure<UniversalRenderPipelineGlobalSettings, UniversalRenderPipeline>(ref currentInstance, defaultPath, canCreateNewAsset))
+            {
+                if (currentInstance != null && currentInstance.m_AssetVersion != k_LastVersion)
+                    UpgradeAsset(currentInstance.GetInstanceID());
+
+                return currentInstance;
             }
 
-            if (instance != null && instance.m_AssetVersion != k_LastVersion)
-                UpgradeAsset(instance.GetInstanceID());
-
-            return instance;
+            return null;
         }
 
-        internal static UniversalRenderPipelineGlobalSettings Create(string path, UniversalRenderPipelineGlobalSettings src = null)
-        {
-            UniversalRenderPipelineGlobalSettings assetCreated = null;
-
-            // make sure the asset does not already exists
-            assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
-            if (assetCreated == null)
+        public override void Initialize(RenderPipelineGlobalSettings source = null)
             {
-                assetCreated = ScriptableObject.CreateInstance<UniversalRenderPipelineGlobalSettings>();
-                if (assetCreated != null)
-                {
-                    assetCreated.name = System.IO.Path.GetFileName(path);
-                }
-                AssetDatabase.CreateAsset(assetCreated, path);
-                Debug.Assert(assetCreated);
-            }
-
-            if (assetCreated)
-            {
-                if (src != null)
-                {
-                    System.Array.Copy(src.m_RenderingLayerNames, assetCreated.m_RenderingLayerNames, src.m_RenderingLayerNames.Length);
-                }
-
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-            }
-
-            return assetCreated;
+            if (source is UniversalRenderPipelineGlobalSettings globalSettingsSource)
+                Array.Copy(globalSettingsSource.m_RenderingLayerNames, m_RenderingLayerNames, globalSettingsSource.m_RenderingLayerNames.Length);
         }
 
 #endif

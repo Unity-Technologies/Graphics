@@ -51,7 +51,8 @@ class UniversalGlobalSettingsTests
     {
         EnsureUniversalRPIsActivePipeline();
 
-        UniversalRenderPipelineGlobalSettings.UpdateGraphicsSettings(null);
+        GraphicsSettings.UnregisterRenderPipelineSettings<UniversalRenderPipeline>();
+
         Assert.IsNull(UniversalRenderPipelineGlobalSettings.instance);
 
         Camera.main.Render();
@@ -64,7 +65,7 @@ class UniversalGlobalSettingsTests
     {
         EnsureUniversalRPIsActivePipeline();
         Undo.IncrementCurrentGroup();
-        UniversalRenderPipelineGlobalSettings.UpdateGraphicsSettings(otherGlobalSettings);
+        GraphicsSettings.RegisterRenderPipelineSettings<UniversalRenderPipeline>(otherGlobalSettings);
         Assert.AreEqual(otherGlobalSettings, UniversalRenderPipelineGlobalSettings.instance);
 
         Undo.PerformUndo();
@@ -77,7 +78,7 @@ class UniversalGlobalSettingsTests
     {
         EnsureUniversalRPIsActivePipeline();
         Undo.IncrementCurrentGroup();
-        UniversalRenderPipelineGlobalSettings.UpdateGraphicsSettings(null);
+        GraphicsSettings.UnregisterRenderPipelineSettings<UniversalRenderPipeline>();
         Assert.IsNull(UniversalRenderPipelineGlobalSettings.instance);
 
         Undo.PerformUndo();
