@@ -447,6 +447,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Batched Params.
                 PerLight2D perLight = lightBatch.GetLight(slot);
+                perLight.Position = new float4(light.transform.position, light.normalMapDistance);
                 perLight.FalloffIntensity = light.falloffIntensity;
                 perLight.FalloffDistance = light.shapeLightFalloffSize;
                 perLight.Color = new float4(color.r, color.g, color.b, color.a);
@@ -459,6 +460,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
+                cmd.SetGlobalVector(k_L2DPosition, new float4(light.transform.position, light.normalMapDistance));
                 cmd.SetGlobalFloat(k_L2DFalloffIntensity, light.falloffIntensity);
                 cmd.SetGlobalFloat(k_L2DFalloffDistance, light.shapeLightFalloffSize);
                 cmd.SetGlobalColor(k_L2DColor, color);
@@ -482,7 +484,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Batched Params.
                 PerLight2D perLight = lightBatch.GetLight(slot);
-                perLight.Position = new float4(light.transform.position, light.normalMapDistance);
                 perLight.InvMatrix = new float4x4(lightInverseMatrix.GetColumn(0), lightInverseMatrix.GetColumn(1), lightInverseMatrix.GetColumn(2), lightInverseMatrix.GetColumn(3));
                 perLight.InnerRadiusMult = innerRadiusMult;
                 perLight.InnerAngle = innerAngle;
@@ -491,8 +492,6 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                cmd.SetGlobalFloat(k_L2DFalloffIntensity, light.falloffIntensity);
-                cmd.SetGlobalVector(k_L2DPosition, new float4(light.transform.position, light.normalMapDistance));
                 cmd.SetGlobalMatrix(k_L2DInvMatrix, lightInverseMatrix);
                 cmd.SetGlobalFloat(k_L2DInnerRadiusMult, innerRadiusMult);
                 cmd.SetGlobalFloat(k_L2DInnerAngle, innerAngle);
@@ -627,11 +626,11 @@ namespace UnityEngine.Rendering.Universal
             bitIndex++;
             var pointCookieBit = (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
-            var pointFastQualityBit = (isPoint && light.normalMapQuality == Light2D.NormalMapQuality.Fast) ? 1u << bitIndex : 0u;
+            var fastQualityBit = (light.normalMapQuality == Light2D.NormalMapQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
             var useNormalMap = light.normalMapQuality != Light2D.NormalMapQuality.Disabled ? 1u << bitIndex : 0u;
 
-            return pointFastQualityBit | pointCookieBit | additiveBit | shapeBit | volumeBit | useNormalMap;
+            return fastQualityBit | pointCookieBit | additiveBit | shapeBit | volumeBit | useNormalMap;
         }
 
         private static Material CreateLightMaterial(Renderer2DData rendererData, Light2D light, bool isVolume)
@@ -667,7 +666,7 @@ namespace UnityEngine.Rendering.Universal
             if (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 material.EnableKeyword(k_UsePointLightCookiesKeyword);
 
-            if (isPoint && light.normalMapQuality == Light2D.NormalMapQuality.Fast)
+            if (light.normalMapQuality == Light2D.NormalMapQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);
 
             if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled)
