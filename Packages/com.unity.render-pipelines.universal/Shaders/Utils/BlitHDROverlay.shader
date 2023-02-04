@@ -5,9 +5,7 @@ Shader "Hidden/Universal/BlitHDROverlay"
         #pragma editor_sync_compilation
         #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
         #pragma multi_compile _ BLIT_SINGLE_SLICE
-        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020
-        #pragma multi_compile_local_fragment _ HDR_ENCODING_LINEAR HDR_ENCODING_PQ
-        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION
+        #pragma multi_compile_local_fragment HDR_COLORSPACE_CONVERSION HDR_ENCODING HDR_COLORSPACE_CONVERSION_AND_ENCODING
 
         // Core.hlsl for XR dependencies
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

@@ -12,8 +12,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local_fragment _ DITHER
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
-        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020 FUTURE_HDR_OUTPUT
-        #pragma multi_compile_local_fragment _ HDR_ENCODING_LINEAR HDR_ENCODING_PQ
+        #pragma multi_compile_local_fragment _ HDR_ENCODING FUTURE_HDR_OUTPUT
 
         #pragma multi_compile_local_fragment _ CATMULL_ROM_4 RCAS BYPASS
         #define DEBUG_UPSCALE_POINT 0
@@ -25,7 +24,7 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
-#if defined(HDR_ENCODING_LINEAR) || defined(HDR_ENCODING_PQ)
+#if defined(HDR_ENCODING)
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 #endif
 
