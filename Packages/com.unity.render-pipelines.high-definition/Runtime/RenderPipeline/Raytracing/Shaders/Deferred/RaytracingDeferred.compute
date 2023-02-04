@@ -20,7 +20,7 @@
 #pragma only_renderers d3d11 xboxseries ps5
 
 // Needed for the ray miss and the last bounce indirect diffuse lighting
-#pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+#pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"

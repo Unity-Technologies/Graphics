@@ -431,9 +431,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
                 ProbeVolumeSHBands probeVolumeSHBands = asset.probeVolumeSHBands;
 
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_OFF", !apvIsEnabled);
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ProbeVolumeL1, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ProbeVolumeL2, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
 
                 var stack = VolumeManager.instance.stack;
 

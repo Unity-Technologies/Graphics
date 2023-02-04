@@ -1171,6 +1171,12 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for sixteenth size downsampling. </summary>
         public const string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+
+        /// <summary> Keyword used for APV with SH L1 </summary>
+        public const string ProbeVolumeL1 = "PROBE_VOLUMES_L1";
+
+        /// <summary> Keyword used for APV with SH L2 </summary>
+        public const string ProbeVolumeL2 = "PROBE_VOLUMES_L2";
     }
 
     public sealed partial class UniversalRenderPipeline

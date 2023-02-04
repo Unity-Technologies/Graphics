@@ -8,7 +8,7 @@ Shader "Hidden/Core/ProbeVolumeDebug"
         HLSLINCLUDE
         #pragma editor_sync_compilation
         #pragma target 4.5
-        #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+        #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
         float GetCurrentExposureMultiplier()
         {

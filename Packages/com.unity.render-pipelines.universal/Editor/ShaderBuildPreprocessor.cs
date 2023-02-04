@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.Universal
         GBufferWriteRenderingLayers = (1L << 34),
         DepthNormalPassRenderingLayers = (1L << 35),
         LightCookies = (1L << 36),
-        ProbeVolumeOff = (1L << 37),
+        // Unused =  (1L << 37),
         ProbeVolumeL1 = (1L << 38),
         ProbeVolumeL2 = (1L << 39),
         HdrGrading = (1L << 40),
@@ -369,8 +369,6 @@ namespace UnityEditor.Rendering.Universal
                 if (urpAsset.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     shaderFeatures |= ShaderFeatures.ProbeVolumeL2;
             }
-            else
-                shaderFeatures |= ShaderFeatures.ProbeVolumeOff;
 
             if (urpAsset.supportsMixedLighting)
                 shaderFeatures |= ShaderFeatures.MixedLighting;

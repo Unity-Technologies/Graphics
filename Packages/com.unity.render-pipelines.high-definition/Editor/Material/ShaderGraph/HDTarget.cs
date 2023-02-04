@@ -1321,7 +1321,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
                 new KeywordEntry() { displayName = "L1", referenceName = "L1" },
                 new KeywordEntry() { displayName = "L2", referenceName = "L2" },
             },

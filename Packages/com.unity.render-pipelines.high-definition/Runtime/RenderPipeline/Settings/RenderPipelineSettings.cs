@@ -375,8 +375,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
         /// <summary>Determines what system to use.</summary>
-#if UNITY_EDITOR // multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
-        // [ShaderKeywordFilter.RemoveIf(LightProbeSystem.ProbeVolumes, keywordNames: "PROBE_VOLUMES_OFF")]
+#if UNITY_EDITOR // multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+        // [ShaderKeywordFilter.SelectIf(LightProbeSystem.ProbeVolumes, new string[] {"PROBE_VOLUMES_L1", "PROBE_VOLUMES_L2"})]
         // [ShaderKeywordFilter.RemoveIf(LightProbeSystem.LegacyLightProbes, keywordNames: new string[] {"PROBE_VOLUMES_L1", "PROBE_VOLUMES_L2"})]
 #endif
         public LightProbeSystem lightProbeSystem;
@@ -385,7 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support Streaming for Probe Volumes.</summary>
         public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>
-#if UNITY_EDITOR // multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+#if UNITY_EDITOR // multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
         // [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL1, keywordNames: "PROBE_VOLUMES_L2")]
         // [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL2, keywordNames: "PROBE_VOLUMES_L1")]
 #endif
