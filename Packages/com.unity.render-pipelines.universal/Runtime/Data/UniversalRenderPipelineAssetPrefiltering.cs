@@ -11,18 +11,27 @@ namespace UnityEngine.Rendering.Universal
     {
         internal enum PrefilteringMode
         {
-            Remove,     // Removes the keyword
-            Select,     // Keeps the keyword
-            SelectOnly  // Selects the keyword and removes others
+            Remove,                     // Removes the keyword
+            Select,                     // Keeps the keyword
+            SelectOnly                  // Selects the keyword and removes others
+        }
+
+        internal enum PrefilteringModeMainLightShadows
+        {
+            Remove,                     // Removes the keyword
+            SelectMainLight,            // Selects MainLightShadows variant & Removes OFF variant
+            SelectMainLightAndOff,      // Selects MainLightShadows & OFF variants
+            SelectMainLightAndCascades, // Selects MainLightShadows, MainLightShadowCascades & Removes OFF variant
+            SelectAll,                  // Selects MainLightShadows, MainLightShadowCascades & OFF variant
         }
 
         internal enum PrefilteringModeAdditionalLights
         {
-            Remove,             // Removes the keyword
-            SelectVertex,       // Selects Vertex & Removes OFF variant
-            SelectVertexAndOff, // Selects Vertex & OFF variant
-            SelectPixel,        // Selects Pixel  & Removes OFF variant
-            SelectPixelAndOff,  // Selects Pixel  & OFF variant
+            Remove,                     // Removes the keyword
+            SelectVertex,               // Selects Vertex & Removes OFF variant
+            SelectVertexAndOff,         // Selects Vertex & OFF variant
+            SelectPixel,                // Selects Pixel  & Removes OFF variant
+            SelectPixelAndOff,          // Selects Pixel  & OFF variant
         }
 
         // Platform specific filtering overrides
@@ -30,12 +39,22 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.WriteRenderingLayers)]
         private const bool k_CommonGLDefaults = true;
 
+        // Foveated Rendering
+        #if ENABLE_VR && ENABLE_XR_MODULE
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.PlayStation5NGGC)]
+        #endif
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.FoveatedRenderingNonUniformRaster)]
+        private const bool k_PrefilterFoveatedRenderingNonUniformRaster = true;
+
         // User can change cascade count at runtime so we have to include both MainLightShadows and MainLightShadowCascades.
         // ScreenSpaceShadows renderer feature has separate filter attribute for keeping MainLightShadowScreen.
         // NOTE: off variants are atm always removed when shadows are supported
-        [ShaderKeywordFilter.SelectIf(true,  keywordNames: ShaderKeywordStrings.MainLightShadows)]
-        [ShaderKeywordFilter.SelectIf(false, keywordNames: new string[] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
-        [SerializeField] private bool m_PrefilterMainLightShadows = false;
+        [ShaderKeywordFilter.RemoveIf(PrefilteringModeMainLightShadows.Remove, keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLight, keywordNames: ShaderKeywordStrings.MainLightShadows)]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndOff, keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndCascades, keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectAll, keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
+        [SerializeField] private PrefilteringModeMainLightShadows m_PrefilteringModeMainLightShadows = PrefilteringModeMainLightShadows.SelectMainLight;
 
         // Additional Lights
         // clustered renderer can override PerVertex/PerPixel to be disabled
@@ -53,13 +72,6 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select, keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightShadows})]
         [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
         [SerializeField] private PrefilteringMode m_PrefilteringModeAdditionalLightShadows = PrefilteringMode.Select;
-
-        // Foveated Rendering
-        #if ENABLE_VR && ENABLE_XR_MODULE
-        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.PlayStation5NGGC)]
-        #endif
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.FoveatedRenderingNonUniformRaster)]
-        private const bool k_PrefilterFoveatedRenderingNonUniformRaster = true;
 
         // XR Specific keywords
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: new [] {
@@ -80,6 +92,12 @@ namespace UnityEngine.Rendering.Universal
         })]
         [SerializeField] private PrefilteringMode m_PrefilteringModeDeferredRendering = PrefilteringMode.Select;
 
+        // Screen Space Occlusion
+        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove,     keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new [] {"", ShaderKeywordStrings.ScreenSpaceOcclusion})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
+        [SerializeField] private PrefilteringMode m_PrefilteringModeScreenSpaceOcclusion = PrefilteringMode.Select;
+
         // Rendering Debugger
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: new [] {ShaderKeywordStrings.DEBUG_DISPLAY})]
         [SerializeField] private bool m_PrefilterDebugKeywords = false;
@@ -95,12 +113,7 @@ namespace UnityEngine.Rendering.Universal
         })]
         [SerializeField] private bool m_PrefilterHDROutput = false;
 
-        // Screen Space Ambient Occlusion (SSAO)
-        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove,     keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new [] {"", ShaderKeywordStrings.ScreenSpaceOcclusion})]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
-        [SerializeField] private PrefilteringMode m_PrefilteringModeScreenSpaceOcclusion = PrefilteringMode.Select;
-
+        // Screen Space Ambient Occlusion (SSAO) specifc keywords
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthNormalsKeyword)]
         [SerializeField] private bool m_PrefilterSSAODepthNormals = false;
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword)]
@@ -143,24 +156,23 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal struct ShaderPrefilteringData
         {
-            public PrefilteringMode forwardPrefilteringMode;
             public PrefilteringMode forwardPlusPrefilteringMode;
             public PrefilteringMode deferredPrefilteringMode;
-            public PrefilteringMode additionalLightsShadowsPrefilteringMode;
+            public PrefilteringModeMainLightShadows mainLightShadowsPrefilteringMode;
             public PrefilteringModeAdditionalLights additionalLightsPrefilteringMode;
+            public PrefilteringMode additionalLightsShadowsPrefilteringMode;
+            public PrefilteringMode screenSpaceOcclusionPrefilteringMode;
 
             public bool stripXRKeywords;
             public bool stripHDRKeywords;
             public bool stripDebugDisplay;
-            public bool stripWriteRenderingLayers;
             public bool stripScreenCoordOverride;
-            public bool stripMainLightShadows;
+            public bool stripWriteRenderingLayers;
             public bool stripDBufferMRT1;
             public bool stripDBufferMRT2;
             public bool stripDBufferMRT3;
             public bool stripNativeRenderPass;
 
-            public PrefilteringMode screenSpaceOcclusionPrefilteringMode;
             public bool stripSSAOBlueNoise;
             public bool stripSSAOInterleaved;
             public bool stripSSAODepthNormals;
@@ -180,31 +192,30 @@ namespace UnityEngine.Rendering.Universal
         {
             m_PrefilteringModeForwardPlus            = prefilteringData.forwardPlusPrefilteringMode;
             m_PrefilteringModeDeferredRendering      = prefilteringData.deferredPrefilteringMode;
+            m_PrefilteringModeMainLightShadows       = prefilteringData.mainLightShadowsPrefilteringMode;
             m_PrefilteringModeAdditionalLight        = prefilteringData.additionalLightsPrefilteringMode;
             m_PrefilteringModeAdditionalLightShadows = prefilteringData.additionalLightsShadowsPrefilteringMode;
+            m_PrefilteringModeScreenSpaceOcclusion   = prefilteringData.screenSpaceOcclusionPrefilteringMode;
 
-            m_PrefilterXRKeywords                  = prefilteringData.stripXRKeywords;
-            m_PrefilterHDROutput                   = prefilteringData.stripHDRKeywords;
-            m_PrefilterDebugKeywords               = prefilteringData.stripDebugDisplay;
-            m_PrefilterWriteRenderingLayers        = prefilteringData.stripWriteRenderingLayers;
-            m_PrefilterScreenCoord                 = prefilteringData.stripScreenCoordOverride;
-            m_PrefilterMainLightShadows            = prefilteringData.stripMainLightShadows;
+            m_PrefilterXRKeywords                    = prefilteringData.stripXRKeywords;
+            m_PrefilterHDROutput                     = prefilteringData.stripHDRKeywords;
+            m_PrefilterDebugKeywords                 = prefilteringData.stripDebugDisplay;
+            m_PrefilterWriteRenderingLayers          = prefilteringData.stripWriteRenderingLayers;
+            m_PrefilterScreenCoord                   = prefilteringData.stripScreenCoordOverride;
+            m_PrefilterDBufferMRT1                   = prefilteringData.stripDBufferMRT1;
+            m_PrefilterDBufferMRT2                   = prefilteringData.stripDBufferMRT2;
+            m_PrefilterDBufferMRT3                   = prefilteringData.stripDBufferMRT3;
+            m_PrefilterNativeRenderPass              = prefilteringData.stripNativeRenderPass;
 
-            m_PrefilterDBufferMRT1                 = prefilteringData.stripDBufferMRT1;
-            m_PrefilterDBufferMRT2                 = prefilteringData.stripDBufferMRT2;
-            m_PrefilterDBufferMRT3                 = prefilteringData.stripDBufferMRT3;
-            m_PrefilterNativeRenderPass            = prefilteringData.stripNativeRenderPass;
-
-            m_PrefilteringModeScreenSpaceOcclusion = prefilteringData.screenSpaceOcclusionPrefilteringMode;
-            m_PrefilterSSAOBlueNoise               = prefilteringData.stripSSAOBlueNoise;
-            m_PrefilterSSAOInterleaved             = prefilteringData.stripSSAOInterleaved;
-            m_PrefilterSSAODepthNormals            = prefilteringData.stripSSAODepthNormals;
-            m_PrefilterSSAOSourceDepthLow          = prefilteringData.stripSSAOSourceDepthLow;
-            m_PrefilterSSAOSourceDepthMedium       = prefilteringData.stripSSAOSourceDepthMedium;
-            m_PrefilterSSAOSourceDepthHigh         = prefilteringData.stripSSAOSourceDepthHigh;
-            m_PrefilterSSAOSampleCountLow          = prefilteringData.stripSSAOSampleCountLow;
-            m_PrefilterSSAOSampleCountMedium       = prefilteringData.stripSSAOSampleCountMedium;
-            m_PrefilterSSAOSampleCountHigh         = prefilteringData.stripSSAOSampleCountHigh;
+            m_PrefilterSSAOBlueNoise                 = prefilteringData.stripSSAOBlueNoise;
+            m_PrefilterSSAOInterleaved               = prefilteringData.stripSSAOInterleaved;
+            m_PrefilterSSAODepthNormals              = prefilteringData.stripSSAODepthNormals;
+            m_PrefilterSSAOSourceDepthLow            = prefilteringData.stripSSAOSourceDepthLow;
+            m_PrefilterSSAOSourceDepthMedium         = prefilteringData.stripSSAOSourceDepthMedium;
+            m_PrefilterSSAOSourceDepthHigh           = prefilteringData.stripSSAOSourceDepthHigh;
+            m_PrefilterSSAOSampleCountLow            = prefilteringData.stripSSAOSampleCountLow;
+            m_PrefilterSSAOSampleCountMedium         = prefilteringData.stripSSAOSampleCountMedium;
+            m_PrefilterSSAOSampleCountHigh           = prefilteringData.stripSSAOSampleCountHigh;
         }
     }
 }

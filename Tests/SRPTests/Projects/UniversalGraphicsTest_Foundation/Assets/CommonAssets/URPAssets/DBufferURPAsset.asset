@@ -21,6 +21,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 167f2480a006ef14f903dc65eb5b474d, type: 2}
   - {fileID: 11400000, guid: adbdcedb560f6cf4085b03ba7218e899, type: 2}
   - {fileID: 11400000, guid: 73e47dc1b5a4ddd4e9b3738a03fe9525, type: 2}
+  - {fileID: 11400000, guid: d4c9be2d3ad92ff49827d85b5b7f1bd6, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
@@ -94,16 +95,16 @@ MonoBehaviour:
     serializedHasVolumes: []
     bakingSets: []
     m_LightingScenario: Default
-  m_PrefilterMainLightShadows: 1
+  m_PrefilteringModeMainLightShadows: 1
   m_PrefilteringModeAdditionalLight: 0
-  m_PrefilteringModeAdditionalLightShadows: 0
+  m_PrefilteringModeAdditionalLightShadows: 2
   m_PrefilterXRKeywords: 1
   m_PrefilteringModeForwardPlus: 0
   m_PrefilteringModeDeferredRendering: 1
+  m_PrefilteringModeScreenSpaceOcclusion: 0
   m_PrefilterDebugKeywords: 1
   m_PrefilterWriteRenderingLayers: 1
   m_PrefilterHDROutput: 1
-  m_PrefilteringModeScreenSpaceOcclusion: 0
   m_PrefilterSSAODepthNormals: 1
   m_PrefilterSSAOSourceDepthLow: 1
   m_PrefilterSSAOSourceDepthMedium: 1

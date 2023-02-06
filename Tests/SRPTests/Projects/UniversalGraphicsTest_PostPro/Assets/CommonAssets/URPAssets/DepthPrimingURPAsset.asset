@@ -93,16 +93,16 @@ MonoBehaviour:
     serializedHasVolumes: []
     bakingSets: []
     m_LightingScenario: Default
-  m_PrefilterMainLightShadows: 0
-  m_PrefilteringModeAdditionalLight: 4
-  m_PrefilteringModeAdditionalLightShadows: 1
+  m_PrefilteringModeMainLightShadows: 2
+  m_PrefilteringModeAdditionalLight: 0
+  m_PrefilteringModeAdditionalLightShadows: 2
   m_PrefilterXRKeywords: 1
   m_PrefilteringModeForwardPlus: 0
   m_PrefilteringModeDeferredRendering: 0
+  m_PrefilteringModeScreenSpaceOcclusion: 1
   m_PrefilterDebugKeywords: 1
-  m_PrefilterWriteRenderingLayers: 0
+  m_PrefilterWriteRenderingLayers: 1
   m_PrefilterHDROutput: 1
-  m_PrefilteringModeScreenSpaceOcclusion: 2
   m_PrefilterSSAODepthNormals: 0
   m_PrefilterSSAOSourceDepthLow: 1
   m_PrefilterSSAOSourceDepthMedium: 1
@@ -116,6 +116,6 @@ MonoBehaviour:
   m_PrefilterDBufferMRT2: 1
   m_PrefilterDBufferMRT3: 1
   m_PrefilterScreenCoord: 0
-  m_PrefilterNativeRenderPass: 0
+  m_PrefilterNativeRenderPass: 1
   m_ShaderVariantLogLevel: 0
   m_ShadowCascades: 3
