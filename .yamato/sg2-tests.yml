@@ -54,7 +54,7 @@ ShaderGraph2_Mac:
         -  "ShaderGraphPlayground/Logs/*.log"
 
 Run_Windows_Perfomance_Tests:
-  name: Run Windows Tests
+  name: Run Windows Perf Tests
   agent:
     type: Unity::VM
     image: sdet/gamecode_win10:stable
@@ -71,9 +71,18 @@ Run_Windows_Perfomance_Tests:
       retries: 2
     - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground --artifacts_path=build/test-results --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
       retries: 2
+    - command: curl -s https://github.com/Unity-Technologies/PerformanceBenchmarkReporter/releases/download/1.2.0/UnityPerformanceBenchmarkReporter_1_2_0.zip > benchmark.zip
+      retries: 2
+    - command: unzip -o benchmark.zip
+      retries: 2
+    - command: cd benchmark
+      retries: 2
+    - command: dotnet UnityPerformanceBenchmarkReporter.dll --baseline=./ShaderGraphPlayground/Assets/Baseline.xml --results=ShaderGraphPlayground/Logs/TestResults.xml --reportdirpath=ShaderGraphPlayground/Artifacts/PerfTestReport.xml
+      retries: 2
       artifacts:
         logs:
           paths:
+            -  "**/test-results/**"
             - "ShaderGraphPlayground/Logs/*.log"
             - "ShaderGraphPlayground/Logs/*.xml"
             - "ShaderGraphPlayground/Artifacts/**/*"
