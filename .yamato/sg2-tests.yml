@@ -76,13 +76,11 @@ ShaderGraph2_Win_CodeCoverage_Verification:
   name: ShaderGraph2 Win CodeCoverage Verification
   agent:
     type: Unity::VM
-    image: sdet/gamecode_win10:stable
+    image: sdet/gamecode_win10:v2.0.0-1044219
     flavor: b1.large
   dependencies:
     - .yamato/sg2-tests.yml#ShaderGraph2_Win
   commands:
-    -  command: choco install -y python --version=3.11.0
-       retries: 2
     -  command: python History\ci-scripts\verify_coverage.py History\{{coverage_meta.coverage_history_path}} {{coverage_meta.min_pct}} {{coverage_meta.max_decrease_pct}}
 
 ShaderGraph2_nightly_trigger:
