@@ -11,6 +11,7 @@ using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    [Serializable]
     class SGGraphModel : GraphModel
     {
         [HideInInspector]
@@ -26,29 +27,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
         [SerializeField]
         private bool isSubGraph = false;
 
+        string m_BlackboardContextName;
+        string m_DefaultContextName;
+
         internal GraphHandler GraphHandler => graphHandlerBox.Graph;
         internal virtual ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
         internal List<JsonData<Target>> Targets => targetSettingsBox.Targets; // TODO: Store the active editing target in the box?
         internal Target ActiveTarget => Targets.FirstOrDefault();
         internal SGMainPreviewModel MainPreviewData => mainPreviewModel;
         internal bool IsSubGraph => CanBeSubgraph();
-        internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
-        internal string DefaultContextName => Registry.ResolveKey<ShaderGraphContext>().Name;
+        internal string BlackboardContextName => m_BlackboardContextName ??= Registry.ResolveKey<PropertyContext>().Name;
+        internal string DefaultContextName => m_DefaultContextName ??= Registry.ResolveKey<ShaderGraphContext>().Name;
 
         [NonSerialized]
         SGContextNodeModel m_DefaultContextNode;
-
-        [NonSerialized]
-        public GraphModelStateComponent graphModelStateComponent;
-
-        #region CopyPasteData
-        /// <summary>
-        /// ShaderGraphViewSelection and SGBlackboardViewSelection sets this to true
-        /// prior to a cut operation as we need to handle it a little differently
-        /// </summary>
-        [NonSerialized]
-        public bool isCutOperation;
-        #endregion CopyPasteData
 
         // TODO: This should be customizable through the UI: https://jira.unity3d.com/browse/GSG-777
         // TODO: Default should be changed back to "Shader Graphs" before release: https://jira.unity3d.com/browse/GSG-1431
@@ -117,31 +109,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override bool CanBeSubgraph() => isSubGraph;
         protected override Type GetWireType(PortModel toPort, PortModel fromPort)
         {
-            return typeof(SGEdgeModel);
-        }
-        public override Type GetSectionModelType()
-        {
-            return typeof(SectionModel);
+            return typeof(SGWireModel);
         }
 
         public override WireModel CreateWire(PortModel toPort, PortModel fromPort, SerializableGUID guid = default)
         {
-            PortModel resolvedEdgeSource;
-            List<PortModel> resolvedEdgeDestinations;
-            resolvedEdgeSource = HandleRedirectNodesCreation(toPort, fromPort, out resolvedEdgeDestinations);
+            var resolvedWireSource = HandleRedirectNodesCreation(toPort, fromPort, out var resolvedWireDestinations);
 
-            var edgeModel = base.CreateWire(toPort, fromPort, guid);
-            if (resolvedEdgeSource is not SGPortModel fromDataPort)
-                return edgeModel;
+            var wireModel = base.CreateWire(toPort, fromPort, guid);
+            if (resolvedWireSource is not SGPortModel fromDataPort)
+                return wireModel;
 
             // Make the corresponding connections in CLDS data model
-            foreach (var toDataPort in resolvedEdgeDestinations.OfType<SGPortModel>())
+            foreach (var toDataPort in resolvedWireDestinations.OfType<SGPortModel>())
             {
               // Validation should have already happened in GraphModel.IsCompatiblePort.
               Assert.IsTrue(TryConnect(fromDataPort, toDataPort));
             }
 
-            return edgeModel;
+            return wireModel;
         }
 
         public override void DeleteWires(IReadOnlyCollection<WireModel> edgeModels)

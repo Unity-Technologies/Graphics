@@ -37,7 +37,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     && m_CurrentGraphModelInstance != shaderGraphModel)
                 {
                     m_CurrentGraphModelInstance = shaderGraphModel;
-                    shaderGraphModel.graphModelStateComponent = m_GraphModelStateComponent;
 
                     // Initialize preview state component
                     using (var updater = m_PreviewStateComponent.UpdateScope)
