@@ -16,8 +16,7 @@ namespace UnityEngine.Rendering
     {
         const int k_AddSceneID = 654423;
 
-        // TODO: uncomment lines in OnHeaderSettingsGUI once doc is published
-        //static string documentationURL = "Probe-Volumes";
+        static string documentationURL = "probevolumes";
 
         static class Styles
         {
@@ -260,8 +259,8 @@ namespace UnityEngine.Rendering
         {
             var iconSize = EditorStyles.iconButton.CalcSize(Styles.helpIcon);
 
-            //if (GUI.Button(GUILayoutUtility.GetRect(iconSize.x, iconSize.y), Styles.helpIcon, EditorStyles.iconButton))
-            //    Help.BrowseURL(DocumentationInfo.GetPageLink("com.unity.render-pipelines.core", documentationURL));
+            if (GUI.Button(GUILayoutUtility.GetRect(iconSize.x, iconSize.y), Styles.helpIcon, EditorStyles.iconButton))
+                Help.BrowseURL(DocumentationInfo.GetPageLink("com.unity.render-pipelines.high-definition", documentationURL));
 
             var rect = GUILayoutUtility.GetRect(iconSize.x, iconSize.y);
             if (EditorGUI.DropdownButton(rect, Styles.settingsIcon, FocusType.Passive, EditorStyles.iconButton))
