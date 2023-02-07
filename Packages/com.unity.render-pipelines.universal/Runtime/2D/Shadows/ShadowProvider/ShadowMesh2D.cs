@@ -317,7 +317,11 @@ namespace UnityEngine.Rendering.Universal
 
             if (outlineTopology == ShadowShape2D.OutlineTopology.Triangles)
             {
-                ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, true, out edges, out shapeStartingIndices, out shapeIsClosedArray);
+                NativeArray<Vector3> newVertices;
+                ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, true, out newVertices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
+
+                vertices.Dispose();
+                vertices = newVertices;
             }
             else // if (outlineTopology == ShadowShape2D.OutlineTopology.Lines)
             {

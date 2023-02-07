@@ -98,11 +98,11 @@ Varyings ProjectShadow(Attributes v)
 {
     Varyings o;
 
-    float2 contractDir = v.packed0.xy;
     float2 otherEndPt = v.packed0.zw;
-    float  shadowType = v.vertex.z;
+    float  shadowType = v.packed0.x;
     float2 position = v.vertex.xy;
     float  softShadowAngle = _SoftShadowAngle;
+    float2  contractDir = 0;
 
     float4 positionWS = ProjectShadowVertexToWS(position, otherEndPt, contractDir, shadowType,  _LightPos, _ShadowModelScale, _ShadowModelMatrix, _ShadowModelInvMatrix, _ShadowContractionDistance, _ShadowRadius, softShadowAngle);
     o.vertex = mul(GetWorldToHClipMatrix(), positionWS);
