@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void UpdatePartFromModel()
         {
             if (m_Model is not SGNodeModel sgNodeModel) return;
-            if (!sgNodeModel.TryGetNodeHandler(out var handler)) return;
+            if (!sgNodeModel.graphDataOwner.TryGetNodeHandler(out var handler)) return;
 
             var fromField = handler.GetField<CoordinateSpace>(GraphDelta.TransformNode.kSourceSpace);
             if (fromField != null) m_FromDropdown.SetValueWithoutNotify(fromField.GetData());

@@ -409,6 +409,115 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         }
 
+        [Test]
+        public void DeterministicHashInsideStringWorks()
+        {
+            var string1 = "This.Is.The.First.String";
+            var string2 = "The.Second.String.This.Is";
+
+            var thisLength = "This".Length;
+            var s1ThisStart = 0;
+            var s2ThisStart = string2.IndexOf("This");
+
+            Assert.AreEqual(
+                ElementID.GetDeterministicStringHash(string1.ToCharArray(), s1ThisStart, thisLength),
+                ElementID.GetDeterministicStringHash(string2.ToCharArray(), s2ThisStart, thisLength));
+        }
+
+        [Test]
+        public void PathHashFromFullPathIsNeverHashOfDot()
+        {
+            var dotHash = ElementID.GetDeterministicStringHash(".".ToCharArray(), 0, 0);
+            var element = new ElementID("This.Is.A.Path");
+
+            for (var i = 0; i < 4; i++)
+            {
+                Assert.AreNotEqual(dotHash, element.PathHash(i));
+            }
+        }
+
+        [Test]
+        public void PathHashFromCharPathIsNeverHashOfDot()
+        {
+            var dotHash = ElementID.GetDeterministicStringHash(".".ToCharArray(), 0, 0);
+            var element = new ElementID(new []{"This", "Is", "A", "Path"});
+
+            for (var i = 0; i < 4; i++)
+            {
+                Assert.AreNotEqual(dotHash, element.PathHash(i));
+            }
+        }
+
+        [Test]
+        public void PathHashFromCharPathAndFullPathAreSame()
+        {
+            var element1 = new ElementID(new []{"This", "Is", "A", "Path"});
+            var element2 = new ElementID("This.Is.A.Path");
+
+            for (var i = 0; i < 4; i++)
+            {
+                Assert.AreEqual(element1.PathHash(i), element2.PathHash(i));
+            }
+        }
+
+        [Test]
+        public void IsSubPathWorks()
+        {
+            var pathGroup1 = new[]
+            {
+                new ElementID("765348756348576348"),
+                new ElementID("765348756348576348.A"),
+                new ElementID("765348756348576348.A.Gjdhfgdj"),
+                new ElementID("765348756348576348.A.Gjdhfgdj.93847")
+            };
+
+            var pathGroup2 = new[]
+            {
+                new ElementID("765348756348576348"),
+                new ElementID("765348756348576348.B"),
+                new ElementID("765348756348576348.B.Gjdhfgdj"),
+                new ElementID("765348756348576348.B.Gjdhfgdj.93847")
+            };
+
+            var pathGroup3 = new[]
+            {
+                new ElementID("456438756348748376"),
+                new ElementID("456438756348748376.A"),
+                new ElementID("456438756348748376.A.Gjdhfgdj"),
+                new ElementID("456438756348748376.A.Gjdhfgdj.93847")
+            };
+
+            // Within each group, an element is the subpath of the next path.
+            foreach (var group in new[] {pathGroup1, pathGroup2, pathGroup3})
+            {
+                for (var i = 0; i < group.Length - 1; i++)
+                {
+                    Assert.IsTrue(group[i].IsSubpathOf(group[i+ 1]), $"IsSubpathOf failed at index {i} for {group}");
+                }
+            }
+
+            for (var i = 0; i < pathGroup1.Length; i++)
+            {
+                for (var j = 0; j < pathGroup2.Length; j++)
+                {
+                    if (i != 0)
+                        Assert.IsFalse(pathGroup1[i].IsSubpathOf(pathGroup2[j]), $"IsSubpathOf failed at indices {i},{j}");
+
+                    if (j != 0)
+                        Assert.IsFalse(pathGroup2[j].IsSubpathOf(pathGroup1[i]), $"IsSubpathOf failed at indices {i},{j}");
+                }
+            }
+
+            for (var i = 0; i < pathGroup1.Length; i++)
+            {
+                for (var j = 0; j < pathGroup3.Length; j++)
+                {
+                    Assert.IsFalse(pathGroup1[i].IsSubpathOf(pathGroup3[j]), $"IsSubpathOf failed at indices {i},{j}");
+                    Assert.IsFalse(pathGroup3[j].IsSubpathOf(pathGroup1[i]), $"IsSubpathOf failed at indices {i},{j}");
+                }
+            }
+        }
+
         // TODO (Brett) This is commented out to bring tests to a passing status.
         // TODO (Brett) This test was not removed because it is indicating a valuable failure
         // TODO (Brett) that should be addressed.

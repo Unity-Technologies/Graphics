@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoUpdater.SaveState(graphViewState);
             }
 
-            if (!command.m_SGNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
+            if (!command.m_SGNodeModel.graphDataOwner.TryGetNodeHandler(out var nodeHandler)) return;
             var field = nodeHandler.GetPort(command.m_PortName).GetTypeField();
             GraphTypeHelpers.SetComponents(field, 0, command.m_Values);
 
@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoUpdater.SaveState(graphViewState);
             }
 
-            if (!command.m_SGNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
+            if (!command.m_SGNodeModel.graphDataOwner.TryGetNodeHandler(out var nodeHandler)) return;
             var portWriter = nodeHandler.GetPort(command.m_PortName);
 
             GradientTypeHelpers.SetGradient(portWriter.GetTypeField(), command.m_Value);
@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoUpdater.SaveState(graphViewState);
             }
 
-            if (!command.m_SGNodeModel.TryGetNodeHandler(out var nodeHandler)) return;
+            if (!command.m_SGNodeModel.graphDataOwner.TryGetNodeHandler(out var nodeHandler)) return;
             var field = nodeHandler.GetField<T>(command.m_FieldName);
             field.SetData(command.m_Value);
 

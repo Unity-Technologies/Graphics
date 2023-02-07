@@ -22,19 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 guid,
                 nodeModel =>
                 {
-                    if (spawnFlags.IsOrphan())
-                    {
-                        // Orphan nodes aren't a part of the graph, so we don't
-                        // use an actual name in the graph data to represent them.
-                        nodeModel.SetSearcherPreviewRegistryKey(registryKey);
-                    }
-                    else
-                    {
-                        // Use this node's generated guid to bind it to an underlying element in the graph data.
-                        var graphDataName = nodeModel.Guid.ToString();
-                        ((SGGraphModel)graphModel).GraphHandler.AddNode(registryKey, graphDataName);
-                        nodeModel.graphDataName = graphDataName;
-                    }
+                    nodeModel.Initialize(registryKey, spawnFlags);
                 },
                 spawnFlags
             );
@@ -57,21 +45,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     nodeModel.graphDataName = existingContextName;
                 },
                 spawnFlags
-            );
-        }
-
-        public static SGNodeModel CreateGraphDataNode(
-            this GraphNodeCreationData graphNodeCreationData,
-            RegistryKey registryKey,
-            string displayName
-        )
-        {
-            return graphNodeCreationData.GraphModel.CreateGraphDataNode(
-                registryKey,
-                displayName,
-                graphNodeCreationData.Position,
-                graphNodeCreationData.Guid,
-                graphNodeCreationData.SpawnFlags
             );
         }
     }
