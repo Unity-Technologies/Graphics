@@ -71,13 +71,13 @@ Run_Windows_Perfomance_Tests:
       retries: 2
     - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
       retries: 2
-    - command: curl -s https://github.com/Unity-Technologies/PerformanceBenchmarkReporter/releases/download/1.2.0/UnityPerformanceBenchmarkReporter_1_2_0.zip --output=ShaderGraphPlayground/Artifacts/benchmark.zip
+    - command: curl -s https://github.com/Unity-Technologies/PerformanceBenchmarkReporter/releases/download/1.2.0/UnityPerformanceBenchmarkReporter_1_2_0.zip -O
       retries: 2
-    - command: unzip -o ShaderGraphPlayground/Artifacts/benchmark.zip
+    - command: unzip -o ShaderGraphPlayground/Artifacts/UnityPerformanceBenchmarkReporter_1_2_0.zip
       retries: 2
-    - command: cd ShaderGraphPlayground/Artifacts/benchmark
+    - command: cd ShaderGraphPlayground/Artifacts/UnityPerformanceBenchmarkReporter_1_2_0
       retries: 2
-    - command: dotnet ShaderGraphPlayground/Artifacts/UnityPerformanceBenchmarkReporter.dll --baseline=./ShaderGraphPlayground/Assets/Baseline.xml --results=ShaderGraphPlayground/Logs/TestResults.xml --reportdirpath=ShaderGraphPlayground/Artifacts/PerfTestReport.xml
+    - command: dotnet UnityPerformanceBenchmarkReporter.dll --baseline=./ShaderGraphPlayground/Assets/Baseline.xml --results=ShaderGraphPlayground/Logs/TestResults.xml --reportdirpath=ShaderGraphPlayground/Artifacts/PerfTestReport.xml
       retries: 2
       artifacts:
         logs:
