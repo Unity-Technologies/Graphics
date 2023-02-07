@@ -51,3 +51,24 @@ ShaderGraph2_Mac:
       paths:
         -  "**/test-results/**"
         -  "ShaderGraphPlayground/Logs/*.log"
+
+Run_Windows_Perfomance_Tests:
+  name: Run Windows Tests
+  agent:
+    type: Unity::VM
+    image: sdet/gamecode_win10:latest
+    flavor: b1.xlarge
+  commands:
+    - command: pip install unity-downloader-cli --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+    - command: unity-downloader-cli -u $EDITOR_BRANCH -c editor --fast --wait
+    - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      retries: 2
+    - command: chmod +x utr
+    - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground --artifacts_path=build/test-results --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
+      retries: 2
+      artifacts:
+        logs:
+          paths:
+            - "*.log"
+            - "*.xml"
+            - "artifacts/**/*"
