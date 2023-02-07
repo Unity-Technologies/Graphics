@@ -6,8 +6,8 @@ using UnityEngine.Profiling;
 using System.Collections;
 using Unity.Collections;
 using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using CellInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellInfo;
 using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
+using CellIndexInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellIndexInfo;
 
 namespace UnityEngine.Rendering
 {
@@ -78,12 +78,12 @@ namespace UnityEngine.Rendering
 
         class VoxelMeta
         {
-            public Cell cell;
+            public CellIndexInfo cellInfo;
             public List<ushort> brickIndices = new List<ushort>();
 
             public void Clear()
             {
-                cell = null;
+                cellInfo = null;
                 brickIndices.Clear();
             }
         }
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering
         Vector3Int m_CenterRS;   // the anchor in ref space, around which the index is defined. [IMPORTANT NOTE! For now we always have it at 0, so is not passed to the shader, but is kept here until development is active in case we find it useful]
 
         Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
-        Dictionary<Cell, BrickMeta> m_BricksToVoxels;
+        Dictionary<CellIndexInfo, BrickMeta> m_BricksToVoxels;
 
         // Various pools for data re-usage
         ObjectPool<BrickMeta> m_BrickMetaPool = new ObjectPool<BrickMeta>(x => x.Clear(), null, false);
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering
         int m_UpdateMaxIndex = int.MinValue;
 
         // Static variable required to avoid allocations inside lambda functions
-        static Cell g_Cell = null;
+        static CellIndexInfo g_Cell = null;
 
         int SizeOfPhysicalIndexFromBudget(ProbeVolumeTextureMemoryBudget memoryBudget)
         {
@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering
             m_CenterRS = new Vector3Int(0, 0, 0);
 
             m_VoxelToBricks = new Dictionary<Vector3Int, List<VoxelMeta>>();
-            m_BricksToVoxels = new Dictionary<Cell, BrickMeta>();
+            m_BricksToVoxels = new Dictionary<CellIndexInfo, BrickMeta>();
 
             m_NeedUpdateIndexComputeBuffer = false;
 
@@ -441,17 +441,17 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        public void AddBricks(Cell cell, NativeArray<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight, CellIndexUpdateInfo cellInfo)
+        public void AddBricks(CellIndexInfo cellInfo, NativeArray<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight)
         {
             Debug.Assert(bricks.Length <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId.");
             int largest_cell = ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels);
 
-            g_Cell = cell;
+            g_Cell = cellInfo;
 
             // create a new copy
             BrickMeta bm = m_BrickMetaPool.Get();
             //if (!m_BricksToVoxels.ContainsKey(cell))
-                m_BricksToVoxels.Add(cell, bm);
+                m_BricksToVoxels.Add(cellInfo, bm);
 
             int brick_idx = 0;
             // find all voxels each brick will touch
@@ -484,11 +484,11 @@ namespace UnityEngine.Rendering
                         }
 
                         VoxelMeta vm = null;
-                        int vm_idx = vm_list.FindIndex((VoxelMeta lhs) => lhs.cell == g_Cell);
+                        int vm_idx = vm_list.FindIndex((VoxelMeta lhs) => lhs.cellInfo == g_Cell);
                         if (vm_idx == -1) // first time a brick from this id has touched this voxel
                         {
                             vm = m_VoxelMetaPool.Get();
-                            vm.cell = cell;
+                            vm.cellInfo = cellInfo;
                             vm_list.Add(vm);
                         }
                         else
@@ -504,27 +504,27 @@ namespace UnityEngine.Rendering
 
             foreach (var voxel in bm.voxels)
             {
-                foreach (var entryInfo in cellInfo.entriesInfo)
+                foreach (var entryInfo in cellInfo.updateInfo.entriesInfo)
                 {
                     UpdateIndexForVoxel(voxel, entryInfo);
                 }
             }
         }
 
-        public void RemoveBricks(CellInfo cellInfo)
+        public void RemoveBricks(CellIndexInfo cellInfo)
         {
-            if (!m_BricksToVoxels.ContainsKey(cellInfo.cell))
+            if (!m_BricksToVoxels.ContainsKey(cellInfo))
                 return;
 
             var cellUpdateInfo = cellInfo.updateInfo;
 
-            g_Cell = cellInfo.cell;
+            g_Cell = cellInfo;
 
-            BrickMeta bm = m_BricksToVoxels[cellInfo.cell];
+            BrickMeta bm = m_BricksToVoxels[cellInfo];
             foreach (var v in bm.voxels)
             {
                 List<VoxelMeta> vm_list = m_VoxelToBricks[v];
-                int idx = vm_list.FindIndex((VoxelMeta lhs) => lhs.cell == g_Cell);
+                int idx = vm_list.FindIndex((VoxelMeta lhs) => lhs.cellInfo == g_Cell);
                 if (idx >= 0)
                 {
                     m_VoxelMetaPool.Release(vm_list[idx]);
@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering
                 }
             }
             m_BrickMetaPool.Release(bm);
-            m_BricksToVoxels.Remove(cellInfo.cell);
+            m_BricksToVoxels.Remove(cellInfo);
 
             // Clear allocated chunks
             foreach (var entryInfo in cellInfo.updateInfo.entriesInfo)
@@ -571,7 +571,7 @@ namespace UnityEngine.Rendering
             foreach (var vm in vm_list)
             {
                 // get the list of bricks and indices
-                List<ReservedBrick> bricks = m_BricksToVoxels[vm.cell].bricks;
+                List<ReservedBrick> bricks = m_BricksToVoxels[vm.cellInfo].bricks;
                 List<ushort> indcs = vm.brickIndices;
                 UpdateIndexForVoxel(voxel, bricks, indcs, entryInfo);
             }

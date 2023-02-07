@@ -1198,6 +1198,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DynamicResolutionFullscreenScale = new Vector4(actualWidth / finalViewport.width, actualHeight / finalViewport.height, 0, 0);
         }
 
+        internal void UpdateGlobalMipBiasCB(ref ShaderVariablesGlobal cb)
+        {
+            cb._GlobalMipBias = globalMipBias;
+            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, globalMipBias);
+        }
+
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
             => UpdateShaderVariablesGlobalCB(ref cb, (int)cameraFrameCount);
 
@@ -1233,8 +1239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TaaFrameInfo = new Vector4(taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.LowQuality ? taaSharpenStrength : 0, 0, taaFrameIndex, taaEnabled ? 1 : 0);
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
-            cb._GlobalMipBias = globalMipBias;
-            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, globalMipBias);
+            UpdateGlobalMipBiasCB(ref cb);
 
             float ct = time;
             float pt = lastTime;

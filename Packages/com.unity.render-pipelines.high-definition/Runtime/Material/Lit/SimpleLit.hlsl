@@ -355,6 +355,7 @@ float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLight
 #if !HDRP_ENABLE_SHADOWS
 #define LIGHT_EVALUATION_NO_SHADOWS
 #endif
+#define LIGHT_EVALUATION_NO_CLOUDS_SHADOWS
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"

@@ -559,9 +559,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter perceptualBlending = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).
+        /// When enabled, HDRP evaluates the Volumetric Clouds' shadows. The Volumetric Clouds shadow is rendered independently of the shadow map toggle of the directional light.
         /// </summary>
-        [Tooltip("Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).")]
+        [Tooltip("When enabled, HDRP evaluates the Volumetric Clouds' shadows. The Volumetric Clouds shadow is rendered independently of the shadow map toggle of the directional light.")]
         public BoolParameter shadows = new BoolParameter(false);
 
         /// <summary>
@@ -569,12 +569,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Specifies the resolution of the volumetric clouds shadow map.")]
         public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium256);
-
-        /// <summary>
-        /// Controls the vertical offset applied to compute the volumetric clouds shadow in meters. To have accurate results, enter the average height at which the volumetric clouds shadow is received.
-        /// </summary>
-        [Tooltip("Controls the vertical offset applied to compute the volumetric clouds shadow in meters. To have accurate results, enter the average height at which the volumetric clouds shadow is received.")]
-        public FloatParameter shadowPlaneHeightOffset = new FloatParameter(0.0f);
 
         /// <summary>
         /// Sets the size of the area covered by shadow around the camera.

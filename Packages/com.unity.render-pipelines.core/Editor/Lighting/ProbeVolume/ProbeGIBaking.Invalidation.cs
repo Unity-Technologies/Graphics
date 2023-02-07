@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering
                                         float brickSize = ProbeReferenceVolume.CellSize(cell.bricks[actualBrickIdx].subdivisionLevel);
                                         Vector3 position = cell.probePositions[shidx];
                                         probesToRestore.Add(new Vector3Int(ix, iy, iz));
-                                        var searchDistance = (brickSize * m_BakingProfile.minBrickSize) / ProbeBrickPool.kBrickCellCount;
+                                        var searchDistance = (brickSize * m_ProfileInfo.minBrickSize) / ProbeBrickPool.kBrickCellCount;
                                         hasFreeNeighbourhood = NeighbourhoodIsEmptySpace(position, searchDistance, invalidatingTouchupBound);
                                     }
                                     probeHasEmptySpaceInGrid[shidx] = hasFreeNeighbourhood;
@@ -200,15 +200,17 @@ namespace UnityEngine.Rendering
 
         internal static void RecomputeValidityAfterBake()
         {
+            var prv = ProbeReferenceVolume.instance;
+
+            if (prv.cells.Count == 0) return;
+
             // We need to start from scratch, so reset this.
             s_ForceInvalidatedProbesAndTouchupVols.Clear();
-            var prv = ProbeReferenceVolume.instance;
 
             var touchupVolumes = GameObject.FindObjectsByType<ProbeTouchupVolume>(FindObjectsSortMode.InstanceID);
             var touchupVolumesAndBounds = new List<(ProbeReferenceVolume.Volume obb, Bounds aabb, ProbeTouchupVolume touchupVolume)>(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
             {
-                m_BakingProfile = prv.sceneData.GetBakingSetForScene(touchup.gameObject.scene); // We need to grab a profile. The last one will have to do.
                 if (touchup.isActiveAndEnabled)
                 {
                     touchup.GetOBBandAABB(out var obb, out var aabb);
@@ -219,16 +221,14 @@ namespace UnityEngine.Rendering
 
             float cellSize = prv.MaxBrickSize();
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
-            Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(chunkSizeInProbes);
 
             List<BakingCell> bakingCells = new List<BakingCell>();
 
             // Then for each cell we need to convert to baking cell and repeat the invalidation scheme.
-            foreach (var cellInfo in prv.cells)
+            foreach (var cell in prv.cells.Values)
             {
-                var cell = cellInfo.Value.cell;
-                var bakingCell = ConvertCellToBakingCell(cell);
-                var position = cell.position;
+                var bakingCell = ConvertCellToBakingCell(cell.desc, cell.data);
+                var position = cell.desc.position;
                 var posWS = new Vector3(position.x * cellSize, position.y * cellSize, position.z * cellSize);
 
                 Bounds cellBounds = new Bounds();
@@ -295,30 +295,18 @@ namespace UnityEngine.Rendering
             // Unload it all as we are gonna load back with newly written cells.
             foreach (var sceneData in prv.perSceneDataList)
             {
-                prv.AddPendingAssetRemoval(sceneData.asset);
+                prv.AddPendingSceneRemoval(sceneData.sceneGUID);
             }
 
             // Make sure unloading happens.
             prv.PerformPendingOperations();
 
+            WriteBakingCells(bakingCells.ToArray());
 
-            // We now need to make sure we find for each PerSceneData
             foreach (var data in prv.perSceneDataList)
             {
-                List<BakingCell> newCells = new List<BakingCell>();
-                // This is a bit naive now. Should be fine tho.
-                for (int i=0; i<data.asset.cells.Length; ++i)
-                {
-                    var currCell = data.asset.cells[i];
-                    var bc = bakingCells.Find(x => x.index == currCell.index);
-                    newCells.Add(bc);
-                }
-
-                // Write bake the assets.
-                WriteBakingCells(data, newCells);
-                data.ResolveCells();
+                data.ResolveCellData();
             }
-
 
             // We can now finally reload.
             AssetDatabase.SaveAssets();
@@ -326,7 +314,7 @@ namespace UnityEngine.Rendering
 
             foreach (var sceneData in prv.perSceneDataList)
             {
-                prv.AddPendingAssetLoading(sceneData.asset);
+                prv.AddPendingSceneLoading(sceneData.sceneGUID);
             }
 
             prv.PerformPendingOperations();

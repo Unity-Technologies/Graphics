@@ -27,20 +27,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 12
+  version: 13
   hdPluginSubTargetMaterialVersions:
     m_Keys: []
     m_Values: 
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_EyeSG 2
   m_Shader: {fileID: -6465566751694194690, guid: 144c83fb9066da94ca2be7e4cb41665f, type: 3}
-  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _DISABLE_SSR_TRANSPARENT
+  m_InvalidKeywords:
+  - _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -53,6 +58,7 @@ Material:
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -183,15 +189,15 @@ Material:
     - Vector1_81C02E55: 0.22
     - Vector1_84D73E2: -0.005
     - Vector1_8F0D1174: 1
-    - Vector1_94E1614A: 0.0386
+    - Vector1_94E1614A: 0.025
     - Vector1_A6DA845F: 5
     - Vector1_BA182736: 1.376
-    - Vector1_C4ED1456: 0.3
+    - Vector1_C4ED1456: 0.1
     - Vector1_DFF948F3: 0.329
     - Vector1_EF58F7DF: 0.0477
     - Vector1_F084AE9E: 0.88
     - Vector1_FC0895C8: 0.41
-    - Vector1_FEA38ABB: 0.25
+    - Vector1_FEA38ABB: 0.431
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
@@ -261,10 +267,13 @@ Material:
     - _Ior: 1.5
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
+    - _Iris_Caustic_Blend: 1
+    - _Iris_Caustic_Intensity_Multiplier: 1
     - _Iris_Radius: 0.225
     - _Iris_plane_offset: 0
     - _LinkDetailsWithBase: 1
     - _MaterialID: 1
+    - _Mesh_Scale: 1
     - _Metallic: 0
     - _NormalMapSpace: 0
     - _NormalScale: 1
@@ -294,10 +303,10 @@ Material:
     - _StencilRefGBuffer: 14
     - _StencilRefMV: 40
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDepth: 9
     - _StencilWriteMaskDistortionVec: 4
-    - _StencilWriteMaskGBuffer: 14
-    - _StencilWriteMaskMV: 40
+    - _StencilWriteMaskGBuffer: 15
+    - _StencilWriteMaskMV: 43
     - _SubsurfaceMask: 1
     - _SupportDecals: 1
     - _SurfaceType: 0

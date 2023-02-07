@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
-    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver
+    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline
     {
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
@@ -1984,9 +1984,9 @@ namespace UnityEngine.Rendering.Universal
         internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
         {
             if (apvScenesData == null)
-                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
+                apvScenesData = new ProbeVolumeSceneData((Object)this);
 
-            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
+            apvScenesData.SetParentObject((Object)this);
             return apvScenesData;
         }
 
@@ -2017,6 +2017,31 @@ namespace UnityEngine.Rendering.Universal
             public bool NeedsReload()
             {
                 return blueNoise64LTex == null || bayerMatrixTex == null;
+            }
+        }
+
+        /// <summary>
+        /// Indicates the maximum number of SH Bands used by this render pipeline instance.
+        /// </summary>
+        public ProbeVolumeSHBands maxSHBands
+        {
+            get
+            {
+                if (lightProbeSystem == LightProbeSystem.ProbeVolumes)
+                    return probeVolumeSHBands;
+                else
+                    return ProbeVolumeSHBands.SphericalHarmonicsL1;
+            }
+        }
+
+        /// <summary>
+        /// Returns the projects global ProbeVolumeSceneData instance.
+        /// </summary>
+        public ProbeVolumeSceneData probeVolumeSceneData
+        {
+            get
+            {
+                return GetOrCreateAPVSceneData();
             }
         }
     }

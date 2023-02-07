@@ -42,7 +42,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
             Tags { "LightMode" = "DepthToColorPass" }
 
             Blend Off
-            ZWrite Off
+            ZWrite On
             ZTest LEqual
 
             Cull Back
@@ -103,7 +103,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
             Tags { "LightMode" = "NormalToColorPass" }
 
             Blend Off
-            ZWrite Off
+            ZWrite On
             ZTest LEqual
 
             Cull Back
@@ -132,7 +132,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
             Tags { "LightMode" = "TangentToColorPass" }
 
             Blend Off
-            ZWrite Off
+            ZWrite On
             ZTest LEqual
 
             Cull Back

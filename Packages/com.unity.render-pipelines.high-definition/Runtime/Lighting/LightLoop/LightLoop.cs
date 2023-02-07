@@ -1628,12 +1628,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Also we need to allocate space for the volumetric clouds texture if necessary
-                if (HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
-                {
-                    RTHandle cloudTexture = RequestVolumetricCloudsShadowTexture(hdCamera);
-                    m_TextureCaches.lightCookieManager.ReserveSpace(cloudTexture);
-                }
-                else if (m_SkyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
+                if (m_SkyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
                 {
                     CookieParameters cookieParams = new CookieParameters();
                     if (cloudRenderer.GetSunLightCookieParameters(cloudSettings, ref cookieParams))
@@ -1702,8 +1697,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void PreprocessReflectionProbeData(ref ProcessedProbeData processedData, VisibleReflectionProbe probe, HDCamera hdCamera)
         {
-            var add = probe.reflectionProbe.GetComponent<HDAdditionalReflectionData>();
-            if (add == null)
+            if (!probe.reflectionProbe.TryGetComponent<HDAdditionalReflectionData>(out var add))
             {
                 add = HDUtils.s_DefaultHDAdditionalReflectionData;
                 Vector3 distance = Vector3.one * probe.blendDistance;

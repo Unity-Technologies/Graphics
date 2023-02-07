@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         }
         public void Init(string layerID = "")
         {
-            if (m_LayerName == "")
+            if (m_LayerName?.Length == 0)
             {
                 m_LayerName = layerID;
             }
@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
                     m_LayerCamera.name = "Compositor" + layerID;
                     m_LayerCamera.gameObject.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave;
-                    if (m_LayerCamera.tag == "MainCamera")
+                    if (m_LayerCamera.CompareTag("MainCamera"))
                     {
                         m_LayerCamera.tag = "Untagged";
                     }
@@ -507,8 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             if (m_LayerCamera)
             {
-                var layerData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
-                if (layerData != null)
+                if (m_LayerCamera.TryGetComponent<AdditionalCompositorData>(out var layerData))
                 {
                     layerData.Init(m_InputFilters, m_ClearAlpha);
 

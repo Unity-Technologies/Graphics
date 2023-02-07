@@ -1,5 +1,20 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-2484851438890058951
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa486462e6be1764e89c788ba30e61f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_DiffusionProfileReferences:
+  - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
+  m_MaterialReferences: []
 --- !u!114 &-996075207493674427
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -12,22 +27,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 12
+  version: 13
   hdPluginSubTargetMaterialVersions:
     m_Keys: []
     m_Values: 
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Fern
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _ALPHATEST_ON _DISABLE_DECALS _DISABLE_SSR _DISABLE_SSR_TRANSPARENT
-    _DOUBLESIDED_ON _MASKMAP _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE
-    _THICKNESSMAP
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _ALPHATEST_ON
+  - _DISABLE_DECALS
+  - _DISABLE_SSR
+  - _DISABLE_SSR_TRANSPARENT
+  - _DOUBLESIDED_ON
+  - _MASKMAP
+  - _MATERIAL_FEATURE_TRANSMISSION
+  - _NORMALMAP
+  - _NORMALMAP_TANGENT_SPACE
+  - _THICKNESSMAP
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
@@ -43,6 +69,7 @@ Material:
   - TransparentBackface
   - RayTracingPrepass
   - ForwardEmissiveForDeferred
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -166,6 +193,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: cd26c853cf4662e448f0e9b7e170159e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmissionMaskMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TransmittanceColorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -195,6 +226,8 @@ Material:
     - _AlphaCutoffPrepass: 0.5
     - _AlphaCutoffShadow: 0.5
     - _AlphaDstBlend: 0
+    - _AlphaRemapMax: 1
+    - _AlphaRemapMin: 0
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
@@ -213,7 +246,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: -1
-    - _DiffusionProfileHash: 2.0536408
+    - _DiffusionProfileHash: 3.8956573
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -279,6 +312,8 @@ Material:
     - _Mode: 3
     - _NormalMapSpace: 0
     - _NormalScale: 1
+    - _ObjectSpaceUVMapping: 0
+    - _ObjectSpaceUVMappingEmissive: 0
     - _OcclusionStrength: 1
     - _OpaqueCullMode: 2
     - _PPDLodThreshold: 5
@@ -313,10 +348,10 @@ Material:
     - _StencilRefGBuffer: 2
     - _StencilRefMV: 32
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDepth: 9
     - _StencilWriteMaskDistortionVec: 4
-    - _StencilWriteMaskGBuffer: 14
-    - _StencilWriteMaskMV: 40
+    - _StencilWriteMaskGBuffer: 15
+    - _StencilWriteMaskMV: 41
     - _Stiffness: 1000
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 5
@@ -338,6 +373,7 @@ Material:
     - _Thickness: 1
     - _ThicknessMultiplier: 1
     - _TransmissionEnable: 1
+    - _TransmissionMask: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
@@ -362,7 +398,7 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DiffusionProfileAsset: {r: 6.669458e-36, g: 5.261928e+31, b: -1.1107148e+32, a: 2.9494916e-23}
+    - _DiffusionProfileAsset: {r: -8.695931e+30, g: -5.0949594e+31, b: -0.010710085, a: -0.0000000055696536}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}

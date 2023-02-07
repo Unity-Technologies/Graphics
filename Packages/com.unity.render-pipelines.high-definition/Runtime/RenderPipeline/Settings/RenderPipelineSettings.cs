@@ -164,13 +164,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedRayTracingMode = SupportedRayTracingMode.Both,
                 lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
-                lightProbeSystem = LightProbeSystem.LegacyLightProbes,
+                lightProbeSystem = LightProbeSystem.ProbeVolumes,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
                 probeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow,
-                supportProbeVolumeStreaming = false,
                 supportProbeVolumeScenarios = false,
                 supportProbeVolumeScenarioBlending = true,
                 supportHighQualityLineRendering = false,
+                supportProbeVolumeGPUStreaming = false,
+                supportProbeVolumeDiskStreaming = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
@@ -363,6 +364,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.ProbeVolumes);
+        [FormerlySerializedAs("supportProbeVolume")]
+        [Obsolete("Use lightProbeSystem instead", false)]
+        internal bool oldSupportProbeVolume;
+
 
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
@@ -380,10 +385,17 @@ namespace UnityEngine.Rendering.HighDefinition
         // [ShaderKeywordFilter.RemoveIf(LightProbeSystem.LegacyLightProbes, keywordNames: new string[] {"PROBE_VOLUMES_L1", "PROBE_VOLUMES_L2"})]
 #endif
         public LightProbeSystem lightProbeSystem;
+        [SerializeField]
+        [FormerlySerializedAs("lightProbeSystem")]
+        internal LightProbeSystem oldLightProbeSystem;
+
         /// <summary>Probe Volume Memory Budget.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
-        /// <summary>Support Streaming for Probe Volumes.</summary>
-        public bool supportProbeVolumeStreaming;
+        /// <summary>Support GPU Streaming for Probe Volumes.</summary>
+        [FormerlySerializedAs("supportProbeVolumeStreaming")]
+        public bool supportProbeVolumeGPUStreaming;
+        /// <summary>Support Disk Streaming for Probe Volumes.</summary>
+        public bool supportProbeVolumeDiskStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>
 #if UNITY_EDITOR // multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
         // [ShaderKeywordFilter.RemoveIf(ProbeVolumeSHBands.SphericalHarmonicsL1, keywordNames: "PROBE_VOLUMES_L2")]

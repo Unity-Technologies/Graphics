@@ -1,8 +1,33 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
+    internal sealed class SerializedDictionaryDebugView<K, V>
+    {
+        private IDictionary<K, V> dict;
+
+        public SerializedDictionaryDebugView(IDictionary<K, V> dictionary)
+        {
+            if (dictionary == null)
+                throw new ArgumentNullException(dictionary.ToString());
+
+            this.dict = dictionary;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public KeyValuePair<K, V>[] Items
+        {
+            get
+            {
+                KeyValuePair<K, V>[] items = new KeyValuePair<K, V>[dict.Count];
+                dict.CopyTo(items, 0);
+                return items;
+            }
+        }
+    }
+
     /// <summary>
     /// Unity can't serialize Dictionary so here's a custom wrapper that does. Note that you have to
     /// extend it before it can be serialized as Unity won't serialized generic-based types either.
@@ -13,6 +38,8 @@ namespace UnityEngine.Rendering
     /// public sealed class MyDictionary : SerializedDictionary&lt;KeyType, ValueType&gt; {}
     /// </example>
     [Serializable]
+    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerTypeProxy(typeof(SerializedDictionaryDebugView<, >))]
     public class SerializedDictionary<K, V> : SerializedDictionary<K, V, K, V>
     {
         /// <summary>
@@ -109,11 +136,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void OnAfterDeserialize()
         {
+            Clear();
+
             for (int i = 0; i < m_Keys.Count; i++)
                 Add(DeserializeKey(m_Keys[i]), DeserializeValue(m_Values[i]));
-
-            m_Keys.Clear();
-            m_Values.Clear();
         }
     }
 }

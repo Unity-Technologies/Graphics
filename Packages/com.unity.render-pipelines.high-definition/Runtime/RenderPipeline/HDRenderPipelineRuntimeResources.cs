@@ -190,6 +190,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumetricCloudsCS;
             [Reload("Runtime/Lighting/VolumetricClouds/VolumetricCloudsTrace.compute")]
             public ComputeShader volumetricCloudsTraceCS;
+            [Reload("Runtime/Lighting/VolumetricClouds/VolumetricCloudsTraceShadows.compute")]
+            public ComputeShader volumetricCloudsTraceShadowsCS;
+            [Reload("Runtime/Lighting/VolumetricClouds/VolumetricCloudsShadowFilter.compute")]
+            public ComputeShader volumetricCloudsShadowFilterCS;
             [Reload("Editor/Lighting/VolumetricClouds/CloudMapGenerator.compute")]
             public ComputeShader volumetricCloudMapGeneratorCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]

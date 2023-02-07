@@ -67,9 +67,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -985,33 +982,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 294.43283
-    sh[ 1]: -157.366
-    sh[ 2]: 71.79524
-    sh[ 3]: 3.3411484
-    sh[ 4]: -28.469948
-    sh[ 5]: -65.73405
-    sh[ 6]: -12.597583
-    sh[ 7]: 14.103926
-    sh[ 8]: -9.057853
-    sh[ 9]: 422.65167
-    sh[10]: -215.68033
-    sh[11]: -15.197263
-    sh[12]: 38.74776
-    sh[13]: -72.11784
-    sh[14]: 40.978745
-    sh[15]: -16.51425
-    sh[16]: -20.724785
-    sh[17]: -17.009516
-    sh[18]: 595.57367
-    sh[19]: -89.75712
-    sh[20]: -226.80797
-    sh[21]: 62.867195
-    sh[22]: -57.176517
-    sh[23]: 70.211075
-    sh[24]: 50.295887
-    sh[25]: -101.86257
-    sh[26]: 30.656483
+    'sh[ 0]': 294.43283
+    'sh[ 1]': -157.366
+    'sh[ 2]': 71.79524
+    'sh[ 3]': 3.3411484
+    'sh[ 4]': -28.469948
+    'sh[ 5]': -65.73405
+    'sh[ 6]': -12.597583
+    'sh[ 7]': 14.103926
+    'sh[ 8]': -9.057853
+    'sh[ 9]': 422.65167
+    'sh[10]': -215.68033
+    'sh[11]': -15.197263
+    'sh[12]': 38.74776
+    'sh[13]': -72.11784
+    'sh[14]': 40.978745
+    'sh[15]': -16.51425
+    'sh[16]': -20.724785
+    'sh[17]': -17.009516
+    'sh[18]': 595.57367
+    'sh[19]': -89.75712
+    'sh[20]': -226.80797
+    'sh[21]': 62.867195
+    'sh[22]': -57.176517
+    'sh[23]': 70.211075
+    'sh[24]': 50.295887
+    'sh[25]': -101.86257
+    'sh[26]': 30.656483
   m_SHValidForCapturePosition: {x: -3.424, y: 13.12, z: 3.08}
   m_SHValidForSourcePosition: {x: -3.424, y: 13.12, z: 3.08}
   m_HDProbeVersion: 3
@@ -1759,7 +1756,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cded085d155cde949b60f67a11dbc3bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  globalVolume: 1
+  mode: 1
   size: {x: 11.439015, y: 16.300907, z: 18.955118}
   overrideRendererFilters: 0
   minRendererVolumeSize: 0.1
@@ -1787,8 +1784,10 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: 507495071
+  cachedHashCode: -1514689012
   fillEmptySpaces: 0
+  version: 1
+  globalVolume: 1
 --- !u!4 &1017176620
 Transform:
   m_ObjectHideFlags: 0
@@ -2013,7 +2012,7 @@ Light:
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
-  m_Color: {r: 0, g: 1, b: 0, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_Intensity: 4774.648
   m_Range: 1.9943948
   m_SpotAngle: 30
@@ -2695,12 +2694,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a83d2f7ae04ab6f4f99b0d85377be998, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  asset: {fileID: 11400000, guid: a51673b8ec3ae0e48a8e2463c9b5bfdd, type: 2}
-  sceneGUID: 
-  cellSharedDataAsset: {fileID: 4900000, guid: 4262df70f9af54e479b53da2b0b6f384, type: 3}
-  cellSupportDataAsset: {fileID: 4900000, guid: acb4ae6ad947b73478110ec6f398e997,
+  bakingSet: {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
+  sceneGUID: 5028fc98db6fe304c90852113dca5b00
+  obsoleteAsset: {fileID: 11400000, guid: a51673b8ec3ae0e48a8e2463c9b5bfdd, type: 2}
+  obsoleteCellSharedDataAsset: {fileID: 4900000, guid: 4262df70f9af54e479b53da2b0b6f384,
     type: 3}
-  serializedScenarios:
+  obsoleteCellSupportDataAsset: {fileID: 4900000, guid: acb4ae6ad947b73478110ec6f398e997,
+    type: 3}
+  obsoleteSerializedScenarios:
   - scenario: Scenario 1
     data:
       sceneHash: 484293852

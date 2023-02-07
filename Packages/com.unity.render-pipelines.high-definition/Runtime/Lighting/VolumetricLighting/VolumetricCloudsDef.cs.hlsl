@@ -38,9 +38,9 @@ CBUFFER_START(ShaderVariablesClouds)
     float _ErosionFactor;
     float _ErosionScale;
     float _MicroErosionFactor;
+    float2 _ShadowRegionSize;
     float _MicroErosionScale;
     float _CloudHistoryInvalidation;
-    float2 _ShadowRegionSize;
     float4 _ScatteringTint;
     float4 _FinalScreenSize;
     float4 _IntermediateScreenSize;
@@ -55,13 +55,6 @@ CBUFFER_START(ShaderVariablesClouds)
     float _FadeInDistance;
     int _LowResolutionEvaluation;
     int _EnableIntegration;
-    float4 _SunRight;
-    float4 _SunUp;
-    float _ShadowIntensity;
-    float _ShadowFallbackValue;
-    int _ShadowCookieResolution;
-    float _ShadowPlaneOffset;
-    float4 _WorldSpaceShadowCenter;
     float4x4 _CameraViewProjection_NO;
     float4x4 _CameraInverseViewProjection_NO;
     float4x4 _CameraPrevViewProjection_NO;
@@ -75,6 +68,20 @@ CBUFFER_START(ShaderVariablesClouds)
     float _CubicTransmittance;
     float _TemporalAccumulationFactor;
     float4 _DistanceBasedWeights[12];
+CBUFFER_END
+
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesCloudsShadows
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesCloudsShadows)
+    float _ShadowIntensity;
+    float _PaddingVCS0;
+    int _ShadowCookieResolution;
+    float _PaddingVCS1;
+    float4 _CloudShadowSunOrigin;
+    float4 _CloudShadowSunRight;
+    float4 _CloudShadowSunUp;
+    float4 _CloudShadowSunForward;
+    float4 _WorldSpaceShadowCenter;
 CBUFFER_END
 
 

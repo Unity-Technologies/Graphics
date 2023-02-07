@@ -319,7 +319,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
                 PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
                 PushFullScreenHDRDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
-
+                PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.VolumetricFog);
+                
                 ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
 
                 RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
@@ -587,10 +588,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     (PushCameraGlobalMipBiasData data, RenderGraphContext context) =>
                     {
                         data.hdCamera.globalMipBias = data.mipBias;
-                        data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
+                        data.hdCamera.UpdateGlobalMipBiasCB(ref data.globalCB);
                         ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
-                        data.hdCamera.UpdateShaderVariablesXRCB(ref data.xrCB);
-                        ConstantBuffer.PushGlobal(context.cmd, data.xrCB, HDShaderIDs._ShaderVariablesXR);
                     });
             }
         }

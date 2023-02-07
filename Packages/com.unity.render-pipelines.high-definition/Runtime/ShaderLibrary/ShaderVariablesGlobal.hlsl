@@ -22,6 +22,7 @@
 #define RAY_TRACING_HD_DIRECTIONAL_SHADOW_DATA_REGISTER         t14
 #define RAY_TRACING_AMBIENT_PROBE_DATA_REGISTER                 t15
 #define RAY_TRACING_LIGHT_DATAS_REGISTER                        t16
+#define RAY_TRACING_VOLUMETRIC_CLOUDS_SHADOW_REGISTER           t17
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.cs.hlsl"
 

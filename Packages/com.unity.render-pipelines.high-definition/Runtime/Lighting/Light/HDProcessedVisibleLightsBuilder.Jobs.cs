@@ -88,10 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We can skip the processing of lights that are so small to not affect at least a pixel on screen.
                 // TODO: The minimum pixel size on screen should really be exposed as parameter, to allow small lights to be culled to user's taste.
                 const int minimumPixelAreaOnScreen = 1;
-                if ((light.screenRect.height * light.screenRect.width * pixelCount) < minimumPixelAreaOnScreen)
-                    return true;
-
-                return false;
+                return (light.screenRect.height * light.screenRect.width * pixelCount) < minimumPixelAreaOnScreen;
             }
 
             private int IncrementCounter(HDProcessedVisibleLightsBuilder.ProcessLightsCountSlots counterSlot)

@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.SceneManagement;
@@ -8,8 +8,11 @@ using UnityEditor;
 
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
+using CellDesc = UnityEngine.Rendering.ProbeReferenceVolume.CellDesc;
+using CellData = UnityEngine.Rendering.ProbeReferenceVolume.CellData;
 using IndirectionEntryInfo = UnityEngine.Rendering.ProbeReferenceVolume.IndirectionEntryInfo;
-using CellInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellInfo;
+using StreamableCellDesc = UnityEngine.Rendering.ProbeVolumeBakingSet.StreamableAsset.StreamableCellDesc;
+using ProbeVolumeBakingSet = UnityEngine.Rendering.ProbeVolumeBakingSet;
 
 namespace UnityEngine.Rendering
 {
@@ -54,7 +57,7 @@ namespace UnityEngine.Rendering
     class BakingBatch
     {
         public int index;
-        public Dictionary<int, HashSet<Scene>> cellIndex2SceneReferences = new Dictionary<int, HashSet<Scene>>();
+        public Dictionary<int, HashSet<string>> cellIndex2SceneReferences = new Dictionary<int, HashSet<string>>();
         public List<BakingCell> cells = new List<BakingCell>();
         public Vector3[] virtualOffsets;
         // Allow to get a mapping to subdiv level with the unique positions. It stores the minimum subdiv level found for a given position.
@@ -93,6 +96,17 @@ namespace UnityEngine.Rendering
         public int GetSubdivLevelAt(Vector3 position) => uniqueBrickSubdiv[GetProbePositionHash(position)];
 
         public int uniqueProbeCount => uniqueBrickSubdiv.Count;
+    }
+
+    class ProbeVolumeProfileInfo
+    {
+        public int simplificationLevels;
+        public float minDistanceBetweenProbes;
+
+        public int maxSubdivision => ProbeVolumeBakingSet.GetMaxSubdivision(simplificationLevels);
+        public float minBrickSize => ProbeVolumeBakingSet.GetMinBrickSize(minDistanceBetweenProbes);
+        public int cellSizeInBricks => ProbeVolumeBakingSet.GetCellSizeInBricks(simplificationLevels);
+        public float cellSizeInMeters => (float)cellSizeInBricks * minBrickSize;
     }
 
     [InitializeOnLoad]
@@ -165,6 +179,7 @@ namespace UnityEngine.Rendering
                 }
             }
         }
+
         public class BakingSetupProfiling : BakingProfiling<BakingSetupProfiling.Stages>, IDisposable
         {
             //protected override string LogFile => "OnBakeStarted";
@@ -187,6 +202,7 @@ namespace UnityEngine.Rendering
             public static void GetProgressRange(out float progress0, out float progress1) { float s = 1 / (float)Stages.None; progress0 = (float)currentStage * s; progress1 = progress0 + s; }
             public void Dispose() { OnDispose(ref currentStage); }
         }
+
         public class BakingCompleteProfiling : BakingProfiling<BakingCompleteProfiling.Stages>, IDisposable
         {
             //protected override string LogFile => "OnAdditionalProbesBakeCompleted";
@@ -208,16 +224,34 @@ namespace UnityEngine.Rendering
             public void Dispose() { OnDispose(ref currentStage); }
         }
 
+        struct CellChunkData
+        {
+            public bool scenarioValid;
+
+            public NativeArray<ushort> shL0L1RxData;
+            public NativeArray<byte> shL1GL1RyData;
+            public NativeArray<byte> shL1BL1RzData;
+
+            // Optional L2 Data
+            public NativeArray<byte> shL2Data_0;
+            public NativeArray<byte> shL2Data_1;
+            public NativeArray<byte> shL2Data_2;
+            public NativeArray<byte> shL2Data_3;
+
+            public NativeArray<byte> validityNeighMaskData;
+        }
+
+        public const string kAPVStreamingAssetsPath = "APVStreamingAssets";
 
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
-        static ProbeVolumeBakingSet m_BakingProfile = null;
-        static ProbeVolumeBakingProcessSettings m_BakingSettings;
+        static ProbeVolumeBakingSet m_BakingSet = null;
+
+        static ProbeVolumeProfileInfo m_ProfileInfo = null;
 
         static int m_BakingBatchIndex = 0;
 
         static Bounds globalBounds = new Bounds();
-        static bool hasFoundBounds = false;
         static Vector3Int minCellPosition = Vector3Int.one * int.MaxValue;
         static Vector3Int maxCellPosition = Vector3Int.one * int.MinValue;
         static Vector3Int cellCount = Vector3Int.zero;
@@ -227,13 +261,13 @@ namespace UnityEngine.Rendering
 
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
+        // We need to keep the original list of cells that were actually baked to feed it to the dilation process.
+        // This is because during partial bake we only want to dilate those cells.
+        static Dictionary<int, BakingCell> m_CellsToDilate = new Dictionary<int, BakingCell>();
 
         internal static List<string> partialBakeSceneList = null;
         internal static bool isBakingSceneSubset => partialBakeSceneList != null;
         internal static bool isFreezingPlacement = false;
-
-        // This is needed only for isBakingOnlyActiveScene when we have some cells extracted from assets into m_BakedCells
-        static HashSet<int> m_NewlyBakedCells = new HashSet<int>();
 
         internal static List<ProbeVolumePerSceneData> GetPerSceneDataList()
         {
@@ -272,6 +306,26 @@ namespace UnityEngine.Rendering
             return usedPVList;
         }
 
+        static SphericalHarmonicsL2 s_BlackSH;
+        static bool s_BlackSHInitialized = false;
+
+        static SphericalHarmonicsL2 GetBlackSH()
+        {
+            if (!s_BlackSHInitialized)
+            {
+                // Init SH with values that will resolve to black
+                s_BlackSH = new SphericalHarmonicsL2();
+                for (int channel = 0; channel < 3; ++channel)
+                {
+                    s_BlackSH[channel, 0] = 0.0f;
+                    for (int coeff = 1; coeff < 9; ++coeff)
+                        s_BlackSH[channel, coeff] = 0.5f;
+                }
+            }
+
+            return s_BlackSH;
+        }
+
         static ProbeGIBaking()
         {
             Init();
@@ -297,10 +351,15 @@ namespace UnityEngine.Rendering
 
         static public void Clear()
         {
+            var activeSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(SceneManager.GetActiveScene());
+
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 data.Clear();
 
             ProbeReferenceVolume.instance.Clear();
+
+            if (activeSet != null)
+                activeSet.Clear();
 
             var probeVolumes = GameObject.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
             foreach (var probeVolume in probeVolumes)
@@ -312,20 +371,27 @@ namespace UnityEngine.Rendering
             if (!ProbeReferenceVolume.instance.supportLightingScenarios)
                 return false;
 
-            // Check if all the scene datas in the scene have an asset, if  not then we cannot enable this option.
+            // Check if all the scene datas in the scene have a baking set, if  not then we cannot enable this option.
             var sceneDataList = GetPerSceneDataList();
             if (sceneDataList.Count == 0)
                 return false;
 
             foreach (var sceneData in sceneDataList)
             {
-                if (sceneData.asset == null)
+                if (sceneData.bakingSet == null)
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        internal static void GetProbeAndChunkIndex(int globalProbeIndex, out int chunkIndex, out int chunkProbeIndex)
+        {
+            var chunkSizeInProbeCount = ProbeBrickPool.GetChunkSizeInProbeCount();
+            chunkIndex = globalProbeIndex / chunkSizeInProbeCount;
+            chunkProbeIndex = globalProbeIndex - chunkIndex * chunkSizeInProbeCount;
         }
 
         public static void FindWorldBounds()
@@ -338,7 +404,7 @@ namespace UnityEngine.Rendering
             var activeScene = SceneManager.GetActiveScene();
             var activeSet = sceneData.GetBakingSetForScene(activeScene);
 
-            hasFoundBounds = false;
+            bool hasFoundBounds = false;
 
             foreach (var sceneGUID in activeSet.sceneGUIDs)
             {
@@ -367,36 +433,49 @@ namespace UnityEngine.Rendering
 
         static bool SetBakingContext(List<ProbeVolumePerSceneData> perSceneData)
         {
-            // We need to make sure all scenes we are baking have the same profile. The same should be done for the baking settings, but we check only profile.
-            // TODO: This should be ensured by the controlling panel, until we have that we need to assert.
-
-            // To check what are the scenes that have probe volume enabled we checks the ProbeVolumePerSceneData. We are guaranteed to have only one per scene.
+            bool isBakingSingleScene = false;
             for (int i = 0; i < perSceneData.Count; ++i)
             {
                 var data = perSceneData[i];
                 var scene = data.gameObject.scene;
-                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(scene);
-
-                if (profile == null)
+                var bakingSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(scene);
+                if (bakingSet != null && bakingSet.singleSceneMode)
                 {
+                    isBakingSingleScene = true;
+                    break;
+                }
+            }
+
+            // We need to make sure all scenes we are baking are from the same baking set.
+            // TODO: This should be ensured by the controlling panel, until we have that we need to assert.
+            for (int i = 0; i < perSceneData.Count; ++i)
+            {
+                var data = perSceneData[i];
+                var scene = data.gameObject.scene;
+                var bakingSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(scene);
+
+                if (bakingSet == null)
+                {
+                    if (isBakingSingleScene)
+                        continue;
+
                     Debug.LogError($"Scene '{scene.name}' does not belong to any Baking Set. Please add it to a Baking Set in the Probe Volumes tab of the Lighting Window.");
                     return false;
                 }
 
-                // In case a scene is duplicated, we need to clear references to original asset
+                bakingSet.SetActiveScenario(bakingSet.lightingScenario, verbose: false); // Ensure we are not blending any other scenario.
+
+                // In case a scene is duplicated, we need to store the right scene GUID
                 if (data.sceneGUID != data.gameObject.scene.GetGUID())
                 {
-                    if (!string.IsNullOrEmpty(data.sceneGUID))
-                        data.ClearBakedDataReferences();
                     data.sceneGUID = data.gameObject.scene.GetGUID();
                 }
 
                 if (i == 0)
                 {
-                    m_BakingProfile = profile;
-                    m_BakingSettings = profile.settings;
+                    m_BakingSet = bakingSet;
                 }
-                else if (!m_BakingProfile.IsEquivalent(profile))
+                else if (!m_BakingSet.IsEquivalent(bakingSet))
                     return false;
             }
 
@@ -407,7 +486,6 @@ namespace UnityEngine.Rendering
         {
             var sceneData = ProbeReferenceVolume.instance.sceneData;
             var activeScene = SceneManager.GetActiveScene();
-            var activeSet = sceneData.GetBakingSetForScene(activeScene);
 
             // We assume that all the per scene data for all the scenes in the set have been set with the scene been saved at least once. However we also update the scenes that are currently loaded anyway for security.
             // and to have a new trigger to update the bounds we have.
@@ -418,7 +496,9 @@ namespace UnityEngine.Rendering
                 if (!scene.isLoaded)
                     continue;
                 sceneData.OnSceneSaving(scene); // We need to perform the same actions we do when the scene is saved.
-                if (sceneData.GetBakingSetForScene(scene) != activeSet && sceneData.SceneHasProbeVolumes(scene))
+                var activeSet = sceneData.GetBakingSetForScene(activeScene); // Must be done after OnSceneSaved because it can put the set in the default baking set if needed.
+                var sceneBakingSet = sceneData.GetBakingSetForScene(scene);
+                if (sceneBakingSet != null && sceneBakingSet != activeSet && sceneData.SceneHasProbeVolumes(scene))
                 {
                     Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
                 }
@@ -466,6 +546,14 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static ProbeVolumeProfileInfo GetProfileInfoFromBakingSet(ProbeVolumeBakingSet set)
+        {
+            var result = new ProbeVolumeProfileInfo();
+            result.minDistanceBetweenProbes = set.minDistanceBetweenProbes;
+            result.simplificationLevels = set.simplificationLevels;
+            return result;
+        }
+
         static void OnBakeStarted()
         {
             if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP) return;
@@ -495,9 +583,11 @@ namespace UnityEngine.Rendering
             if (!SetBakingContext(sceneDataList))
                 return;
 
+            m_ProfileInfo = GetProfileInfoFromBakingSet(m_BakingSet);
+
             if (isFreezingPlacement)
             {
-                ModifyProfileFromLoadedData(m_BakingProfile);
+                ModifyProfileFromLoadedData(m_BakingSet);
             }
             else
             {
@@ -506,13 +596,19 @@ namespace UnityEngine.Rendering
             }
 
             // Get min/max
-            CellCountInDirections(out minCellPosition, out maxCellPosition, m_BakingProfile.cellSizeInMeters);
+            CellCountInDirections(out minCellPosition, out maxCellPosition, m_ProfileInfo.cellSizeInMeters);
             cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
 
             GeneratePhysicsComponentToModList();
 
+            ProbeReferenceVolume.instance.EnsureCurrentBakingSet(m_BakingSet);
+
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                data.Initialize();
+            {
+                // It can be null if the scene was never added to a baking set and we are baking in single scene mode, in that case we don't have a baking set for it yet and we need to skip 
+                if (ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(data.gameObject.scene)) 
+                    data.Initialize();
+            }
 
             using (new BakingSetupProfiling(BakingSetupProfiling.Stages.PlaceProbes))
                 RunPlacement();
@@ -551,30 +647,61 @@ namespace UnityEngine.Rendering
             cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / brickSizeInMeter)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / brickSizeInMeter))) * 2;
         }
 
+        static CellChunkData GetCellChunkData(CellData cellData, int chunkIndex)
+        {
+            var result = new CellChunkData();
+
+            int chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+            int chunkOffset = chunkSizeInProbes * chunkIndex;
+
+            result.scenarioValid = cellData.scenarios.TryGetValue(m_BakingSet.lightingScenario, out var scenarioData);
+
+            if (result.scenarioValid)
+            {
+                result.shL0L1RxData = scenarioData.shL0L1RxData.GetSubArray(chunkOffset * 4, chunkSizeInProbes * 4);
+                result.shL1GL1RyData = scenarioData.shL1GL1RyData.GetSubArray(chunkOffset * 4, chunkSizeInProbes * 4);
+                result.shL1BL1RzData = scenarioData.shL1BL1RzData.GetSubArray(chunkOffset * 4, chunkSizeInProbes * 4);
+
+                if (scenarioData.shL2Data_0.Length > 0) // we might have no L2 if we are not during baking but during touchup interaction
+                {
+                    result.shL2Data_0 = scenarioData.shL2Data_0.GetSubArray(chunkOffset * 4, chunkSizeInProbes * 4);
+                    result.shL2Data_1 = scenarioData.shL2Data_1.GetSubArray(chunkOffset * 4, chunkSizeInProbes * 4);
+                    result.shL2Data_2 = scenarioData.shL2Data_2.GetSubArray(chunkOffset * 4, chunkSizeInProbes * 4);
+                    result.shL2Data_3 = scenarioData.shL2Data_3.GetSubArray(chunkOffset * 4, chunkSizeInProbes * 4);
+                }
+            }
+
+            result.validityNeighMaskData = cellData.validityNeighMaskData.GetSubArray(chunkOffset, chunkSizeInProbes);
+
+            return result;
+        }
+
         // NOTE: This is somewhat hacky and is going to likely be slow (or at least slower than it could).
         // It is only a first iteration of the concept that won't be as impactful on memory as other options.
         internal static void RevertDilation()
         {
-            if (m_BakingProfile == null)
+            if (m_BakingSet == null)
             {
                 if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return;
                 SetBakingContext(ProbeReferenceVolume.instance.perSceneDataList);
             }
 
-            var dilationSettings = m_BakingSettings.dilationSettings;
+            var dilationSettings = m_BakingSet.settings.dilationSettings;
             var blackProbe = new SphericalHarmonicsL2();
 
-            foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
+            int chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
-                var cell = cellInfo.cell;
-                for (int i = 0; i < cell.validity.Length; ++i)
+                for (int i = 0; i < cell.data.validity.Length; ++i)
                 {
-                    if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
+                    if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.data.validity[i] > dilationSettings.dilationValidityThreshold)
                     {
-                        WriteToShaderCoeffsL0L1(blackProbe, cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData, i * 4);
+                        GetProbeAndChunkIndex(i, out var chunkIndex, out var index);
 
-                        if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                            WriteToShaderCoeffsL2(blackProbe, cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, i * 4);
+                        var cellChunkData = GetCellChunkData(cell.data, chunkIndex);
+
+                        WriteToShaderCoeffsL0L1(blackProbe, cellChunkData.shL0L1RxData, cellChunkData.shL1GL1RyData, cellChunkData.shL1BL1RzData, index * 4);
+                        WriteToShaderCoeffsL2(blackProbe, cellChunkData.shL2Data_0, cellChunkData.shL2Data_1, cellChunkData.shL2Data_2, cellChunkData.shL2Data_3, index * 4);
                     }
                 }
             }
@@ -588,44 +715,18 @@ namespace UnityEngine.Rendering
             var perSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
             if (perSceneDataList.Count == 0) return;
 
-            Dictionary<int, List<string>> cell2Assets = new Dictionary<int, List<string>>();
-            List<CellInfo> tempLoadedCells = new List<CellInfo>();
+            List<Cell> tempLoadedCells = new List<Cell>();
 
             var prv = ProbeReferenceVolume.instance;
 
             SetBakingContext(perSceneDataList);
 
-            foreach (var sceneData in perSceneDataList)
-            {
-                var asset = sceneData.asset;
-
-                if (asset == null) continue; // Can happen if only the active scene is baked and the data for the rest is not available.
-
-                string assetPath = asset.GetSerializedFullPath();
-                foreach (var cell in asset.cells)
-                {
-                    if (!cell2Assets.ContainsKey(cell.index))
-                    {
-                        cell2Assets.Add(cell.index, new List<string>());
-                    }
-
-                    cell2Assets[cell.index].Add(assetPath);
-                }
-                //// We need to queue the asset loading to make sure all is fine when calling refresh.
-                //sceneData.QueueAssetLoading();
-            }
-
-            var dilationSettings = m_BakingSettings.dilationSettings;
+            var dilationSettings = m_BakingSet.settings.dilationSettings;
 
             if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
             {
-                // Make sure all assets are loaded before performing dilation.
+                // Make sure all assets are loaded.
                 prv.PerformPendingOperations();
-
-                // Force maximum sh bands to perform dilation, we need to store what sh bands was selected from the settings as we need to restore
-                // post dilation.
-                var prevSHBands = prv.shBands;
-                prv.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
 
                 // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.
                 for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
@@ -639,14 +740,9 @@ namespace UnityEngine.Rendering
 
                     if (everythingLoaded)
                     {
-                        foreach (var cellInfo in prv.cells.Values)
+                        foreach (var cell in prv.cells.Values)
                         {
-                            var cell = cellInfo.cell;
-                            if (isBakingSceneSubset && !m_NewlyBakedCells.Contains(cell.index))
-                            {
-                                dilatedCells.Add(cell);
-                            }
-                            else
+                            if (m_CellsToDilate.ContainsKey(cell.desc.index))
                             {
                                 PerformDilation(cell, dilationSettings);
                                 dilatedCells.Add(cell);
@@ -662,12 +758,11 @@ namespace UnityEngine.Rendering
                         // Free All memory to make room for each cell and its neighbors for dilation.
                         prv.UnloadAllCells();
 
-                        foreach (var cellInfo in prv.cells.Values)
+                        foreach (var cell in prv.cells.Values)
                         {
                             tempLoadedCells.Clear();
 
-                            var cell = cellInfo.cell;
-                            var cellPos = cell.position;
+                            var cellPos = cell.desc.position;
                             // Load the cell and all its neighbors before doing dilation.
                             for (int x = -1; x <= 1; ++x)
                                 for (int y = -1; y <= 1; ++y)
@@ -683,16 +778,12 @@ namespace UnityEngine.Rendering
                                                     tempLoadedCells.Add(cellToLoad);
                                                 }
                                                 else
-                                                    Debug.LogError($"Not enough memory to perform dilation for cell {cell.index}");
+                                                    Debug.LogError($"Not enough memory to perform dilation for cell {cell.desc.index}");
                                             }
                                         }
                                     }
 
-                            if (isBakingSceneSubset && !m_NewlyBakedCells.Contains(cell.index))
-                            {
-                                dilatedCells.Add(cell);
-                            }
-                            else
+                            if (m_CellsToDilate.ContainsKey(cell.desc.index))
                             {
                                 PerformDilation(cell, dilationSettings);
                                 dilatedCells.Add(cell);
@@ -704,48 +795,151 @@ namespace UnityEngine.Rendering
                         }
                     }
 
-                    foreach (var sceneData in perSceneDataList)
-                    {
-                        if (sceneData.asset == null) continue; // Can happen if only the active scene is baked and the data for the rest is not available.
-                        prv.AddPendingAssetRemoval(sceneData.asset);
-                    }
-
-                    // Make sure unloading happens.
-                    prv.PerformPendingOperations();
-
-                    Dictionary<ProbeVolumePerSceneData, List<Cell>> sceneDataToCells = new Dictionary<ProbeVolumePerSceneData, List<Cell>>();
-                    foreach (var cell in dilatedCells)
-                    {
-                        foreach (var sceneData in perSceneDataList)
-                        {
-                            if (sceneData.asset == null) continue; // Can happen if only the active scene is baked and the data for the rest is not available.
-
-                            var assetPath = sceneData.asset.GetSerializedFullPath();
-                            if (cell2Assets[cell.index].Contains(assetPath))
-                            {
-                                if (!sceneDataToCells.ContainsKey(sceneData))
-                                    sceneDataToCells[sceneData] = new List<Cell>();
-
-                                sceneDataToCells[sceneData].Add(cell);
-                            }
-                        }
-                    }
 
                     // Now write back the assets.
-                    foreach (var data2Cell in sceneDataToCells)
-                    {
-                        WriteDilatedCells(data2Cell.Key, data2Cell.Value);
-                    }
+                    WriteDilatedCells(dilatedCells);
 
                     AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
 
+                    // Reload data
                     foreach (var sceneData in perSceneDataList)
-                        sceneData.QueueAssetLoading();
+                    {
+                        sceneData.QueueSceneRemoval();
+                        sceneData.QueueSceneLoading();
+                    }
+                    prv.PerformPendingOperations();
+                }
+            }
+        }
+
+        static Dictionary<int, int> RemapBakedCells(bool isBakingSubset)
+        {
+            // When baking a baking set. It is possible that cells layout has changed (min and max position of cells in the set).
+            // If this is the case then the cell index for a given position will change.
+            // Because of this, when doing partial bakes, we need to generate a remapping table of the old cells to the new layout in order to be able to update existing data.
+            Dictionary<int, int> oldToNewCellRemapping = new Dictionary<int, int>();
+
+            if (isBakingSubset)
+            {
+                // Layout has changed but is still compatible. Remap all cells that are not part of the bake.
+                if (minCellPosition != m_BakingSet.minCellPosition && maxCellPosition != m_BakingSet.maxCellPosition)
+                {
+                    var alreadyBakedCells = m_BakingSet.cellDescs;
+                    var newCells = new SerializedDictionary<int, CellDesc>();
+
+                    // Generate remapping for all cells baked the last time.
+                    foreach (var cellKvP in alreadyBakedCells)
+                    {
+                        var cell = cellKvP.Value;
+                        int oldIndex = cell.index;
+                        int remappedIndex = PosToIndex(cell.position);
+                        oldToNewCellRemapping.Add(oldIndex, remappedIndex);
+
+                        cell.index = remappedIndex;
+                        newCells.Add(oldIndex, cell);
+                    }
+                }
+                    }
+
+            return oldToNewCellRemapping;
+        }
+
+        static void GenerateScenesCellLists(List<ProbeVolumePerSceneData> bakedSceneDataList, Dictionary<int, int> cellRemapTable)
+        {
+            bool needRemap = cellRemapTable.Count != 0;
+
+            // Build lists of scene GUIDs and assign baking set to the PerSceneData.
+            var bakedSceneGUIDList = new List<string>();
+            foreach (var data in bakedSceneDataList)
+            {
+                Debug.Assert(ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.sceneGUID));
+                bakedSceneGUIDList.Add(data.sceneGUID);
+
+                data.bakingSet = m_BakingSet;
+                EditorUtility.SetDirty(data);
+            }
+
+            var currentPerSceneCellList = m_BakingSet.perSceneCellLists; // Cell lists from last baking.
+            m_BakingSet.perSceneCellLists = new SerializedDictionary<string, List<int>>();
+
+            // Partial baking: Copy over scene cell lists for scenes not being baked.
+            // Layout change: Remap indices.
+            foreach (var scene in currentPerSceneCellList)
+            {
+                // Scene is not baked. Remap if needed or add it back to the baking set.
+                if (!bakedSceneGUIDList.Contains(scene.Key))
+                {
+                    if (needRemap)
+                    {
+                        var newCellList = new List<int>();
+                        foreach (var cell in scene.Value)
+                            newCellList.Add(cellRemapTable[cell]);
+
+                        m_BakingSet.perSceneCellLists.Add(scene.Key, newCellList);
+                    }
+                    else
+                    {
+                        m_BakingSet.perSceneCellLists.Add(scene.Key, scene.Value);
+                    }
+                }
+            }
+
+            // Allocate baked cells to the relevant scenes cell list.
+            foreach (var cell in m_BakedCells.Values)
+            {
+                foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
+                {
+                    // This scene has a probe volume in it?
+                    if (bakedSceneGUIDList.Contains(scene))
+                    {
+                        List<int> indexList;
+                        if (!m_BakingSet.perSceneCellLists.TryGetValue(scene, out indexList))
+                        {
+                            indexList = new List<int>();
+                            m_BakingSet.perSceneCellLists.Add(scene, indexList);
+                        }
+
+                        indexList.Add(cell.index);
+                    }
+                }
+            }
+
+            EditorUtility.SetDirty(m_BakingSet);
+        }
+
+        static void PrepareCellsForWriting(bool isBakingSubset)
+        {
+            // Remap if needed existing Cell descriptors in the baking set.
+            var cellRemapTable = RemapBakedCells(isBakingSubset);
+
+            // Generate list of cells for all cells being baked and remap untouched existing scenes if needed.
+            GenerateScenesCellLists(GetPerSceneDataList(), cellRemapTable);
+
+            if (isBakingSubset)
+            {
+                // Resolve all unloaded scene cells in CPU memory. This will allow us to extract them into BakingCells in order to have the full list for writing.
+                // Other cells should already be in the baked cells list.
+                var loadedSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
+                foreach(var sceneGUID in m_BakingSet.sceneGUIDs)
+                {
+                    // If a scene was baked
+                    if (m_BakingSet.perSceneCellLists.TryGetValue(sceneGUID, out var cellList))
+                    {
+                        // And the scene is not loaded
+                        if (!loadedSceneDataList.Exists((x) => x.sceneGUID == sceneGUID) && cellList.Count != 0)
+                        {
+                            // Resolve its data in CPU memory.
+                            bool resolved = m_BakingSet.ResolveCellData(sceneGUID);
+                            Debug.Assert(resolved, "Could not resolve unloaded scene data");
+                        }
+                    }
                 }
 
-                // Need to restore the original sh bands
-                prv.ForceSHBand(prevSHBands);
+                // Extract all cells that weren't baked into baking cells.
+                // Merge existing data of cells belonging both to the baking scene list and to scenes not being baked (prevents losing placement data for those).
+                // This way we have a full cell list to provide to WriteBakingCells
+                ExtractBakingCells();
             }
         }
 
@@ -769,7 +963,6 @@ namespace UnityEngine.Rendering
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
 
-            var fullSceneDataList = probeRefVolume.perSceneDataList;
             int numUniqueProbes = m_BakingBatch.uniqueProbeCount;
 
             var sh = new NativeArray<SphericalHarmonicsL2>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -790,20 +983,21 @@ namespace UnityEngine.Rendering
 
             m_CellPosToIndex.Clear();
             m_BakedCells.Clear();
+            m_CellsToDilate.Clear();
 
             // Clear baked data
             foreach (var data in probeRefVolume.perSceneDataList)
-                data.QueueAssetRemoval();
+                data.QueueSceneRemoval();
             probeRefVolume.Clear();
 
             // Make sure all pending operations are done (needs to be after the Clear to unload all previous scenes)
             probeRefVolume.PerformPendingOperations();
-            probeRefVolume.SetMinBrickAndMaxSubdiv(m_BakingProfile.minBrickSize, m_BakingProfile.maxSubdivision);
+            probeRefVolume.SetMinBrickAndMaxSubdiv(m_ProfileInfo.minBrickSize, m_ProfileInfo.maxSubdivision);
 
             // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
             probeRefVolume.globalBounds = globalBounds;
 
-            var dilationSettings = m_BakingSettings.dilationSettings;
+            var dilationSettings = m_BakingSet.settings.dilationSettings;
             var virtualOffsets = m_BakingBatch.virtualOffsets;
 
             // This is slow, but we should have very little amount of touchup volumes.
@@ -819,7 +1013,7 @@ namespace UnityEngine.Rendering
             }
 
             // If we did not use virtual offset, we did not have occluders spawned.
-            if (!m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
+            if (!m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset)
             {
                 using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.AddOccluders))
                     AddOccluders();
@@ -992,6 +1186,7 @@ namespace UnityEngine.Rendering
                 ComputeValidityMasks(cell);
 
                 m_BakedCells[cell.index] = cell;
+                m_CellsToDilate[cell.index] = cell;
             }
             fetchScope.Dispose();
 
@@ -1003,71 +1198,35 @@ namespace UnityEngine.Rendering
             // Reset index
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
 
-            // Extract baking cell if we are baking only active scene.
-            if (isBakingSceneSubset)
-            {
-                ExtractBakingCells();
-            }
+            // Force maximum sh bands to perform baking, we need to store what sh bands was selected from the settings as we need to restore it after.
+            var prevSHBands = ProbeReferenceVolume.instance.shBands;
+            ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
+
+            PrepareCellsForWriting(isBakingSceneSubset);
 
             using var writeScope = new BakingCompleteProfiling(BakingCompleteProfiling.Stages.WriteBakedData);
 
-            // Map from each scene to its per scene data, and create a new asset for each scene
-            var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
-            foreach (var data in fullSceneDataList)
-            {
-                Debug.Assert(ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene));
+            var fullSceneDataList = probeRefVolume.perSceneDataList;
 
-                data.asset = ProbeVolumeAsset.CreateAsset(data);
-                data.scenarios.TryAdd(ProbeReferenceVolume.instance.lightingScenario, default);
-                scene2Data[data.gameObject.scene] = data;
-            }
+            m_BakingSet.chunkSizeInBricks = ProbeBrickPool.GetChunkSizeInBrickCount();
+            m_BakingSet.minCellPosition = minCellPosition;
+            m_BakingSet.maxCellPosition = maxCellPosition;
+            m_BakingSet.globalBounds = globalBounds;
 
-            // Allocate cells to the respective assets
-            var data2BakingCells = new Dictionary<ProbeVolumePerSceneData, List<BakingCell>>();
-            foreach (var cell in m_BakedCells.Values)
-            {
-                foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
-                {
-                    // This scene has a reference volume authoring component in it?
-                    if (scene2Data.TryGetValue(scene, out var data))
-                    {
-                        if (!data2BakingCells.TryGetValue(data, out var bakingCellsList))
-                            bakingCellsList = data2BakingCells[data] = new ();
-
-                        bakingCellsList.Add(cell);
-                    }
-                }
-            }
+            m_BakingSet.scenarios.TryAdd(m_BakingSet.lightingScenario, default);
 
             // Convert baking cells to runtime cells
-            foreach (var data in fullSceneDataList)
-            {
-                // NOTE: Right now we always write out both L0L1 and L2 data, regardless of which Probe Volume SH Bands lighting setting
-                //       happens to be active at the time of baking (probeRefVolume.shBands).
-                //
-                // TODO: Explicitly add an option for storing L2 data to bake sets. Freely mixing cells with different bands
-                //       availability is already supported by runtime.
+            WriteBakingCells(m_BakedCells.Values.ToArray());
 
-                var asset = data.asset;
-                var sceneOfOrigin = data.gameObject.scene;
-                var profile = probeRefVolume.sceneData.GetBakingSetForScene(sceneOfOrigin);
+            // Reset internal structures depending on current bake.
+            probeRefVolume.EnsureCurrentBakingSet(m_BakingSet);
 
-                // We might have a scene in the list that doesn't have a baking set, this can happen if we are baking in single scene mode with 2 scene loaded, one of which never baked. 
-                if (profile == null)
-                    continue;
-
-                asset.StoreProfileData(profile);
-                asset.minCellPosition = minCellPosition;
-                asset.maxCellPosition = maxCellPosition;
-                asset.globalBounds = globalBounds;
-                asset.bands = ProbeVolumeSHBands.SphericalHarmonicsL2;
-
-                if (!data2BakingCells.TryGetValue(data, out var bakingCellsList))
-                    bakingCellsList = new (); // Can happen if no cell is baked for the scene
-
-                WriteBakingCells(data, bakingCellsList);
-                data.ResolveSharedCellData();
-            }
+            // TODO Discuss: Not nice to do this here, shouldn't reloading the asset also resolve cell data?
+            // Would still need to reload common shared data like bricks as they are separately handled by the baking set itself.
+            // Load common shared data (bricks + debug)
+            // Load streamable shared data.
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                data.Initialize();
 
             writeScope.Dispose();
 
@@ -1085,17 +1244,18 @@ namespace UnityEngine.Rendering
             InitDilationShaders(); // Do it now otherwise it messes the loading bar
 
             foreach (var data in fullSceneDataList)
-            {
-                // We might have a scene in the list that doesn't have a baking set, this can happen if we are baking in single scene mode with 2 scene loaded, one of which never baked. 
-                if (probeRefVolume.sceneData.GetBakingSetForScene(data.gameObject.scene) == null)
-                    continue;
-
-                data.QueueAssetLoading();
-            }
+                data.QueueSceneLoading();
 
             // ---- Perform dilation ---
             using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDilation))
                 PerformDilation();
+
+            // Need to restore the original sh bands
+            ProbeReferenceVolume.instance.ForceSHBand(prevSHBands);
+
+            // ForceSHBand will unload all data so we need to reload it for up to date context after bake.
+            foreach (var data in fullSceneDataList)
+                data.QueueSceneLoading();
 
             // Mark old bakes as out of date if needed
             ProbeVolumeLightingTab.instance?.UpdateScenarioStatuses(ProbeReferenceVolume.instance.lightingScenario);
@@ -1106,8 +1266,8 @@ namespace UnityEngine.Rendering
         static void AnalyzeBrickForIndirectionEntries(ref BakingCell cell)
         {
             var prv = ProbeReferenceVolume.instance;
-            int cellSizeInBricks = m_BakingProfile.cellSizeInBricks;
-            int entrySubdivLevel = Mathf.Min(m_BakingProfile.simplificationLevels, prv.GetGlobalIndirectionEntryMaxSubdiv());
+            int cellSizeInBricks = m_ProfileInfo.cellSizeInBricks;
+            int entrySubdivLevel = Mathf.Min(m_ProfileInfo.simplificationLevels, prv.GetGlobalIndirectionEntryMaxSubdiv());
             int indirectionEntrySizeInBricks = ProbeReferenceVolume.CellSize(entrySubdivLevel);
             int numOfIndirectionEntriesPerCellDim = cellSizeInBricks / indirectionEntrySizeInBricks;
 
@@ -1132,7 +1292,7 @@ namespace UnityEngine.Rendering
                         entryBoundsInBricks.min = entryPositionInBricks;
                         entryBoundsInBricks.max = entryPositionInBricks + new Vector3Int(indirectionEntrySizeInBricks, indirectionEntrySizeInBricks, indirectionEntrySizeInBricks);
 
-                        int minSubdiv = m_BakingProfile.maxSubdivision;
+                        int minSubdiv = m_ProfileInfo.maxSubdivision;
                         bool touchedBrick = false;
                         foreach (Brick b in cell.bricks)
                         {
@@ -1229,7 +1389,8 @@ namespace UnityEngine.Rendering
             int probeIdx)
         {
             ReadFromShaderCoeffsL0L1(ref sh, shaderCoeffsL0L1Rx, shaderCoeffsL1GL1Ry, shaderCoeffsL1BL1Rz, probeIdx * 4);
-            ReadFromShaderCoeffsL2(ref sh, shaderCoeffsL2_0, shaderCoeffsL2_1, shaderCoeffsL2_2, shaderCoeffsL2_3, probeIdx * 4);
+            if (shaderCoeffsL2_0.Length > 0)
+                ReadFromShaderCoeffsL2(ref sh, shaderCoeffsL2_0, shaderCoeffsL2_1, shaderCoeffsL2_2, shaderCoeffsL2_3, probeIdx * 4);
 
         }
 
@@ -1250,28 +1411,30 @@ namespace UnityEngine.Rendering
             return ix + locSize.x * (iy + locSize.y * iz);
         }
 
-        static BakingCell ConvertCellToBakingCell(Cell cell)
+        static BakingCell ConvertCellToBakingCell(CellDesc cellDesc, CellData cellData)
         {
             BakingCell bc = new BakingCell
             {
-                position = cell.position,
-                index = cell.index,
-                bricks = cell.bricks.ToArray(),
-                minSubdiv = cell.minSubdiv,
-                indexChunkCount = cell.indexChunkCount,
-                shChunkCount = cell.shChunkCount,
+                position = cellDesc.position,
+                index = cellDesc.index,
+                bricks = cellData.bricks.ToArray(),
+                minSubdiv = cellDesc.minSubdiv,
+                indexChunkCount = cellDesc.indexChunkCount,
+                shChunkCount = cellDesc.shChunkCount,
                 probeIndices = null, // Not needed for this conversion.
-                indirectionEntryInfo = cell.indirectionEntryInfo,
+                indirectionEntryInfo = cellDesc.indirectionEntryInfo,
             };
+
+            bool hasVirtualOffsets = cellData.offsetVectors.Length > 0;
 
             // Runtime Cell arrays may contain padding to match chunk size
             // so we use the actual probe count for these arrays.
-            int probeCount = cell.probeCount;
+            int probeCount = cellDesc.probeCount;
             bc.probePositions = new Vector3[probeCount];
             bc.validity = new float[probeCount];
             bc.touchupVolumeInteraction = new float[probeCount];
             bc.validityNeighbourMask = new byte[probeCount];
-            bc.offsetVectors = new Vector3[probeCount];
+            bc.offsetVectors = hasVirtualOffsets ? new Vector3[probeCount] : null;
             bc.sh = new SphericalHarmonicsL2[probeCount];
 
             // Runtime data layout is for GPU consumption.
@@ -1281,9 +1444,12 @@ namespace UnityEngine.Rendering
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
             Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(chunkSizeInProbes);
 
+            var blackSH = GetBlackSH();
+
             for (int brickIndex = 0; brickIndex < brickCount; ++brickIndex)
             {
                 int chunkIndex = brickIndex / ProbeBrickPool.GetChunkSizeInBrickCount();
+                var cellChunkData = GetCellChunkData(cellData, chunkIndex);
 
                 for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
                 {
@@ -1291,17 +1457,21 @@ namespace UnityEngine.Rendering
                     {
                         for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
                         {
-                            var remappedIndex = chunkIndex * chunkSizeInProbes +  GetProbeGPUIndex(brickIndex, x, y, z, locSize);
+                            var remappedIndex = GetProbeGPUIndex(brickIndex, x, y, z, locSize);
 
-                            ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probeIndex],
-                                cell.bakingScenario.shL0L1RxData, cell.bakingScenario.shL1GL1RyData, cell.bakingScenario.shL1BL1RzData,
-                                cell.bakingScenario.shL2Data_0, cell.bakingScenario.shL2Data_1, cell.bakingScenario.shL2Data_2, cell.bakingScenario.shL2Data_3, remappedIndex);
+                            // Scenario data can be invalid due to partially baking the set.
+                            if (cellChunkData.scenarioValid)
+                                ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probeIndex], cellChunkData.shL0L1RxData, cellChunkData.shL1GL1RyData, cellChunkData.shL1BL1RzData,
+                                    cellChunkData.shL2Data_0, cellChunkData.shL2Data_1, cellChunkData.shL2Data_2, cellChunkData.shL2Data_3, remappedIndex);
+                            else
+                                bc.sh[probeIndex] = blackSH;
 
-                            bc.probePositions[probeIndex] = cell.probePositions[remappedIndex];
-                            bc.validity[probeIndex] = cell.validity[remappedIndex];
-                            bc.validityNeighbourMask[probeIndex] = cell.validityNeighMaskData[remappedIndex];
-                            bc.touchupVolumeInteraction[probeIndex] = cell.touchupVolumeInteraction[remappedIndex];
-                            bc.offsetVectors[probeIndex] = cell.offsetVectors[remappedIndex];
+                            bc.probePositions[probeIndex] = cellData.probePositions[remappedIndex];
+                            bc.validity[probeIndex] = cellData.validity[remappedIndex];
+                            bc.validityNeighbourMask[probeIndex] = cellChunkData.validityNeighMaskData[remappedIndex];
+                            bc.touchupVolumeInteraction[probeIndex] = cellData.touchupVolumeInteraction[remappedIndex];
+                            if (hasVirtualOffsets)
+                                bc.offsetVectors[probeIndex] = cellData.offsetVectors[remappedIndex];
 
                             probeIndex++;
                         }
@@ -1316,6 +1486,7 @@ namespace UnityEngine.Rendering
         static BakingCell MergeCells(BakingCell dst, BakingCell srcCell)
         {
             int maxSubdiv = Math.Max(dst.bricks[0].subdivisionLevel, srcCell.bricks[0].subdivisionLevel);
+            bool hasVirtualOffsets = m_BakingBatch.virtualOffsets != null;
 
             List<(Brick, int, int)> consolidatedBricks = new List<(Brick, int, int)>();
             HashSet<(Vector3Int, int)> addedBricks = new HashSet<(Vector3Int, int)>();
@@ -1364,7 +1535,7 @@ namespace UnityEngine.Rendering
             outCell.sh = new SphericalHarmonicsL2[numberOfProbes];
             outCell.validity = new float[numberOfProbes];
             outCell.validityNeighbourMask = new byte[numberOfProbes];
-            outCell.offsetVectors = new Vector3[numberOfProbes];
+            outCell.offsetVectors = hasVirtualOffsets ? new Vector3[numberOfProbes] : null;
             outCell.touchupVolumeInteraction = new float[numberOfProbes];
             outCell.shChunkCount = ProbeBrickPool.GetChunkCount(outCell.bricks.Length);
             // We don't need to analyse here, it will be done upon writing back.
@@ -1385,6 +1556,7 @@ namespace UnityEngine.Rendering
                     outCell.sh[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].sh[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                     outCell.validity[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validity[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                     outCell.validityNeighbourMask[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].validityNeighbourMask[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
+                    if (hasVirtualOffsets)
                     outCell.offsetVectors[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].offsetVectors[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                     outCell.touchupVolumeInteraction[i * ProbeBrickPool.kBrickProbeCountTotal + p] = consideredCells[b.Item3].touchupVolumeInteraction[brickIndexInSource * ProbeBrickPool.kBrickProbeCountTotal + p];
                 }
@@ -1394,36 +1566,45 @@ namespace UnityEngine.Rendering
 
         static void ExtractBakingCells()
         {
-            foreach (var cellIndex in m_BakedCells.Keys)
+            // For cells that are being baked, this loop will merge existing baked data with newly baked data to not lose data.
+            var loadedSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
+            foreach (var data in loadedSceneDataList)
             {
-                m_NewlyBakedCells.Add(cellIndex);
-            }
+                var cells = m_BakingSet.GetSceneCellIndexList(data.sceneGUID);
 
-            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-            {
-                var asset = data.asset;
-                if (asset == null || asset.cells == null) continue;
-
-                var numberOfCells = asset.cells.Length;
+                var numberOfCells = cells.Count;
 
                 for (int i = 0; i < numberOfCells; ++i)
                 {
-                    var cell = asset.cells[i];
-
-                    BakingCell bc = ConvertCellToBakingCell(cell);
-
-                    if (m_NewlyBakedCells.Contains(cell.index) && m_BakedCells.ContainsKey(cell.index))
+                    if (m_BakedCells.ContainsKey(cells[i]))
                     {
+                        var cell = m_BakingSet.GetCellDesc(cells[i]);
+
+                        // This can happen if doing a partial bake before ever doing a full bake.
+                        if (cell == null)
+                            continue;
+
+                        var cellData = m_BakingSet.GetCellData(cells[i]);
+
+                        // When doing partial baking some cells might not have any already baked data.
+                        if (cellData == null || !cellData.scenarios.ContainsKey(m_BakingSet.lightingScenario))
+                            continue;
+
+                        BakingCell bc = ConvertCellToBakingCell(cell, cellData);
                         bc = MergeCells(m_BakedCells[cell.index], bc);
+                        m_BakedCells[cell.index] = bc;
                     }
+                }
+            }
 
-                    if (!m_BakingBatch.cellIndex2SceneReferences.ContainsKey(cell.index))
-                    {
-                        m_BakingBatch.cellIndex2SceneReferences.Add(cell.index, new HashSet<Scene>());
-                    }
-
-                    m_BakingBatch.cellIndex2SceneReferences[cell.index].Add(data.gameObject.scene);
-                    m_BakedCells[cell.index] = bc;
+            // Here we convert to baking cells all cells that were not already baked.
+            // This allows us to have the full set of cells ready for writing all at once.
+            foreach (var cell in m_BakingSet.cellDescs.Values)
+            {
+                if (!m_BakedCells.ContainsKey(cell.index))
+                {
+                    var cellData = m_BakingSet.GetCellData(cell.index);
+                    m_BakedCells.Add(cell.index, ConvertCellToBakingCell(cell, cellData));
                 }
             }
         }
@@ -1449,23 +1630,32 @@ namespace UnityEngine.Rendering
         ///   CellSharedData: a binary flat file containing bricks data
         ///   CellSupportData: a binary flat file containing debug data (stripped from player builds if building without debug shaders)
         /// </summary>
-        unsafe static void WriteBakingCells(ProbeVolumePerSceneData data, List<BakingCell> bakingCells)
+        unsafe static void WriteBakingCells(BakingCell[] bakingCells)
         {
-            data.GetBlobFileNames(out var cellDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
+            m_BakingSet.GetBlobFileNames(m_BakingSet.lightingScenario, out var cellDataFilename, out var cellBricksDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
 
-            var asset = data.asset;
-            asset.cells = new Cell[bakingCells.Count];
-            asset.cellCounts = new ProbeVolumeAsset.CellCounts[bakingCells.Count];
-            asset.totalCellCounts = new ProbeVolumeAsset.CellCounts();
-            asset.chunkSizeInBricks = ProbeBrickPool.GetChunkSizeInBrickCount();
+            m_BakingSet.cellDescs = new SerializedDictionary<int, CellDesc>();
+            m_BakingSet.cellCounts = new SerializedDictionary<int, ProbeVolumeBakingSet.CellCounts>();
+            m_BakingSet.totalCellCounts = new ProbeVolumeBakingSet.CellCounts();
+            m_BakingSet.bakedMinDistanceBetweenProbes = m_ProfileInfo.minDistanceBetweenProbes;
+            m_BakingSet.bakedSimplificationLevels = m_ProfileInfo.simplificationLevels;
 
-            for (var i = 0; i < bakingCells.Count; ++i)
+            var cellSharedDataDescs = new SerializedDictionary<int, StreamableCellDesc>();
+            var cellL0L1DataDescs = new SerializedDictionary<int, StreamableCellDesc>();
+            var cellL2DataDescs = new SerializedDictionary<int, StreamableCellDesc>();
+            var cellBricksDescs = new SerializedDictionary<int, StreamableCellDesc>();
+            var cellSupportDescs = new SerializedDictionary<int, StreamableCellDesc>();
+
+            var voSettings = m_BakingSet.settings.virtualOffsetSettings;
+            bool hasVirtualOffsets = voSettings.useVirtualOffset;
+
+            for (var i = 0; i < bakingCells.Length; ++i)
             {
                 var bakingCell = bakingCells[i];
 
                 AnalyzeBrickForIndirectionEntries(ref bakingCell);
 
-                asset.cells[i] = new Cell
+                m_BakingSet.cellDescs.Add(bakingCell.index, new CellDesc
                 {
                     position = bakingCell.position,
                     index = bakingCell.index,
@@ -1473,104 +1663,128 @@ namespace UnityEngine.Rendering
                     minSubdiv = bakingCell.minSubdiv,
                     indexChunkCount = bakingCell.indexChunkCount,
                     shChunkCount = bakingCell.shChunkCount,
-                    shBands = asset.bands,
                     indirectionEntryInfo = bakingCell.indirectionEntryInfo,
-                };
+                });
 
-                var cellCounts = new ProbeVolumeAsset.CellCounts
+                var cellCounts = new ProbeVolumeBakingSet.CellCounts
                 {
                     bricksCount = bakingCell.bricks.Length,
-                    probesCount = bakingCell.probePositions.Length,
-                    offsetsCount = bakingCell.offsetVectors.Length,
                     chunksCount = bakingCell.shChunkCount
                 };
-                asset.cellCounts[i] = cellCounts;
-                asset.totalCellCounts.Add(cellCounts);
+
+                m_BakingSet.cellCounts.Add(bakingCell.index, cellCounts);
+                m_BakingSet.totalCellCounts.Add(cellCounts);
             }
 
-            // CellData
-            // Need full chunks so we don't use totalCellCounts.probesCount
-            var probeCountPadded = asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount(); // Padded to a multiple of chunk size.
-            var count = probeCountPadded * 4; // 4 component per probe per texture.
-            using var probesL0L1Rx = new NativeArray<ushort>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL1GL1Ry = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL1BL1Rz = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            // All per probe data is stored per chunk and contiguously for each cell.
+            // This is done so that we can stream from disk one cell at a time by group of chunks.
 
-            // CellOptionalData
-            count = asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? count : 0;
-            using var probesL2_0 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL2_1 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL2_2 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL2_3 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-            // CellSharedData
-            using var bricks = new NativeArray<Brick>(asset.totalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var validityNeighbourMask = new NativeArray<byte>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-            // CellSupportData
-            using var positions = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var touchupVolumeInteraction = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var validity = new NativeArray<float>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var offsets = new NativeArray<Vector3>(probeCountPadded, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-            var sceneStateHash = asset.GetBakingHashCode();
-            var startCounts = new ProbeVolumeAsset.CellCounts();
-
-            int chunkOffsetInProbes = 0;
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
 
-            int shChunkOffset = 0;
-            var shChunkSize = chunkSizeInProbes * 4;
+            // CellData
+            // L0 and L1 Data: 12 Coeffs stored in 3 textures. L0 (rgb) and R1x as ushort in one texture, the rest as byte in two 4 component textures.
+            var L0L1R1xChunkSize = sizeof(ushort) * 4 * chunkSizeInProbes; // 4 ushort components per probe
+            var L1ChunkSize = sizeof(byte) * 4 * chunkSizeInProbes; // 4 components per probe
+            var L0L1ChunkSize = L0L1R1xChunkSize + 2 * L1ChunkSize;
+            var L0L1TotalSize = m_BakingSet.totalCellCounts.chunksCount * L0L1ChunkSize;
+            using var probesL0L1 = new NativeArray<byte>(L0L1TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-            // Init SH with values that will resolve to black
-            var blackSH = new SphericalHarmonicsL2();
-            for (int channel = 0; channel < 3; ++channel)
-            {
-                blackSH[channel, 0] = 0.0f;
-                for (int coeff = 1; coeff < 9; ++coeff)
-                    blackSH[channel, coeff] = 0.5f;
-            }
+            m_BakingSet.L0ChunkSize = L0L1R1xChunkSize;
+            m_BakingSet.L1ChunkSize = L1ChunkSize;
 
-            for (var i = 0; i < bakingCells.Count; ++i)
+            // CellOptionalData
+            // L2 Data: 15 Coeffs stored in 4 byte4 textures.
+            var L2TextureChunkSize = 4 * sizeof(byte) * chunkSizeInProbes; // 4 byte component per probe
+            var L2ChunkSize = L2TextureChunkSize * 4; // 4 Textures for all L2 data.
+            var L2TotalSize = m_BakingSet.totalCellCounts.chunksCount * L2ChunkSize; // 4 textures
+            using var probesL2 = new NativeArray<byte>(L2TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            m_BakingSet.L2TextureChunkSize = L2TextureChunkSize;
+
+            // CellSharedData (only validity for now)
+            var validityMaskChunkSize = sizeof(byte) * chunkSizeInProbes;
+            var sharedDataChunkSize = validityMaskChunkSize;
+            var sharedDataTotalSize = m_BakingSet.totalCellCounts.chunksCount * sharedDataChunkSize;
+            using var sharedData = new NativeArray<byte>(sharedDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            m_BakingSet.validityMaskChunkSize = validityMaskChunkSize;
+
+            // Brick data
+            using var bricks = new NativeArray<Brick>(m_BakingSet.totalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            // CellSupportData
+            m_BakingSet.supportPositionChunkSize = sizeof(Vector3) * chunkSizeInProbes;
+            m_BakingSet.supportValidityChunkSize = sizeof(float) * chunkSizeInProbes;
+            m_BakingSet.supportOffsetsChunkSize = hasVirtualOffsets ? sizeof(Vector3) * chunkSizeInProbes : 0;
+            m_BakingSet.supportTouchupChunkSize = sizeof(float) * chunkSizeInProbes;
+
+            m_BakingSet.supportDataChunkSize = m_BakingSet.supportPositionChunkSize + m_BakingSet.supportValidityChunkSize + m_BakingSet.supportOffsetsChunkSize + m_BakingSet.supportTouchupChunkSize;
+            var supportDataTotalSize = m_BakingSet.totalCellCounts.chunksCount * m_BakingSet.supportDataChunkSize;
+            using var supportData = new NativeArray<byte>(supportDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            var sceneStateHash = m_BakingSet.GetBakingHashCode();
+            var startCounts = new ProbeVolumeBakingSet.CellCounts();
+
+            int chunkOffsetInProbes = 0;
+
+            int shL0L1ChunkOffset = 0;
+            int shL2ChunkOffset = 0;
+            int supportChunkOffset = 0;
+
+            var blackSH = GetBlackSH();
+
+            // Size of the DataLocation used to do the copy texture at runtime. Used to generate the right layout for the 3D texture.
+            Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeBrickPool.GetChunkSizeInProbeCount());
+
+            for (var i = 0; i < bakingCells.Length; ++i)
             {
                 var bakingCell = bakingCells[i];
-                var cellCounts = asset.cellCounts[i];
+                var cellCounts = m_BakingSet.cellCounts[bakingCell.index];
+                var chunksCount = cellCounts.chunksCount;
+
+                cellSharedDataDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.chunksCount * sharedDataChunkSize, elementCount = chunksCount });
+                cellL0L1DataDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.chunksCount * L0L1ChunkSize, elementCount = chunksCount });
+                cellL2DataDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.chunksCount * L2ChunkSize, elementCount = chunksCount });
+                cellBricksDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.bricksCount * sizeof(Brick), elementCount = cellCounts.bricksCount });
+                cellSupportDescs.Add(bakingCell.index, new StreamableCellDesc() { offset = startCounts.chunksCount * m_BakingSet.supportDataChunkSize, elementCount = chunksCount });
 
                 sceneStateHash = sceneStateHash * 23 + bakingCell.GetBakingHashCode();
 
-                var inputProbesCount = cellCounts.probesCount;
-                // Size of the DataLocation used to do the copy texture at runtime. Used to generate the right layout for the 3D texture.
-                Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeBrickPool.GetChunkSizeInProbeCount());
+                var inputProbesCount = bakingCell.probePositions.Length;
 
                 int shidx = 0;
+
+                // Cell base offsets for each data streams
+                int cellL0R1xOffset = shL0L1ChunkOffset;
+                int cellL1GL1RyOffset = cellL0R1xOffset + chunksCount * L0L1R1xChunkSize;
+                int cellL1BL1RzOffset = cellL1GL1RyOffset + chunksCount * L1ChunkSize;
+
+                int positionOffset = supportChunkOffset;
+                int validityOffset = positionOffset + chunksCount * m_BakingSet.supportPositionChunkSize;
+                int touchupOffset = validityOffset + chunksCount * m_BakingSet.supportValidityChunkSize;
+                int offsetsOffset = touchupOffset + chunksCount * m_BakingSet.supportTouchupChunkSize; // Keep last as it's optional.
 
                 // Here we directly map each chunk to the layout of the 3D textures in order to be able to copy the data directly to the GPU.
                 // The granularity at runtime is one chunk at a time currently so the temporary data loc used is sized accordingly.
                 for (int chunkIndex = 0; chunkIndex < cellCounts.chunksCount; ++chunkIndex)
                 {
-                    var probesTargetL0L1Rx = probesL0L1Rx.GetSubArray(shChunkOffset, shChunkSize);
-                    var probesTargetL1GL1Ry = probesL1GL1Ry.GetSubArray(shChunkOffset, shChunkSize);
-                    var probesTargetL1BL1Rz = probesL1BL1Rz.GetSubArray(shChunkOffset, shChunkSize);
-                    var validityNeighboorMaskChunkTarget = validityNeighbourMask.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
-                    var positionsChunkTarget = positions.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
-                    var validityChunkTarget = validity.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
-                    var offsetChunkTarget = offsets.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
-                    var touchupVolumeInteractionChunkTarget = touchupVolumeInteraction.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
+                    NativeArray<ushort> probesTargetL0L1Rx = probesL0L1.GetSubArray(cellL0R1xOffset + chunkIndex * L0L1R1xChunkSize, L0L1R1xChunkSize).Reinterpret<ushort>(1);
+                    NativeArray<byte> probesTargetL1GL1Ry = probesL0L1.GetSubArray(cellL1GL1RyOffset + chunkIndex * L1ChunkSize, L1ChunkSize);
+                    NativeArray<byte> probesTargetL1BL1Rz = probesL0L1.GetSubArray(cellL1BL1RzOffset + chunkIndex * L1ChunkSize, L1ChunkSize);
 
-                    NativeArray<byte> probesTargetL2_0 = default(NativeArray<byte>);
-                    NativeArray<byte> probesTargetL2_1 = default(NativeArray<byte>);
-                    NativeArray<byte> probesTargetL2_2 = default(NativeArray<byte>);
-                    NativeArray<byte> probesTargetL2_3 = default(NativeArray<byte>);
+                    NativeArray<byte> validityNeighboorMaskChunkTarget = sharedData.GetSubArray(chunkOffsetInProbes, chunkSizeInProbes);
 
-                    if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                    {
-                        probesTargetL2_0 = probesL2_0.GetSubArray(shChunkOffset, shChunkSize);
-                        probesTargetL2_1 = probesL2_1.GetSubArray(shChunkOffset, shChunkSize);
-                        probesTargetL2_2 = probesL2_2.GetSubArray(shChunkOffset, shChunkSize);
-                        probesTargetL2_3 = probesL2_3.GetSubArray(shChunkOffset, shChunkSize);
-                    }
+                    NativeArray<Vector3> positionsChunkTarget = supportData.GetSubArray(positionOffset + chunkIndex * m_BakingSet.supportPositionChunkSize, m_BakingSet.supportPositionChunkSize).Reinterpret<Vector3>(1);
+                    NativeArray<float> validityChunkTarget = supportData.GetSubArray(validityOffset + chunkIndex * m_BakingSet.supportValidityChunkSize, m_BakingSet.supportValidityChunkSize).Reinterpret<float>(1);
+                    NativeArray<float> touchupVolumeInteractionChunkTarget = supportData.GetSubArray(touchupOffset + chunkIndex * m_BakingSet.supportTouchupChunkSize, m_BakingSet.supportTouchupChunkSize).Reinterpret<float>(1);
+                    NativeArray<Vector3> offsetChunkTarget = supportData.GetSubArray(offsetsOffset + chunkIndex * m_BakingSet.supportOffsetsChunkSize, m_BakingSet.supportOffsetsChunkSize).Reinterpret<Vector3>(1);
 
-                    for (int brickIndex = 0; brickIndex < asset.chunkSizeInBricks; brickIndex++)
+                    NativeArray<byte> probesTargetL2_0 = probesL2.GetSubArray(shL2ChunkOffset + cellCounts.chunksCount * L2TextureChunkSize * 0 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
+                    NativeArray<byte> probesTargetL2_1 = probesL2.GetSubArray(shL2ChunkOffset + cellCounts.chunksCount * L2TextureChunkSize * 1 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
+                    NativeArray<byte> probesTargetL2_2 = probesL2.GetSubArray(shL2ChunkOffset + cellCounts.chunksCount * L2TextureChunkSize * 2 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
+                    NativeArray<byte> probesTargetL2_3 = probesL2.GetSubArray(shL2ChunkOffset + cellCounts.chunksCount * L2TextureChunkSize * 3 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
+
+                    for (int brickIndex = 0; brickIndex < m_BakingSet.chunkSizeInBricks; brickIndex++)
                     {
                         for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
                         {
@@ -1586,34 +1800,28 @@ namespace UnityEngine.Rendering
                                     if (shidx >= inputProbesCount)
                                     {
                                         WriteToShaderCoeffsL0L1(blackSH, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
+                                        WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
 
                                         validityNeighboorMaskChunkTarget[index] = 0;
                                         validityChunkTarget[index] = 0.0f;
                                         positionsChunkTarget[index] = Vector3.zero;
-                                        offsetChunkTarget[index] = Vector3.zero;
                                         touchupVolumeInteractionChunkTarget[index] = 0.0f;
-
-                                        if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                                            WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
+                                        if (hasVirtualOffsets)
+                                        offsetChunkTarget[index] = Vector3.zero;
                                     }
                                     else
                                     {
                                         ref var sh = ref bakingCell.sh[shidx];
 
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
+                                        WriteToShaderCoeffsL2(sh, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
 
                                         validityChunkTarget[index] = bakingCell.validity[shidx];
                                         validityNeighboorMaskChunkTarget[index] = bakingCell.validityNeighbourMask[shidx];
                                         positionsChunkTarget[index] = bakingCell.probePositions[shidx];
-                                        // TODO for Julien: Just skip if we don't have the offsets; no need to store the data.
-                                        // Shouldn't be hard, but currently it is expecting it will always be there.
-                                        offsetChunkTarget[index] = shidx < bakingCell.offsetVectors.Length ? bakingCell.offsetVectors[shidx] : Vector3.zero;
                                         touchupVolumeInteractionChunkTarget[index] = bakingCell.touchupVolumeInteraction[shidx];
-
-                                        if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                                        {
-                                            WriteToShaderCoeffsL2(sh, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
-                                        }
+                                        if (hasVirtualOffsets)
+                                            offsetChunkTarget[index] = bakingCell.offsetVectors[shidx];
                                     }
                                     shidx++;
                                 }
@@ -1621,9 +1829,12 @@ namespace UnityEngine.Rendering
                         }
                     }
 
-                    shChunkOffset += shChunkSize;
                     chunkOffsetInProbes += chunkSizeInProbes;
                 }
+
+                shL0L1ChunkOffset += (chunksCount * L0L1ChunkSize);
+                shL2ChunkOffset += (chunksCount * L2ChunkSize);
+                supportChunkOffset += (chunksCount * m_BakingSet.supportDataChunkSize);
 
                 bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
 
@@ -1631,12 +1842,12 @@ namespace UnityEngine.Rendering
             }
 
             // Need to save here because the forced import below discards the changes.
-            EditorUtility.SetDirty(asset);
+            EditorUtility.SetDirty(m_BakingSet);
             AssetDatabase.SaveAssets();
 
             // Explicitly make sure the binary output files are writable since we write them using the C# file API (i.e. check out Perforce files if applicable)
-            var outputPaths = new List<string>(new[] { cellDataFilename, cellSharedDataFilename, cellSupportDataFilename });
-            if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2) outputPaths.Add(cellOptionalDataFilename);
+            var outputPaths = new List<string>(new[] { cellDataFilename, cellBricksDataFilename, cellSharedDataFilename, cellSupportDataFilename, cellOptionalDataFilename });
+
             if (!AssetDatabase.MakeEditable(outputPaths.ToArray()))
                 Debug.LogWarning($"Failed to make one or more probe volume output file(s) writable. This could result in baked data not being properly written to disk. {string.Join(",", outputPaths)}");
 
@@ -1644,119 +1855,113 @@ namespace UnityEngine.Rendering
             {
                 using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    WriteNativeArray(fs, probesL0L1Rx);
-                    WriteNativeArray(fs, probesL1GL1Ry);
-                    WriteNativeArray(fs, probesL1BL1Rz);
+                    WriteNativeArray(fs, probesL0L1);
                 }
-
-                if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
-                    {
-                        WriteNativeArray(fs, probesL2_0);
-                        WriteNativeArray(fs, probesL2_1);
-                        WriteNativeArray(fs, probesL2_2);
-                        WriteNativeArray(fs, probesL2_3);
-                    }
+                    WriteNativeArray(fs, probesL2);
                 }
-
                 using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
+                    WriteNativeArray(fs, sharedData);
+                }
+                using (var fs = new System.IO.FileStream(cellBricksDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                {
                     WriteNativeArray(fs, bricks);
-                    WriteNativeArray(fs, validityNeighbourMask);
                 }
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    WriteNativeArray(fs, positions);
-                    WriteNativeArray(fs, touchupVolumeInteraction);
-                    WriteNativeArray(fs, validity);
-                    WriteNativeArray(fs, offsets);
+                    WriteNativeArray(fs, supportData);
                 }
             }
 
             AssetDatabase.ImportAsset(cellDataFilename);
-
-            if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                AssetDatabase.ImportAsset(cellOptionalDataFilename);
-            else
-                AssetDatabase.DeleteAsset(cellOptionalDataFilename);
-
+            AssetDatabase.ImportAsset(cellOptionalDataFilename);
+            AssetDatabase.ImportAsset(cellBricksDataFilename);
             AssetDatabase.ImportAsset(cellSharedDataFilename);
             AssetDatabase.ImportAsset(cellSupportDataFilename);
 
-            data.scenarios[ProbeReferenceVolume.instance.lightingScenario] = new ProbeVolumePerSceneData.PerScenarioData
+            var bakingSetGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_BakingSet));
+
+            m_BakingSet.scenarios[ProbeReferenceVolume.instance.lightingScenario] = new ProbeVolumeBakingSet.PerScenarioDataInfo
             {
                 sceneHash = sceneStateHash,
-                cellDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellDataFilename),
-                cellOptionalDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellOptionalDataFilename),
+                cellDataAsset = new ProbeVolumeBakingSet.StreamableAsset(kAPVStreamingAssetsPath, cellL0L1DataDescs, L0L1ChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellDataFilename)),
+                cellOptionalDataAsset = new ProbeVolumeBakingSet.StreamableAsset(kAPVStreamingAssetsPath, cellL2DataDescs, L2ChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellOptionalDataFilename)),
             };
-            data.cellSharedDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellSharedDataFilename);
-            data.cellSupportDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellSupportDataFilename);
-            EditorUtility.SetDirty(data);
+            m_BakingSet.cellSharedDataAsset = new ProbeVolumeBakingSet.StreamableAsset(kAPVStreamingAssetsPath, cellSharedDataDescs, sharedDataChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellSharedDataFilename));
+            m_BakingSet.cellBricksDataAsset = new ProbeVolumeBakingSet.StreamableAsset(kAPVStreamingAssetsPath, cellBricksDescs, sizeof(Brick), bakingSetGUID, AssetDatabase.AssetPathToGUID(cellBricksDataFilename));
+            m_BakingSet.cellSupportDataAsset = new ProbeVolumeBakingSet.StreamableAsset(kAPVStreamingAssetsPath, cellSupportDescs, m_BakingSet.supportDataChunkSize, bakingSetGUID, AssetDatabase.AssetPathToGUID(cellSupportDataFilename));
+
+            EditorUtility.SetDirty(m_BakingSet);
         }
 
-        unsafe static void WriteDilatedCells(ProbeVolumePerSceneData data, List<Cell> cells)
+        unsafe static void WriteDilatedCells(List<Cell> cells)
         {
-            data.GetBlobFileNames(out var cellDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
+            m_BakingSet.GetBlobFileNames(m_BakingSet.lightingScenario, out var cellDataFilename, out var cellBricksDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
 
-            var asset = data.asset;
+            var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
 
             // CellData
-            // Need full chunks so we don't use totalCellCounts.probesCount
-            var probeCountPadded = asset.totalCellCounts.chunksCount * ProbeBrickPool.GetChunkSizeInProbeCount(); // Padded to a multiple of chunk size.
-            var count = probeCountPadded * 4; // 4 component per probe per texture.
-            using var probesL0L1Rx = new NativeArray<ushort>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL1GL1Ry = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL1BL1Rz = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            // L0 and L1 Data: 12 Coeffs stored in 3 textures. L0 (rgb) and R1x as ushort in one texture, the rest as byte in two 4 component textures.
+            var L0L1R1xChunkSize = sizeof(ushort) * 4 * chunkSizeInProbes; // 4 ushort components per probe
+            var L1ChunkSize = sizeof(byte) * 4 * chunkSizeInProbes; // 4 components per probe
+            var L0L1ChunkSize = L0L1R1xChunkSize + 2 * L1ChunkSize;
+            var L0L1TotalSize = m_BakingSet.totalCellCounts.chunksCount * L0L1ChunkSize;
+            using var probesL0L1 = new NativeArray<byte>(L0L1TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
 
             // CellOptionalData
-            count = asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? count : 0;
-            using var probesL2_0 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL2_1 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL2_2 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probesL2_3 = new NativeArray<byte>(count, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            // L2 Data: 15 Coeffs stored in 4 byte4 textures.
+            var L2ChunkSize = 4 * sizeof(byte) * chunkSizeInProbes; // 4 byte component per probe
+            var L2TotalSize = m_BakingSet.totalCellCounts.chunksCount * L2ChunkSize * 4; // 4 textures
+            using var probesL2 = new NativeArray<byte>(L2TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-            int currCellOffset = 0;
+            // When baking with partially loaded scenes, the list of cells being dilated might be smaller than the full list of cells in the bake.
+            // In this case, in order not to destroy the rest of the data, we need to load it back before writing.
+            if (cells.Count != m_BakingSet.cellDescs.Count)
+            {
+                probesL0L1.CopyFrom(System.IO.File.ReadAllBytes(cellDataFilename));
+                probesL2.CopyFrom(System.IO.File.ReadAllBytes(cellOptionalDataFilename));
+            }
+
+            var lightingScenario = ProbeReferenceVolume.instance.lightingScenario;
+            Debug.Assert(m_BakingSet.scenarios.ContainsKey(lightingScenario));
+            var scenarioDataInfo = m_BakingSet.scenarios[lightingScenario];
 
             for (var i = 0; i < cells.Count; ++i)
             {
                 var srcCell = cells[i];
 
-                // Find the cell in asset to grab the right indices.
-                int assetCellIdx = 0;
-                for (; assetCellIdx < asset.cells.Length; ++assetCellIdx)
-                {
-                    if (asset.cells[assetCellIdx].index == srcCell.index)
-                        break;
-                }
+                var srcCellDesc = srcCell.desc;
+                var scenarioData = srcCell.data.scenarios[lightingScenario];
 
-                var cellCounts = asset.cellCounts[assetCellIdx];
+                var L0L1chunkBaseOffset = scenarioDataInfo.cellDataAsset.streamableCellDescs[srcCellDesc.index].offset;
+                var L2chunkBaseOffset = scenarioDataInfo.cellOptionalDataAsset.streamableCellDescs[srcCellDesc.index].offset;
+                var cellCounts = m_BakingSet.cellCounts[srcCellDesc.index];
 
-                // IMPORTANT!! We are assuming the size is all the same (4 entries per probe per array). Change if required.
-                var inputSHDataSize = srcCell.bakingScenario.shL0L1RxData.Length;
+                NativeArray<ushort> probesTargetL0L1Rx = probesL0L1.GetSubArray(L0L1chunkBaseOffset, L0L1R1xChunkSize * cellCounts.chunksCount).Reinterpret<ushort>(1);
+                NativeArray<byte> probesTargetL1GL1Ry = probesL0L1.GetSubArray(L0L1chunkBaseOffset + cellCounts.chunksCount * L0L1R1xChunkSize, L1ChunkSize * cellCounts.chunksCount);
+                NativeArray<byte> probesTargetL1BL1Rz = probesL0L1.GetSubArray(L0L1chunkBaseOffset + cellCounts.chunksCount * (L0L1R1xChunkSize + L1ChunkSize), L1ChunkSize * cellCounts.chunksCount);
 
-                // Only SH data is touched by dilation, no need to update the rest.
-                probesL0L1Rx.GetSubArray(currCellOffset, inputSHDataSize).CopyFrom(srcCell.bakingScenario.shL0L1RxData);
-                probesL1GL1Ry.GetSubArray(currCellOffset, inputSHDataSize).CopyFrom(srcCell.bakingScenario.shL1GL1RyData);
-                probesL1BL1Rz.GetSubArray(currCellOffset, inputSHDataSize).CopyFrom(srcCell.bakingScenario.shL1BL1RzData);
+                probesTargetL0L1Rx.CopyFrom(scenarioData.shL0L1RxData);
+                probesTargetL1GL1Ry.CopyFrom(scenarioData.shL1GL1RyData);
+                probesTargetL1BL1Rz.CopyFrom(scenarioData.shL1BL1RzData);
 
-                if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                {
-                    probesL2_0.GetSubArray(currCellOffset, inputSHDataSize).CopyFrom(srcCell.bakingScenario.shL2Data_0);
-                    probesL2_1.GetSubArray(currCellOffset, inputSHDataSize).CopyFrom(srcCell.bakingScenario.shL2Data_1);
-                    probesL2_2.GetSubArray(currCellOffset, inputSHDataSize).CopyFrom(srcCell.bakingScenario.shL2Data_2);
-                    probesL2_3.GetSubArray(currCellOffset, inputSHDataSize).CopyFrom(srcCell.bakingScenario.shL2Data_3);
-                }
+                NativeArray<byte> probesTargetL2_0 = probesL2.GetSubArray(L2chunkBaseOffset + cellCounts.chunksCount * L2ChunkSize * 0, L2ChunkSize * cellCounts.chunksCount);
+                NativeArray<byte> probesTargetL2_1 = probesL2.GetSubArray(L2chunkBaseOffset + cellCounts.chunksCount * L2ChunkSize * 1, L2ChunkSize * cellCounts.chunksCount);
+                NativeArray<byte> probesTargetL2_2 = probesL2.GetSubArray(L2chunkBaseOffset + cellCounts.chunksCount * L2ChunkSize * 2, L2ChunkSize * cellCounts.chunksCount);
+                NativeArray<byte> probesTargetL2_3 = probesL2.GetSubArray(L2chunkBaseOffset + cellCounts.chunksCount * L2ChunkSize * 3, L2ChunkSize * cellCounts.chunksCount);
 
-                currCellOffset += inputSHDataSize;
+                probesTargetL2_0.CopyFrom(scenarioData.shL2Data_0);
+                probesTargetL2_1.CopyFrom(scenarioData.shL2Data_1);
+                probesTargetL2_2.CopyFrom(scenarioData.shL2Data_2);
+                probesTargetL2_3.CopyFrom(scenarioData.shL2Data_3);
             }
 
-            EditorUtility.SetDirty(asset);
-            AssetDatabase.SaveAssets();
-
             // Explicitly make sure the binary output files are writable since we write them using the C# file API (i.e. check out Perforce files if applicable)
-            var outputPaths = new List<string>(new[] { cellDataFilename, cellSharedDataFilename, cellSupportDataFilename });
-            if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2) outputPaths.Add(cellOptionalDataFilename);
+            var outputPaths = new List<string>(new[] { cellDataFilename, cellSharedDataFilename, cellSupportDataFilename, cellOptionalDataFilename });
+
             if (!AssetDatabase.MakeEditable(outputPaths.ToArray()))
                 Debug.LogWarning($"Failed to make one or more probe volume output file(s) writable. This could result in baked data not being properly written to disk. {string.Join(",", outputPaths)}");
 
@@ -1764,23 +1969,15 @@ namespace UnityEngine.Rendering
             {
                 using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    WriteNativeArray(fs, probesL0L1Rx);
-                    WriteNativeArray(fs, probesL1GL1Ry);
-                    WriteNativeArray(fs, probesL1BL1Rz);
+                    WriteNativeArray(fs, probesL0L1);
                 }
 
-                if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                {
                     using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                     {
-                        WriteNativeArray(fs, probesL2_0);
-                        WriteNativeArray(fs, probesL2_1);
-                        WriteNativeArray(fs, probesL2_2);
-                        WriteNativeArray(fs, probesL2_3);
+                    WriteNativeArray(fs, probesL2);
                     }
                 }
             }
-        }
 
         private static void DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, Dictionary<int, int> positionToIndex, BakingBatch batch,
             List<Vector3> positionList, out int[] indices)
@@ -1853,8 +2050,8 @@ namespace UnityEngine.Rendering
 
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
             int prevMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
-            // Overwrite loaded settings with data from profile. Note that the m_BakingProfile is already patched up if isFreezingPlacement
-            ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(m_BakingProfile.minBrickSize, m_BakingProfile.maxSubdivision);
+            // Overwrite loaded settings with data from profile. Note that the m_BakingSet.profile is already patched up if isFreezingPlacement
+            ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(m_ProfileInfo.minBrickSize, m_ProfileInfo.maxSubdivision);
 
             if (isFreezingPlacement)
             {
@@ -1872,7 +2069,7 @@ namespace UnityEngine.Rendering
             // Compute probe positions and send them to the Lightmapper
             using (new BakingSetupProfiling(BakingSetupProfiling.Stages.ApplySubdivisionResults))
             {
-                float brickSize = m_BakingProfile.minBrickSize;
+                float brickSize = m_ProfileInfo.minBrickSize;
                 Matrix4x4 newRefToWS = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(brickSize, brickSize, brickSize));
                 ApplySubdivisionResults(result, newRefToWS);
             }
@@ -1889,12 +2086,12 @@ namespace UnityEngine.Rendering
             Vector3 refVolOrigin = Vector3.zero; // TODO: This will need to be center of the world bounds.
             var perSceneDataList = GetPerSceneDataList();
 
-            if (m_BakingProfile == null)
+            if (m_BakingSet == null)
             {
                 if (perSceneDataList.Count == 0) return ctx;
                 SetBakingContext(perSceneDataList);
             }
-            ctx.Initialize(m_BakingProfile, refVolOrigin);
+            ctx.Initialize(m_BakingSet, m_ProfileInfo, refVolOrigin);
 
             return ctx;
         }
@@ -1911,7 +2108,7 @@ namespace UnityEngine.Rendering
                 // subdivide all the cells and generate brick positions
                 foreach (var cell in ctx.cells)
                 {
-                    var scenesInCell = new HashSet<Scene>();
+                    var scenesInCell = new HashSet<string>();
 
                     // Calculate overlaping probe volumes to avoid unnecessary work
                     var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)>();
@@ -1920,12 +2117,12 @@ namespace UnityEngine.Rendering
                         if (ProbeVolumePositioning.OBBAABBIntersect(probeVolume.volume, cell.bounds, probeVolume.bounds))
                         {
                             overlappingProbeVolumes.Add(probeVolume);
-                            scenesInCell.Add(probeVolume.component.gameObject.scene);
+                            scenesInCell.Add(ProbeVolumeSceneData.GetSceneGUID(probeVolume.component.gameObject.scene));
                         }
                     }
 
                     // Calculate valid renderers to avoid unnecessary work (a renderer needs to overlap a probe volume and match the layer)
-                    var filteredContributors = ctx.contributors.Filter(ctx.profile, cell.bounds, overlappingProbeVolumes);
+                    var filteredContributors = ctx.contributors.Filter(ctx.bakingSet, cell.bounds, overlappingProbeVolumes);
 
                     if (overlappingProbeVolumes.Count == 0 && filteredContributors.Count == 0)
                         continue;
@@ -1935,9 +2132,9 @@ namespace UnityEngine.Rendering
                         continue;
 
                     foreach (var renderer in filteredContributors.renderers)
-                        scenesInCell.Add(renderer.component.gameObject.scene);
+                        scenesInCell.Add(ProbeVolumeSceneData.GetSceneGUID(renderer.component.gameObject.scene));
                     foreach (var terrain in filteredContributors.terrains)
-                        scenesInCell.Add(terrain.component.gameObject.scene);
+                        scenesInCell.Add(ProbeVolumeSceneData.GetSceneGUID(terrain.component.gameObject.scene));
 
                     result.cells.Add((cell.position, cell.bounds, bricks));
                     result.scenesPerCells[cell.position] = scenesInCell;
@@ -1954,44 +2151,38 @@ namespace UnityEngine.Rendering
 
             foreach (var data in dataList)
             {
-                var asset = data.asset;
-                var cellSize = asset.minDistanceBetweenProbes * 3.0f * asset.cellSizeInBricks;
+                var cellSize = m_ProfileInfo.minDistanceBetweenProbes * 3.0f * m_ProfileInfo.cellSizeInBricks;
                 Vector3 cellDimensions = new Vector3(cellSize, cellSize, cellSize);
 
                 // Loop through cells in asset, we need to be careful as there'll be duplicates.
                 // As we go through the cells we fill ProbeSubdivisionResult as we go.
-                foreach (var cell in asset.cells)
+                var cells = m_BakingSet.GetSceneCellIndexList(data.sceneGUID);
+                foreach (var cellIndex in cells)
                 {
-                    var cellPos = cell.position;
+                    var cellDesc = m_BakingSet.GetCellDesc(cellIndex);
+                    var cellData = m_BakingSet.GetCellData(cellIndex);
+                    var cellPos = cellDesc.position;
 
                     if (!result.scenesPerCells.ContainsKey(cellPos))
                     {
-                        result.scenesPerCells[cellPos] = new HashSet<Scene>();
+                        result.scenesPerCells[cellPos] = new HashSet<string>();
 
                         var center = new Vector3((cellPos.x + 0.5f) * cellSize, (cellPos.y + 0.5f) * cellSize, (cellPos.z + 0.5f) * cellSize);
-                        result.cells.Add((cellPos, new Bounds(center, cellDimensions), cell.bricks.ToArray()));
+                        result.cells.Add((cellPos, new Bounds(center, cellDimensions), cellData.bricks.ToArray()));
                     }
-                    result.scenesPerCells[cellPos].Add(data.gameObject.scene);
+                    result.scenesPerCells[cellPos].Add(data.sceneGUID);
                 }
             }
 
             return result;
         }
 
-        public static bool ModifyProfileFromLoadedData(ProbeVolumeBakingSet profile)
+        public static void ModifyProfileFromLoadedData(ProbeVolumeBakingSet bakingSet)
         {
-            var dataList = GetPerSceneDataList();
-            if (dataList.Count > 0)
-            {
-                var data = dataList[0];
+            m_ProfileInfo.simplificationLevels = bakingSet.bakedSimplificationLevels;
+            m_ProfileInfo.minDistanceBetweenProbes = bakingSet.bakedMinDistanceBetweenProbes;
+			globalBounds = bakingSet.globalBounds;
 
-                profile.simplificationLevels = (int)Mathf.Log(data.asset.cellSizeInBricks, 3);
-                profile.minDistanceBetweenProbes = data.asset.minDistanceBetweenProbes;
-                globalBounds = data.asset.globalBounds;
-                return true;
-            }
-
-            return false;
         }
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
@@ -2061,7 +2252,7 @@ namespace UnityEngine.Rendering
                 DeduplicateProbePositions(in probePositions, in brickSubdivLevels, positionToIndex, m_BakingBatch, positionList, out cell.probeIndices);
 
                 m_BakingBatch.cells.Add(cell);
-                m_BakingBatch.cellIndex2SceneReferences[cell.index] = new HashSet<Scene>(results.scenesPerCells[cell.position]);
+                m_BakingBatch.cellIndex2SceneReferences[cell.index] = new HashSet<string>(results.scenesPerCells[cell.position]);
             }
 
             var positions = positionList.ToArray();

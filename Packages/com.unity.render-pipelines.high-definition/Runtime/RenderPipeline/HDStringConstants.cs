@@ -192,6 +192,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _CookieAtlas = Shader.PropertyToID("_CookieAtlas");
 
+        public static readonly int _VolumetricCloudsShadowsTexture = Shader.PropertyToID("_VolumetricCloudsShadowsTexture");
+
         public static readonly int _ReflectionAtlas = Shader.PropertyToID("_ReflectionAtlas");
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
@@ -411,6 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShaderVariablesRaytracingLightLoop = Shader.PropertyToID("ShaderVariablesRaytracingLightLoop");
         public static readonly int _ShaderVariablesDebugDisplay = Shader.PropertyToID("ShaderVariablesDebugDisplay");
         public static readonly int _ShaderVariablesClouds = Shader.PropertyToID("ShaderVariablesClouds");
+        public static readonly int _ShaderVariablesCloudsShadows = Shader.PropertyToID("ShaderVariablesCloudsShadows");
         public static readonly int _ShaderVariablesWater = Shader.PropertyToID("ShaderVariablesWater");
         public static readonly int _ShaderVariablesUnderWater = Shader.PropertyToID("ShaderVariablesUnderWater");
         public static readonly int _ShaderVariablesWaterRendering = Shader.PropertyToID("ShaderVariablesWaterRendering");

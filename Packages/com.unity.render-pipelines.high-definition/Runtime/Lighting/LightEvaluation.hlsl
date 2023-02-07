@@ -6,6 +6,7 @@
 // use #define LIGHT_EVALUATION_NO_COOKIE to disable cookie evaluation
 // use #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS to disable contact shadow evaluation
 // use #define LIGHT_EVALUATION_NO_SHADOWS to disable evaluation of shadow including contact shadow (but not micro shadow)
+// use #define LIGHT_EVALUATION_NO_CLOUDS_SHADOWS to disable evaluation of volumetric clouds shadows
 // use #define OVERRIDE_EVALUATE_ENV_INTERSECTION to provide a new version of EvaluateLight_EnvIntersection
 
 // Samples the area light's associated cookie
@@ -177,6 +178,8 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     return SampleCookie2D(positionNDC, light.cookieScaleOffset);
 }
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/VolumetricCloudsShadowSampling.hlsl"
+
 // Returns unassociated (non-premultiplied) color with alpha (attenuation).
 // The calling code must perform alpha-compositing.
 float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
@@ -245,6 +248,12 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
 
         color.rgb *= cookie;
     }
+#endif
+
+#ifndef LIGHT_EVALUATION_NO_CLOUDS_SHADOWS
+    // Apply the volumetric cloud shadow if relevant
+    if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
+        color.rgb *= EvaluateVolumetricCloudsShadows(lightLoopContext, light, posInput.positionWS);
 #endif
 
     return color;
@@ -390,6 +399,22 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     return cookie;
 }
 
+real PunctualLightAttenuationWithDistanceModification(real4 distances, real rangeAttenuationScale, real rangeAttenuationBias,
+                              real lightAngleScale, real lightAngleOffset)
+{
+    real distSq   = distances.y;
+    real distRcp  = distances.z; //distance contains light size modification. See ModifyDistancesForFillLighting
+    real distProj = distances.w;
+    real cosFwd   = distProj * rcp(distances.x); //we recompute inv distance here
+
+    real attenuation = min(distRcp, 1.0 / PUNCTUAL_LIGHT_THRESHOLD);
+    attenuation *= DistanceWindowing(distSq, rangeAttenuationScale, rangeAttenuationBias);
+    attenuation *= AngleAttenuation(cosFwd, lightAngleScale, lightAngleOffset);
+    // Effectively results in SmoothWindowedDistanceAttenuation(...) * SmoothAngleAttenuation(...).
+    return Sq(attenuation);
+
+}
+
 // Returns unassociated (non-premultiplied) color with alpha (attenuation).
 // The calling code must perform alpha-compositing.
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, light.forward).
@@ -398,8 +423,9 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 {
     float4 color = float4(light.color, 1.0);
 
-    color.a *= PunctualLightAttenuation(distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
-                                        light.angleScale, light.angleOffset);
+    color.a *= PunctualLightAttenuationWithDistanceModification(
+            distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
+            light.angleScale, light.angleOffset);
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
     // Height fog attenuation.

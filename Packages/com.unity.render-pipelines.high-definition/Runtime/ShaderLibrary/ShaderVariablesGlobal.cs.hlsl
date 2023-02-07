@@ -150,10 +150,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _DeExposureMultiplier;
     float4 _ScreenSizeOverride;
     float4 _ScreenCoordScaleBias;
+    float2 _VolumetricCloudsShadowScale;
     uint _EnableComputeThickness;
-    uint _Pad1;
-    uint _Pad2;
-    uint _Pad3;
+    float _VolumetricCloudsFallBackValue;
+    float4 _VolumetricCloudsShadowOriginToggle;
 CBUFFER_END
 
 

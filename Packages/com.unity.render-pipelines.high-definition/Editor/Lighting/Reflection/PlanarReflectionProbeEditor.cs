@@ -293,7 +293,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw outline
             k_PreviewOutlineMaterial.SetColor("_Color", InfluenceVolumeUI.k_GizmoThemeColorBase);
             k_PreviewOutlineMaterial.SetPass(0);
-            Graphics.DrawMeshNow(k_QuadMesh, Matrix4x4.TRS(mirrorPosition, mirrorRotation, Vector3.one * capturePointPreviewSize * 2.1f));
+            Graphics.DrawMeshNow(k_QuadMesh, Matrix4x4.TRS(mirrorPosition, mirrorRotation, 2.1f * capturePointPreviewSize * Vector3.one));
 
             k_PreviewMaterial.SetTexture("_MainTex", probe.texture);
             k_PreviewMaterial.SetMatrix("_CaptureVPMatrix", vp);
@@ -302,7 +302,7 @@ namespace UnityEditor.Rendering.HighDefinition
             k_PreviewMaterial.SetVector("_CameraPositionWS", new Vector4(cameraPositionWS.x, cameraPositionWS.y, -cameraPositionWS.z, 0));
             k_PreviewMaterial.SetVector("_CapturePositionWS", new Vector4(capturePositionWS.x, capturePositionWS.y, -capturePositionWS.z, 0));
             k_PreviewMaterial.SetPass(0);
-            Graphics.DrawMeshNow(k_QuadMesh, Matrix4x4.TRS(mirrorPosition, mirrorRotation, Vector3.one * capturePointPreviewSize * 2));
+            Graphics.DrawMeshNow(k_QuadMesh, Matrix4x4.TRS(mirrorPosition, mirrorRotation, 2 * capturePointPreviewSize * Vector3.one));
         }
 
         static void InitIcons()

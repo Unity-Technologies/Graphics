@@ -996,6 +996,10 @@ Shader "HDRP/Lit"
             HLSLPROGRAM
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 using UnityEngine.Experimental.Rendering;
+using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
 
 namespace UnityEngine.Rendering
 {
@@ -539,12 +540,12 @@ namespace UnityEngine.Rendering
             m_MappedChunks = 0;
         }
 
-        internal void BlendChunks(ProbeReferenceVolume.BlendingCellInfo blendingCell, ProbeBrickPool dstPool)
+        internal void BlendChunks(Cell cell, ProbeBrickPool dstPool)
         {
-            for (int c = 0; c < blendingCell.chunkList.Count; c++)
+            for (int c = 0; c < cell.blendingInfo.chunkList.Count; c++)
             {
-                var chunk = blendingCell.chunkList[c];
-                int dst = blendingCell.cellInfo.chunkList[c].flattenIndex(dstPool.GetPoolWidth(), dstPool.GetPoolHeight());
+                var chunk = cell.blendingInfo.chunkList[c];
+                int dst = cell.poolInfo.chunkList[c].flattenIndex(dstPool.GetPoolWidth(), dstPool.GetPoolHeight());
 
                 m_ChunkList[m_MappedChunks++] = new Vector4(chunk.x, chunk.y, chunk.z, dst);
             }

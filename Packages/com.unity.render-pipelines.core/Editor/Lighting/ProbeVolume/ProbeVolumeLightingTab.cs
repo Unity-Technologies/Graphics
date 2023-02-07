@@ -277,6 +277,13 @@ namespace UnityEngine.Rendering
                 DebugManager.instance.RequestEditorWindowPanelIndex(index);
         }
 
+        // Need to have this only clear probes when we properly split lightmap and probe baking.
+        static void ClearBakedData()
+        {
+            Lightmapping.ClearLightingDataAsset();
+            Lightmapping.Clear();
+        }
+
         public override void OnBakeButtonGUI()
         {
             void BakeButtonCallback(object data)
@@ -289,8 +296,7 @@ namespace UnityEngine.Rendering
                 }
                 if (option == 1) // clear
                 {
-                    Lightmapping.ClearLightingDataAsset();
-                    Lightmapping.Clear();
+                    ClearBakedData();
                 }
             }
 
@@ -306,7 +312,7 @@ namespace UnityEngine.Rendering
 
                 bool createPV = m_SingleSceneMode ? !ActiveSceneHasProbeVolume() : NoSceneHasProbeVolume();
                 if (createPV && EditorUtility.DisplayDialog("No Probe Volume in Scene", "Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
-                            "Do you whish to add a Probe Volume to the Active Scene?", "Yes", "No"))
+                            "Do you wish to add a Probe Volume to the Active Scene?", "Yes", "No"))
                     CreateProbeVolume();
                 if (m_SingleSceneMode)
                 {
@@ -334,11 +340,26 @@ namespace UnityEngine.Rendering
 
                     ProbeGIBaking.partialBakeSceneList.Add(guid);
                 }
-                if (ProbeGIBaking.partialBakeSceneList.Count == SceneManager.loadedSceneCount)
+
+                if (ProbeGIBaking.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
                     ProbeGIBaking.partialBakeSceneList = null;
 
-                if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.lightingScenarios.Contains(sceneData.lightingScenario))
-                    sceneData.SetActiveScenario(activeSet.lightingScenarios[0], false);
+                if (ProbeGIBaking.partialBakeSceneList != null)
+                {
+                    // Layout has changed and is incompatible.
+                    if (!activeSet.freezePlacement &&
+                        (activeSet.bakedMinDistanceBetweenProbes != activeSet.minDistanceBetweenProbes ||
+                        activeSet.bakedSimplificationLevels != activeSet.simplificationLevels))
+                    {
+                        if (EditorUtility.DisplayDialog("Incompatible Layout", "You are partially baking the set with an incompatible cell layout. Proceeding will invalidate all previously bake data.\n\n" + "Do you wish to continue?", "Yes", "No"))
+                            ClearBakedData();
+                        else
+                            return;
+                    }
+                }
+
+                if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.lightingScenarios.Contains(activeSet.lightingScenario))
+                    activeSet.SetActiveScenario(activeSet.lightingScenarios[0], false);
 
                 Lightmapping.BakeAsync();
             }
@@ -526,8 +547,8 @@ namespace UnityEngine.Rendering
             var scene = SceneManager.GetActiveScene();
             if (!m_TempBakingSet || scene == null) return;
             string path = string.IsNullOrEmpty(scene.path) ?
-                ProbeVolumeAsset.GetDirectory("Assets/", "Untitled") :
-                ProbeVolumeAsset.GetDirectory(scene.path, scene.name);
+                ProbeVolumeBakingSet.GetDirectory("Assets/", "Untitled") :
+                ProbeVolumeBakingSet.GetDirectory(scene.path, scene.name);
             path = System.IO.Path.Combine(path, activeSet.name + ".asset");
             path = AssetDatabase.GenerateUniqueAssetPath(path);
 
@@ -551,7 +572,7 @@ namespace UnityEngine.Rendering
             string path = "Assets";
             var scene = SceneManager.GetActiveScene();
             if (scene != null)
-                path = ProbeVolumeAsset.GetDirectory(scene.path, scene.name);
+                path = ProbeVolumeBakingSet.GetDirectory(scene.path, scene.name);
 
             var newSet = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
             newSet.name = "New Baking Set";
@@ -785,17 +806,11 @@ namespace UnityEngine.Rendering
                 EditorGUILayout.Space();
             }
 
-            long sharedCost = 0, scenarioCost = 0;
-            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-            {
-                if (!activeSet.sceneGUIDs.Contains(data.gameObject.scene.GetGUID()))
-                    continue;
-                scenarioCost += data.GetDiskSizeOfScenarioData(ProbeReferenceVolume.instance.lightingScenario);
+            long scenarioCost = activeSet.GetDiskSizeOfScenarioData(ProbeReferenceVolume.instance.lightingScenario);
 
-                sharedCost += data.GetDiskSizeOfSharedData();
-                foreach (var scenario in activeSet.lightingScenarios)
-                    sharedCost += data.GetDiskSizeOfScenarioData(scenario);
-            }
+            long sharedCost = activeSet.GetDiskSizeOfSharedData();
+            foreach (var scenario in activeSet.lightingScenarios)
+                sharedCost += activeSet.GetDiskSizeOfScenarioData(scenario);
 
             GUILayout.BeginHorizontal();
 
@@ -840,7 +855,7 @@ namespace UnityEngine.Rendering
 
                     // If we load a new scene that doesn't have the current scenario, change it
                     if (!set.lightingScenarios.Contains(ProbeReferenceVolume.instance.lightingScenario))
-                        ProbeReferenceVolume.instance.sceneData.SetActiveScenario(set.lightingScenarios[0], false);
+                        ProbeReferenceVolume.instance.SetActiveScenario(set.lightingScenarios[0], false);
                 }
             }
 

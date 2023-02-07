@@ -67,9 +67,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -1039,7 +1036,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cded085d155cde949b60f67a11dbc3bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  globalVolume: 1
+  mode: 1
   size: {x: 11.439015, y: 16.300907, z: 18.955118}
   overrideRendererFilters: 0
   minRendererVolumeSize: 0.1
@@ -1067,8 +1064,10 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: 507495071
+  cachedHashCode: -1514689012
   fillEmptySpaces: 0
+  version: 1
+  globalVolume: 1
 --- !u!4 &1017176620
 Transform:
   m_ObjectHideFlags: 0
@@ -1658,6 +1657,13 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+  m_TaaSettings:
+    quality: 3
+    frameInfluence: 0.1
+    jitterScale: 1
+    mipBias: 0
+    varianceClampScale: 0.9
+    contrastAdaptiveSharpening: 0
 --- !u!114 &1735562054
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1855,24 +1861,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a83d2f7ae04ab6f4f99b0d85377be998, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  asset: {fileID: 11400000, guid: a51673b8ec3ae0e48a8e2463c9b5bfdd, type: 2}
+  bakingSet: {fileID: 11400000, guid: 18d96ae99ade426448a42e2c688d746a, type: 2}
   sceneGUID: 5028fc98db6fe304c90852113dca5b00
-  cellSharedDataAsset: {fileID: 4900000, guid: 4262df70f9af54e479b53da2b0b6f384, type: 3}
-  cellSupportDataAsset: {fileID: 4900000, guid: acb4ae6ad947b73478110ec6f398e997,
-    type: 3}
-  serializedScenarios:
-  - scenario: Scenario 1
-    data:
-      sceneHash: -847052156
-      cellDataAsset: {fileID: 4900000, guid: ae544a6f3c1b9164abd2fab0146045c0, type: 3}
-      cellOptionalDataAsset: {fileID: 4900000, guid: 53fac240cb0516e49bb93a839ab630fa,
-        type: 3}
-  - scenario: Default
-    data:
-      sceneHash: 484293852
-      cellDataAsset: {fileID: 4900000, guid: 33ad5211599350941aaefb40a027a52f, type: 3}
-      cellOptionalDataAsset: {fileID: 4900000, guid: 777185668354240419006bd3f247492e,
-        type: 3}
+  obsoleteAsset: {fileID: 0}
+  obsoleteCellSharedDataAsset: {fileID: 0}
+  obsoleteCellSupportDataAsset: {fileID: 0}
+  obsoleteSerializedScenarios: []
 --- !u!4 &1996112133
 Transform:
   m_ObjectHideFlags: 1

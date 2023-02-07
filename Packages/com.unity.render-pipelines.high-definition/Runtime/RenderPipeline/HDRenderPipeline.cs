@@ -504,8 +504,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
                     supportsRuntimeDebug = Application.isEditor || !m_GlobalSettings.stripDebugVariants,
-                    supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming,
                     supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
+                    supportDiskStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeDiskStreaming,
+                    supportGPUStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeGPUStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
                 SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";
@@ -1046,7 +1047,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool enableRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
                 m_ShaderVariablesGlobalCB._EnableRayTracedReflections = enableRaytracedReflections ? 1 : 0;
                 RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-                // Here we cannot test against the light cluster as it is not build yet but for now there is no case where it shouldnt be valid
+                // Here we cannot test against the light cluster as it is not build yet but for now there is no case where it shouldn't be valid
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value && GetRayTracingState() ? 1u : 0u;
 
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = EvaluateSpecularOcclusionFlag(hdCamera);
@@ -1057,6 +1058,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = 1.0f;
             }
+
+            // Volumetric Clouds Shadow Data
+            m_ShaderVariablesGlobalCB._VolumetricCloudsShadowScale = m_VolumetricCloudsShadowRegion.regionSize;
+            m_ShaderVariablesGlobalCB._VolumetricCloudsShadowOriginToggle = new Vector4(m_VolumetricCloudsShadowRegion.origin.x, m_VolumetricCloudsShadowRegion.origin.y, m_VolumetricCloudsShadowRegion.origin.z, m_VolumetricCloudsShadowRegion.valid ? 1 : 0);
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                m_ShaderVariablesGlobalCB._VolumetricCloudsShadowOriginToggle -= new Vector4(hdCamera.camera.transform.position.x, hdCamera.camera.transform.position.y, hdCamera.camera.transform.position.z, 0);
+            }
+            m_ShaderVariablesGlobalCB._VolumetricCloudsFallBackValue = m_VolumetricCloudsShadowRegion.fallbackValue;
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
@@ -2300,6 +2310,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // So the first thing to do is to go through all the light: PrepareLightsForGPU
                 bool enableBakeShadowMask = PrepareLightsForGPU(renderContext, cmd, hdCamera, cullingResults, hdProbeCullingResults, m_CurrentDebugDisplaySettings, aovRequest);
 
+                // Evaluate the shadow region for the volumetric clouds
+                EvaluateShadowRegionData(hdCamera, cmd);
+
                 UpdateGlobalConstantBuffers(hdCamera, cmd);
 
                 // Do the same for ray tracing if allowed
@@ -2427,6 +2440,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (debugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
                 {
                     currentFrameSettings.SetEnabled(FrameSettingsField.SubsurfaceScattering, false);
+                }
+
+                if (debugDisplaySettings.DebugHideTransparent())
+                {
+                    currentFrameSettings.SetEnabled(FrameSettingsField.TransparentObjects, false);
                 }
             }
 

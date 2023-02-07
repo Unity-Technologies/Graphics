@@ -75,7 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty supportProbeVolumeScenarios;
         internal SerializedProperty supportProbeVolumeScenarioBlending;
         internal SerializedProperty probeVolumeBlendingTextureSize;
-        internal SerializedProperty supportProbeVolumeStreaming;
+        internal SerializedProperty supportProbeVolumeGPUStreaming;
+        internal SerializedProperty supportProbeVolumeDiskStreaming;
         internal SerializedProperty probeVolumeSHBands;
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
@@ -153,7 +154,8 @@ namespace UnityEditor.Rendering.HighDefinition
             supportProbeVolumeScenarios = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeScenarios);
             supportProbeVolumeScenarioBlending = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeScenarioBlending);
             probeVolumeBlendingTextureSize = root.Find((RenderPipelineSettings s) => s.probeVolumeBlendingMemoryBudget);
-            supportProbeVolumeStreaming = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeStreaming);
+            supportProbeVolumeGPUStreaming = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeGPUStreaming);
+            supportProbeVolumeDiskStreaming = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeDiskStreaming);
             probeVolumeSHBands = root.Find((RenderPipelineSettings s) => s.probeVolumeSHBands);
             supportRayTracing = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
             supportVFXRayTracing = root.Find((RenderPipelineSettings s) => s.supportVFXRayTracing);

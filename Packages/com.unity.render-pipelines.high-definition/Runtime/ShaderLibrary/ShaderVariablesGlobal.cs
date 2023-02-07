@@ -264,9 +264,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _ScreenSizeOverride;
         public Vector4 _ScreenCoordScaleBias;
 
+        public Vector2 _VolumetricCloudsShadowScale;
         public uint _EnableComputeThickness;
-        public uint _Pad1;
-        public uint _Pad2;
-        public uint _Pad3;
+        public float _VolumetricCloudsFallBackValue;
+        public Vector4 _VolumetricCloudsShadowOriginToggle;
     }
 }

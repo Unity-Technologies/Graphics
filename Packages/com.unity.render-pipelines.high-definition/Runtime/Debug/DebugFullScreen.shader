@@ -243,7 +243,12 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VOLUMETRIC_CLOUDS_SHADOW)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
-                    return float4(color.xxx, 1.0);
+                    return float4(color.yyy, 1.0);
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VOLUMETRIC_FOG)
+                {
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    return float4(color.rgb, 1.0);
                 }
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_SHADOWS)
                 {

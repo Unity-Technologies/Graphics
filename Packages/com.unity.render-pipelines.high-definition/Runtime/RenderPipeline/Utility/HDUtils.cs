@@ -830,12 +830,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the editor's graphics device type is null though, we still have to iterate the target's graphic api list.
             bool skipCheckingAPIList = autoAPI && systemGraphicsDeviceType != GraphicsDeviceType.Null;
 
-            if (skipCheckingAPIList ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
-                    && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
-                    && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
-                return true;
-
-            return false;
+            return skipCheckingAPIList
+                ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType)
+                : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
+                  && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
+                  && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem);
         }
 
 #endif

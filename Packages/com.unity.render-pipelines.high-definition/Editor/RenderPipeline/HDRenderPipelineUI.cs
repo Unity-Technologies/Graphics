@@ -211,7 +211,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeScenarios, Styles.supportProbeVolumeScenarios);
                 if (serialized.renderPipelineSettings.supportProbeVolumeScenarios.boolValue)
                 {
@@ -225,14 +224,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                 }
+                // Commented out for now until implemented properly.
+                //EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeDiskStreaming, Styles.supportProbeVolumeDiskStreaming);
+                using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.supportProbeVolumeDiskStreaming.hasMultipleDifferentValues || serialized.renderPipelineSettings.supportProbeVolumeDiskStreaming.boolValue))
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolumeGPUStreaming, Styles.supportProbeVolumeGPUStreaming);
 
                 int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
                 string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(estimatedVMemCost));
                 if (estimatedVMemCost == 0)
                     message += "\nProbe reference volume is not used in the scene and resources haven't been allocated yet.";
                 EditorGUILayout.HelpBox(message, MessageType.Info);
+                }
             }
-        }
 
         static void Drawer_SectionCookies(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {

@@ -89,7 +89,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Shadows;
         SerializedDataParameter m_ShadowResolution;
         SerializedDataParameter m_ShadowDistance;
-        SerializedDataParameter m_ShadowPlaneHeightOffset;
         SerializedDataParameter m_ShadowOpacity;
         SerializedDataParameter m_ShadowOpacityFallback;
 
@@ -175,7 +174,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Shadows = Unpack(o.Find(x => x.shadows));
             m_ShadowResolution = Unpack(o.Find(x => x.shadowResolution));
             m_ShadowDistance = Unpack(o.Find(x => x.shadowDistance));
-            m_ShadowPlaneHeightOffset = Unpack(o.Find(x => x.shadowPlaneHeightOffset));
             m_ShadowOpacity = Unpack(o.Find(x => x.shadowOpacity));
             m_ShadowOpacityFallback = Unpack(o.Find(x => x.shadowOpacityFallback));
         }
@@ -569,7 +567,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ShadowResolution);
                     PropertyField(m_ShadowOpacity);
                     PropertyField(m_ShadowDistance);
-                    PropertyField(m_ShadowPlaneHeightOffset);
                     PropertyField(m_ShadowOpacityFallback);
                 }
             }

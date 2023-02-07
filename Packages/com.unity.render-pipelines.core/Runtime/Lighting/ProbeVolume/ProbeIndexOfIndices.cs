@@ -1,5 +1,4 @@
-
-using System.Collections.Generic;
+using CellIndexInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellIndexInfo;
 
 namespace UnityEngine.Rendering
 {
@@ -133,12 +132,12 @@ namespace UnityEngine.Rendering
             return outListOfIndices;
         }
 
-        internal void UpdateCell(int[] cellEntriesIndices, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
+        internal void UpdateCell(CellIndexInfo cellInfo)
         {
-            for (int entry = 0; entry < cellEntriesIndices.Length; ++entry)
+            for (int entry = 0; entry < cellInfo.flatIndicesInGlobalIndirection.Length; ++entry)
             {
-                int entryIndex = cellEntriesIndices[entry];
-                ProbeBrickIndex.IndirectionEntryUpdateInfo entryUpdateInfo = cellUpdateInfo.entriesInfo[entry];
+                int entryIndex = cellInfo.flatIndicesInGlobalIndirection[entry];
+                ProbeBrickIndex.IndirectionEntryUpdateInfo entryUpdateInfo = cellInfo.updateInfo.entriesInfo[entry];
 
                 int minSubdivCellSize = ProbeReferenceVolume.CellSize(entryUpdateInfo.minSubdivInCell);
                 IndexMetaData metaData = new IndexMetaData();

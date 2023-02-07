@@ -328,10 +328,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static bool IsValidRenderingPassValue(HDRenderQueue.RenderQueueType value, bool needAfterPostProcess)
         {
-            if (!needAfterPostProcess && (value == HDRenderQueue.RenderQueueType.AfterPostProcessOpaque || value == HDRenderQueue.RenderQueueType.AfterPostprocessTransparent))
-                return false;
-
-            return true;
+            return needAfterPostProcess || (value != HDRenderQueue.RenderQueueType.AfterPostProcessOpaque && value != HDRenderQueue.RenderQueueType.AfterPostprocessTransparent);
         }
 
         public static bool UpgradeLegacyAlphaClip(IMasterNode1 masterNode)

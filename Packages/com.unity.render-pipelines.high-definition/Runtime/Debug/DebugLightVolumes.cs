@@ -129,8 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 // Let's build the light's bounding sphere matrix
                                 Light currentLegacyLight = data.cullResults.visibleLights[lightIdx].light;
                                 if (currentLegacyLight == null) continue;
-                                HDAdditionalLightData currentHDRLight = currentLegacyLight.GetComponent<HDAdditionalLightData>();
-                                if (currentHDRLight == null) continue;
+                                if (!currentLegacyLight.TryGetComponent<HDAdditionalLightData>(out var currentHDRLight)) continue;
 
                                 RenderLightVolume(ctx.cmd, data.debugLightVolumeMaterial, currentHDRLight, currentLegacyLight, mpb);
                             }

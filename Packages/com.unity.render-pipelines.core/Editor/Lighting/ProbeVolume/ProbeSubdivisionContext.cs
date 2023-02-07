@@ -132,14 +132,16 @@ namespace UnityEngine.Rendering
         public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes = new ();
         public List<(Vector3Int position, Bounds bounds)> cells = new ();
         public GIContributors contributors;
-        public ProbeVolumeBakingSet profile;
+        public ProbeVolumeBakingSet bakingSet;
+        public ProbeVolumeProfileInfo profile;
 
-        public void Initialize(ProbeVolumeBakingSet profile, Vector3 refVolOrigin)
+        public void Initialize(ProbeVolumeBakingSet bakingSet, ProbeVolumeProfileInfo profileInfo, Vector3 refVolOrigin)
         {
             Profiling.Profiler.BeginSample("ProbeSubdivisionContext.Initialize");
 
-            this.profile = profile;
-            float cellSize = profile.cellSizeInMeters;
+            this.bakingSet = bakingSet;
+            profile = profileInfo;
+            float cellSize = profileInfo.cellSizeInMeters;
             Vector3 cellDimensions = new Vector3(cellSize, cellSize, cellSize);
 
             var pvList = ProbeGIBaking.GetProbeVolumeList();

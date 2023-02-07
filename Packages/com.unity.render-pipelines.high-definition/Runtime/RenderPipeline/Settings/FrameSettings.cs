@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -823,11 +824,14 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool fptl => litShaderMode == LitShaderMode.Deferred || bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque];
         internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.DirectSpecularLighting] ? 1f : 0f;
 
-        internal bool BuildLightListRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.LightListAsync];
-        internal bool SSRRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSRAsync];
-        internal bool SSAORunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSAOAsync];
-        internal bool ContactShadowsRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
-        internal bool VolumeVoxelizationRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
+        // When render graph debug is active, we need async information to be accurate even if not supported. Actual execution will be disabled down the line.
+        bool asyncEnabled => (SystemInfo.supportsAsyncCompute || RenderGraph.requireDebugData) && bitDatas[(int)FrameSettingsField.AsyncCompute];
+
+        internal bool BuildLightListRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.LightListAsync];
+        internal bool SSRRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.SSRAsync];
+        internal bool SSAORunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.SSAOAsync];
+        internal bool ContactShadowsRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
+        internal bool VolumeVoxelizationRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
 
         /// <summary>Override a frameSettings according to a mask.</summary>
         /// <param name="overriddenFrameSettings">Overrided FrameSettings. Must contains default data before attempting the override.</param>
@@ -954,12 +958,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
 
-            bool async = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= (async && !rayTracingActive);
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= (async && !rayTracingActive);
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= (async && !rayTracingActive);
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= sanitizedFrameSettings.asyncEnabled;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= sanitizedFrameSettings.asyncEnabled;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;

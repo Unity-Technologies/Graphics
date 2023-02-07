@@ -297,18 +297,18 @@ namespace UnityEngine.Rendering
                     }
                     else
                     {
-                        foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
+                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                         {
-                            if (!cellInfo.loaded)
+                            if (!cell.loaded)
                                 continue;
 
-                            if (ShouldCullCell(cellInfo.cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                            if (ShouldCullCell(cell.desc.position, ProbeReferenceVolume.instance.GetTransform().posWS))
                                 continue;
 
-                            if (cellInfo.cell.bricks == null)
+                            if (cell.data.bricks == null)
                                 continue;
 
-                            foreach (var brick in cellInfo.cell.bricks)
+                            foreach (var brick in cell.data.bricks)
                                 yield return brick;
                         }
                     }
@@ -356,23 +356,22 @@ namespace UnityEngine.Rendering
                     }
                     else
                     {
-                        foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
+                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                         {
-                            if (ShouldCullCell(cellInfo.cell.position, prv.GetTransform().posWS))
+                            if (ShouldCullCell(cell.desc.position, prv.GetTransform().posWS))
                                 continue;
 
-                            var cell = cellInfo.cell;
-                            var positionF = new Vector4(cell.position.x, cell.position.y, cell.position.z, 0.0f);
+                            var positionF = new Vector4(cell.desc.position.x, cell.desc.position.y, cell.desc.position.z, 0.0f);
                             var output = new CellDebugData();
                             output.center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
                             if (debugDisplay.displayCellStreamingScore)
                             {
-                                float lerpFactor = (cellInfo.streamingScore - minStreamingScore) / streamingScoreRange;
+                                float lerpFactor = (cell.streamingScore - minStreamingScore) / streamingScoreRange;
                                 output.color = Color.Lerp(s_HighScoreColor, s_LowScoreColor, lerpFactor);
                             }
                             else
                             {
-                                output.color = cellInfo.loaded ? s_LoadedColor : s_UnloadedColor;
+                                output.color = cell.loaded ? s_LoadedColor : s_UnloadedColor;
                             }
                             yield return output;
                         }

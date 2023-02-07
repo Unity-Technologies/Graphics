@@ -43,11 +43,6 @@ groupshared float gs_cacheDP[36];
 groupshared float gs_cacheDC[36];
 groupshared float gs_cachePS[36];
 
-uint2 HalfResolutionIndexToOffset(uint index)
-{
-    return uint2(index & 0x1, index / 2);
-}
-
 void FillCloudReprojectionLDS(uint groupIndex, uint2 groupOrigin)
 {
     // Define which value we will be acessing with this worker thread

@@ -261,7 +261,8 @@ namespace UnityEngine.Rendering.Universal
                     sceneData = asset.GetOrCreateAPVSceneData(),
                     shBands = asset.probeVolumeSHBands,
                     supportsRuntimeDebug = Application.isEditor || !globalSettings.stripDebugVariants,
-                    supportStreaming = asset.supportProbeVolumeStreaming,
+                    supportGPUStreaming = asset.supportProbeVolumeStreaming,
+                    supportDiskStreaming = false,
                     supportScenarios = false
                 });
                 SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active URP Asset.";

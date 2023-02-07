@@ -106,6 +106,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display the volumetric clouds shadow at ground level.</summary>
         VolumetricCloudsShadow,
 
+        /// <summary>Display the volumetric fog applied on to of opaque geometry.</summary>
+        VolumetricFog,
+
         /// <summary>Display the ray tracing acceleration structure</summary>
         RayTracingAccelerationStructure,
 
@@ -1891,6 +1894,17 @@ namespace UnityEngine.Rendering.HighDefinition
             );
         }
 
+        internal bool DebugHideVolumetricClouds(HDCamera hdCamera)
+        {
+            return DebugHideSky(hdCamera) ||
+                data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog;
+        }
+
+        internal bool DebugHideTransparent()
+        {
+            return data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog;
+        }
+
         internal bool DebugNeedsExposure()
         {
             DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
@@ -1901,7 +1915,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.VolumetricClouds ||
                     data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection ||
-                    data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination || data.fullScreenDebugMode == FullScreenDebugMode.LensFlareScreenSpace);
+                    data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination || data.fullScreenDebugMode == FullScreenDebugMode.LensFlareScreenSpace ||
+                    data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog);
         }
     }
 }
