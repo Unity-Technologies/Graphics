@@ -73,9 +73,9 @@ Run_Windows_Perfomance_Tests:
       retries: 2
     - command: curl -s https://github.com/Unity-Technologies/PerformanceBenchmarkReporter/releases/download/1.2.0/UnityPerformanceBenchmarkReporter_1_2_0.zip -O
       retries: 2
-    - command: unzip -o ShaderGraphPlayground/Artifacts/UnityPerformanceBenchmarkReporter_1_2_0.zip
+    - command: unzip -o UnityPerformanceBenchmarkReporter_1_2_0.zip
       retries: 2
-    - command: cd ShaderGraphPlayground/Artifacts/UnityPerformanceBenchmarkReporter_1_2_0
+    - command: cd UnityPerformanceBenchmarkReporter_1_2_0
       retries: 2
     - command: dotnet UnityPerformanceBenchmarkReporter.dll --baseline=./ShaderGraphPlayground/Assets/Baseline.xml --results=ShaderGraphPlayground/Logs/TestResults.xml --reportdirpath=ShaderGraphPlayground/Artifacts/PerfTestReport.xml
       retries: 2
