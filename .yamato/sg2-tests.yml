@@ -1,6 +1,6 @@
 coverage_meta:
   history_repo: git@github.com:Unity-Technologies/sg2-codecoverage-history.git
-  coverage_history_path: history/win
+  coverage_history_path: history\win
   # Fail if code coverage % falls below min_pct or drops more than max_decrease_pct
   min_pct: 55
   max_decrease_pct: 1
@@ -46,7 +46,7 @@ ShaderGraph2_Win:
     CodeCoverageResults:
       paths:
         - CodeCoverageResults/**
-        - History/{{ coverage_meta.coverage_history_path }}/**
+        - History/**
 
 ShaderGraph2_Mac:
   name: ShaderGraph2 Tests - Mac
@@ -104,10 +104,6 @@ ShaderGraph2-win_Update_CodeCoverage_History:
   commands:
     - | 
         cd History
-        git init -b main
-        git remote add origin {{coverage_meta.history_repo}}
-        git fetch
-        git reset origin/main
         git config user.email "yamato@unity3d.com"
         git config user.name "Yamato"
         git add {{ coverage_meta.coverage_history_path }}\.
