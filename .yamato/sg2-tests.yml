@@ -75,7 +75,7 @@ Run_Windows_Perfomance_Tests:
       retries: 2
     - command: unzip -o ShaderGraphPlayground/Artifacts/benchmark.zip
       retries: 2
-    - command: cd benchmark
+    - command: cd ShaderGraphPlayground/Artifacts/benchmark
       retries: 2
     - command: dotnet ShaderGraphPlayground/Artifacts/UnityPerformanceBenchmarkReporter.dll --baseline=./ShaderGraphPlayground/Assets/Baseline.xml --results=ShaderGraphPlayground/Logs/TestResults.xml --reportdirpath=ShaderGraphPlayground/Artifacts/PerfTestReport.xml
       retries: 2
