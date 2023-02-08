@@ -372,72 +372,13 @@ namespace UnityEngine.Rendering.Universal
         #endregion
     }
 
-    internal class DebugRendererLists : IEnumerable<DebugRenderSetup>
+    internal class DebugRendererLists
     {
-        private class Enumerator : IEnumerator<DebugRenderSetup>
-        {
-            private readonly DebugHandler m_DebugHandler;
-            readonly FilteringSettings m_FilteringSettings;
-            private readonly int m_NumIterations;
-
-            private int m_Index;
-
-            public DebugRenderSetup Current { get; private set; }
-            object IEnumerator.Current => Current;
-
-            public Enumerator(DebugHandler debugHandler,
-                FilteringSettings filteringSettings)
-            {
-                DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
-
-                m_DebugHandler = debugHandler;
-                m_FilteringSettings = filteringSettings;
-                m_NumIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) ||
-                    (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe))
-                    ? 2
-                    : 1;
-
-                m_Index = -1;
-            }
-
-            #region IEnumerator<DebugRenderSetup>
-
-            public bool MoveNext()
-            {
-                Current?.Dispose();
-
-                if (++m_Index >= m_NumIterations)
-                {
-                    return false;
-                }
-                else
-                {
-                    Current = new DebugRenderSetup(m_DebugHandler, m_Index, m_FilteringSettings);
-                    return true;
-                }
-            }
-
-            public void Reset()
-            {
-                if (Current != null)
-                {
-                    Current.Dispose();
-                    Current = null;
-                }
-
-                m_Index = -1;
-            }
-
-            public void Dispose()
-            {
-                Current?.Dispose();
-            }
-
-            #endregion
-        }
-
         private readonly DebugHandler m_DebugHandler;
         readonly FilteringSettings m_FilteringSettings;
+        List<DebugRenderSetup> m_DebugRenderSetups = new List<DebugRenderSetup>(2);
+        List<RendererList> m_ActiveDebugRendererList = new List<RendererList>(2);
+        List<RendererListHandle> m_ActiveDebugRendererListHdl = new List<RendererListHandle>(2);
 
         public DebugRendererLists(DebugHandler debugHandler,
             FilteringSettings filteringSettings)
@@ -446,8 +387,24 @@ namespace UnityEngine.Rendering.Universal
             m_FilteringSettings = filteringSettings;
         }
 
-        readonly List<RendererList> m_ActiveDebugRendererList = new List<RendererList>();
-        readonly List<RendererListHandle> m_ActiveDebugRendererListHdl = new List<RendererListHandle>();
+        private void CreateDebugRenderSetups(FilteringSettings filteringSettings)
+        {
+            var sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
+            var numIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) || (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe)) ? 2 : 1;
+            for (var i = 0; i < numIterations; i++)
+                m_DebugRenderSetups.Add(new DebugRenderSetup(m_DebugHandler, i, filteringSettings));
+        }
+
+        void DisposeDebugRenderLists()
+        {
+            foreach (var debugRenderSetup in m_DebugRenderSetups)
+            {
+                debugRenderSetup.Dispose();
+            }
+            m_DebugRenderSetups.Clear();
+            m_ActiveDebugRendererList.Clear();
+            m_ActiveDebugRendererListHdl.Clear();
+        }
 
         internal void CreateRendererListsWithDebugRenderState(
              ScriptableRenderContext context,
@@ -456,7 +413,8 @@ namespace UnityEngine.Rendering.Universal
              ref FilteringSettings filteringSettings,
              ref RenderStateBlock renderStateBlock)
         {
-            foreach (DebugRenderSetup debugRenderSetup in this)
+            CreateDebugRenderSetups(filteringSettings);
+            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderSetups)
             {
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
@@ -473,7 +431,8 @@ namespace UnityEngine.Rendering.Universal
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
         {
-            foreach (DebugRenderSetup debugRenderSetup in this)
+            CreateDebugRenderSetups(filteringSettings);
+            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderSetups)
             {
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
@@ -493,7 +452,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void DrawWithRendererList(RasterCommandBuffer cmd)
         {
-            foreach (DebugRenderSetup debugRenderSetup in this)
+            foreach (DebugRenderSetup debugRenderSetup in m_DebugRenderSetups)
             {
                 debugRenderSetup.Begin(cmd);
                 RendererList rendererList = new RendererList();
@@ -509,19 +468,8 @@ namespace UnityEngine.Rendering.Universal
                 debugRenderSetup.DrawWithRendererList(cmd, ref rendererList);
                 debugRenderSetup.End(cmd);
             }
-        }
 
-        #region IEnumerable<DebugRenderSetup>
-
-        public IEnumerator<DebugRenderSetup> GetEnumerator()
-        {
-            return new Enumerator(m_DebugHandler, m_FilteringSettings);
+            DisposeDebugRenderLists();
         }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-        #endregion
     }
 }
