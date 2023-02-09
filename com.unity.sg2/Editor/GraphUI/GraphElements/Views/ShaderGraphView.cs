@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PreviewUpdateDispatcher previewUpdateDispatcher,
             GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
         {
-            var view = new ShaderGraphView(window, graphTool, graphViewName, displayMode);
+            var view = new ShaderGraphView(window, graphTool, graphViewName, previewUpdateDispatcher, displayMode);
             view.Initialize();
             return view;
         }
