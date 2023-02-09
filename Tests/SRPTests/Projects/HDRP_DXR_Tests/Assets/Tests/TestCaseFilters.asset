@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
   m_Name: TestCaseFilters
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
@@ -42,7 +42,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Unsupported
   - FilteredScene: {fileID: 0}
@@ -75,7 +75,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Unsupported
   - FilteredScene: {fileID: 0}
@@ -84,7 +84,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Inconsistent on Yamato
   - FilteredScene: {fileID: 0}
@@ -93,6 +93,24 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Strict Mode not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4bc2576a0bbdfd74a86bfb57af91ccaa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: corruption on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 45325940ed3cc4d44a619c66066ec3d6, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Inconsistent on Yamato

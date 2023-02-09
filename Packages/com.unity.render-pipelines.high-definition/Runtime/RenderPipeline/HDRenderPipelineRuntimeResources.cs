@@ -504,6 +504,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Material/AreaLightViewer.mat")]
             public Material areaLightMaterial; // never referenced but required by area light mesh renderer, otherwise shader is stripped
+            [Reload("Runtime/RenderPipelineResources/Material/AreaLightCookieViewer.mat")]
+            public Material areaLightCookieMaterial; // We also need one for the cookie because the emissive map is a keyword in our Unlit shader.
         }
 
         [Serializable, ReloadGroup]
