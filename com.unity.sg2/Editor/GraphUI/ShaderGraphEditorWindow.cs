@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             GraphTool.Preferences.SetInitialItemLibrarySize(ItemLibraryService.Usage.CreateNode, new Vector2(425, 100), 2.0f);
 
-            var shaderGraphView = new ShaderGraphView(this, GraphTool, GraphTool.Name, m_PreviewUpdateDispatcher);
+            var shaderGraphView = ShaderGraphView.Create(this, GraphTool, GraphTool.Name, m_PreviewUpdateDispatcher);
             return shaderGraphView;
         }
 

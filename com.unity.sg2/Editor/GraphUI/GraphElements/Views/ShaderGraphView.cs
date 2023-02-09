@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         PreviewStateObserver m_PreviewStateObserver;
         PreviewUpdateDispatcher m_PreviewUpdateDispatcher;
 
-        public ShaderGraphView(
+        protected ShaderGraphView(
             GraphViewEditorWindow window,
             BaseGraphTool graphTool,
             string graphViewName,
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
 
-        public ShaderGraphView(
+        protected ShaderGraphView(
             GraphViewEditorWindow window,
             BaseGraphTool graphTool,
             string graphViewName,
@@ -82,9 +82,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 selectionStateComponent);
         }
 
-        protected override void RegisterObservers()
+        public new static ShaderGraphView Create(GraphViewEditorWindow window, BaseGraphTool graphTool, string graphViewName,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
+            GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
         {
-            base.RegisterObservers();
+            var view = new ShaderGraphView(window, graphTool, graphViewName, displayMode);
+            view.Initialize();
+            return view;
+        }
+
+        protected override void RegisterModelObservers()
+        {
+            base.RegisterModelObservers();
 
             // Handling for when the searcher is opened
             if (GraphTool == null)
@@ -104,9 +113,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
         }
 
         /// <inheritdoc />
-        protected override void UnregisterObservers()
+        protected override void UnregisterModelObservers()
         {
-            base.UnregisterObservers();
+            base.UnregisterModelObservers();
 
             if (GraphTool?.ObserverManager == null)
                 return;
