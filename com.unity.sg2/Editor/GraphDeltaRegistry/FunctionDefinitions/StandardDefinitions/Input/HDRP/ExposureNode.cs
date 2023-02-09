@@ -63,6 +63,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "PreviousMultiplier", "Previous Multiplier" },
                 { "InversePreviousMultiplier", "Inverse Previous Multiplier" }
             },
+            hasModes: true,
             functionSelectorLabel: "Type",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {

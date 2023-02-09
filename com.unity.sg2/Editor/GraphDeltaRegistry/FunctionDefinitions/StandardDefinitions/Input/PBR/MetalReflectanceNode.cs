@@ -186,6 +186,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Bronze", "Bronze" },
                 { "Tungsten", "Tungsten" }
             },
+            hasModes: true,
             functionSelectorLabel: "Material",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(

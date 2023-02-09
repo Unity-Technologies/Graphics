@@ -98,6 +98,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "World", "World" },
                 { "Tangent", "Tangent" }
             },
+            hasModes: true,
             functionSelectorLabel: "Space",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

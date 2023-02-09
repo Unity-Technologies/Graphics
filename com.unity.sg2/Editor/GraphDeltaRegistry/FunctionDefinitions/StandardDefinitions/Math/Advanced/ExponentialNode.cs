@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "BaseE", "BaseE" },
                 { "Base2", "Base2" }
             },
+            hasModes: true,
             functionSelectorLabel: "Base",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

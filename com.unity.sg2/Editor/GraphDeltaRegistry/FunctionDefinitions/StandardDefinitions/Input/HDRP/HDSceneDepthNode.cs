@@ -84,6 +84,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Raw", "Raw" },
                 { "Eye", "Eye" }
             },
+            hasModes: true,
             functionSelectorLabel: "Sampling Mode",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[3] {

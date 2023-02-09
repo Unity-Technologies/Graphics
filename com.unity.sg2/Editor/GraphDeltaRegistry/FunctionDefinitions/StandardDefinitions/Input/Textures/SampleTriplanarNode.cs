@@ -156,6 +156,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "NormalMap", "Normal Map" },
                 { "TwoSamples", "2 Samples" }
             },
+            hasModes: true,
             functionSelectorLabel: "Type",
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(

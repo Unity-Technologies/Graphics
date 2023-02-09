@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Default", "Default" },
                 { "Fast", "Fast" }
             },
+            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
