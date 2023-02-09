@@ -1,0 +1,19 @@
+{
+    "name": "PerformanceTests.AssemblyDefinition",
+    "rootNamespace": "",
+    "references": [
+        "GUID:c0dd0d10738d4ad4a9de57c559d0ca1b",
+        "GUID:63a79fecf9f93b24c9c4573be10e5ec4",
+        "GUID:04d303d7dc0d07f4c98e68b222dd7b50",
+        "GUID:ca9bb819f568d80479839c117f390eca"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
