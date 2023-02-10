@@ -285,6 +285,9 @@ EditorBuildSettings:
     path: Assets/Scenes/717_DirectionalLightTransmission.unity
     guid: ba799739088f73744873fb5720fcddd3
   - enabled: 1
+    path: Assets/Scenes/718_Light_Culling.unity
+    guid: 7c78fb08d8686c74eb6c54c4050ae963
+  - enabled: 1
     path: Assets/Scenes/801_SubSurfaceScatteringDeferred.unity
     guid: c939ce56b901d264baab16d584624b30
   - enabled: 1

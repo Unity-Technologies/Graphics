@@ -456,7 +456,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (isSceneDirty)
             {
                 ResetPathTracing();
-                return camData;
+                // Make sure to return the newly reset camera data
+                return m_SubFrameManager.GetCameraData(camID);
             }
 
             if (isCameraDirty)

@@ -77,6 +77,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CurveTex = null;
         }
 
+        internal bool HDROutputIsActive()
+        {
+            // TODO: Until we can test it, disable on Mac.
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && HDROutputSettings.main.active;
+        }
+
+
         public override void OnInspectorGUI()
         {
             bool hdrInPlayerSettings = UnityEditor.PlayerSettings.useHDRDisplay;
@@ -160,6 +167,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdrInPlayerSettings && m_Mode.value.intValue != (int)TonemappingMode.None)
             {
                 EditorGUILayout.LabelField("HDR Output");
+
+                if (!HDROutputIsActive())
+                {
+                    EditorGUILayout.HelpBox("HDR is not currently active. Settings will take effect when a compatible device is found.", MessageType.Info);
+                }
+
                 int hdrTonemapMode = m_Mode.value.intValue;
                 if (m_Mode.value.intValue == (int)TonemappingMode.Custom || hdrTonemapMode == (int)TonemappingMode.External)
                 {

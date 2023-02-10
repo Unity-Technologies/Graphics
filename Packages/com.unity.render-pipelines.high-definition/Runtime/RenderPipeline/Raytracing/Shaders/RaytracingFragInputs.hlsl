@@ -6,6 +6,7 @@ void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, out FragI
 {
     float3 rayDirection = WorldRayDirection();
     outFragInputs.positionSS = float4(0.0, 0.0, 0.0, 0.0);
+    outFragInputs.positionPixel = float2(0.0, 0.0);
     outFragInputs.positionRWS = WorldRayOrigin() + rayDirection * RayTCurrent();
     outFragInputs.texCoord0 = currentVertex.texCoord0;
     outFragInputs.texCoord1 = currentVertex.texCoord1;
