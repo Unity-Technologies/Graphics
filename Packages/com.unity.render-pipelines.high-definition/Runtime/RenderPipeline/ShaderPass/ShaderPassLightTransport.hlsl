@@ -2,12 +2,6 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
-// Use Unity's built-in matrices for meta pass rendering
-#define SCENEPICKINGPASS
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
-#endif
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/MetaPass.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 

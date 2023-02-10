@@ -976,6 +976,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.ScenePickingPass, 1 },
         };
 
+        public static DefineCollection Meta = new DefineCollection
+        {
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            // Use Unity's built-in matrices for meta pass rendering
+            { CoreKeywordDescriptors.ScenePickingPass, 1 },
+        };
+
         public static DefineCollection SceneSelection = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
