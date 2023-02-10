@@ -117,6 +117,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_DismissedUpgradeVersion = value;
         }
 
+        List<string> m_Modes = new();
+        public override List<string> Modes => m_Modes;
+
         internal SGGraphModel graphModel => GraphModel as SGGraphModel;
 
         internal int currentVersion => registryKey.Version;
@@ -326,16 +329,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            var selectedFunctionID = string.Empty;
-
-            // If the node has multiple possible topologies, show the selector.
-            if (nodeUIInfo.SelectableFunctions.Count > 0)
-            {
-                var fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-                var selectedFunctionField = node.GetField<string>(fieldName);
-                selectedFunctionID = selectedFunctionField.GetData<string>();
-            }
-
             var shouldShowPreview = nodeUIInfo.HasPreview && showPreviewForType;
             var functionDictionary = new Dictionary<string, string>(nodeUIInfo.SelectableFunctions);
 
@@ -349,8 +342,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shouldShowPreview,
                 functionDictionary,
                 portViewModels.ToArray(),
-                nodeUIInfo.FunctionSelectorLabel,
-                selectedFunctionID);
+                nodeUIInfo.FunctionSelectorLabel);
         }
 
         /// <summary>
@@ -424,6 +416,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             var nodeUIDescriptor = graphDataOwner.registry.GetNodeUIDescriptor(registryKey, nodeHandler);
+
+            // TODO OYT: Add nodeUIDescriptor.HasModes check when working on GSG-1543. For now, all nodes using FunctionDescriptor are considered.
+            if (m_Modes.Count == 0 && nodeUIDescriptor.SelectableFunctions.Count > 0)
+                m_Modes = nodeUIDescriptor.SelectableFunctions.Select(s => s.Key).ToList();
+
             var nodeHasPreview = nodeUIDescriptor.HasPreview && graphDataOwner.existsInGraphData;
             m_NodeViewModel = CreateNodeViewModel(nodeUIDescriptor, nodeHandler);
 

@@ -24,21 +24,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (nodeViewModel.Name == null)
                 return;
 
-            // If the node has multiple possible topologies, show the selector.
-            if (nodeViewModel.SelectedFunctionID != String.Empty)
-            {
-                FunctionSelectorPart part = new (
-                    "sg-function-selector",
-                    GraphElementModel,
-                    this,
-                    ussClassName,
-                    nodeViewModel.SelectedFunctionID,
-                    nodeViewModel.SelectableFunctions,
-                    nodeViewModel.FunctionSelectorLabel
-                );
-                PartList.InsertPartAfter(portContainerPartName, part);
-            }
-
             m_StaticFieldParts = new(name, graphDataNodeModel, this, ussClassName);
             foreach (var portUIData in nodeViewModel.StaticPortUIData)
             {
