@@ -1341,7 +1341,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     using (var builder = renderGraph.AddRenderPass<ApplyExposureData>("Apply Exposure", out var passData, ProfilingSampler.Get(HDProfileId.ApplyExposure)))
                     {
                         passData.applyExposureCS = defaultResources.shaders.applyExposureCS;
+                        passData.applyExposureCS.shaderKeywords = null;
                         passData.applyExposureKernel = passData.applyExposureCS.FindKernel("KMain");
+
+                        if (PostProcessEnableAlpha(hdCamera))
+                            passData.applyExposureCS.EnableKeyword("ENABLE_ALPHA");
+
                         passData.width = postProcessViewportSize.x;
                         passData.height = postProcessViewportSize.y;
                         passData.width = hdCamera.actualWidth;

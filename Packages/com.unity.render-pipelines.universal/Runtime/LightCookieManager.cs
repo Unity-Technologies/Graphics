@@ -711,9 +711,7 @@ namespace UnityEngine.Rendering.Universal
                 lp.lightBufferIndex = (ushort)(i + lightBufferOffset);
                 lp.light = light;
 
-                validLightMappings[validLightCount++] = lp;
-
-                if (validLightCount >= validLightMappings.Length)
+                if (lp.lightBufferIndex >= validLightMappings.Length || validLightCount + 1 >= validLightMappings.Length)
                 {
                     // TODO: Better error system
                     if (visibleLightCount > m_Settings.maxAdditionalLights &&
@@ -726,6 +724,8 @@ namespace UnityEngine.Rendering.Universal
                     // Always break, buffer full.
                     break;
                 }
+
+                validLightMappings[validLightCount++] = lp;
             }
 
             return validLightCount;

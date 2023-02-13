@@ -272,6 +272,19 @@ namespace UnityEngine.Rendering.HighDefinition
             "HDRP/AxF",
         };
 
+        internal static readonly string[] s_SubTargetIds =
+        {
+            "HDUnlitSubTarget",
+            "HDLitSubTarget",
+            "HairSubTarget",
+            "FabricSubTarget",
+            "StackLitSubTarget",
+            "DecalSubTarget",
+            "EyeSubTarget",
+            "WaterSubTarget",
+            "FogVolumeSubTarget",
+        };
+
         // list of methods for resetting keywords
         internal delegate void MaterialResetter(Material material);
         internal static Dictionary<ShaderID, MaterialResetter> k_PlainShadersMaterialResetters = new Dictionary<ShaderID, MaterialResetter>()
@@ -291,22 +304,31 @@ namespace UnityEngine.Rendering.HighDefinition
             { ShaderID.SG_Fabric, ShaderGraphAPI.ValidateLightingMaterial },
             { ShaderID.SG_StackLit, ShaderGraphAPI.ValidateLightingMaterial },
             { ShaderID.SG_Decal, ShaderGraphAPI.ValidateDecalMaterial },
-            { ShaderID.SG_Eye, ShaderGraphAPI.ValidateLightingMaterial }
+            { ShaderID.SG_Eye, ShaderGraphAPI.ValidateLightingMaterial },
+            { ShaderID.SG_FogVolume, ShaderGraphAPI.ValidateFogVolumeMaterial },
         };
 
+        internal static ShaderID GetShaderID(Material material)
+        {
+            if (!IsShaderGraph(material))
+            {
+                var shaderName = material.shader.name;
+                return (ShaderID)Array.FindIndex(s_ShaderPaths, m => m == shaderName);
+            }
+
+            var subTarget = material.GetTag("ShaderGraphTargetId", false, null);
+            int index = Array.FindIndex(s_SubTargetIds, m => m == subTarget);
+            return index == -1 ? ShaderID.SG_External : index + ShaderID.Count_Standard;
+        }
+
         /// <summary>
-        /// Setup properties, keywords and passes on a material to ensure it is in a valid state for rendering with HDRP. This function is only for materials using HDRP Shaders.
+        /// Setup properties, keywords and passes on a material to ensure it is in a valid state for rendering with HDRP. This function is only for materials using HDRP Shaders or ShaderGraphs.
         /// </summary>
         /// <param name="material">The target material.</param>
         /// <returns>False if the material doesn't have an HDRP Shader.</returns>
         public static bool ValidateMaterial(Material material)
         {
-            var shaderName = material.shader.name;
-            var index = Array.FindIndex(s_ShaderPaths, m => m == shaderName);
-            if (index == -1)
-                return false;
-
-            k_PlainShadersMaterialResetters.TryGetValue((ShaderID)index, out var resetter);
+            k_PlainShadersMaterialResetters.TryGetValue(GetShaderID(material), out var resetter);
             if (resetter == null)
                 return false;
 
@@ -348,6 +370,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return RenderQueueType.Unknown;
             }
+        }
+
+        /// <summary>Set the Surface Type of a HDRP material.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="transparent">Controls if the material has an opaque or transparent Surface Type.</param>
+        public static void SetSurfaceType(Material material, bool transparent)
+        {
+            var type = transparent ? SurfaceType.Transparent : SurfaceType.Opaque;
+            material.SetFloat(kSurfaceType, (float)type);
+            HDMaterial.ValidateMaterial(material);
         }
 
         /// <summary>Set the Rendering Pass on Lit, Unlit and Shadergraph shaders.</summary>

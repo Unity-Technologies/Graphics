@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 
@@ -10,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Input", "Property")]
-    class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled
+    class PropertyNode : AbstractMaterialNode, IGeneratesBodyCode, IOnAssetEnabled, IShaderInputObserver
     {
         public PropertyNode()
         {
@@ -49,8 +50,6 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Property = value;
-                // Set callback association for display name updates
-                m_Property.value.displayNameUpdateTrigger += UpdateNodeDisplayName;
                 AddOutputSlot();
                 Dirty(ModificationScope.Topological);
             }
@@ -279,6 +278,13 @@ namespace UnityEditor.ShaderGraph
 
             graphPrecision = precision.ToGraphPrecision(GraphPrecision.Graph);
             concretePrecision = graphPrecision.ToConcrete(owner.graphDefaultConcretePrecision);
+        }
+
+        public void OnShaderInputUpdated(ModificationScope modificationScope)
+        {
+            if(modificationScope == ModificationScope.Layout)
+                UpdateNodeDisplayName(property.displayName);
+            Dirty(modificationScope);
         }
     }
 }

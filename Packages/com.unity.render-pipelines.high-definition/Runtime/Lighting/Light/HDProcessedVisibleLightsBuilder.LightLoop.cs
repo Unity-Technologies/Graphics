@@ -69,6 +69,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (!hdAdditionalLightData.lightEntity.valid)
                                 hdAdditionalLightData.CreateHDLightRenderEntity(autoDestroy: true);
                         }
+                        // This can happen if a scene is created via new asset creation vs proper scene creation dialog. In this situation we create a default additional light data.
+                        // This is bad, but should happen *extremely* rarely and all the entities will 99.9% of the time end up in the branch above.
+                        else if (light != null && light.type == LightType.Directional)
+                        {
+                            var hdLightData = light.gameObject.AddComponent<HDAdditionalLightData>();
+                            if (hdLightData)
+                            {
+                                HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLightData);
+                            }
+                            if (!hdLightData.lightEntity.valid)
+                                hdLightData.CreateHDLightRenderEntity(autoDestroy: true);
+                        }
                         else
                             dataIndex = HDLightRenderDatabase.instance.GetEntityDataIndex(defaultEntity);
                     }

@@ -59,6 +59,16 @@ namespace UnityEditor.VFX.Test
             return asset;
         }
 
+        public static VFXViewController StartEditTestAsset()
+        {
+            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            window.Show();
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var viewController = VFXViewController.GetController(graph.GetResource(), true);
+            window.graphView.controller = viewController;
+            return viewController;
+        }
+
         public static VFXGraph MakeTemporaryGraph()
         {
             var guid = System.Guid.NewGuid().ToString();
@@ -75,29 +85,13 @@ namespace UnityEditor.VFX.Test
         {
             if (Directory.Exists(tempBasePath))
             {
-                foreach (var file in Directory.EnumerateFiles(tempBasePath, "*.*", SearchOption.AllDirectories))
-                {
-                    try
-                    {
-                        AssetDatabase.DeleteAsset(file);
-                    }
-                    catch (System.Exception) // Don't stop if we fail to delete one asset
-                    {
-                    }
-                }
+                Directory.Delete(tempBasePath, true);
+            }
 
-                foreach (var directory in Directory.EnumerateDirectories(tempBasePath))
-                {
-                    try
-                    {
-                        Directory.Delete(directory);
-                    }
-                    catch (System.Exception)
-                    {
-                    }
-                }
-
-                Directory.Delete(tempBasePath);
+            var meta = tempBasePath.Substring(0, tempBasePath.Length - 1) + ".meta";
+            if (File.Exists(meta))
+            {
+                File.Delete(meta);
             }
         }
 

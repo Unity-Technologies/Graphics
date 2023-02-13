@@ -1,16 +1,15 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using NUnit.Framework;
-using Unity.PerformanceTesting;
-using static PerformanceTestUtils;
-using static PerformanceMetricNames;
-using UnityEngine.VFX;
+using System.Collections;
 using System.Reflection;
+
+using NUnit.Framework;
+
+using Unity.PerformanceTesting;
+using UnityEngine.VFX;
 using UnityEditor.VFX.UI;
 using UnityEngine.TestTools;
-using System.Collections;
-using UnityEngine;
 
 namespace UnityEditor.VFX.PerformanceTest
 {

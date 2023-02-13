@@ -5,12 +5,51 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [14.0.6] - 2023-01-18
+
+This version is compatible with Unity 2022.2.4f1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [14.0.5] - 2022-12-12
 
 This version is compatible with Unity 2022.2.2f1.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed shadergraph using derivatives and Raytracing Quality keyword.
+- Removed misleading part of a LensFlare tooltip.
+- Removed unused voluimetric clouds volume component on new scenes templates.
+- Fixed texture wrapping of cloud layer.
+- Fixed custom pass scaling issues with dynamic resolution.
+- Fixed an issue with low resolution depth of field producing a cropped result in some scenarios.
+- Fixed transmission on directional lights.
+- Fixed slight change of color in background when changing scene hierarchy.
+- Fixed color grading so it no longer outputs negative colors.
+- Fixed range of spill removal parameter in graphics compositor UI.
+- Fixed exposure of recorded frames with path tracing and auto exposure.
+- Fixed volumetric cloud incorrectly display in lighting debug mode
+- Fixed Ray Tracing Mixed Mode Collisions.
+- Fixed minor bug in the shadow ray culling for the cone spot light.
+- Fixed zfighting artifacts for ray tracing.
+- Fixed the indirect diffuse lighting in ray tracing so it now always works properly.
+- Added clarification on HDR Output not supporting Scene View.
+- Fixed Missing tooltip for Screen Weight Distance in Screen Space Refraction Override.
+- Fixed missing tag on decal shader properties.
+- Fixed mouse position in debug menu with scaled screens in editor.
+- Fixed null reference error in the rendering debugger when no camera is available.
+- Fixed a black screen issue with master builds on HDRP.
+- Fixed the fallback section so it now disappears when hiding the additional data.
+- Fixed black line in ray traced reflections.
+- Renamed IOR output in Eye shadergraph for clarification.
+- Fixed Text alignment in Transparency Inputs section.
+- Fixed an issue with Bloom and Depth of Field in game view when filtering in the hierarchy.
+- Fixed the ray tracing shadow denoiser s it no longer produces leaks at the edge of spotlight shadows.
+- Re-enabled XR tests for 004-CloudsFlaresDecals and 005-DistortCloudsParallax.
+- Improved the script linking the directional light to a Custom Render Target calling the RenderPipeline function GetMainLight().
+- Enabled SSR transparent in default framesettings.
+- Fixed scalarization issues on Gamecore.
 
 ## [14.0.4] - 2022-11-04
 

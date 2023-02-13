@@ -926,7 +926,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.DepthOnly,
+                includes = new IncludeCollection { CoreIncludes.DepthOnly },
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -967,7 +967,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.DepthNormalsOnly,
+                includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -1007,8 +1007,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.DepthNormalsOnly(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
-                keywords = new KeywordCollection() { CoreKeywordDescriptors.GBufferNormalsOct },
-                includes = CoreIncludes.DepthNormalsOnly,
+                keywords = new KeywordCollection { CoreKeywordDescriptors.GBufferNormalsOct },
+                includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -1047,8 +1047,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.ShadowCaster(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
-                keywords = new KeywordCollection() { CoreKeywords.ShadowCaster },
-                includes = CoreIncludes.ShadowCaster,
+                keywords = new KeywordCollection { CoreKeywords.ShadowCaster },
+                includes = new IncludeCollection { CoreIncludes.ShadowCaster },
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -1317,15 +1317,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
         };
 
-        // used by lit/unlit subtargets
-        public static readonly RenderStateCollection MaterialControlledRenderState = new RenderStateCollection
-        {
-            { RenderState.ZTest(Uniforms.zTest) },
-            { RenderState.ZWrite(Uniforms.zWrite) },
-            { RenderState.Cull(Uniforms.cullMode) },
-            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) }, //, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
-        };
-
         public static Cull RenderFaceToCull(RenderFace renderFace)
         {
             switch (renderFace)
@@ -1344,7 +1335,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static RenderStateCollection UberSwitchedRenderState(UniversalTarget target, bool blendModePreserveSpecular = false)
         {
             if (target.allowMaterialOverride)
-                return MaterialControlledRenderState;
+            {
+                return new RenderStateCollection
+                {
+                    RenderState.ZTest(Uniforms.zTest),
+                    RenderState.ZWrite(Uniforms.zWrite),
+                    RenderState.Cull(Uniforms.cullMode),
+                    RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend),
+                };
+            }
             else
             {
                 var result = new RenderStateCollection();

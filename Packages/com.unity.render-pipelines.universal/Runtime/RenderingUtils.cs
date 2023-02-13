@@ -227,7 +227,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                     loadAction, storeAction, // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                cmd.Blit(source.nameID, destination.nameID);
+                cmd.SetGlobalVector("_BlitScaleBias", scaleBias);
+                cmd.Blit(source.nameID, destination.nameID, material, passIndex);
             }
             else if (source.rt == null)
                 Blitter.BlitTexture(cmd, source.nameID, scaleBias, material, passIndex);  // Obsolete usage of RTHandle aliasing a RenderTargetIdentifier

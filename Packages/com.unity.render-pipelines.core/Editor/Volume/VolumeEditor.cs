@@ -153,7 +153,6 @@ namespace UnityEditor.Rendering
             }
 
             EditorGUILayout.PropertyField(m_Weight);
-
             bool priorityHasChanged = false;
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
@@ -175,26 +174,33 @@ namespace UnityEditor.Rendering
             var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
             var buttonCopyRect = new Rect(buttonNewRect.xMax, lineRect.y, buttonWidth, lineRect.height);
 
-            GUIContent guiContent = actualTarget.HasInstantiatedProfile() ? Styles.profileInstance : Styles.profile;
 
-            EditorGUI.PrefixLabel(labelRect, guiContent);
-
-            using (new EditorGUI.PropertyScope(fieldRect, GUIContent.none, m_Profile))
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                var profile = actualTarget.HasInstantiatedProfile()
-                    ? actualTarget.profile
-                    : m_Profile.objectReferenceValue;
-
-                VolumeProfile editedProfile =
-                    (VolumeProfile)EditorGUI.ObjectField(fieldRect, profile, typeof(VolumeProfile), false);
+                var isProfileInstance = actualTarget.HasInstantiatedProfile();
+                VolumeProfile editedProfile;
+                if (isProfileInstance)
+                {
+                    var prevMixedValueState = EditorGUI.showMixedValue;
+                    EditorGUI.showMixedValue = m_Profile.hasMultipleDifferentValues;
+                    EditorGUI.PrefixLabel(labelRect, Styles.profileInstance);
+                    editedProfile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, actualTarget.profile, typeof(VolumeProfile), false);
+                    EditorGUI.showMixedValue = prevMixedValueState;
+                }
+                else
+                {
+                    fieldRect = new Rect(labelRect.x, labelRect.y, labelRect.width + fieldRect.width, fieldRect.height);
+                    EditorGUI.ObjectField(fieldRect, m_Profile, Styles.profile);
+                    editedProfile = (VolumeProfile)m_Profile.objectReferenceValue;
+                }
                 if (scope.changed)
                 {
                     assetHasChanged = true;
-                    m_Profile.objectReferenceValue = editedProfile;
-
-                    if (actualTarget.HasInstantiatedProfile()) // Clear the instantiated profile, from now on we're using shared again
+                    if (isProfileInstance)
+                        // Clear the instantiated profile, from now on we're using shared again
                         actualTarget.profile = null;
+                    else
+                        m_Profile.objectReferenceValue = editedProfile;
                 }
             }
 
@@ -212,7 +218,7 @@ namespace UnityEditor.Rendering
                     assetHasChanged = true;
                 }
 
-                guiContent = actualTarget.HasInstantiatedProfile() ? Styles.saveLabel : Styles.cloneLabel;
+                GUIContent guiContent = actualTarget.HasInstantiatedProfile() ? Styles.saveLabel : Styles.cloneLabel;
                 if (showCopy && GUI.Button(buttonCopyRect, guiContent, EditorStyles.miniButtonRight))
                 {
                     // Duplicate the currently assigned profile and save it as a new profile
@@ -273,7 +279,17 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            serializedObject.ApplyModifiedProperties();
+            if (actualTarget.sharedProfile == null && m_Profile.objectReferenceValue != null)
+            {
+                if (Event.current.type != EventType.Layout)
+                {
+                    actualTarget.sharedProfile = (VolumeProfile)m_Profile.objectReferenceValue;
+                    if (actualTarget.HasInstantiatedProfile())
+                        actualTarget.profile = null;
+                    RefreshEffectListEditor(actualTarget.sharedProfile);
+                }
+            }
+	        serializedObject.ApplyModifiedProperties();
 
             if (assetHasChanged)
                 VolumeProfileUsageAnalytic.Send(actualTarget, (VolumeProfile)m_Profile.objectReferenceValue);

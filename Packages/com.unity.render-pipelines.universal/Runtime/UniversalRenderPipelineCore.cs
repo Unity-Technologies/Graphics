@@ -414,6 +414,34 @@ namespace UnityEngine.Rendering.Universal
         internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
 
         /// <summary>
+        /// True is the handle has its content flipped on the y axis.
+        /// This happens only with certain rendering APIs.
+        /// On those platforms, any handle will have its content flipped unless rendering to a backbuffer, however,
+        /// the scene view will always be flipped.
+        /// When transitioning from a flipped space to a non-flipped space - or vice-versa - the content must be flipped
+        /// in the shader:
+        /// shouldPerformYFlip = IsHandleYFlipped(source) != IsHandleYFlipped(target)
+        /// </summary>
+        /// <param name="handle">Handle to check the flipped status on.</param>
+        /// <returns>True is the content is flipped in y.</returns>
+        public bool IsHandleYFlipped(RTHandle handle)
+        {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+                return false;
+
+            if (cameraType == CameraType.SceneView)
+                return true;
+
+            var handleID = new RenderTargetIdentifier(handle.nameID, 0, CubemapFace.Unknown, 0);
+            bool isBackbuffer = handleID == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                isBackbuffer |= handleID == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
+#endif
+            return !isBackbuffer;
+        }
+
+        /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
         /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
@@ -422,22 +450,41 @@ namespace UnityEngine.Rendering.Universal
         /// <returns> True if the camera device projection matrix is flipped. </returns>
         public bool IsCameraProjectionMatrixFlipped()
         {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+                return false;
+
             // Users only have access to CameraData on URP rendering scope. The current renderer should never be null.
             var renderer = ScriptableRenderer.current;
             Debug.Assert(renderer != null, "IsCameraProjectionMatrixFlipped is being called outside camera rendering scope.");
 
             if (renderer != null)
             {
-#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
-                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraColorTarget;
-#pragma warning restore 0618
-                bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
+                var handle = renderer.cameraColorTargetHandle;
+
+                bool flipped;
+#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for renderer using cameraColorTarget instead of cameraColorTargetHandle
+                if (handle == null)
+                {
+                    if (cameraType == CameraType.SceneView)
+                    {
+                        flipped = true;
+                    }
+                    else
+                    {
+                        var handleID = new RenderTargetIdentifier(renderer.cameraColorTarget, 0, CubemapFace.Unknown, 0);
+                        bool isBackbuffer = handleID == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                if (xr.enabled)
-                    renderingToBackBufferTarget |= targetId == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
+                        if (xr.enabled)
+                            isBackbuffer |= handleID == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
 #endif
-                bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
-                return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
+                        flipped = !isBackbuffer;
+                    }
+                }
+                else
+#pragma warning restore 0618
+                    flipped = IsHandleYFlipped(handle);
+
+                return flipped || targetTexture != null;
             }
 
             return true;
@@ -454,17 +501,10 @@ namespace UnityEngine.Rendering.Universal
         /// <returns> True if the render target's projection matrix is flipped. </returns>
         public bool IsRenderTargetProjectionMatrixFlipped(RTHandle color, RTHandle depth = null)
         {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+                return false;
 
-#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
-            var targetId = color?.nameID ?? depth?.nameID;
-#pragma warning restore 0618
-            bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xr.enabled)
-                renderingToBackBufferTarget |= targetId == xr.renderTarget;
-#endif
-            bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
-            return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
+            return targetTexture != null || IsHandleYFlipped(color ?? depth);
         }
 
         internal bool IsTemporalAAEnabled()

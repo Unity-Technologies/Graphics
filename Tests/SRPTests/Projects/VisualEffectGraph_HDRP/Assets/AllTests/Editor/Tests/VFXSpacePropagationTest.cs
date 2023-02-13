@@ -488,7 +488,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SpaceConversion_With_SwitchOperator()
         {
-            var switchOp = ScriptableObject.CreateInstance<Switch>();
+            var switchOp = ScriptableObject.CreateInstance<Operator.Switch>();
             switchOp.SetSettingValue("m_Type", (SerializableType)typeof(Vector));
             Assert.AreEqual(4, switchOp.inputSlots.Count);
 

@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateFlowEdgesTest()
         {
-            var viewController = StartEditTestAsset();
+            var viewController = VFXTestCommon.StartEditTestAsset();
 
             var allContexts = VFXLibrary.GetContexts().ToArray();
             var eventContextDesc = allContexts.First(t => t.model.contextType == VFXContextType.Event);
@@ -107,16 +107,6 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        private static VFXViewController StartEditTestAsset()
-        {
-            var window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.Show();
-            var graph = VFXTestCommon.MakeTemporaryGraph();
-            var viewController = VFXViewController.GetController(graph.GetResource(), true);
-            window.graphView.controller = viewController;
-            return viewController;
-        }
-
         public struct CreateAllBlockParam
         {
             internal string name;
@@ -162,7 +152,7 @@ namespace UnityEditor.VFX.Test
                 else
                     modelCount *= 2;
 
-                var controller = StartEditTestAsset();
+                var controller = VFXTestCommon.StartEditTestAsset();
 
                 if (blocks)
                 {
@@ -268,7 +258,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllBlocksTest([ValueSource(nameof(kCreateAllBlockParam))] CreateAllBlockParam param)
         {
-            var viewController = StartEditTestAsset();
+            var viewController = VFXTestCommon.StartEditTestAsset();
             CreateAllBlocks(viewController, param.destContext, param.blocks);
         }
 
@@ -277,7 +267,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllDataEdgesTest([ValueSource(nameof(kCreateAllBlockParamOutput))] CreateAllBlockParam param)
         {
-            var viewController = StartEditTestAsset();
+            var viewController = VFXTestCommon.StartEditTestAsset();
             var contextController = CreateAllBlocks(viewController, param.destContext, param.blocks);
             CreateDataEdges(viewController, contextController, CreateAllParameters(viewController));
         }
@@ -314,7 +304,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ExpandRetractAndSetPropertyValue()
         {
-            var viewController = StartEditTestAsset();
+            var viewController = VFXTestCommon.StartEditTestAsset();
 
             var initContextDesc = VFXLibrary.GetContexts().First(t => typeof(VFXBasicInitialize).IsAssignableFrom(t.modelType));
 
@@ -391,14 +381,14 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllOperatorsTest()
         {
-            var viewController = StartEditTestAsset();
+            var viewController = VFXTestCommon.StartEditTestAsset();
             Assert.DoesNotThrow(() =>CreateAllOperators(viewController));
         }
 
         [UnityTest]
         public IEnumerator CollapseTest()
         {
-            var viewController = StartEditTestAsset();
+            var viewController = VFXTestCommon.StartEditTestAsset();
 
             var builtInItem = VFXLibrary.GetOperators().First(t => typeof(VFXDynamicBuiltInParameter).IsAssignableFrom(t.modelType));
 
@@ -445,7 +435,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllParametersTest()
         {
-            var viewController = StartEditTestAsset();
+            var viewController = VFXTestCommon.StartEditTestAsset();
             Assert.DoesNotThrow(() => CreateAllParameters(viewController));
         }
 
@@ -498,7 +488,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Check_Focus_On_Clear_Selection_When_Node_Is_Selected()
         {
             // Prepare
-            var vfxController = StartEditTestAsset();
+            var vfxController = VFXTestCommon.StartEditTestAsset();
             var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
 
             var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
@@ -525,7 +515,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Check_VFXNodeProvider_Listing_SkinnedMeshSampling_From_SkinnedMeshRenderer()
         {
-            var vfxController = StartEditTestAsset();
+            var vfxController = VFXTestCommon.StartEditTestAsset();
 
             var op = ScriptableObject.CreateInstance<VFXInlineOperator>();
             op.SetSettingValue("m_Type", (SerializableType)typeof(SkinnedMeshRenderer));
@@ -560,7 +550,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Check_Focus_On_Clear_Selection_When_No_Selection()
         {
             // Prepare
-            var vfxController = StartEditTestAsset();
+            var vfxController = VFXTestCommon.StartEditTestAsset();
             var sphereOperatorDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sphere");
 
             var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);
@@ -893,7 +883,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Check_Delayed_Field_Correctly_Saved()
         {
             // Prepare
-            var vfxController = StartEditTestAsset();
+            var vfxController = VFXTestCommon.StartEditTestAsset();
             var initializeContextDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name == "Initialize Particle");
 
             var window = EditorWindow.GetWindow<VFXViewWindow>(null, true);

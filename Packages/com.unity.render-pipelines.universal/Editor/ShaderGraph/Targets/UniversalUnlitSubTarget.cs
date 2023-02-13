@@ -250,9 +250,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target),
                     pragmas = CorePragmas.Forward,
-                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { keywords },
-                    includes = UnlitIncludes.Unlit,
+                    defines = new DefineCollection { CoreDefines.UseFragmentFog },
+                    keywords = new KeywordCollection { keywords },
+                    includes = new IncludeCollection { UnlitIncludes.Unlit },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -293,7 +293,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = CorePragmas.Forward,
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection() { CoreKeywords.DOTSDepthNormal, CoreKeywordDescriptors.GBufferNormalsOct },
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common

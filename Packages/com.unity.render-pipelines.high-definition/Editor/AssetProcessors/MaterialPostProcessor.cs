@@ -297,16 +297,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             foreach (var asset in importedAssets)
             {
-                // Register Diffuse Profiles
-                Material material = null;
-                if (HDRenderPipelineGlobalSettings.instance?.autoRegisterDiffusionProfiles == true)
-                {
-                    material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
-                    if (material == null)
-                        continue;
-                    RegisterReferencedDiffusionProfiles(material);
-                }
-
                 // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
                 if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
                 {
@@ -323,15 +313,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     continue;
                 }
-
-                // Materials (.mat) post processing:
-                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
+                else if (!asset.EndsWith(".mat", StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                if (material == null)
-                    material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                // Materials (.mat) post processing
+                var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
                 if (material == null)
                     continue;
+
+                // Register Diffuse Profiles
+                if (HDRenderPipelineGlobalSettings.instance?.autoRegisterDiffusionProfiles == true)
+                    RegisterReferencedDiffusionProfiles(material);
 
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {

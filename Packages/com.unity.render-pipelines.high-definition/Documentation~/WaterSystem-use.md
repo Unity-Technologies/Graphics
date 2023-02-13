@@ -33,7 +33,10 @@ This is especially important when you upgrade your project from an earlier versi
 
 
 ### Add a water surface to a scene
+
 Open **Game Object** > **Water Surface** and select a surface type.
+
+You can also use a [Water shader graph](master-stack-water.md) to create a Water material.
 
 ### Adjust Scene view Effects options
 If water surface movement lags and stutters in the Scene view, open the <b>Effects</b> menu in the [View Options](https://docs.unity3d.com/2023.1/Documentation/Manual/ViewModes.html) toolbar and enable the **Always Refresh** option.

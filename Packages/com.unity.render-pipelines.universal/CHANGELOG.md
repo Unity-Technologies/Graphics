@@ -5,12 +5,32 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [14.0.6] - 2023-01-18
+
+This version is compatible with Unity 2022.2.4f1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+
 ## [14.0.5] - 2022-12-12
 
 This version is compatible with Unity 2022.2.2f1.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Shader parameters used by additional lights are now removed when additional lights are disabled in URP Assets.
+
+### Fixed
+- Set default contribution to 0 for ColorLookup VolumeComponent, which makes the interpolation with the implicit default global volume behave as expected.
+- Fixed Full Screen Pass functionality when used with XR.
+- RenderObjects Render Features now render correctly when injected after rendering.
+- Fixed an issue in deferred rendering mode where the Material inspector would log errors about color and depth dimensions not matching.
+- Fixed an issue where a ParticlesUnlit.mat warning appeared when creating a new material.
+- Fixed an issue with slower build-times caused by large Additional Light Shadows arrays in URP Shaders.
+- Fixed a bug where lights with different blend styles may have missing shadows.
+- Fixed mixed lights when using deferred rendering and shadow mask.
+- Fixed releasing render targets when using multiple renderers.
+- Fixed an issue where the Universal Renderer could incorrectly clear the render target during the forward opaques pass even if the render target contains valid rendering data produced by a pass that ran before opaque rendering.
 
 ## [14.0.4] - 2022-11-04
 

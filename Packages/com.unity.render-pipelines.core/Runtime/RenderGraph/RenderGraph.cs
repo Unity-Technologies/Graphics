@@ -1290,7 +1290,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                             }
 
                             // Finally add the release command to the pass before the first pass that waits for the compute pipe.
-                            ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[Math.Max(0, firstWaitingPassIndex - 1)];
+                            var releasePassIndex = Math.Max(0, firstWaitingPassIndex - 1);
+
+                            // Check to ensure that we do not release resources on a culled pass (causes a leak otherwise).
+                            while (m_CompiledPassInfos[releasePassIndex].culled)
+                                releasePassIndex = Math.Max(0, releasePassIndex - 1);
+
+                            ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[releasePassIndex];
                             passInfo.resourceReleaseList[type].Add(i);
                         }
                         else

@@ -426,7 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Inject all the parameters
                 cmd.SetComputeVectorParam(lightClusterCS, _ClusterCenterPosition, clusterCenter);
                 cmd.SetComputeVectorParam(lightClusterCS, _ClusterDimension, clusterDimension);
-                cmd.SetComputeFloatParam(lightClusterCS, _LightVolumeCount, HDShadowUtils.Asfloat(totalLightCount));
+                cmd.SetComputeFloatParam(lightClusterCS, _LightVolumeCount, totalLightCount);
 
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterCullKernel, _LightVolumes, m_LightVolumeGPUArray);
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterCullKernel, _RaytracingLightCullResult, m_LightCullResult);
@@ -450,7 +450,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(lightClusterCS, _ClusterCellSize, clusterCellSize);
 
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterKernel, _LightVolumes, m_LightVolumeGPUArray);
-                cmd.SetComputeFloatParam(lightClusterCS, _LightVolumeCount, HDShadowUtils.Asfloat(totalLightCount));
+                cmd.SetComputeFloatParam(lightClusterCS, _LightVolumeCount, totalLightCount);
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterKernel, _RaytracingLightCullResult, m_LightCullResult);
 
                 // Dispatch a compute

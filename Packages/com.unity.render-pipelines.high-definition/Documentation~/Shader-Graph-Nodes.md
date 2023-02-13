@@ -21,3 +21,16 @@ HDRP adds the following Shader Graph Nodes:
   * [ScleraIrisBlend](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Sclera-Iris-Blend-Node.html)
   * [ScleraLimbalRing](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Sclera-Limbal-Ring-Node.html)
   * [ScleraUVLocation](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Sclera-UV-Location-Node.html)
+* Water Shader Graph utilities
+  * [Compute Vertex Position](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Compute-Vertex-Position-Water-Node.html)
+  * [Evaluate Foam Data](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Evaluate-Foam-Data-Water-Node.html)
+  * [Evaluate Refraction Data](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Evaluate-Refraction-Water-Node.html)
+  * [Evaluate Scattering Color](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Evaluate-Scattering-Color-Water-Node.html)
+  * [Evaluate Simulation Additional Data](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Evaluate-Simulation-Additional-Data-Water-Node.html)
+  * [Evaluate Simulation Caustics](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Evaluate-Simulation-Caustics-Water-Node.html)
+  * [Evaluate Simulation Displacement](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Evaluate-Simulation-Displacement-Water-Node.html)
+  * [Evaluate Tip Thickness](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Evaluate-Tip-Thickness-Water-Node.html)
+  * [Pack Water Vertex Data](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Pack-Vertex-Data-Water-Node.html)
+  * [Unpack Water Data](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Unpack-Data-Water-Node.html)
+
+

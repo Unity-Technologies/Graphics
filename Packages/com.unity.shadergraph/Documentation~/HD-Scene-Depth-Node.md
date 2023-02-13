@@ -4,7 +4,7 @@
 
 The HD Scene Depth node uses a UV input to access the current Camera's depth buffer. Unity expects normalized screen coordinates for this value. You can also use this node to access the mipmaps in the depth buffer.
 
-You can only use the HD Scene Depth node in the Fragment Shader Stage.
+You can only use the HD Scene Depth node in the Fragment Shader Stage and with non-opaque materials.
 
 ## Render pipeline compatibility
 
