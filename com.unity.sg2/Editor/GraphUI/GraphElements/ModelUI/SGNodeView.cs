@@ -15,10 +15,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.BuildPartList();
 
-            // We don't want to display serialized fields on the node body, only ports
-            // If this isn't in place, things like the PreviewMode dropdown show up on nodes
-            PartList.RemovePart(nodeOptionsContainerPartName);
-
             // Retrieve this node's view model
             var nodeViewModel = graphDataNodeModel.GetViewModel();
             if (nodeViewModel.Name == null)

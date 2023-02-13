@@ -92,7 +92,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // By default every node's preview uses the inherit mode
         [SerializeField]
-        [NodeOption]
+        [NodeOption(true)]
+        [Tooltip("Controls the way the preview output is rendered for this node")]
         PreviewRenderMode m_NodePreviewMode;
         public PreviewRenderMode NodePreviewMode
         {
@@ -407,6 +408,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return true;
         }
 
+        protected override void DefineNodeOptions()
+        {
+            if (!graphDataOwner.TryGetNodeHandler(out var nodeHandler))
+            {
+                Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
+                return;
+            }
+
+            var nodeUIDescriptor = graphDataOwner.registry.GetNodeUIDescriptor(registryKey, nodeHandler);
+
+            // If the node has selectable functions but does not have modes, the functions are part of a node option.
+            if (!nodeUIDescriptor.HasModes && nodeUIDescriptor.SelectableFunctions.Count > 0)
+            {
+                var selectedFunctionField = nodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME);
+                AddNodeOption(
+                    nodeUIDescriptor.FunctionSelectorLabel,
+                    TypeHandle.String,
+                    c => ChangeNodeFunction(c.ObjectValue.ToString()),
+                    initializationCallback: c => c.ObjectValue = selectedFunctionField.GetData(),
+                    attributes: new Attribute[] { new EnumAttribute(nodeUIDescriptor.SelectableFunctions.Keys.ToArray()) });
+            }
+        }
+
         protected override void OnDefineNode()
         {
             if (!graphDataOwner.TryGetNodeHandler(out var nodeHandler))
@@ -417,8 +441,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             var nodeUIDescriptor = graphDataOwner.registry.GetNodeUIDescriptor(registryKey, nodeHandler);
 
-            // TODO OYT: Add nodeUIDescriptor.HasModes check when working on GSG-1543. For now, all nodes using FunctionDescriptor are considered.
-            if (m_Modes.Count == 0 && nodeUIDescriptor.SelectableFunctions.Count > 0)
+            if (nodeUIDescriptor.HasModes && m_Modes.Count == 0 && nodeUIDescriptor.SelectableFunctions.Count > 0)
                 m_Modes = nodeUIDescriptor.SelectableFunctions.Select(s => s.Key).ToList();
 
             var nodeHasPreview = nodeUIDescriptor.HasPreview && graphDataOwner.existsInGraphData;
