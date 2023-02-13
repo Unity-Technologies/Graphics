@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Unity.GraphToolsFoundation;
 using Unity.GraphToolsFoundation.Editor;
@@ -16,9 +17,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PortType portType,
             TypeHandle dataType,
             string portId,
-            PortModelOptions options)
+            PortModelOptions options,
+            Attribute[] attributes)
         {
-            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
+            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options, attributes);
         }
 
         protected override void OnDefineNode()
