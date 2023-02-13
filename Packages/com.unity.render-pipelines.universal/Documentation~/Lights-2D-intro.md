@@ -29,7 +29,7 @@ These two phases are only repeated  for each distinctly lit set of Light Layers.
 
 The default setup allows a number of [batches](https://docs.unity3d.com/Manual/DrawCallBatching.html) to be drawn ahead of time before drawing the Renderers to reduce target switching. The ideal setup would allow the pipeline to render the Light Render Textures for all the batches and only then move on to draw the Renderers. This prevents loading and unloading of the color target. Refer to [Optimization](#optimization) for more detailed information.
 
-### <a name="pre-phase">Pre-phase: Calculate Sorting Layer batching</a>
+### Pre-phase: Calculate Sorting Layer batching
 Before proceeding with the rendering phases, the 2D Lighting graphics pipeline first analyses the Scene to assess which Layers can be batched together in a single draw operation. The following is the criteria that determine whether Layers are batched together:
 1. They are consecutive Layers.
 2. They share the exact same set of Lights.
@@ -44,7 +44,7 @@ After the pre-phase batching, the pipeline then draws the Light Textures for tha
 It is worth noting that a Light Render Texture is only created when at least one 2D Light is targeting it. For example, if all the lights of a Layer only uses **Blendstyle #1**, then only one Light Render Texture is created.
 
 ### Phase 2: Draw Renderers
-Once all the Light Render Textures have been drawn, the pipeline proceeds to draw the Renderers. The system will keep track of which set of Renderers are drawn by which set of Light Render Textures. They are associated during the batching process in the [pre-phase](#pre-phase).
+Once all the Light Render Textures have been drawn, the pipeline proceeds to draw the Renderers. The system will keep track of which set of Renderers are drawn by which set of Light Render Textures. They are associated during the batching process in the [pre-phase](#pre-phase-calculate-sorting-layer-batching).
 
 When the Renderers are being drawn, it will have access to all (one for each blend style) the available Light Render Textures. In the shader, the final color is calculated by combining the input color with colors from the Light Render Texture using the specified operation.
 
