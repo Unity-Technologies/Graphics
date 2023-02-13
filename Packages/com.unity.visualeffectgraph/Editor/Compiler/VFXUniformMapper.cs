@@ -116,21 +116,33 @@ namespace UnityEditor.VFX
         public IEnumerable<VFXExpression> textures { get { return m_TextureToName.Keys; } }
         public IEnumerable<VFXExpression> buffers { get { return m_BufferToName.Keys; } }
 
-        // Get only the first name of a uniform (For generated code, we collapse all uniforms using the same expression into a single one)
-        public string GetName(VFXExpression exp)
+
+
+        private Dictionary<VFXExpression, List<string>> GetDictionaryFromType(VFXExpression exp)
         {
-            return GetNames(exp).First();
+            if (VFXExpression.IsTexture(exp.valueType))
+                return m_TextureToName;
+
+            if (VFXExpression.IsBufferOnGPU(exp.valueType))
+                return m_BufferToName;
+
+            return m_UniformToName;
+        }
+
+        public bool Contains(VFXExpression exp)
+        {
+            return GetDictionaryFromType(exp).ContainsKey(exp);
         }
 
         public List<string> GetNames(VFXExpression exp)
         {
-            if (VFXExpression.IsTexture(exp.valueType))
-                return m_TextureToName[exp];
+            return GetDictionaryFromType(exp)[exp];
+        }
 
-            if (VFXExpression.IsBufferOnGPU(exp.valueType))
-                return m_BufferToName[exp];
-
-            return m_UniformToName[exp];
+        // Get only the first name of a uniform (For generated code, we collapse all uniforms using the same expression into a single one)
+        public string GetName(VFXExpression exp)
+        {
+            return GetNames(exp).FirstOrDefault();
         }
 
         // This retrieves expression to name with additional type conversion where suitable
