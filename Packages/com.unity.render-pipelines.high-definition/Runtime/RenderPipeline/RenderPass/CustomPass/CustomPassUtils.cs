@@ -423,7 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Gaussian function
-            float Gaussian(float x, float sigma = 1)
+            static float Gaussian(float x, float sigma = 1)
             {
                 float a = 1.0f / Mathf.Sqrt(2 * Mathf.PI * sigma * sigma);
                 float b = Mathf.Exp(-(x * x) / (2 * sigma * sigma));

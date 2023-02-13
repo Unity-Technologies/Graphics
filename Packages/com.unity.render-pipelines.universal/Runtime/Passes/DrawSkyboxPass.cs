@@ -100,6 +100,17 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Render(RenderGraph renderGraph, ScriptableRenderContext context, TextureHandle colorTarget, TextureHandle depthTarget, ref RenderingData renderingData)
         {
+            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            if (activeDebugHandler != null)
+            {
+                // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it
+                // when certain debug modes are active (e.g. wireframe/overdraw modes)
+                if (activeDebugHandler.IsScreenClearNeeded)
+                {
+                    return;
+                }
+            }
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Skybox Pass", out var passData,
                 base.profilingSampler))
             {

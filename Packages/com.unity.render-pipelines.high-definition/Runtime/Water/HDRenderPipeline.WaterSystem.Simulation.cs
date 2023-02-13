@@ -180,12 +180,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // The set of CPU Buffers used to run the simulation
         public WaterSimulationResourcesCPU cpuBuffers = null;
 
-        public void AllocateSimulationBuffersGPU()
+        public void AllocateSimulationBuffersGPU(bool activeWaterFoam)
         {
             gpuBuffers = new WaterSimulationResourcesGPU();
             gpuBuffers.phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, maxNumBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
             gpuBuffers.displacementBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, maxNumBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            gpuBuffers.additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, maxNumBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
+            gpuBuffers.additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, maxNumBands, dimension: TextureDimension.Tex2DArray, colorFormat: activeWaterFoam ? GraphicsFormat.R16G16B16A16_SFloat : GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
         }
 
         public void ReleaseSimulationBuffersGPU()
@@ -338,8 +338,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_WaterSimulationCS;
         int m_InitializePhillipsSpectrumKernel;
         int m_EvaluateDispersionKernel;
-        int m_EvaluateNormalsFoamKernel;
-        int m_CopyAdditionalDataKernel;
+        int m_EvaluateNormalsKernel;
+        int m_EvaluateNormalsJacobianKernel;
         int m_PrepareCausticsGeometryKernel;
         int m_EvaluateInstanceDataKernel;
         int m_EvaluateInstanceDataInfiniteKernel;
@@ -365,8 +365,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WaterSimulationCS = m_Asset.renderPipelineResources.shaders.waterSimulationCS;
             m_InitializePhillipsSpectrumKernel = m_WaterSimulationCS.FindKernel("InitializePhillipsSpectrum");
             m_EvaluateDispersionKernel = m_WaterSimulationCS.FindKernel("EvaluateDispersion");
-            m_EvaluateNormalsFoamKernel = m_WaterSimulationCS.FindKernel("EvaluateNormalsFoam");
-            m_CopyAdditionalDataKernel = m_WaterSimulationCS.FindKernel("CopyAdditionalData");
+            m_EvaluateNormalsKernel = m_WaterSimulationCS.FindKernel("EvaluateNormals");
+            m_EvaluateNormalsJacobianKernel = m_WaterSimulationCS.FindKernel("EvaluateNormalsJacobian");
             m_PrepareCausticsGeometryKernel = m_WaterSimulationCS.FindKernel("PrepareCausticsGeometry");
             m_EvaluateInstanceDataKernel = m_WaterSimulationCS.FindKernel("EvaluateInstanceData");
             m_EvaluateInstanceDataInfiniteKernel = m_WaterSimulationCS.FindKernel("EvaluateInstanceDataInfinite");
@@ -444,9 +444,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(m_FourierTransformCS, m_ColPassTi_Kernel, 1, (int)m_WaterBandResolution, bandCount);
 
                 // Evaluate water surface additional data (combining it with the previous values)
-                cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._WaterDisplacementBuffer, currentWater.simulation.gpuBuffers.displacementBuffer);
-                cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._WaterAdditionalDataBufferRW, currentWater.simulation.gpuBuffers.additionalDataBuffer);
-                cmd.DispatchCompute(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, tileCount, tileCount, bandCount);
+                int kernel = m_ActiveWaterFoam ? m_EvaluateNormalsJacobianKernel : m_EvaluateNormalsKernel;
+                cmd.SetComputeTextureParam(m_WaterSimulationCS, kernel, HDShaderIDs._WaterDisplacementBuffer, currentWater.simulation.gpuBuffers.displacementBuffer);
+                cmd.SetComputeTextureParam(m_WaterSimulationCS, kernel, HDShaderIDs._WaterAdditionalDataBufferRW, currentWater.simulation.gpuBuffers.additionalDataBuffer);
+                cmd.DispatchCompute(m_WaterSimulationCS, kernel, tileCount, tileCount, bandCount);
 
                 // Make sure the mip-maps are generated
                 currentWater.simulation.gpuBuffers.additionalDataBuffer.rt.Create();

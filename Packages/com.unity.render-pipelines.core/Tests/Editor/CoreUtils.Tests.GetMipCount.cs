@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Tests
 {
-    public class CoreUtilsTests
+    partial class CoreUtilsTests
     {
         static TestCaseData[] s_TestsCaseDatasInt =
         {
@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.Tests
         }
 
         static TestCaseData[] s_TestsCaseDatasFloat =
-{
+        {
             new TestCaseData(8192.0f).Returns(14),
             new TestCaseData(4096.0f).Returns(13),
             new TestCaseData(2048.0f).Returns(12),

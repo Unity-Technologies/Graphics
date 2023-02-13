@@ -216,13 +216,13 @@ namespace UnityEngine.Rendering
             return contributors;
         }
 
-        static bool DiscardedByProbeVolume(ProbeVolume pv, ProbeVolumeBakingSet profile, float boundsVolume, int layerMask)
+        static bool DiscardedByProbeVolume(ProbeVolume pv, ProbeVolumeBakingSet bakingSet, float boundsVolume, int layerMask)
         {
-            if (profile == null)
+            if (bakingSet == null)
                 return false;
 
-            float minRendererBoundingBoxSize = profile.minRendererVolumeSize;
-            var renderersLayerMask = profile.renderersLayerMask;
+            float minRendererBoundingBoxSize = bakingSet.minRendererVolumeSize;
+            var renderersLayerMask = bakingSet.renderersLayerMask;
             if (pv.overrideRendererFilters)
             {
                 minRendererBoundingBoxSize = pv.minRendererVolumeSize;
@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering
             return (boundsVolume < minRendererBoundingBoxSize) || (layerMask & renderersLayerMask) == 0;
         }
 
-        public GIContributors Filter(ProbeVolumeBakingSet profile, Bounds cellBounds, ProbeVolumeWithBoundsList probeVolumes)
+        public GIContributors Filter(ProbeVolumeBakingSet bakingSet, Bounds cellBounds, ProbeVolumeWithBoundsList probeVolumes)
         {
             Profiling.Profiler.BeginSample("Filter GIContributors");
 
@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering
 
                 foreach (var probeVolume in probeVolumes)
                 {
-                    if (DiscardedByProbeVolume(probeVolume.component, profile, rendererBoundsVolume, rendererLayerMask) ||
+                    if (DiscardedByProbeVolume(probeVolume.component, bakingSet, rendererBoundsVolume, rendererLayerMask) ||
                         !ProbeVolumePositioning.OBBAABBIntersect(probeVolume.volume, renderer.bounds, probeVolume.bounds))
                         continue;
 
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering
                 bool contributes = false;
                 foreach (var probeVolume in probeVolumes)
                 {
-                    if (DiscardedByProbeVolume(probeVolume.component, profile, terrainBoundsVolume, terrainLayerMask) ||
+                    if (DiscardedByProbeVolume(probeVolume.component, bakingSet, terrainBoundsVolume, terrainLayerMask) ||
                         !ProbeVolumePositioning.OBBAABBIntersect(probeVolume.volume, terrain.boundsWithTrees, probeVolume.bounds))
                         continue;
 
@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering
                     {
                         // Ignore bounds volume check for trees, assume they are always big enough
                         // Otherwise we have to do the complex math stuff to compute the actual tree bounds
-                        if (!DiscardedByProbeVolume(probeVolume.component, profile, float.MaxValue, prototypeLayerMask))
+                        if (!DiscardedByProbeVolume(probeVolume.component, bakingSet, float.MaxValue, prototypeLayerMask))
                             probeVolumesForProto.Add(probeVolume.bounds);
                     }
                     if (probeVolumesForProto.Count == 0)

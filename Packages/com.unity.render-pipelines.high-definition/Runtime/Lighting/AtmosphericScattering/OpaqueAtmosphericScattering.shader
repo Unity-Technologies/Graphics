@@ -174,5 +174,35 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
                 #pragma fragment FragMSAAPBRFog
             ENDHLSL
         }
+
+        // Fog debugging passes
+        Pass
+        {
+            Name "DebugNoMSAA"
+
+            Cull Off    ZWrite Off
+            Blend One Zero
+            ZTest Less  // Required for XR occlusion mesh optimization
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment Frag
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "DebugMSAA"
+
+            Cull Off    ZWrite Off
+            Blend One Zero
+            ZTest Less  // Required for XR occlusion mesh optimization
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragMSAA
+            ENDHLSL
+        }
+        // No debug passes for pbr fog since it is currently disabled
     }
 }

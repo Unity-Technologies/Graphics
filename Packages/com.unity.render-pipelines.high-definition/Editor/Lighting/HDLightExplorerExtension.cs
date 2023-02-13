@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -93,11 +95,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent ShadowDistance = EditorGUIUtility.TrTextContent("Shadow Distance");
             public static readonly GUIContent NearClip = EditorGUIUtility.TrTextContent("Near Clip");
             public static readonly GUIContent FarClip = EditorGUIUtility.TrTextContent("Far Clip");
+            public static readonly GUIContent Resolution = EditorGUIUtility.TrTextContent("Resolution Level");
+            public static readonly GUIContent CustomResolution = EditorGUIUtility.TrTextContent("Resolution Value");
             public static readonly GUIContent ParallaxCorrection = EditorGUIUtility.TrTextContent("Influence Volume as Proxy Volume");
             public static readonly GUIContent Weight = EditorGUIUtility.TrTextContent("Weight");
 
             public static readonly GUIContent[] LightTypeTitles = { EditorGUIUtility.TrTextContent("Spot"), EditorGUIUtility.TrTextContent("Directional"), EditorGUIUtility.TrTextContent("Point"), EditorGUIUtility.TrTextContent("Area") };
-            public static readonly int[] LightTypeValues = { (int)HDLightType.Spot, (int)HDLightType.Directional, (int)HDLightType.Point, (int)HDLightType.Area };
+            public static readonly int[] LightTypeValues = { (int)LightType.Spot, (int)LightType.Directional, (int)LightType.Point, (int)LightType.Rectangle };
             internal static readonly GUIContent DrawProbes = EditorGUIUtility.TrTextContent("Draw");
             internal static readonly GUIContent DebugColor = EditorGUIUtility.TrTextContent("Debug Color");
             internal static readonly GUIContent ResolutionX = EditorGUIUtility.TrTextContent("Resolution X");
@@ -226,16 +230,32 @@ namespace UnityEditor.Rendering.HighDefinition
                         return;
                     }
 
-                    HDLightType lightType = lightData.type;
+                    HDLightUI.LightArchetype archetype = HDLightUI.GetArchetype(lightData.legacyLight.type);
 
                     EditorGUI.BeginProperty(r, GUIContent.none, prop);
                     EditorGUI.BeginChangeCheck();
-                    lightType = (HDLightType)EditorGUI.IntPopup(r, (int)lightType, HDStyles.LightTypeTitles, HDStyles.LightTypeValues);
+                    archetype = (HDLightUI.LightArchetype)EditorGUI.EnumPopup(r, archetype);
 
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObjects(new Object[] { prop.serializedObject.targetObject, lightData }, "Changed light type");
-                        lightData.type = lightType;
+                        switch (archetype)
+                        {
+                            case HDLightUI.LightArchetype.Spot:
+                                lightData.legacyLight.type = LightType.Spot;
+                                break;
+                            case HDLightUI.LightArchetype.Directional:
+                                lightData.legacyLight.type = LightType.Directional;
+                                break;
+                            case HDLightUI.LightArchetype.Point:
+                                lightData.legacyLight.type = LightType.Point;
+                                break;
+                            case HDLightUI.LightArchetype.Area:
+                                lightData.legacyLight.type = LightType.Rectangle;
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
                     }
                     EditorGUI.EndProperty();
                 }, (lprop, rprop) =>
@@ -246,14 +266,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (IsNullComparison(lLightData, rLightData, out var order))
                             return order;
 
-                        return ((int)lLightData.type).CompareTo((int)rLightData.type);
+                        return ((int)lLightData.legacyLight.type).CompareTo((int)rLightData.legacyLight.type);
                     }, (target, source) =>
                     {
                         if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                             return;
 
                         Undo.RecordObjects(new Object[] { target.serializedObject.targetObject, tLightData }, "Changed light type");
-                        tLightData.type = sLightData.type;
+                        tLightData.legacyLight.type = sLightData.legacyLight.type;
                     }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Mode, "m_Lightmapping", 90),                                    // 3: Mixed mode
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Range, "m_Range", 60),                                         // 4: Range
@@ -323,7 +343,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.BeginChangeCheck();
 
                     LightUnit unit = lightData.lightUnit;
-                    unit = HDLightUI.DrawLightIntensityUnitPopup(r, unit, lightData.type, lightData.spotLightShape);
+                    unit = HDLightUI.DrawLightIntensityUnitPopup(r, unit, lightData.legacyLight.type);
 
                     if (EditorGUI.EndChangeCheck())
                     {
@@ -442,7 +462,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     var shadowResolution = lightData.shadowResolution;
                     int shadowRes = 0;
-                    var lightType = lightData.type;
+                    var lightType = lightData.legacyLight.type;
 
                     if (shadowResolution.useOverride)
                     {
@@ -473,11 +493,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         var hdrp = HDRenderPipeline.currentAsset;
 
-                        var lightType = lLightData.type;
+                        var lightType = lLightData.legacyLight.type;
 
                         bool lFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lLightData);
 
-                        lightType = rLightData.type;
+                        lightType = rLightData.legacyLight.type;
 
                         bool rFit = rLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(rLightData);
 
@@ -509,7 +529,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     else
                     {
-                        var lightType = lightData.type;
+                        var lightType = lightData.legacyLight.type;
                         var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
 
                         using (new EditorGUI.DisabledScope(true))
@@ -528,8 +548,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                         var lShadowResolution = lLightData.shadowResolution;
                         var rShadowResolution = rLightData.shadowResolution;
-                        var lLightShape = lLightData.type;
-                        var rLightShape = rLightData.type;
+                        var lLightShape = lLightData.legacyLight.type;
+                        var rLightShape = rLightData.legacyLight.type;
 
                         int lResolution = lShadowResolution.useOverride ? lShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(lLightShape, hdrp)[lShadowResolution.level]);
                         int rResolution = rShadowResolution.useOverride ? rShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(rLightShape, hdrp)[rShadowResolution.level]);
@@ -1093,7 +1113,102 @@ namespace UnityEditor.Rendering.HighDefinition
                         tReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlaneRaw").floatValue = sReflectionData.FindProperty("m_ProbeSettings.cameraSettings.frustum.farClipPlaneRaw").floatValue;
                         tReflectionData.ApplyModifiedProperties();
                     }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ParallaxCorrection, "m_BoxProjection", 215, (r, prop, dep) =>   // 6. Use Influence volume as proxy
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Resolution, "m_Resolution", 130, (r, prop, dep) =>                        // 6: Resolution
+                {
+                    if (!TryGetAdditionalReflectionData(prop, out var reflectionData))
+                    {
+                        EditorGUI.LabelField(r, "--");
+                        return;
+                    }
+
+                    reflectionData.Update();
+
+                    EditorGUI.BeginChangeCheck();
+                    var(level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(r, GUIContent.none, ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels), reflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Level").intValue, reflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_UseOverride").boolValue);
+                    if(EditorGUI.EndChangeCheck())
+                    {
+                        reflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Level").intValue = level;
+                        reflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_UseOverride").boolValue = useOverride;
+                    }
+                    reflectionData.ApplyModifiedProperties();
+                }, (lprop, rprop) =>
+                    {
+                        TryGetAdditionalReflectionData(lprop, out var lReflectionData);
+                        TryGetAdditionalReflectionData(rprop, out var rReflectionData);
+
+                        if (IsNullComparison(lReflectionData, rReflectionData, out var order))
+                            return order;
+
+                        return lReflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Level").intValue.CompareTo(rReflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Level").intValue);
+                    }, (target, source) =>
+                    {
+                        if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
+                            return;
+
+                        tReflectionData.Update();
+                        tReflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Level").intValue = sReflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Level").intValue;
+                        tReflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_UseOverride").boolValue = sReflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_UseOverride").boolValue;
+                        tReflectionData.ApplyModifiedProperties();
+                    }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.CustomResolution, "m_Resolution", 130, (r, prop, dep) =>                        // 7:  Resolution Override
+                {
+                    if (!TryGetAdditionalReflectionData(prop, out var reflectionData))
+                    {
+                        EditorGUI.LabelField(r, "--");
+                        return;
+                    }
+
+                    if(!TryGetCubemapResolution(reflectionData, out int resolution))
+                    {
+                        EditorGUI.LabelField(r, "--");
+                        return;
+                    }
+                    
+                    if(reflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_UseOverride").boolValue)
+                    {
+                        reflectionData.Update();
+
+                        EditorGUI.BeginChangeCheck();
+                        var overrideResolution = (CubeReflectionResolution)EditorGUI.EnumPopup(r, (CubeReflectionResolution)resolution);
+                        if(EditorGUI.EndChangeCheck())
+                        {
+                            reflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Override").intValue = (int)overrideResolution;
+                        }
+
+                        reflectionData.ApplyModifiedProperties();
+                    }
+                    else
+                    {
+                        using (new EditorGUI.DisabledScope(true))
+                        {
+                            EditorGUI.EnumFlagsField(r, (CubeReflectionResolution)resolution);
+                        }
+                    }
+                }, (lprop, rprop) =>
+                    {
+                        TryGetAdditionalReflectionData(lprop, out var lReflectionData);
+                        TryGetAdditionalReflectionData(rprop, out var rReflectionData);
+
+                        if (IsNullComparison(lReflectionData, rReflectionData, out var order))
+                            return order;
+
+                        if(!TryGetCubemapResolution(lReflectionData, out int lResolution) || !TryGetCubemapResolution(rReflectionData, out int rResolution))
+                            return order;
+
+                        return lResolution.CompareTo(rResolution);
+                    }, (target, source) =>
+                    {
+                        if (!TryGetAdditionalReflectionData(target, out var tReflectionData) || !TryGetAdditionalReflectionData(source, out var sReflectionData))
+                            return;
+
+                        if(tReflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_UseOverride").boolValue)
+                        {
+                            tReflectionData.Update();
+                            tReflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Override").intValue = sReflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Override").intValue;
+                            tReflectionData.ApplyModifiedProperties();
+                        }
+                    }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.ParallaxCorrection, "m_BoxProjection", 215, (r, prop, dep) =>   // 8. Use Influence volume as proxy
                 {
                     if (!TryGetAdditionalReflectionData(prop, out var reflectionData))
                     {
@@ -1122,7 +1237,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         tReflectionData.FindProperty("m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume").boolValue = sReflectionData.FindProperty("m_ProbeSettings.proxySettings.useInfluenceVolumeAsProxyVolume").boolValue;
                         tReflectionData.ApplyModifiedProperties();
                     }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Weight, "m_Mode", 60, (r, prop, dep) =>                            // 7: Weight
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Weight, "m_Mode", 60, (r, prop, dep) =>                            // 9: Weight
                 {
                     if (!TryGetAdditionalReflectionData(prop, out var reflectionData))
                     {
@@ -1261,6 +1376,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 reflectionData = serializedReflectionProbeDataPairing[probe];
 
             return reflectionData != null;
+        }
+
+        private bool TryGetCubemapResolution(SerializedObject reflectionData, out int resolution)
+        {
+            if (reflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_UseOverride").boolValue)
+            {
+                resolution = reflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Override").intValue;
+                return true;
+            }
+
+            int level = reflectionData.FindProperty("m_ProbeSettings.cubeResolution.m_Level").intValue;
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.cubeReflectionResolution.TryGet(level, out var cubeResolution))
+            {
+                resolution = (int)cubeResolution;
+                return true;
+            }
+
+            resolution = -1;
+            return false;
         }
 
         private bool IsNullComparison<T>(T l, T r, out int order)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
 
@@ -1635,33 +1636,29 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Create any missing folder in the file path given.
-        /// Path must use '/' separator
+        /// Create any missing folders in the file path given.
         /// </summary>
-        /// <param name="filePath">Path to a file or to a folder (ending with '/') to ensure existance of each sub folder in it. </param>
+        /// <param name="filePath">File or folder (ending with '/') path to ensure existence of each subfolder in. </param>
         public static void EnsureFolderTreeInAssetFilePath(string filePath)
         {
-            void Recurse(string _folderPath)
+            var path = filePath.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+            if (!path.StartsWith("Assets" + Path.DirectorySeparatorChar, StringComparison.CurrentCultureIgnoreCase))
+                throw new ArgumentException($"Path should start with \"Assets/\". Got {filePath}.", filePath);
+            var folderPath = Path.GetDirectoryName(path);
+
+            if (!UnityEditor.AssetDatabase.IsValidFolder(folderPath))
             {
-                int lastSeparator = _folderPath.LastIndexOf('/');
-                if (lastSeparator == -1)
-                    return;
-
-                string rootPath = _folderPath.Substring(0, lastSeparator);
-
-                Recurse(rootPath);
-
-                string folder = _folderPath.Substring(lastSeparator + 1);
-                if (!UnityEditor.AssetDatabase.IsValidFolder(_folderPath))
-                    UnityEditor.AssetDatabase.CreateFolder(rootPath, folder);
+                var folderNames = folderPath.Split(Path.DirectorySeparatorChar);
+                string rootPath = "";
+                foreach (var folderName in folderNames)
+                {
+                    var newPath = rootPath + folderName;
+                    if (!UnityEditor.AssetDatabase.IsValidFolder(newPath))
+                        UnityEditor.AssetDatabase.CreateFolder(rootPath.TrimEnd(Path.DirectorySeparatorChar), folderName);
+                    rootPath = newPath + Path.DirectorySeparatorChar;
+                }
             }
-
-            if (!filePath.StartsWith("assets/", System.StringComparison.CurrentCultureIgnoreCase))
-                throw new System.ArgumentException($"Path should start with \"Assets/\". Got {filePath}.", filePath);
-
-            Recurse(filePath.Substring(0, filePath.LastIndexOf('/')));
         }
-
 #endif
     }
 }

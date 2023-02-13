@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
 
                         ref HDAdditionalLightDataUpdateInfo lightUpdateInfo = ref updateInfosUnsafePtr[dataIndex];
-                        HDLightType lightType = HDAdditionalLightData.TranslateLightType(visibleLights[lightIndex].lightType, lightUpdateInfo.pointLightHDType);
+                        LightType lightType = visibleLights[lightIndex].lightType;
                         int splitCount = HDAdditionalLightData.GetShadowRequestCount(cascadeShadowSplitCount, lightType);
 
                         int shadowRequestCount = 0;
@@ -279,33 +279,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         switch (lightType)
                         {
-                            case HDLightType.Spot:
+                            case LightType.Spot:
+                            case LightType.Box:
+                            case LightType.Pyramid:
                                 if (hasCachedComponent)
                                     ++cachedSpotCount;
                                 else
                                     ++dynamicSpotCount;
                                 break;
-                            case HDLightType.Directional:
+                            case LightType.Directional:
                                 if (hasCachedComponent)
                                     ++cachedDirectionalCount;
                                 else
                                     ++dynamicDirectionalCount;
                                 break;
-                            case HDLightType.Point:
+                            case LightType.Point:
                                 if (hasCachedComponent)
                                     ++cachedPointCount;
                                 else
                                     ++dynamicPointCount;
                                 break;
-                            case HDLightType.Area:
-                                if (lightUpdateInfo.areaLightShape == AreaLightShape.Rectangle)
-                                {
-                                    if (hasCachedComponent)
-                                        ++cachedAreaRectangleCount;
-                                    else
-                                        ++dynamicAreaRectangleCount;
-                                }
+                            case LightType.Rectangle:
+                                if (hasCachedComponent)
+                                    ++cachedAreaRectangleCount;
+                                else
+                                    ++dynamicAreaRectangleCount;
                                 break;
+                            default:
+                                throw new NotImplementedException("Light type not supported in real-time");
                         }
 
                         ++collectedLightCount;
@@ -361,12 +362,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
 
                         ref HDAdditionalLightDataUpdateInfo lightUpdateInfo = ref readData.additionalLightUpdateInfo;
-                        HDLightType lightType = readData.lightType;
+                        LightType lightType = readData.lightType;
                         bool hasCachedComponent = lightUpdateInfo.shadowUpdateMode != ShadowUpdateMode.EveryFrame;
 
                         switch (lightType)
                         {
-                            case HDLightType.Spot:
+                            case LightType.Spot:
+                            case LightType.Pyramid:
+                            case LightType.Box:
                                 if (hasCachedComponent)
                                 {
                                     cachedSpotVisibleLightsAndIndices.AddNoResize(readData);
@@ -376,7 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     dynamicSpotVisibleLightsAndIndices.AddNoResize(readData);
                                 }
                                 break;
-                            case HDLightType.Directional:
+                            case LightType.Directional:
                                 if (hasCachedComponent)
                                 {
                                     cachedDirectionalVisibleLightsAndIndices.AddNoResize(readData);
@@ -386,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     dynamicDirectionalVisibleLightsAndIndices.AddNoResize(readData);
                                 }
                                 break;
-                            case HDLightType.Point:
+                            case LightType.Point:
                                 if (hasCachedComponent)
                                 {
                                     cachedPointVisibleLightsAndIndices.AddNoResize(readData);
@@ -396,19 +399,18 @@ namespace UnityEngine.Rendering.HighDefinition
                                     dynamicPointVisibleLightsAndIndices.AddNoResize(readData);
                                 }
                                 break;
-                            case HDLightType.Area:
-                                if (lightUpdateInfo.areaLightShape == AreaLightShape.Rectangle)
+                            case LightType.Rectangle:
+                                if (hasCachedComponent)
                                 {
-                                    if (hasCachedComponent)
-                                    {
-                                        cachedAreaRectangleVisibleLightsAndIndices.AddNoResize(readData);
-                                    }
-                                    else
-                                    {
-                                        dynamicAreaRectangleVisibleLightsAndIndices.AddNoResize(readData);
-                                    }
+                                    cachedAreaRectangleVisibleLightsAndIndices.AddNoResize(readData);
+                                }
+                                else
+                                {
+                                    dynamicAreaRectangleVisibleLightsAndIndices.AddNoResize(readData);
                                 }
                                 break;
+                            default:
+                                throw new NotImplementedException("Light type not supported in real-time");
                         }
                     }
                 }
@@ -518,7 +520,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Matrix4x4 invViewProjection;
                     Vector4 deviceProjection;
 
-                    HDShadowUtils.ExtractSpotLightData(light.spotLightShape, spotAngleForShadows, light.shadowNearPlane, light.aspectRatio, light.shapeWidth,
+                    HDShadowUtils.ExtractSpotLightData(spotAngleForShadows, light.shadowNearPlane, light.aspectRatio, light.shapeWidth,
                         light.shapeHeight, visibleLight, viewportSize, light.normalBias, shadowFilteringQuality, usesReversedZBuffer,
                         out view, out invViewProjection, out projection,
                         out deviceProjection, out deviceProjectionYFlip,
@@ -540,7 +542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     outPerLightShadowCullingInfos[lightIndex] = new LightShadowCasterCullingInfo
                     {
                         splitRange = new RangeInt(nextSplitOutputIndex, 1),
-                        projectionType = GetSpotLightCullingProjectionType(light.spotLightShape),
+                        projectionType = GetSpotLightCullingProjectionType(visibleLight.lightType),
                     };
 
                     nextSplitOutputIndex++;
@@ -637,7 +639,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     NativeArray<int> shadowRequestIndices = hdShadowRequestIndicesStorage.GetSubArray(shadowRequestIndicesBeginIndex, HDShadowRequest.maxLightShadowRequestsCount);
 
                     Debug.Assert(visibleLightsAndIndicesData.splitCount == 1);
-                    Debug.Assert(light.areaLightShape == AreaLightShape.Rectangle);
+                    Debug.Assert(visibleLight.lightType == LightType.Rectangle);
 
                     if (!visibleLightsAndIndicesData.isSplitValidArray[0])
                         continue;
@@ -784,13 +786,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static BatchCullingProjectionType GetSpotLightCullingProjectionType(SpotLightShape shape)
+        static BatchCullingProjectionType GetSpotLightCullingProjectionType(LightType lightType)
         {
-            if (shape == SpotLightShape.Box)
+            if (lightType == LightType.Box)
             {
                 return BatchCullingProjectionType.Orthographic;
             }
-            else if (shape == SpotLightShape.Cone || shape == SpotLightShape.Pyramid)
+            else if (lightType == LightType.Spot || lightType == LightType.Pyramid)
             {
                 return BatchCullingProjectionType.Perspective;
             }

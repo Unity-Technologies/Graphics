@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
@@ -9,9 +8,9 @@ using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
 using UnityEngine.Rendering;
 using UnityEngine.Assertions;
+using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Rendering;
 #endif
 using UnityEngine.Serialization;
 using Unity.Collections;
@@ -301,9 +300,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_LightUnit == value)
                     return;
 
-                if (!IsValidLightUnitForType(type, m_SpotLightShape, value))
+                var lightType = legacyLight.type;
+                if (!IsValidLightUnitForType(lightType, value))
                 {
-                    var supportedTypes = String.Join(", ", GetSupportedLightUnits(type, m_SpotLightShape));
+                    var supportedTypes = String.Join(", ", GetSupportedLightUnits(lightType));
                     Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supported.");
                     return;
                 }
@@ -431,7 +431,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShapeWidth == value)
                     return;
 
-                if (type == HDLightType.Area)
+                var lightType = legacyLight.type;
+                if (lightType.IsArea())
                     m_ShapeWidth = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
                 else
                     m_ShapeWidth = Mathf.Clamp(value, 0, float.MaxValue);
@@ -454,7 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ShapeHeight == value)
                     return;
 
-                if (type == HDLightType.Area)
+                if (legacyLight.type.IsArea())
                     m_ShapeHeight = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
                 else
                     m_ShapeHeight = Mathf.Clamp(value, 0, float.MaxValue);
@@ -712,17 +713,19 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (type == HDLightType.Point)
+                var lightType = legacyLight.type;
+                if (lightType == LightType.Point)
                     return IESPoint;
-                else if (type == HDLightType.Spot || (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle))
+                else if (lightType.IsSpot() || lightType == LightType.Rectangle)
                     return IESSpot;
                 return null;
             }
             set
             {
-                if (type == HDLightType.Point)
+                var lightType = legacyLight.type;
+                if (lightType == LightType.Point)
                     IESPoint = value;
-                else if (type == HDLightType.Spot || (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle))
+                else if (lightType.IsSpot() || lightType == LightType.Rectangle)
                     IESSpot = value;
             }
         }
@@ -1640,7 +1643,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!preserveCachedShadow)
                     {
-                        HDShadowManager.cachedShadowManager.EvictLight(this);
+                        HDShadowManager.cachedShadowManager.EvictLight(this, this.legacyLight.type);
                     }
                 }
                 else if (legacyLight.shadows != LightShadows.None && m_ShadowUpdateMode == ShadowUpdateMode.EveryFrame && value != ShadowUpdateMode.EveryFrame)
@@ -2009,6 +2012,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [ExcludeCopy]
+        private LightType? cachedLightType;
+
         const string k_EmissiveMeshViewerName = "EmissiveMeshViewer";
 
         [ExcludeCopy]
@@ -2189,7 +2195,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDestroy()
         {
             if (lightIdxForCachedShadows >= 0) // If it is within the cached system we need to evict it.
-                HDShadowManager.cachedShadowManager.EvictLight(this);
+                HDShadowManager.cachedShadowManager.EvictLight(this, legacyLight.type);
 
             DestroyHDLightRenderEntity();
         }
@@ -2208,7 +2214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If it is within the cached system we need to evict it, unless user explicitly requires not to.
             if (!preserveCachedShadow && lightIdxForCachedShadows >= 0)
             {
-                HDShadowManager.cachedShadowManager.EvictLight(this);
+                HDShadowManager.cachedShadowManager.EvictLight(this, legacyLight.type);
             }
 
             SetEmissiveMeshRendererEnabled(false);
@@ -2224,11 +2230,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static int GetShadowRequestCount(int shadowSettingsCascadeShadowSplitCount, HDLightType lightType)
+        internal static int GetShadowRequestCount(int shadowSettingsCascadeShadowSplitCount, LightType lightType)
         {
-            return lightType == HDLightType.Point
+            return lightType == LightType.Point
                 ? 6
-                : lightType == HDLightType.Directional
+                : lightType == LightType.Directional
                     ? shadowSettingsCascadeShadowSplitCount
                     : 1;
         }
@@ -2259,18 +2265,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
         }
 
-        internal ShadowMapUpdateType GetShadowUpdateType(HDLightType lightType)
+        internal ShadowMapUpdateType GetShadowUpdateType(LightType lightType)
         {
             return GetShadowUpdateType(lightType, shadowUpdateMode, alwaysDrawDynamicShadows, HDCachedShadowManager.instance.DirectionalHasCachedAtlas());
         }
 
-        internal static ShadowMapUpdateType GetShadowUpdateType(HDLightType lightType, ShadowUpdateMode shadowUpdateMode, bool alwaysDrawDynamicShadows, bool directionalHasCachedAtlas)
+        internal static ShadowMapUpdateType GetShadowUpdateType(LightType lightType, ShadowUpdateMode shadowUpdateMode, bool alwaysDrawDynamicShadows, bool directionalHasCachedAtlas)
         {
             if (shadowUpdateMode == ShadowUpdateMode.EveryFrame) return ShadowMapUpdateType.Dynamic;
 #if UNITY_2021_1_OR_NEWER
             if (alwaysDrawDynamicShadows)
             {
-                if (lightType == HDLightType.Directional)
+                if (lightType == LightType.Directional)
                 {
                     if (directionalHasCachedAtlas) return ShadowMapUpdateType.Mixed;
                 }
@@ -2298,12 +2304,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal int GetResolutionFromSettings(HDLightType lightType, HDShadowInitParameters initParameters)
+        internal int GetResolutionFromSettings(LightType lightType, HDShadowInitParameters initParameters)
         {
             return GetResolutionFromSettings(GetShadowMapType(lightType), initParameters);
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, in HDShadowInitParameters initParameters, in VisibleLight visibleLight, HDLightType lightType)
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, in HDShadowInitParameters initParameters, in VisibleLight visibleLight, LightType lightType)
         {
             HDLightRenderDatabase renderDatabase = HDLightRenderDatabase.instance;
 
@@ -2354,7 +2360,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewportSize = Vector2.Max(viewportSize, new Vector2(HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MinShadowMapResolution));
 
             // Update the directional shadow atlas size
-            if (lightType == HDLightType.Directional)
+            if (lightType == LightType.Directional)
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, shadowSettings.cascadeShadowSplitCount.value);
 
             int count = GetShadowRequestCount(shadowSettings.cascadeShadowSplitCount.value, lightType);
@@ -2373,7 +2379,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return !HDShadowManager.cachedShadowManager.LightIsPendingPlacement(lightIdxForCachedShadows, shadowMapType) && (lightIdxForCachedShadows != -1);
         }
 
-        internal void OverrideShadowResolutionRequestsWithShadowCache(HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDLightType lightType)
+        internal void OverrideShadowResolutionRequestsWithShadowCache(HDShadowManager shadowManager, HDShadowSettings shadowSettings, LightType lightType)
         {
             int shadowRequestCount = GetShadowRequestCount(shadowSettings.cascadeShadowSplitCount.value, lightType);
 
@@ -2475,7 +2481,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (HDRenderPipeline.currentPipeline == null)
                 return;
 
-            // TODO: Iterate over a separate list in builds, containing only lights with Animator components.
             DynamicArray<HDAdditionalLightData> allAdditionalLightDatas = HDLightRenderDatabase.instance.hdAdditionalLightData;
 
             int additionalLightCount = HDLightRenderDatabase.instance.lightCount;
@@ -2483,6 +2488,42 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < additionalLightCount; i++)
             {
                 HDAdditionalLightData lightData = allAdditionalLightDatas[i];
+
+                if (lightData.cachedLightType != lightData.legacyLight.type)
+                {
+                    // ^ The light type has changed since the last tick.
+                    if (lightData.m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame && lightData.cachedLightType.HasValue)
+                    {
+                        HDShadowManager.cachedShadowManager.EvictLight(lightData, lightData.cachedLightType.Value);
+                    }
+
+#if UNITY_EDITOR
+                    switch (lightData.legacyLight.type)
+                    {
+                        case LightType.Disc:
+                            lightData.legacyLight.lightmapBakeType = LightmapBakeType.Baked;
+                            break;
+                        case LightType.Tube:
+                            lightData.legacyLight.lightmapBakeType = LightmapBakeType.Realtime;
+                            break;
+                    }
+#endif
+
+                    lightData.cachedLightType = lightData.legacyLight.type;
+
+                    if (lightData.legacyLight.shadows != LightShadows.None && lightData.m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame)
+                    {
+                        HDShadowManager.cachedShadowManager.RegisterLight(lightData);
+                    }
+
+                    // If the current light unit is not supported by the new light type, we change it
+                    var supportedUnits = GetSupportedLightUnits(lightData.legacyLight.type);
+                    if (!supportedUnits.Any(u => u == lightData.lightUnit))
+                        lightData.lightUnit = supportedUnits.First();
+                }
+
+                // TODO: The rest of this loop only handles animation. Iterate over a separate list in builds,
+                // containing only lights with Animator components.
 
                 // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
@@ -2575,7 +2616,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Same check for light angle to update intensity using spot angle
-                if (lightData.type == HDLightType.Spot && (lightData.timelineWorkaround.oldSpotAngle != lightData.legacyLight.spotAngle))
+                if (lightData.legacyLight.type.IsSpot() && (lightData.timelineWorkaround.oldSpotAngle != lightData.legacyLight.spotAngle))
                 {
                     lightData.UpdateLightIntensity();
                     lightData.timelineWorkaround.oldSpotAngle = lightData.legacyLight.spotAngle;
@@ -2620,9 +2661,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_AffectDiffuse = m_AffectDiffuse;
             data.m_AffectSpecular = m_AffectSpecular;
             data.m_NonLightmappedOnly = m_NonLightmappedOnly;
-            data.m_PointlightHDType = m_PointlightHDType;
-            data.m_SpotLightShape = m_SpotLightShape;
-            data.m_AreaLightShape = m_AreaLightShape;
             data.m_ShapeWidth = m_ShapeWidth;
             data.m_ShapeHeight = m_ShapeHeight;
             data.m_AspectRatio = m_AspectRatio;
@@ -2723,28 +2761,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set light intensity and unit using its type
             //note: requiring type convert Rectangle and Disc to Area and correctly set areaLight
-            switch (lightData.type)
+            switch (lightData.legacyLight.type)
             {
-                case HDLightType.Directional:
+                case LightType.Directional:
                     lightData.lightUnit = LightUnit.Lux;
                     lightData.intensity = k_DefaultDirectionalLightIntensity / Mathf.PI * 100000.0f; // Change back to just k_DefaultDirectionalLightIntensity on 11.0.0 (can't change constant as it's a breaking change)
                     break;
-                case HDLightType.Area: // Rectangle by default when light is created
-                    switch (lightData.areaLightShape)
-                    {
-                        case AreaLightShape.Rectangle:
-                            lightData.lightUnit = LightUnit.Lumen;
-                            lightData.intensity = k_DefaultAreaLightIntensity;
-                            lightData.shadowNearPlane = 0;
-                            light.shadows = LightShadows.None;
-                            break;
-                        case AreaLightShape.Disc:
-                            //[TODO: to be defined]
-                            break;
-                    }
+                case LightType.Rectangle:
+                    lightData.lightUnit = LightUnit.Lumen;
+                    lightData.intensity = k_DefaultAreaLightIntensity;
+                    lightData.shadowNearPlane = 0;
+                    light.shadows = LightShadows.None;
                     break;
-                case HDLightType.Point:
-                case HDLightType.Spot:
+                case LightType.Disc:
+                    //[TODO: to be defined]
+                    break;
+                case LightType.Point:
+                case LightType.Spot:
+                case LightType.Box:
+                case LightType.Pyramid:
                     lightData.lightUnit = LightUnit.Lumen;
                     lightData.intensity = k_DefaultPunctualLightIntensity;
                     break;
@@ -2782,18 +2817,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void SetLightIntensityPunctual(float intensity)
         {
-            switch (type)
+            switch (legacyLight.type)
             {
-                case HDLightType.Directional:
+                case LightType.Directional:
                     legacyLight.intensity = intensity; // Always in lux
                     break;
-                case HDLightType.Point:
+                case LightType.Point:
                     if (lightUnit == LightUnit.Candela)
                         legacyLight.intensity = intensity;
                     else
                         legacyLight.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
                     break;
-                case HDLightType.Spot:
+                case LightType.Spot:
+                case LightType.Box:
+                case LightType.Pyramid:
                     if (lightUnit == LightUnit.Candela)
                     {
                         // When using candela, reflector don't have any effect. Our intensity is candela = lumens/steradian and the user
@@ -2804,12 +2841,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         if (enableSpotReflector)
                         {
+                            var lightType = legacyLight.type;
                             // If reflector is enabled all the lighting from the sphere is focus inside the solid angle of current shape
-                            if (spotLightShape == SpotLightShape.Cone)
+                            if (lightType == LightType.Spot)
                             {
                                 legacyLight.intensity = LightUtils.ConvertSpotLightLumenToCandela(intensity, legacyLight.spotAngle * Mathf.Deg2Rad, true);
                             }
-                            else if (spotLightShape == SpotLightShape.Pyramid)
+                            else if (lightType == LightType.Pyramid)
                             {
                                 float angleA, angleB;
                                 LightUtils.CalculateAnglesForPyramid(aspectRatio, legacyLight.spotAngle * Mathf.Deg2Rad, out angleA, out angleB);
@@ -2833,12 +2871,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateLightIntensity()
         {
+            var lightType = legacyLight.type;
             if (lightUnit == LightUnit.Lumen)
             {
-                if (m_PointlightHDType == PointLightHDType.Punctual)
+                if (!lightType.IsArea())
                     SetLightIntensityPunctual(intensity);
                 else
-                    legacyLight.intensity = LightUtils.ConvertAreaLightLumenToLuminance(areaLightShape, intensity, shapeWidth, m_ShapeHeight);
+                    legacyLight.intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightType, intensity, shapeWidth, m_ShapeHeight);
             }
             else if (lightUnit == LightUnit.Ev100)
             {
@@ -2846,11 +2885,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                HDLightType lightType = type;
-                if ((lightType == HDLightType.Spot || lightType == HDLightType.Point) && lightUnit == LightUnit.Lux)
+                if ((lightType.IsSpot() || lightType == LightType.Point) && lightUnit == LightUnit.Lux)
                 {
                     // Box are local directional light with lux unity without at distance
-                    if ((lightType == HDLightType.Spot) && (spotLightShape == SpotLightShape.Box))
+                    if (lightType == LightType.Box)
                         legacyLight.intensity = m_Intensity;
                     else
                         legacyLight.intensity = LightUtils.ConvertLuxToCandela(m_Intensity, luxAtDistance);
@@ -2875,11 +2913,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateAreaLightEmissiveMesh(bool fromTimeLine = false)
         {
-            bool isAreaLight = type == HDLightType.Area;
-            bool displayEmissiveMesh = isAreaLight && displayAreaLightEmissiveMesh;
+            var lightType = legacyLight.type;
+            bool displayEmissiveMesh = lightType.IsArea() && displayAreaLightEmissiveMesh;
 
             // Only show childEmissiveMeshViewer if type is Area and requested
-            if (!isAreaLight || !displayEmissiveMesh)
+            if (!lightType.IsArea() || !displayEmissiveMesh)
             {
                 if (m_ChildEmissiveMeshViewer)
                 {
@@ -2924,13 +2962,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update Mesh
             if (HDRenderPipelineGlobalSettings.instance != null && !HDRenderPipelineGlobalSettings.instance.Equals(null))
             {
-                switch (areaLightShape)
+                switch (lightType)
                 {
-                    case AreaLightShape.Tube:
+                    case LightType.Tube:
                         if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveCylinderMesh)
                             m_EmissiveMeshFilter.sharedMesh = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveCylinderMesh;
                         break;
-                    case AreaLightShape.Rectangle:
                     default:
                         if (m_EmissiveMeshFilter.sharedMesh != HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveQuadMesh)
                             m_EmissiveMeshFilter.sharedMesh = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.emissiveQuadMesh;
@@ -2940,17 +2977,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update light area size with clamping
             Vector3 lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, 0);
-            if (areaLightShape == AreaLightShape.Tube)
+            if (lightType == LightType.Tube)
                 lightSize.y = 0;
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
 
-            switch (areaLightShape)
+            switch (lightType)
             {
-                case AreaLightShape.Rectangle:
+                case LightType.Rectangle:
                     m_ShapeWidth = lightSize.x;
                     m_ShapeHeight = lightSize.y;
                     break;
-                case AreaLightShape.Tube:
+                case LightType.Tube:
                     m_ShapeWidth = lightSize.x;
                     break;
                 default:
@@ -3025,6 +3062,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateRectangleLightBounds()
         {
             legacyLight.useShadowMatrixOverride = false;
+            // TODO: Don't use bounding sphere overrides. Support this properly in Unity native instead.
             legacyLight.useBoundingSphereOverride = true;
             float halfWidth = m_ShapeWidth * 0.5f;
             float halfHeight = m_ShapeHeight * 0.5f;
@@ -3035,6 +3073,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateTubeLightBounds()
         {
             legacyLight.useShadowMatrixOverride = false;
+            // TODO: Don't use bounding sphere overrides. Support this properly in Unity native instead.
             legacyLight.useBoundingSphereOverride = true;
             legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, Mathf.Max(range, m_ShapeWidth * 0.5f));
         }
@@ -3042,6 +3081,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateBoxLightBounds()
         {
             legacyLight.useShadowMatrixOverride = true;
+            // TODO: Don't use bounding sphere overrides. Support this properly in Unity native instead.
             legacyLight.useBoundingSphereOverride = true;
 
             // Need to inverse scale because culling != rendering convention apparently
@@ -3056,6 +3096,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdatePyramidLightBounds()
         {
             legacyLight.useShadowMatrixOverride = true;
+            // TODO: Don't use bounding sphere overrides. Support this properly in Unity native instead.
             legacyLight.useBoundingSphereOverride = true;
 
             // Need to inverse scale because culling != rendering convention apparently
@@ -3066,33 +3107,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateBounds()
         {
-            switch (type)
+            switch (legacyLight.type)
             {
-                case HDLightType.Spot:
-                    switch (spotLightShape)
-                    {
-                        case SpotLightShape.Box:
-                            UpdateBoxLightBounds();
-                            break;
-                        case SpotLightShape.Pyramid:
-                            UpdatePyramidLightBounds();
-                            break;
-                        default: // Cone
-                            legacyLight.useBoundingSphereOverride = false;
-                            legacyLight.useShadowMatrixOverride = false;
-                            break;
-                    }
+                case LightType.Spot:
+                    legacyLight.useBoundingSphereOverride = false;
+                    legacyLight.useShadowMatrixOverride = false;
                     break;
-                case HDLightType.Area:
-                    switch (areaLightShape)
-                    {
-                        case AreaLightShape.Rectangle:
-                            UpdateRectangleLightBounds();
-                            break;
-                        case AreaLightShape.Tube:
-                            UpdateTubeLightBounds();
-                            break;
-                    }
+                case LightType.Box:
+                    UpdateBoxLightBounds();
+                    break;
+                case LightType.Pyramid:
+                    UpdatePyramidLightBounds();
+                    break;
+                case LightType.Rectangle:
+                    UpdateRectangleLightBounds();
+                    break;
+                case LightType.Tube:
+                    UpdateTubeLightBounds();
                     break;
                 default:
                     legacyLight.useBoundingSphereOverride = false;
@@ -3109,7 +3140,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // We don't want to update the disc area since their shape is largely handled by builtin.
-            if (GetLightTypeAndShape() != HDLightTypeAndShape.DiscArea)
+            if (legacyLight.type != LightType.Disc)
                 legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
 #endif
         }
@@ -3139,7 +3170,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool wentThroughCachedShadowSystem = lightIdxForCachedShadows >= 0;
             if (wentThroughCachedShadowSystem)
-                HDShadowManager.cachedShadowManager.EvictLight(this);
+                HDShadowManager.cachedShadowManager.EvictLight(this, legacyLight.type);
 
             if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
@@ -3214,8 +3245,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="directionalLightCookieSize">area light </param>
         public void SetCookie(Texture cookie, Vector2 directionalLightCookieSize)
         {
-            HDLightType lightType = type;
-            if (lightType == HDLightType.Area)
+            LightType lightType = legacyLight.type;
+            if (lightType.IsArea())
             {
                 if (cookie.dimension != TextureDimension.Tex2D)
                 {
@@ -3226,17 +3257,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                if (lightType == HDLightType.Point && cookie.dimension != TextureDimension.Cube)
+                if (lightType == LightType.Point && cookie.dimension != TextureDimension.Cube)
                 {
                     Debug.LogError("Texture dimension " + cookie.dimension + " is not supported for point lights.");
                     return;
                 }
-                else if ((lightType == HDLightType.Directional || lightType == HDLightType.Spot) && cookie.dimension != TextureDimension.Tex2D) // Only 2D cookie are supported for Directional and Spot lights
+                else if ((lightType == LightType.Directional || lightType.IsSpot()) && cookie.dimension != TextureDimension.Tex2D) // Only 2D cookie are supported for Directional and Spot lights
                 {
                     Debug.LogError("Texture dimension " + cookie.dimension + " is not supported for Directional/Spot lights.");
                     return;
                 }
-                if (lightType == HDLightType.Directional)
+                if (lightType == LightType.Directional)
                 {
                     shapeWidth = directionalLightCookieSize.x;
                     shapeHeight = directionalLightCookieSize.y;
@@ -3424,7 +3455,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Get the list of supported light units depending on the current light type.
         /// </summary>
         /// <returns></returns>
-        public LightUnit[] GetSupportedLightUnits() => GetSupportedLightUnits(type, m_SpotLightShape);
+        public LightUnit[] GetSupportedLightUnits() => GetSupportedLightUnits(legacyLight.type);
 
         /// <summary>
         /// Set the area light size.
@@ -3432,7 +3463,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="size"></param>
         public void SetAreaLightSize(Vector2 size)
         {
-            if (type == HDLightType.Area)
+            if (legacyLight.type.IsArea())
             {
                 m_ShapeWidth = size.x;
                 m_ShapeHeight = size.y;
@@ -3448,7 +3479,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="size"></param>
         public void SetBoxSpotSize(Vector2 size)
         {
-            if (type == HDLightType.Spot)
+            if (legacyLight.type == LightType.Box)
             {
                 shapeWidth = size.x;
                 shapeHeight = size.y;
@@ -3493,15 +3524,26 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static int RenderingLayerMaskToLightLayer(int renderingLayerMask)
             => (byte)renderingLayerMask;
 
-        private ShadowMapType shadowMapType => GetShadowMapType(type, areaLightShape);
-
-        internal static ShadowMapType GetShadowMapType(HDLightType hdLightType, AreaLightShape areaLightShape)
+        ShadowMapType shadowMapType
         {
-            return (hdLightType == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle)
-                ? ShadowMapType.AreaLightAtlas
-                : hdLightType != HDLightType.Directional
-                    ? ShadowMapType.PunctualAtlas
-                    : ShadowMapType.CascadedDirectional;
+            get
+            {
+                var lightType = legacyLight.type;
+                return lightType == LightType.Rectangle
+                    ? ShadowMapType.AreaLightAtlas
+                    : lightType != LightType.Directional
+                        ? ShadowMapType.PunctualAtlas
+                        : ShadowMapType.CascadedDirectional;
+            }
+        }
+
+        // TODO: Remove. Use the above property instead.
+        internal ShadowMapType GetShadowMapType(LightType lightType)
+        {
+            return (lightType == LightType.Rectangle) ? ShadowMapType.AreaLightAtlas
+                : lightType != LightType.Directional
+                ? ShadowMapType.PunctualAtlas
+                : ShadowMapType.CascadedDirectional;
         }
 
         internal void UpdateRenderEntity()
@@ -3517,9 +3559,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             ref HDLightRenderData lightRenderData = ref lightEntities.EditLightDataAsRef(lightEntity);
-            lightRenderData.pointLightType = m_PointlightHDType;
-            lightRenderData.spotLightShape = m_SpotLightShape;
-            lightRenderData.areaLightShape = m_AreaLightShape;
             lightRenderData.renderingLayerMask = (uint)m_LightlayersMask;
             lightRenderData.fadeDistance = m_FadeDistance;
             lightRenderData.distance = m_Distance;
@@ -3611,15 +3650,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Reset()
             => UpdateBounds();
-
-        // This is faster than the above property if lightType is known given that type does a non-trivial amount of work.
-        internal ShadowMapType GetShadowMapType(HDLightType lightType)
-        {
-            return (lightType == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle) ? ShadowMapType.AreaLightAtlas
-                : lightType != HDLightType.Directional
-                ? ShadowMapType.PunctualAtlas
-                : ShadowMapType.CascadedDirectional;
-        }
 
         /// <summary>Tell if the light is overlapping for the light overlap debug mode</summary>
         internal bool IsOverlapping()

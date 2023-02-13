@@ -130,11 +130,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool decalLayersEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecals &&
                     HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecalLayers;
 
-                using (new IndentLevelScope())
-                {
-                    using (new EditorGUI.DisabledScope(!decalLayersEnabled && !lightLayersEnabled))
-                        EditorGUILayout.PropertyField(serialized.m_RenderingLayerMask);
-                }
+                using (new EditorGUI.DisabledScope(!decalLayersEnabled && !lightLayersEnabled))
+                    EditorGUILayout.PropertyField(serialized.m_RenderingLayerMask);
 
                 if (!decalLayersEnabled)
                 {

@@ -5,7 +5,11 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
+#ifdef USE_FULL_PRECISION_BLIT_TEXTURE
+TEXTURE2D_X_FLOAT(_BlitTexture);
+#else
 TEXTURE2D_X(_BlitTexture);
+#endif
 TEXTURECUBE(_BlitCubeTexture);
 SamplerState sampler_PointClamp;
 SamplerState sampler_LinearClamp;

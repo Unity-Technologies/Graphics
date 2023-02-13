@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
@@ -16,11 +17,31 @@ namespace UnityEditor.Rendering
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
-                ScriptableObject.CreateInstance<DoCreatePostProcessProfile>(),
+                ScriptableObject.CreateInstance<CreateVolumeProfileAction>(),
                 "New Volume Profile.asset",
                 null,
                 null
             );
+        }
+
+        /// <summary>
+        /// Asks for editor user input for the asset name, creates a <see cref="VolumeProfile"/> Asset, saves it at the
+        /// given path and invokes the callback.
+        /// </summary>
+        /// <param name="fullPath">The path to save the asset to.</param>
+        /// <param name="callback">Callback to invoke after the asset has been created.</param>
+        public static void CreateVolumeProfileWithCallback(string fullPath, Action<VolumeProfile> callback)
+        {
+            var assetCreator = ScriptableObject.CreateInstance<CreateVolumeProfileWithCallbackAction>();
+            assetCreator.callback = callback;
+            CoreUtils.EnsureFolderTreeInAssetFilePath(fullPath);
+
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+                assetCreator.GetInstanceID(),
+                assetCreator,
+                fullPath,
+                null,
+                null);
         }
 
         /// <summary>
@@ -76,12 +97,24 @@ namespace UnityEditor.Rendering
         }
     }
 
-    class DoCreatePostProcessProfile : EndNameEditAction
+    class CreateVolumeProfileAction : EndNameEditAction
     {
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var profile = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName);
             ProjectWindowUtil.ShowCreatedAsset(profile);
         }
+    }
+
+    class CreateVolumeProfileWithCallbackAction : EndNameEditAction
+    {
+        public override void Action(int instanceId, string pathName, string resourceFile)
+        {
+            var profile = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName);
+            ProjectWindowUtil.ShowCreatedAsset(profile);
+            callback?.Invoke(profile);
+        }
+
+        internal Action<VolumeProfile> callback { get; set; }
     }
 }

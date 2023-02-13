@@ -4,8 +4,7 @@ Shader "Hidden/Universal/HDRDebugView"
     #pragma target 4.5
     #pragma editor_sync_compilation
     #pragma multi_compile_fragment _ DEBUG_DISPLAY
-    #pragma multi_compile_local_fragment _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020
-    #pragma multi_compile_local_fragment _ HDR_ENCODING_LINEAR HDR_ENCODING_PQ
+    #pragma multi_compile_local_fragment _ HDR_ENCODING
 
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

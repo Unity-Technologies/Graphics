@@ -19,6 +19,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         RTHandle m_CameraTargetHandle;
         private PassData m_PassData;
 
+        // Use specialed URP fragment shader pass for debug draw support and color space conversion support. See CoreBlit.shader 
+        private const int k_FinalBlitBilinearSamplerShaderPass = 23;
+        private const int k_FinalBlitPointSamplerShaderPass = 24;
+
         /// <summary>
         /// Creates a new <c>FinalBlitPass</c> instance.
         /// </summary>
@@ -49,11 +53,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
-        [Obsolete("Use RTHandles for colorHandle")] // TODO OBSOLETE: need to fix the URP test failures when bumping
+        [Obsolete("Use RTHandles for colorHandle", true)]
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
-            if (m_Source?.nameID != colorHandle.Identifier())
-                m_Source = RTHandles.Alloc(colorHandle.Identifier());
+            throw new NotSupportedException("Setup with RenderTargetHandle has been deprecated. Use it with RTHandles instead.");
         }
 
         /// <summary>
@@ -139,7 +142,23 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (resolveToDebugScreen)
                 {
-                    debugHandler.BlitTextureToDebugScreenTexture(cmd, m_Source, m_PassData.blitMaterial, m_Source.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
+                    var shaderPass = m_Source.rt?.filterMode == FilterMode.Bilinear ? k_FinalBlitBilinearSamplerShaderPass : k_FinalBlitPointSamplerShaderPass;
+                    debugHandler.BlitTextureToDebugScreenTexture(cmd, m_Source, m_PassData.blitMaterial, shaderPass);
+                }
+                // TODO RENDERGRAPH: See https://jira.unity3d.com/projects/URP/issues/URP-1737
+                // This branch of the if statement must be removed for render graph and the new command list with a novel way of using Blitter with fill mode
+                else if (cameraData.isSceneViewCamera)
+                {
+                    cmd.SetGlobalTexture("_BlitTexture", m_Source);
+                    // This set render target is necessary so we change the LOAD state to DontCare.
+                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
+                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+                    Vector2 viewportScale = m_Source.useScaling ? new Vector2(m_Source.rtHandleProperties.rtHandleScale.x, m_Source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                    Vector4 scaleBias = new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+                    cmd.SetGlobalVector("_BlitScaleBias", scaleBias);
+                    var shaderPass = m_Source.rt?.filterMode == FilterMode.Bilinear ? k_FinalBlitBilinearSamplerShaderPass : k_FinalBlitPointSamplerShaderPass;
+                    cmd.Blit(m_Source.nameID, m_CameraTargetHandle.nameID, m_PassData.blitMaterial, shaderPass);
                 }
                 else
                 {
@@ -179,7 +198,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(cameraData.pixelRect);
 
-            Blitter.BlitTexture(cmd, source, scaleBias, data.blitMaterial, source.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
+            var shaderPass = source.rt?.filterMode == FilterMode.Bilinear ? k_FinalBlitBilinearSamplerShaderPass : k_FinalBlitPointSamplerShaderPass;
+            Blitter.BlitTexture(cmd, source, scaleBias, data.blitMaterial, shaderPass);
         }
 
         private class PassData

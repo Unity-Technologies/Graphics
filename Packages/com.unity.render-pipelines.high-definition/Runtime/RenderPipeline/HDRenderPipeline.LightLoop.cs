@@ -1156,6 +1156,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrThicknessScale = 1.0f / (1.0f + thickness);
             cb._SsrThicknessBias = -n / (f - n) * (thickness * cb._SsrThicknessScale);
             cb._SsrIterLimit = settings.rayMaxIterations;
+            // We disable sky reflection for transparent in case of a scenario where a transparent object seeing the sky through it is visible in the reflection.
+            // As it has no depth it will appear extremely distorted (depth at infinity). This scenario happen frequently when you have transparent objects above water.
+            // Note that the sky is still visible, it just takes its value from reflection probe/skybox rather than on screen.
             cb._SsrReflectsSky = isTransparent ? 0 : (settings.reflectSky.value ? 1 : 0);
             cb._SsrStencilBit = (int)StencilUsage.TraceReflectionRay;
             float roughnessFadeStart = 1 - settings.smoothnessFadeStart;
@@ -1233,7 +1236,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
-                    bool useAsync = hdCamera.frameSettings.SSRRunsAsync();
+                    // We disable async for transparent SSR as it would cause direct sync to the graphics pipe and would compete with other heavy passes for GPU resource.
+                    bool useAsync = hdCamera.frameSettings.SSRRunsAsync() && !transparent;
                     builder.EnableAsyncCompute(useAsync);
 
                     hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);

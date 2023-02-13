@@ -44,9 +44,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         public Vector4 SHC;
         /// <summary>
-        /// Extra vector to pad the size of the struct to a power of two.
+        /// Contains the baked shadowing data that corresponds to the <c>unity_ProbesOcclusion</c> shader property.
         /// </summary>
-        public Vector4 Padding;
+        public Vector4 ProbesOcclusion;
 
         /// <summary>
         /// Construct an instance of <c>SHCoefficients</c> that represents the same spherical
@@ -65,7 +65,19 @@ namespace UnityEngine.Rendering
 
             SHC = GetSHC(sh);
 
-            Padding = Vector4.zero;
+            ProbesOcclusion = Vector4.one;
+        }
+        
+        /// <summary>
+        /// Construct an instance of <c>SHCoefficients</c> that represents the same spherical
+        /// harmonic coefficients as the parameter.
+        /// </summary>
+        /// <param name="sh">The spherical harmonic coefficients to initialize with.</param>
+        /// <param name="probesOcclusion">The baked shadowing data to include with this set of spherical harmonic coefficients.</param>
+        public SHCoefficients(SphericalHarmonicsL2 sh, Vector4 probesOcclusion)
+            : this(sh)
+        {
+            ProbesOcclusion = probesOcclusion;
         }
 
         static Vector4 GetSHA(SphericalHarmonicsL2 sh, int i)
@@ -90,7 +102,7 @@ namespace UnityEngine.Rendering
         /// <returns>True if contents are equal, False otherwise.</returns>
         public bool Equals(SHCoefficients other)
         {
-            return SHAr.Equals(other.SHAr) && SHAg.Equals(other.SHAg) && SHAb.Equals(other.SHAb) && SHBr.Equals(other.SHBr) && SHBg.Equals(other.SHBg) && SHBb.Equals(other.SHBb) && SHC.Equals(other.SHC);
+            return SHAr.Equals(other.SHAr) && SHAg.Equals(other.SHAg) && SHAb.Equals(other.SHAb) && SHBr.Equals(other.SHBr) && SHBg.Equals(other.SHBg) && SHBb.Equals(other.SHBb) && SHC.Equals(other.SHC) && ProbesOcclusion.Equals(other.ProbesOcclusion);
         }
 
         /// <summary>
@@ -109,7 +121,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return HashCode.Combine(SHAr, SHAg, SHAb, SHBr, SHBg, SHBb, SHC);
+            return HashCode.Combine(SHAr, SHAg, SHAb, SHBr, SHBg, SHBb, SHC, ProbesOcclusion);
         }
 
         /// <summary>

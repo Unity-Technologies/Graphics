@@ -27,16 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region RenderPipelineGlobalSettingsProvider
 
-        protected override void Clone(RenderPipelineGlobalSettings src, bool activateAsset)
-        {
-            HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Clone(src as HDRenderPipelineGlobalSettings, assignToActiveAsset: activateAsset);
-        }
-
-        protected override void Create(bool useProjectSettingsFolder, bool activateAsset)
-        {
-            HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: true, assignToActiveAsset: true);
-        }
-
         protected override void Ensure()
         {
             HDRenderPipelineGlobalSettings.Ensure();

@@ -11,4 +11,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SampleScenes/BRGGameObjects/BRGGameObjects.unity
     guid: 0948e79a7da5cba4cab7813e716fec5a
+  - enabled: 1
+    path: Assets/SampleScenes/BRGCullingFlags/BRGCullingFlags.unity
+    guid: 9debfbeb4d335b249967506cb5fef622
+  - enabled: 1
+    path: Assets/SampleScenes/BRGSorting/BRGSorting.unity
+    guid: d61ddbe65058e6f4091bcb557db3fa2f
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

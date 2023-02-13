@@ -154,7 +154,7 @@ To create and assign  a full-screen shader graph that reads from the custom colo
 
 1. [Create a new full-screen shader graph](fullscreen-shader.md#create-fullscreen-shadergraph).
 2. Press the Spacebar to open the **Create Node** window
-3. In the **Create Node** window, search for the **Custom Color Buffer** node
+3. In the **Create Node** window, search for the [**Custom Color Buffer**](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Custom-Color-Node.html) node
 4. Double-click the **Custom Color Buffer** node to create it in your shader graph.
 5. Connect the Output port of the **Custom Color Buffer** to the **Base Color** block in the **Fragment** context.
 6. In the Custom Pass Volume component that samples from the color buffer, select **Add** (**+**).

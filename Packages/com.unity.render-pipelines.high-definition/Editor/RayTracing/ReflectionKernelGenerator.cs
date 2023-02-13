@@ -7,16 +7,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal class ReflectionKernelGenerator : MonoBehaviour
     {
-        // Start is called before the first frame update
-        void Start()
-        {
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        }
-
         public class CameraParameters
         {
             public int width;
@@ -107,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector3 normalVector = Quaternion.AngleAxis(-currentAngle, Vector3.right) * Vector3.up;
 
                     // Let's compute the reflected direction
-                    Vector3 reflected = incidentViewVector - 2 * normalVector * Vector3.Dot(incidentViewVector, normalVector);
+                    Vector3 reflected = incidentViewVector - 2 * Vector3.Dot(incidentViewVector, normalVector) * normalVector;
 
                     // Let's compute the local to world matrix
                     Vector3 localX = new Vector3(1.0f, 0.0f, 0.0f);
@@ -194,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float t = 1.0f / Mathf.Cos(theta);
 
                     // Let's compute the reflected direction
-                    Vector3 reflected = incidentViewVector - 2 * normalVector * Vector3.Dot(incidentViewVector, normalVector);
+                    Vector3 reflected = incidentViewVector - 2 * Vector3.Dot(incidentViewVector, normalVector) * normalVector;
 
                     // Let's compute the local to world matrix
                     Vector3 localX = new Vector3(1.0f, 0.0f, 0.0f);

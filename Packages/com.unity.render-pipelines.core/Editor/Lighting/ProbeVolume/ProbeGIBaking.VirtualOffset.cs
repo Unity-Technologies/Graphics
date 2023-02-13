@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering
         {
             var cellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
 
-            var voSettings = m_BakingSettings.virtualOffsetSettings;
+            var voSettings = m_BakingSet.settings.virtualOffsetSettings;
             if (!voSettings.useVirtualOffset)
             {
                 offsets = null;
@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering
 
         private static void CleanupOccluders()
         {
-            ms_AddedOccluders.ForEach(Object.DestroyImmediate);
+            ms_AddedOccluders?.ForEach(Object.DestroyImmediate);
         }
 
         struct TouchupsPerCell
@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering
 
         static Dictionary<int, TouchupsPerCell> GetTouchupsPerCell(out bool hasAppliers)
         {
-            float cellSize = m_BakingProfile.cellSizeInMeters;
+            float cellSize = m_ProfileInfo.cellSizeInMeters;
             hasAppliers = false;
 
             Dictionary<int, TouchupsPerCell> cellToVolumes = new();
@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering
 
         static Vector3[] DoForceVirtualOffsets(Vector3[] positions, Dictionary<int, TouchupsPerCell> cellToVolumes)
         {
-            float cellSize = m_BakingProfile.cellSizeInMeters;
+            float cellSize = m_ProfileInfo.cellSizeInMeters;
             var offsets = new Vector3[positions.Length];
             for (int i = 0; i < positions.Length; i++)
             {
@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering
 
                 int nextBatchIdx = 1;
                 int batchPosIdx = 0;
-                float cellSize = m_BakingProfile.cellSizeInMeters;
+                float cellSize = m_ProfileInfo.cellSizeInMeters;
                 while (batchPosIdx < positions.Length)
                 {
                     // Run a quick overlap check for each search box before setting up rays for the position
@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering
                     do {
                         int subdivLevel = m_BakingBatch.GetSubdivLevelAt(positions[batchPosIdx]);
                         var brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
-                        var searchDistance = (brickSize * m_BakingProfile.minBrickSize) / ProbeBrickPool.kBrickCellCount;
+                        var searchDistance = (brickSize * m_ProfileInfo.minBrickSize) / ProbeBrickPool.kBrickCellCount;
 
                         var scaleForSearchDist = voSettings.searchMultiplier;
                         var distanceSearch = scaleForSearchDist * searchDistance;
@@ -633,13 +633,12 @@ namespace UnityEngine.Rendering
 
             List<BakingCell> bakingCells = new List<BakingCell>();
 
-            foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
-                var cell = cellInfo.cell;
-                var bakingCell = ConvertCellToBakingCell(cell);
+                var bakingCell = ConvertCellToBakingCell(cell.desc, cell.data);
                 var positions = bakingCell.probePositions;
 
-                for (int i=0; i<positions.Length; ++i)
+                for (int i = 0; i < positions.Length; ++i)
                 {
                     int probeHash = m_BakingBatch.GetProbePositionHash(positions[i]);
                     int subdivLevel = bakingCell.bricks[i / 64].subdivisionLevel;
@@ -661,7 +660,7 @@ namespace UnityEngine.Rendering
                 bakingCell.offsetVectors = newOffsets;
 
                 // We need to force rebuild debug stuff.
-                cellInfo.debugProbes = null;
+                cell.debugProbes = null;
 
                 bakingCells.Add(bakingCell);
             }
@@ -672,30 +671,19 @@ namespace UnityEngine.Rendering
             // Unload it all as we are gonna load back with newly written cells.
             foreach (var sceneData in prv.perSceneDataList)
             {
-                prv.AddPendingAssetRemoval(sceneData.asset);
+                prv.AddPendingSceneRemoval(sceneData.sceneGUID);
             }
 
             // Make sure unloading happens.
             prv.PerformPendingOperations();
 
+            // Write back the assets.
+            WriteBakingCells(bakingCells.ToArray());
 
-            // We now need to make sure we find for each PerSceneData
             foreach (var data in prv.perSceneDataList)
             {
-                List<BakingCell> newCells = new List<BakingCell>();
-                // This is a bit naive now. Should be fine tho.
-                for (int i = 0; i < data.asset.cells.Length; ++i)
-                {
-                    var currCell = data.asset.cells[i];
-                    var bc = bakingCells.Find(x => x.index == currCell.index);
-                    newCells.Add(bc);
-                }
-
-                // Write bake the assets.
-                WriteBakingCells(data, newCells);
-                data.ResolveCells();
+                data.ResolveCellData();
             }
-
 
             // We can now finally reload.
             AssetDatabase.SaveAssets();
@@ -703,7 +691,7 @@ namespace UnityEngine.Rendering
 
             foreach (var sceneData in prv.perSceneDataList)
             {
-                prv.AddPendingAssetLoading(sceneData.asset);
+                prv.AddPendingSceneLoading(sceneData.sceneGUID);
             }
 
             prv.PerformPendingOperations();

@@ -49,6 +49,11 @@ groupshared float gs_cloudLutDensity[CLOUD_MAP_LUT_PRESET_SIZE];
 groupshared float gs_cloudLutErosion[CLOUD_MAP_LUT_PRESET_SIZE];
 groupshared float gs_cloudLutAO[CLOUD_MAP_LUT_PRESET_SIZE];
 
+uint2 HalfResolutionIndexToOffset(uint index)
+{
+    return uint2(index & 0x1, index / 2);
+}
+
 void LoadCloudLutToLDS(uint groupThreadId)
 {
     float3 densityErosionAO = LOAD_TEXTURE2D_LOD(_CloudLutTexture, int2(0, groupThreadId), 0);

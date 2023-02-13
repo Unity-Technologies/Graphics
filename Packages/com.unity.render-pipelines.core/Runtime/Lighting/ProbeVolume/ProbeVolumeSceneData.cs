@@ -28,20 +28,6 @@ namespace UnityEngine.Rendering
         static internal string GetSceneGUID(Scene scene) => scene.GetGUID();
 
         [System.Serializable]
-        struct SerializableBoundItem
-        {
-            [SerializeField] public string sceneGUID;
-            [SerializeField] public Bounds bounds;
-        }
-
-        [System.Serializable]
-        struct SerializableHasPVItem
-        {
-            [SerializeField] public string sceneGUID;
-            [SerializeField] public bool hasProbeVolumes;
-        }
-
-        [System.Serializable]
         internal class BakingSet
         {
             public ProbeVolumeBakingSet profile;
@@ -55,161 +41,61 @@ namespace UnityEngine.Rendering
         [SerializeField, FormerlySerializedAs("serializedBakingSets")] List<BakingSet> m_ObsoleteSerializedBakingSets;
 #endif
 
-        [SerializeField] List<SerializableBoundItem> serializedBounds;
-        [SerializeField] List<SerializableHasPVItem> serializedHasVolumes;
-        [SerializeField] List<ProbeVolumeBakingSet> bakingSets;
+        [SerializeField] internal SerializedDictionary<string, ProbeVolumeBakingSet> sceneToBakingSet = new SerializedDictionary<string, ProbeVolumeBakingSet>();
+        [SerializeField] internal List<ProbeVolumeBakingSet> bakingSets;
 
         internal Object parentAsset = null;
-        internal string parentSceneDataPropertyName;
-        /// <summary> A dictionary containing the Bounds defined by probe volumes for each scene (scene path is the key of the dictionary). </summary>
-        public Dictionary<string, Bounds> sceneBounds;
-        internal Dictionary<string, bool> hasProbeVolumes;
-        internal Dictionary<string, ProbeVolumeBakingSet> sceneToBakingSet;
 
-        [SerializeField] string m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
-        string m_OtherScenario = null;
-        float m_ScenarioBlendingFactor = 0.0f;
-
-        internal string lightingScenario => ProbeReferenceVolume.instance.supportLightingScenarios ? m_LightingScenario : ProbeReferenceVolume.defaultLightingScenario;
-        internal string otherScenario => m_OtherScenario;
-        internal float scenarioBlendingFactor => m_ScenarioBlendingFactor;
-
-        internal void SetActiveScenario(string scenario, bool verbose = true)
-        {
-            if (!ProbeReferenceVolume.instance.supportLightingScenarios)
-            {
-                Debug.LogError("Lighting scenarios are not supported by this render pipeline.");
-                return;
-            }
-
-            if (m_LightingScenario == scenario && m_ScenarioBlendingFactor == 0.0f)
-                return;
-
-            m_LightingScenario = scenario;
-            m_OtherScenario = null;
-            m_ScenarioBlendingFactor = 0.0f;
-
-            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario, verbose);
-
-            if (ProbeReferenceVolume.instance.enableScenarioBlending)
-            {
-                // Trigger blending system to replace old cells with the one from the new active scenario.
-                // Although we technically don't need blending for that, it is better than unloading all cells
-                // because it will replace them progressively. There is no real performance cost to using blending
-                // rather than regular load thanks to the bypassBlending branch in AddBlendingBricks.
-                ProbeReferenceVolume.instance.ScenarioBlendingChanged(true);
-            }
-            else
-                ProbeReferenceVolume.instance.UnloadAllCells();
-        }
-
-        internal void BlendLightingScenario(string otherScenario, float blendingFactor)
-        {
-            if (!ProbeReferenceVolume.instance.enableScenarioBlending)
-            {
-                if (!ProbeBrickBlendingPool.isSupported)
-                    Debug.LogError("Blending between lighting scenarios is not supported by this render pipeline.");
-                else
-                    Debug.LogError("Blending between lighting scenarios is disabled in the render pipeline settings.");
-                return;
-            }
-
-            blendingFactor = Mathf.Clamp01(blendingFactor);
-
-            if (otherScenario == m_LightingScenario || string.IsNullOrEmpty(otherScenario))
-                otherScenario = null;
-            if (otherScenario == null)
-                blendingFactor = 0.0f;
-            if (otherScenario == m_OtherScenario && Mathf.Approximately(blendingFactor, m_ScenarioBlendingFactor))
-                return;
-
-            bool scenarioChanged = otherScenario != m_OtherScenario;
-            m_OtherScenario = otherScenario;
-            m_ScenarioBlendingFactor = blendingFactor;
-
-            if (scenarioChanged)
-            {
-                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                    data.UpdateActiveScenario(m_LightingScenario, m_OtherScenario, true);
-            }
-
-            ProbeReferenceVolume.instance.ScenarioBlendingChanged(scenarioChanged);
-        }
+        [SerializeField] internal SerializedDictionary<string, Bounds> sceneBounds;
+        [SerializeField] internal SerializedDictionary<string, bool> hasProbeVolumes;
 
         /// <summary>
         /// Constructor for ProbeVolumeSceneData.
         /// </summary>
         /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed.</param>
-        /// <param name="parentSceneDataPropertyName">The name of the property holding the ProbeVolumeSceneData in the parentAsset.</param>
-        public ProbeVolumeSceneData(Object parentAsset, string parentSceneDataPropertyName)
+        public ProbeVolumeSceneData(Object parentAsset)
         {
-            serializedBounds = new List<SerializableBoundItem>();
-            serializedHasVolumes = new List<SerializableHasPVItem>();
-
-            SetParentObject(parentAsset, parentSceneDataPropertyName);
+            SetParentObject(parentAsset);
         }
 
         /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
         /// <param name="parent">The object holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
-        /// <param name="parentSceneDataPropertyName">The name of the property holding the ProbeVolumeSceneData in the parentAsset.</param>
-        public void SetParentObject(Object parent, string parentSceneDataPropertyName)
+        public void SetParentObject(Object parent)
         {
             parentAsset = parent;
-            this.parentSceneDataPropertyName = parentSceneDataPropertyName;
 
             if (bakingSets == null) bakingSets = new();
             if (sceneBounds == null) sceneBounds = new();
             if (hasProbeVolumes == null) hasProbeVolumes = new();
             if (sceneToBakingSet == null) sceneToBakingSet = new();
 
-            if (string.IsNullOrEmpty(m_LightingScenario))
-                m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
-
             SyncBakingSets();
+#if UNITY_EDITOR
             MigrateBakingSets();
+#endif
         }
 
         /// <summary>
         /// OnAfterDeserialize implementation.
         /// </summary>
-        public void OnAfterDeserialize()
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            // We haven't initialized the bounds, no need to do anything here.
-            if (serializedBounds == null || serializedHasVolumes == null || bakingSets == null) return;
-
-            sceneBounds = new();
-            hasProbeVolumes = new();
-            sceneToBakingSet = new();
-
-            foreach (var boundItem in serializedBounds)
-            {
-                sceneBounds.Add(boundItem.sceneGUID, boundItem.bounds);
-            }
-
-            foreach (var boundItem in serializedHasVolumes)
-            {
-                hasProbeVolumes.Add(boundItem.sceneGUID, boundItem.hasProbeVolumes);
-            }
-
-            foreach (var set in bakingSets)
-                AddBakingSet(set);
-
-            if (string.IsNullOrEmpty(m_LightingScenario))
-                m_LightingScenario = ProbeReferenceVolume.defaultLightingScenario;
-
-            if (m_OtherScenario == "")
-                m_OtherScenario = null;
-
 #if UNITY_EDITOR
             // Migration code
             EditorApplication.delayCall += MigrateBakingSets;
 #endif
         }
 
+        /// <summary>
+        /// OnBeforeSerialize implementation.
+        /// </summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+        }
+
+#if UNITY_EDITOR
         void MigrateBakingSets()
         {
-#if UNITY_EDITOR
             if (m_ObsoleteSerializedBakingSets == null)
                 return;
 
@@ -221,41 +107,15 @@ namespace UnityEngine.Rendering
                 AddBakingSet(set.profile);
                 EditorUtility.SetDirty(set.profile);
             }
+
             if (parentAsset != null && m_ObsoleteSerializedBakingSets.Count != 0)
             {
                 m_ObsoleteSerializedBakingSets = null;
                 EditorUtility.SetDirty(parentAsset);
             }
+        }
 #endif
-        }
 
-        /// <summary>
-        /// OnBeforeSerialize implementation.
-        /// </summary>
-        public void OnBeforeSerialize()
-        {
-            // We haven't initialized the bounds, no need to do anything here.
-            if (sceneBounds == null || hasProbeVolumes == null) return;
-
-            serializedBounds = new();
-            serializedHasVolumes = new();
-
-            foreach (var k in sceneBounds.Keys)
-            {
-                SerializableBoundItem item;
-                item.sceneGUID = k;
-                item.bounds = sceneBounds[k];
-                serializedBounds.Add(item);
-            }
-
-            foreach (var k in hasProbeVolumes.Keys)
-            {
-                SerializableHasPVItem item;
-                item.sceneGUID = k;
-                item.hasProbeVolumes = hasProbeVolumes[k];
-                serializedHasVolumes.Add(item);
-            }
-        }
 
         internal void SyncBakingSets()
         {
@@ -285,6 +145,23 @@ namespace UnityEngine.Rendering
                 bakingSets.Add(set);
             foreach (var guid in set.sceneGUIDs)
                 sceneToBakingSet[guid] = set;
+        }
+
+        internal ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) => sceneToBakingSet.GetValueOrDefault(sceneGUID, null);
+
+        bool TryGetPerSceneData(string sceneGUID, out ProbeVolumePerSceneData perSceneData)
+        {
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+            {
+                if (GetSceneGUID(data.gameObject.scene) == sceneGUID)
+                {
+                    perSceneData = data;
+                    return true;
+                }
+            }
+
+            perSceneData = null;
+            return false;
         }
 
 #if UNITY_EDITOR
@@ -409,22 +286,17 @@ namespace UnityEngine.Rendering
             var sceneGUID = GetSceneGUID(scene);
             if (SceneHasProbeVolumes(sceneGUID))
             {
-                bool foundPerSceneData = false;
-                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                {
-                    if (GetSceneGUID(data.gameObject.scene) == sceneGUID)
-                    {
-                        foundPerSceneData = true;
-                        break;
-                    }
-                }
-
-                if (!foundPerSceneData)
+                if (!TryGetPerSceneData(sceneGUID, out var data))
                 {
                     GameObject go = new GameObject("ProbeVolumePerSceneData");
                     go.hideFlags |= HideFlags.HideInHierarchy;
-                    go.AddComponent<ProbeVolumePerSceneData>();
+                    var perSceneData = go.AddComponent<ProbeVolumePerSceneData>();
+                    perSceneData.sceneGUID = GetSceneGUID(scene);
                     SceneManager.MoveGameObjectToScene(go, scene);
+                }
+                else
+                {
+                    data.sceneGUID = sceneGUID; // Upgrade for older scenes.
                 }
             }
         }
@@ -449,11 +321,11 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) => sceneToBakingSet.GetValueOrDefault(sceneGUID, null);
         internal ProbeVolumeBakingSet GetBakingSetForScene(Scene scene) => GetBakingSetForScene(GetSceneGUID(scene));
 
         internal bool SceneHasProbeVolumes(string sceneGUID) => hasProbeVolumes != null && hasProbeVolumes.TryGetValue(sceneGUID, out var hasPV) && hasPV;
         internal bool SceneHasProbeVolumes(Scene scene) => SceneHasProbeVolumes(GetSceneGUID(scene));
+
 #endif
     }
 }

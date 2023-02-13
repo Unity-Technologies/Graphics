@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Assertions;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering;
@@ -24,6 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
             PCSSUIUpdate,
             MoveEmissionMesh,
             EnableApplyRangeAttenuationOnBoxLight,
+            UpdateLightShapeToCore,
         }
 
         /// <summary>
@@ -137,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.m_PointlightHDType = PointLightHDType.Area;
                         data.m_AreaLightShape = AreaLightShape.Tube;
                         break;
-                        //No other AreaLight types where supported at this time
+                    //No other AreaLight types where supported at this time
                 }
             }),
             MigrationStep.New(Version.PCSSUIUpdate, (HDAdditionalLightData data) =>
@@ -176,6 +178,44 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.spotLightShape == SpotLightShape.Box)
                     {
                         data.applyRangeAttenuation = false;
+                    }
+                }
+            }),
+            MigrationStep.New(Version.UpdateLightShapeToCore, (HDAdditionalLightData data) =>
+            {
+                var light = data.GetComponent<Light>();
+                if (light != null)
+                {
+                    if (light.type == LightType.Point && data.m_PointlightHDType == PointLightHDType.Area)
+                    {
+                        if (data.m_AreaLightShape == AreaLightShape.Rectangle)
+                        {
+                            light.type = LightType.Rectangle;
+                        }
+                        else if (data.m_AreaLightShape == AreaLightShape.Tube)
+                        {
+                            light.type = LightType.Tube;
+                        }
+                        else
+                        {
+                            Assert.IsTrue(data.m_AreaLightShape == AreaLightShape.Disc);
+                            light.type = LightType.Disc;
+                        }
+                    }
+                    else if (light.type == LightType.Spot)
+                    {
+                        if (data.m_SpotLightShape == SpotLightShape.Box)
+                        {
+                            light.type = LightType.Box;
+                        }
+                        else if (data.m_SpotLightShape == SpotLightShape.Pyramid)
+                        {
+                            light.type = LightType.Pyramid;
+                        }
+                        else
+                        {
+                            Assert.IsTrue(data.m_SpotLightShape == SpotLightShape.Cone);
+                        }
                     }
                 }
             })

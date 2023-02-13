@@ -190,6 +190,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumetricCloudsCS;
             [Reload("Runtime/Lighting/VolumetricClouds/VolumetricCloudsTrace.compute")]
             public ComputeShader volumetricCloudsTraceCS;
+            [Reload("Runtime/Lighting/VolumetricClouds/VolumetricCloudsTraceShadows.compute")]
+            public ComputeShader volumetricCloudsTraceShadowsCS;
+            [Reload("Runtime/Lighting/VolumetricClouds/VolumetricCloudsShadowFilter.compute")]
+            public ComputeShader volumetricCloudsShadowFilterCS;
             [Reload("Editor/Lighting/VolumetricClouds/CloudMapGenerator.compute")]
             public ComputeShader volumetricCloudMapGeneratorCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]
@@ -500,6 +504,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Material/AreaLightViewer.mat")]
             public Material areaLightMaterial; // never referenced but required by area light mesh renderer, otherwise shader is stripped
+            [Reload("Runtime/RenderPipelineResources/Material/AreaLightCookieViewer.mat")]
+            public Material areaLightCookieMaterial; // We also need one for the cookie because the emissive map is a keyword in our Unlit shader.
         }
 
         [Serializable, ReloadGroup]

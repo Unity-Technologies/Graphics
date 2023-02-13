@@ -154,22 +154,3 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: UUM-21181
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-19027
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 730b87866923e784fb8f8eb057d3ddcb, type: 3}
-    - {fileID: 102900000, guid: edebe9dafa8a5764185b64def86b98a7, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-15406

@@ -660,7 +660,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool isOrthographic,
             float zNear)
         {
-            const int lightTypeCount = (int)LightType.Disc + 1;
+            const int lightTypeCount = (int)LightType.Tube + 1;
 
             if (!hasAdditionalLights)
             {
@@ -700,8 +700,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (ushort visLightIndex = 0; visLightIndex < visibleLightCount; ++visLightIndex)
             {
                 ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(visLightIndex);
-                int i = stencilLightCounts[(int)vl.lightType]++;
-                stencilVisLights[stencilVisLightOffsets[(int)vl.lightType] + i] = visLightIndex;
+                if (vl.lightType != LightType.Spot &&
+                    vl.lightType != LightType.Directional &&
+                    vl.lightType != LightType.Point)
+                {
+                    // The light type is not supported. Skip the light.
+                    continue;
+                }
+
+                int i = stencilLightCounts[(int) vl.lightType]++;
+                stencilVisLights[stencilVisLightOffsets[(int) vl.lightType] + i] = visLightIndex;
             }
             stencilLightCounts.Dispose();
         }
@@ -787,6 +795,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, hasDeferredShadows);
 
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+
+                    if (m_LightCookieManager != null)
+                    {
+                        int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
+                        CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, cookieLightIndex >= 0);
+                        cmd.SetGlobalInt(ShaderConstants._CookieLightIndex, cookieLightIndex);
+                    }
                 }
 
                 bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;

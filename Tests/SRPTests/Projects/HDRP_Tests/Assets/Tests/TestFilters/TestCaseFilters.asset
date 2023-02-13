@@ -15,15 +15,6 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: d2d3cc41bae835b4baad808d950d67a9, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: Fail on DX12 XR but not DX12...
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: db02f2dc6427fce4b9372c28c86f0f73, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -51,87 +42,6 @@ MonoBehaviour:
     Reason: Disable this test as we disable the feature for Yamto on Mac
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: fc784678bf952de4482e78aea61ccdc8, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Error on lightmapper side
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: edecbcde87e543140b1f4e2ffe510a3c, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: instability on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: c59b82120d32fbf4d96793fb7e0ec339, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: With rendergraph - unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Tmp disabled until all CI machines are the same windows version.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -148,15 +58,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: API Bug
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 602816355ed2fb94383bb6396823e77e, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
@@ -193,24 +94,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable with cache server
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 86f8f2a99d6720b48abc19c684103d74, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on  XR yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 0ab0b142387a4e7469f3ed9d0e03b84f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Instability only on yamato (black rabbit)
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 65ec8013d474e1a4e85d97b29e7302f0, type: 3}

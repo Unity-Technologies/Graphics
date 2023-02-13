@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-            	m_ActiveDepthID = UniversalResource.BackBufferDepth;
+                m_ActiveDepthID = UniversalResource.BackBufferDepth;
             }
             #endregion
 
@@ -436,9 +436,15 @@ namespace UnityEngine.Rendering.Universal
             SetupRenderingLayers(ref renderingData);
 
             CreateRenderGraphCameraRenderTargets(renderGraph, ref renderingData);
-            SetupRenderGraphCameraProperties(renderGraph, ref renderingData, isActiveTargetBackBuffer);
 
+            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRendering);
+
+            SetupRenderGraphCameraProperties(renderGraph, ref renderingData, isActiveTargetBackBuffer);
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            ProcessVFXCameraCommand(renderGraph, ref renderingData);
+#endif
             DebugHandler?.Setup(ref renderingData);
+
 
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
@@ -472,7 +478,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnOffscreenDepthTextureRendering(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRendering, RenderPassEvent.BeforeRenderingOpaques);
+            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
             m_RenderOpaqueForwardPass.Render(renderGraph, resources.GetTexture(UniversalResource.BackBufferColor), TextureHandle.nullHandle, TextureHandle.nullHandle, TextureHandle.nullHandle, ref renderingData);
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingSkybox);
             m_DrawSkyboxPass.Render(renderGraph, context, resources.GetTexture(UniversalResource.BackBufferColor), TextureHandle.nullHandle, ref renderingData);
@@ -485,9 +491,6 @@ namespace UnityEngine.Rendering.Universal
         }
         private void OnBeforeRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
-            // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.BeforeRendering injected passes should only be called before the first camera in the stack
-            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRendering);
-
             m_ForwardLights.PreSetup(ref renderingData);
 
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRenderingShadows);
@@ -589,7 +592,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.hasValidOcclusionMesh)
-                m_XROcclusionMeshPass.Render(renderGraph, resources.GetTexture(UniversalResource.CameraDepth), ref renderingData);
+                m_XROcclusionMeshPass.Render(renderGraph, activeDepthTexture, ref renderingData);
 #endif
 
             if (isDeferred)
@@ -686,7 +689,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTransparentForwardPass.m_ShouldTransparentsReceiveShadows = !m_TransparentSettingsPass.Setup(ref renderingData);
                 m_RenderTransparentForwardPass.Render(renderGraph, activeColorTexture, activeDepthTexture, mainShadowsTexture, additionalShadowsTexture, ref renderingData);
             }
-            
+
             // Custom passes come before built-in passes to keep parity with non-RG code path where custom passes are added before renderer Setup.
 
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingTransparents);

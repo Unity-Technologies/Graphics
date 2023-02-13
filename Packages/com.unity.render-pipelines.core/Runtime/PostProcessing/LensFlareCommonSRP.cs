@@ -684,7 +684,7 @@ namespace UnityEngine.Rendering
                 Rect rect = new Rect() { x = info.index, y = (frameIdx + mergeNeeded) * taaValue, width = 1, height = 1 };
                 cmd.SetViewport(rect);
 
-                UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, 4);
+                UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, lensFlareShader.FindPass("LensFlareOcclusion"));
             }
 
             // Clear the remaining buffer
@@ -976,15 +976,15 @@ namespace UnityEngine.Rendering
                     SRPLensFlareBlendMode blendMode = element.blendMode;
                     int materialPass;
                     if (blendMode == SRPLensFlareBlendMode.Additive)
-                        materialPass = 0;
+                        materialPass = lensFlareShader.FindPass("LensFlareAdditive");
                     else if (blendMode == SRPLensFlareBlendMode.Screen)
-                        materialPass = 1;
+                        materialPass = lensFlareShader.FindPass("LensFlareScreen");
                     else if (blendMode == SRPLensFlareBlendMode.Premultiply)
-                        materialPass = 2;
+                        materialPass = lensFlareShader.FindPass("LensFlarePremultiply");
                     else if (blendMode == SRPLensFlareBlendMode.Lerp)
-                        materialPass = 3;
+                        materialPass = lensFlareShader.FindPass("LensFlareLerp");
                     else
-                        materialPass = 0;
+                        materialPass = lensFlareShader.FindPass("LensFlareOcclusion");
 
                     if (element.flareType == SRPLensFlareType.Image)
                     {
@@ -1288,11 +1288,11 @@ namespace UnityEngine.Rendering
             parameters4.y = streaksLength;
 
             // List of the passes in LensFlareScreenSpace.shader
-            int prefilterPass = 0;
-            int downSamplePass = 1;
-            int upSamplePass = 2;
-            int compositionPass = 3;
-            int writeToBloomPass = 4;
+            int prefilterPass = lensFlareShader.FindPass("LensFlareScreenSpac Prefilter");
+            int downSamplePass = lensFlareShader.FindPass("LensFlareScreenSpace Downsample");
+            int upSamplePass = lensFlareShader.FindPass("LensFlareScreenSpace Upsample");
+            int compositionPass = lensFlareShader.FindPass("LensFlareScreenSpace Composition");
+            int writeToBloomPass = lensFlareShader.FindPass("LensFlareScreenSpace Write to BloomTexture");
 
             // Setting the input textures
             cmd.SetGlobalTexture(_BloomTexture, bloomTexture);

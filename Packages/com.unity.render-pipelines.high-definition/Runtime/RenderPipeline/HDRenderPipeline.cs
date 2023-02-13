@@ -251,7 +251,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdrInPlayerSettings && HDROutputSettings.main.available)
             {
-                if (camera.camera.cameraType != CameraType.Game)
+                // TODO: Until we can test it, disable on Mac.
+                if (camera.camera.cameraType != CameraType.Game || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                     HDROutputSettings.main.RequestHDRModeChange(false);
                 else
                     HDROutputSettings.main.RequestHDRModeChange(true);
@@ -349,6 +350,22 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.lodBias = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedLODBias(m_Asset);
             QualitySettings.maximumLODLevel = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
+#if UNITY_EDITOR
+            UpgradeResourcesIfNeeded();
+
+            //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
+            //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
+            //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
+            if ((m_GlobalSettings.AreRuntimeResourcesCreated() == false)
+                || (m_GlobalSettings.AreEditorResourcesCreated() == false)
+                || (m_RayTracingSupported && !m_GlobalSettings.AreRayTracingResourcesCreated()))
+                return;
+            else
+                m_ResourcesInitialized = true;
+
+            m_GlobalSettings.EnsureShadersCompiled();
+#endif
+
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             bool pipelineSupportsRayTracing = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
 
@@ -368,22 +385,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
             m_VFXRayTracingSupported = m_Asset.currentPlatformRenderPipelineSettings.supportVFXRayTracing && m_RayTracingSupported;
             VFXManager.SetRayTracingEnabled(m_VFXRayTracingSupported);
-
-#if UNITY_EDITOR
-            UpgradeResourcesIfNeeded();
-
-            //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
-            //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
-            //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            if ((m_GlobalSettings.AreRuntimeResourcesCreated() == false)
-                || (m_GlobalSettings.AreEditorResourcesCreated() == false)
-                || (m_RayTracingSupported && !m_GlobalSettings.AreRayTracingResourcesCreated()))
-                return;
-            else
-                m_ResourcesInitialized = true;
-
-            m_GlobalSettings.EnsureShadersCompiled();
-#endif
 
             CheckResourcesValidity();
 
@@ -504,8 +505,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
                     supportsRuntimeDebug = Application.isEditor || !m_GlobalSettings.stripDebugVariants,
-                    supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming,
                     supportScenarios = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeScenarios,
+                    supportDiskStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeDiskStreaming,
+                    supportGPUStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeGPUStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
                 SupportedRenderingFeatures.active.overridesLightProbeSystemWarningMessage = "This Light Probe system is not active because the pipeline uses Probe Volumes and the systems cannot co-exist.\nTo disable Probe Volumes make sure the feature is disabled in the lighting section of the active HDRP Asset.";
@@ -576,7 +578,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Hammersley.Initialize();
 
-            LocalVolumetricFogManager.manager.InitializeGraphicsBuffers();
+            LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
         }
 
 #if UNITY_EDITOR
@@ -672,7 +674,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 autoDefaultReflectionProbeBaking = false
                 ,
                 rendersUIOverlay = true,
-                supportsHDR = true
+                supportsHDR = true,
+                supportsClouds = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1045,7 +1048,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool enableRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
                 m_ShaderVariablesGlobalCB._EnableRayTracedReflections = enableRaytracedReflections ? 1 : 0;
                 RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-                // Here we cannot test against the light cluster as it is not build yet but for now there is no case where it shouldnt be valid
+                // Here we cannot test against the light cluster as it is not build yet but for now there is no case where it shouldn't be valid
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value && GetRayTracingState() ? 1u : 0u;
 
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = EvaluateSpecularOcclusionFlag(hdCamera);
@@ -1056,6 +1059,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = 1.0f;
             }
+
+            // Volumetric Clouds Shadow Data
+            m_ShaderVariablesGlobalCB._VolumetricCloudsShadowScale = m_VolumetricCloudsShadowRegion.regionSize;
+            m_ShaderVariablesGlobalCB._VolumetricCloudsShadowOriginToggle = new Vector4(m_VolumetricCloudsShadowRegion.origin.x, m_VolumetricCloudsShadowRegion.origin.y, m_VolumetricCloudsShadowRegion.origin.z, m_VolumetricCloudsShadowRegion.valid ? 1 : 0);
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                m_ShaderVariablesGlobalCB._VolumetricCloudsShadowOriginToggle -= new Vector4(hdCamera.camera.transform.position.x, hdCamera.camera.transform.position.y, hdCamera.camera.transform.position.z, 0);
+            }
+            m_ShaderVariablesGlobalCB._VolumetricCloudsFallBackValue = m_VolumetricCloudsShadowRegion.fallbackValue;
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
@@ -1115,7 +1127,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.SetKeyword(cmd, "DECALS_4RT", false);
                 }
 
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_OFF", !IsAPVEnabled());
                 CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", IsAPVEnabled() && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
                 CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", IsAPVEnabled() && m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
 
@@ -2000,6 +2011,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (camera.TryGetComponent<HDAdditionalCameraData>(out hdCam))
                     {
                         cameraRequestedDynamicRes = hdCam.allowDynamicResolution && camera.cameraType == CameraType.Game;
+
+                        // DRS should be disabled in case this camera will be path tracing.
+                        cameraRequestedDynamicRes &= !HDCamera.GetOrCreate(camera).IsPathTracingEnabled();
                     }
 
                     // We now setup DLSS if its enabled. DLSS can override the drsSettings (i.e. setting a System scaler slot, and providing quality settings).
@@ -2300,6 +2314,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // So the first thing to do is to go through all the light: PrepareLightsForGPU
                 bool enableBakeShadowMask = PrepareLightsForGPU(renderContext, cmd, hdCamera, cullingResults, hdProbeCullingResults, m_CurrentDebugDisplaySettings, aovRequest);
 
+                // Evaluate the shadow region for the volumetric clouds
+                EvaluateShadowRegionData(hdCamera, cmd);
+
                 UpdateGlobalConstantBuffers(hdCamera, cmd);
 
                 // Do the same for ray tracing if allowed
@@ -2401,6 +2418,9 @@ namespace UnityEngine.Rendering.HighDefinition
             currentFrameSettings.sssResolvedSampleBudget = currentFrameSettings.GetResolvedSssSampleBudget(m_Asset);
             currentFrameSettings.sssResolvedDownsampleSteps = currentFrameSettings.GetResolvedSssDownsampleSteps(m_Asset);
 
+            // If raytracing is not properly initialized, we should disable it. This can happen in the few first frame of enabling raytracing in the editor while raytrace resource are created.
+            currentFrameSettings.SetEnabled(FrameSettingsField.RayTracing, currentFrameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_RayTracingSupported);
+
             // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
             if (additionalCameraData.fullscreenPassthrough)
                 return false;
@@ -2427,6 +2447,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (debugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
                 {
                     currentFrameSettings.SetEnabled(FrameSettingsField.SubsurfaceScattering, false);
+                }
+
+                if (debugDisplaySettings.DebugHideTransparent())
+                {
+                    currentFrameSettings.SetEnabled(FrameSettingsField.TransparentObjects, false);
                 }
             }
 

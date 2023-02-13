@@ -1,10 +1,22 @@
 {
     "name": "Unity.Testing.VisualEffectGraph.Editor",
+    "rootNamespace": "",
     "references": [
         "Unity.Testing.VisualEffectGraph"
     ],
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

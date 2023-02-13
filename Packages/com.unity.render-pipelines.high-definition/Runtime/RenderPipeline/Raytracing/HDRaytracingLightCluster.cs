@@ -270,8 +270,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (light == null)
                         continue;
 
+                    var lightType = currentLight.legacyLight.type;
                     // Reserve space in the cookie atlas
-                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, currentLight.type);
+                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, lightType);
 
                     // Compute the camera relative position
                     Vector3 lightPositionRWS = currentLight.gameObject.transform.position;
@@ -283,16 +284,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Grab the light range
                     float lightRange = light.range;
 
-                    if (currentLight.type != HDLightType.Area)
+                    // Common volume data
+                    m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
+                    m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
+
+                    bool isAreaLight = lightType.IsArea();
+                    bool isBoxLight = lightType == LightType.Box;
+
+                    if (!isAreaLight && !isBoxLight)
                     {
                         m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
                         m_LightVolumesCPUArray[realIndex].position = lightPositionRWS;
-                        m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
-                        m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
                         m_LightVolumesCPUArray[realIndex].shape = 0;
                         m_LightVolumesCPUArray[realIndex].lightType = 0;
                         punctualLightCount++;
                     }
+                    // Area lights and box spot lights require AABB intersection data
                     else
                     {
                         // let's compute the oobb of the light influence volume first
@@ -306,11 +313,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Fill the volume data
                         m_LightVolumesCPUArray[realIndex].range = bounds.extents;
                         m_LightVolumesCPUArray[realIndex].position = bounds.center;
-                        m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
-                        m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
                         m_LightVolumesCPUArray[realIndex].shape = 1;
-                        m_LightVolumesCPUArray[realIndex].lightType = 1;
-                        areaLightCount++;
+                        if (isAreaLight)
+                        {
+                            m_LightVolumesCPUArray[realIndex].lightType = 1;
+                            areaLightCount++;
+                        }
+                        else
+                        {
+                            m_LightVolumesCPUArray[realIndex].lightType = 0;
+                            punctualLightCount++;
+                        }
                     }
                     realIndex++;
                 }
@@ -521,8 +534,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 LightCategory lightCategory = LightCategory.Count;
                 GPULightType gpuLightType = GPULightType.Point;
                 LightVolumeType lightVolumeType = LightVolumeType.Count;
-                HDLightType lightType = additionalLightData.type;
-                HDRenderPipeline.EvaluateGPULightType(lightType, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
+                LightType lightType = additionalLightData.legacyLight.type;
+                HDRenderPipeline.EvaluateGPULightType(lightType, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
                 // Fetch the light component for this light
                 additionalLightData.gameObject.TryGetComponent(out lightComponent);
@@ -532,7 +545,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Build the processed light data  that we need
                 processedLightEntity.dataIndex = dataIndex;
                 processedLightEntity.gpuLightType = gpuLightType;
-                processedLightEntity.lightType = additionalLightData.type;
+                processedLightEntity.lightType = additionalLightData.legacyLight.type;
                 processedLightEntity.distanceToCamera = (additionalLightData.transform.position - hdCamera.camera.transform.position).magnitude;
                 processedLightEntity.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedLightEntity.distanceToCamera, lightRenderData.fadeDistance);
                 processedLightEntity.lightVolumetricDistanceFade = HDUtils.ComputeLinearDistanceFade(processedLightEntity.distanceToCamera, lightRenderData.volumetricFadeDistance);
@@ -838,7 +851,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 additionalLightData.gameObject.TryGetComponent(out lightComponent);
 
                 // Reserve the cookie resolution in the 2D atlas
-                m_RenderPipeline.ReserveCookieAtlasTexture(additionalLightData, lightComponent, additionalLightData.type);
+                m_RenderPipeline.ReserveCookieAtlasTexture(additionalLightData, lightComponent, additionalLightData.legacyLight.type);
             }
         }
 

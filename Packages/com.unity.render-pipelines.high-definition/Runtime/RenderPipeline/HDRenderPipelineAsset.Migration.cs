@@ -37,7 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition
             AddedHDRenderPipelineGlobalSettings,
             DecalSurfaceGradient,
             RemovalOfUpscaleFilter,
-            CombinedPlanarAndCubemapReflectionAtlases
+            CombinedPlanarAndCubemapReflectionAtlases,
+            APVByDefault,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -263,8 +264,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 lightLoopSettings.maxCubeReflectionOnScreen = Mathf.Clamp(lightLoopSettings.maxEnvLightsOnScreen - lightLoopSettings.maxPlanarReflectionOnScreen, HDRenderPipeline.k_MaxCubeReflectionsOnScreen / 2, HDRenderPipeline.k_MaxCubeReflectionsOnScreen);
+            }),
 #pragma warning restore 618
+            MigrationStep.New(Version.APVByDefault, (HDRenderPipelineAsset data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                if (!data.m_RenderPipelineSettings.oldSupportProbeVolume)
+                {
+                    data.m_RenderPipelineSettings.lightProbeSystem = RenderPipelineSettings.LightProbeSystem.LegacyLightProbes;
+                }
+
+                if (data.m_RenderPipelineSettings.oldSupportProbeVolume || data.m_RenderPipelineSettings.oldLightProbeSystem == RenderPipelineSettings.LightProbeSystem.ProbeVolumes)
+                {
+                    data.m_RenderPipelineSettings.lightProbeSystem = RenderPipelineSettings.LightProbeSystem.ProbeVolumes;
+                }
             })
+#pragma warning restore 618
             );
         #endregion
 

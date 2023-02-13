@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [SerializeField] Mesh m_Mesh;
-        [SerializeField] BoundingSphere m_BoundingSphere;
+        [SerializeField] Bounds m_LocalBounds;
         [SerializeField] EdgeProcessing m_EdgeProcessing = EdgeProcessing.Clipping;
         [SerializeField] float m_TrimEdge = k_TrimEdgeUninitialized;
         [SerializeField] bool  m_FlipX;
@@ -29,7 +29,8 @@ namespace UnityEngine.Rendering.Universal
 
         public  Mesh mesh { get => m_Mesh; }
         public  BoundingSphere boundingSphere { get => m_BoundingSphere; }
-        public  EdgeProcessing edgeProcessing { get { return m_EdgeProcessing; } set { m_EdgeProcessing = value; } }
+        internal BoundingSphere m_BoundingSphere;   // update to world space
+        public EdgeProcessing edgeProcessing { get { return m_EdgeProcessing; } set { m_EdgeProcessing = value; } }
         public float trimEdge { get { return m_TrimEdge; } set { m_TrimEdge = value; } }
 
         static internal void DuplicateShadowMesh(Mesh source, out Mesh dest)
@@ -52,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
             // This is not gc tested as this generates garbage (calls DuplicateShadowMesh)
             DuplicateShadowMesh(source.m_Mesh, out m_Mesh);
             m_TrimEdge = source.trimEdge;
-            m_BoundingSphere = source.boundingSphere;
+            m_LocalBounds = source.m_LocalBounds;
             m_EdgeProcessing = source.edgeProcessing;
         }
 
@@ -272,10 +273,10 @@ namespace UnityEngine.Rendering.Universal
                 ShadowUtility.ClipEdges(generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
                 if (clippedStartingIndices.Length > 0)
-                    m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
+                    m_LocalBounds = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, calculatedIsClosedArray, true, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
                 else
                 {
-                    m_BoundingSphere = new BoundingSphere();
+                    m_LocalBounds = new Bounds();
                     m_Mesh.Clear();
                 }
 
@@ -285,7 +286,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, true, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
+                m_LocalBounds = ShadowUtility.GenerateShadowMesh(m_Mesh, generatedVertices, calculatedEdges, calculatedStartingEdges, calculatedIsClosedArray, true, createInteriorGeometry, ShadowShape2D.OutlineTopology.Lines);
             }
 
             generatedVertices.Dispose();
@@ -316,7 +317,11 @@ namespace UnityEngine.Rendering.Universal
 
             if (outlineTopology == ShadowShape2D.OutlineTopology.Triangles)
             {
-                ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, true, out edges, out shapeStartingIndices, out shapeIsClosedArray);
+                NativeArray<Vector3> newVertices;
+                ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, true, out newVertices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
+
+                vertices.Dispose();
+                vertices = newVertices;
             }
             else // if (outlineTopology == ShadowShape2D.OutlineTopology.Lines)
             {
@@ -335,7 +340,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ShadowUtility.ClipEdges(vertices, edges, shapeStartingIndices, shapeIsClosedArray, trimEdge, out clippedVertices, out clippedEdges, out clippedStartingIndices);
 
-                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
+                m_LocalBounds = ShadowUtility.GenerateShadowMesh(m_Mesh, clippedVertices, clippedEdges, clippedStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
 
                 clippedVertices.Dispose();
                 clippedEdges.Dispose();
@@ -343,7 +348,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
+                m_LocalBounds = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices, shapeIsClosedArray, allowTrimming, createInteriorGeometry, outlineTopology);
             }
 
             edges.Dispose();
@@ -371,6 +376,16 @@ namespace UnityEngine.Rendering.Universal
         public override void SetDefaultTrim(float trim)
         {
             m_InitialTrim = trim;
+        }
+
+        public void UpdateBoundingSphere(Transform transform)
+        {
+            var maxBound = transform.TransformPoint(m_LocalBounds.max);
+            var minBound = transform.TransformPoint(m_LocalBounds.min);
+            var center = 0.5f * (maxBound + minBound);
+            var radius = Vector3.Magnitude(maxBound - center);
+
+            m_BoundingSphere = new BoundingSphere(center, radius);
         }
     }
 }

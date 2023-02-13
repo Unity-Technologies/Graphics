@@ -7,14 +7,14 @@ namespace UnityEngine.Rendering.HighDefinition
     class HDRISkyRenderer : SkyRenderer
     {
         Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
-        MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
+        MaterialPropertyBlock m_PropertyBlock = new ();
 
         float scrollFactor = 0.0f, lastTime = 0.0f;
 
-        private static int m_RenderCubemapID = 0; // FragBaking
-        private static int m_RenderFullscreenSkyID = 1; // FragRender
-        private static int m_RenderFullscreenSkyWithBackplateID = 2; // FragRenderBackplate
-        private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID = 3; // FragRenderBackplateDepth
+        int m_RenderCubemapID; // FragBaking
+        int m_RenderFullscreenSkyID; // FragRender
+        int m_RenderFullscreenSkyWithBackplateID; // FragRenderBackplate
+        int m_RenderDepthOnlyFullscreenSkyWithBackplateID; // FragRenderBackplateDepth
 
         public HDRISkyRenderer()
         {
@@ -24,6 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void Build()
         {
             m_SkyHDRIMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.hdriSkyPS);
+            m_RenderCubemapID = m_SkyHDRIMaterial.FindPass("FragBaking");
+            m_RenderFullscreenSkyID = m_SkyHDRIMaterial.FindPass("FragRender");
+            m_RenderFullscreenSkyWithBackplateID = m_SkyHDRIMaterial.FindPass("FragRenderBackplate");
+            m_RenderDepthOnlyFullscreenSkyWithBackplateID = m_SkyHDRIMaterial.FindPass("FragRenderBackplateDepth");
         }
 
         public override void Cleanup()
@@ -131,8 +135,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             bool useFptl = builtinParams.hdCamera.frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
-            CoreUtils.SetKeyword(m_SkyHDRIMaterial, "USE_FPTL_LIGHTLIST", useFptl);
-            CoreUtils.SetKeyword(m_SkyHDRIMaterial, "USE_CLUSTERED_LIGHTLIST", !useFptl);
+            CoreUtils.SetKeyword(builtinParams.commandBuffer, "USE_FPTL_LIGHTLIST", useFptl);
+            CoreUtils.SetKeyword(builtinParams.commandBuffer, "USE_CLUSTERED_LIGHTLIST", !useFptl);
 
             CoreUtils.SetKeyword(m_SkyHDRIMaterial, "DISTORTION_PROCEDURAL", hdriSky.distortionMode.value == HDRISky.DistortionMode.Procedural);
             CoreUtils.SetKeyword(m_SkyHDRIMaterial, "DISTORTION_FLOWMAP", hdriSky.distortionMode.value == HDRISky.DistortionMode.Flowmap);

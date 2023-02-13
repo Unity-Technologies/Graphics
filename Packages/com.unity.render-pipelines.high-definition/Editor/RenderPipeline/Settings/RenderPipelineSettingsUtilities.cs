@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
             // Case 1358409 workaround:
             // Remove all DLSS keyword when the NVIDIA package is not installed.
-            return keywords.Where(keyword => keyword.ToLower().IndexOf("dlss") == -1);
+            return keywords.Where(keyword => keyword.IndexOf("dlss", System.StringComparison.OrdinalIgnoreCase) == -1);
 #else
             return keywords;
 #endif

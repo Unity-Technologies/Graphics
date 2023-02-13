@@ -188,6 +188,7 @@ static real4 unity_DOTS_Sampled_SHBr;
 static real4 unity_DOTS_Sampled_SHBg;
 static real4 unity_DOTS_Sampled_SHBb;
 static real4 unity_DOTS_Sampled_SHC;
+static real4 unity_DOTS_Sampled_ProbesOcclusion;
 static float3 unity_DOTS_RendererBounds_Min;
 static float3 unity_DOTS_RendererBounds_Max;
 
@@ -602,6 +603,7 @@ void SetupDOTSSHCoeffs(uint shMetadata)
         unity_DOTS_Sampled_SHBg = real4(asfloat(DOTSInstanceData_Load4(address + 4 * 16)));
         unity_DOTS_Sampled_SHBb = real4(asfloat(DOTSInstanceData_Load4(address + 5 * 16)));
         unity_DOTS_Sampled_SHC  = real4(asfloat(DOTSInstanceData_Load4(address + 6 * 16)));
+        unity_DOTS_Sampled_ProbesOcclusion = real4(asfloat(DOTSInstanceData_Load4(address + 7 * 16)));
     }
     else
     {
@@ -612,6 +614,7 @@ void SetupDOTSSHCoeffs(uint shMetadata)
         unity_DOTS_Sampled_SHBg = real4(unity_DOTS_SHBg);
         unity_DOTS_Sampled_SHBb = real4(unity_DOTS_SHBb);
         unity_DOTS_Sampled_SHC  = real4(unity_DOTS_SHC);
+        unity_DOTS_Sampled_ProbesOcclusion = real4(unity_DOTS_ProbesOcclusion);
     }
 }
 
@@ -622,6 +625,7 @@ real4 LoadDOTSInstancedData_SHBr() { return unity_DOTS_Sampled_SHBr; }
 real4 LoadDOTSInstancedData_SHBg() { return unity_DOTS_Sampled_SHBg; }
 real4 LoadDOTSInstancedData_SHBb() { return unity_DOTS_Sampled_SHBb; }
 real4 LoadDOTSInstancedData_SHC()  { return unity_DOTS_Sampled_SHC; }
+real4 LoadDOTSInstancedData_ProbesOcclusion()  { return unity_DOTS_Sampled_ProbesOcclusion; }
 float3 LoadDOTSInstancedData_RendererBounds_Min() { return unity_DOTS_RendererBounds_Min; }
 float3 LoadDOTSInstancedData_RendererBounds_Max() { return unity_DOTS_RendererBounds_Max; }
 

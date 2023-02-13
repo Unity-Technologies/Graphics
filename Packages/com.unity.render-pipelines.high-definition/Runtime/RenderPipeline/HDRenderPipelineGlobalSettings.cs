@@ -32,91 +32,45 @@ namespace UnityEngine.Rendering.HighDefinition
     /// - Various resources (such as Shaders) for runtime, editor-only, and raytracing
     /// </summary>
     [HDRPHelpURL("Default-Settings-Window")]
-    partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
+    [DisplayInfo(name = "HDRP Global Settings Asset", order = CoreUtils.Sections.section4 + 2)]
+    partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<HDRenderPipelineGlobalSettings, HDRenderPipeline>
     {
-        private static HDRenderPipelineGlobalSettings cachedInstance = null;
-
-        /// <summary>
-        /// Active HDRP Global Settings asset. If the value is null then no HDRenderPipelineGlobalSettings has been registered to the Graphics Settings with the HDRenderPipeline.
-        /// </summary>
-        public static HDRenderPipelineGlobalSettings instance
-        {
-            get
-            {
-#if !UNITY_EDITOR
-                // The HDRP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
-                // In a Player, we do not need to worry about those changes as we only support loading one
-                if (cachedInstance == null)
-#endif
-                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
-                return cachedInstance;
-            }
-        }
-
-        static internal void UpdateGraphicsSettings(HDRenderPipelineGlobalSettings newSettings)
-        {
-            if (newSettings == cachedInstance)
-                return;
-            if (newSettings != null)
-                GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
-            else
-                GraphicsSettings.UnregisterRenderPipelineSettings<HDRenderPipeline>();
-            cachedInstance = newSettings;
-        }
-
 #if UNITY_EDITOR
+        internal static string defaultPath => $"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset";
 
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
-        static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
+        internal static HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
         {
-            if (instance == null || instance.Equals(null) || instance.m_Version == Version.First)
+            HDRenderPipelineGlobalSettings currentInstance = GraphicsSettings.
+                GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
+
+            if (currentInstance == null || currentInstance.Equals(null) || currentInstance.m_Version == Version.First)
             {
                 // Try to migrate HDRPAsset in Graphics. It can produce a HDRenderPipelineGlobalSettings
                 // with data from former HDRPAsset if it is at a version allowing this.
-                if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset && hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
+                if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset &&
+                    hdrpAsset is IMigratableAsset migratableAsset &&
+                    hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
                 {
                     // if possible we need to finish migration of hdrpAsset in order to grab value from it
-                    (hdrpAsset as IMigratableAsset).Migrate();
+                    migratableAsset.Migrate();
+
+                    // the migration of the HDRP asset has updated the current instance
+                    currentInstance =
+                        GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as
+                            HDRenderPipelineGlobalSettings;
                 }
             }
 
-            if (instance == null || instance.Equals(null))
+            if (RenderPipelineGlobalSettingsUtils.TryEnsure<HDRenderPipelineGlobalSettings, HDRenderPipeline>(ref currentInstance, defaultPath, canCreateNewAsset))
             {
-                //try load at default path
-                HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                if (currentInstance is IMigratableAsset migratableAsset && !migratableAsset.IsAtLastVersion())
+                    migratableAsset.Migrate();
 
-                if (loaded == null)
-                {
-                    //Use any available
-                    IEnumerator<HDRenderPipelineGlobalSettings> enumerator = CoreUtils.LoadAllAssets<HDRenderPipelineGlobalSettings>().GetEnumerator();
-                    if (enumerator.MoveNext())
-                        loaded = enumerator.Current;
-                }
-
-                if (loaded != null)
-                    UpdateGraphicsSettings(loaded);
-
-                // No migration available and no asset available? Create one if allowed
-                if (canCreateNewAsset && instance == null)
-                {
-                    var createdAsset = Create($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
-                    UpdateGraphicsSettings(createdAsset);
-
-                    Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Global Settings.");
-                }
-
-                if (instance == null)
-                    Debug.LogError("Cannot find any HDRP Global Settings asset and Cannot create one from former used HDRP Asset.");
-
-                Debug.Assert(instance, "Could not create HDRP's Global Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
+                return currentInstance;
             }
 
-            // Attempt upgrade (do notiong if up to date)
-            IMigratableAsset migratableAsset = instance;
-            if (!migratableAsset.IsAtLastVersion())
-                migratableAsset.Migrate();
-
-            return instance;
+            return null;
         }
 
         void Reset()
@@ -124,34 +78,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PrefixedRenderingLayerNames = null;
         }
 
-        internal static HDRenderPipelineGlobalSettings Create(string path, HDRenderPipelineGlobalSettings dataSource = null)
+        public override void Initialize(RenderPipelineGlobalSettings source = null)
         {
-            HDRenderPipelineGlobalSettings assetCreated = null;
-
-            //ensure folder tree exist
-            CoreUtils.EnsureFolderTreeInAssetFilePath(path);
-
-            //prevent any path conflict
-            path = AssetDatabase.GenerateUniqueAssetPath(path);
-
-            //asset creation
-            assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
-            assetCreated.name = Path.GetFileName(path);
-            AssetDatabase.CreateAsset(assetCreated, path);
-            Debug.Assert(assetCreated);
-
-            // copy data from provided source
-            if (dataSource != null)
-                EditorUtility.CopySerialized(dataSource, assetCreated);
-
             // ensure resources are here
-            assetCreated.EnsureEditorResources(forceReload: true);
-            assetCreated.EnsureRuntimeResources(forceReload: true);
-            assetCreated.EnsureRayTracingResources(forceReload: true);
-            assetCreated.GetOrCreateDefaultVolumeProfile();
-            assetCreated.GetOrAssignLookDevVolumeProfile();
-
-            return assetCreated;
+            EnsureEditorResources(forceReload: true);
+            EnsureRuntimeResources(forceReload: true);
+            EnsureRayTracingResources(forceReload: true);
+            GetOrCreateDefaultVolumeProfile();
+            GetOrAssignLookDevVolumeProfile();
         }
 
 #endif // UNITY_EDITOR
@@ -733,9 +667,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
         {
             if (apvScenesData == null)
-                apvScenesData = new ProbeVolumeSceneData((Object)this, nameof(apvScenesData));
+                apvScenesData = new ProbeVolumeSceneData(this);
 
-            apvScenesData.SetParentObject((Object)this, nameof(apvScenesData));
+            apvScenesData.SetParentObject(this);
             return apvScenesData;
         }
 

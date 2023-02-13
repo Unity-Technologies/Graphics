@@ -36,7 +36,14 @@ MonoBehaviour:
     supportWaterExclusion: 0
     supportWaterDeformation: 0
     deformationAtlasSize: 512
+    supportWaterFoam: 0
+    foamAtlasSize: 512
     waterCPUSimulation: 0
+    supportComputeThickness: 0
+    computeThicknessResolution: 1
+    computeThicknessLayerMask:
+      serializedVersion: 2
+      m_Bits: 0
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1

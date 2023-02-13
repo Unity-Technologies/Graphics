@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             for (int i = 0; i < m_BRDFGeneratorArray.Length; ++i)
             {
                 LTCTableGenerator.BRDFGenerator currentGenerator = m_BRDFGeneratorArray[i];
-                currentGenerator.shouldGenerate = EditorGUILayout.Toggle(currentGenerator.type.Name.ToString(), currentGenerator.shouldGenerate);
+                currentGenerator.shouldGenerate = EditorGUILayout.Toggle(currentGenerator.type.Name, currentGenerator.shouldGenerate);
                 if (currentGenerator.shouldGenerate)
                     numActiveGenerators++;
                 EditorGUILayout.Space();

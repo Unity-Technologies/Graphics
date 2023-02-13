@@ -147,6 +147,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Dictionary<GameObject, int> m_IndexByGameObject = new Dictionary<GameObject, int>();
 
+        [NonSerialized]
+        private bool m_RebuildRequested = false;
+        [NonSerialized]
+        private bool m_CleanDestroyedGameObjectsRequested = false;
+
         public void GetALLIDsFor<TCategory>(
             TCategory category,
             List<GameObject> outGameObjects, List<int> outIndices
@@ -174,6 +179,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool TryGetSceneIDFor<TCategory>(GameObject gameObject, out int index, out TCategory category)
             where TCategory : struct, IConvertible
         {
+            Verify();
+
             if (!typeof(TCategory).IsEnum)
                 throw new ArgumentException("'TCategory' must be an Enum type.");
 
@@ -200,6 +207,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool TryInsert<TCategory>(GameObject gameObject, TCategory category, out int index)
             where TCategory : struct, IConvertible
         {
+            Verify();
+
             if (!typeof(TCategory).IsEnum)
                 throw new ArgumentException("'TCategory' must be an Enum type.");
 
@@ -222,6 +231,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int Insert<TCategory>(GameObject gameObject, TCategory category)
             where TCategory : struct, IConvertible
         {
+            Verify();
+
             Assert.IsFalse(m_IndexByGameObject.ContainsKey(gameObject));
             Assert.AreEqual(gameObject.scene, this.gameObject.scene);
 
@@ -270,16 +281,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            BuildIndex();
+            // Rather than directly rebuilding our index by game object dictionary here,
+            // we rebuild it lazily as needed.
+            // Verify() must be called inside of any SceneObjectIDMap functions that interact with this dictionary.
+            // We handle this lazily because it is unsafe to look at other object's data from within these serialization events,
+            // as the current state of those objects is undefined.
+            // https://docs.unity3d.com/ScriptReference/ISerializationCallbackReceiver.html
+            m_RebuildRequested = true;
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            CleanDestroyedGameObjects();
+            m_CleanDestroyedGameObjectsRequested = true;
         }
 
         void CleanDestroyedGameObjects()
         {
+            m_CleanDestroyedGameObjectsRequested = false;
+
             var rebuildIndex = false;
             for (int i = m_Entries.Count - 1; i >= 0; --i)
             {
@@ -297,9 +316,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BuildIndex()
         {
+            m_RebuildRequested = false;
+
             m_IndexByGameObject.Clear();
             for (int i = 0; i < m_Entries.Count; ++i)
                 m_IndexByGameObject[m_Entries[i].gameObject] = i;
+        }
+
+        void Verify()
+        {
+            if (m_CleanDestroyedGameObjectsRequested)
+            {
+                CleanDestroyedGameObjects();
+            }
+
+            if (m_RebuildRequested)
+            {
+                BuildIndex();
+            }
         }
     }
 }

@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal void CheckResources(int bandResolution, int bandCount, bool cpuSimActive, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
+        internal void CheckResources(int bandResolution, int bandCount, bool activeFoam, bool cpuSimActive, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
         {
             // By default we shouldn't need an update
             gpuSpectrumValid = true;
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 simulation.InitializeSimulationResources(bandResolution, bandCount);
 
                 // GPU buffers should always be allocated
-                simulation.AllocateSimulationBuffersGPU();
+                simulation.AllocateSimulationBuffersGPU(activeFoam);
 
                 // CPU buffers should be allocated only if required
                 if (cpuSimulationActive)

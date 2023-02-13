@@ -319,10 +319,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_VisibleVolumeBoundsBuffer = null;
         GraphicsBuffer m_VisibleVolumeGlobalIndices = null;
 
-        // TODO: put this back in private
-        internal GraphicsBuffer m_VolumetricMaterialDataBuffer = null;
-        internal GraphicsBuffer m_VolumetricMaterialIndexBuffer = null;
-
         ShaderVariablesVolumetric m_ShaderVariablesVolumetricCB = new ShaderVariablesVolumetric();
 
         // This size is shared between all cameras to create the volumetric 3D textures
@@ -736,26 +732,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLocalVolumetricFogVolumes = new List<LocalVolumetricFog>();
             m_VisibleVolumeBoundsBuffer = new ComputeBuffer(maxLocalVolumetricFogs, Marshal.SizeOf(typeof(OrientedBBox)));
             m_VisibleVolumeGlobalIndices = new GraphicsBuffer(GraphicsBuffer.Target.Raw, maxLocalVolumetricFogs, Marshal.SizeOf(typeof(uint)));
-            int maxVolumeCountTimesViewCount = maxLocalVolumetricFogs * 2;
-            m_VolumetricMaterialDataBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxVolumeCountTimesViewCount, Marshal.SizeOf(typeof(VolumetricMaterialRenderingData)));
-            m_VolumetricMaterialIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index, 3 * 4, sizeof(uint));
             m_VolumetricFogSortKeys = new NativeArray<uint>(maxLocalVolumetricFogs, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             m_VolumetricFogSortKeysTemp = new NativeArray<uint>(maxLocalVolumetricFogs, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            // Index buffer for triangle fan with max 6 vertices
-            m_VolumetricMaterialIndexBuffer.SetData(new List<uint>{
-                0, 1, 2,
-                0, 2, 3,
-                0, 3, 4,
-                0, 4, 5
-            });
         }
 
         internal void DestroyVolumetricLightingBuffers()
         {
             CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
             CoreUtils.SafeRelease(m_VisibleVolumeGlobalIndices);
-            CoreUtils.SafeRelease(m_VolumetricMaterialIndexBuffer);
-            CoreUtils.SafeRelease(m_VolumetricMaterialDataBuffer);
 
             if (m_VolumetricFogSortKeys.IsCreated)
                 m_VolumetricFogSortKeys.Dispose();
@@ -1167,7 +1151,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.globalIndirectBuffer = LocalVolumetricFogManager.manager.globalIndirectBuffer;
                     passData.globalIndirectionBuffer = LocalVolumetricFogManager.manager.globalIndirectionBuffer;
                     passData.volumetricFogs = m_VisibleLocalVolumetricFogVolumes;
-                    passData.materialDataBuffer = m_VolumetricMaterialDataBuffer;
+                    passData.materialDataBuffer = LocalVolumetricFogManager.manager.volumetricMaterialDataBuffer;
                     passData.maxSliceCount = maxSliceCount;
                     passData.hdCamera = hdCamera;
                     passData.visibleVolumeGlobalIndices = m_VisibleVolumeGlobalIndices;

@@ -43,24 +43,39 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
-        public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality, bool reverseZ,
+        public static void ExtractSpotLightData(float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality, bool reverseZ,
             out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Vector4 deviceProjection, out Matrix4x4 deviceProjectionYFlip, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
             // There is no aspect ratio for non pyramid spot lights
-            if (shape != SpotLightShape.Pyramid)
+            if (visibleLight.lightType != LightType.Pyramid)
                 aspectRatio = 1.0f;
 
-            if (shape != SpotLightShape.Box)
+            if (visibleLight.lightType != LightType.Box)
                 nearPlane = Mathf.Max(HDShadowUtils.k_MinShadowNearPlane, nearPlane);
 
             float guardAngle = CalcGuardAnglePerspective(spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 180.0f - spotAngle);
             ExtractSpotLightMatrix(visibleLight, forwardOffset: 0, spotAngle, nearPlane, guardAngle, aspectRatio, reverseZ, out view, out projection, out deviceProjection, out deviceProjectionYFlip, out invViewProjection, out lightDir, out splitData);
 
-            if (shape == SpotLightShape.Box)
+            if (visibleLight.lightType == LightType.Box)
             {
                 projection = ExtractBoxLightProjectionMatrix(visibleLight.range, shapeWidth, shapeHeight, nearPlane);
+
+                // update the culling planes to match the box shape
+                InvertView(ref view, out var lightToWorld);
+                Vector3 xDir = lightToWorld.GetColumn(0);
+                Vector3 yDir = lightToWorld.GetColumn(1);
+                Vector3 zDir = -lightToWorld.GetColumn(2); // flip z so that it points in the same direction as the near plane and range
+                Vector3 center = lightToWorld.GetColumn(3);
+                splitData.cullingPlaneCount = 6;
+                splitData.SetCullingPlane(0, new Plane(xDir, center - xDir * (0.5f * shapeWidth)));
+                splitData.SetCullingPlane(1, new Plane(-xDir, center + xDir * (0.5f * shapeWidth)));
+                splitData.SetCullingPlane(2, new Plane(yDir, center - yDir * (0.5f * shapeHeight)));
+                splitData.SetCullingPlane(3, new Plane(-yDir, center + yDir * (0.5f * shapeHeight)));
+                splitData.SetCullingPlane(4, new Plane(zDir, center + zDir * nearPlane));
+                splitData.SetCullingPlane(5, new Plane(-zDir, center + zDir * visibleLight.range));
+
                 Matrix4x4 deviceProjectionMatrix = GetGPUProjectionMatrix(projection, false, reverseZ);
                 deviceProjection = new Vector4(deviceProjectionMatrix.m00, deviceProjectionMatrix.m11, deviceProjectionMatrix.m22, deviceProjectionMatrix.m23);
                 deviceProjectionYFlip = GetGPUProjectionMatrix(projection, true, reverseZ);

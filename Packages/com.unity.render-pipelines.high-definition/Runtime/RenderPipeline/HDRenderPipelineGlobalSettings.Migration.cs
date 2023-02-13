@@ -87,6 +87,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     data.volumeProfile = volumeProfile;
                 }
+
+                UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile));
                 #endif
 
                 var overrides = data.GetOrCreateDiffusionProfileList();
@@ -160,8 +162,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (assetToUpgrade == null || assetToUpgrade.Equals(null))
             {
-                assetToUpgrade = Create($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
-                UpdateGraphicsSettings(assetToUpgrade);
+                assetToUpgrade = RenderPipelineGlobalSettingsUtils.Create<HDRenderPipelineGlobalSettings>(defaultPath);
+                GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(assetToUpgrade);
             }
 
             Debug.Assert(assetToUpgrade);

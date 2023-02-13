@@ -6,11 +6,11 @@ namespace UnityEngine.Rendering.Universal
     // See also test 106.
     public sealed class Test105Renderer : ScriptableRenderer
     {
-        RenderTargetHandle m_CameraColor;
-        RenderTargetHandle m_CameraDepth;
+        RTHandle m_CameraColor;
+        RTHandle m_CameraDepth;
 
         OutputColorsToMRTsRenderPass m_ColorsToMrtsPass;
-        RenderTargetHandle[] m_ColorToMrtOutputs; // outputs of render pass "OutputColorsToMRTs"
+        RTHandle[] m_ColorToMrtOutputs; // outputs of render pass "OutputColorsToMRTs"
 
         CopyToViewportRenderPass[] m_CopyToViewportPasses;
         Rect m_Viewport = new Rect(660, 200, 580, 320); // viewport to copy the results into
@@ -25,15 +25,13 @@ namespace UnityEngine.Rendering.Universal
 
         public Test105Renderer(Test105RendererData data) : base(data)
         {
-            m_CameraColor.Init("_CameraColor");
-            m_CameraDepth.Init("_CameraDepth");
-
             m_ColorToMrtMaterial = CoreUtils.CreateEngineMaterial(data.shaders.colorToMrtPS);
             m_ColorsToMrtsPass = new OutputColorsToMRTsRenderPass(m_ColorToMrtMaterial);
 
-            m_ColorToMrtOutputs = new RenderTargetHandle[2];
-            m_ColorToMrtOutputs[0].Init("_ColorToMrtOutput0");
-            m_ColorToMrtOutputs[1].Init("_ColorToMrtOutput1");
+            // Create and declare the render targets used in the pass
+            m_ColorToMrtOutputs = new RTHandle[2];
+            m_ColorToMrtOutputs[0] = RTHandles.Alloc(m_ColorsToMrtsPass.destDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_ColorToMrtOutput0");
+            m_ColorToMrtOutputs[1] = RTHandles.Alloc(m_ColorsToMrtsPass.destDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_ColorToMrtOutput1");
 
             m_CopyToViewportMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyToViewportPS);
             m_CopyToViewportPasses = new CopyToViewportRenderPass[2];
@@ -52,19 +50,20 @@ namespace UnityEngine.Rendering.Universal
             int width = renderingData.cameraData.cameraTargetDescriptor.width;
             int height = renderingData.cameraData.cameraTargetDescriptor.height;
 
-            cmd.GetTemporaryRT(m_CameraColor.id, width, height);
-            cmd.GetTemporaryRT(m_CameraDepth.id, width, height, 16);
+            var colorDescriptor = new RenderTextureDescriptor(width, height);
+            var depthDescriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.Depth, 16);
+            RenderingUtils.ReAllocateIfNeeded(ref m_CameraColor, colorDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraColor");
+            RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepth");
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            ConfigureCameraTarget(m_CameraColor.Identifier(), m_CameraDepth.Identifier());
-
+            ConfigureCameraTarget(m_CameraColor, m_CameraDepth);
 
             // 1) Render different colors to the MRT outputs (render a blue quad to output#0 and a red quad to output#1)
 
             //m_ColorToMrtOutputs[0] = m_CameraColor;
-            m_ColorsToMrtsPass.Setup(ref renderingData, cameraColorTarget, m_ColorToMrtOutputs);
+            m_ColorsToMrtsPass.Setup(ref renderingData, cameraColorTargetHandle, m_ColorToMrtOutputs);
             EnqueuePass(m_ColorsToMrtsPass);
             // Notice that the renderPass clearColor (yellow) is applied.
 
@@ -80,11 +79,11 @@ namespace UnityEngine.Rendering.Universal
             m_Viewport.y = 0.25f * height;
             m_Viewport.height = 0.50f * height;
 
-            m_CopyToViewportPasses[0].Setup(m_ColorToMrtOutputs[0].Identifier(), m_CameraColor, m_Viewport);
+            m_CopyToViewportPasses[0].Setup(m_ColorToMrtOutputs[0], m_CameraColor, m_Viewport);
             EnqueuePass(m_CopyToViewportPasses[0]);
 
             m_Viewport.x = (0.04f + 0.44f + 0.04f) * width;
-            m_CopyToViewportPasses[1].Setup(m_ColorToMrtOutputs[1].Identifier(), m_CameraColor, m_Viewport);
+            m_CopyToViewportPasses[1].Setup(m_ColorToMrtOutputs[1], m_CameraColor, m_Viewport);
             EnqueuePass(m_CopyToViewportPasses[1]);
 
 
@@ -93,15 +92,12 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_FinalBlitPass);
         }
 
-        /// <inheritdoc />
-        public override void FinishRendering(CommandBuffer cmd)
-        {
-            cmd.ReleaseTemporaryRT(m_CameraColor.id);
-            cmd.ReleaseTemporaryRT(m_CameraDepth.id);
-        }
-
         protected override void Dispose(bool disposing)
         {
+            m_ColorToMrtOutputs[0]?.Release();
+            m_ColorToMrtOutputs[1]?.Release();
+            m_CameraColor?.Release();
+            m_CameraDepth?.Release();
             CoreUtils.Destroy(m_ColorToMrtMaterial);
             CoreUtils.Destroy(m_CopyToViewportMaterial);
             CoreUtils.Destroy(m_BlitMaterial);

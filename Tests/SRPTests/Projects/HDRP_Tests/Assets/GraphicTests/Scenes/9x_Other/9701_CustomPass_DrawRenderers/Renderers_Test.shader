@@ -7,6 +7,7 @@ Shader "Renderers/Renderers_Test"
 
         // Transparency
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        [HideInInspector]_BlendMode("_BlendMode", Range(0.0, 1.0)) = 0.5
     }
 
     HLSLINCLUDE
@@ -18,6 +19,7 @@ Shader "Renderers/Renderers_Test"
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
+    #pragma multi_compile _ DOTS_INSTANCING_ON
 
     ENDHLSL
 
@@ -55,11 +57,19 @@ Shader "Renderers/Renderers_Test"
             #define VARYINGS_NEED_TEXCOORD0
             #define VARYINGS_NEED_TANGENT_TO_WORLD
 
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderers.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             TEXTURE2D(_ColorMap);
+    // Declare properties in the UnityPerMaterial cbuffer to make the shader compatible with SRP Batcher.
+    CBUFFER_START(UnityPerMaterial)
             float4 _ColorMap_ST;
             float4 _Color;
+
+            float _AlphaCutoff;
+            float _BlendMode;
+    CBUFFER_END
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderersV2.hlsl"
 
             // If you need to modify the vertex datas, you can uncomment this code
             // Note: all the transformations here are done in object space

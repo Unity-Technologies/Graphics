@@ -399,16 +399,6 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
     - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-15388
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
-    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
     - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
     ColorSpace: -1
     BuildPlatform: 38
@@ -416,3 +406,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Unstable
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9d25fa9f3eb332f4dad8f36653f93a14, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: Fails an assert on GLES3

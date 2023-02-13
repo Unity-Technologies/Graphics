@@ -87,14 +87,20 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="useProjectSettingsFolder">If the asset should be created on the project settings folder</param>
         /// <param name="activateAsset">if the asset should be shown on the inspector</param>
-        protected abstract void Create(bool useProjectSettingsFolder, bool activateAsset);
+        protected virtual void Create(bool useProjectSettingsFolder, bool activateAsset)
+        {
+            RenderPipelineGlobalSettingsEndNameEditAction.CreateNew<TRenderPipeline, TGlobalSettings>(useProjectSettingsFolder, activateAsset);
+        }
 
         /// <summary>
         /// Clones the <see cref="RenderPipelineGlobalSettings"/> asset
         /// </summary>
-        /// <param name="src">The <see cref="RenderPipelineGlobalSettings"/> to clone.</param>
+        /// <param name="source">The <see cref="RenderPipelineGlobalSettings"/> to clone.</param>
         /// <param name="activateAsset">if the asset should be shown on the inspector.</param>
-        protected abstract void Clone(RenderPipelineGlobalSettings src, bool activateAsset);
+        protected virtual void Clone(RenderPipelineGlobalSettings source, bool activateAsset)
+        {
+            RenderPipelineGlobalSettingsEndNameEditAction.CloneFrom<TRenderPipeline, TGlobalSettings>(source, activateAsset);
+        }
 
         /// <summary>
         /// Method called to render the IMGUI of the settings provider

@@ -236,6 +236,12 @@ namespace UnityEngine.Rendering.Universal
                     }
                     XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
                 }
+                else
+                {
+                    // Update multipass worldSpace camera pos
+                    Vector3 worldSpaceCameraPos = Matrix4x4.Inverse(GetViewMatrix(0)).GetColumn(3);
+                    cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
+                }
             }
 #endif
         }
@@ -428,6 +434,34 @@ namespace UnityEngine.Rendering.Universal
         public bool rendersOverlayUI => SupportedRenderingFeatures.active.rendersUIOverlay && resolveToScreen;
 
         /// <summary>
+        /// True is the handle has its content flipped on the y axis.
+        /// This happens only with certain rendering APIs.
+        /// On those platforms, any handle will have its content flipped unless rendering to a backbuffer, however,
+        /// the scene view will always be flipped.
+        /// When transitioning from a flipped space to a non-flipped space - or vice-versa - the content must be flipped
+        /// in the shader:
+        /// shouldPerformYFlip = IsHandleYFlipped(source) != IsHandleYFlipped(target)
+        /// </summary>
+        /// <param name="handle">Handle to check the flipped status on.</param>
+        /// <returns>True is the content is flipped in y.</returns>
+        public bool IsHandleYFlipped(RTHandle handle)
+        {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+                return false;
+
+            if (cameraType == CameraType.SceneView)
+                return true;
+
+            var handleID = new RenderTargetIdentifier(handle.nameID, 0, CubemapFace.Unknown, 0);
+            bool isBackbuffer = handleID == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+                isBackbuffer |= handleID == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
+#endif
+            return !isBackbuffer;
+        }
+
+        /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
         /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
@@ -436,23 +470,15 @@ namespace UnityEngine.Rendering.Universal
         /// <returns> True if the camera device projection matrix is flipped. </returns>
         public bool IsCameraProjectionMatrixFlipped()
         {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+                return false;
+
             // Users only have access to CameraData on URP rendering scope. The current renderer should never be null.
             var renderer = ScriptableRenderer.current;
             Debug.Assert(renderer != null, "IsCameraProjectionMatrixFlipped is being called outside camera rendering scope.");
 
             if (renderer != null)
-            {
-#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
-                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraColorTarget;
-#pragma warning restore 0618
-                bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (xr.enabled)
-                    renderingToBackBufferTarget |= targetId == new RenderTargetIdentifier(xr.renderTarget, 0, CubemapFace.Unknown, 0);
-#endif
-                bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
-                return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
-            }
+                return IsHandleYFlipped(renderer.cameraColorTargetHandle) || targetTexture != null;
 
             return true;
         }
@@ -468,17 +494,10 @@ namespace UnityEngine.Rendering.Universal
         /// <returns> True if the render target's projection matrix is flipped. </returns>
         public bool IsRenderTargetProjectionMatrixFlipped(RTHandle color, RTHandle depth = null)
         {
+            if (!SystemInfo.graphicsUVStartsAtTop)
+                return false;
 
-#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
-            var targetId = color?.nameID ?? depth?.nameID;
-#pragma warning restore 0618
-            bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xr.enabled)
-                renderingToBackBufferTarget |= targetId == xr.renderTarget;
-#endif
-            bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
-            return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
+            return targetTexture != null || IsHandleYFlipped(color ?? depth);
         }
 
         internal bool IsTemporalAAEnabled()
@@ -1152,6 +1171,12 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for sixteenth size downsampling. </summary>
         public const string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+
+        /// <summary> Keyword used for APV with SH L1 </summary>
+        public const string ProbeVolumeL1 = "PROBE_VOLUMES_L1";
+
+        /// <summary> Keyword used for APV with SH L2 </summary>
+        public const string ProbeVolumeL2 = "PROBE_VOLUMES_L2";
     }
 
     public sealed partial class UniversalRenderPipeline
@@ -1351,7 +1376,7 @@ namespace UnityEngine.Rendering.Universal
                         spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
                         lightData.Init(ref spotLight, ref cookie);
                         break;
-                    case LightType.Area:
+                    case LightType.Rectangle:
                         RectangleLight rectangleLight = new RectangleLight();
                         LightmapperUtils.Extract(light, ref rectangleLight);
                         rectangleLight.mode = LightMode.Baked;
@@ -1406,7 +1431,7 @@ namespace UnityEngine.Rendering.Universal
                             spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
                             lightData.Init(ref spotLight);
                             break;
-                        case LightType.Area:
+                        case LightType.Rectangle:
                             // Rect area light is baked only in URP.
                             lightData.InitNoBake(light.GetInstanceID());
                             break;

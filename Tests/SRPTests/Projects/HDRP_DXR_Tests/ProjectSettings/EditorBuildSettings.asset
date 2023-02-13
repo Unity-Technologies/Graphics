@@ -285,6 +285,9 @@ EditorBuildSettings:
     path: Assets/Scenes/717_DirectionalLightTransmission.unity
     guid: ba799739088f73744873fb5720fcddd3
   - enabled: 1
+    path: Assets/Scenes/718_Light_Culling.unity
+    guid: 7c78fb08d8686c74eb6c54c4050ae963
+  - enabled: 1
     path: Assets/Scenes/801_SubSurfaceScatteringDeferred.unity
     guid: c939ce56b901d264baab16d584624b30
   - enabled: 1
@@ -353,12 +356,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/2008_Debug_SubSurfaceScattering.unity
     guid: bb4c2806fa330ce4a8015c64186b031d
-  - enabled: 1
-    path: Assets/Scenes/2010_Debug_TileDebug.unity
-    guid: 7bdfe10746397364a87a1cab948f32ab
-  - enabled: 1
-    path: Assets/Scenes/2010_Debug_ClusterDebug.unity
-    guid: aa57cc1c42993c748a645e71bc711a8b
   - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f

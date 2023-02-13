@@ -101,10 +101,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.copyToDepth = CopyToDepth;
             var cmd = renderingData.commandBuffer;
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, ref renderingData.cameraData, this.source, this.destination, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, ref renderingData.cameraData, this.source, this.destination);
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, ref CameraData cameraData, RTHandle source, RTHandle destination, bool isSourceYflipped)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, ref CameraData cameraData, RTHandle source, RTHandle destination)
         {
             var copyDepthMaterial = passData.copyDepthMaterial;
             var msaaSamples = passData.msaaSamples;
@@ -172,12 +172,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool isGameViewFinalTarget = cameraData.cameraType == CameraType.Game && destination.nameID == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
+                {
                     if (cameraData.xr.supportsFoveatedRendering)
                         cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
 
-                    isGameViewFinalTarget |= destination.nameID == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
+                    isGameViewFinalTarget |= new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, 0) == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
+                }
 #endif
-                bool yflip = !isSourceYflipped && !isGameViewFinalTarget && SystemInfo.graphicsUVStartsAtTop;
+                bool yflip = cameraData.IsHandleYFlipped(source) != cameraData.IsHandleYFlipped(destination);
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
                 if (isGameViewFinalTarget)
                     cmd.SetViewport(cameraData.pixelRect);
@@ -227,8 +229,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    bool isSourceYflipped = data.cameraData.IsRenderTargetProjectionMatrixFlipped(data.source);
-                    ExecutePass(context.cmd, data, ref data.cameraData, data.source, data.destination, isSourceYflipped);
+                    ExecutePass(context.cmd, data, ref data.cameraData, data.source, data.destination);
                 });
             }
 

@@ -205,21 +205,7 @@ public class HDRP_GraphicTestRunner
             // That's why we don't test on macos anymore.
             if (settings.checkMemoryAllocation && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal)
             {
-                // Does it allocate memory when it renders what's on camera?
-                bool allocatesMemory = false;
-                try
-                {
-                    // GC alloc from Camera.CustomRender (case 1206364)
-                    int gcAllocThreshold = 0;
-
-                    ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings, gcAllocThreshold);
-                }
-                catch (AssertionException)
-                {
-                    allocatesMemory = true;
-                }
-                if (allocatesMemory)
-                    Assert.Fail("Allocated memory when rendering what is on camera");
+                yield return ImageAssert.CheckGCAllocWithCallstack(camera, settings?.ImageComparisonSettings);
             }
         }
         else

@@ -15,6 +15,7 @@
   * [URP Global Settings](urp-global-settings.md)
   * [Universal Renderer](urp-universal-renderer.md)
   * [Deferred Rendering Path](rendering/deferred-rendering-path.md)
+  * [Forward+ Rendering Path](rendering/forward-plus-rendering-path.md)
   * [Renderer Feature](urp-renderer-feature.md)
     * [How to add a Renderer Feature](urp-renderer-feature-how-to-add.md)
     * [Decal](renderer-feature-decal.md)

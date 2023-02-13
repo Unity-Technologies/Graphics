@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -13,6 +14,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2D m_CustomLutPresetMap;
         const int k_CustomLutMapResolution = 64;
         readonly Color[] m_CustomLutColorArray = new Color[k_CustomLutMapResolution];
+
+        // Compute shader kernels
+        ComputeShader m_VolumetricCloudsCS;
+        ComputeShader m_VolumetricCloudsTraceCS;
 
         // Prepass kernels
         int m_ConvertObliqueDepthKernel;
@@ -72,30 +77,30 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PhaseZHClouds.coeffs = new float[3];
 
             // Grab the kernels we need
-            ComputeShader volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
-            m_ConvertObliqueDepthKernel = volumetricCloudsCS.FindKernel("ConvertObliqueDepth");
-            m_CloudDownscaleDepthKernel = volumetricCloudsCS.FindKernel("DownscaleDepth");
+            m_VolumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
+            m_ConvertObliqueDepthKernel = m_VolumetricCloudsCS.FindKernel("ConvertObliqueDepth");
+            m_CloudDownscaleDepthKernel = m_VolumetricCloudsCS.FindKernel("DownscaleDepth");
 
-            m_ReprojectCloudsKernel = volumetricCloudsCS.FindKernel("ReprojectClouds");
-            m_ReprojectCloudsRejectionKernel = volumetricCloudsCS.FindKernel("ReprojectCloudsRejection");
-            m_PreUpscaleCloudsKernel = volumetricCloudsCS.FindKernel("PreUpscaleClouds");
-            m_PreUpscaleCloudsSkyKernel = volumetricCloudsCS.FindKernel("PreUpscaleCloudsSky");
+            m_ReprojectCloudsKernel = m_VolumetricCloudsCS.FindKernel("ReprojectClouds");
+            m_ReprojectCloudsRejectionKernel = m_VolumetricCloudsCS.FindKernel("ReprojectCloudsRejection");
+            m_PreUpscaleCloudsKernel = m_VolumetricCloudsCS.FindKernel("PreUpscaleClouds");
+            m_PreUpscaleCloudsSkyKernel = m_VolumetricCloudsCS.FindKernel("PreUpscaleCloudsSky");
 
-            m_UpscaleCloudsKernel = volumetricCloudsCS.FindKernel("UpscaleClouds");
-            m_UpscaleCloudsPerceptualKernel = volumetricCloudsCS.FindKernel("UpscaleCloudsPerceptual");
-            m_UpscaleCloudsSkyKernel = volumetricCloudsCS.FindKernel("UpscaleCloudsSky");
+            m_UpscaleCloudsKernel = m_VolumetricCloudsCS.FindKernel("UpscaleClouds");
+            m_UpscaleCloudsPerceptualKernel = m_VolumetricCloudsCS.FindKernel("UpscaleCloudsPerceptual");
+            m_UpscaleCloudsSkyKernel = m_VolumetricCloudsCS.FindKernel("UpscaleCloudsSky");
 
-            m_CombineCloudsKernel = volumetricCloudsCS.FindKernel("CombineClouds");
-            m_CombineCloudsPerceptualKernel = volumetricCloudsCS.FindKernel("CombineCloudsPerceptual");
-            m_CombineCloudsSkyKernel = volumetricCloudsCS.FindKernel("CombineCloudsSky");
+            m_CombineCloudsKernel = m_VolumetricCloudsCS.FindKernel("CombineClouds");
+            m_CombineCloudsPerceptualKernel = m_VolumetricCloudsCS.FindKernel("CombineCloudsPerceptual");
+            m_CombineCloudsSkyKernel = m_VolumetricCloudsCS.FindKernel("CombineCloudsSky");
 
             // Create the material needed for the combination
             m_CloudCombinePass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.volumetricCloudsCombinePS);
             m_CloudsCombineCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCombineCS;
             m_CombineCloudsWaterKernel = m_CloudsCombineCS.FindKernel("CombineCloudsWater");
 
-            ComputeShader volumetricCloudsTraceCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceCS;
-            m_CloudRenderKernel = volumetricCloudsTraceCS.FindKernel("RenderClouds");
+            m_VolumetricCloudsTraceCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceCS;
+            m_CloudRenderKernel = m_VolumetricCloudsTraceCS.FindKernel("RenderClouds");
 
             // Allocate all the texture initially
             AllocatePresetTextures();
@@ -240,6 +245,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_CustomPresetMap;
         }
 
+        float EvaluateCloudsEarthRadius(VolumetricClouds settings)
+        {
+            return Mathf.Lerp(1.0f, 0.025f, settings.earthCurvature.value) * k_EarthRadius;
+        }
+
+        float2 EvaluateCloudsLowestAltitude(VolumetricClouds settings)
+        {
+            float2 cloudAltitude = new float2(0.0f, 0.0f);
+            cloudAltitude.x = settings.bottomAltitude.value;
+            // When in non local mode, the camera is supposed to be always strictly under the clouds
+            // to avoid artifacts due to precision issues, when in non local, the clouds are always 1 meter above the camera.
+            if (!settings.localClouds.value)
+                cloudAltitude.x = Mathf.Max(cloudAltitude.x, 1.0f);
+            cloudAltitude.y = cloudAltitude.x + settings.altitudeRange.value;
+            return cloudAltitude;
+        }
+
         internal enum TVolumetricCloudsCameraType
         {
             Default,
@@ -288,17 +310,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateShaderVariableslClouds(ref ShaderVariablesClouds cb, HDCamera hdCamera, VolumetricClouds settings,
             in VolumetricCloudsCameraData cameraData, in CloudModelData cloudModelData, bool shadowPass)
         {
-            // Convert to kilometers
-            cb._LowestCloudAltitude = settings.bottomAltitude.value;
-
-            // When in non local mode, the camera is supposed to be always strictly under the clouds
-            // to avoid artifacts due to precision issues, when in non local, the clouds are always 1 meter above the camera.
-            if (!settings.localClouds.value)
-
-                cb._LowestCloudAltitude = Mathf.Max(cb._LowestCloudAltitude, 1.0f);
-
-            cb._HighestCloudAltitude = cb._LowestCloudAltitude + settings.altitudeRange.value;
-            cb._EarthRadius = Mathf.Lerp(1.0f, 0.025f, settings.earthCurvature.value) * k_EarthRadius;
+            // Planet properties
+            float2 cloudsAltitude = EvaluateCloudsLowestAltitude(settings);
+            cb._LowestCloudAltitude = cloudsAltitude.x;
+            cb._HighestCloudAltitude = cloudsAltitude.y;
+            cb._EarthRadius = EvaluateCloudsEarthRadius(settings);
             cb._CloudRangeSquared.Set(Square(cb._LowestCloudAltitude + cb._EarthRadius), Square(cb._HighestCloudAltitude + cb._EarthRadius));
 
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
@@ -325,22 +341,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Grab the target sun additional data
                 m_CurrentSunLight.TryGetComponent<HDAdditionalLightData>(out additionalLightData);
+                // m_CurrentSunLightDataIndex is supposed to be guaranteed to be non -1 if the current sun is not null
+                cb._SunLightColor = m_GpuLightsBuilder.directionalLights[m_CurrentSunLightDataIndex].color * settings.sunLightDimmer.value;
                 cb._SunDirection = -currentSun.transform.forward;
-                cb._SunRight = currentSun.transform.right;
-                cb._SunUp = currentSun.transform.up;
-
-                if (!shadowPass)
-                {
-                    // m_CurrentSunLightDataIndex is supposed to be guaranteed to be non -1 if the current sun is not null
-                    cb._SunLightColor = m_GpuLightsBuilder.directionalLights[m_CurrentSunLightDataIndex].color * settings.sunLightDimmer.value;
-                }
             }
             else
             {
-                cb._SunDirection = Vector3.up;
-                cb._SunRight = Vector3.right;
-                cb._SunUp = Vector3.forward;
                 cb._SunLightColor = Vector3.zero;
+                cb._SunDirection = Vector3.up;
             }
 
             // Compute the theta angle for the wind direction
@@ -427,28 +435,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._CameraPrevViewProjection_NO = prevVpNonOblique;
             }
 
-            if (shadowPass)
-            {
-                // Resolution of the cloud shadow
-                cb._ShadowCookieResolution = (int)settings.shadowResolution.value;
-                cb._ShadowIntensity = settings.shadowOpacity.value;
-                cb._ShadowFallbackValue = 1.0f - settings.shadowOpacityFallback.value;
-                cb._ShadowPlaneOffset = settings.shadowPlaneHeightOffset.value;
-
-                // Compute Size of the shadow on the ground
-                float groundShadowSize = settings.shadowDistance.value;
-
-                // The world space camera will be required but the global constant buffer will not be injected yet.
-                cb._WorldSpaceShadowCenter = new Vector4(hdCamera.camera.transform.position.x, hdCamera.camera.transform.position.y, hdCamera.camera.transform.position.z, 0.0f);
-
-                if (HasVolumetricCloudsShadows(hdCamera, settings))
-                {
-                    float scaleX = Mathf.Abs(Vector3.Dot(cb._SunRight, Vector3.Normalize(new Vector3(cb._SunRight.x, 0.0f, cb._SunRight.z))));
-                    float scaleY = Mathf.Abs(Vector3.Dot(cb._SunUp, Vector3.Normalize(new Vector3(cb._SunUp.x, 0.0f, cb._SunUp.z))));
-                    cb._ShadowRegionSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
-                }
-            }
-
             cb._EnableFastToneMapping = cameraData.enableExposureControl ? 1 : 0;
 
             cb._LowResolutionEvaluation = cameraData.lowResolution ? 1 : 0;
@@ -507,9 +493,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             commonData.cameraType = cameraType;
             commonData.localClouds = settings.localClouds.value;
-            commonData.volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
-            commonData.volumetricCloudsTraceCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceCS;
-
+            commonData.volumetricCloudsCS = m_VolumetricCloudsCS;
+            commonData.volumetricCloudsTraceCS = m_VolumetricCloudsTraceCS;
+            
             // Static textures
             commonData.simplePreset = settings.cloudControl.value == VolumetricClouds.CloudControl.Simple;
             if (commonData.simplePreset)
@@ -562,7 +548,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Conversion  from km/h to m/s  is the 0.277778f factor
                 // We apply a minus to see something moving in the right direction
-                Vector2 windVector = -windDirection * settings.globalWindSpeed.GetValue(hdCamera) * delaTime * 0.277778f;
+                Vector2 windVector = 0.277778f * delaTime * settings.globalWindSpeed.GetValue(hdCamera) * -windDirection;
 
                 // Animate the offsets
                 hdCamera.volumetricCloudsAnimationData.cloudOffset += windVector;
@@ -609,7 +595,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ConstantBuffer.Push(ctx.cmd, data.cloudsCB, data.cloudsCombineMaterial, HDShaderIDs._ShaderVariablesClouds);
                         data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, data.volumetricCloudsBuffer);
-                        HDUtils.DrawFullScreen(ctx.cmd, data.cloudsCombineMaterial, colorBuffer, null, 0);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.cloudsCombineMaterial, data.colorBuffer, null, 0);
                     });
             }
         }
@@ -696,7 +682,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If the current volume does not enable the feature, quit right away.
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) || !HasVolumetricClouds(hdCamera, in settings))
+            bool skipCloudRendering = m_CurrentDebugDisplaySettings.DebugHideVolumetricClouds(hdCamera) || !HasVolumetricClouds(hdCamera, in settings);
+#if UNITY_EDITOR
+            skipCloudRendering |= !hdCamera.camera.renderCloudsInSceneView;
+#endif
+            if (skipCloudRendering)
             {
                 VolumetricCloudsOutput emptyClouds = new VolumetricCloudsOutput();
                 emptyClouds.lightingBuffer = renderGraph.defaultResources.whiteTextureXR;
@@ -747,15 +737,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!HasVolumetricClouds(hdCamera, in settings))
                 return;
 
-            // Given that the rendering of the shadow happens before the render graph execution, we can only have the display debug here (and not during the light data build).
-            if (HasVolumetricCloudsShadows(hdCamera))
-            {
-                RTHandle currentHandle = RequestVolumetricCloudsShadowTexture(settings);
-                PushFullScreenDebugTexture(m_RenderGraph, renderGraph.ImportTexture(currentHandle), FullScreenDebugMode.VolumetricCloudsShadow, xrTexture: false);
-            }
-
             // Evaluate the cloud map
             PreRenderVolumetricCloudMap(renderGraph, hdCamera, in settings);
+            
+            // Render the cloud shadows
+            RenderVolumetricCloudsShadows(renderGraph, hdCamera, in settings);
         }
     }
 }

@@ -1,32 +1,46 @@
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        // Cloud preset maps
-        RTHandle[] m_VolumetricCloudsShadowTexture = new RTHandle[VolumetricClouds.CloudShadowResolutionCount];
-        RTHandle m_VolumetricCloudsIntermediateShadowTexture;
+        struct VolumetricCloudsShadowRegion
+        {
+            public bool valid;
+            public float3 origin;
+            public float3 dirX;
+            public float3 dirY;
+            public float3 lightDir;
+            public float2 regionSize;
+            public float fallbackValue;
+        }
 
         // The set of kernels that are required
-        int m_ComputeShadowCloudsKernel;
+        ComputeShader m_VolumetricCloudsTraceShadowsCS;
+        int m_TraceVolumetricCloudsShadowsKernel;
+        ComputeShader m_VolumetricCloudsShadowFilterCS;
         int m_FilterShadowCloudsKernel;
+
+        // Shadow Region for the current frame
+        VolumetricCloudsShadowRegion m_VolumetricCloudsShadowRegion = new VolumetricCloudsShadowRegion();
 
         void InitializeVolumetricCloudsShadows()
         {
             // Grab the kernels we need
-            ComputeShader volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
-            ComputeShader volumetricCloudsTraceCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceCS;
-            m_ComputeShadowCloudsKernel = volumetricCloudsTraceCS.FindKernel("ComputeVolumetricCloudsShadow");
-            m_FilterShadowCloudsKernel = volumetricCloudsCS.FindKernel("FilterVolumetricCloudsShadow");
+            m_VolumetricCloudsTraceShadowsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsTraceShadowsCS;
+            m_TraceVolumetricCloudsShadowsKernel = m_VolumetricCloudsTraceShadowsCS.FindKernel("TraceVolumetricCloudsShadows");
+            m_VolumetricCloudsShadowFilterCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsShadowFilterCS;
+            m_FilterShadowCloudsKernel = m_VolumetricCloudsShadowFilterCS.FindKernel("FilterVolumetricCloudsShadow");
+
+            // Invalidate the shadow region
+            m_VolumetricCloudsShadowRegion.valid = false;
         }
 
         void ReleaseVolumetricCloudsShadows()
         {
-            for (int i = 0; i < VolumetricClouds.CloudShadowResolutionCount; ++i)
-                RTHandles.Release(m_VolumetricCloudsShadowTexture[i]);
-            RTHandles.Release(m_VolumetricCloudsIntermediateShadowTexture);
         }
 
         bool HasVolumetricCloudsShadows(HDCamera hdCamera, in VolumetricClouds settings)
@@ -42,23 +56,118 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricCloudsShadows(hdCamera, settings);
         }
 
-        internal bool HasVolumetricCloudsShadows_IgnoreSun(HDCamera hdCamera, in VolumetricClouds settings)
+        int RaySphereIntersection(float3 startWS, float3 dir, float radius, float earthRadius, out float2 result)
         {
-            return (HasVolumetricClouds(hdCamera, in settings) && settings.shadows.value);
+            float3 startPS = startWS + float3(0, earthRadius, 0);
+            float a = dot(dir, dir);
+            float b = 2.0f * dot(dir, startPS);
+            float c = dot(startPS, startPS) - (radius * radius);
+            float d = (b * b) - 4.0f * a * c;
+            result = 0.0f;
+            int numSolutions = 0;
+            if (d >= 0.0f)
+            {
+                // Compute the values required for the solution eval
+                float sqrtD = sqrt(d);
+                float q = -0.5f * (b + sign(b) * sqrtD);
+                result = float2(c / q, q / a);
+                // Remove the solutions we do not want
+                numSolutions = 2;
+                if (result.x < 0.0)
+                {
+                    numSolutions--;
+                    result.x = result.y;
+                }
+                if (result.y < 0.0)
+                    numSolutions--;
+            }
+            // Return the number of solutions
+            return numSolutions;
         }
 
-        internal bool HasVolumetricCloudsShadows_IgnoreSun(HDCamera hdCamera)
+        void EvaluateShadowRegionData(HDCamera hdCamera, CommandBuffer cmd)
         {
+            // Invalidate the region in case something goes wrong
+            m_VolumetricCloudsShadowRegion.valid = false;
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-            return HasVolumetricCloudsShadows_IgnoreSun(hdCamera, settings);
+
+            // Grab the light and make sure it is valid
+            Light targetLight = GetMainLight();
+            if (!HasVolumetricClouds(hdCamera, in settings) || targetLight == null || !settings.shadows.value)
+            {
+                // Bind the invalid volumetric clouds shadow texture
+                cmd.SetGlobalTexture(HDShaderIDs._VolumetricCloudsShadowsTexture, Texture2D.blackTexture);
+                return;
+            }
+
+            // Grab the volume profile of the volumetric clouds
+            Matrix4x4 wsToLSMat = targetLight.transform.worldToLocalMatrix;
+            Matrix4x4 lsToWSMat = targetLight.transform.localToWorldMatrix;
+
+            // Generate the light space bounds of the camera frustum
+            Bounds lightSpaceBounds = new Bounds();
+            lightSpaceBounds.SetMinMax(new Vector3(float.MaxValue, float.MaxValue, float.MaxValue), new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue));
+            lightSpaceBounds.Encapsulate(wsToLSMat.MultiplyPoint(hdCamera.camera.transform.position));
+            for (int cornerIdx = 0; cornerIdx < 4; ++cornerIdx)
+            {
+                Vector3 corner = hdCamera.frustum.corners[cornerIdx + 4];
+                float diag = corner.magnitude;
+                corner = corner / diag * Mathf.Min(settings.shadowDistance.value, diag);
+                Vector3 posLightSpace = wsToLSMat.MultiplyPoint(corner + hdCamera.camera.transform.position);
+                lightSpaceBounds.Encapsulate(posLightSpace);
+            }
+
+            // If  ray tracing and extended shadow culling is enabled, let's extended the shadow area
+            RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtSettings.extendShadowCulling.value)
+            {
+                for (int cornerIdx = 0; cornerIdx < 4; ++cornerIdx)
+                {
+                    Vector3 corner = hdCamera.frustum.corners[cornerIdx + 4];
+                    float diag = corner.magnitude;
+                    corner = corner / diag * Mathf.Min(settings.shadowDistance.value, diag);
+                    Vector3 posLightSpace = wsToLSMat.MultiplyPoint(-corner + hdCamera.camera.transform.position);
+                    lightSpaceBounds.Encapsulate(posLightSpace);
+                }
+            }
+
+            // Compute the four corners we need
+            float3 c0 = lsToWSMat.MultiplyPoint(lightSpaceBounds.center + new Vector3(-lightSpaceBounds.extents.x, -lightSpaceBounds.extents.y, lightSpaceBounds.extents.z));
+            float3 c1 = lsToWSMat.MultiplyPoint(lightSpaceBounds.center + new Vector3(lightSpaceBounds.extents.x, -lightSpaceBounds.extents.y, lightSpaceBounds.extents.z));
+            float3 c2 = lsToWSMat.MultiplyPoint(lightSpaceBounds.center + new Vector3(-lightSpaceBounds.extents.x, lightSpaceBounds.extents.y, lightSpaceBounds.extents.z));
+
+            // Evaluate the shadow region
+            m_VolumetricCloudsShadowRegion.origin = c0;
+            m_VolumetricCloudsShadowRegion.dirX = c1 - c0;
+            m_VolumetricCloudsShadowRegion.dirY = c2 - c0;
+            m_VolumetricCloudsShadowRegion.lightDir = -targetLight.transform.forward;
+            m_VolumetricCloudsShadowRegion.regionSize = float2(length(m_VolumetricCloudsShadowRegion.dirX), length(m_VolumetricCloudsShadowRegion.dirY));
+            m_VolumetricCloudsShadowRegion.fallbackValue = 1.0f - settings.shadowOpacityFallback.value;
+            m_VolumetricCloudsShadowRegion.valid = true;
+        }
+
+        void UpdateShaderVariablesCloudsShadow(ref ShaderVariablesCloudsShadows cb, HDCamera hdCamera, VolumetricClouds settings, VolumetricCloudsShadowRegion shadowRegion)
+        {
+            // Resolution of the cloud shadow
+            cb._ShadowCookieResolution = (int)settings.shadowResolution.value;
+            cb._ShadowIntensity = settings.shadowOpacity.value;
+            cb._CloudShadowSunOrigin = float4(shadowRegion.origin, 1);
+            cb._CloudShadowSunRight = float4(shadowRegion.dirX, 0);
+            cb._CloudShadowSunUp = float4(shadowRegion.dirY, 0);
+            cb._CloudShadowSunForward = float4(shadowRegion.lightDir, 0);
+            cb._WorldSpaceShadowCenter = float4(hdCamera.camera.transform.position, 0);
         }
 
         struct VolumetricCloudsShadowsParameters
         {
             // Data common to all volumetric cloud passes
             public VolumetricCloudCommonData commonData;
+            public ComputeShader traceShadowsCS;
             public int shadowsKernel;
+            public ComputeShader shadowFilterCS;
             public int filterShadowsKernel;
+            public VolumetricCloudsShadowRegion shadowRegion;
+            public ShaderVariablesCloudsShadows cloudsShadowCB;
         }
 
         VolumetricCloudsShadowsParameters PrepareVolumetricCloudsShadowsParameters(HDCamera hdCamera, VolumetricClouds settings)
@@ -68,13 +177,20 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute the cloud model data
             CloudModelData cloudModelData = GetCloudModelData(settings);
 
+            // CS & Kernels
+            parameters.traceShadowsCS = m_VolumetricCloudsTraceShadowsCS;
+            parameters.shadowsKernel = m_TraceVolumetricCloudsShadowsKernel;
+
+            parameters.shadowFilterCS = m_VolumetricCloudsShadowFilterCS;
+            parameters.filterShadowsKernel = m_FilterShadowCloudsKernel;
+
+            // Shadow region
+            parameters.shadowRegion = m_VolumetricCloudsShadowRegion;
+
             // Fill the common data
             FillVolumetricCloudsCommonData(false, settings, TVolumetricCloudsCameraType.Default, in cloudModelData, ref parameters.commonData);
 
-            parameters.shadowsKernel = m_ComputeShadowCloudsKernel;
-            parameters.filterShadowsKernel = m_FilterShadowCloudsKernel;
-
-            // Update the constant buffer
+            // Update the main constant buffer
             VolumetricCloudsCameraData cameraData;
             cameraData.cameraType = parameters.commonData.cameraType;
             cameraData.traceWidth = 1;
@@ -89,142 +205,96 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableIntegration = false;
             UpdateShaderVariableslClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, true);
 
+            // Update the shadow constant buffer
+            UpdateShaderVariablesCloudsShadow(ref parameters.cloudsShadowCB, hdCamera, settings, parameters.shadowRegion);
+
             return parameters;
         }
 
         static void TraceVolumetricCloudShadow(CommandBuffer cmd, VolumetricCloudsShadowsParameters parameters, RTHandle intermediateTexture, RTHandle shadowTexture)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
-            {
-                CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.commonData.localClouds);
-                CoreUtils.SetKeyword(cmd, "CLOUDS_MICRO_EROSION", false);
-                CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", parameters.commonData.simplePreset);
+            CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.commonData.localClouds);
+            CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", parameters.commonData.simplePreset);
 
-                // Bind the constant buffer
-                ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
-                ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsTraceCS, HDShaderIDs._ShaderVariablesClouds);
+            // Bind the constant buffer for the trace CS
+            ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.traceShadowsCS, HDShaderIDs._ShaderVariablesClouds);
+            ConstantBuffer.Push(cmd, parameters.cloudsShadowCB, parameters.traceShadowsCS, HDShaderIDs._ShaderVariablesCloudsShadows);
 
-                // Compute the number of tiles to dispatch
-                int shadowTX = (parameters.commonData.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
-                int shadowTY = (parameters.commonData.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
-                // Input textures
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.commonData.cloudLutTexture);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
+            // Compute the number of tiles to dispatch
+            int tileCount = (parameters.cloudsShadowCB._ShadowCookieResolution + 7) / 8;
 
-                // Output texture
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
+            // Input textures
+            cmd.SetComputeTextureParam(parameters.traceShadowsCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
+            cmd.SetComputeTextureParam(parameters.traceShadowsCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.commonData.cloudLutTexture);
+            cmd.SetComputeTextureParam(parameters.traceShadowsCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
+            cmd.SetComputeTextureParam(parameters.traceShadowsCS, parameters.shadowsKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
 
-                // Evaluate the shadow
-                cmd.DispatchCompute(parameters.commonData.volumetricCloudsTraceCS, parameters.shadowsKernel, shadowTX, shadowTY, 1);
+            // Output texture
+            cmd.SetComputeTextureParam(parameters.traceShadowsCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
 
-                // Given the low number of steps available and the absence of noise in the integration, we try to reduce the artifacts by doing two consecutive 3x3 blur passes.
-                // Filter the shadow
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.filterShadowsKernel, HDShaderIDs._VolumetricCloudsShadow, shadowTexture);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.filterShadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, intermediateTexture);
-                cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.filterShadowsKernel, shadowTX, shadowTY, 1);
+            // Evaluate the shadow
+            cmd.DispatchCompute(parameters.traceShadowsCS, parameters.shadowsKernel, tileCount, tileCount, 1);
 
-                // Filter the shadow
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.filterShadowsKernel, HDShaderIDs._VolumetricCloudsShadow, intermediateTexture);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.filterShadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
-                cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.filterShadowsKernel, shadowTX, shadowTY, 1);
+            CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
+            CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", false);
+            
+            // Bind the constant buffer for the other CS
+            ConstantBuffer.Push(cmd, parameters.cloudsShadowCB, parameters.shadowFilterCS, HDShaderIDs._ShaderVariablesCloudsShadows);
 
-                // Bump the texture version
-                shadowTexture.rt.IncrementUpdateCount();
+            // Given the low number of steps available and the absence of noise in the integration, we try to reduce the artifacts by doing two consecutive 3x3 blur passes.
+            cmd.SetComputeTextureParam(parameters.shadowFilterCS, parameters.filterShadowsKernel, HDShaderIDs._VolumetricCloudsShadow, shadowTexture);
+            cmd.SetComputeTextureParam(parameters.shadowFilterCS, parameters.filterShadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, intermediateTexture);
+            cmd.DispatchCompute(parameters.shadowFilterCS, parameters.filterShadowsKernel, tileCount, tileCount, 1);
 
-                CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
-                CoreUtils.SetKeyword(cmd, "CLOUDS_SIMPLE_PRESET", false);
-            }
+            // Filter the shadow
+            cmd.SetComputeTextureParam(parameters.shadowFilterCS, parameters.filterShadowsKernel, HDShaderIDs._VolumetricCloudsShadow, intermediateTexture);
+            cmd.SetComputeTextureParam(parameters.shadowFilterCS, parameters.filterShadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
+            cmd.DispatchCompute(parameters.shadowFilterCS, parameters.filterShadowsKernel, tileCount, tileCount, 1);
         }
 
-        class VolumetricCloudsShadowData
+        class VolumetricCloudsShadowsData
         {
             public VolumetricCloudsShadowsParameters parameters;
+            public TextureHandle intermediateShadowTexture;
             public TextureHandle shadowTexture;
         }
 
-        RTHandle RequestVolumetricCloudsShadowTexture(HDCamera hdCamera)
+        internal void RenderVolumetricCloudsShadows(RenderGraph renderGraph, HDCamera hdCamera, in VolumetricClouds settings)
         {
-            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-            return RequestVolumetricCloudsShadowTexture(in settings);
-        }
-
-        RTHandle RequestVolumetricCloudsShadowTexture(in VolumetricClouds settings)
-        {
-            int shadowResolution = (int)settings.shadowResolution.value;
-            int shadowResIndex = 0;
-            switch (settings.shadowResolution.value)
-            {
-                case VolumetricClouds.CloudShadowResolution.VeryLow64:
-                    shadowResIndex = 0;
-                    break;
-                case VolumetricClouds.CloudShadowResolution.Low128:
-                    shadowResIndex = 1;
-                    break;
-                case VolumetricClouds.CloudShadowResolution.Medium256:
-                    shadowResIndex = 2;
-                    break;
-                case VolumetricClouds.CloudShadowResolution.High512:
-                    shadowResIndex = 3;
-                    break;
-                case VolumetricClouds.CloudShadowResolution.Ultra1024:
-                    shadowResIndex = 4;
-                    break;
-            }
-
-            if (m_VolumetricCloudsShadowTexture[shadowResIndex] == null)
-            {
-                m_VolumetricCloudsShadowTexture[shadowResIndex] = RTHandles.Alloc(shadowResolution, shadowResolution, 1, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32,
-                    enableRandomWrite: true, useDynamicScale: false, useMipMap: false, filterMode: FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, name: "Volumetric Clouds Shadow Texture");
-            }
-
-            return m_VolumetricCloudsShadowTexture[shadowResIndex];
-        }
-
-        internal CookieParameters RenderVolumetricCloudsShadows(CommandBuffer cmd, HDCamera hdCamera)
-        {
-            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-
             // Make sure we should compute the shadow otherwise we return
             if (!HasVolumetricCloudsShadows(hdCamera, in settings))
-                return default;
+                return;
 
-            // Make sure the shadow texture is the right size
-            // TODO: Right now we can end up with a bunch of textures allocated which should be solved by an other PR.
-            RTHandle currentHandle = RequestVolumetricCloudsShadowTexture(settings);
+            // Evaluate and bind the shadow
+            int shadowResolution = (int)settings.shadowResolution.value;
+            TextureHandle shadowTexture = renderGraph.CreateTexture(new TextureDesc(shadowResolution, shadowResolution, false, false)
+            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Texture" });
 
-            // Check if the intermediate texture that we need for the filtering has already been allocated
-            if (m_VolumetricCloudsIntermediateShadowTexture == null)
+            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsShadowsData>("Volumetric Clouds Shadows", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
             {
-                m_VolumetricCloudsIntermediateShadowTexture = RTHandles.Alloc((int)VolumetricClouds.CloudShadowResolution.Ultra1024, (int)VolumetricClouds.CloudShadowResolution.Ultra1024,
-                        1, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32,
-                        enableRandomWrite: true, useDynamicScale: false, useMipMap: false,
-                        wrapMode: TextureWrapMode.Clamp, name: "Intermediate Volumetric Clouds Shadow Texture");
+                // Disable pass culling
+                builder.AllowPassCulling(false);
+
+                // Evaluate the parameters
+                passData.parameters = PrepareVolumetricCloudsShadowsParameters(hdCamera, settings);
+
+                // Manage the resources
+                passData.intermediateShadowTexture = builder.CreateTransientTexture(new TextureDesc(shadowResolution, shadowResolution, false, false)
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Temp Texture" });
+                passData.shadowTexture = builder.ReadWriteTexture(shadowTexture);
+
+                // Evaluate the shadow
+                builder.SetRenderFunc((VolumetricCloudsShadowsData data, RenderGraphContext ctx) =>
+                {
+                    TraceVolumetricCloudShadow(ctx.cmd, data.parameters, data.intermediateShadowTexture, data.shadowTexture);
+
+                    // Bind the volumetric clouds shadow
+                    ctx.cmd.SetGlobalTexture(HDShaderIDs._VolumetricCloudsShadowsTexture, data.shadowTexture);
+                });
             }
 
-            // Evaluate and return the shadow
-            var parameters = PrepareVolumetricCloudsShadowsParameters(hdCamera, settings);
-            TraceVolumetricCloudShadow(cmd, parameters, m_VolumetricCloudsIntermediateShadowTexture, currentHandle);
-
-            // Grab the current sun light
-            Light sunLight = GetMainLight();
-
-            // Compute the shadow size
-            float groundShadowSize = settings.shadowDistance.value * 2.0f;
-            float scaleX = Mathf.Abs(Vector3.Dot(sunLight.transform.right, Vector3.Normalize(new Vector3(sunLight.transform.right.x, 0.0f, sunLight.transform.right.z))));
-            float scaleY = Mathf.Abs(Vector3.Dot(sunLight.transform.up, Vector3.Normalize(new Vector3(sunLight.transform.up.x, 0.0f, sunLight.transform.up.z))));
-            Vector2 shadowSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
-
-            Vector3 positionWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-            positionWS.y = settings.shadowPlaneHeightOffset.value;
-
-            return new CookieParameters()
-            {
-                texture = currentHandle,
-                size = shadowSize,
-                position = positionWS
-            };
+            // Given that the rendering of the shadow happens before the render graph execution, we can only have the display debug here (and not during the light data build).
+            PushFullScreenDebugTexture(m_RenderGraph, shadowTexture, FullScreenDebugMode.VolumetricCloudsShadow, xrTexture: false);
         }
     }
 }

@@ -22,8 +22,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private RTHandle destination { get; set; }
 
-        // TODO: Remove when Obsolete Setup is removed
-        private int destinationID { get; set; }
         private PassData m_PassData;
 
         /// <summary>
@@ -80,13 +78,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="source">Source render target.</param>
         /// <param name="destination">Destination render target.</param>
         /// <param name="downsampling">The downsampling method to use.</param>
-        [Obsolete("Use RTHandles for source and destination.")] // TODO OBSOLETE: need to fix the URP test failures when bumping
+        [Obsolete("Use RTHandles for source and destination.", true)]
         public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
         {
-            this.source = RTHandles.Alloc(source);
-            this.destination = RTHandles.Alloc(destination.Identifier());
-            this.destinationID = destination.id;
-            m_DownsamplingMethod = downsampling;
+            throw new NotSupportedException("Setup with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead.");
         }
 
         /// <summary>
@@ -105,28 +100,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (destination.rt == null)
-            {
-                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-                descriptor.msaaSamples = 1;
-                descriptor.depthBufferBits = 0;
-                if (m_DownsamplingMethod == Downsampling._2xBilinear)
-                {
-                    descriptor.width /= 2;
-                    descriptor.height /= 2;
-                }
-                else if (m_DownsamplingMethod == Downsampling._4xBox || m_DownsamplingMethod == Downsampling._4xBilinear)
-                {
-                    descriptor.width /= 4;
-                    descriptor.height /= 4;
-                }
-
-                cmd.GetTemporaryRT(destinationID, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
-            }
-            else
-            {
-                cmd.SetGlobalTexture(destination.name, destination.nameID);
-            }
+            cmd.SetGlobalTexture(destination.name, destination.nameID);
         }
 
         /// <inheritdoc/>
@@ -239,20 +213,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraOpaqueTexture", destination, "Set Camera Opaque Texture");
 
             return destination;
-        }
-
-        /// <inheritdoc/>
-        public override void OnCameraCleanup(CommandBuffer cmd)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            if (destination.rt == null && destinationID != -1)
-            {
-                cmd.ReleaseTemporaryRT(destinationID);
-                destination.Release();
-                destination = null;
-            }
         }
     }
 }

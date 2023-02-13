@@ -107,7 +107,8 @@ namespace UnityEditor.Rendering
                 new FunctionInfo("SetInstanceMultiplier", "", true),
                 "ClearRenderTarget",
                 new FunctionInfo("SetFoveatedRenderingMode", "", true),
-                new FunctionInfo("ConfigureFoveatedRendering", "", true)
+                new FunctionInfo("ConfigureFoveatedRendering", "", true),
+                "SetWireframe"
             };
 
         // Fuctions for lowlevel (warpper around Commandbuffer) only

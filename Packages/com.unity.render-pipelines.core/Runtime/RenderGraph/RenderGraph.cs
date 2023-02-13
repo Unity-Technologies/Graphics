@@ -306,6 +306,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public List<int>[] resourceReadLists;
             public List<int>[] resourceWriteLists;
             public bool culled;
+            public bool async;
+            public int syncToPassIndex; // Index of the pass that needs to be waited for.
+            public int syncFromPassIndex; // Smaller pass index that waits for this pass.
             // We have this member instead of removing the pass altogether because we need the full list of passes in order to be able to remap them correctly when we remove them from display in the viewer.
             public bool generateDebugData;
         }
@@ -2253,9 +2256,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 RenderGraphDebugData.PassDebugData newPass = new RenderGraphDebugData.PassDebugData();
                 newPass.name = passInfo.pass.name;
                 newPass.culled = passInfo.culled;
+                newPass.async = passInfo.enableAsyncCompute;
                 newPass.generateDebugData = passInfo.pass.generateDebugData;
                 newPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
                 newPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
+                newPass.syncFromPassIndex = passInfo.syncFromPassIndex;
+                newPass.syncToPassIndex = passInfo.syncToPassIndex;
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {

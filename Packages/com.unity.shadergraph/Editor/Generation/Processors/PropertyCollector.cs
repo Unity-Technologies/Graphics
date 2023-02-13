@@ -178,23 +178,14 @@ namespace UnityEditor.ShaderGraph
             }
 
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-
             int instancedCount = 0;
             foreach (var h in hlslProps)
             {
-                if (h.declaration == HLSLDeclaration.UnityPerMaterial)
+                if (h.declaration == HLSLDeclaration.UnityPerMaterial ||
+                    h.declaration == HLSLDeclaration.HybridPerInstance)
                     h.AppendTo(builder);
-                else if (h.declaration == HLSLDeclaration.HybridPerInstance)
+                if (h.declaration == HLSLDeclaration.HybridPerInstance)
                     instancedCount++;
-            }
-
-            if (instancedCount > 0)
-            {
-                builder.AppendLine("#if !defined(UNITY_INSTANCING_ENABLED)");
-                foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
-                    h.AppendTo(builder);
-                builder.AppendLine("#endif");
-                builder.AppendLine("");
             }
             builder.AppendLine("CBUFFER_END");
 

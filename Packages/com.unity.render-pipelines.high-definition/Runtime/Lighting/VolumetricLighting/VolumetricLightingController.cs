@@ -4,6 +4,7 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Obsolete()]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class VolumetricLightingController : VolumeComponent
     {
         [Tooltip("Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.")]

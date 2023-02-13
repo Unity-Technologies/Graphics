@@ -40,16 +40,16 @@ namespace UnityEditor.Rendering.Universal
 
             // Display a warning if the user is trying to use a tonemap while rendering in LDR
             var asset = UniversalRenderPipeline.asset;
-            if (asset != null && !asset.supportsHDR)
+            int hdrTonemapMode = m_Mode.value.intValue;
+            if (asset != null && !asset.supportsHDR && hdrTonemapMode != (int)TonemappingMode.None)
             {
                 EditorGUILayout.HelpBox("Tonemapping should only be used when working with High Dynamic Range (HDR). Please enable HDR through the active Render Pipeline Asset.", MessageType.Warning);
                 return;
             }
 
-            if (PlayerSettings.useHDRDisplay && m_Mode.value.intValue != (int)TonemappingMode.None)
+            if (PlayerSettings.useHDRDisplay && hdrTonemapMode != (int)TonemappingMode.None)
             {
                 EditorGUILayout.LabelField("HDR Output");
-                int hdrTonemapMode = m_Mode.value.intValue;
 
                 if (hdrTonemapMode == (int)TonemappingMode.Neutral)
                 {

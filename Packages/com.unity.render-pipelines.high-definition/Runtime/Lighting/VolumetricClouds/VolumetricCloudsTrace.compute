@@ -3,13 +3,12 @@
 // Render clouds
 #pragma kernel RenderClouds
 
-// Shadows
-#pragma kernel ComputeVolumetricCloudsShadow
-
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
 #pragma multi_compile _ CLOUDS_MICRO_EROSION
 #pragma multi_compile _ CLOUDS_SIMPLE_PRESET
+
+// #pragma enable_d3d11_debug_symbols
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -21,11 +20,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/VolumetricCloudsUtilities.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/VolumetricCloudsDenoising.hlsl"
 
 // Input textures
 TEXTURE2D_X(_VolumetricCloudsSourceDepth);
@@ -172,87 +169,4 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, int groupIndex : SV_Gr
     // Output the cloud distance
     _CloudsDepthTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = result.invalidRay ? ray.maxRayLength : max(minimalDistance, _ProjectionParams.y);
 #endif
-}
-
-RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);
-
-[numthreads(8, 8, 1)]
-void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, int groupIndex : SV_GroupIndex)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoords.z);
-
-    // If we can, load the cloud lut into the LDS
-    #if defined(CLOUDS_SIMPLE_PRESET)
-    LoadCloudLutToLDS(groupIndex);
-    #endif
-
-    if (currentCoords.x == 0 || currentCoords.y == 0 || ((int)currentCoords.x) == (_ShadowCookieResolution - 1) || ((int)currentCoords.y) == (_ShadowCookieResolution - 1))
-    {
-        _VolumetricCloudsShadowRW[currentCoords.xy] = _ShadowFallbackValue;
-        return;
-    }
-
-    // First we compute the location of the shadow plane in the planet coordinate system
-    float3 shadowPlaneOrigin = _SunDirection.xyz * (_HighestCloudAltitude + _EarthRadius);
-    float3 shadowPlaneNormal = -_SunDirection.xyz;
-
-    // Here the plane is guaranteed to intersect, we don't need to test the result
-    float t;
-    IntersectPlane(0, _SunDirection.xyz, shadowPlaneOrigin, shadowPlaneNormal, t);
-
-    // Compute the position of the shadow plane
-#ifdef LOCAL_VOLUMETRIC_CLOUDS
-    float3 shadowCookieCenterWS = float3(_WorldSpaceShadowCenter.x, _ShadowPlaneOffset, _WorldSpaceShadowCenter.z) + t * _SunDirection.xyz;
-#else
-    float3 shadowCookieCenterWS = t * _SunDirection.xyz;
-#endif
-
-    // Compute the normalized coordinate on the shadow plane
-    float2 normalizedCoord = (currentCoords.xy - _ShadowCookieResolution * 0.5f) / (_ShadowCookieResolution * 0.5f);
-
-    // Compute the origin of the ray properties  in the planet space
-    float3 rayOriginWS = (normalizedCoord.x * _SunRight.xyz * _ShadowRegionSize.x + normalizedCoord.y * _SunUp.xyz * _ShadowRegionSize.y) + shadowCookieCenterWS;
-    float3 rayDirection = -_SunDirection.xyz;
-
-    // Compute the attenuation
-    float transmittance = 1.0f;
-
-    // Intersect the outer sphere
-    float2 intersectionO, intersectionI;
-    int numIntersectionO = RaySphereIntersection(rayOriginWS, rayDirection, _HighestCloudAltitude + _EarthRadius, intersectionO);
-    int numIntersectionI = RaySphereIntersection(rayOriginWS, rayDirection, _LowestCloudAltitude + _EarthRadius, intersectionI);
-    if (numIntersectionO != 0 && numIntersectionI != 0)
-    {
-        // Compute the integration range
-        float startDistance = intersectionO.x;
-        float totalDistance = intersectionI.x - intersectionO.x;
-
-        float stepSize = totalDistance / 16;
-
-        for (int i = 0; i < 16; ++i)
-        {
-            // Compute the sphere intersection position
-            float3 positionWS = rayOriginWS + rayDirection * (intersectionO.x + stepSize * i);
-
-            // Get the coverage at intersection point
-            CloudCoverageData cloudCoverageData;
-            GetCloudCoverageData(positionWS, cloudCoverageData);
-
-            // Compute the cloud density
-            CloudProperties cloudProperties;
-            EvaluateCloudProperties(positionWS, 0.0, 0.0, true, true, cloudProperties);
-
-            // Apply the camera fade it to match the clouds perceived by the camera
-            cloudProperties.density *= DensityFadeValue(length(positionWS - _WorldSpaceShadowCenter.xyz));
-
-            if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
-            {
-                // Apply the extinction
-                const float3 currentStepExtinction = exp(-_ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT * stepSize);
-                transmittance *= Luminance(currentStepExtinction);
-            }
-        }
-    }
-
-    _VolumetricCloudsShadowRW[currentCoords.xy] = lerp(1.0 - _ShadowIntensity, 1.0, transmittance);
 }

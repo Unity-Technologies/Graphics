@@ -283,7 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.Meta,
                 // Note: no tessellation for meta pass
                 pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, false),
-                defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, false),
+                defines = GenerateDefines(CoreDefines.Meta, useVFX, false),
                 keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                 includes = GenerateIncludes(),
             };
@@ -291,6 +291,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             IncludeCollection GenerateIncludes()
             {
                 var includes = new IncludeCollection();
+
+                // Use Unity's built-in matrices for meta pass rendering
+                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
 
                 includes.Add(CoreIncludes.CorePregraph);
                 if (supportLighting)
@@ -950,11 +953,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
                 includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
                 // We want to have the ray tracing light loop if this is an indirect sub-shader or a forward one and it is not the unlit shader
                 if (supportLighting)
                     includes.Add(CoreIncludes.kRaytracingLightLoop, IncludeLocation.Pregraph);
 
-                includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
 
@@ -1078,11 +1081,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
                 includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
 
+                includes.Add(CoreIncludes.CoreUtility);
                 // We want to have the ray tracing light loop if this is an indirect sub-shader or a forward one and it is not the unlit shader
                 if (supportLighting)
                     includes.Add(CoreIncludes.kRaytracingLightLoop, IncludeLocation.Pregraph);
 
-                includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
 

@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Graphs;
 using UnityEditor.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
@@ -49,7 +50,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         {
             EnsureHDRPIsActivePipeline();
 
-            HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(null);
+            GraphicsSettings.UnregisterRenderPipelineSettings<HDRenderPipeline>();
+
             Assert.IsNull(HDRenderPipelineGlobalSettings.instance);
 
             Camera.main.Render();
@@ -62,7 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         {
             EnsureHDRPIsActivePipeline();
             Undo.IncrementCurrentGroup();
-            HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(otherGlobalSettings);
+            GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(otherGlobalSettings);
+
             Assert.AreEqual(otherGlobalSettings, HDRenderPipelineGlobalSettings.instance);
 
             Undo.PerformUndo();
@@ -75,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         {
             EnsureHDRPIsActivePipeline();
             Undo.IncrementCurrentGroup();
-            HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(null);
+            GraphicsSettings.UnregisterRenderPipelineSettings<HDRenderPipeline>();
             Assert.IsNull(HDRenderPipelineGlobalSettings.instance);
 
             Undo.PerformUndo();

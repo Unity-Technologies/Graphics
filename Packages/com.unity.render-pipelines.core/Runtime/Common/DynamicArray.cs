@@ -109,6 +109,26 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Insert an item in the DynamicArray.
+        /// </summary>
+        /// <param name="index">Index where the item should be inserted.</param>
+        /// <param name="item">Item to be inserted in the DynamicArray.</param>
+        public void Insert(int index, T item)
+        {
+            if (index < 0 || index > size)
+                throw new IndexOutOfRangeException();
+
+            if (index == size)
+                Add(item);
+            else
+            {
+                Resize(size + 1, true);
+                Array.Copy(m_Array, index, m_Array, index + 1, size - index);
+                m_Array[index] = item;
+            }
+        }
+
+        /// <summary>
         /// Removes the first occurrence of a specific object from the DynamicArray.
         /// </summary>
         /// <param name="item">The object to remove from the DynamicArray. The value can be null for reference types.</param>
@@ -270,7 +290,7 @@ namespace UnityEngine.Rendering
             get
             {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                if (index >= size)
+                if (index < 0 || index >= size)
                     throw new IndexOutOfRangeException();
 #endif
                 return ref m_Array[index];

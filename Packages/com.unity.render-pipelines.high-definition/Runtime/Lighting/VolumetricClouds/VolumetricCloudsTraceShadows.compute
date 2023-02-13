@@ -1,0 +1,92 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+// Shadows
+#pragma kernel TraceVolumetricCloudsShadows
+
+#pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
+#pragma multi_compile _ CLOUDS_SIMPLE_PRESET
+
+// #pragma enable_d3d11_debug_symbols
+
+// HDRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/ShaderVariablesPhysicallyBasedSky.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/VolumetricCloudsUtilities.hlsl"
+
+RW_TEXTURE2D(float4, _VolumetricCloudsShadowRW);
+
+[numthreads(8, 8, 1)]
+void TraceVolumetricCloudsShadows(uint3 currentCoords : SV_DispatchThreadID, int groupIndex : SV_GroupIndex)
+{
+    // If we can, load the cloud lut into the LDS
+    #if defined(CLOUDS_SIMPLE_PRESET)
+    LoadCloudLutToLDS(groupIndex);
+    #endif
+
+    // Compute the normalized coordinate on the shadow plane
+    float2 normalizedCoord = currentCoords.xy / (float)(_ShadowCookieResolution - 1);
+
+    // Compute the origin of the ray properties  in the planet space
+    float3 rayOriginWS = _CloudShadowSunOrigin.xyz + (normalizedCoord.x * _CloudShadowSunRight.xyz + normalizedCoord.y * _CloudShadowSunUp.xyz);
+    float3 rayDirection = _CloudShadowSunForward.xyz;
+
+    // Compute the attenuation
+    float transmittance = 1.0f;
+    float closestDistance = FLT_MAX;
+    float farthestDistance = 0.0;
+    bool validShadow = false;
+
+    // Intersect the outer sphere
+    float2 intersectionO, intersectionI;
+    int numIntersectionO = RaySphereIntersection(rayOriginWS, rayDirection, _HighestCloudAltitude + _EarthRadius, intersectionO);
+    int numIntersectionI = RaySphereIntersection(rayOriginWS, rayDirection, _LowestCloudAltitude + _EarthRadius, intersectionI);
+    if (numIntersectionO != 0 && numIntersectionI != 0)
+    {
+        // Compute the integration range
+        float startDistance = intersectionI.x;
+        float totalDistance = intersectionO.x - intersectionI.x;
+
+        float stepSize = totalDistance / 16;
+
+        for (int i = 1; i < 16; ++i)
+        {
+            // Compute the sphere intersection position
+            float dist = (startDistance + stepSize * i);
+            float3 positionWS = rayOriginWS + rayDirection * dist;
+
+            // Get the coverage at intersection point
+            CloudCoverageData cloudCoverageData;
+            GetCloudCoverageData(positionWS, cloudCoverageData);
+
+            // Compute the cloud density
+            CloudProperties cloudProperties;
+            EvaluateCloudProperties(positionWS, 0.0, 0.0, true, true, cloudProperties);
+
+            // Apply the camera fade it to match the clouds perceived by the camera
+            cloudProperties.density *= DensityFadeValue(length(positionWS - _WorldSpaceShadowCenter.xyz));
+
+            if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
+            {
+                // Apply the extinction
+                closestDistance = min(closestDistance, startDistance + stepSize * (i - 1));
+                farthestDistance = max(farthestDistance, startDistance + stepSize * i); 
+                const float3 currentStepExtinction = exp(-_ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT * stepSize);
+                transmittance *= Luminance(currentStepExtinction);
+                validShadow = true;
+            }
+        }
+    }
+    // If we didn't manage to hit a non null density, we need to fix the distances
+    float4 result = validShadow ? float4(1.0 / closestDistance, lerp(1.0 - _ShadowIntensity, 1.0, transmittance), 1.0 / farthestDistance, 1.0) : float4(0.0, 1.0, 0.0, 0.0);
+
+    _VolumetricCloudsShadowRW[currentCoords.xy] = result;
+}

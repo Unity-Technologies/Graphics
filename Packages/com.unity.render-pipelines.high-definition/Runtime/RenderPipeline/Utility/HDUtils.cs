@@ -762,7 +762,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
                 buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
                 buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
-                buildTarget == UnityEditor.BuildTarget.Stadia ||
                 buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                 buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                 buildTarget == UnityEditor.BuildTarget.XboxOne ||
@@ -811,7 +810,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 case UnityEditor.BuildTarget.StandaloneWindows64:
                     return OperatingSystemFamily.Windows;
                 case UnityEditor.BuildTarget.StandaloneLinux64:
-                case UnityEditor.BuildTarget.Stadia:
                     return OperatingSystemFamily.Linux;
                 default:
                     return OperatingSystemFamily.Other;
@@ -832,12 +830,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the editor's graphics device type is null though, we still have to iterate the target's graphic api list.
             bool skipCheckingAPIList = autoAPI && systemGraphicsDeviceType != GraphicsDeviceType.Null;
 
-            if (skipCheckingAPIList ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
-                    && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
-                    && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
-                return true;
-
-            return false;
+            return skipCheckingAPIList
+                ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType)
+                : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
+                  && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
+                  && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem);
         }
 
 #endif

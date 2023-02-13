@@ -44,6 +44,13 @@ namespace UnityEngine.Rendering.Universal
                 if (-a.z < coneHeight * cosAngleA) minMax.x = math.min(originVS.z, endPointVS.z - e * coneRadius);
                 if (a.z < coneHeight * cosAngleA) minMax.y = math.max(originVS.z, endPointVS.z + e * coneRadius);
             }
+            else if (light.lightType != LightType.Point)
+            {
+                // Currently we support only spot, point and directional lights in URP. This job only deals with the
+                // first two. If any other light type is found, skip that light.
+                minMax.x = float.MaxValue;
+                minMax.y = float.MinValue;
+            }
 
             minMax.x = math.max(minMax.x, 0);
             minMax.y = math.max(minMax.y, 0);

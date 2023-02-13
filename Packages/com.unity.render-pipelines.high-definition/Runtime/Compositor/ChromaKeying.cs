@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     // Shader adapted from: https://github.com/keijiro/ProcAmp
     // Use HideInInspector to hide the component from the volume menu (it's for internal use only)
     [Serializable, HideInInspector]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     internal sealed class ChromaKeying : CustomPostProcessVolumeComponent, IPostProcessComponent, ICompositionFilterComponent
     {
         internal class ShaderIDs

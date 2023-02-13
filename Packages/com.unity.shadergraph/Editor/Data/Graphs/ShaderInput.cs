@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -35,14 +36,24 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
-        // This delegate and the associated callback can be bound to in order for any one that cares about display name changes to be notified
-        internal delegate void ChangeDisplayNameCallback(string newDisplayName);
-        ChangeDisplayNameCallback m_displayNameUpdateTrigger;
-        internal ChangeDisplayNameCallback displayNameUpdateTrigger
+        internal void AddObserver(IShaderInputObserver observer)
         {
-            get => m_displayNameUpdateTrigger;
-            set => m_displayNameUpdateTrigger = value;
+            m_InputObservers.Add(observer);
         }
+
+        internal void RemoveObserver(IShaderInputObserver observer)
+        {
+            m_InputObservers.Remove(observer);
+        }
+
+        internal void ClearObservers()
+        {
+            m_InputObservers.Clear();
+        }
+
+        internal HashSet<IShaderInputObserver> InputObservers => m_InputObservers;
+
+        HashSet<IShaderInputObserver> m_InputObservers = new();
 
         // sanitizes the desired name according to the current graph, and assigns it as the display name
         // also calls the update trigger to update other bits of the graph UI that use the name
@@ -63,14 +74,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
             // update the default reference name
             UpdateDefaultReferenceName(graphData);
-
-            // Updates any views associated with this input so that display names stay up to date
-            // NOTE: we call this even when the name has not changed, because there may be fields
-            // that were user-edited and still have the temporary desired name -- those must update
-            if (m_displayNameUpdateTrigger != null)
-            {
-                m_displayNameUpdateTrigger.Invoke(m_Name);
-            }
         }
 
         internal void SetReferenceNameAndSanitizeForGraph(GraphData graphData, string desiredRefName = null)

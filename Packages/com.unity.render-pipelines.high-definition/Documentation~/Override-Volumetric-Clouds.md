@@ -144,9 +144,8 @@ When importing these two map Textures, disable **sRGB**. For best results, do no
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **Shadows**                      | Indicates whether the volumetric clouds cast shadows. To render the shadows, this property overrides the cookie in the shadow casting directional [Light](Light-Component.md). If [Cloud Layer](Override-Cloud-Layer.md) is active and also is set to cast shadows, volumetric cloud shadows take precedent and override the Cloud Layer shadow cookie. |
+| **Shadows**                      | When enabled, HDRP evaluates the Volumetric Clouds' shadows. The Volumetric Clouds shadow is rendered independently of the shadow map toggle of the directional [Light](Light-Component.md). |
 | - **Shadow Resolution**          | Specifies the resolution of the volumetric clouds shadow map. |
-| - **Shadow Plane Height Offset** | The vertical offset to apply to compute the volumetric clouds shadow. If the Scene geometry is not centered at **0** on the Y-axis, set this offset equal to the y-axis center of your Scene geometry. |
 | - **Shadow Distance**            | The size of the area to render volumetric cloud shadows around the camera. |
 | - **Shadow Opacity**             | The opacity of the volumetric cloud shadows.                 |
 | - **Shadow Opacity Fallback**    | Controls the shadow opacity when outside the area covered by the volumetric clouds shadow. |

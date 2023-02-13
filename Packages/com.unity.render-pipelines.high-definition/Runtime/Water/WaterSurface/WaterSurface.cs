@@ -307,6 +307,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float virtualPlaneDistance = 5.0f;
 
         /// <summary>
+        /// Sets a tiling factor for the water caustics.
+        /// </summary>
+        public float causticsTilingFactor = 1.0f;
+
+        /// <summary>
         /// When enabled, the water caustics will take into account the directional light's shadow.
         /// </summary>
         public bool causticsDirectionalShadow = false;
@@ -594,6 +599,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return (surfaceType == WaterSurfaceType.OceanSeaLake) ? geometryType == WaterGeometryType.Infinite : false;
         }
 
+        internal bool IsProceduralGeometry()
+        {
+            return IsInstancedQuads() || (geometryType == WaterGeometryType.Quad || meshRenderers.Count == 0);
+        }
+
         internal float3 UpVector()
         {
             float3 upDir = transform.up;
@@ -632,6 +642,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             regionSize = 0.0f;
             return null;
+        }
+
+        /// <summary>
+        /// Function that returns the foam buffer for the water surface. If the feature is disabled or the resource is not available the function returns null.
+        /// </summary>
+        /// <param name="foamArea">Output parameter that returns the size of the foam region.</param>
+        /// <returns>An RG texture that holds the surface foam (red channel) and deep foam (green channel) of the water surface.</returns>
+        public Texture GetFoamBuffer(out Vector2 foamArea)
+        {
+            foamArea = foamAreaSize;
+            return FoamBuffer();
         }
     }
 }

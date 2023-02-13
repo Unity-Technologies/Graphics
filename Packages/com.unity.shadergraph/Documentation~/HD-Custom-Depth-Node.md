@@ -1,6 +1,6 @@
 # Custom Depth Node (HDRP)
 
-The Custom Depth Node accesses the custom pass color buffer allocated by HDRP.
+The Custom Depth Node accesses the custom pass depth buffer allocated by HDRP.
 
 ## Render pipeline compatibility
 

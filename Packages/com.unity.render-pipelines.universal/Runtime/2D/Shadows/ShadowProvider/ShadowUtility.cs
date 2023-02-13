@@ -4,13 +4,14 @@ using System.Runtime.InteropServices;
 using Unity.Collections;
 using System.Collections.Generic;
 using UnityEngine.U2D;
-using Unity.Mathematics;
 using UnityEngine.Rendering.Universal.UTess;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
+
+
 
 namespace UnityEngine.Rendering.Universal
 {
-    // This should be internal
     internal class ShadowUtility
     {
         internal const int k_AdditionalVerticesPerEdge = 4;
@@ -37,11 +38,29 @@ namespace UnityEngine.Rendering.Universal
             {
                 position.x = inEdgePosition0.x;
                 position.y = inEdgePosition0.y;
-                position.z = (int)inProjectionType;
-                tangent.x = 0;
+                position.z = 0;
+                tangent.x = (int)inProjectionType;
                 tangent.y = 0;
                 tangent.z = inEdgePosition1.x;
                 tangent.w = inEdgePosition1.y;
+            }
+        }
+
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct RemappingInfo
+        {
+            public int count;
+            public int index;
+            public int v0Offset;
+            public int v1Offset;
+
+            public void Initialize()
+            {
+                count = 0;
+                index = -1;
+                v0Offset = 0;
+                v1Offset = 0;
             }
         }
 
@@ -250,17 +269,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static internal BoundingSphere CalculateBoundingSphere(NativeArray<Vector3> inVertices)
+        static internal Bounds CalculateLocalBounds(NativeArray<Vector3> inVertices)
         {
             if (inVertices.Length <= 0)
-                return new BoundingSphere(Vector3.zero, 0);
+                return new Bounds(Vector3.zero, Vector3.zero);
 
-            float minX = float.MaxValue;
-            float maxX = float.MinValue;
-            float minY = float.MaxValue;
-            float maxY = float.MinValue;
-
-            Vector3 origin = new Vector3();
+            Vector2 minVec = Vector2.positiveInfinity;
+            Vector2 maxVec = Vector2.negativeInfinity;
 
             unsafe
             {
@@ -270,29 +285,14 @@ namespace UnityEngine.Rendering.Universal
                 // Add outline vertices
                 for (int i = 0; i < inVerticesLength; i++)
                 {
-                    Vector3 vertex = inVerticesPtr[i];
+                    Vector2 vertex = new Vector2(inVerticesPtr[i].x, inVerticesPtr[i].y);
 
-                    if (minX > vertex.x)
-                        minX = vertex.x;
-                    if (maxX < vertex.x)
-                        maxX = vertex.x;
-
-                    if (minY > vertex.y)
-                        minY = vertex.y;
-                    if (maxY < vertex.y)
-                        maxY = vertex.y;
+                    minVec = Vector2.Min(minVec, vertex);
+                    maxVec = Vector2.Max(maxVec, vertex);
                 }
             }
 
-            // Calculate bounding sphere (circle)
-            origin.x = 0.5f * (minX + maxX);
-            origin.y = 0.5f * (minY + maxY);
-
-            float deltaX = maxX - minX;
-            float deltaY = maxY - minY;
-            float radius = 0.5f * Mathf.Sqrt(deltaX * deltaX + deltaY * deltaY);
-
-            return new BoundingSphere(origin, radius);
+            return new Bounds { max = maxVec, min = minVec };
         }
 
         static void GenerateInteriorMesh(NativeArray<ShadowMeshVertex> inVertices, NativeArray<int> inIndices, NativeArray<ShadowEdge> inEdges, out NativeArray<ShadowMeshVertex> outVertices, out NativeArray<int> outIndices, out int outStartIndex, out int outIndexCount)
@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         //inEdges is expected to be contiguous
-        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, bool fill, ShadowShape2D.OutlineTopology topology)
+        static public Bounds GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingEdge, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, bool fill, ShadowShape2D.OutlineTopology topology)
         {
             // Setup our buffers
             int meshVertexCount = inVertices.Length + k_AdditionalVerticesPerEdge * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
@@ -398,8 +398,8 @@ namespace UnityEngine.Rendering.Universal
             finalVertices.Dispose();
             finalIndices.Dispose();
 
-            BoundingSphere retBoundingSphere = CalculateBoundingSphere(inVertices);
-            return retBoundingSphere;
+            Bounds retLocalBound = CalculateLocalBounds(inVertices);
+            return retLocalBound;
         }
 
         static public int GetFirstUnusedIndex(NativeArray<bool> usedValues)
@@ -413,62 +413,49 @@ namespace UnityEngine.Rendering.Universal
             return -1;
         }
 
-        static public void SortEdges(NativeArray<ShadowEdge> unsortedEdges,  out NativeArray<ShadowEdge> sortedEdges, out NativeArray<int> shapeStartingEdge)
+        static public void SortEdges(int edgeMapSize, NativeArray<ShadowEdge> unsortedEdges, out NativeArray<ShadowEdge> sortedEdges, out NativeArray<int> shapeStartingEdge)
         {
             sortedEdges = new NativeArray<ShadowEdge>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             shapeStartingEdge = new NativeArray<int>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-            ShadowEdgeLookupTable lookupTable = new ShadowEdgeLookupTable();
-            lookupTable.Initialize(unsortedEdges.Length);
-
-            NativeArray<bool> usedEdges   = new NativeArray<bool>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            NativeArray<int>  vertexReadPos  = new NativeArray<int>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-            for (int i = 0; i < unsortedEdges.Length; i++)
-                lookupTable.Add(unsortedEdges[i].v0, i);
+            NativeArray<int> edgeMap = new NativeArray<int>(edgeMapSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            NativeArray<bool> usedEdges = new NativeArray<bool>(edgeMapSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             for (int i = 0; i < unsortedEdges.Length; i++)
             {
+                edgeMap[unsortedEdges[i].v0] = i;
                 usedEdges[i] = false;
-                vertexReadPos[i] = lookupTable.DepthAt(i);
                 shapeStartingEdge[i] = -1;
             }
 
             int currentShape = 0;
             bool findStartingEdge = true;
             int edgeIndex = -1;
-
-            int edgeVertex = -1;
-            int edgeVertexReadPos = -1;
+            int startingEdge = 0;
             for (int i = 0; i < unsortedEdges.Length; i++)
             {
                 if (findStartingEdge)
                 {
                     edgeIndex = GetFirstUnusedIndex(usedEdges);
+                    startingEdge = edgeIndex;
                     shapeStartingEdge[currentShape++] = i;
                     findStartingEdge = false;
-
-                    edgeVertex = unsortedEdges[edgeIndex].v0;
-                    vertexReadPos[edgeVertex] = vertexReadPos[edgeVertex]-1;
                 }
+                
+                if (edgeIndex >= 0)
+                {
+                    usedEdges[edgeIndex] = true;
+                    sortedEdges[i] = unsortedEdges[edgeIndex];
+                    int nextVertex = unsortedEdges[edgeIndex].v1;
+                    edgeIndex = edgeMap[nextVertex];
 
-                // Copy the edge into the sorted edges
-                sortedEdges[i] = unsortedEdges[edgeIndex];
-                usedEdges[edgeIndex] = true;
-
-                //Use the current edge's v1 vertex find and advance to the next edge
-                edgeVertex = unsortedEdges[edgeIndex].v1;
-                edgeVertexReadPos = vertexReadPos[edgeVertex] - 1;
-
-                edgeIndex = lookupTable.GetValueAt(edgeVertex, edgeVertexReadPos);
-                vertexReadPos[edgeVertex] = edgeVertexReadPos;
-
-                if (edgeIndex >= 0 && usedEdges[edgeIndex])
-                    findStartingEdge = true;
+                    if (edgeIndex == startingEdge)
+                        findStartingEdge = true;
+                }
             }
 
             usedEdges.Dispose();
-            lookupTable.Dispose();
+            edgeMap.Dispose();
         }
 
         static public void InitializeShapeIsClosedArray(NativeArray<int> inShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
@@ -551,18 +538,136 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static public void RemapEdges(NativeArray<ShadowEdge> edges, NativeArray<int> map)
+
+        static internal void GetVertexReferenceStats(NativeArray<Vector3> vertices, NativeArray<ShadowEdge> edges, int vertexCount, out bool hasReusedVertices, out int newVertexCount, out NativeArray<RemappingInfo> remappingInfo)
         {
-            for (int i = 0; i < edges.Length; i++)
+            unsafe
             {
-                ShadowEdge edge = edges[i];
-                edge.v0 = map[edge.v0];
-                edge.v1 = map[edge.v1];
-                edges[i] = edge;
+                int edgeCount = edges.Length;
+
+                newVertexCount = 0;
+                hasReusedVertices = false;
+                remappingInfo = new NativeArray<RemappingInfo>(vertexCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+                RemappingInfo* remappingInfoPtr = (RemappingInfo*)remappingInfo.GetUnsafePtr();
+                ShadowEdge* edgesPtr = (ShadowEdge*)edges.GetUnsafePtr();
+
+                // Clear the remapping info
+                for (int i = 0; i < vertexCount; i++)
+                    remappingInfoPtr[i].Initialize();
+
+                // Process v0
+                for (int i = 0; i < edgeCount; i++)
+                {
+                    int v0 = edgesPtr[i].v0;
+                    remappingInfoPtr[v0].count = remappingInfoPtr[v0].count + 1;
+                    if (remappingInfoPtr[v0].count > 1)
+                        hasReusedVertices = true;
+
+                    newVertexCount++;
+                }
+
+                // Process v1
+                for (int i = 0; i < edgeCount; i++)
+                {
+                    int v1 = edgesPtr[i].v1;
+                    if (remappingInfoPtr[v1].count == 0)  // This is an open shape
+                    {
+                        remappingInfoPtr[v1].count = 1;
+                        newVertexCount++;
+                    }
+                }
+
+
+                // Find the starts of the new indices..
+                int startPos = 0;
+                for (int i=0;i<vertexCount;i++)
+                {
+                    // Leave the other indices -1 for easier validation testing
+                    if (remappingInfoPtr[i].count > 0)
+                    {
+                        remappingInfoPtr[i].index = startPos;
+                        startPos += remappingInfoPtr[i].count;
+                    }
+                }
             }
         }
 
-        static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, bool duplicatesVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
+        static public void RemapGeometry(NativeArray<Vector3> vertices, NativeArray<int> indices, NativeArray<ShadowEdge> unsortedEdges, out NativeArray<Vector3> newVertices, out NativeArray<ShadowEdge> remappedEdges)
+        {
+            // This function will remove shared vertices and do reindexing so that the indices are contiguous. Both of these steps are needed for quickly finding edges that go together.
+            unsafe
+            {
+                int vertexCount = vertices.Length;
+                int unsortedEdgesCount = unsortedEdges.Length;
+
+                remappedEdges = new NativeArray<ShadowEdge>(unsortedEdgesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+                // First gather a repeat index usage statistic from the unsortedEdges. This will be used for size, and might be used for remapping
+                bool hasReusedVertices;
+                int newVertexCount;
+                NativeArray<RemappingInfo> remappingInfo;
+
+                GetVertexReferenceStats(vertices, unsortedEdges, vertexCount, out hasReusedVertices, out newVertexCount, out remappingInfo);
+
+                newVertices = new NativeArray<Vector3>(newVertexCount, Allocator.Persistent);
+
+                // Copy vertices into our new vertex array which duplicates vertices
+                RemappingInfo* remappingInfoPtr = (RemappingInfo*)remappingInfo.GetUnsafePtr();
+                Vector3* vertexPtr = (Vector3*)vertices.GetUnsafePtr();
+                Vector3* newVertexPtr = (Vector3*)newVertices.GetUnsafePtr();
+                ShadowEdge* remappedEdgesPtr = (ShadowEdge*)remappedEdges.GetUnsafePtr();
+                ShadowEdge* unsortedEdgesPtr = (ShadowEdge*)unsortedEdges.GetUnsafePtr();
+
+                for (int i = 0; i < vertexCount; i++)
+                {
+                    int timesDuplicated = remappingInfoPtr[i].count;
+                    int startIndex = remappingInfoPtr[i].index;
+                    if (startIndex >= 0)
+                    {
+                        for (int t = 0; t < timesDuplicated; t++)
+                        {
+                            newVertexPtr[startIndex + t] = vertexPtr[i];
+                        }
+                    }
+                }
+
+                // Remap into our new remappedEdges array
+                for (int i = 0; i < unsortedEdgesCount; i++)
+                {
+                    remappedEdgesPtr[i].v0 = remappingInfoPtr[unsortedEdgesPtr[i].v0].index + remappingInfoPtr[unsortedEdgesPtr[i].v0].v0Offset++;
+                    remappedEdgesPtr[i].v1 = remappingInfoPtr[unsortedEdgesPtr[i].v1].index + remappingInfoPtr[unsortedEdgesPtr[i].v1].v1Offset++;
+                }
+
+
+                remappingInfo.Dispose();
+            }
+        }
+
+        static public bool IsTriangleReversed(NativeArray<Vector3> vertices, int idx0, int idx1, int idx2)
+        {
+            Vector3 v0 = vertices[idx0];
+            Vector3 v1 = vertices[idx1];
+            Vector3 v2 = vertices[idx2];
+
+            float twiceArea = (v0.x * v1.y + v1.x * v2.y + v2.x * v0.y) - (v0.y * v1.x + v1.y * v2.x + v2.y * v0.x);
+            return Mathf.Sign(twiceArea) >= 0;
+        }
+
+        static public void FixTriangleWindingOrder(NativeArray<Vector3> vertices, NativeArray<int> indices)
+        {
+            for(int i=0;i<indices.Length;i+=3)
+            {
+                if (IsTriangleReversed(vertices, indices[i], indices[i + 1], indices[i + 2]))
+                {
+                    indices[i] = 0;
+                    indices[i+1] = 0;
+                    indices[i+2] = 0;
+                }
+            }
+        }
+
+        static public void CalculateEdgesFromTriangles(NativeArray<Vector3> vertices, NativeArray<int> indices, bool duplicatesVertices, out NativeArray<Vector3> newVertices, out NativeArray<ShadowEdge> outEdges, out NativeArray<int> outShapeStartingEdge, out NativeArray<bool> outShapeIsClosedArray)
         {
             NativeArray<int> processedIndices = indices;
             if (duplicatesVertices) // If this duplicates vertices (like sprite shape does)
@@ -570,13 +675,19 @@ namespace UnityEngine.Rendering.Universal
                 VertexDictionary vertexDictionary = new VertexDictionary();
                 processedIndices = vertexDictionary.GetIndexRemap(vertices, indices);
             }
-           
+
+            FixTriangleWindingOrder(vertices, processedIndices);
+
             // Add our edges to an edge list
             EdgeDictionary edgeDictionary = new EdgeDictionary();
             NativeArray<ShadowEdge> unsortedEdges = edgeDictionary.GetOutsideEdges(vertices, processedIndices);
 
-            SortEdges(unsortedEdges, out outEdges, out outShapeStartingEdge);
+            NativeArray<ShadowEdge> remappedEdges;
+            RemapGeometry(vertices, indices, unsortedEdges, out newVertices, out remappedEdges);
 
+            SortEdges(newVertices.Length, remappedEdges, out outEdges, out outShapeStartingEdge);
+
+            // Cleanup
             unsortedEdges.Dispose();
 
             InitializeShapeIsClosedArray(outShapeStartingEdge, out outShapeIsClosedArray);
@@ -650,6 +761,7 @@ namespace UnityEngine.Rendering.Universal
                 // If this shape starting edge is invalid stop..
                 if (inShapeStartingEdge[i] < 0)
                     break;
+
 
                 int start = inShapeStartingEdge[i];
                 int end   = (i < (inShapeStartingEdge.Length - 1 )) && (inShapeStartingEdge[i + 1] != -1) ? inShapeStartingEdge[i + 1] : inEdges.Length;

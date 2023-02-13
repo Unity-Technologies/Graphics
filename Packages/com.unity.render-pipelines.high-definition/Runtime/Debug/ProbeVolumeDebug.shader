@@ -9,7 +9,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         #pragma editor_sync_compilation
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-        #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+        #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
         // #pragma enable_d3d11_debug_symbols
 
         // Central render pipeline specific includes

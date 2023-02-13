@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var style = new GUIStyle { normal = { background = Texture2D.whiteTexture } };
             GUI.color = new Color(0.82f, 0.82f, 0.82f, 1);
 
-            labelPosition = handlePosition + Handles.inverseMatrix.MultiplyVector(Vector3.up) * HandleUtility.GetHandleSize(handlePosition) * offsetFromHandle;
+            labelPosition = handlePosition + HandleUtility.GetHandleSize(handlePosition) * offsetFromHandle * Handles.inverseMatrix.MultiplyVector(Vector3.up);
             Handles.Label(labelPosition, labelText, style);
         }
 
@@ -545,174 +545,175 @@ namespace UnityEditor.Rendering.HighDefinition
             Color wireframeColorBehind = GetLightBehindObjectWireframeColor(wireframeColorAbove);
             Color handleColorBehind = GetLightHandleColor(wireframeColorBehind);
 
-            switch (additionalData.type)
+            switch (light.type)
             {
-                case HDLightType.Directional:
-                case HDLightType.Point:
+                case LightType.Directional:
+                case LightType.Point:
                     //use legacy handles for those cases:
                     //See HDLightEditor
                     break;
-                case HDLightType.Spot:
-                    float shadowNearPlane = Mathf.Max(additionalData.shadowNearPlane, additionalData.spotLightShape == SpotLightShape.Box ? 0 : HDShadowUtils.k_MinShadowNearPlane);
+                case LightType.Spot:
+                {
+                    float shadowNearPlane = Mathf.Max(additionalData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane);
                     shadowNearPlane = light.shadows != LightShadows.None ? shadowNearPlane : 0.0f;
-
-                    switch (additionalData.spotLightShape)
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                     {
-                        case SpotLightShape.Cone:
-                            using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
-                            {
-                                Vector3 outerAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * additionalData.innerSpotPercent01, light.range);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                                Handles.color = wireframeColorBehind;
-                                DrawSpotlightWireframe(outerAngleInnerAngleRange, shadowNearPlane);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                                Handles.color = wireframeColorAbove;
-                                DrawSpotlightWireframe(outerAngleInnerAngleRange, shadowNearPlane);
-                                EditorGUI.BeginChangeCheck();
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                                Handles.color = handleColorBehind;
-                                outerAngleInnerAngleRange = DrawSpotlightHandle(outerAngleInnerAngleRange);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                                Handles.color = handleColorAbove;
-                                outerAngleInnerAngleRange = DrawSpotlightHandle(outerAngleInnerAngleRange);
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Cone Spot Light");
-                                    additionalData.innerSpotPercent = 100f * outerAngleInnerAngleRange.y / Mathf.Max(0.1f, outerAngleInnerAngleRange.x);
-                                    light.spotAngle = outerAngleInnerAngleRange.x;
-                                    light.range = outerAngleInnerAngleRange.z;
-                                }
+                        Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * additionalData.innerSpotPercent01, light.range);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = wireframeColorBehind;
+                        DrawSpotlightWireframe(outterAngleInnerAngleRange, shadowNearPlane);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = wireframeColorAbove;
+                        DrawSpotlightWireframe(outterAngleInnerAngleRange, shadowNearPlane);
+                        EditorGUI.BeginChangeCheck();
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = handleColorBehind;
+                        outterAngleInnerAngleRange = DrawSpotlightHandle(outterAngleInnerAngleRange);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = handleColorAbove;
+                        outterAngleInnerAngleRange = DrawSpotlightHandle(outterAngleInnerAngleRange);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Cone Spot Light");
+                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / Mathf.Max(0.1f, outterAngleInnerAngleRange.x);
+                            light.spotAngle = outterAngleInnerAngleRange.x;
+                            light.range = outterAngleInnerAngleRange.z;
+                        }
 
-                                // Handles.color reseted at end of scope
-                            }
-                            break;
-                        case SpotLightShape.Pyramid:
-                            using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
-                            {
-                                Vector4 aspectFovMaxRangeMinRange = new Vector4(additionalData.aspectRatio, light.spotAngle, light.range);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                                Handles.color = wireframeColorBehind;
-                                DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, shadowNearPlane);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                                Handles.color = wireframeColorAbove;
-                                DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, shadowNearPlane);
-                                EditorGUI.BeginChangeCheck();
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                                Handles.color = handleColorBehind;
-                                aspectFovMaxRangeMinRange = DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                                Handles.color = handleColorAbove;
-                                aspectFovMaxRangeMinRange = DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Pyramid Spot Light");
-                                    additionalData.aspectRatio = aspectFovMaxRangeMinRange.x;
-                                    light.spotAngle = aspectFovMaxRangeMinRange.y;
-                                    light.range = aspectFovMaxRangeMinRange.z;
-                                }
-
-                                // Handles.color reseted at end of scope
-                            }
-                            break;
-                        case SpotLightShape.Box:
-                            using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
-                            {
-                                Vector4 widthHeightMaxRangeMinRange = new Vector4(additionalData.shapeWidth, additionalData.shapeHeight, light.range);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                                Handles.color = wireframeColorBehind;
-                                DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, shadowNearPlane);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                                Handles.color = wireframeColorAbove;
-                                DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, shadowNearPlane);
-                                EditorGUI.BeginChangeCheck();
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                                Handles.color = handleColorBehind;
-                                widthHeightMaxRangeMinRange = DrawOrthoFrustumHandle(widthHeightMaxRangeMinRange, false);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                                Handles.color = handleColorAbove;
-                                widthHeightMaxRangeMinRange = DrawOrthoFrustumHandle(widthHeightMaxRangeMinRange, false);
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Box Spot Light");
-                                    additionalData.shapeWidth = widthHeightMaxRangeMinRange.x;
-                                    additionalData.shapeHeight = widthHeightMaxRangeMinRange.y;
-                                    light.range = widthHeightMaxRangeMinRange.z;
-                                }
-
-                                // Handles.color reset at end of scope
-                            }
-                            break;
+                        // Handles.color reseted at end of scope
                     }
-                    break;
-                case HDLightType.Area:
-                    switch (additionalData.areaLightShape)
+                }
+                break;
+                case LightType.Pyramid:
+                {
+                    float shadowNearPlane = Mathf.Max(additionalData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane);
+                    shadowNearPlane = light.shadows != LightShadows.None ? shadowNearPlane : 0.0f;
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                     {
-                        case AreaLightShape.Rectangle:
-                        case AreaLightShape.Tube:
-                            bool withYAxis = additionalData.areaLightShape == AreaLightShape.Rectangle;
-                            using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
-                            {
-                                Vector2 widthHeight = new Vector4(additionalData.shapeWidth, withYAxis ? additionalData.shapeHeight : 0f);
-                                float range = light.range;
-                                float aspect = additionalData.shapeWidth / additionalData.shapeHeight;
-                                float angle = additionalData.areaLightShadowCone;
-                                float offset = -Mathf.Min(additionalData.shapeWidth, additionalData.shapeHeight) * 0.5f / Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad);
-                                Vector4 aspectFovMaxRangeMinRange = new Vector4(aspect, angle, range - offset);
-                                Matrix4x4 shadowFrustumMatrix = Matrix4x4.TRS(light.transform.position + light.transform.forward * offset, light.transform.rotation, Vector3.one);
-                                float nearPlane = additionalData.shadowNearPlane - offset;
+                        Vector4 aspectFovMaxRangeMinRange = new Vector4(additionalData.aspectRatio, light.spotAngle, light.range);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = wireframeColorBehind;
+                        DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, shadowNearPlane);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = wireframeColorAbove;
+                        DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, shadowNearPlane);
+                        EditorGUI.BeginChangeCheck();
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = handleColorBehind;
+                        aspectFovMaxRangeMinRange = DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = handleColorAbove;
+                        aspectFovMaxRangeMinRange = DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Pyramid Spot Light");
+                            additionalData.aspectRatio = aspectFovMaxRangeMinRange.x;
+                            light.spotAngle = aspectFovMaxRangeMinRange.y;
+                            light.range = aspectFovMaxRangeMinRange.z;
+                        }
 
-                                EditorGUI.BeginChangeCheck();
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                                Handles.color = wireframeColorBehind;
-                                DrawAreaLightWireframe(widthHeight);
-                                if (light.shadows != LightShadows.None)
-                                {
-                                    using (new Handles.DrawingScope(shadowFrustumMatrix))
-                                        DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
-                                    range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
-                                }
-                                else
-                                {
-                                    range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
-                                }
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                                Handles.color = wireframeColorAbove;
-                                DrawAreaLightWireframe(widthHeight);
-                                if (light.shadows != LightShadows.None)
-                                {
-                                    using (new Handles.DrawingScope(shadowFrustumMatrix))
-                                        DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
-                                    range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
-                                }
-                                else
-                                {
-                                    range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
-                                }
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                                Handles.color = handleColorBehind;
-                                widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
-                                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                                Handles.color = handleColorAbove;
-                                widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
-                                widthHeight = Vector2.Max(Vector2.one * HDAdditionalLightData.k_MinLightSize, widthHeight);
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");
-                                    additionalData.shapeWidth = widthHeight.x;
-                                    if (withYAxis)
-                                    {
-                                        additionalData.shapeHeight = widthHeight.y;
-                                    }
-                                    light.range = range;
-                                }
-
-                                // Handles.color reset at end of scope
-                            }
-                            break;
-                        case AreaLightShape.Disc:
-                            //use legacy handles for this case
-                            break;
+                        // Handles.color reseted at end of scope
                     }
+                }
+                break;
+                case LightType.Box:
+                {
+                    float shadowNearPlane = Mathf.Max(additionalData.shadowNearPlane, 0);
+                    shadowNearPlane = light.shadows != LightShadows.None ? shadowNearPlane : 0.0f;
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
+                    {
+                        Vector4 widthHeightMaxRangeMinRange = new Vector4(additionalData.shapeWidth, additionalData.shapeHeight, light.range);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = wireframeColorBehind;
+                        DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, shadowNearPlane);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = wireframeColorAbove;
+                        DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, shadowNearPlane);
+                        EditorGUI.BeginChangeCheck();
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = handleColorBehind;
+                        widthHeightMaxRangeMinRange = DrawOrthoFrustumHandle(widthHeightMaxRangeMinRange, false);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = handleColorAbove;
+                        widthHeightMaxRangeMinRange = DrawOrthoFrustumHandle(widthHeightMaxRangeMinRange, false);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Box Spot Light");
+                            additionalData.shapeWidth = widthHeightMaxRangeMinRange.x;
+                            additionalData.shapeHeight = widthHeightMaxRangeMinRange.y;
+                            light.range = widthHeightMaxRangeMinRange.z;
+                        }
+
+                        // Handles.color reset at end of scope
+                    }
+                }
+                break;
+                case LightType.Rectangle:
+                case LightType.Tube:
+                {
+                    bool withYAxis = light.type == LightType.Rectangle;
+                    using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
+                    {
+                        Vector2 widthHeight = new Vector4(additionalData.shapeWidth, withYAxis ? additionalData.shapeHeight : 0f);
+                        float range = light.range;
+                        float aspect = additionalData.shapeWidth / additionalData.shapeHeight;
+                        float angle = additionalData.areaLightShadowCone;
+                        float offset = -Mathf.Min(additionalData.shapeWidth, additionalData.shapeHeight) * 0.5f / Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad);
+                        Vector4 aspectFovMaxRangeMinRange = new Vector4(aspect, angle, range - offset);
+                        Matrix4x4 shadowFrustumMatrix = Matrix4x4.TRS(light.transform.position + light.transform.forward * offset, light.transform.rotation, Vector3.one);
+                        float nearPlane = additionalData.shadowNearPlane - offset;
+
+                        EditorGUI.BeginChangeCheck();
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = wireframeColorBehind;
+                        DrawAreaLightWireframe(widthHeight);
+                        if (light.shadows != LightShadows.None)
+                        {
+                            using (new Handles.DrawingScope(shadowFrustumMatrix))
+                                DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
+                            range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
+                        }
+                        else
+                        {
+                            range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
+                        }
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = wireframeColorAbove;
+                        DrawAreaLightWireframe(widthHeight);
+                        if (light.shadows != LightShadows.None)
+                        {
+                            using (new Handles.DrawingScope(shadowFrustumMatrix))
+                                DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, nearPlane, drawApex: false);
+                            range = SliderLineHandle(Vector3.zero, Vector3.forward, range);
+                        }
+                        else
+                        {
+                            range = Handles.RadiusHandle(Quaternion.identity, Vector3.zero, range);
+                        }
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                        Handles.color = handleColorBehind;
+                        widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
+                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                        Handles.color = handleColorAbove;
+                        widthHeight = DrawAreaLightHandle(widthHeight, withYAxis);
+                        widthHeight = Vector2.Max(Vector2.one * HDAdditionalLightData.k_MinLightSize, widthHeight);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");
+                            additionalData.shapeWidth = widthHeight.x;
+                            if (withYAxis)
+                            {
+                                additionalData.shapeHeight = widthHeight.y;
+                            }
+                            light.range = range;
+                        }
+
+                        // Handles.color reset at end of scope
+                    }
+                }
+                break;
+                case LightType.Disc:
+                    //use legacy handles for this case
                     break;
             }
         }
@@ -723,7 +724,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!(UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset))
                 return;
 
-            if (src.type != HDLightType.Directional)
+            if (src.legacyLight.type != LightType.Directional)
             {
                 // Trace a ray down to better locate the light location
                 Ray ray = new Ray(src.gameObject.transform.position, Vector3.down);
@@ -745,7 +746,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                if ((ShaderConfig.s_BarnDoor == 1) && (src.type == HDLightType.Area && src.barnDoorAngle < 89.0f))
+                if ((ShaderConfig.s_BarnDoor == 1) && (src.legacyLight.type.IsArea() && src.barnDoorAngle < 89.0f))
                 {
                     // Convert the angle to randians
                     float angle = src.barnDoorAngle * Mathf.PI / 180.0f;

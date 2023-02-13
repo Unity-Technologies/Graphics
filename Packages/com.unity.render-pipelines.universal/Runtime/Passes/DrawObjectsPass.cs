@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
             if (activeDebugHandler != null)
             {
-                activeDebugHandler.DrawWithRendererList(cmd);
+                data.debugRendererLists.DrawWithRendererList(cmd);
             }
             else
             {
@@ -160,6 +160,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal bool shouldTransparentsReceiveShadows;
             internal RendererListHandle rendererListHdl;
             internal RendererListHandle objectsWithErrorRendererListHdl;
+            internal DebugRendererLists debugRendererLists;
 
             // Required for code sharing purpose between RG and non-RG.
             internal RendererList rendererList;
@@ -208,7 +209,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (activeDebugHandler != null)
                 {
-                    activeDebugHandler.CreateRendererListWithDebugRenderState(renderGraph, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
@@ -220,7 +221,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (activeDebugHandler != null)
                 {
-                    activeDebugHandler.CreateRendererListWithDebugRenderState(context, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
@@ -246,8 +247,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
-                builder.UseRendererList(passData.rendererListHdl);
-                builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
+                var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+                if (activeDebugHandler != null)
+                {
+                    passData.debugRendererLists.PrepareRendererListForRasterPass(builder);
+                }
+                else
+                {
+                    builder.UseRendererList(passData.rendererListHdl);
+                    builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
+                }
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);

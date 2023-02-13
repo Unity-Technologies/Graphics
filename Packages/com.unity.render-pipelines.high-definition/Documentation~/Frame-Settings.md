@@ -213,8 +213,8 @@ These settings determine the method that the Cameras and Reflection Probes using
   </tr>
   <tr>
     <td></td>
-    <td><strong>Custom Post-process</strong></td>
-    <td>Enable the checkbox to allow HDRP to perform a depth test for Shaders rendered in the After Post-process rendering pass.</td>
+    <td><strong>Depth Test</strong></td>
+    <td>Enable the checkbox to allow HDRP to perform a depth test for Shaders rendered in the After Post-process rendering pass. HDRP disables the depth test when you enable dynamic resolution scaling or any effect that uses jittered depth (DLSS, TAA) to prevent artefacts.</td>
   </tr>
   <tr>
     <td><strong>LOD Bias Mode</strong></td>
@@ -254,6 +254,7 @@ These settings determine the method that the Cameras and Reflection Probes using
 </tbody>
 </table>
 
+<a name="cameralighting"></a>
 ### Lighting
 
 These settings control lighting features for your rendering components. Here you can enable and disable lighting features at
@@ -278,19 +279,31 @@ These settings control lighting features for your rendering components. Here you
     <td><strong>Contact Shadows</strong></td>
     <td></td>
     <td></td>
-    <td>Enable the checkbox to make HDRP process <a href="https://www.tablesgenerator.com/Override-Contact-Shadows.md">Contact Shadows</a>. Enabling this feature causes HDRP to calculate Contact Shadows for this Camera/Reflection Probe.</td>
+    <td>Enable the checkbox to make HDRP process <a href="Override-Contact-Shadows.md">Contact Shadows</a>. Enabling this feature causes HDRP to calculate Contact Shadows for this Camera/Reflection Probe.</td>
+  </tr>
+  <tr>
+    <td><strong>Probe Volume</strong></td>
+    <td></td>
+    <td></td>
+    <td>Use <a href="probevolumes.md">Probe Volumes</a>.</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>Normalize Reflection Probes</strong></td>
+    <td></td>
+    <td>Use the data in Probe Volumes to adjust lighting from Reflection Probes to match the local environment, which reduces the number of Reflection Probes you need.</td>
   </tr>
   <tr>
     <td><strong>Screen Space Shadows</strong></td>
     <td></td>
     <td></td>
-    <td>[DXR only] Enable the checkbox to allow <a href="https://www.tablesgenerator.com/Light-Component.md">Lights</a> to render shadow maps into screen space buffers to reduce lighting Shader complexity. This technique increases processing speed but also increases the memory footprint.</td>
+    <td>[DXR only] Enable the checkbox to allow <a href="Light-Component.md">Lights</a> to render shadow maps into screen space buffers to reduce lighting Shader complexity. This technique increases processing speed but also increases the memory footprint.</td>
   </tr>
   <tr>
     <td><strong>Shadowmask</strong></td>
     <td></td>
     <td></td>
-    <td>Enable the checkbox to make HDRP support the <a href="https://www.tablesgenerator.com/Lighting-Mode-Shadowmask.md">Shadowmasks lighting mode</a>.</td>
+    <td>Enable the checkbox to make HDRP support the <a href="Lighting-Mode-Shadowmask.md">Shadowmasks lighting mode</a>.</td>
   </tr>
   <tr>
     <td><strong>Screen Space Refection</strong></td>
@@ -326,7 +339,7 @@ These settings control lighting features for your rendering components. Here you
     <td><strong>Fog</strong></td>
     <td></td>
     <td></td>
-    <td>Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the <a href="https://www.tablesgenerator.com/HDRP-Features.md#fog">fog</a> from your Scene’s Volumes.</td>
+    <td>Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the <a href="HDRP-Features.md#fog">fog</a> from your Scene’s Volumes.</td>
   </tr>
   <tr>
     <td></td>
@@ -356,13 +369,13 @@ These settings control lighting features for your rendering components. Here you
     <td><strong>Reflection Probe</strong></td>
     <td></td>
     <td></td>
-    <td>Enable the checkbox to allow this Camera to use <a href="https://www.tablesgenerator.com/Reflection-Probe.md">Reflection Probes</a>.</td>
+    <td>Enable the checkbox to allow this Camera to use <a href="Reflection-Probe.md">Reflection Probes</a>.</td>
   </tr>
   <tr>
     <td><strong>Planar Reflection Probe</strong></td>
     <td></td>
     <td></td>
-    <td>Enable the checkbox to allow this Camera to use <a href="https://www.tablesgenerator.com/Planar-Reflection-Probe.md">Planar Reflection Probes</a>.</td>
+    <td>Enable the checkbox to allow this Camera to use <a href="Planar-Reflection-Probe.md">Planar Reflection Probes</a>.</td>
   </tr>
   <tr>
     <td><strong>Metallic Indirect Fallback</strong></td>
@@ -406,14 +419,6 @@ These settings control lighting features for your rendering components. Here you
     <td></td>
     <td>The custom number of samples to use for Subsurface Scattering calculations when to set the <strong>Quality Mode</strong> to <strong>Override Quality Settings</strong>.</td>
   </tr>
-  <tr>
-    <td></td>
-    <td><strong>Custom Downsample Level</strong></td>
-    <td></td>
-    <td>The number of levels to down sample the source irradiance texture, before Subsurface Scattering will sample it. This is only for samples outside of the group shared cache.</td>
-  </tr>
-
-
 </tbody>
 </table>
 

@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 foreach (KeyValuePair<int, Type> kvp in skyTypesDict)
                 {
-                    string name = ObjectNames.NicifyVariableName(kvp.Value.Name.ToString());
+                    string name = ObjectNames.NicifyVariableName(kvp.Value.Name);
                     name = name.Replace("Settings", ""); // remove Settings if it was in the class name
                     m_SkyClassNames.Add(new GUIContent(name));
                     m_SkyUniqueIDs.Add(kvp.Key);
@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 foreach (KeyValuePair<int, Type> kvp in typesDict)
                 {
-                    string name = ObjectNames.NicifyVariableName(kvp.Value.Name.ToString());
+                    string name = ObjectNames.NicifyVariableName(kvp.Value.Name);
                     name = name.Replace("Settings", ""); // remove Settings if it was in the class name
                     m_CloudClassNames.Add(new GUIContent(name));
                     m_CloudUniqueIDs.Add(kvp.Key);
@@ -139,8 +139,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox("No Static Lighting Sky is assigned in the Environment settings.", MessageType.Info);
                 else
                 {
-                    var skyType = staticLightingSky.staticLightingSkyUniqueID == 0 ? "no Sky" : SkyManager.skyTypesDict[staticLightingSky.staticLightingSkyUniqueID].Name.ToString();
-                    var cloudType = staticLightingSky.staticLightingCloudsUniqueID == 0 ? "no Clouds" : SkyManager.cloudTypesDict[staticLightingSky.staticLightingCloudsUniqueID].Name.ToString();
+                    var skyType = staticLightingSky.staticLightingSkyUniqueID == 0 ? "no Sky" : SkyManager.skyTypesDict[staticLightingSky.staticLightingSkyUniqueID].Name;
+                    var cloudType = staticLightingSky.staticLightingCloudsUniqueID == 0 ? "no Clouds" : SkyManager.cloudTypesDict[staticLightingSky.staticLightingCloudsUniqueID].Name;
                     EditorGUILayout.HelpBox($"Current Static Lighting Sky uses {skyType} and {cloudType} of profile {staticLightingSky.profile?.name ?? "None"}.", MessageType.Info);
                 }
             }

@@ -33,3 +33,6 @@ TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture);
 
 // Indirect Diffuse Texture
 TEXTURE2D_X(_IndirectDiffuseTexture);
+
+// Used by directional and spot lights
+GLOBAL_TEXTURE2D(_VolumetricCloudsShadowsTexture, RAY_TRACING_VOLUMETRIC_CLOUDS_SHADOW_REGISTER);

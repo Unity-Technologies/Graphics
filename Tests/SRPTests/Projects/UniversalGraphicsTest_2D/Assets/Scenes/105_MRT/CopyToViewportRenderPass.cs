@@ -9,8 +9,8 @@ internal class CopyToViewportRenderPass : ScriptableRenderPass
 
     static readonly int m_SrcTexShaderPropertyId = Shader.PropertyToID("_SrcTex");
 
-    RenderTargetIdentifier m_Source;
-    RenderTargetHandle m_Destination;
+    RTHandle m_Source;
+    RTHandle m_Destination;
 
     Material m_CopyToViewportMaterial;
 
@@ -22,7 +22,7 @@ internal class CopyToViewportRenderPass : ScriptableRenderPass
         renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
     }
 
-    public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Rect viewport)
+    public void Setup(RTHandle source, RTHandle destination, Rect viewport)
     {
         m_Source = source;
         m_Destination = destination;
@@ -31,24 +31,19 @@ internal class CopyToViewportRenderPass : ScriptableRenderPass
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
-        cmd.GetTemporaryRT(m_Destination.id, cameraTextureDescriptor, FilterMode.Point);
+        RenderingUtils.ReAllocateIfNeeded(ref m_Destination, cameraTextureDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: m_Destination.name);
     }
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
-        cmd.SetRenderTarget(m_Destination.Identifier());
-        cmd.SetGlobalTexture(m_SrcTexShaderPropertyId, m_Source);
+        cmd.SetRenderTarget(m_Destination.nameID);
+        cmd.SetGlobalTexture(m_SrcTexShaderPropertyId, m_Source.nameID);
         cmd.SetViewport(m_Viewport); // cmd.Blit would override SetViewport with the Rect of m_Destination
         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyToViewportMaterial);
 
         context.ExecuteCommandBuffer(cmd);
         CommandBufferPool.Release(cmd);
-    }
-
-    public override void OnCameraCleanup(CommandBuffer cmd)
-    {
-        cmd.ReleaseTemporaryRT(m_Destination.id);
     }
 }

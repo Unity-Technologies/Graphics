@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void EvictLight(HDAdditionalLightData lightData)
+        internal void EvictLight(HDAdditionalLightData lightData, LightType cachedLightType)
         {
             if (!m_RegisteredLightDataPendingPlacement.IsCreated)
                 return;
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RemoveTransformFromCache(lightData);
 
-            int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
+            int numberOfShadows = (cachedLightType == LightType.Point) ? 6 : 1;
 
             int lightIdx = lightData.lightIdxForCachedShadows;
             lightData.lightIdxForCachedShadows = -1;
@@ -366,8 +366,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 resolution = currentLightData.GetResolutionFromSettings(m_ShadowType, initParams);
 
-                HDLightType lightType = currentLightData.type;
-                int numberOfShadows = (lightType == HDLightType.Point) ? 6 : 1;
+                LightType lightType = currentLightData.legacyLight.type;
+                int numberOfShadows = (lightType == LightType.Point) ? 6 : 1;
 
                 for (int j = 0; j < numberOfShadows; ++j)
                 {
@@ -587,7 +587,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             int cachedShadowIdx = lightData.lightIdxForCachedShadows;
-            if (lightData.type == HDLightType.Point)
+            if (lightData.legacyLight.type == LightType.Point)
             {
                 bool allRendered = true;
                 for (int i = 0; i < 6; ++i)
@@ -625,7 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
+                int numberOfShadows = (lightData.legacyLight.type == LightType.Point) ? 6 : 1;
                 for (int i = 0; i < numberOfShadows; ++i)
                 {
                     int shadowIdx = lightIdx + i;

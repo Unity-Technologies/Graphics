@@ -864,6 +864,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.UnregisterCallback(OnNodeChanged);
                 var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
                     .FirstOrDefault(p => p.node != null && p.node == node);
+
+                // When deleting a node make sure to clear any input observers
+                switch (node)
+                {
+                    case PropertyNode propertyNode:
+                        propertyNode.property.RemoveObserver(propertyNode);
+                        propertyNode.property.RemoveObserver(nodeView as IShaderInputObserver);
+                        break;
+                    case KeywordNode keywordNode:
+                        keywordNode.keyword.RemoveObserver(keywordNode);
+                        break;
+                    case DropdownNode dropdownNode:
+                        dropdownNode.dropdown.RemoveObserver(dropdownNode);
+                        break;
+                }
+
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
@@ -935,6 +951,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var tokenNode = new PropertyNodeView(propertyNode, m_EdgeConnectorListener);
                 m_GraphView.AddElement(tokenNode);
                 nodeView = tokenNode;
+
+                // Register node model and node view as observer of property
+                propertyNode.property.AddObserver(propertyNode);
+                propertyNode.property.AddObserver(tokenNode);
             }
             else if (node is BlockNode blockNode)
             {
@@ -956,6 +976,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 var materialNodeView = new MaterialNodeView { userData = materialNode };
+
+                // For keywords and dropdowns, we only register the node model itself as an observer,
+                // the material node view redraws completely on changes so it doesn't need to be an observer
+                switch (node)
+                {
+                    case KeywordNode keywordNode:
+                        keywordNode.keyword.AddObserver(keywordNode);
+                        break;
+                    case DropdownNode dropdownNode:
+                        dropdownNode.dropdown.AddObserver(dropdownNode);
+                        break;
+                }
+
                 m_GraphView.AddElement(materialNodeView);
                 materialNodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener, graphView);
                 m_ColorManager.UpdateNodeView(materialNodeView);

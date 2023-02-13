@@ -455,6 +455,9 @@ namespace UnityEditor.Rendering
                 case 180f: // the luminaire is assumed to be symmetric about the 0 to 180 degree plane
                     angle = 180f - Mathf.Abs(angle - 180f);
                     break;
+                case 270f:
+                    angle = 270f - Mathf.Abs(Mathf.Abs(angle - 270f) - 180f);
+                    break;
                 default: // the luminaire is assumed to exhibit no lateral symmetry
                     break;
             }

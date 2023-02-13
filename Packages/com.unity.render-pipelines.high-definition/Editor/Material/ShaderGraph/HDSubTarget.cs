@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             for (int i = 0; i < passes.Length; i++)
             {
                 var passDescriptor = passes[i].descriptor;
-                if (passDescriptor.passTemplatePath == "" || passDescriptor.passTemplatePath == null)
+                if (passDescriptor.passTemplatePath?.Length == 0 || passDescriptor.passTemplatePath == null)
                     passDescriptor.passTemplatePath = templatePath;
                 passDescriptor.sharedTemplateDirectories = sharedTemplatePath.Concat(templateMaterialDirectories).ToArray();
 

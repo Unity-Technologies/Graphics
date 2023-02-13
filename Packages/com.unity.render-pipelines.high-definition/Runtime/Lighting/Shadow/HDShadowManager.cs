@@ -1257,10 +1257,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1)
                 cachedShadowManager.areaShadowAtlas.CleanupRenderGraphOutput(renderGraph);
 
-            cachedShadowManager.DefragAtlas(HDLightType.Point);
-            cachedShadowManager.DefragAtlas(HDLightType.Spot);
+            cachedShadowManager.DefragAtlas(LightType.Point);
+            cachedShadowManager.DefragAtlas(LightType.Spot);
             if (ShaderConfig.s_AreaLights == 1)
-                cachedShadowManager.DefragAtlas(HDLightType.Area);
+                cachedShadowManager.DefragAtlas(LightType.Rectangle);
         }
 
         void InvalidateAtlasOutputsIfNeeded()

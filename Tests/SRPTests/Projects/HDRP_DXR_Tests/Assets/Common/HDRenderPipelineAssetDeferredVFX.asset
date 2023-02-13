@@ -33,7 +33,17 @@ MonoBehaviour:
     renderingLayerMaskBuffer: 0
     supportWater: 0
     waterSimulationResolution: 128
+    supportWaterExclusion: 0
+    supportWaterDeformation: 0
+    deformationAtlasSize: 512
+    supportWaterFoam: 0
+    foamAtlasSize: 512
     waterCPUSimulation: 0
+    supportComputeThickness: 0
+    computeThicknessResolution: 1
+    computeThicknessLayerMask:
+      serializedVersion: 2
+      m_Bits: 0
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -54,6 +64,7 @@ MonoBehaviour:
     supportDecalLayers: 0
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
+    supportHighQualityLineRendering: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeAOVAPI: 0

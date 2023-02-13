@@ -214,6 +214,22 @@ namespace UnityEngine.Rendering.HighDefinition
         DebugDisplaySettings m_CurrentDebugDisplaySettings;
         Light m_CurrentSunLight;
 
+        enum OpaqueAtmScatteringPass
+        {
+            Fog,
+            FogMSAA,
+            PBRFog,
+            PBRFogMSAA
+        }
+
+        static readonly string[] k_fogDebugPassNames = new string[]
+        {
+            "DebugNoMSAA",
+            "DebugMSAA"
+        };
+
+        int[] m_FogDebugPasses;
+
         TextureHandle m_CloudOpacity;
         /// <summary>
         /// Cloud Opacity is the sky-visibility
@@ -223,7 +239,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public SkyManager()
-        { }
+        {
+            m_FogDebugPasses = new int[k_fogDebugPassNames.Length];
+        }
 
         ~SkyManager()
         { }
@@ -430,6 +448,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     blackValues[i] = 0.0f;
                 m_BlackAmbientProbeBuffer.SetData(blackValues);
             }
+
+            for (int pass = 0; pass < k_fogDebugPassNames.Length; ++pass)
+                m_FogDebugPasses[pass] = m_OpaqueAtmScatteringMaterial.FindPass(k_fogDebugPassNames[pass]);
 
 #if UNITY_EDITOR
             UnityEditor.Lightmapping.bakeStarted += OnBakeStarted;
@@ -952,7 +973,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     firstFreeContext = i;
             }
 
-            if (name == "")
+            if (name?.Length == 0)
                 name = "SkyboxCubemap";
 
             if (firstFreeContext != -1)
@@ -1367,8 +1388,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateTexture;
             public Matrix4x4 pixelCoordToViewDirWS;
             public Material opaqueAtmosphericalScatteringMaterial;
+            public int fogDebugPassIndex;
             public bool pbrFog;
             public bool msaa;
+            public bool volumetricFogDebug;
         }
 
         public void RenderOpaqueAtmosphericScattering(RenderGraph renderGraph, HDCamera hdCamera,
@@ -1395,6 +1418,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 if (Fog.IsPBRFogEnabled(hdCamera))
                     passData.intermediateTexture = builder.CreateTransientTexture(colorBuffer);
+                passData.volumetricFogDebug = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog;
+                passData.fogDebugPassIndex = m_FogDebugPasses[(int)(passData.msaa ? OpaqueAtmScatteringPass.FogMSAA : OpaqueAtmScatteringPass.Fog)];
 
                 builder.SetRenderFunc(
                     (OpaqueAtmosphericScatteringPassData data, RenderGraphContext ctx) =>
@@ -1424,6 +1449,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                         {
                             HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.colorBuffer, data.depthBuffer, mpb, data.msaa ? 1 : 0);
+
+                            if (data.volumetricFogDebug)
+                            {
+                                // Override colorBuffer with fog only
+                                HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.colorBuffer, data.depthBuffer, mpb, data.fogDebugPassIndex);
+                            }
                         }
                     });
             }

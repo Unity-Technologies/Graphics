@@ -34,9 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal void SetupRenderPipelinePreviewLight(Light light)
         {
-            HDLightTypeAndShape hdLightTypeAndShape = (light.type == LightType.Point) ? HDLightTypeAndShape.Point : HDLightTypeAndShape.ConeSpot;
-
-            HDAdditionalLightData hdLight = GameObjectExtension.AddHDLight(light.gameObject, hdLightTypeAndShape);
+            LightType lightType = (light.type == LightType.Point) ? LightType.Point : LightType.Spot;
+            HDAdditionalLightData hdLight = GameObjectExtension.AddHDLight(light.gameObject, lightType);
 
             hdLight.SetIntensity(20000f, LightUnit.Lumen);
 

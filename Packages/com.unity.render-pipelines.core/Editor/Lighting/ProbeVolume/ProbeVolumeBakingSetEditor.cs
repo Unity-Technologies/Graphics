@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_FreezePlacement;
         SerializedProperty m_ProbeVolumeBakingSettings;
         SerializedProperty m_LightingScenarios;
-        ProbeVolumeBakingSet profile => target as ProbeVolumeBakingSet;
+        ProbeVolumeBakingSet bakingSet => target as ProbeVolumeBakingSet;
 
         static class Styles
         {
@@ -50,6 +50,8 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent resetVirtualOffset = new GUIContent("Reset Virtual Offset Settings");
         }
 
+        static readonly string s_RenameScenarioUndoName = "Rename Baking Set Scenario";
+
         void OnEnable()
         {
             m_MinDistanceBetweenProbes = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.minDistanceBetweenProbes));
@@ -66,11 +68,20 @@ namespace UnityEditor.Rendering
                 Lightmapping.lightingDataCleared += UpdateScenarioStatuses;
                 InitializeScenarioList();
             }
+
+            Undo.undoRedoEvent += OnUndoRedo;
         }
 
         private void OnDisable()
         {
             Lightmapping.lightingDataCleared -= UpdateScenarioStatuses;
+            Undo.undoRedoEvent -= OnUndoRedo;
+        }
+
+        void OnUndoRedo(in UndoRedoInfo info)
+        {
+            if (bakingSet != null && info.undoName == s_RenameScenarioUndoName)
+                bakingSet.EnsureScenarioAssetNameConsistencyForUndo();
         }
 
         void LightingScenariosGUI()
@@ -117,22 +128,15 @@ namespace UnityEditor.Rendering
 
                 if (canFreezePlacement && !ProbeGIBaking.isFreezingPlacement && m_LightingScenarios.arraySize > 1)
                 {
-                    foreach (var guid in profile.sceneGUIDs)
+                    foreach (var guid in bakingSet.sceneGUIDs)
                     {
                         Scene scene = SceneManager.GetSceneByPath(AssetDatabase.GUIDToAssetPath(guid));
                         if (scene.isLoaded) continue;
 
-                        foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                        if (bakingSet.HasBeenBaked())
                         {
-                            if (profile.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)))
-                            {
-                                if (data.asset != null)
-                                {
-                                    EditorGUILayout.HelpBox(Styles.msgProbeFreeze, MessageType.Warning);
-                                    EditorGUILayout.Space();
-                                    break;
-                                }
-                            }
+                            EditorGUILayout.HelpBox(Styles.msgProbeFreeze, MessageType.Warning);
+                            EditorGUILayout.Space();
                         }
                         break;
                     }
@@ -147,7 +151,7 @@ namespace UnityEditor.Rendering
                 {
                     serializedObject.ApplyModifiedProperties();
                     // Clamp to make sure minimum we set for dilation distance is min probe distance
-                    profile.settings.dilationSettings.dilationDistance = Mathf.Max(profile.minDistanceBetweenProbes, profile.settings.dilationSettings.dilationDistance);
+                    bakingSet.settings.dilationSettings.dilationDistance = Mathf.Max(bakingSet.minDistanceBetweenProbes, bakingSet.settings.dilationSettings.dilationDistance);
                     serializedObject.Update();
                 }
 
@@ -210,9 +214,9 @@ namespace UnityEditor.Rendering
         {
             EditorUtility.DisplayCustomMenu(rect, new[] { Styles.resetDilation, Styles.resetVirtualOffset }, -1, (object userData, string[] options, int selected) => {
                 if (selected == 0)
-                    profile.settings.dilationSettings.SetDefaults();
+                    bakingSet.settings.dilationSettings.SetDefaults();
                 else
-                    profile.settings.virtualOffsetSettings.SetDefaults();
+                    bakingSet.settings.virtualOffsetSettings.SetDefaults();
             }, null);
         }
 
@@ -238,7 +242,7 @@ namespace UnityEditor.Rendering
             if (EditorGUI.EndChangeCheck())
                 m_SimplificationLevels.intValue = value;
 
-            ProbeVolumeLightingTab.DrawSimplificationLevelsMarkers(rect, profile.minDistanceBetweenProbes, 2, highestSimplification, value, value);
+            ProbeVolumeLightingTab.DrawSimplificationLevelsMarkers(rect, bakingSet.minDistanceBetweenProbes, 2, highestSimplification, value, value);
             EditorGUI.EndProperty();
         }
         #endregion
@@ -267,7 +271,7 @@ namespace UnityEditor.Rendering
                 return;
 
             Undo.RegisterCompleteObjectUndo(ProbeReferenceVolume.instance.sceneData.parentAsset, "Change active scenario");
-            ProbeReferenceVolume.instance.lightingScenario = scenario;
+            ProbeReferenceVolume.instance.SetActiveScenario(scenario, false);
             EditorUtility.SetDirty(ProbeReferenceVolume.instance.sceneData.parentAsset);
             SceneView.RepaintAll();
         }
@@ -298,7 +302,7 @@ namespace UnityEditor.Rendering
             m_Scenarios.drawElementCallback = (rect, index, active, focused) =>
             {
                 ProbeVolumeLightingTab.SplitRectInThree(rect, out var left, out var middle, out var right, 70);
-                var scenarioName = profile.lightingScenarios[index];
+                var scenarioName = bakingSet.lightingScenarios[index];
 
                 // Status
                 if (index < scenariosStatuses.Length && scenariosStatuses[index] != ScenariosStatus.Valid)
@@ -349,29 +353,23 @@ namespace UnityEditor.Rendering
                     if (EditorGUI.EndChangeCheck())
                     {
                         renameSelectedScenario = false;
-                        if (ProbeVolumeLightingTab.AllSetScenesAreLoaded(profile) || EditorUtility.DisplayDialog("Rename Lighting Scenario", "Some scenes in the baking set contain probe volumes but are not loaded.\nRenaming the lighting scenario may require you to rebake the scene.", "Rename", "Cancel"))
+                        if (ProbeVolumeLightingTab.AllSetScenesAreLoaded(bakingSet) || EditorUtility.DisplayDialog("Rename Lighting Scenario", "Some scenes in the baking set contain probe volumes but are not loaded.\nRenaming the lighting scenario may require you to rebake the scene.", "Rename", "Cancel"))
                         {
                             try
                             {
                                 AssetDatabase.StartAssetEditing();
-
-                                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                                {
-                                    if (profile.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)))
-                                        data.RenameScenario(scenarioName, name);
-                                }
+                                Undo.RegisterCompleteObjectUndo(bakingSet, s_RenameScenarioUndoName);
+                                bakingSet.RenameScenario(scenarioName, name);
                             }
                             finally
                             {
-                                AssetDatabase.StopAssetEditing();
                                 m_LightingScenarios.GetArrayElementAtIndex(index).stringValue = name;
+                                serializedObject.Update();
                                 serializedObject.ApplyModifiedProperties();
+                                AssetDatabase.StopAssetEditing();
 
                                 SetActiveScenario(name);
                                 UpdateScenarioStatuses();
-
-                                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                                    data.ResolveCells();
                             }
                         }
                     }
@@ -380,7 +378,7 @@ namespace UnityEditor.Rendering
 
             m_Scenarios.onSelectCallback = (ReorderableList list) =>
             {
-                SetActiveScenario(profile.lightingScenarios[list.index]);
+                SetActiveScenario(bakingSet.lightingScenarios[list.index]);
                 SceneView.RepaintAll();
                 Repaint();
             };
@@ -388,9 +386,9 @@ namespace UnityEditor.Rendering
             m_Scenarios.onAddCallback = (list) =>
             {
                 serializedObject.ApplyModifiedProperties();
-                Undo.RegisterCompleteObjectUndo(profile, "Added new lighting scenario");
-                var scenario = profile.CreateScenario("New Lighting Scenario");
-                EditorUtility.SetDirty(profile);
+                Undo.RegisterCompleteObjectUndo(bakingSet, "Added new lighting scenario");
+                var scenario = bakingSet.CreateScenario("New Lighting Scenario");
+                EditorUtility.SetDirty(bakingSet);
                 serializedObject.Update();
 
                 UpdateScenarioStatuses();
@@ -403,27 +401,23 @@ namespace UnityEditor.Rendering
                     EditorUtility.DisplayDialog("Can't delete scenario", "You can't delete the last scenario. You need to have at least one.", "Ok");
                     return;
                 }
-                var scenario = profile.lightingScenarios[list.index];
+                var scenario = bakingSet.lightingScenarios[list.index];
                 if (!EditorUtility.DisplayDialog("Delete the selected scenario?", $"Deleting the scenario will also delete corresponding baked data on disk.\nDo you really want to delete the scenario '{scenario}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
                     return;
                 serializedObject.ApplyModifiedProperties();
-                if (!profile.RemoveScenario(scenario))
+                if (!bakingSet.RemoveScenario(scenario))
                     return;
                 serializedObject.Update();
 
                 try
                 {
                     AssetDatabase.StartAssetEditing();
-                    foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                    {
-                        if (profile.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)))
-                            data.RemoveScenario(scenario);
-                    }
+                    bakingSet.RemoveScenario(scenario);
                 }
                 finally
                 {
                     AssetDatabase.StopAssetEditing();
-                    SetActiveScenario(profile.lightingScenarios[0]);
+                    SetActiveScenario(bakingSet.lightingScenarios[0]);
                     UpdateScenarioStatuses();
                 }
             };
@@ -435,27 +429,22 @@ namespace UnityEditor.Rendering
         {
             hasPendingScenarioUpdate = false;
 
-            if (profile.sceneGUIDs.Count == 0)
+            if (bakingSet.sceneGUIDs.Count == 0)
                 return;
 
             DateTime? refTime = null;
             string mostRecentState = null;
-            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-            {
-                if (!profile.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)))
-                    continue;
 
-                foreach (var state in profile.lightingScenarios)
+            foreach (var state in bakingSet.lightingScenarios)
+            {
+                if (bakingSet.scenarios.TryGetValue(state, out var stateData) && stateData.cellDataAsset != null)
                 {
-                    if (data.scenarios.TryGetValue(state, out var stateData) && stateData.cellDataAsset != null)
+                    var dataPath = stateData.cellDataAsset.GetAssetPath();
+                    var time = System.IO.File.GetLastWriteTime(dataPath);
+                    if (refTime == null || time > refTime)
                     {
-                        var dataPath = AssetDatabase.GetAssetPath(stateData.cellDataAsset);
-                        var time = System.IO.File.GetLastWriteTime(dataPath);
-                        if (refTime == null || time > refTime)
-                        {
-                            refTime = time;
-                            mostRecentState = state;
-                        }
+                        refTime = time;
+                        mostRecentState = state;
                     }
                 }
             }
@@ -467,9 +456,9 @@ namespace UnityEditor.Rendering
         {
             hasPendingScenarioUpdate = false;
 
-            var initialStatus = ProbeVolumeLightingTab.AllSetScenesAreLoaded(profile) ? ScenariosStatus.Valid : ScenariosStatus.NotLoaded;
+            var initialStatus = ProbeVolumeLightingTab.AllSetScenesAreLoaded(bakingSet) ? ScenariosStatus.Valid : ScenariosStatus.NotLoaded;
 
-            scenariosStatuses = new ScenariosStatus[profile.lightingScenarios.Count];
+            scenariosStatuses = new ScenariosStatus[bakingSet.lightingScenarios.Count];
 
             for (int i = 0; i < scenariosStatuses.Length; i++)
             {
@@ -477,21 +466,15 @@ namespace UnityEditor.Rendering
                 if (initialStatus == ScenariosStatus.NotLoaded)
                     continue;
 
-                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                if (!bakingSet.scenarios.TryGetValue(bakingSet.lightingScenarios[i], out var stateData) || stateData.cellDataAsset == null)
                 {
-                    if (!profile.sceneGUIDs.Contains(ProbeVolumeSceneData.GetSceneGUID(data.gameObject.scene)) || !ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene))
-                        continue;
-
-                    if (!data.scenarios.TryGetValue(profile.lightingScenarios[i], out var stateData) || stateData.cellDataAsset == null)
-                    {
-                        scenariosStatuses[i] = ScenariosStatus.NotBaked;
-                        break;
-                    }
-                    else if (scenariosStatuses[i] != ScenariosStatus.OutOfDate && data.scenarios.TryGetValue(mostRecentState, out var mostRecentData) &&
-                        mostRecentData.cellDataAsset != null && stateData.sceneHash != mostRecentData.sceneHash)
-                    {
-                        scenariosStatuses[i] = ScenariosStatus.OutOfDate;
-                    }
+                    scenariosStatuses[i] = ScenariosStatus.NotBaked;
+                    continue;
+                }
+                else if (scenariosStatuses[i] != ScenariosStatus.OutOfDate && bakingSet.scenarios.TryGetValue(mostRecentState, out var mostRecentData) &&
+                    mostRecentData.cellDataAsset != null && stateData.sceneHash != mostRecentData.sceneHash)
+                {
+                    scenariosStatuses[i] = ScenariosStatus.OutOfDate;
                 }
             }
         }

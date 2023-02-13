@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -78,11 +79,11 @@ namespace UnityEngine.Rendering.HighDefinition
         //  Controls the amount of micro details
         public float _MicroErosionFactor;
 
+        // The size of the shadow region (meters)
+        public Vector2 _ShadowRegionSize;
         // Multiplier to micro details tiling
         public float _MicroErosionScale;
         public float _CloudHistoryInvalidation;
-        // The size of the shadow region (meters)
-        public Vector2 _ShadowRegionSize;
 
         // Scattering Tint
         public Vector4 _ScatteringTint;
@@ -115,24 +116,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Flag that defines if the we should enable integration, checkerboard rendering, etc.
         public int _EnableIntegration;
 
-        // Right direction of the sun
-        public Vector4 _SunRight;
-
-        // Up direction of the sun
-        public Vector4 _SunUp;
-
-        // Intensity of the volumetric clouds shadow
-        public float _ShadowIntensity;
-        // Fallback intensity used when the shadow is not defined
-        public float _ShadowFallbackValue;
-        // The resolution of the shadow cookie to fill
-        public int _ShadowCookieResolution;
-        // Offset applied of the plane receiving the center of the shadow
-        public float _ShadowPlaneOffset;
-
-        // World Camera Position used as the constant buffer has not been injected yet when this data is required, last channel is unused.
-        public Vector4 _WorldSpaceShadowCenter;
-
         // View projection matrix (non oblique) for the planar reflection matrices
         public Matrix4x4 _CameraViewProjection_NO;
         public Matrix4x4 _CameraInverseViewProjection_NO;
@@ -159,5 +142,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];
+    }
+
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    unsafe struct ShaderVariablesCloudsShadows
+    {
+        // Intensity of the volumetric clouds shadow
+        public float _ShadowIntensity;
+        public float _PaddingVCS0;
+        // The resolution of the shadow cookie to fill
+        public int _ShadowCookieResolution;
+        public float _PaddingVCS1;
+
+        // World Camera Position used as the constant buffer has not been injected yet when this data is required, last channel is unused.
+        public float4 _CloudShadowSunOrigin;
+
+        // Right direction of the sun
+        public float4 _CloudShadowSunRight;
+
+        // Up direction of the sun
+        public float4 _CloudShadowSunUp;
+
+        // Forward direction of the sun
+        public float4 _CloudShadowSunForward;
+
+        // Up direction of the sun
+        public float4 _WorldSpaceShadowCenter;
     }
 }

@@ -15,6 +15,7 @@ public unsafe class BRGSetup : MonoBehaviour
     public float m_spacingFactor = 1.0f;
     public bool m_unlitHdrp = false;
     public bool m_culling = false;
+    public bool m_customBrgColor = false;
 
     public int itemGridSize = 30;
 
@@ -177,9 +178,11 @@ public unsafe class BRGSetup : MonoBehaviour
         uint batchAlignedSizeInBytes = (((4 + m_maxItemPerBatch * kItemSize)* kFloat4Size) + kBRGBufferAlignment - 1) & (~(kBRGBufferAlignment - 1));
         uint totalRawBufferSizeInBytes = m_batchCount * batchAlignedSizeInBytes;
 
+        int metaDataEntriesCount = m_customBrgColor ? 5 : 4;
+
         // compute offsets of each item ( according to several batches & alignment per batch )
         // also clear the first 64bytes of each batch
-        var batchMetadata = new NativeArray<MetadataValue>(4, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+        var batchMetadata = new NativeArray<MetadataValue>(metaDataEntriesCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
         // Create the large GPU raw buffer
         if (UseConstantBuffer)
@@ -214,6 +217,12 @@ public unsafe class BRGSetup : MonoBehaviour
             batchMetadata[1] = CreateMetadataValue(matrixPreviousMID, 64 + (int)m_srpBatches[b].itemCount * kFloat4Size * 3, true); // previous matrices
             batchMetadata[2] = CreateMetadataValue(worldToObjectID, 64 + (int)m_srpBatches[b].itemCount * kFloat4Size * 3 * 2, true); // inverse matrices
             batchMetadata[3] = CreateMetadataValue(colorID, 64 + (int)m_srpBatches[b].itemCount * kFloat4Size * 3 * 3, true); // colors
+
+            if (m_customBrgColor)
+            {
+                int sgColorId = Shader.PropertyToID("_customBrgColor");
+                batchMetadata[4] = CreateMetadataValue(sgColorId, 64 + (int)m_srpBatches[b].itemCount * kFloat4Size * 3 * 3, true); // colors
+            }
 
             uint batchWindowSize = 0;
             if (UseConstantBuffer)

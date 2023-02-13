@@ -1503,6 +1503,9 @@ namespace UnityEditor.VFX
                 SetSettingValue("boundsMode", BoundsSettingMode.Manual);
             }
 
+            if(boundsMode != BoundsSettingMode.Automatic && needsComputeBounds)
+                SetSettingValue(nameof(needsComputeBounds), false);
+
             if (version < 12 && (int)m_Space == int.MaxValue)
             {
                 m_Space = VFXSpace.None;

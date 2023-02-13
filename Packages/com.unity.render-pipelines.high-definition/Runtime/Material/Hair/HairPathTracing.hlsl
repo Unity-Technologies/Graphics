@@ -11,7 +11,7 @@ float2 DemuxFloat(float x)
 {
     uint64_t v = x * (((uint64_t)1) << 32);
 
-    uint2 bits = uint2(Compact1By1(v), Compact1By1(v >> 1));
+    uint2 bits = uint2(Compact1By1((uint)v), Compact1By1((uint)(v >> 1)));
 
     return float2(bits.x / float(1 << 16),
                   bits.y / float(1 << 16));

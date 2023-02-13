@@ -431,9 +431,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
                 ProbeVolumeSHBands probeVolumeSHBands = asset.probeVolumeSHBands;
 
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_OFF", !apvIsEnabled);
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ProbeVolumeL1, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ProbeVolumeL2, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
 
                 var stack = VolumeManager.instance.stack;
 
@@ -637,7 +636,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    perObjectLightIndexMap[i] -= globalDirectionalLightsCount;
+                    if (lightData.visibleLights[i].lightType == LightType.Directional ||
+                        lightData.visibleLights[i].lightType == LightType.Spot ||
+                        lightData.visibleLights[i].lightType == LightType.Point)
+                    {
+                        // Light type is supported
+                        perObjectLightIndexMap[i] -= globalDirectionalLightsCount;
+                    }
+                    else
+                    {
+                        // Light type is not supported. Skip the light.
+                        perObjectLightIndexMap[i] = -1;
+                    }
+
                     ++additionalLightsCount;
                 }
             }

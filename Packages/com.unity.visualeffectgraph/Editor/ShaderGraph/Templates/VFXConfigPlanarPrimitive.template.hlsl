@@ -77,6 +77,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         #else
             GetElementData(element);
             const InternalAttributesElement attributes = element.attributes;
+            $splice(VFXLoadGraphValues)
             $splice(VFXLoadTexcoordParameter)
             uv.x = texCoord;
         #endif

@@ -88,6 +88,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies if the search should include deformation.
         /// </summary>
         public bool includeDeformation;
+
+        /// <summary>
+        /// Specifies if the search should ignore the simulation.
+        /// </summary>
+        public bool excludeSimulation;
     }
 
     /// <summary>
@@ -123,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public partial class HDRenderPipeline
     {
-        static void EvaluateWaterDisplacement(WaterSimSearchData wsd, float3 positionAWS, bool includeDeformation, out float3 totalDisplacement, out float2 dir)
+        static void EvaluateWaterDisplacement(WaterSimSearchData wsd, float3 positionAWS, bool includeSimulation, bool includeDeformation, out float3 totalDisplacement, out float2 dir)
         {
             // Compute the simulation coordinates
             float2 uv = float2(positionAWS.x, positionAWS.z);
@@ -133,49 +138,52 @@ namespace UnityEngine.Rendering.HighDefinition
             totalDisplacement = 0.0f;
             dir = OrientationToDirection(wsd.spectrum.patchOrientation.x);
 
-            // The behavior is different if we have a current map or we don't
-            if (wsd.activeGroup0CurrentMap || wsd.activeGroup1CurrentMap)
+            if (includeSimulation)
             {
-                // Read the current data
-                CurrentData gr0CurrentData, gr1CurrentData;
-                EvaluateGroup0CurrentData(wsd, uv, out gr0CurrentData);
-                EvaluateGroup1CurrentData(wsd, uv, out gr1CurrentData);
+                // The behavior is different if we have a current map or we don't
+                if (wsd.activeGroup0CurrentMap || wsd.activeGroup1CurrentMap)
+                {
+                    // Read the current data
+                    CurrentData gr0CurrentData, gr1CurrentData;
+                    EvaluateGroup0CurrentData(wsd, uv, out gr0CurrentData);
+                    EvaluateGroup1CurrentData(wsd, uv, out gr1CurrentData);
 
-                // Rotate locally the current direction
-                float cosAngle = cos(gr0CurrentData.angle);
-                float sinAngle = sin(gr0CurrentData.angle);
-                dir = float2(dir.x * cosAngle - dir.y * sinAngle, dir.y * cosAngle + dir.x * sinAngle);
+                    // Rotate locally the current direction
+                    float cosAngle = cos(gr0CurrentData.angle);
+                    float sinAngle = sin(gr0CurrentData.angle);
+                    dir = float2(dir.x * cosAngle - dir.y * sinAngle, dir.y * cosAngle + dir.x * sinAngle);
 
-                // Compute the simulation coordinates
-                float4 gr0uv, gr1uv;
-                SwizzleSamplingCoordinates(uv, gr0CurrentData.quadrant, wsd.sectorData, out gr0uv);
-                SwizzleSamplingCoordinates(uv, gr1CurrentData.quadrant, wsd.sectorData, out gr1uv);
+                    // Compute the simulation coordinates
+                    float4 gr0uv, gr1uv;
+                    SwizzleSamplingCoordinates(uv, gr0CurrentData.quadrant, wsd.sectorData, out gr0uv);
+                    SwizzleSamplingCoordinates(uv, gr1CurrentData.quadrant, wsd.sectorData, out gr1uv);
 
-                // Compute the 2 simulation coordinates
-                WaterSimCoord gr0SimCoord;
-                WaterSimCoord gr1SimCoord;
-                WaterSimCoord finalSimCoord;
+                    // Compute the 2 simulation coordinates
+                    WaterSimCoord gr0SimCoord;
+                    WaterSimCoord gr1SimCoord;
+                    WaterSimCoord finalSimCoord;
 
-                // Sample the simulation (first time)
-                ComputeWaterUVs(wsd, gr0uv.xy, out gr0SimCoord);
-                ComputeWaterUVs(wsd, gr1uv.xy, out gr1SimCoord);
-                AggregateWaterSimCoords(wsd, gr0SimCoord, gr1SimCoord, gr0CurrentData, gr1CurrentData, true, out finalSimCoord);
-                float3 totalDisplacement0 = EvaluateWaterSimulation(wsd, finalSimCoord, waterMask);
+                    // Sample the simulation (first time)
+                    ComputeWaterUVs(wsd, gr0uv.xy, out gr0SimCoord);
+                    ComputeWaterUVs(wsd, gr1uv.xy, out gr1SimCoord);
+                    AggregateWaterSimCoords(wsd, gr0SimCoord, gr1SimCoord, gr0CurrentData, gr1CurrentData, true, out finalSimCoord);
+                    float3 totalDisplacement0 = EvaluateWaterSimulation(wsd, finalSimCoord, waterMask);
 
-                // Sample the simulation (second time)
-                ComputeWaterUVs(wsd, gr0uv.zw, out gr0SimCoord);
-                ComputeWaterUVs(wsd, gr1uv.zw, out gr1SimCoord);
-                AggregateWaterSimCoords(wsd, gr0SimCoord, gr1SimCoord, gr0CurrentData, gr1CurrentData, false, out finalSimCoord);
-                float3 totalDisplacement1 = EvaluateWaterSimulation(wsd, finalSimCoord, waterMask);
+                    // Sample the simulation (second time)
+                    ComputeWaterUVs(wsd, gr0uv.zw, out gr0SimCoord);
+                    ComputeWaterUVs(wsd, gr1uv.zw, out gr1SimCoord);
+                    AggregateWaterSimCoords(wsd, gr0SimCoord, gr1SimCoord, gr0CurrentData, gr1CurrentData, false, out finalSimCoord);
+                    float3 totalDisplacement1 = EvaluateWaterSimulation(wsd, finalSimCoord, waterMask);
 
-                // Combine both contributions
-                totalDisplacement = totalDisplacement0 + totalDisplacement1;
-            }
-            else
-            {
-                WaterSimCoord coords;
-                ComputeWaterUVs(wsd, uv, out coords);
-                totalDisplacement = EvaluateWaterSimulation(wsd, coords, waterMask);
+                    // Combine both contributions
+                    totalDisplacement = totalDisplacement0 + totalDisplacement1;
+                }
+                else
+                {
+                    WaterSimCoord coords;
+                    ComputeWaterUVs(wsd, uv, out coords);
+                    totalDisplacement = EvaluateWaterSimulation(wsd, coords, waterMask);
+                }
             }
 
             // We only apply the choppiness tot he first two bands, doesn't behave very good past those
@@ -199,12 +207,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public float height;
         }
 
-        static WaterSimulationTapData EvaluateDisplacementData(WaterSimSearchData wsd, float3 currentLocation, float3 referencePosition, bool includeDeformation)
+        static WaterSimulationTapData EvaluateDisplacementData(WaterSimSearchData wsd, float3 currentLocation, float3 referencePosition, bool includeSimulation, bool includeDeformation)
         {
             WaterSimulationTapData data;
 
             // Evaluate the displacement at the current point
-            EvaluateWaterDisplacement(wsd, currentLocation, includeDeformation, out data.currentDisplacement, out data.direction);
+            EvaluateWaterDisplacement(wsd, currentLocation, includeSimulation, includeDeformation, out data.currentDisplacement, out data.direction);
 
             // Evaluate the complete position
             data.displacedPoint = currentLocation + data.currentDisplacement;
@@ -231,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float3 startPositionOS = mul(wsd.rendering.worldToWaterMatrix, float4(wsp.startPositionWS, 1.0f)).xyz;
 
             // Initialize the search data
-            WaterSimulationTapData tapData = EvaluateDisplacementData(wsd, startPositionOS, targetPositionOS, wsp.includeDeformation);
+            WaterSimulationTapData tapData = EvaluateDisplacementData(wsd, startPositionOS, targetPositionOS, !wsp.excludeSimulation, wsp.includeDeformation);
             float2 stepSize = tapData.offset;
             sr.error = tapData.distance;
             float currentHeight = tapData.height;
@@ -250,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool progress = false;
 
                 float3 candidateLocation = sr.candidateLocationWS + new float3(stepSize.x, 0, stepSize.y);
-                tapData = EvaluateDisplacementData(wsd, candidateLocation, targetPositionOS, wsp.includeDeformation);
+                tapData = EvaluateDisplacementData(wsd, candidateLocation, targetPositionOS, !wsp.excludeSimulation, wsp.includeDeformation);
                 if (tapData.distance < sr.error)
                 {
                     sr.candidateLocationWS = candidateLocation;
@@ -315,6 +323,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool includeDeformation;
 
         /// <summary>
+        /// Specifies if the search should ignore the simulation.
+        /// </summary>
+        public bool excludeSimulation;
+        
+        /// <summary>
         /// Output native array that holds the set of world space position projected on the water surface along the up vector of the water surface.
         /// </summary>
         [WriteOnly]
@@ -362,6 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
             wsp.error = error;
             wsp.maxIterations = maxIterations;
             wsp.includeDeformation = includeDeformation;
+            wsp.excludeSimulation = excludeSimulation;
 
             // Do the search
             WaterSearchResult wsr = new WaterSearchResult();

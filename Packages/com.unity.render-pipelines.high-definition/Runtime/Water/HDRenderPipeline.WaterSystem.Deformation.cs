@@ -20,6 +20,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // The number of deformers for the current frame
         int m_ActiveWaterDeformers = 0;
 
+        // The maximal deformation that is going to be applied this frame
+        float m_MaxWaterDeformation = 0.0f;
+
         // Buffer used to hold all the water deformers on the GPU
         ComputeBuffer m_WaterDeformersData = null;
 
@@ -119,6 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.regionSize = currentDeformer.regionSize;
                 data.deepFoamDimmer = currentDeformer.deepFoamDimmer;
                 data.surfaceFoamDimmer = currentDeformer.surfaceFoamDimmer;
+                m_MaxWaterDeformation = Mathf.Max(m_MaxWaterDeformation, Mathf.Abs(data.amplitude));
 
                 switch (currentDeformer.type)
                 {
@@ -184,6 +188,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Reset the water deformer count
             m_ActiveWaterDeformers = 0;
+
+            // Reset the max deformation amplitude
+            m_MaxWaterDeformation = 0.0f;
 
             // If deformation is not supported, nothing to do beyond this point
             if (!m_ActiveWaterDeformation)

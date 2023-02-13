@@ -520,36 +520,35 @@ namespace UnityEngine.Rendering.HighDefinition
                     transformDirty |= hdLight.transform.hasChanged;
                     hdLight.transform.hasChanged = false;
 
-                    switch (hdLight.type)
+                    switch (hdLight.legacyLight.type)
                     {
-                        case HDLightType.Directional:
+                        case LightType.Directional:
                         {
                             hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useScreenSpaceShadows && hdLight.useRayTracedShadows;
                             m_RayTracingLights.hdDirectionalLightArray.Add(hdLight);
                         }
                         break;
-                        case HDLightType.Point:
-                        case HDLightType.Spot:
+                        case LightType.Point:
+                        case LightType.Spot:
+                        case LightType.Pyramid:
+                        case LightType.Box:
                         {
                             hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
                             m_RayTracingLights.hdPointLightArray.Add(lightRenderEntity);
                         }
                         break;
-                        case HDLightType.Area:
+                        case LightType.Rectangle:
                         {
                             hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
-                            switch (hdLight.areaLightShape)
-                            {
-                                case AreaLightShape.Rectangle:
-                                    m_RayTracingLights.hdRectLightArray.Add(lightRenderEntity);
-                                    break;
-                                case AreaLightShape.Tube:
-                                    m_RayTracingLights.hdLineLightArray.Add(lightRenderEntity);
-                                    break;
-                                    //TODO: case AreaLightShape.Disc:
-                            }
-                            break;
+                            m_RayTracingLights.hdRectLightArray.Add(lightRenderEntity);
                         }
+                        break;
+                        case LightType.Tube:
+                        {
+                            hasRayTracedShadows = hdLight.ShadowsEnabled() && hdLight.useRayTracedShadows;
+                            m_RayTracingLights.hdLineLightArray.Add(lightRenderEntity);
+                        }
+                        break;
                     }
 
                     // Check if there is a ray traced shadow in the scene
@@ -564,7 +563,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdRectLightArray);
 
             // Process the lights
-            HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.InstanceID);
+            HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.None);
             for (int reflIdx = 0; reflIdx < reflectionProbeArray.Length; ++reflIdx)
             {
                 HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];

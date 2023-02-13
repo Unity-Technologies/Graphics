@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
     // [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "HDRenderPipeline")]
 #endif
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline
     {
         [System.NonSerialized]
         internal bool isInOnValidateCall = false;
@@ -265,5 +265,30 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
         /// </summary>
         public bool virtualTexturingEnabled { get { return true; } }
+
+        /// <summary>
+        /// Indicates the maximum number of SH Bands used by this render pipeline instance.
+        /// </summary>
+        public ProbeVolumeSHBands maxSHBands
+        {
+            get
+            {
+                if (currentPlatformRenderPipelineSettings.supportProbeVolume)
+                    return currentPlatformRenderPipelineSettings.probeVolumeSHBands;
+                else
+                    return ProbeVolumeSHBands.SphericalHarmonicsL1;
+            }
+        }
+
+        /// <summary>
+        /// Returns the projects global ProbeVolumeSceneData instance.
+        /// </summary>
+        public ProbeVolumeSceneData probeVolumeSceneData
+        {
+            get
+            {
+                return HDRenderPipelineGlobalSettings.instance?.apvScenesData;
+            }
+        }
     }
 }

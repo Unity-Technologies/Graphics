@@ -265,10 +265,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Tell if we need to show the MSAA message info
         bool ShowMsaaObjectInfo()
         {
-            if (m_Volume.injectionPoint != CustomPassInjectionPoint.AfterPostProcess && m_Volume.injectionPoint != CustomPassInjectionPoint.BeforePostProcess)
-                return false;
-
-            return true;
+            return m_Volume.injectionPoint == CustomPassInjectionPoint.AfterPostProcess || m_Volume.injectionPoint == CustomPassInjectionPoint.BeforePostProcess;
         }
 
         void DoFilters(ref Rect rect)

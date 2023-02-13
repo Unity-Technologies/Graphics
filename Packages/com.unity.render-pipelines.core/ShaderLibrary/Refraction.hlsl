@@ -34,7 +34,7 @@ RefractionModelResult RefractionModelSphere(real3 V, float3 positionWS, real3 no
     // Out hit point in the tangent sphere
     real3 P1 = positionWS + R1 * dist;
     // Out normal
-    real3 N1 = normalize(C - P1);
+    real3 N1 = SafeNormalize(C - P1);
     // Out refracted ray
     real3 R2 = refract(R1, N1, ior);
     real N1oR2 = dot(N1, R2);

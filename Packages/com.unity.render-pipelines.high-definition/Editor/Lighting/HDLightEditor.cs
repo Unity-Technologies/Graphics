@@ -135,11 +135,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Each handles manipulate only one light
             // Thus do not rely on serialized properties
-            HDLightType lightType = targetAdditionalData.type;
+            LightType lightType = targetAdditionalData.legacyLight.type;
 
-            if (lightType == HDLightType.Directional
-                || lightType == HDLightType.Point
-                || lightType == HDLightType.Area && targetAdditionalData.areaLightShape == AreaLightShape.Disc)
+            if (lightType == LightType.Directional
+                || lightType == LightType.Point
+                || lightType == LightType.Disc)
                 base.OnSceneGUI();
             else
                 HDLightUI.DrawHandles(targetAdditionalData, this);

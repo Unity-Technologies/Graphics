@@ -1,7 +1,6 @@
-using UnityEngine.Rendering.HighDefinition;
-using UnityEngine;
-using UnityEngine.Rendering;
 using System;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -9,6 +8,12 @@ namespace UnityEditor.Rendering.HighDefinition
     [CanEditMultipleObjects]
     sealed class HDRenderPipelineGlobalSettingsEditor : Editor
     {
+        [MenuItem("Assets/Create/Rendering/HDRP Global Settings Asset", priority = CoreUtils.Sections.section4 + 2)]
+        internal static void CreateAsset()
+        {
+            RenderPipelineGlobalSettingsEndNameEditAction.CreateNew<HDRenderPipeline, HDRenderPipelineGlobalSettings>();
+        }
+
         SerializedHDRenderPipelineGlobalSettings m_SerializedHDRenderPipelineGlobalSettings;
 
         internal bool largeLabelWidth = true;

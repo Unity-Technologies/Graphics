@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_DefaultVolumeProfile: {fileID: 11400000, guid: dc4052ec38b9ac147a469135b69baa9a,
     type: 2}
-  m_LookDevVolumeProfile: {fileID: 0}
+  m_LookDevVolumeProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
+    type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 1266551495851868
-      data2: 13763000477350330392
+      data2: 13799031439032811544
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -117,17 +118,24 @@ MonoBehaviour:
   autoRegisterDiffusionProfiles: 0
   apvScenesData:
     m_ObsoleteSerializedBakingSets: []
-    serializedBounds:
-    - sceneGUID: 5028fc98db6fe304c90852113dca5b00
-      bounds:
-        m_Center: {x: 0, y: 0, z: 0}
+    sceneToBakingSet:
+      m_Keys:
+      - 5028fc98db6fe304c90852113dca5b00
+      m_Values:
+      - {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
+    bakingSets:
+    - {fileID: 11400000, guid: c70ba2f8270ecc54fa63963d2f32413d, type: 2}
+    sceneBounds:
+      m_Keys:
+      - 5028fc98db6fe304c90852113dca5b00
+      m_Values:
+      - m_Center: {x: 0, y: 0, z: 0}
         m_Extent: {x: 40.5, y: 40.5, z: 40.5}
-    serializedHasVolumes:
-    - sceneGUID: 5028fc98db6fe304c90852113dca5b00
-      hasProbeVolumes: 1
-    bakingSets: []
-    m_LightingScenario: Scenario 1
-  m_Version: 7
+    hasProbeVolumes:
+      m_Keys:
+      - 5028fc98db6fe304c90852113dca5b00
+      m_Values: 01
+  m_Version: 8
   m_ShaderVariantLogLevel: 0
   m_SupportRuntimeDebugDisplay: 0
   m_ExportShaderVariants: 1

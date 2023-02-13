@@ -1,3 +1,4 @@
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -6,6 +7,13 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(UniversalRenderPipelineGlobalSettings))]
     sealed class UniversalGlobalSettingsEditor : Editor
     {
+
+        [MenuItem("Assets/Create/Rendering/URP Global Settings Asset", priority = CoreUtils.Sections.section4 + 2)]
+        internal static void CreateAsset()
+        {
+            RenderPipelineGlobalSettingsEndNameEditAction.CreateNew<UniversalRenderPipeline, UniversalRenderPipelineGlobalSettings>();
+        }
+
         SerializedUniversalRenderPipelineGlobalSettings m_SerializedGlobalSettings;
 
         void OnEnable()

@@ -182,7 +182,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
                 if (activeDebugHandler != null)
                 {
-                    activeDebugHandler.DrawWithRendererList(cmd);
+                    passData.debugRendererLists.DrawWithRendererList(cmd);
                 }
                 else
                 {
@@ -204,6 +204,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             internal TextureHandle color;
             internal RenderingData renderingData;
             internal RendererListHandle rendererListHdl;
+            internal DebugRendererLists debugRendererLists;
 
             // Required for code sharing purpose between RG and non-RG.
             internal RendererList rendererList;
@@ -229,11 +230,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             drawingSettings.overrideShaderPassIndex = overrideShaderPassIndex;
 
             var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            var filterSettings = m_FilteringSettings;
             if (useRenderGraph)
             {
                 if (activeDebugHandler != null)
                 {
-                    activeDebugHandler.CreateRendererListWithDebugRenderState(renderGraph, ref renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(renderGraph, ref renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
@@ -244,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (activeDebugHandler != null)
                 {
-                    activeDebugHandler.CreateRendererListWithDebugRenderState(context, ref renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                    passData.debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, ref renderingData, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
@@ -264,7 +266,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 TextureHandle color = renderer.activeColorTexture;
                 passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
-                
+
                 TextureHandle mainShadowsTexture = frameResources.GetTexture(UniversalResource.MainShadowsTexture);
                 TextureHandle additionalShadowsTexture = frameResources.GetTexture(UniversalResource.AdditionalShadowsTexture);
 
@@ -281,7 +283,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
 
                 InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
-                builder.UseRendererList(passData.rendererListHdl);
+                var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+                if (activeDebugHandler != null)
+                {
+                    passData.debugRendererLists.PrepareRendererListForRasterPass(builder);
+                }
+                else
+                {
+                    builder.UseRendererList(passData.rendererListHdl);
+                }
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);

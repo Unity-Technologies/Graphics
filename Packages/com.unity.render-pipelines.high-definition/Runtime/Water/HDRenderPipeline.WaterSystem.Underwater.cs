@@ -301,6 +301,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.waterRenderingCB._CausticsIntensity = waterSurface.causticsIntensity;
                 passData.waterRenderingCB._CausticsShadowIntensity = waterSurface.causticsDirectionalShadow ? waterSurface.causticsDirectionalShadowDimmer : 1.0f;
                 passData.waterRenderingCB._CausticsPlaneBlendDistance = waterSurface.causticsPlaneBlendDistance;
+                passData.waterRenderingCB._CausticsMaxLOD = EvaluateCausticsMaxLOD(waterSurface.causticsResolution);
+                passData.waterRenderingCB._CausticsTilingFactor = 1.0f / waterSurface.causticsTilingFactor;
                 passData.waterRenderingCB._PatchOffset = waterSurface.transform.position;
                 passData.waterRenderingCB._WaterCausticsEnabled = waterSurface.caustics ? 1 : 0;
                 float4x4 waterToWorldAbs = waterSurface.simulation.rendering.waterToWorldMatrix;

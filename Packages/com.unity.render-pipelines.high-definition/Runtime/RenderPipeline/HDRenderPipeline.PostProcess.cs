@@ -201,8 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
-            m_UseSafePath = SystemInfo.graphicsDeviceVendor
-                .ToLowerInvariant().Contains("intel");
+            m_UseSafePath = SystemInfo.graphicsDeviceVendor.Contains("intel", StringComparison.InvariantCultureIgnoreCase);
 
             // Project-wide LUT size for all grading operations - meaning that internal LUTs and
             // user-provided LUTs will have to be this size
@@ -3407,36 +3406,26 @@ namespace UnityEngine.Rendering.HighDefinition
             // Must always be true
             if (light.TryGetComponent<HDAdditionalLightData>(out var hdLightData))
             {
-                switch (hdLightData.type)
+                switch (light.type)
                 {
-                    case HDLightType.Directional:
+                    case LightType.Directional:
                         return LensFlareCommonSRP.ShapeAttenuationDirLight(hdLightData.transform.forward, wo);
-                    case HDLightType.Point:
+                    case LightType.Point:
                         // Do nothing point are omnidirectional for the Lens Flare
                         return LensFlareCommonSRP.ShapeAttenuationPointLight();
-                    case HDLightType.Spot:
-                        switch (hdLightData.spotLightShape)
-                        {
-                            case SpotLightShape.Cone:
-                                return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(hdLightData.transform.forward, wo, light.spotAngle, hdLightData.innerSpotPercent01);
-                            case SpotLightShape.Box:
-                                return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(hdLightData.transform.forward, wo);
-                            case SpotLightShape.Pyramid:
-                                return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(hdLightData.transform.forward, wo);
-                            default: throw new Exception($"GetLensFlareLightAttenuation Unknown SpotLightShape: {typeof(SpotLightShape)}: {hdLightData.type}");
-                        }
-                    case HDLightType.Area:
-                        switch (hdLightData.areaLightShape)
-                        {
-                            case AreaLightShape.Tube:
-                                return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(hdLightData.transform.position, hdLightData.transform.right, hdLightData.shapeWidth, cam);
-                            case AreaLightShape.Rectangle:
-                                return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(hdLightData.transform.forward, wo);
-                            case AreaLightShape.Disc:
-                                return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(hdLightData.transform.forward, wo);
-                            default: throw new Exception($"GetLensFlareLightAttenuation Unknown AreaLightShape {typeof(AreaLightShape)}: {hdLightData.type}");
-                        }
-                    default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(HDLightType)}: {hdLightData.type}");
+                    case LightType.Spot:
+                        return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(hdLightData.transform.forward, wo, light.spotAngle, hdLightData.innerSpotPercent01);
+                    case LightType.Pyramid:
+                        return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(hdLightData.transform.forward, wo);
+                    case LightType.Box:
+                        return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(hdLightData.transform.forward, wo);
+                    case LightType.Rectangle:
+                        return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(hdLightData.transform.forward, wo);
+                    case LightType.Tube:
+                        return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(hdLightData.transform.position, hdLightData.transform.right, hdLightData.shapeWidth, cam);
+                    case LightType.Disc:
+                        return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(hdLightData.transform.forward, wo);
+                    default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {hdLightData.legacyLight.type}");
                 }
             }
 

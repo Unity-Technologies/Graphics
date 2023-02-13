@@ -15,15 +15,6 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: e94f1768c0fea4843a93cf691ba136fd, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: Need to be fixed!
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 17783bea5cb403942948935bef51f927, type: 3}
     - {fileID: 102900000, guid: 3666dc8006745714997c368c4375f316, type: 3}
     - {fileID: 102900000, guid: cad966ee513672648ba41246a9cf73a3, type: 3}
@@ -54,64 +45,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Unsupported
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7370a32694f72f146851c3347ef04385, type: 3}
-    - {fileID: 102900000, guid: 5fd2fada5be46b04898ce4c60cd49a90, type: 3}
-    - {fileID: 102900000, guid: fa67b2fbe49c15849b97a5a382f4d223, type: 3}
-    - {fileID: 102900000, guid: f276d4cfd8f87134aa5844076d660c74, type: 3}
-    - {fileID: 102900000, guid: 8d7899854dadd944e808fa7275489d1b, type: 3}
-    - {fileID: 102900000, guid: ea59d2ffbfa6ae44184cb3c419551cf1, type: 3}
-    - {fileID: 102900000, guid: 5c9d14f073d4f914cb8f32c841b9a1ee, type: 3}
-    - {fileID: 102900000, guid: 827c090b62971674ba95418bc420df4f, type: 3}
-    - {fileID: 102900000, guid: 57e38207c84f9e943b0202ebdece2187, type: 3}
-    - {fileID: 102900000, guid: 163e04c0245b93648808a42b7f45ce0d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1423476/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 20fffe34192bdd74c98d45f2b0967a5e, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: Error in reflecion PS5?
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 4bc2576a0bbdfd74a86bfb57af91ccaa, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: Fail on Yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: bdd85d6731147b147b149deb57fc9371, type: 3}
-    - {fileID: 102900000, guid: 3666dc8006745714997c368c4375f316, type: 3}
-    - {fileID: 102900000, guid: cad966ee513672648ba41246a9cf73a3, type: 3}
-    - {fileID: 102900000, guid: 29f2d1a08755be249a0739067a3a86ca, type: 3}
-    - {fileID: 102900000, guid: 99680d74d8a49be44bd19065fae3d569, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 5
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: issue with alpha?
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 9f38d7cbc64ad534485db5107427e269, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: Fail on Yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 17783bea5cb403942948935bef51f927, type: 3}
@@ -145,3 +78,39 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Unsupported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 45325940ed3cc4d44a619c66066ec3d6, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 42
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Inconsistent on Yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f2a5323c1c8df664cb7dd65071c61ab0, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Strict Mode not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4bc2576a0bbdfd74a86bfb57af91ccaa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: corruption on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 45325940ed3cc4d44a619c66066ec3d6, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Inconsistent on Yamato

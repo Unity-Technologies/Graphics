@@ -19,16 +19,6 @@ namespace UnityEditor.Rendering.Universal
 
         #region RenderPipelineGlobalSettingsProvider
 
-        protected override void Clone(RenderPipelineGlobalSettings src, bool activateAsset)
-        {
-            UniversalGlobalSettingsCreator.Clone(src as UniversalRenderPipelineGlobalSettings, activateAsset: activateAsset);
-        }
-
-        protected override void Create(bool useProjectSettingsFolder, bool activateAsset)
-        {
-            UniversalGlobalSettingsCreator.Create(useProjectSettingsFolder: true, activateAsset: true);
-        }
-
         protected override void Ensure()
         {
             UniversalRenderPipelineGlobalSettings.Ensure();
