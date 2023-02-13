@@ -1,4 +1,5 @@
-﻿using Unity.GraphToolsFoundation;
+﻿using System;
+using Unity.GraphToolsFoundation;
 using Unity.GraphToolsFoundation.Editor;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public IGraphDataOwner owner => (IGraphDataOwner)NodeModel;
 
         /// <inheritdoc />
-        public SGPortModel(PortNodeModel nodeModel, PortDirection direction, PortOrientation orientation, string portName, PortType portType, TypeHandle dataType, string portId, PortModelOptions options)
-            : base(nodeModel, direction, orientation, portName, portType, dataType, portId, options) { }
+        public SGPortModel(PortNodeModel nodeModel, PortDirection direction, PortOrientation orientation, string portName, PortType portType, TypeHandle dataType, string portId, PortModelOptions options, Attribute[] attributes)
+            : base(nodeModel, direction, orientation, portName, portType, dataType, portId, options, attributes) { }
     }
 }

@@ -503,9 +503,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override PortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
             PortType portType,
-            TypeHandle dataType, string portId, PortModelOptions options)
+            TypeHandle dataType, string portId, PortModelOptions options, Attribute[] attributes)
         {
-            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
+            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options, attributes);
         }
 
         public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
