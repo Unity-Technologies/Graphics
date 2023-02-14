@@ -32,6 +32,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #pragma multi_compile_local_fragment _SOURCE_DEPTH_LOW _SOURCE_DEPTH_MEDIUM _SOURCE_DEPTH_HIGH _SOURCE_DEPTH_NORMALS
                 #pragma multi_compile_local_fragment _ _ORTHOGRAPHIC
                 #pragma multi_compile_local_fragment _SAMPLE_COUNT_LOW _SAMPLE_COUNT_MEDIUM _SAMPLE_COUNT_HIGH
+                #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL

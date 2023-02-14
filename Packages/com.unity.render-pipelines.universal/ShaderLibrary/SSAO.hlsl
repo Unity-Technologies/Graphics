@@ -6,6 +6,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
 // Textures & Samplers
 TEXTURE2D_HALF(_BlueNoiseTexture);
@@ -185,7 +186,7 @@ half GetRandomVal(half u, half sampleIndex)
 }
 
 // Sample point picker
-half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcpSampleCount, half3 normal_o)
+half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcpSampleCount, half3 normal_o, float2 pixelDensity)
 {
     #if defined(_BLUE_NOISE)
         const half lerpVal = sampleIndexHalf * rcpSampleCount;
@@ -209,7 +210,9 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
         v = faceforward(v, -normal_o, v);
     #endif
 
-    return v * RADIUS;
+    v *= RADIUS;
+    v.xy *= pixelDensity;
+    return v;
 }
 
 float SampleDepth(float2 uv)
@@ -235,6 +238,10 @@ float SampleAndGetLinearEyeDepth(float2 uv)
 // This returns a vector in world unit (not a position), from camera to the given point described by uv screen coordinate and depth (in absolute world unit).
 half3 ReconstructViewPos(float2 uv, float linearDepth)
 {
+    #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+        uv = RemapFoveatedRenderingDistort(uv);
+    #endif
+
     // Screen is y-inverted.
     uv.y = 1.0 - uv.y;
 
@@ -262,18 +269,20 @@ half3 ReconstructViewPos(float2 uv, float linearDepth)
 // High:   5 taps on each direction: | z | x | * | y | w |
 // https://atyuwen.github.io/posts/normal-reconstruction/
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
-half3 ReconstructNormal(float2 uv, float linearDepth, float3 vpos)
+half3 ReconstructNormal(float2 uv, float linearDepth, float3 vpos, float2 pixelDensity)
 {
     #if defined(_SOURCE_DEPTH_LOW)
         return half3(normalize(cross(ddy(vpos), ddx(vpos))));
     #else
         float2 delta = float2(_SourceSize.zw * 2.0);
 
+        pixelDensity = rcp(pixelDensity);
+
         // Sample the neighbour fragments
-        float2 lUV = float2(-delta.x, 0.0);
-        float2 rUV = float2( delta.x, 0.0);
-        float2 uUV = float2(0.0,  delta.y);
-        float2 dUV = float2(0.0, -delta.y);
+        float2 lUV = float2(-delta.x, 0.0) * pixelDensity;
+        float2 rUV = float2(delta.x, 0.0) * pixelDensity;
+        float2 uUV = float2(0.0, delta.y) * pixelDensity;
+        float2 dUV = float2(0.0, -delta.y) * pixelDensity;
 
         float3 l1 = float3(uv + lUV, 0.0); l1.z = SampleAndGetLinearEyeDepth(l1.xy); // Left1
         float3 r1 = float3(uv + rUV, 0.0); r1.z = SampleAndGetLinearEyeDepth(r1.xy); // Right1
@@ -321,13 +330,13 @@ half3 ReconstructNormal(float2 uv, float linearDepth, float3 vpos)
     #endif
 }
 
-half3 SampleNormal(float2 uv, float linearDepth)
+half3 SampleNormal(float2 uv, float linearDepth, float2 pixelDensity)
 {
     #if defined(_SOURCE_DEPTH_NORMALS)
         return half3(SampleSceneNormals(uv));
     #else
         float3 vpos = ReconstructViewPos(uv, linearDepth);
-        return ReconstructNormal(uv, linearDepth, vpos);
+        return ReconstructNormal(uv, linearDepth, vpos, pixelDensity);
     #endif
 }
 
@@ -338,7 +347,6 @@ half4 SSAO(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = input.texcoord;
-
     // Early Out for Sky...
     float rawDepth_o = SampleDepth(uv);
     if (rawDepth_o < SKY_DEPTH_VALUE)
@@ -350,9 +358,15 @@ half4 SSAO(Varyings input) : SV_Target
     if (halfLinearDepth_o > FALLOFF)
         return PackAONormal(HALF_ZERO, HALF_ZERO);
 
-    // Normal for this fragment
-    half3 normal_o = SampleNormal(uv, linearDepth_o);
+    #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+        float2 pixelDensity = RemapFoveatedRenderingDensity(RemapFoveatedRenderingDistort(uv));
+    #else
+        float2 pixelDensity = float2(1.0f, 1.0f);
+    #endif
 
+    // Normal for this fragment
+    half3 normal_o = SampleNormal(uv, linearDepth_o, pixelDensity);
+    
     // View position for this fragment
     float3 vpos_o = ReconstructViewPos(uv, linearDepth_o);
 
@@ -369,7 +383,7 @@ half4 SSAO(Varyings input) : SV_Target
         sHalf += HALF_ONE;
 
         // Sample point
-        half3 v_s1 = PickSamplePoint(uv, s, sHalf, rcpSampleCount, normal_o);
+        half3 v_s1 = PickSamplePoint(uv, s, sHalf, rcpSampleCount, normal_o, pixelDensity);
         half3 vpos_s1 = half3(vpos_o + v_s1);
         half2 spos_s1 = half2(
             camTransform000102.x * vpos_s1.x + camTransform000102.y * vpos_s1.y + camTransform000102.z * vpos_s1.z,
@@ -383,6 +397,10 @@ half4 SSAO(Varyings input) : SV_Target
         #else
             zDist = half(-dot(UNITY_MATRIX_V[2].xyz, vpos_s1));
             half2 uv_s1_01 = saturate(half2(spos_s1 * rcp(zDist) + HALF_ONE) * HALF_HALF);
+        #endif
+
+        #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+            uv_s1_01 = RemapFoveatedRenderingResolve(uv_s1_01);
         #endif
 
         // Relative depth of the sample point
