@@ -196,14 +196,14 @@ namespace UnityEngine.Rendering.PostProcessing
 
             float tanHalfFovH = CalculateTanHalfFovHeight(camera);
             PushRenderCommands(cmd, ShaderIDs.TiledDepth1, ShaderIDs.Occlusion1, GetSizeArray(MipLevel.L3), tanHalfFovH, isMSAA);
-            PushRenderCommands(cmd, ShaderIDs.TiledDepth2, ShaderIDs.Occlusion2, GetSizeArray(MipLevel.L4), tanHalfFovH, isMSAA);
+            PushRenderCommands(cmd, ShaderIDs.TiledDepth1, ShaderIDs.Occlusion2, GetSizeArray(MipLevel.L4), tanHalfFovH, isMSAA, true);
             PushRenderCommands(cmd, ShaderIDs.TiledDepth3, ShaderIDs.Occlusion3, GetSizeArray(MipLevel.L5), tanHalfFovH, isMSAA);
-            PushRenderCommands(cmd, ShaderIDs.TiledDepth4, ShaderIDs.Occlusion4, GetSizeArray(MipLevel.L6), tanHalfFovH, isMSAA);
+            PushRenderCommands(cmd, ShaderIDs.TiledDepth3, ShaderIDs.Occlusion4, GetSizeArray(MipLevel.L6), tanHalfFovH, isMSAA, true);
 
-            PushUpsampleCommands(cmd, ShaderIDs.LowDepth4, ShaderIDs.Occlusion4, ShaderIDs.LowDepth3, ShaderIDs.Occlusion3, ShaderIDs.Combined3, GetSize(MipLevel.L4), GetSize(MipLevel.L3), isMSAA);
-            PushUpsampleCommands(cmd, ShaderIDs.LowDepth3, ShaderIDs.Combined3, ShaderIDs.LowDepth2, ShaderIDs.Occlusion2, ShaderIDs.Combined2, GetSize(MipLevel.L3), GetSize(MipLevel.L2), isMSAA);
-            PushUpsampleCommands(cmd, ShaderIDs.LowDepth2, ShaderIDs.Combined2, ShaderIDs.LowDepth1, ShaderIDs.Occlusion1, ShaderIDs.Combined1, GetSize(MipLevel.L2), GetSize(MipLevel.L1), isMSAA);
-            PushUpsampleCommands(cmd, ShaderIDs.LowDepth1, ShaderIDs.Combined1, ShaderIDs.LinearDepth, null, destination, GetSize(MipLevel.L1), GetSize(MipLevel.Original), isMSAA, invert);
+            PushUpsampleCommands(cmd, ShaderIDs.LowDepth3, ShaderIDs.Occlusion4, ShaderIDs.LowDepth3, ShaderIDs.Occlusion3, ShaderIDs.Combined3, GetSize(MipLevel.L4), GetSize(MipLevel.L3), isMSAA);
+            PushUpsampleCommands(cmd, ShaderIDs.LowDepth3, ShaderIDs.Combined3, ShaderIDs.LowDepth1, ShaderIDs.Occlusion2, ShaderIDs.Combined2, GetSize(MipLevel.L3), GetSize(MipLevel.L2), isMSAA, true);
+            PushUpsampleCommands(cmd, ShaderIDs.LowDepth1, ShaderIDs.Combined2, ShaderIDs.LowDepth1, ShaderIDs.Occlusion1, ShaderIDs.Combined1, GetSize(MipLevel.L2), GetSize(MipLevel.L1), isMSAA);
+            PushUpsampleCommands(cmd, ShaderIDs.LowDepth1, ShaderIDs.Combined1, ShaderIDs.LinearDepth, null, destination, GetSize(MipLevel.L1), GetSize(MipLevel.Original), isMSAA, false, invert);
 
             // Cleanup
             PushReleaseCommands(cmd);
@@ -217,14 +217,10 @@ namespace UnityEngine.Rendering.PostProcessing
                 Alloc(cmd, ShaderIDs.LinearDepth, MipLevel.Original, RenderTextureFormat.RGHalf, true, dynamicResolutionEnabled);
 
                 Alloc(cmd, ShaderIDs.LowDepth1, MipLevel.L1, RenderTextureFormat.RGFloat, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.LowDepth2, MipLevel.L2, RenderTextureFormat.RGFloat, true, dynamicResolutionEnabled);
                 Alloc(cmd, ShaderIDs.LowDepth3, MipLevel.L3, RenderTextureFormat.RGFloat, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.LowDepth4, MipLevel.L4, RenderTextureFormat.RGFloat, true, dynamicResolutionEnabled);
 
                 AllocArray(cmd, ShaderIDs.TiledDepth1, MipLevel.L3, RenderTextureFormat.RGHalf, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth2, MipLevel.L4, RenderTextureFormat.RGHalf, true, dynamicResolutionEnabled);
                 AllocArray(cmd, ShaderIDs.TiledDepth3, MipLevel.L5, RenderTextureFormat.RGHalf, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth4, MipLevel.L6, RenderTextureFormat.RGHalf, true, dynamicResolutionEnabled);
 
                 Alloc(cmd, ShaderIDs.Occlusion1, MipLevel.L1, RenderTextureFormat.RG16, true, dynamicResolutionEnabled);
                 Alloc(cmd, ShaderIDs.Occlusion2, MipLevel.L2, RenderTextureFormat.RG16, true, dynamicResolutionEnabled);
@@ -237,26 +233,22 @@ namespace UnityEngine.Rendering.PostProcessing
             }
             else
             {
-                Alloc(cmd, ShaderIDs.LinearDepth, MipLevel.Original, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.LinearDepth, MipLevel.Original, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
 
-                Alloc(cmd, ShaderIDs.LowDepth1, MipLevel.L1, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.LowDepth2, MipLevel.L2, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.LowDepth3, MipLevel.L3, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.LowDepth4, MipLevel.L4, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.LowDepth1, MipLevel.L1, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.LowDepth3, MipLevel.L3, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
 
-                AllocArray(cmd, ShaderIDs.TiledDepth1, MipLevel.L3, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth2, MipLevel.L4, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth3, MipLevel.L5, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth4, MipLevel.L6, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth1, MipLevel.L3, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth3, MipLevel.L5, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
 
-                Alloc(cmd, ShaderIDs.Occlusion1, MipLevel.L1, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Occlusion2, MipLevel.L2, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Occlusion3, MipLevel.L3, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Occlusion4, MipLevel.L4, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion1, MipLevel.L1, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion2, MipLevel.L2, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion3, MipLevel.L3, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion4, MipLevel.L4, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
 
-                Alloc(cmd, ShaderIDs.Combined1, MipLevel.L1, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Combined2, MipLevel.L2, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Combined3, MipLevel.L3, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Combined1, MipLevel.L1, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Combined2, MipLevel.L2, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Combined3, MipLevel.L3, RenderTextureFormat.ARGBHalf, true, dynamicResolutionEnabled);
             }
         }
 
@@ -292,9 +284,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
             cmd.SetComputeTextureParam(cs, kernel, "LinearZ", ShaderIDs.LinearDepth);
             cmd.SetComputeTextureParam(cs, kernel, "DS2x", ShaderIDs.LowDepth1);
-            cmd.SetComputeTextureParam(cs, kernel, "DS4x", ShaderIDs.LowDepth2);
             cmd.SetComputeTextureParam(cs, kernel, "DS2xAtlas", ShaderIDs.TiledDepth1);
-            cmd.SetComputeTextureParam(cs, kernel, "DS4xAtlas", ShaderIDs.TiledDepth2);
             cmd.SetComputeVectorParam(cs, "ZBufferParams", CalculateZBufferParams(camera));
             cmd.SetComputeTextureParam(cs, kernel, "Depth", depthMapId);
 
@@ -307,16 +297,14 @@ namespace UnityEngine.Rendering.PostProcessing
             cs = m_Resources.computeShaders.multiScaleAODownsample2;
             kernel = isMSAA ? cs.FindKernel("MultiScaleVODownsample2_MSAA") : cs.FindKernel("MultiScaleVODownsample2");
 
-            cmd.SetComputeTextureParam(cs, kernel, "DS4x", ShaderIDs.LowDepth2);
+            cmd.SetComputeTextureParam(cs, kernel, "DS4x", ShaderIDs.LowDepth1);
             cmd.SetComputeTextureParam(cs, kernel, "DS8x", ShaderIDs.LowDepth3);
-            cmd.SetComputeTextureParam(cs, kernel, "DS16x", ShaderIDs.LowDepth4);
             cmd.SetComputeTextureParam(cs, kernel, "DS8xAtlas", ShaderIDs.TiledDepth3);
-            cmd.SetComputeTextureParam(cs, kernel, "DS16xAtlas", ShaderIDs.TiledDepth4);
 
             cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L6], m_ScaledHeights[(int)MipLevel.L6], 1);
         }
 
-        void PushRenderCommands(CommandBuffer cmd, int source, int destination, Vector3 sourceSize, float tanHalfFovH, bool isMSAA)
+        void PushRenderCommands(CommandBuffer cmd, int source, int destination, Vector3 sourceSize, float tanHalfFovH, bool isMSAA, bool secondaryChannel = false)
         {
             // Here we compute multipliers that convert the center depth value into (the reciprocal
             // of) sphere thicknesses at each sample location. This assumes a maximum sample radius
@@ -389,7 +377,7 @@ namespace UnityEngine.Rendering.PostProcessing
             cmd.SetComputeFloatParams(cs, "gInvThicknessTable", m_InvThicknessTable);
             cmd.SetComputeFloatParams(cs, "gSampleWeightTable", m_SampleWeightTable);
             cmd.SetComputeVectorParam(cs, "gInvSliceDimension", new Vector2(1f / sourceSize.x, 1f / sourceSize.y));
-            cmd.SetComputeVectorParam(cs, "AdditionalParams", new Vector3(-1f / m_Settings.thicknessModifier.value, m_Settings.intensity.value, m_Settings.zBias.value));
+            cmd.SetComputeVectorParam(cs, "AdditionalParams", new Vector4(-1f / m_Settings.thicknessModifier.value, m_Settings.intensity.value, m_Settings.zBias.value, secondaryChannel ? 1.0f : 0.0f));
             cmd.SetComputeTextureParam(cs, kernel, "DepthTex", source);
             cmd.SetComputeTextureParam(cs, kernel, "Occlusion", destination);
 
@@ -405,7 +393,7 @@ namespace UnityEngine.Rendering.PostProcessing
             );
         }
 
-        void PushUpsampleCommands(CommandBuffer cmd, int lowResDepth, int interleavedAO, int highResDepth, int? highResAO, RenderTargetIdentifier dest, Vector3 lowResDepthSize, Vector2 highResDepthSize, bool isMSAA, bool invert = false)
+        void PushUpsampleCommands(CommandBuffer cmd, int lowResDepth, int interleavedAO, int highResDepth, int? highResAO, RenderTargetIdentifier dest, Vector3 lowResDepthSize, Vector2 highResDepthSize, bool isMSAA, bool secondaryChannel = false, bool invert = false)
         {
             var cs = m_Resources.computeShaders.multiScaleAOUpsample;
             int kernel = 0;
@@ -434,7 +422,14 @@ namespace UnityEngine.Rendering.PostProcessing
             cmd.SetComputeVectorParam(cs, "InvLowResolution", new Vector2(1f / lowResDepthSize.x, 1f / lowResDepthSize.y));
             cmd.SetComputeVectorParam(cs, "InvHighResolution", new Vector2(1f / highResDepthSize.x, 1f / highResDepthSize.y));
             cmd.SetComputeVectorParam(cs, "AdditionalParams", new Vector4(noiseFilterWeight, stepSize, bTolerance, uTolerance));
+            float output = secondaryChannel ? 1.0f : 0.0f;
+            float[] outputTable = new float[4];
+            outputTable[0] = output;
+            outputTable[1] = output;
+            outputTable[2] = output;
+            outputTable[3] = output;
 
+            //cmd.SetComputeFloatParams(cs, "MoreParams", outputTable);
             cmd.SetComputeTextureParam(cs, kernel, "LoResDB", lowResDepth);
             cmd.SetComputeTextureParam(cs, kernel, "HiResDB", highResDepth);
             cmd.SetComputeTextureParam(cs, kernel, "LoResAO1", interleavedAO);
@@ -454,14 +449,10 @@ namespace UnityEngine.Rendering.PostProcessing
             Release(cmd, ShaderIDs.LinearDepth);
 
             Release(cmd, ShaderIDs.LowDepth1);
-            Release(cmd, ShaderIDs.LowDepth2);
             Release(cmd, ShaderIDs.LowDepth3);
-            Release(cmd, ShaderIDs.LowDepth4);
 
             Release(cmd, ShaderIDs.TiledDepth1);
-            Release(cmd, ShaderIDs.TiledDepth2);
             Release(cmd, ShaderIDs.TiledDepth3);
-            Release(cmd, ShaderIDs.TiledDepth4);
 
             Release(cmd, ShaderIDs.Occlusion1);
             Release(cmd, ShaderIDs.Occlusion2);
@@ -492,7 +483,7 @@ namespace UnityEngine.Rendering.PostProcessing
             {
                 RuntimeUtilities.Destroy(m_AmbientOnlyAO);
 
-                m_AmbientOnlyAO = new RenderTexture(context.width, context.height, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear)
+                m_AmbientOnlyAO = new RenderTexture(context.width, context.height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
                 {
                     hideFlags = HideFlags.DontSave,
                     filterMode = FilterMode.Point,

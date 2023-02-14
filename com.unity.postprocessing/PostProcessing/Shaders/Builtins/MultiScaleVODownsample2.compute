@@ -28,17 +28,13 @@
 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
 
 #ifdef MSAA
-Texture2D<float2> DS4x;
-RWTexture2D<float2> DS8x;
-RWTexture2DArray<float2> DS8xAtlas;
-RWTexture2D<float2> DS16x;
-RWTexture2DArray<float2> DS16xAtlas;
+Texture2D<float4> DS4x;
+RWTexture2D<float4> DS8x;
+RWTexture2DArray<float4> DS8xAtlas;
 #else
-Texture2D<float> DS4x;
-RWTexture2D<float> DS8x;
-RWTexture2DArray<float> DS8xAtlas;
-RWTexture2D<float> DS16x;
-RWTexture2DArray<float> DS16xAtlas;
+Texture2D<half4> DS4x;
+RWTexture2D<half4> DS8x;
+RWTexture2DArray<half4> DS8xAtlas;
 #endif
 
 
@@ -52,24 +48,36 @@ TRIVIAL_COMPUTE_KERNEL(main)
 void main(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
 {
     #ifdef MSAA
-    float2 m1 = DS4x[DTid.xy << 1];
+    float2 m1 = DS4x[DTid.xy << 1].zw;
     #else
-    float m1 = DS4x[DTid.xy << 1];
+    float m1 = DS4x[DTid.xy << 1].y;
     #endif
 
     uint2 st = DTid.xy;
     uint2 stAtlas = st >> 2;
     uint stSlice = ((st.x & 3) | (st.y << 2)) & 15;
-    DS8x[st] = m1;
-    DS8xAtlas[uint3(stAtlas, stSlice)] = m1;
+
+    #ifdef MSAA
+    DS8x[st] = float4(m1.x, m1.y, 0.0, 0.0);
+    DS8xAtlas[uint3(stAtlas, stSlice)] = float4(m1.x, m1.y, 0.0, 0.0);
+    #else
+    DS8x[st] = float4(m1, 0.0, 0.0, 0.0);
+    DS8xAtlas[uint3(stAtlas, stSlice)] = float4(m1, 0.0, 0.0, 0.0);
+    #endif
 
     if ((GI & 011) == 0)
     {
         uint2 st = DTid.xy >> 1;
         uint2 stAtlas = st >> 2;
         uint stSlice = ((st.x & 3) | (st.y << 2)) & 15;
-        DS16x[st] = m1;
-        DS16xAtlas[uint3(stAtlas, stSlice)] = m1;
+
+        #ifdef MSAA
+        DS8x[st] = float4(m1.x, m1.y, m1.x, m1.y);
+        DS8xAtlas[uint3(stAtlas, stSlice)] = float4(m1.x, m1.y, m1.x, m1.y);
+        #else
+        DS8x[st] = float4(m1, m1, 0.0, 0.0);
+        DS8xAtlas[uint3(stAtlas, stSlice)] = float4(m1, m1, 0.0, 0.0);
+        #endif
     }
 }
 

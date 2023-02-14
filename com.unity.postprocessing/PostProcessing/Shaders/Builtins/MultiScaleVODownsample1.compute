@@ -29,11 +29,9 @@
 
 #ifdef MSAA
 // Output textures
-RWTexture2D<float2> LinearZ;
-RWTexture2D<float2> DS2x;
-RWTexture2DArray<float2> DS2xAtlas;
-RWTexture2D<float2> DS4x;
-RWTexture2DArray<float2> DS4xAtlas;
+RWTexture2D<half4> LinearZ;
+RWTexture2D<float4> DS2x;
+RWTexture2DArray<float4> DS2xAtlas;
 
 // Input textures
 Texture2D<float4> Depth;
@@ -42,11 +40,9 @@ Texture2D<float4> Depth;
 groupshared float2 g_CacheW[256];
 #else
 // Output textures
-RWTexture2D<float> LinearZ;
-RWTexture2D<float> DS2x;
-RWTexture2DArray<float> DS2xAtlas;
-RWTexture2D<float> DS4x;
-RWTexture2DArray<float> DS4xAtlas;
+RWTexture2D<half4> LinearZ;
+RWTexture2D<half4> DS2x;
+RWTexture2DArray<half4> DS2xAtlas;
 
 // Input textures
 Texture2D<float> Depth;
@@ -74,7 +70,7 @@ float2 Linearize(uint2 st)
     if (depth.x == 1) dist.x = 1e5;
     if (depth.y == 1) dist.y = 1e5;
 #endif
-    LinearZ[st] = dist;
+    LinearZ[st] = float4(dist.xy, 0.0, 0.0);
     return dist;
 }
 #else
@@ -87,7 +83,7 @@ float Linearize(uint2 st)
 #else
     if (depth == 1) dist = 1e5;
 #endif
-    LinearZ[st] = dist;
+    LinearZ[st] = float4(dist, 0.0, 0.0, 0.0);
     return dist;
 }
 #endif
@@ -120,15 +116,27 @@ void main(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_Group
     #endif
     uint2 st = DTid.xy;
     uint slice = ((st.x & 3) | (st.y << 2)) & 15;
-    DS2x[st] = w1;
-    DS2xAtlas[uint3(st >> 2, slice)] = w1;
+
+    #ifdef MSAA
+    DS2x[st] = float4(w1.x, w1.y, 0.0, 0.0);
+    DS2xAtlas[uint3(st >> 2, slice)] = float4(w1.x, w1.y, 0.0, 0.0);
+    #else
+    DS2x[st] = float4(w1, 0.0, 0.0, 0.0);
+    DS2xAtlas[uint3(st >> 2, slice)] = float4(w1, 0.0, 0.0, 0.0);
+    #endif
 
     if ((GI & 011) == 0)
     {
         st = DTid.xy >> 1;
         slice = ((st.x & 3) | (st.y << 2)) & 15;
-        DS4x[st] = w1;
-        DS4xAtlas[uint3(st >> 2, slice)] = w1;
+
+        #ifdef MSAA
+        DS2x[st] = float4(w1.x, w1.y, w1.x, w1.y);
+        DS2xAtlas[uint3(st >> 2, slice)] = float4(w1.x, w1.y, w1.x, w1.y);
+        #else
+        DS2x[st] = float4(w1, w1, 0.0, 0.0);
+        DS2xAtlas[uint3(st >> 2, slice)] = float4(w1, w1, 0.0, 0.0);
+        #endif
     }
 
 }

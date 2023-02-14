@@ -38,14 +38,14 @@
 
 
 #ifdef MSAA
-    Texture2D<float2> LoResDB; SamplerState samplerLoResDB;
-    Texture2D<float2> HiResDB; SamplerState samplerHiResDB;
-    Texture2D<float2> LoResAO1; SamplerState samplerLoResAO1;
+    Texture2D<float2> LoResDB;// SamplerState samplerLoResDB;
+    Texture2D<float2> HiResDB; //SamplerState samplerHiResDB;
+    Texture2D<float2> LoResAO1;// SamplerState samplerLoResAO1;
     #ifdef COMBINE_LOWER_RESOLUTIONS
-    Texture2D<float2> LoResAO2; SamplerState samplerLoResAO2;
+    Texture2D<float2> LoResAO2;// SamplerState samplerLoResAO2;
     #endif
     #ifdef BLEND_WITH_HIGHER_RESOLUTION
-    Texture2D<float2> HiResAO; SamplerState samplerHiResAO;
+    Texture2D<float2> HiResAO; //SamplerState samplerHiResAO;
     #endif
     // Output textures
     RWTexture2D<float2> AoResult;
@@ -54,20 +54,25 @@
     groupshared float2 DepthCache[256];
     groupshared float2 AOCache1[256];
     groupshared float2 AOCache2[256];
+
+    SamplerState sampler_linear_clamp_comparegreater;
+
 #else
     // Input textures
-    Texture2D<float> LoResDB; SamplerState samplerLoResDB;
-    Texture2D<float> HiResDB; SamplerState samplerHiResDB;
-    Texture2D<float> LoResAO1; SamplerState samplerLoResAO1;
+    Texture2D<half4> LoResDB;// SamplerState samplerLoResDB;
+    Texture2D<half4> HiResDB; //SamplerState samplerHiResDB;
+    Texture2D<half4> LoResAO1; //SamplerState samplerLoResAO1;
     #ifdef COMBINE_LOWER_RESOLUTIONS
-    Texture2D<float> LoResAO2; SamplerState samplerLoResAO2;
+    Texture2D<half4> LoResAO2; //SamplerState samplerLoResAO2;
     #endif
     #ifdef BLEND_WITH_HIGHER_RESOLUTION
-    Texture2D<float> HiResAO; SamplerState samplerHiResAO;
+    Texture2D<half4> HiResAO; //SamplerState samplerHiResAO;
     #endif
 
+    SamplerState sampler_linear_clamp_comparegreater;
+
     // Ouput textures
-    RWTexture2D<float> AoResult;
+    RWTexture2D<half4> AoResult;
 
     // Shared memory
     groupshared float DepthCache[256];
@@ -90,12 +95,12 @@ CBUFFER_END
 void PrefetchData(uint index, float2 uv)
 {
 #ifdef MSAA
-    float4 AO1_0 = LoResAO1.GatherRed(samplerLoResAO1, uv);
-    float4 AO1_1 = LoResAO1.GatherGreen(samplerLoResAO1, uv);
+    float4 AO1_0 = LoResAO1.GatherRed(sampler_linear_clamp_comparegreater, uv);
+    float4 AO1_1 = LoResAO1.GatherGreen(sampler_linear_clamp_comparegreater, uv);
 
 #ifdef COMBINE_LOWER_RESOLUTIONS
-    AO1_0 = min(AO1_0, LoResAO2.GatherRed(samplerLoResAO2, uv));
-    AO1_1 = min(AO1_1, LoResAO2.GatherGreen(samplerLoResAO2, uv));
+    AO1_0 = min(AO1_0, LoResAO2.GatherRed(sampler_linear_clamp_comparegreater, uv));
+    AO1_1 = min(AO1_1, LoResAO2.GatherGreen(sampler_linear_clamp_comparegreater, uv));
 #endif
 
     AOCache1[index] = float2(AO1_0.w, AO1_1.w);
@@ -103,17 +108,17 @@ void PrefetchData(uint index, float2 uv)
     AOCache1[index + 16] = float2(AO1_0.x, AO1_1.x);
     AOCache1[index + 17] = float2(AO1_0.y, AO1_1.y);
 
-    float4 ID_0 = 1.0 / LoResDB.GatherRed(samplerLoResDB, uv);
-    float4 ID_1 = 1.0 / LoResDB.GatherGreen(samplerLoResDB, uv);
+    float4 ID_0 = 1.0 / LoResDB.GatherRed(sampler_linear_clamp_comparegreater, uv);
+    float4 ID_1 = 1.0 / LoResDB.GatherGreen(sampler_linear_clamp_comparegreater, uv);
     DepthCache[index] = float2(ID_0.w, ID_1.w);
     DepthCache[index + 1] = float2(ID_0.z, ID_1.z);
     DepthCache[index + 16] = float2(ID_0.x, ID_1.x);
     DepthCache[index + 17] = float2(ID_0.y, ID_1.y);
 #else
-    float4 AO1 = LoResAO1.Gather(samplerLoResAO1, uv);
+    float4 AO1 = LoResAO1.Gather(sampler_linear_clamp_comparegreater, uv);
 
 #ifdef COMBINE_LOWER_RESOLUTIONS
-    AO1 = min(AO1, LoResAO2.Gather(samplerLoResAO2, uv));
+    AO1 = min(AO1, LoResAO2.Gather(sampler_linear_clamp_comparegreater, uv));
 #endif
 
     AOCache1[index] = AO1.w;
@@ -121,7 +126,7 @@ void PrefetchData(uint index, float2 uv)
     AOCache1[index + 16] = AO1.x;
     AOCache1[index + 17] = AO1.y;
 
-    float4 ID = 1.0 / LoResDB.Gather(samplerLoResDB, uv);
+    float4 ID = 1.0 / LoResDB.GatherGreen(sampler_linear_clamp_comparegreater, uv);
     DepthCache[index] = ID.w;
     DepthCache[index + 1] = ID.z;
     DepthCache[index + 16] = ID.x;
@@ -380,16 +385,16 @@ void MAIN(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_Group
 
 #ifdef MSAA
     #ifdef BLEND_WITH_HIGHER_RESOLUTION
-        float4 HiSSAOs0 = HiResAO.GatherRed(samplerHiResAO, UV1);
-        float4 HiSSAOs1 = HiResAO.GatherGreen(samplerHiResAO, UV1);
+        float4 HiSSAOs0 = HiResAO.GatherRed(sampler_linear_clamp_comparegreater, UV1);
+        float4 HiSSAOs1 = HiResAO.GatherGreen(sampler_linear_clamp_comparegreater, UV1);
     #else
         float4 HiSSAOs0 = 1.0;
         float4 HiSSAOs1 = 1.0;
     #endif
-    float4 LoDepths0 = LoResDB.GatherRed(samplerLoResDB, UV0);
-    float4 LoDepths1 = LoResDB.GatherGreen(samplerLoResDB, UV0);
-    float4 HiDepths0 = HiResDB.GatherRed(samplerHiResDB, UV1);
-    float4 HiDepths1 = HiResDB.GatherGreen(samplerHiResDB, UV1);
+    float4 LoDepths0 = LoResDB.GatherRed(sampler_linear_clamp_comparegreater, UV0);
+    float4 LoDepths1 = LoResDB.GatherGreen(sampler_linear_clamp_comparegreater, UV0);
+    float4 HiDepths0 = HiResDB.GatherRed(sampler_linear_clamp_comparegreater, UV1);
+    float4 HiDepths1 = HiResDB.GatherGreen(sampler_linear_clamp_comparegreater, UV1);
 
     int2 OutST = DTid.xy << 1;
 
@@ -406,25 +411,25 @@ void MAIN(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_Group
     #endif
 #else
     #ifdef BLEND_WITH_HIGHER_RESOLUTION
-        float4 HiSSAOs = HiResAO.Gather(samplerHiResAO, UV1);
+        float4 HiSSAOs = HiResAO.Gather(sampler_linear_clamp_comparegreater, UV1);
     #else
         float4 HiSSAOs = 1.0;
     #endif
-    float4 LoDepths = LoResDB.Gather(samplerLoResDB, UV0);
-    float4 HiDepths = HiResDB.Gather(samplerHiResDB, UV1);
+    float4 LoDepths = LoResDB.GatherGreen(sampler_linear_clamp_comparegreater, UV0);
+    float4 HiDepths = HiResDB.GatherRed(sampler_linear_clamp_comparegreater, UV1);
 
     int2 OutST = DTid.xy << 1;
 
     #ifdef INVERT
-        AoResult[OutST + int2(-1,  0)] = 1.0 - BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
-        AoResult[OutST + int2( 0,  0)] = 1.0 - BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
-        AoResult[OutST + int2( 0, -1)] = 1.0 - BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
-        AoResult[OutST + int2(-1, -1)] = 1.0 - BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        AoResult[OutST + int2(-1,  0)] = float4(1.0 - BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw), 0.0, 0.0, 0.0);
+        AoResult[OutST + int2( 0,  0)] = float4(1.0 - BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx), 0.0, 0.0, 0.0);
+        AoResult[OutST + int2( 0, -1)] = float4(1.0 - BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy), 0.0, 0.0, 0.0);
+        AoResult[OutST + int2(-1, -1)] = float4(1.0 - BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz), 0.0, 0.0, 0.0);
     #else
-        AoResult[OutST + int2(-1,  0)] = BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
-        AoResult[OutST + int2( 0,  0)] = BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
-        AoResult[OutST + int2( 0, -1)] = BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
-        AoResult[OutST + int2(-1, -1)] = BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        AoResult[OutST + int2(-1,  0)] = float4(BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw), 0.0, 0.0, 0.0);
+        AoResult[OutST + int2( 0,  0)] = float4(BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx), 0.0, 0.0, 0.0);
+        AoResult[OutST + int2( 0, -1)] = float4(BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy), 0.0, 0.0, 0.0);
+        AoResult[OutST + int2(-1, -1)] = float4(BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz), 0.0, 0.0, 0.0);
     #endif
 #endif
 }
