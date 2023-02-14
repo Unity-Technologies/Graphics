@@ -143,7 +143,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public RendererListHandle UseRendererList(in RendererListHandle input)
         {
-            m_RenderPass.UseRendererList(input);
+            if(input.IsValid())
+                m_RenderPass.UseRendererList(input);
             return input;
         }
 

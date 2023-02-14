@@ -144,9 +144,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             base.expanded = node.drawState.expanded;
             AddSlots(node.GetSlots<MaterialSlot>());
 
-            if (node is SubGraphNode)
+            switch (node)
             {
-                RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
+                case SubGraphNode:
+                    RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
+                    break;
             }
 
             m_TitleContainer = this.Q("title");

@@ -71,9 +71,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
         public override void Create()
         {
-            if (m_Shader != null)
-                m_Material = new Material(m_Shader);
-
+            m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
             m_RenderPass = new ColorBlitPass(m_Material);
         }
 

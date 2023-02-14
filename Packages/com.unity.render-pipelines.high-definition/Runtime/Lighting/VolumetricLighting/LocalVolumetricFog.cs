@@ -189,16 +189,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Action shich should be performed after updating the texture.</summary>
         public Action OnTextureUpdated;
 
+        [NonSerialized]
         MaterialPropertyBlock m_RenderingProperties;
+        [NonSerialized]
         int m_GlobalIndex;
 
         [NonSerialized]
         internal Material textureMaterial;
 
         /// <summary>Gather and Update any parameters that may have changed.</summary>
-        internal void PrepareParameters(float time, int globalIndex)
+        internal void PrepareParameters(float time)
         {
-            m_GlobalIndex = globalIndex;
             parameters.Update(time);
         }
 
@@ -217,8 +218,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int GetGlobalIndex() => m_GlobalIndex;
 
-        void LateUpdate()
+        internal void PrepareDrawCall(int globalIndex)
         {
+            m_GlobalIndex = globalIndex;
             if (!LocalVolumetricFogManager.manager.IsInitialized())
                 return;
 
@@ -235,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 bool alphaTexture = false;
                 if (textureMaterial == null)
-                    textureMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.currentPipeline.GetDefaultFogVolumeShader());
+                    textureMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaderGraphs.defaultFogVolumeShader);
 
                 // Setup properties for material:
                 FogVolumeAPI.SetupFogVolumeBlendMode(textureMaterial, parameters.blendingMode);
@@ -266,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // We can put this in global
-            m_RenderingProperties.SetBuffer(HDShaderIDs._VolumetricMaterialData, HDRenderPipeline.currentPipeline.m_VolumetricMaterialDataBuffer);
+            m_RenderingProperties.SetBuffer(HDShaderIDs._VolumetricMaterialData, LocalVolumetricFogManager.manager.volumetricMaterialDataBuffer);
 
             // Send local properties inside constants instead of structured buffer to optimize GPU reads
             var engineData = parameters.ConvertToEngineData();
@@ -301,7 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightProbeUsage = LightProbeUsage.Off,
             };
 
-            Graphics.RenderPrimitivesIndexedIndirect(renderParams, MeshTopology.Triangles, HDRenderPipeline.currentPipeline.m_VolumetricMaterialIndexBuffer, LocalVolumetricFogManager.manager.globalIndirectBuffer, 1, m_GlobalIndex);
+            Graphics.RenderPrimitivesIndexedIndirect(renderParams, MeshTopology.Triangles, LocalVolumetricFogManager.manager.volumetricMaterialIndexBuffer, LocalVolumetricFogManager.manager.globalIndirectBuffer, 1, m_GlobalIndex);
         }
 
 #if UNITY_EDITOR

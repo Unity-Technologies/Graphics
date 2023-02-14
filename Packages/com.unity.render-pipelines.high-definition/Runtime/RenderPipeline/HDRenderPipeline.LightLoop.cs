@@ -1233,7 +1233,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
-                    bool useAsync = hdCamera.frameSettings.SSRRunsAsync();
+                    // We disable async for transparent SSR as it would cause direct sync to the graphics pipe and would compete with other heavy passes for GPU resource.
+                    bool useAsync = hdCamera.frameSettings.SSRRunsAsync() && !transparent;
                     builder.EnableAsyncCompute(useAsync);
 
                     hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);

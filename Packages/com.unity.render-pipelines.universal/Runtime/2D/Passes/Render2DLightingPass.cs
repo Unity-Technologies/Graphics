@@ -168,8 +168,8 @@ namespace UnityEngine.Rendering.Universal
             if (activeDebugHandler != null)
             {
                 RenderStateBlock renderStateBlock = new RenderStateBlock();
-                activeDebugHandler.CreateRendererListWithDebugRenderState(context, ref renderingData, ref drawSettings, ref filterSettings, ref renderStateBlock);
-                activeDebugHandler.DrawWithRendererList(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer));
+                var debugRendererLists = activeDebugHandler.CreateRendererListsWithDebugRenderState(context, ref renderingData, ref drawSettings, ref filterSettings, ref renderStateBlock);
+                debugRendererLists.DrawWithRendererList(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer));
             }
             else
             {

@@ -576,7 +576,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Hammersley.Initialize();
 
-            LocalVolumetricFogManager.manager.InitializeGraphicsBuffers();
+            LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
         }
 
 #if UNITY_EDITOR
@@ -672,7 +672,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 autoDefaultReflectionProbeBaking = false
                 ,
                 rendersUIOverlay = true,
-                supportsHDR = true
+                supportsHDR = true,
+                supportsClouds = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);

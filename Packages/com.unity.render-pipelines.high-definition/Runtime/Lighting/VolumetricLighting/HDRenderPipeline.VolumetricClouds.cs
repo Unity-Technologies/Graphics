@@ -609,7 +609,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ConstantBuffer.Push(ctx.cmd, data.cloudsCB, data.cloudsCombineMaterial, HDShaderIDs._ShaderVariablesClouds);
                         data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, data.volumetricCloudsBuffer);
-                        HDUtils.DrawFullScreen(ctx.cmd, data.cloudsCombineMaterial, colorBuffer, null, 0);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.cloudsCombineMaterial, data.colorBuffer, null, 0);
                     });
             }
         }
@@ -696,7 +696,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If the current volume does not enable the feature, quit right away.
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) || !HasVolumetricClouds(hdCamera, in settings))
+            bool skipCloudRendering = m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) || !HasVolumetricClouds(hdCamera, in settings);
+#if UNITY_EDITOR
+            skipCloudRendering |= !hdCamera.camera.renderCloudsInSceneView; 
+#endif
+            if (skipCloudRendering)
             {
                 VolumetricCloudsOutput emptyClouds = new VolumetricCloudsOutput();
                 emptyClouds.lightingBuffer = renderGraph.defaultResources.whiteTextureXR;

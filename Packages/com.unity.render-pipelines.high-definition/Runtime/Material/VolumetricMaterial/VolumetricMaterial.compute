@@ -133,14 +133,14 @@ void ComputeCubeVerticesOrder(uint volumeIndex)
 
 // Generate the compute buffer to dispatch the indirect draw
 [numthreads(32, 1, 1)]
-void ComputeVolumetricMaterialRenderingParameters(uint3 dispatchThreadId : SV_DispatchThreadID)
+void ComputeVolumetricMaterialRenderingParameters(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-    if (dispatchThreadId.x >= _VolumeCount * _ViewCount)
+    if (dispatchThreadID.x >= _VolumeCount * _ViewCount)
         return;
 
-    uint volumeIndex = dispatchThreadId.x % _VolumeCount;
-    uint globalBufferWriteIndex = _VolumetricVisibleGlobalIndicesBuffer.Load(dispatchThreadId.x << 2);
-    uint viewIndex = dispatchThreadId.x / _VolumeCount;
+    uint volumeIndex = dispatchThreadID.x % _VolumeCount;
+    uint globalBufferWriteIndex = _VolumetricVisibleGlobalIndicesBuffer.Load(volumeIndex << 2);
+    uint viewIndex = dispatchThreadID.x / _VolumeCount;
     uint materialDataIndex = volumeIndex + viewIndex * _VolumeCount;
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)

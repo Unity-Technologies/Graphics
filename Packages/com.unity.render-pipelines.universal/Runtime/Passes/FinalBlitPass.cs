@@ -141,6 +141,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     debugHandler.BlitTextureToDebugScreenTexture(cmd, m_Source, m_PassData.blitMaterial, m_Source.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
                 }
+                // TODO RENDERGRAPH: See https://jira.unity3d.com/projects/URP/issues/URP-1737
+                // This branch of the if statement must be removed for render graph and the new command list with a novel way of using Blitter with fill mode
+                else if (cameraData.isSceneViewCamera)
+                {
+                    cmd.SetGlobalTexture("_BlitTexture", m_Source);
+                    // This set render target is necessary so we change the LOAD state to DontCare.
+                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare, // color
+                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+                    Vector2 viewportScale = m_Source.useScaling ? new Vector2(m_Source.rtHandleProperties.rtHandleScale.x, m_Source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                    Vector4 scaleBias = new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+                    cmd.SetGlobalVector("_BlitScaleBias", scaleBias);
+                    cmd.Blit(m_Source.nameID, m_CameraTargetHandle.nameID, m_PassData.blitMaterial, m_Source.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
+                }
                 else
                 {
                     // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.

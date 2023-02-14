@@ -25,7 +25,7 @@ GraphicsSettings:
   m_LensFlare:
     m_Mode: 1
     m_Shader: {fileID: 102, guid: 0000000000000000f000000000000000, type: 0}
-  m_VideoShadersIncludeMode: 2
+  m_VideoShadersIncludeMode: 0
   m_AlwaysIncludedShaders:
   - {fileID: 7, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 15104, guid: 0000000000000000f000000000000000, type: 0}
@@ -99,17 +99,17 @@ GraphicsSettings:
       useDitherMaskForAlphaBlendedShadows: 0
     m_Automatic: 1
   m_LightmapStripping: 1
-  m_FogStripping: 0
+  m_FogStripping: 1
   m_InstancingStripping: 0
-  m_BrgStripping: 0
+  m_BrgStripping: 1
   m_LightmapKeepPlain: 0
   m_LightmapKeepDirCombined: 0
   m_LightmapKeepDynamicPlain: 0
   m_LightmapKeepDynamicDirCombined: 0
   m_LightmapKeepShadowMask: 0
   m_LightmapKeepSubtractive: 0
-  m_FogKeepLinear: 1
-  m_FogKeepExp: 1
+  m_FogKeepLinear: 0
+  m_FogKeepExp: 0
   m_FogKeepExp2: 1
   m_AlbedoSwatchInfos: []
   m_LightsUseLinearIntensity: 1
@@ -120,3 +120,5 @@ GraphicsSettings:
     UnityEngine.Rendering.Universal.UniversalRenderPipeline: {fileID: 11400000, guid: de1a81e4609b24005835e55be8897384,
       type: 2}
   m_LightProbeOutsideHullStrategy: 0
+  m_CameraRelativeLightCulling: 0
+  m_CameraRelativeShadowCulling: 0

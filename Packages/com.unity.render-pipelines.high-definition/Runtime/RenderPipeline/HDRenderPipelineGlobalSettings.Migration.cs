@@ -87,6 +87,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     data.volumeProfile = volumeProfile;
                 }
+
+                UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile));
                 #endif
 
                 var overrides = data.GetOrCreateDiffusionProfileList();

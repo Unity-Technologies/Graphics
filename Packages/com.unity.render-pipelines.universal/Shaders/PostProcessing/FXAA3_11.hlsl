@@ -8,6 +8,7 @@
 //    * Changed the 'FXAA_GREEN_AS_LUMA == 0' code-path to compute Luma from sRGB
 //      (as we don't pre-store luma in the w component of the input texture)
 //    * Changed the FxaaTex* defines to use URP's platform agnostic sampling macros
+//    * Removed PS3 "#pragma" directives as they are irrelevant for us and were causing warnings
 //----------------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------------
@@ -1609,11 +1610,6 @@ Results 13 cycles, 3 r regs, 923,076,923 pixels/s
 ============================================================================*/
 #if (FXAA_PS3 == 1) && (FXAA_EARLY_EXIT == 0)
 /*--------------------------------------------------------------------------*/
-#pragma regcount 7
-#pragma disablepc all
-#pragma option O3
-#pragma option OutColorPrec=fp16
-#pragma texformat default RGBA8
 /*==========================================================================*/
 half4 FxaaPixelShader(
     // See FXAA Quality FxaaPixelShader() source for docs on Inputs!
@@ -1918,11 +1914,6 @@ Results 15 cycles, 3 r regs, 800,000,000 pixels/s
 ============================================================================*/
 #if (FXAA_PS3 == 1) && (FXAA_EARLY_EXIT == 1)
 /*--------------------------------------------------------------------------*/
-#pragma regcount 7
-#pragma disablepc all
-#pragma option O2
-#pragma option OutColorPrec=fp16
-#pragma texformat default RGBA8
 /*==========================================================================*/
 half4 FxaaPixelShader(
     // See FXAA Quality FxaaPixelShader() source for docs on Inputs!
