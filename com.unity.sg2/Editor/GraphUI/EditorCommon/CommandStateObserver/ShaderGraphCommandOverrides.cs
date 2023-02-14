@@ -231,24 +231,5 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
         }
-
-        internal static void HandleChangeNodeMode(UndoStateComponent undoState, GraphModelStateComponent graphModelState, ChangeNodeModeCommand command)
-        {
-            using (var undoStateUpdater = undoState.UpdateScope)
-            {
-                undoStateUpdater.SaveState(graphModelState);
-            }
-
-            using (var graphUpdater = graphModelState.UpdateScope)
-            using (var changeScope = graphModelState.GraphModel.ChangeDescriptionScope)
-            {
-                if (command.NodeModel is SGNodeModel sgNodeModel)
-                {
-                    sgNodeModel.ChangeNodeFunction(command.NodeModel.Modes[command.NewNodeModeIndex]);
-                    command.NodeModel.ChangeMode(command.NewNodeModeIndex);
-                    graphUpdater.MarkUpdated(changeScope.ChangeDescription);
-                }
-            }
-        }
     }
 }

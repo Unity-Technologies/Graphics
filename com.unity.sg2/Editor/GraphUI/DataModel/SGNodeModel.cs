@@ -203,7 +203,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return m_NodeViewModel;
         }
 
-        public void ChangeNodeFunction(string newFunctionName)
+        internal void ChangeNodeFunction(string newFunctionName)
         {
             if (!graphDataOwner.existsInGraphData)
             {
@@ -233,6 +233,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             DefineNode();
+        }
+
+        public override void ChangeMode(int newModeIndex)
+        {
+            if (newModeIndex < 0 || newModeIndex >= Modes.Count)
+            {
+                Debug.LogError("Unable to update selected function. Index is out of bounds.");
+                return;
+            }
+            ChangeNodeFunction(Modes[newModeIndex]);
+            base.ChangeMode(newModeIndex);
         }
 
         /// <summary>
@@ -425,7 +436,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 AddNodeOption(
                     nodeUIDescriptor.FunctionSelectorLabel,
                     TypeHandle.String,
-                    c => ChangeNodeFunction(c.ObjectValue.ToString()),
+                    c => ChangeMode(Modes.IndexOf(c.ObjectValue.ToString())),
                     initializationCallback: c => c.ObjectValue = selectedFunctionField.GetData(),
                     attributes: new Attribute[] { new EnumAttribute(nodeUIDescriptor.SelectableFunctions.Keys.ToArray()) });
             }

@@ -80,11 +80,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 undoStateComponent,
                 graphModelStateComponent,
                 selectionStateComponent);
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeNodeModeCommand>(
-                ShaderGraphCommandOverrides.HandleChangeNodeMode,
-                undoStateComponent,
-                graphModelStateComponent
-                );
         }
 
         public new static ShaderGraphView Create(GraphViewEditorWindow window, BaseGraphTool graphTool, string graphViewName,
