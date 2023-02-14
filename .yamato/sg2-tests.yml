@@ -71,7 +71,7 @@ Run_Windows_Perfomance_Tests:
       retries: 2
     - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPerformanceTests --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
       retries: 2
-    - command: cd ./ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter
+    - command: cd ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter
       retries: 2
     - command: dotnet UnityPerformanceBenchmarkReporter.dll --baseline=./ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter/Baseline.xml --results=ShaderGraphPerformanceTests/Logs/TestResults.xml --reportdirpath=ShaderGraphPerformanceTests/Artifacts/PerfTestReport.xml
       retries: 2
