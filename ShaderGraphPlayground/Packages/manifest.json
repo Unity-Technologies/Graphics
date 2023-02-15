@@ -2,9 +2,9 @@
   "dependencies": {
     "com.unity.ide.rider": "3.0.18",
     "com.unity.ide.visualstudio": "2.0.17",
-    "com.unity.render-pipelines.core": "15.0.3",
-    "com.unity.render-pipelines.high-definition": "15.0.3",
-    "com.unity.render-pipelines.universal": "15.0.3",
+    "com.unity.render-pipelines.core": "16.0.0",
+    "com.unity.render-pipelines.high-definition": "16.0.0",
+    "com.unity.render-pipelines.universal": "16.0.0",
     "com.unity.sg2": "file:../../com.unity.sg2",
     "com.unity.shadergraph": "file:../../com.unity.shadergraph",
     "com.unity.test-framework": "1.1.29",
