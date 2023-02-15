@@ -1249,6 +1249,11 @@ namespace UnityEditor.VFX
             {
                 SetSettingValue("boundsMode", BoundsSettingMode.Manual);
             }
+
+            if(boundsMode != BoundsSettingMode.Automatic && needsComputeBounds)
+                SetSettingValue(nameof(needsComputeBounds), false);
+
+
             base.Sanitize(version);
         }
 
