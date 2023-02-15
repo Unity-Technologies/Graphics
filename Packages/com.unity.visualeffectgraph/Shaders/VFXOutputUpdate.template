@@ -9,6 +9,10 @@ ${VFXGlobalDeclaration}
 #pragma multi_compile _ VFX_COMPUTE_AABBS
 #endif
 
+#if USE_MULTI_COMPILE_XR_IN_OUTPUT_UPDATE
+#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+#endif
+
 #if HAS_STRIPS
 RWStructuredBuffer<uint> stripDataBuffer;
 #endif
@@ -246,8 +250,8 @@ ${VFXFeedSortingKeys}
                     {
                         float4 vertPosWorld = float4(TransformPositionVFXToWorld(verts[itIndexVert]), 1.0f);
                         vertPosWorld.xyz = VFXTransformPositionWorldToCameraRelative(vertPosWorld.xyz);
-                        float4 vertPosA = mul(_XRNonJitteredViewProjMatrix[0], vertPosWorld);
-                        float4 vertPosB = mul(_XRNonJitteredViewProjMatrix[1], vertPosWorld + stereoOffset);
+                        float4 vertPosA = mul(GetNonJitteredViewProjMatrix(0), vertPosWorld);
+                        float4 vertPosB = mul(GetNonJitteredViewProjMatrix(1), vertPosWorld + stereoOffset);
                         elementToVFXBuffer.Store4(elementToVFXIndex << 2, asuint(float4(vertPosA.xy / vertPosA.w, vertPosB.xy / vertPosB.w)));
                         elementToVFXIndex += 4; // 1 vert * 2 floats * 2 views
                     }
