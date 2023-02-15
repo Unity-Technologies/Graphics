@@ -436,7 +436,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 AddNodeOption(
                     nodeUIDescriptor.FunctionSelectorLabel,
                     TypeHandle.String,
-                    c => ChangeMode(Modes.IndexOf(c.ObjectValue.ToString())),
+                    c => ChangeNodeFunction(c.ObjectValue.ToString()),
                     initializationCallback: c => c.ObjectValue = selectedFunctionField.GetData(),
                     attributes: new Attribute[] { new EnumAttribute(nodeUIDescriptor.SelectableFunctions.Keys.ToArray()) });
             }
