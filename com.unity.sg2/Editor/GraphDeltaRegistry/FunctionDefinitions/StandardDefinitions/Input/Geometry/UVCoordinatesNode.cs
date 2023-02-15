@@ -2,9 +2,9 @@ using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class UVNode : IStandardNode
+    internal class UVCoordinatesNode : IStandardNode
     {
-        public static string Name => "UV";
+        public static string Name => "UVCoordinates";
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gets the texture coordinates from the selected channel.",
             category: "Input/Geometry",
             synonyms: new string[3] { "texcoords", "coords", "coordinates" },
+            displayName: "UV Coordinates",
             description: "pkg://Documentation~/previews/UV.md",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

@@ -2,9 +2,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class ComputeWaterVertexDataNode : IStandardNode
+    internal class WaterVertexDataNode : IStandardNode
     {
-        public static string Name => "ComputeWaterVertexData";
+        public static string Name => "WaterVertexData";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -23,7 +23,7 @@ NormalOS = GetWaterVertexNormal(norm);",
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Compute Water Vertex Data",
+            displayName: "Water Vertex Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
             description: "pkg://Documentation~/previews/ComputeWaterVertexPosition.md",

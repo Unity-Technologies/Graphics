@@ -3,9 +3,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class EvaluateWaterScatteringColorNode : IStandardNode
+    internal class WaterScatteringColorNode : IStandardNode
     {
-        public static string Name => "EvaluateWaterScatteringColor";
+        public static string Name => "WaterScatteringColor";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Evaluate Water Scattering Color",
+            displayName: "Water Scattering Color",
             tooltip: "",
             category: "Utility/HDRP/Water",
             synonyms: Array.Empty<string>(),

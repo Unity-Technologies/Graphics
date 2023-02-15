@@ -3,9 +3,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class EvaluateWaterScatteringDataNode : IStandardNode
+    internal class WaterScatteringDataNode : IStandardNode
     {
-        public static string Name => "EvaluateWaterScatteringData";
+        public static string Name => "WaterScatteringData";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -35,7 +35,7 @@ TipThickness = scatteringData.tipThickness;",
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Evaluate Water Scattering Data",
+            displayName: "Water Scattering Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
             synonyms: Array.Empty<string>(),

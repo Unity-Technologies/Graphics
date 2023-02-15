@@ -3,9 +3,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class VoronoiNode : IStandardNode
+    internal class VoronoiNoiseNode : IStandardNode
     {
-        static string Name = "Voronoi";
+        static string Name = "VoronoiNoise";
         static int Version = 1;
         public static NodeDescriptor NodeDescriptor => new(
             Version,
@@ -129,6 +129,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "creates a cell noise pattern using ranomly-placed points as cell centers",
             category: "Procedural/Noise",
             synonyms: new string[1] { "worley noise" },
+            displayName: "Voronoi Noise",
             description: "pkg://Documentation~/previews/Voronoi.md",
             selectableFunctions: new Dictionary<string, string>
             {

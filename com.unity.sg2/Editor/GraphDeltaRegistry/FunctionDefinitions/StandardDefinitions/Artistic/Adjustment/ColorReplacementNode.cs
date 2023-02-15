@@ -4,9 +4,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 namespace UnityEditor.ShaderGraph.Defs
 {
 
-    internal class ReplaceColorNode : IStandardNode
+    internal class ColorReplacementNode : IStandardNode
     {
-        public static string Name => "ReplaceColor";
+        public static string Name => "ColorReplacement";
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new (
             Name,
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Replace Color",
+            displayName: "Color Replacement",
             tooltip: "Converts the chosen color from an input to another color value.",
             category: "Artistic/Adjustment",
             synonyms: Array.Empty<string>(),

@@ -3,9 +3,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class EvaluateWaterSimulationCausticsNode : IStandardNode
+    internal class WaterSimulationCausticsNode : IStandardNode
     {
-        public static string Name => "EvaluateWaterSimulationCaustics";
+        public static string Name => "WaterSimulationCaustics";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Evaluate Water Simulation Caustics",
+            displayName: "Water Simulation Caustics",
             tooltip: "",
             category: "Utility/HDRP/Water",
             description: "pkg://Documentation~/previews/EvaluateWaterSimulationCaustics.md",

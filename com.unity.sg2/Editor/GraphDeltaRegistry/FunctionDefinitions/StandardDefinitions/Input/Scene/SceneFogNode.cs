@@ -2,9 +2,9 @@ using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class FogNode : IStandardNode
+    internal class SceneFogNode : IStandardNode
     {
-        public static string Name => "Fog";
+        public static string Name => "SceneFog";
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[2] { "stereo", "3d" },
+            displayName: "Scene Fog",
             description: "pkg://Documentation~/previews/Fog.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

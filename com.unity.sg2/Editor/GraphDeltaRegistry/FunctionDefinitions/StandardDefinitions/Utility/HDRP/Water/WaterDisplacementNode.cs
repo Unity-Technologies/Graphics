@@ -2,9 +2,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class EvaluateWaterDisplacementNode : IStandardNode
+    internal class WaterDisplacementNode : IStandardNode
     {
-        public static string Name => "EvaluateWaterDisplacement";
+        public static string Name => "WaterDisplacement";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -25,7 +25,7 @@ LowFrequencyHeight = displacementData.lowFrequencyHeight;",
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Evaluate Water Displacement",
+            displayName: "Water Displacement",
             tooltip: "",
             category: "Utility/HDRP/Water",
             synonyms: new string[0],

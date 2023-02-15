@@ -2,9 +2,9 @@ using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class BakedGINode : IStandardNode
+    internal class BakedGlobalIlluminationNode : IStandardNode
     {
-        public static string Name => "BakedGI";
+        public static string Name => "BakedGlobalIllumination";
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -25,8 +25,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Gets the Baked GI values of an input mesh.",
             category: "Input/Lighting",
-            synonyms: new string[1] { "location" },
-            displayName: "Baked GI",
+            synonyms: new string[2] { "location", "GI" },
+            displayName: "Baked Global Illumination",
             description: "pkg://Documentation~/previews/BakedGI.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[6] {

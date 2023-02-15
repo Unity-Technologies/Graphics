@@ -3,9 +3,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 namespace UnityEditor.ShaderGraph.Defs
 {
 
-    internal class CalculateLevelOfDetailTexture2DNode : IStandardNode
+    internal class Texture2DLevelOfDetailNode : IStandardNode
     {
-        public static string Name => "CalculateLevelOfDetailTexture2D";
+        public static string Name => "Texture2DLevelOfDetail";
         public static int Version => 1;
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Computes LOD values for use with texture sample nodes.",
             category: "Input/Texture",
             synonyms: new string[0] {  },
-            displayName: "Calculate Level Of Detail Texture 2D",
+            displayName: "Texture 2D Level of Detail",
             description: "pkg://Documentation~/previews/CalculateLevelOfDetailTexture2D.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

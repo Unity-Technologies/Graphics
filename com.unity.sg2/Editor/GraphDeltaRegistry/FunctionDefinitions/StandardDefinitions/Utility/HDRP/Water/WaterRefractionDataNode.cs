@@ -3,9 +3,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class EvaluateWaterRefractionDataNode : IStandardNode
+    internal class WaterRefractionDataNode : IStandardNode
     {
-        public static string Name => "EvaluateWaterRefractionData";
+        public static string Name => "WaterRefractionData";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Evaluate Water Refraction Data",
+            displayName: "Water Refraction Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
             description: "pkg://Documentation~/previews/EvaluateWaterRefractionData.md",

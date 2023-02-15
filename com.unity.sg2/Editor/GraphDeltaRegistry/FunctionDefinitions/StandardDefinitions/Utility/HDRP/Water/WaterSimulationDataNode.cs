@@ -3,9 +3,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class EvaluateWaterSimulationAdditionalDataNode : IStandardNode
+    internal class WaterSimulationDataNode : IStandardNode
     {
-        public static string Name => "EvaluateWaterSimulationAdditionalData";
+        public static string Name => "WaterSimulationData";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -31,7 +31,7 @@ DeepFoam = waterAdditionalData.deepFoam;
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Evaluate Water Simulation Additional Data",
+            displayName: "Water Simulation Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
             description: "pkg://Documentation~/previews/EvaluateWaterSimulationAdditionalData.md",
