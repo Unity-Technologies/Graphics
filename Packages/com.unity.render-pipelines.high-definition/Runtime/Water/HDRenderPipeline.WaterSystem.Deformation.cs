@@ -114,12 +114,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (currentDeformer.type == WaterDeformerType.Texture && currentDeformer.texture == null)
                     continue;
 
+                Vector3 scale = currentDeformer.scaleMode == DecalScaleMode.InheritFromHierarchy ? currentDeformer.transform.lossyScale : Vector3.one;
+
                 // General
                 data.position = currentDeformer.transform.position;
                 data.type = (int)currentDeformer.type;
-                data.amplitude = currentDeformer.amplitude;
+                data.amplitude = currentDeformer.amplitude * scale.y;
                 data.rotation = -currentDeformer.transform.eulerAngles.y * Mathf.Deg2Rad;
-                data.regionSize = currentDeformer.regionSize;
+                data.regionSize = Vector2.Scale(currentDeformer.regionSize, new Vector2(scale.x, scale.z));
                 data.deepFoamDimmer = currentDeformer.deepFoamDimmer;
                 data.surfaceFoamDimmer = currentDeformer.surfaceFoamDimmer;
                 m_MaxWaterDeformation = Mathf.Max(m_MaxWaterDeformation, Mathf.Abs(data.amplitude));
@@ -169,7 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // General
                             data.scaleOffset = scaleBias;
-                            data.regionSize = currentDeformer.regionSize;
                             data.blendRegion = currentDeformer.range;
 
                             // Validate it and push it to the buffer

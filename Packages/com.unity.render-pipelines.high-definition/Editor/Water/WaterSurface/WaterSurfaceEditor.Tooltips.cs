@@ -26,16 +26,17 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_WaterMaskSwell = EditorGUIUtility.TrTextContent("Water Mask", "Sets the texture used to attenuate or suppress swell (red and green channels) and ripples (blue channel) water frequencies.");
         static public readonly GUIContent k_WaterMaskAgitation = EditorGUIUtility.TrTextContent("Water Mask", "Sets the texture used to attenuate or suppress agitation (red channel) and ripples (green channel) water frequencies.");
         static public readonly GUIContent k_WaterMaskRipples = EditorGUIUtility.TrTextContent("Water Mask", "Sets the texture used to attenuate or suppress ripples (red channel) water frequencies.");
+        static public readonly GUIContent k_CurrentRegionExtent = EditorGUIUtility.TrTextContent("Extent", "Sets the extent of the current region in meters.");
+        static public readonly GUIContent k_CurrentRegionOffset = EditorGUIUtility.TrTextContent("Offset", "Sets the offset of the current region in meters.");
 
-        static public readonly GUIContent k_WaterMaskExtent = EditorGUIUtility.TrTextContent("Extent", "Sets the extent of the foam mask in meters.");
-        static public readonly GUIContent k_WaterMaskOffset = EditorGUIUtility.TrTextContent("Offset", "Sets the offset of the foam mask in meters.");
+        // Water Mask
+        static public readonly GUIContent k_WaterMaskExtent = EditorGUIUtility.TrTextContent("Extent", "Sets the extent of the water mask in meters.");
+        static public readonly GUIContent k_WaterMaskOffset = EditorGUIUtility.TrTextContent("Offset", "Sets the offset of the water mask in meters.");
         static public readonly GUIContent k_WaterMaskRemap = EditorGUIUtility.TrTextContent("Remapping", "Sets the remapped water mask value.");
 
         // Large current
         static public readonly GUIContent k_LargeCurrentSpeed = EditorGUIUtility.TrTextContent("Current Speed", "Sets the speed of the current for the swell in kilometers per hour. This current translates the swell at a constant speed.");
         static public readonly GUIContent k_LargeCurrentMap = EditorGUIUtility.TrTextContent("Current Map", "Sets the texture used to modify the local swell or agitation currents. The Red and Green channel of the texture contain the 2D direction of the current and Blue channel contains the influence of the current map.");
-        static public readonly GUIContent k_LargeCurrentRegionExtent = EditorGUIUtility.TrTextContent("Region Extent", "Sets extent in meters of the current region.");
-        static public readonly GUIContent k_LargeCurrentRegionOffset = EditorGUIUtility.TrTextContent("Region Offset", "Sets offset in meters of the current region.");
         static public readonly GUIContent k_LargeCurrentMapInfluence = EditorGUIUtility.TrTextContent("Influence", "Sets the influence of the current map over the global current. This value is used to interpolate between the global current and the current specified by the current map.");
 
         // Swell
@@ -74,8 +75,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Ripples current
         static public readonly GUIContent k_RipplesCurrentSpeed = EditorGUIUtility.TrTextContent("Speed", "Sets the speed of the current for the ripples in kilometers per hour. This current translates the ripples at a constant speed in a given direction.");
         static public readonly GUIContent k_RipplesCurrentMap = EditorGUIUtility.TrTextContent("Current Map", "Sets the texture used to modify the local ripples currents. The Red and Green channel of the texture contain the 2D direction of the current and Blue channel contains the influence of the current map.");
-        static public readonly GUIContent k_RipplesCurrentRegionExtent = EditorGUIUtility.TrTextContent("Region Extent", "Sets extent in meters of the current region.");
-        static public readonly GUIContent k_RipplesCurrentRegionOffset = EditorGUIUtility.TrTextContent("Region Offset", "Sets offset in meters of the current region.");
         static public readonly GUIContent k_RipplesCurrentMapInfluence = EditorGUIUtility.TrTextContent("Influence", "Sets the influence of the current map over the global current. This value is used to interpolate between the global current and the current specified by the current map.");
 
         // Fade
@@ -135,6 +134,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly GUIContent k_UnderWaterScatteringColorMode = EditorGUIUtility.TrTextContent("Scattering Color Mode", "Sets how the underwater scattering color is specified.");
         public static readonly GUIContent k_UnderWaterScatteringColor = EditorGUIUtility.TrTextContent("Scattering Color", "Sets the color that is used to simulate the scattering when the camera is underwater.");
         public static readonly GUIContent k_UnderWaterAmbientProbeContribution = EditorGUIUtility.TrTextContent("Ambient Probe Contribution", "Sets the contribution of the ambient probe to the underwater scattering color.");
+
+        // Foam
+        static public readonly GUIContent k_FoamMaskExtent = EditorGUIUtility.TrTextContent("Extent", "Sets the extent of the foam mask in meters.");
+        static public readonly GUIContent k_FoamMaskOffset = EditorGUIUtility.TrTextContent("Offset", "Sets the offset of the foam mask in meters.");
 
         // Misc
         static public readonly GUIContent k_DebugMode = EditorGUIUtility.TrTextContent("Debug Mode", "Sets the debug mode for the water surface.");

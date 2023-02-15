@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.position = currentGenerator.transform.position;
                 data.type = (int)currentGenerator.type;
                 data.rotation = -currentGenerator.transform.eulerAngles.y * Mathf.Deg2Rad;
-                data.regionSize = currentGenerator.regionSize;
+                data.regionSize = Vector2.Scale(currentGenerator.regionSize, currentGenerator.scale);
                 data.deepFoamDimmer = currentGenerator.deepFoamDimmer;
                 data.surfaceFoamDimmer = currentGenerator.surfaceFoamDimmer;
 
