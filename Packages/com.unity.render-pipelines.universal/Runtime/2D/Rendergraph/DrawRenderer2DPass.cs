@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalFloat(k_HDREmulationScaleID, rendererData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
-                RendererLighting.SetShapeLightShaderGlobals(rendererData, cmd);
+                RendererLighting.SetLightShaderGlobals(rendererData, cmd);
 
                 if (passData.layerBatch.lightStats.useLights)
                 {

@@ -237,3 +237,4 @@ EditorBuildSettings:
     path: Assets/Scenes/056_2D_Lights.unity
     guid: c0c276a91b93d254b957277941d2329b
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

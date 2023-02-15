@@ -219,6 +219,8 @@ namespace UnityEngine.Rendering.Universal
 
             var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
 
+            RendererLighting.lightBatch.Reset();
+
             // Main render passes
             var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult, out var batchCount);
             for (var i = 0; i < batchCount; i++)
