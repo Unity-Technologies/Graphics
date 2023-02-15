@@ -34,6 +34,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "calculates the intensity of the Sclera ring, a darkening feature of eyes.",
             category: "Utility/HDRP/Eye",
             synonyms: new string[0],
+            description: "pkg://Documentation~/previews/ScleraLimbalRing.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[7] {
                 new ParameterUIDescriptor(

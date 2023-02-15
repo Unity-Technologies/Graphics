@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -64,7 +65,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[2] { "volume", "tex3d" },
             displayName: "Sample Texture 3D",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SampleTexture3D.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Standard", "Standard" },
                 { "LODfunction", "LOD" }

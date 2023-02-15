@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -35,7 +36,8 @@ uv1 = packedWaterData.uv1;",
             displayName: "Pack Water Vertex Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/PackWaterVertexData.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

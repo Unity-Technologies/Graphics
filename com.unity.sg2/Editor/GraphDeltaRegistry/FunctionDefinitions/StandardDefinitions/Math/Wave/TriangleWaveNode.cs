@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "creates a linear wave form with triangular shapes",
             category: "Math/Wave",
             synonyms: new string[1] { "sawtooth wave" },
+            description: "pkg://Documentation~/previews/TriangleWave.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

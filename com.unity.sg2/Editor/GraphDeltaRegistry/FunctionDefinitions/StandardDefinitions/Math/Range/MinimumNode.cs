@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Compares input A to input B to find the lesser value.",
             category: "Math/Range",
             synonyms: new string[4] { "least", "littlest", "smallest", "lesser" },
+            description: "pkg://Documentation~/previews/Minimum.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",

@@ -83,6 +83,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Rotates the vertex posiiton, normal, and tangent to align all three axes with the camera or only the x and z axes.",
             category: "Input/Mesh Deformation",
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Billboard.md",
             synonyms: new string[] { "align, facing, rotate, pivot" },
             selectableFunctions: new()
             {

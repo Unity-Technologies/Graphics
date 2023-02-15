@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Utility/Logic",
             synonyms: new string[1] { "||" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Or.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",

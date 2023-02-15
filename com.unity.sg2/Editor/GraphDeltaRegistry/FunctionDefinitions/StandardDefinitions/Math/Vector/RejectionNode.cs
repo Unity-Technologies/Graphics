@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -23,7 +24,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Projects input A onto the plane orthogonal, or perpendicular, to input B.",
             category: "Math/Vector",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Rejection.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",

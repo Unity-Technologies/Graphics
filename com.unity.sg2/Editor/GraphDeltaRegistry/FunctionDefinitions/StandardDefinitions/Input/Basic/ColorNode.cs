@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates an RGBA value.",
             category: "Input/Basic",
             synonyms: new string[1] { "rgba" },
+            description: "pkg://Documentation~/previews/Color.md",
             selectableFunctions: new()
             {
                 { "Default", "Default" },
@@ -116,6 +117,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates an RGBA value.",
             category: "Input/Basic",
             synonyms: new string[1] { "rgba" },
+            description: "pkg://Documentation~/previews/Color.md",
             selectableFunctions: new()
             {
                 { "Default", "Default" },

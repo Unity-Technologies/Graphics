@@ -40,6 +40,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Procedural/Shape",
             synonyms: new string[1] { "square" },
             displayName: "Rounded Rectangle",
+            description: "pkg://Documentation~/previews/RoundedRectangle.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "UV",

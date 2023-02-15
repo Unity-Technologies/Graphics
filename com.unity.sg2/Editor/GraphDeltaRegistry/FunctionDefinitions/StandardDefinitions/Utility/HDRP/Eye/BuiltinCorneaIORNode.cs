@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Brings in the index of refraction for the cornea",
             category: "Utility/HDRP/Eye",
             synonyms: new string[0],
+            description: "pkg://Documentation~/previews/BuiltinCorneaIOR.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(

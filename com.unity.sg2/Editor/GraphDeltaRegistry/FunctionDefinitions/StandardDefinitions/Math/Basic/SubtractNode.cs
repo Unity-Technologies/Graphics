@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Subtracts the value of input B from input A.",
             category: "Math/Basic",
             synonyms: new string[4] { "subtraction", "remove", "-", "minus" },
+            description: "pkg://Documentation~/previews/Subtract.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",

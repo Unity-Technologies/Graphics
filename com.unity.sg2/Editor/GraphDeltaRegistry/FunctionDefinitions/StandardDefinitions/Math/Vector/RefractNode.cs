@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -80,7 +81,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Bends the Incident vector based on the index of refraction",
             category: "Math/Vector",
             synonyms: new string[3] { "warp", "bend", "distort" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/Refract.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Safe", "Safe" },
                 { "CriticalAngle", "Critical Angle" }

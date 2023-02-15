@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "creates a wave form with a slow, linear ramp up and then an instant drop",
             category: "Math/Wave",
             synonyms: new string[1] { "triangle wave" },
+            description: "pkg://Documentation~/previews/SawtoothWave.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

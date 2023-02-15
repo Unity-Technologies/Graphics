@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -29,7 +30,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Eye Surface Type Debug",
             tooltip: "Use to visually validate the current pupil radius.",
             category: "Utility/HDRP/Eye",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/EyeSurfaceTypeDebug.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(

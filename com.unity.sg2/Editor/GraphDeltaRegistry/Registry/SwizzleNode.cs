@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 tooltip: "swaps, duplicates, or reorders the channels of a vector",
                 category: "Channel",
                 synonyms: new string[] { "swap", "reorder", "component mask" },
+                description: "pkg://Documentation~/previews/Swizzle.md",
                 parameters: new ParameterUIDescriptor[]
                 {
                     new(name: SwizzleNode.kInput, tooltip: "input value"),

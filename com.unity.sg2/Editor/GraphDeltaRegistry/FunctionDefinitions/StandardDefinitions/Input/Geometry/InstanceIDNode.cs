@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -26,9 +27,10 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Provides the unique id of individual instances or zero when instances aren't in use.",
             category: "Input/Geometry",
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
             displayName: "Instance ID",
             hasPreview:false,
+            description: "pkg://Documentation~/previews/InstanceID.md",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "Out",

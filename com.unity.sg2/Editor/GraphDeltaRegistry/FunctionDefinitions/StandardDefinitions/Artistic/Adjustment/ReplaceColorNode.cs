@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -27,7 +28,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Replace Color",
             tooltip: "Converts the chosen color from an input to another color value.",
             category: "Artistic/Adjustment",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/ReplaceColor.md",
             parameters: new ParameterUIDescriptor[6]
             {
                 new ParameterUIDescriptor(

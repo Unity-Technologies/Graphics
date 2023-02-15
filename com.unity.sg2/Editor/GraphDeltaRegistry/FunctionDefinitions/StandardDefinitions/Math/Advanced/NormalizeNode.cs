@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -37,7 +38,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Changes the length of the input vector to 1.",
             category: "Math/Advanced",
             synonyms: new string[1] { "Unitize" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/Normalize.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Standard", "Standard" },
                 { "Safe", "Safe" }

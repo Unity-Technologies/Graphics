@@ -94,7 +94,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "UV",
             synonyms: new string[1] { "offset mapping" },
             hasPreview: false,
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/ParallaxMapping.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Red", "Red" },
                 { "Green", "Green" },

@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Math/Matrix",
             synonyms: new string[1] { "Determinant" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/MatrixDeterminant.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",

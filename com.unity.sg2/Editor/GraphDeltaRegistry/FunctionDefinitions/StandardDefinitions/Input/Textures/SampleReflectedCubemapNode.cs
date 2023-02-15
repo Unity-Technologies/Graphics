@@ -90,7 +90,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[1] { "texcube" },
             displayName: "Sample Reflected Cubemap",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SampleReflectedCubemap.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "LODfunction", "LOD" },
                 { "Standard", "Standard" },

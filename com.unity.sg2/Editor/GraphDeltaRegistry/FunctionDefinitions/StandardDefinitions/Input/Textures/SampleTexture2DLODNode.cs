@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -105,7 +106,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[2] { "tex2dlod", "mip" },
             displayName: "Sample Texture 2D LOD",
-            selectableFunctions: new ()
+            description: "pkg://Documentation~/previews/SampleTexture2DLOD.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Standard", "Standard" },
                 { "NormalTangent", "Normal Tangent" },

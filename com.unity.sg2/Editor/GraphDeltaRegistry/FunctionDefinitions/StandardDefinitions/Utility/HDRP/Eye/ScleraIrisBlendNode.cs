@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -50,7 +51,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Sclera Iris Blend",
             tooltip: "combines the seperate components of the eye into unified material parameters",
             category: "Utility/HDRP/Eye",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/ScleraIrisBlend.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[16] {
                 new ParameterUIDescriptor(

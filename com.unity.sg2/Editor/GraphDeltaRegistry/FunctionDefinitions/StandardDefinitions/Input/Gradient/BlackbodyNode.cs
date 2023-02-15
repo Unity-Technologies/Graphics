@@ -32,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "samples a Gradient that simulates the effect of black body radiation",
             category: "Input/Gradient",
             synonyms: new string[0],
+            description: "pkg://Documentation~/previews/Blackbody.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "Temperature"

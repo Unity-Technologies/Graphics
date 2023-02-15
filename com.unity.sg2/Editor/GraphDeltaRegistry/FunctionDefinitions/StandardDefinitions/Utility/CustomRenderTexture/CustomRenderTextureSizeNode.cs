@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -30,7 +31,8 @@ TextureDepth = CustomRenderTextureDepthRef;
             tooltip: "Return the width, height and depth of the custom texture.",
             category: "Utility/Custom Render Texture",
             displayName: "Custom Render Texture Size",
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/CustomRenderTextureSize.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

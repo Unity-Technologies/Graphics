@@ -96,9 +96,9 @@ namespace UnityEditor.ShaderGraph.Defs
     Hash_Tchou_2_2_float(i + float2(1, 0), t);
     Hash_Tchou_2_2_float(i + float2(0, 1), u);
     Hash_Tchou_2_2_float(i + float2(1, 1), v);
-    Out = lerp( lerp( dot( s*2-1, f - float2(0.0,0.0) ), 
+    Out = lerp( lerp( dot( s*2-1, f - float2(0.0,0.0) ),
 					  dot( t*2-1, f - float2(1.0,0.0) ), g.x),
-				 lerp(dot( u*2-1, f - float2(0.0,1.0) ), 
+				 lerp(dot( u*2-1, f - float2(0.0,1.0) ),
 				      dot( v*2-1, f - float2(1.0,1.0) ), g.x), g.y);",
                     new ParameterDescriptor[]
                     {
@@ -748,7 +748,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Procedural/Noise",
             displayName: "Noise 2D",
             synonyms: new string[7] { "perlin", "simplex", "fractal", "gradient", "value", "octave", "worley" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/Noise2D.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "ValueTexFBM", "Value Texture Fractal Brownian Motion" },
                 { "ValueTexTurbulence", "Value Texture Turbulence" },

@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -26,7 +27,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Fade Transition",
             tooltip: "Adds noise for variation while a function transitions from on to off in a graph.",
             category: "Artistic/Filter",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/FadeTransition.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "NoiseValue",

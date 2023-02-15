@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "",
             category: "Utility/HDRP/Eye",
             synonyms: new string[0],
+            description: "pkg://Documentation~/previews/BuiltinIrisRadius.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(

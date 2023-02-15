@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Unity.GraphToolsFoundation;
 using Unity.GraphToolsFoundation.Editor;
@@ -6,7 +7,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
-    class SGBlockNodeModel : BlockNodeModel, IGraphDataOwner
+    class SGBlockNodeModel : BlockNodeModel, IGraphDataOwner<SGBlockNodeModel>
     {
         [field: SerializeField, HideInInspector] public string ContextEntryName { get; set; }
 
@@ -16,14 +17,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PortType portType,
             TypeHandle dataType,
             string portId,
-            PortModelOptions options)
+            PortModelOptions options,
+            Attribute[] attributes)
         {
-            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
+            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options, attributes);
         }
 
         protected override void OnDefineNode()
         {
-            if (ContextNodeModel is not SGContextNodeModel graphDataContext)
+            if (ContextNodeModel is not IGraphDataOwner<SGContextNodeModel> graphDataContext)
             {
                 return;
             }
@@ -65,10 +67,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return base.IsCompatibleWith(context);
         }
 
-        // Implementation of IGraphDataOwner is forwarded to the owning context so we can still be treated like a
-        // regular node.
-        public string graphDataName => (ContextNodeModel as IGraphDataOwner)?.graphDataName;
-        public RegistryKey registryKey => (ContextNodeModel as IGraphDataOwner)?.registryKey ?? default;
-        public bool existsInGraphData => (ContextNodeModel as IGraphDataOwner)?.existsInGraphData ?? false;
+        /// <summary>
+        /// The identifier/unique name used to represent this entity and retrieve info. regarding it from CLDS.
+        /// </summary>
+        public string graphDataName => (ContextNodeModel as IGraphDataOwner<SGContextNodeModel>)?.graphDataName;
+
+        /// <summary>
+        /// The <see cref="RegistryKey"/> that represents the concrete type within the Registry, of this object.
+        /// </summary>
+        public RegistryKey registryKey => (ContextNodeModel as IGraphDataOwner<SGContextNodeModel>)?.registryKey ?? default;
     }
 }

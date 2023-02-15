@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         m_VariableRemovalInfo[model.Guid] = new VariableRemovalInfo(variableDeclarationModel);
                         break;
                     }
-                    case SGEdgeModel wireModel when
+                    case SGWireModel wireModel when
                         graphModel.TryGetModelFromGuid(wireModel.ToNodeGuid, out var toNode) &&
                         toNode is IGraphDataOwner dataOwner:
                     {
@@ -213,7 +213,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            foreach (var graphDataEdgeModel in addedModels.OfType<SGEdgeModel>())
+            foreach (var graphDataEdgeModel in addedModels.OfType<SGWireModel>())
             {
                 if (graphDataEdgeModel.ToPort.NodeModel is SGNodeModel nodeModel)
                 {

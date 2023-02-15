@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Merges 2 or more input float values into a vector.",
             category: "Channel",
             synonyms: new string[1] { "append" },
+            description: "pkg://Documentation~/previews/Combine.md",
             parameters: new ParameterUIDescriptor[7] {
                 new ParameterUIDescriptor(
                     name: "R",
