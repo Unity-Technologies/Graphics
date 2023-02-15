@@ -98,6 +98,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         private static readonly List<Type> m_IncompatibleHQLineRenderingSubTargets = new()
         {
+            typeof(DecalSubTarget),
+            typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
             typeof(FogVolumeSubTarget),
         };
@@ -242,7 +244,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 });
             }
 
-            if (!m_IncompatibleHQLineRenderingSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+            if (m_IncompatibleHQLineRenderingSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support High Quality Line Rendering.");
+            else
             {
                 m_SupportLineRenderingToggle = new Toggle("") { value = m_SupportLineRendering };
                 context.AddProperty("Support High Quality Line Rendering", "", 0, m_SupportLineRenderingToggle, (evt) =>
