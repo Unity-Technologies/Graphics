@@ -208,8 +208,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
         private static uint s_ExpectedDeviceVersion = 0x04;
 
-        private Dictionary<CameraKey, DLSSPass.CameraState> m_CameraStates = new Dictionary<CameraKey, DLSSPass.CameraState>();
-        private List<CameraKey> m_InvalidCameraKeys = new List<CameraKey>();
+        private Dictionary<int, DLSSPass.CameraState> m_CameraStates = new Dictionary<int, DLSSPass.CameraState>();
+        private List<int> m_InvalidCameraKeys = new List<int>();
 
         private CommandBuffer m_CommandBuffer = new CommandBuffer();
         private UInt64 m_FrameId = 0;
@@ -223,28 +223,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         //Amount of inactive frames dlss has rendered before we clean / destroy the plugin state.
         private static UInt64 sMaximumFrameExpiration = 400;
-
-        private struct CameraKey
-        {
-            private int m_HashCode;
-            public CameraKey(Camera camera)
-            {
-                m_HashCode = camera.GetInstanceID();
-            }
-
-            public override int GetHashCode()
-            {
-                return m_HashCode;
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (obj.GetType() == typeof(CameraKey))
-                    return GetHashCode() == ((CameraKey)obj).GetHashCode();
-
-                return false;
-            }
-        }
 
         private struct Resolution
         {
@@ -320,7 +298,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool useAutomaticSettings { get { return m_UseAutomaticSettings; } }
             public OptimalSettingsRequest OptimalSettingsRequestData { get { return m_OptimalSettingsRequest; } }
 
-            public ViewState(NVIDIA.GraphicsDevice device)
+            public ViewState()
+            {
+            }
+
+            public void Init(NVIDIA.GraphicsDevice device)
             {
                 m_Device = device;
                 m_DlssContext = null;
@@ -434,21 +416,36 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_Device.DestroyFeature(cmdBuffer, m_DlssContext);
                     m_DlssContext = null;
                 }
+
+                m_Device = null;
+                m_Data = new DlssViewData();
+                m_UsingOptimalSettings = false;
+                m_UseAutomaticSettings = false;
+                m_BackbufferRes = new DLSSPass.Resolution();
+                m_OptimalSettingsRequest = new OptimalSettingsRequest();
             }
         }
 
         private class CameraState
         {
-            WeakReference<Camera> m_CamReference = null;
-            ViewState[] m_Views = null;
+            WeakReference<Camera> m_CamReference = new WeakReference<Camera>(null);
+            List<ViewState> m_Views = null;
             NVIDIA.GraphicsDevice m_Device = null;
+            PerformDynamicRes m_ScaleDelegate = null;
 
-            public ViewState[] ViewStates { get { return m_Views; } }
+            public PerformDynamicRes ScaleDelegate { get { return m_ScaleDelegate; } }
+
+            public List<ViewState> ViewStates { get { return m_Views; } }
             public UInt64 LastFrameId { set; get; }
 
-            public CameraState(NVIDIA.GraphicsDevice device, Camera camera)
+            public CameraState()
             {
-                m_CamReference = new WeakReference<Camera>(camera);
+                m_ScaleDelegate = ScaleFn;
+            }
+
+            public void Init(NVIDIA.GraphicsDevice device, Camera camera)
+            {
+                m_CamReference.SetTarget(camera);
                 m_Device = device;
             }
 
@@ -465,6 +462,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     v.ClearAutomaticSettings();
             }
 
+            private float ScaleFn()
+            {
+                if (m_Views == null  || m_Views.Count == 0)
+                    return 100.0f;
+
+                var viewState = m_Views[0];
+                if (!viewState.useAutomaticSettings)
+                    return 100.0f;
+
+                var optimalSettings = viewState.OptimalSettingsRequestData.optimalSettings;
+                var targetViewport = viewState.OptimalSettingsRequestData.viewport;
+                float suggestedPercentageX = (float)optimalSettings.outRenderWidth / targetViewport.width;
+                float suggestedPercentageY = (float)optimalSettings.outRenderHeight / targetViewport.height;
+                return Mathf.Min(suggestedPercentageX, suggestedPercentageY) * 100.0f;
+            }
+
             public void SubmitCommands(
                 HDCamera camera,
                 in DlssViewData viewData,
@@ -479,14 +492,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     activeViewId = camera.xr.multipassId;
                 }
 
-                if (m_Views == null || m_Views.Length != cameraViewCount)
+                if (m_Views == null || m_Views.Count != cameraViewCount)
                 {
                     if (m_Views != null)
                         Cleanup(cmdBuffer);
 
-                    m_Views = new ViewState[cameraViewCount];
-                    for (int viewId = 0; viewId < m_Views.Length; ++viewId)
-                        m_Views[viewId] = new ViewState(m_Device);
+                    m_Views = ListPool<ViewState>.Get();
+                    for (int viewId = 0; viewId < cameraViewCount; ++viewId)
+                    {
+                        var newView = GenericPool<ViewState>.Get();
+                        newView.Init(m_Device);
+                        m_Views.Add(newView);
+                    }
                 }
 
                 void RunPass(ViewState viewState, CommandBuffer cmdBuffer, in DlssViewData viewData, in ViewResources viewResources)
@@ -505,7 +522,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Assertions.Assert.IsTrue(camera.xr.enabled && camera.xr.singlePassEnabled, "XR must be enabled for tmp copying to views to occur");
 
                     //copy to tmp views first, to maximize pipelining
-                    for (int viewId = 0; viewId < m_Views.Length; ++viewId)
+                    for (int viewId = 0; viewId < m_Views.Count; ++viewId)
                     {
                         ViewState viewState = m_Views[viewId];
                         ViewResources tmpResources = viewId == 0 ? camResources.tmpView0 : camResources.tmpView1;
@@ -518,7 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             cmdBuffer.CopyTexture(camResources.resources.biasColorMask, viewId, tmpResources.biasColorMask, 0);
                     }
 
-                    for (int viewId = 0; viewId < m_Views.Length; ++viewId)
+                    for (int viewId = 0; viewId < m_Views.Count; ++viewId)
                     {
                         ViewState viewState = m_Views[viewId];
                         ViewResources tmpResources = viewId == 0 ? camResources.tmpView0 : camResources.tmpView1;
@@ -538,9 +555,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 foreach (var v in m_Views)
+                {
                     v.Cleanup(cmdBuffer);
+                    GenericPool<ViewState>.Release(v);
+                }
 
+                ListPool<ViewState>.Release(m_Views);
                 m_Views = null;
+                m_CamReference.SetTarget(null);
+                m_Device = null;
             }
         }
 
@@ -551,7 +574,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void ProcessInvalidCameras()
         {
-            foreach (KeyValuePair<CameraKey, CameraState> kv in m_CameraStates)
+            foreach (KeyValuePair<int, CameraState> kv in m_CameraStates)
             {
                 if (kv.Value.IsAlive() && !HasCameraStateExpired(kv.Value))
                     continue;
@@ -573,30 +596,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cameraState.Cleanup(m_CommandBuffer);
                 m_CameraStates.Remove(invalidKey);
+                GenericPool<DLSSPass.CameraState>.Release(cameraState);
             }
             Graphics.ExecuteCommandBuffer(m_CommandBuffer);
             m_InvalidCameraKeys.Clear();
-        }
-
-        private static CameraKey m_SelectedCameraKey;
-        private float ScaleFn()
-        {
-            CameraState cameraState = null;
-            if (!m_CameraStates.TryGetValue(m_SelectedCameraKey, out cameraState))
-                return 100.0f;
-
-            if (cameraState.ViewStates == null || cameraState.ViewStates.Length == 0)
-                return 100.0f;
-
-            var viewState = cameraState.ViewStates[0];
-            if (!viewState.useAutomaticSettings)
-                return 100.0f;
-
-            var optimalSettings = viewState.OptimalSettingsRequestData.optimalSettings;
-            var targetViewport = viewState.OptimalSettingsRequestData.viewport;
-            float suggestedPercentageX = (float)optimalSettings.outRenderWidth / targetViewport.width;
-            float suggestedPercentageY = (float)optimalSettings.outRenderHeight / targetViewport.height;
-            return Mathf.Min(suggestedPercentageX, suggestedPercentageY) * 100.0f;
         }
 
         private void InternalNVIDIASetupDRSScaling(bool enableAutomaticSettings, Camera camera, XRPass xrPass, ref GlobalDynamicResolutionSettings dynamicResolutionSettings)
@@ -604,12 +607,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Device == null)
                 return;
 
-            var cameraKey = new CameraKey(camera);
+            int cameraKey = camera.GetInstanceID();
             CameraState cameraState = null;
             if (!m_CameraStates.TryGetValue(cameraKey, out cameraState))
                 return;
 
-            if (cameraState.ViewStates == null || cameraState.ViewStates.Length == 0)
+            if (cameraState.ViewStates == null || cameraState.ViewStates.Count == 0)
                 return;
 
             if (cameraState.ViewStates[0].DLSSContext == null)
@@ -633,9 +636,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (IsOptimalSettingsValid(optimalSettings) && enableAutomaticSettings)
                 {
                     dynamicResolutionSettings.maxPercentage = Mathf.Min((float)optimalSettings.maxWidth / finalViewport.width, (float)optimalSettings.maxHeight / finalViewport.height) * 100.0f;
-                    dynamicResolutionSettings.minPercentage = Mathf.Max((float)optimalSettings.minWidth / finalViewport.width, (float)optimalSettings.minHeight / finalViewport.height) * 100.0f;
-                    m_SelectedCameraKey = cameraKey;
-                    DynamicResolutionHandler.SetSystemDynamicResScaler(ScaleFn, DynamicResScalePolicyType.ReturnsPercentage);
+                    dynamicResolutionSettings.minPercentage = Mathf.Max((float)optimalSettings.minWidth / finalViewport.width, (float)optimalSettings.minHeight / finalViewport.height) * 100.0f;                    
+                    DynamicResolutionHandler.SetSystemDynamicResScaler(cameraState.ScaleDelegate, DynamicResScalePolicyType.ReturnsPercentage);
                     DynamicResolutionHandler.SetActiveDynamicScalerSlot(DynamicResScalerSlot.System);
                 }
             }
@@ -652,14 +654,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ProcessInvalidCameras();
 
-            var cameraKey = new CameraKey(hdCamera.camera);
+            var cameraKey = hdCamera.camera.GetInstanceID();
             CameraState cameraState = null;
             m_CameraStates.TryGetValue(cameraKey, out cameraState);
             bool dlssActive = hdCamera.IsDLSSEnabled();
 
             if (cameraState == null && dlssActive)
             {
-                cameraState = new DLSSPass.CameraState(m_Device, hdCamera.camera);
+                cameraState = GenericPool<DLSSPass.CameraState>.Get();
+                cameraState.Init(m_Device, hdCamera.camera);
                 m_CameraStates.Add(cameraKey, cameraState);
             }
             else if (cameraState != null && !dlssActive)
@@ -679,7 +682,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Device == null || m_CameraStates.Count == 0)
                 return;
 
-            if (!m_CameraStates.TryGetValue(new CameraKey(parameters.hdCamera.camera), out var cameraState))
+            if (!m_CameraStates.TryGetValue(parameters.hdCamera.camera.GetInstanceID(), out var cameraState))
                 return;
 
             var dlssViewData = new DlssViewData();

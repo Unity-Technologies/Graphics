@@ -591,6 +591,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4083_DepthOfField-FP16AlphaPB.unity
     guid: a0fe0a96435b36649a501656437bfdeb
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4088_DRS-DLSS-Hardware.unity
+    guid: 7deb5e53e3101c74ba65ea4ef9579f9a
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4089_DRS-DLSS-Software.unity
+    guid: eb89f789e3ce3db4d91641ad06d27151
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4090_DRS-Hardware.unity
     guid: 813bead26cd69ed4c9e9726f6670da5f
   - enabled: 1
