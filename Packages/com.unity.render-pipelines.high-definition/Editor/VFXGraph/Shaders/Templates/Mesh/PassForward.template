@@ -1,5 +1,6 @@
 Pass
 {
+    Name "${VFXHDRPForwardPassName}"
 	Tags { "LightMode"="${VFXHDRPForwardPassName}"}
 
     ${VFXStencilForward}

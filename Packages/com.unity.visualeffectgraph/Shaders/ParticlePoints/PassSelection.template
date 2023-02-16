@@ -1,8 +1,9 @@
 // Depth pass
 Pass
-{		
+{
+    Name "SceneSelectionPass"
 	Tags { "LightMode"="SceneSelectionPass" }
-	
+
 	ZWrite On
 	Blend Off
 
@@ -13,9 +14,10 @@ Pass
 }
 
 Pass
-{		
+{
+    Name "Picking"
 	Tags { "LightMode"="Picking" }
-	
+
 	ZWrite On
 	Blend Off
 

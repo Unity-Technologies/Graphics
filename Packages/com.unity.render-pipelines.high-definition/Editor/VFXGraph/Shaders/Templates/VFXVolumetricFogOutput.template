@@ -8,6 +8,7 @@
 
         Pass
         {
+            Name "SceneSelectionPass"
             Tags { "LightMode"="SceneSelectionPass" }
 
             ZWrite On
@@ -24,6 +25,7 @@
 
         Pass
         {
+            Name "VolumetricFogVFX"
             Tags { "LightMode"="VolumetricFogVFX" }
 
             HLSLPROGRAM
@@ -37,6 +39,7 @@
 
         Pass
         {
+            Name "VolumetricFogVFXOverdrawDebug"
             Tags { "LightMode"="VolumetricFogVFXOverdrawDebug" }
 
             Blend One One
