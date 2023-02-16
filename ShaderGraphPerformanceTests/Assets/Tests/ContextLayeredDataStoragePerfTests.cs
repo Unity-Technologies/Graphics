@@ -23,6 +23,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
 
         [Test, Performance]
+        [Category("Performance")]
         public void CreateDataStorePerfTest()
         {
             Measure.Method(
@@ -38,6 +39,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
 
         [Test, Performance]
+        [Category("Performance")]
         public void AddUniquePathsToDataStorePerfTest()
         {
             int i = 0;
@@ -58,6 +60,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
 
         [Test, Performance]
+        [Category("Performance")]
         public void AddIdenticalPathsToDataStorePerfTest()
         {
             int i = 0;
@@ -76,6 +79,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         // TODO: search variations with example nested layers of paths, finding top-level stuff, mid level stuff ...
         [Test, Performance]
+        [Category("Performance")]
         public void SearchDataStorePerfTest()
         {
             for (var i = 0; i < 1000; i++)
@@ -96,6 +100,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         }
 
         [Test, Performance]
+        [Category("Performance")]
         public void NearWorstCaseSearchPerfTest()
         {
             var sampleGroup = new SampleGroup("Scope");
@@ -128,6 +133,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         // How data store handles searches for a scaling data set
 
         [Test, Performance]
+        [Category("Performance")]
         public void AddLayerToStorePerfTest()
         {
             Measure.Method(

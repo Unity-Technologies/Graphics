@@ -19,8 +19,8 @@ ShaderGraph2_pr_trigger:
     - .yamato/sg2-tests.yml#ShaderGraph2_Mac
     - .yamato/sg2-tests.yml#ShaderGraph2_Win
     - .yamato/sg2-tests.yml#ShaderGraph2_Win_CodeCoverage_Verification
-
     - .yamato/sg2-tests.yml#Run_Windows_Perfomance_Tests
+
 ShaderGraph2_Win:
   name: ShaderGraph2 Tests - Win
   agent:
@@ -84,16 +84,6 @@ ShaderGraph2_Win_CodeCoverage_Verification:
   commands:
     -  command: python History\ci-scripts\verify_coverage.py History\{{coverage_meta.coverage_history_path}} {{coverage_meta.min_pct}} {{coverage_meta.max_decrease_pct}}
 
-ShaderGraph2_nightly_trigger:
-  name: ShaderGraph2 - Nightly Trigger
-  triggers:
-    recurring:
-      - branch: sg2/main
-        frequency: daily
-        rerun: on_new_revision
-  dependencies:
-      - .yamato/sg2-tests.yml#ShaderGraph2-win_Update_CodeCoverage_History
-
 ShaderGraph2-win_Update_CodeCoverage_History:
   name : ShaderGraph2 Win Update Code Coverage History
   agent:
@@ -103,7 +93,7 @@ ShaderGraph2-win_Update_CodeCoverage_History:
   dependencies:
     - .yamato/sg2-tests.yml#ShaderGraph2_Win
   commands:
-    - | 
+    - |
         cd History
         git config user.email "yamato@unity3d.com"
         git config user.name "Yamato"
@@ -114,7 +104,8 @@ ShaderGraph2-win_Update_CodeCoverage_History:
     coverage:
       paths:
         - History/history/**
-Run_Windows_Perfomance_Tests:
+
+haderGraph2-Win_Perfomance_Tests:
   name: Run Windows Perf Tests
   agent:
     type: Unity::VM
@@ -130,7 +121,7 @@ Run_Windows_Perfomance_Tests:
       retries: 2
     - command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
       retries: 2
-    - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPerformanceTests --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
+    - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPerformanceTests --category="Performance" --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
       retries: 2
     - command: cd ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter
       retries: 2
@@ -143,3 +134,13 @@ Run_Windows_Perfomance_Tests:
         - "ShaderGraphPerformanceTests/Logs/*.log"
         - "ShaderGraphPerformanceTests/Logs/*.xml"
         - "ShaderGraphPerformanceTests/Artifacts/**/*"
+
+ShaderGraph2_nightly_trigger:
+  name: ShaderGraph2 - Nightly Trigger
+  triggers:
+    recurring:
+      - branch: sg2/main
+        frequency: daily
+        rerun: on_new_revision
+  dependencies:
+    - .yamato/sg2-tests.yml#ShaderGraph2-win_Update_CodeCoverage_History
