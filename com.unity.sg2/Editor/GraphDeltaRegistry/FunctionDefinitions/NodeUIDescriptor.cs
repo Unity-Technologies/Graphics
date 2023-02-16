@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public IReadOnlyCollection<string> Synonyms { get; }
         public string Category { get; }
         public string FunctionSelectorLabel { get; }
+        public bool HasModes { get; }
         public string Description { get; }
 
         public NodeUIDescriptor(
@@ -35,6 +36,7 @@ namespace UnityEditor.ShaderGraph.Defs
             string displayName = null,
             bool hasPreview = true, // By default we assume all nodes should have previews,
             Dictionary<string, string> selectableFunctions = null,
+            bool hasModes = false,
             ParameterUIDescriptor[] parameters = null,
             string functionSelectorLabel = "",
             string description = null
@@ -51,6 +53,7 @@ namespace UnityEditor.ShaderGraph.Defs
             SelectableFunctions = new ReadOnlyDictionary<string, string>(functionDictionary);
             var parametersList = parameters ?? new ParameterUIDescriptor[0];
             Parameters = parametersList.ToList().AsReadOnly();
+            HasModes = hasModes;
             FunctionSelectorLabel = functionSelectorLabel;
             // Description can either be a string or a string that represents a path
             if (description != null && description.StartsWith("pkg://"))

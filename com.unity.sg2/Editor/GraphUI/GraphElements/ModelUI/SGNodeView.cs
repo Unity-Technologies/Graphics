@@ -15,29 +15,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             base.BuildPartList();
 
-            // We don't want to display serialized fields on the node body, only ports
-            // If this isn't in place, things like the PreviewMode dropdown show up on nodes
-            PartList.RemovePart(nodeOptionsContainerPartName);
-
             // Retrieve this node's view model
             var nodeViewModel = graphDataNodeModel.GetViewModel();
             if (nodeViewModel.Name == null)
                 return;
-
-            // If the node has multiple possible topologies, show the selector.
-            if (nodeViewModel.SelectedFunctionID != String.Empty)
-            {
-                FunctionSelectorPart part = new (
-                    "sg-function-selector",
-                    GraphElementModel,
-                    this,
-                    ussClassName,
-                    nodeViewModel.SelectedFunctionID,
-                    nodeViewModel.SelectableFunctions,
-                    nodeViewModel.FunctionSelectorLabel
-                );
-                PartList.InsertPartAfter(portContainerPartName, part);
-            }
 
             m_StaticFieldParts = new(name, graphDataNodeModel, this, ussClassName);
             foreach (var portUIData in nodeViewModel.StaticPortUIData)

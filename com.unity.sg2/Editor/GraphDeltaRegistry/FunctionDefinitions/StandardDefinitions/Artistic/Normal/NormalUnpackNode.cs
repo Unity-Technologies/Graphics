@@ -43,6 +43,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Tangent", "Tangent" },
                 { "Object", "Object" }
             },
+            hasModes: true,
             functionSelectorLabel: "Space",
             description: "pkg://Documentation~/previews/NormalUnpack.md",
             parameters: new ParameterUIDescriptor[2] {

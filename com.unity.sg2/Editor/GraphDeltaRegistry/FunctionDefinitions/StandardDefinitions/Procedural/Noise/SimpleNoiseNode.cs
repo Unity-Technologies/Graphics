@@ -128,6 +128,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Deterministic", "Deterministic" },
                 { "LegacySine", "Legacy Sine" }
             },
+            hasModes: true,
             functionSelectorLabel: "Hash Type",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

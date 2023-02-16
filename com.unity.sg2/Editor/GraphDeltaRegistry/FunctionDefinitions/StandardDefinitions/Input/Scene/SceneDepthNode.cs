@@ -63,6 +63,7 @@ Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
                 { "Raw", "Raw" },
                 { "Eye", "Eye" }
             },
+            hasModes: true,
             functionSelectorLabel: "Sampling Mode",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {

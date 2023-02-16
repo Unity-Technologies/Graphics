@@ -895,6 +895,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "WorleyRidgedMF", "Worley Math Ridged Multifractal" },
 
             },
+            hasModes: true,
             functionSelectorLabel: "Noise Type",
             parameters: new ParameterUIDescriptor[11] {
                 new ParameterUIDescriptor(

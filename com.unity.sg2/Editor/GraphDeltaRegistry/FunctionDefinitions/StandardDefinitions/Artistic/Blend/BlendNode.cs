@@ -345,6 +345,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "VividLight", "Vivid Light" },
                 { "Overwrite", "Overwrite" }
             },
+            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(

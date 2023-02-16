@@ -60,6 +60,7 @@ Out = LOAD_TEXTURE2D_X_LOD(_BlitTexture, pixelCoords, 0);",
                 { "MotionVectors", "Motion Vectors" },
                 { "BlitSource", "Blit Source" }
             },
+            hasModes: true,
             functionSelectorLabel: "Source Buffer",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
