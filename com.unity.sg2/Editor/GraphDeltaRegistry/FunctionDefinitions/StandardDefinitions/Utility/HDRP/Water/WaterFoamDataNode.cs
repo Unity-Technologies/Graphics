@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph.Defs
     {
         internal class WaterFoamDataNode : IStandardNode
         {
-            public static string Name => WaterFoamData";
+            public static string Name => "WaterFoamData";
             public static int Version => 1;
 
             public static FunctionDescriptor FunctionDescriptor => new(
