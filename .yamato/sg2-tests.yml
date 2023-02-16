@@ -121,9 +121,9 @@ haderGraph2-Win_Perfomance_Tests:
       retries: 2
     - command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
       retries: 2
-    - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPerformanceTests --category="Performance" --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
+    - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPerformanceTests --category="Performance" --artifacts-path=./ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
       retries: 2
-    - command: cd ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter & dotnet run UnityPerformanceBenchmarkReporter.exe --baseline=./ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter/Baseline.xml --results=ShaderGraphPerformanceTests/Logs/TestResults.xml --reportdirpath=ShaderGraphPerformanceTests/Artifacts/PerfTestReport.xml
+    - command: cd ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter & dotnet run UnityPerformanceBenchmarkReporter.exe --baseline=Baseline.xml --results=TestResults.xml --reportdirpath=ShaderGraphPerformanceTests/Artifacts/PerfTestReport.xml
       retries: 2
   artifacts:
     logs:
