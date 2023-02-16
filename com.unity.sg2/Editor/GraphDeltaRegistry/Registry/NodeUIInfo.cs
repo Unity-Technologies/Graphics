@@ -48,6 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 key.Name,
                 true,
                 new Dictionary<string, string> { },
+                false,
                 new ParameterUIDescriptor[] {}
             );
         }

@@ -81,6 +81,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "FlipFrames", "Flip Frames" },
                 { "BlendFrames", "Blend Frames" }
             },
+            hasModes: true,
             functionSelectorLabel: "Mode",
             description: "pkg://Documentation~/previews/Flipbook.md",
             parameters: new ParameterUIDescriptor[10] {

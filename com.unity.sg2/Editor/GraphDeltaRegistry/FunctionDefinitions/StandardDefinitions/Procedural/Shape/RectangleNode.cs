@@ -73,6 +73,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Fastest", "Fastest" },
                 { "Nicest", "Nicest" }
             },
+            hasModes: true,
             functionSelectorLabel: " ",
             description: "pkg://Documentation~/previews/Rectangle.md",
             parameters: new ParameterUIDescriptor[4] {

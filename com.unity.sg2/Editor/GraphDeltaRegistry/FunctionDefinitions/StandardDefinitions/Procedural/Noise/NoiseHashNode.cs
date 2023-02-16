@@ -97,6 +97,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Hash31", "Vec3 to Float" },
                 { "Hash33", "Vec3 to Vec3" }
             },
+            hasModes: true,
             functionSelectorLabel: "Hash Type",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(

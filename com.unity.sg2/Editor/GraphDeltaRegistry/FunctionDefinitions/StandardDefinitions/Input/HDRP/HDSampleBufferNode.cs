@@ -116,6 +116,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "IsSky", "Is Sky" },
                 { "PostProcessInput", "Post Process Input" }
             },
+            hasModes: true,
             functionSelectorLabel: "Source Buffer",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
