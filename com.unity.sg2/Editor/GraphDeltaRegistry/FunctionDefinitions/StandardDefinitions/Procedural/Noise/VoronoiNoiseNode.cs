@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Procedural/Noise",
             synonyms: new string[1] { "worley noise" },
             displayName: "Voronoi Noise",
-            description: "pkg://Documentation~/previews/Voronoi.md",
+            description: "pkg://Documentation~/previews/VoronoiNoise.md",
             selectableFunctions: new Dictionary<string, string>
             {
                 { "Deterministic", "Deterministic" },

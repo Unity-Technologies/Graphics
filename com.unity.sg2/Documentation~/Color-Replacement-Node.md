@@ -1,4 +1,4 @@
-# Replace Color Node
+# Color Replacement Node
 
 ## Description
 

@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[0] {  },
             displayName: "Texture 2D Level of Detail",
-            description: "pkg://Documentation~/previews/CalculateLevelOfDetailTexture2D.md",
+            description: "pkg://Documentation~/previews/Texture2DLevelOfDetail.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Texture",

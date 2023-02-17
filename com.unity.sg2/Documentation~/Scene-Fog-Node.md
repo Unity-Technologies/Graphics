@@ -1,4 +1,4 @@
-# Fog Node
+# Scene Fog Node
 
 ## Description
 

@@ -26,7 +26,7 @@ NormalOS = GetWaterVertexNormal(norm);",
             displayName: "Water Vertex Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            description: "pkg://Documentation~/previews/ComputeWaterVertexPosition.md",
+            description: "pkg://Documentation~/previews/WaterVertexData.md",
             synonyms: new string[0],
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {

@@ -33,7 +33,7 @@ Foam = foamData.foamValue;
                 tooltip: "",
                 category: "Utility/HDRP/Water",
                 synonyms: Array.Empty<string>(),
-                description: "pkg://Documentation~/previews/EvaluateWaterFoamData.md",
+                description: "pkg://Documentation~/previews/WaterFoamData.md",
                 hasPreview: false,
                 parameters: new ParameterUIDescriptor[] {
                     new ParameterUIDescriptor(

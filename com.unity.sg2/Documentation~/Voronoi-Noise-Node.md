@@ -1,4 +1,4 @@
-# Voronoi Node
+# Voronoi Noise Node
 
 ## Description
 

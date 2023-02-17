@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Geometry",
             synonyms: new string[3] { "texcoords", "coords", "coordinates" },
             displayName: "UV Coordinates",
-            description: "pkg://Documentation~/previews/UV.md",
+            description: "pkg://Documentation~/previews/UVCoordinates.md",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "UV",

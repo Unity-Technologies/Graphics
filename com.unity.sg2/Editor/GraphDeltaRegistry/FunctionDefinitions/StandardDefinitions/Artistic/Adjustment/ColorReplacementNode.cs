@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Converts the chosen color from an input to another color value.",
             category: "Artistic/Adjustment",
             synonyms: Array.Empty<string>(),
-            description: "pkg://Documentation~/previews/ReplaceColor.md",
+            description: "pkg://Documentation~/previews/ColorReplacement.md",
             parameters: new ParameterUIDescriptor[6]
             {
                 new ParameterUIDescriptor(

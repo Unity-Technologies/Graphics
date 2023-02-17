@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Lighting",
             synonyms: new string[2] { "location", "GI" },
             displayName: "Baked Global Illumination",
-            description: "pkg://Documentation~/previews/BakedGI.md",
+            description: "pkg://Documentation~/previews/BakedGlobalIllumination.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(

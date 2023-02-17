@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "",
             category: "Utility/HDRP/Water",
             synonyms: Array.Empty<string>(),
-            description: "pkg://Documentation~/previews/EvaluateWaterTipThickness.md",
+            description: "pkg://Documentation~/previews/WaterTipThickness.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

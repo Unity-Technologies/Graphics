@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Water Refraction Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            description: "pkg://Documentation~/previews/EvaluateWaterRefractionData.md",
+            description: "pkg://Documentation~/previews/WaterRefractionData.md",
             synonyms: Array.Empty<string>(),
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {

@@ -1,4 +1,4 @@
-# Baked GI Node
+# Baked Global Illumination Node
 
 ## Description
 

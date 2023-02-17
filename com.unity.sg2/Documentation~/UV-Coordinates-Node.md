@@ -1,4 +1,4 @@
-# UV Node
+# UV Coordinates Node
 
 ## Description
 

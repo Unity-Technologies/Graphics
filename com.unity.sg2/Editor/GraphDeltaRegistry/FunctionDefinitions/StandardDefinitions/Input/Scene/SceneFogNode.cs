@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             synonyms: new string[2] { "stereo", "3d" },
             displayName: "Scene Fog",
-            description: "pkg://Documentation~/previews/Fog.md",
+            description: "pkg://Documentation~/previews/SceneFog.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "Position",

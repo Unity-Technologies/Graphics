@@ -1,4 +1,4 @@
-# Calculate Level Of Detail Texture 2D node
+# Texture 2D Level Of Detail Node
 
 The Calculate Level of Detail Texture 2D node takes an input **Texture 2D** and outputs the mip level of a Texture sample. This node is useful in situations where you need to know the mip level of a Texture, such as when you might want to modify the mip level before sampling in your shader.
 

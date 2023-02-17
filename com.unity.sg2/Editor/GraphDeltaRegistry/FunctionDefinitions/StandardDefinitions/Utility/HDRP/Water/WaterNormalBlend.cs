@@ -2,9 +2,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class BlendWaterNormalNode : IStandardNode
+    internal class WaterNormalBlendNode : IStandardNode
     {
-        public static string Name => "BlendWaterNormal";
+        public static string Name => "WaterNormalBlend";
         public static int Version => 1;
 
         public static FunctionDescriptor FunctionDescriptor => new(
@@ -21,11 +21,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Blend Water Normal",
+            displayName: "Water Normal Blend ",
             tooltip: "",
             category: "Utility/HDRP/Water",
             synonyms: new string[0],
-            description: "pkg://Documentation~/previews/BlendWaterNormal.md",
+            description: "pkg://Documentation~/previews/WaterNormalBlend.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
