@@ -13,13 +13,14 @@
             output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz / output.positionCS.w);\
             half3 planeNormal = -GetViewForwardDir();\
             half3 projLightPos = lightPosition.xyz - (dot(lightPosition.xyz - worldSpacePos.xyz, planeNormal) - lightZDistance) * planeNormal;\
-            output.lightDirection.xyz = normalize(projLightPos - worldSpacePos.xyz);\
+            output.lightDirection.xyz = projLightPos - worldSpacePos.xyz;\
             output.lightDirection.w = 0;
 
         #define APPLY_NORMALS_LIGHTING(input, lightColor, lightPosition, lightZDistance)\
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
             half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
-            lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
+            half3 dirToLight = normalize(input.lightDirection.xyz);\
+            lightColor = lightColor * saturate(dot(dirToLight, normalUnpacked));
     #else
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
             half4   positionWS : TEXCOORDA;\

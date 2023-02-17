@@ -22,6 +22,7 @@ Shader "Hidden/Light2D-Shape"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local USE_NORMAL_MAP __
+            #pragma multi_compile_local LIGHT_QUALITY_FAST __
             #pragma multi_compile_local USE_ADDITIVE_BLENDING __
             #pragma multi_compile_local USE_VOLUMETRIC __
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_0 __
