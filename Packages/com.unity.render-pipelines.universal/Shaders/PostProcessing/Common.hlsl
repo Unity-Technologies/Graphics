@@ -229,7 +229,7 @@ half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceS
         kFxaaConsoleEdgeThreshold,
         kFxaaConsoleEdgeThresholdMin,
         kUnusedFloat4
-    );
+    ).rgb;
 #else
     return color;
 #endif

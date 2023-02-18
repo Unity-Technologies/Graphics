@@ -1740,7 +1740,6 @@ GameObject:
   - component: {fileID: 959530953}
   - component: {fileID: 959530952}
   - component: {fileID: 959530950}
-  - component: {fileID: 959530949}
   - component: {fileID: 959530954}
   m_Layer: 0
   m_Name: Main Camera
@@ -1749,38 +1748,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &959530949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 959530948}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53d0518c7927ef64a8caa190865c3bd6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  settings:
-    testSettings: {fileID: 0}
-    platformMask: -1
-    waitType: 0
-    waitFrames: 0
-    waitSeconds: 0
-    passFailThreshold: 0.1
-  m_Settings:
-    testSettings: {fileID: 0}
-    platformMask: -1
-    waitType: 0
-    waitFrames: 1
-    waitSeconds: 0
-    passFailThreshold: 0.1
-    captureCamera: {fileID: 959530952}
-    frameResolution: 1
-    textureFormat: 3
-    filterMode: 1
-    useBackBuffer: 1
-    imageQuality: 1
 --- !u!124 &959530950
 Behaviour:
   m_ObjectHideFlags: 0
@@ -2675,7 +2642,7 @@ MonoBehaviour:
     UseBackBuffer: 0
     ImageResolution: 0
     ActiveImageTests: 1
-    ActivePixelTests: 7
+    ActivePixelTests: -1
   WaitFrames: 0
   XRCompatible: 0
   CheckMemoryAllocation: 1

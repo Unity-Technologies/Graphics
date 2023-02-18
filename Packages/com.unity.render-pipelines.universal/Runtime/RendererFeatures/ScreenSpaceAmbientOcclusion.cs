@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal
         private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
         // Internal / Constants
-        internal ScreenSpaceAmbientOcclusionSettings settings => m_Settings;
+        internal ref ScreenSpaceAmbientOcclusionSettings settings => ref m_Settings;
         internal const string k_AOInterleavedGradientKeyword = "_INTERLEAVED_GRADIENT";
         internal const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
         internal const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";

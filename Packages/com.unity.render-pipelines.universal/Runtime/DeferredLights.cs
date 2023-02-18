@@ -261,11 +261,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.AccurateGbufferNormals = true;
             this.UseJobSystem = true;
-            if (SystemInfo.graphicsDeviceName.Contains("Apple M"))
-            {
-                // Currently Apple silicon machines do not support native render passes
-                useNativeRenderPass = false;
-            }
             this.UseRenderPass = useNativeRenderPass;
             m_LightCookieManager = initParams.lightCookieManager;
         }
@@ -747,6 +742,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
+        void SetAdditionalLightsShadowsKeyword(ref RasterCommandBuffer cmd, ref RenderingData renderingData, bool hasDeferredShadows)
+        {
+            // The OFF variant is stripped out based on the stripShadowsOffVariants parameter in the renderer.
+            // This is done to improve build times. Instead a very small texture is sampled.
+            bool hasOffVariant = !renderingData.cameraData.renderer.stripShadowsOffVariants;
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, !hasOffVariant || hasDeferredShadows);
+        }
+
         void RenderStencilDirectionalLights(RasterCommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights, int mainLightIndex)
         {
             if (m_FullscreenMesh == null)
@@ -786,14 +789,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (visLightIndex == mainLightIndex)
                 {
                     hasDeferredShadows = light && light.shadows != LightShadows.None;
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, false);
                 }
                 else
                 {
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                     hasDeferredShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, hasDeferredShadows);
-
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
                     if (m_LightCookieManager != null)
@@ -803,6 +803,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetGlobalInt(ShaderConstants._CookieLightIndex, cookieLightIndex);
                     }
                 }
+                SetAdditionalLightsShadowsKeyword(ref cmd, ref renderingData, hasDeferredShadows);
 
                 bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
@@ -861,9 +862,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                 bool hasDeferredLightShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
-                bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
+                SetAdditionalLightsShadowsKeyword(ref cmd, ref renderingData, hasDeferredLightShadows);
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, hasDeferredLightShadows);
+                bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
 
                 if (m_LightCookieManager != null)
@@ -899,7 +900,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_HemisphereMesh = CreateHemisphereMesh();
 
             cmd.EnableShaderKeyword(ShaderKeywordStrings._SPOT);
-
             for (int soffset = m_stencilVisLightOffsets[(int)LightType.Spot]; soffset < m_stencilVisLights.Length; ++soffset)
             {
                 ushort visLightIndex = m_stencilVisLights[soffset];
@@ -929,9 +929,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                 bool hasDeferredLightShadows = light && light.shadows != LightShadows.None && shadowLightIndex >= 0;
-                bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
+                SetAdditionalLightsShadowsKeyword(ref cmd, ref renderingData, hasDeferredLightShadows);
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, hasDeferredLightShadows);
+                bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && light.shadows == LightShadows.Soft;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
 
                 if (m_LightCookieManager != null)
@@ -960,7 +960,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualLit]);
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualSimpleLit]);
             }
-
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }
 

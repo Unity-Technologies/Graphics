@@ -112,8 +112,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
             {
+                // Enable Rendering Layers
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, passData.enableRenderingLayers);
+
+                // Draw
                 cmd.DrawRendererList(rendererList);
+
+                // Clean up
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
             }
         }
 

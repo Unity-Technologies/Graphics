@@ -24,9 +24,6 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
                 #define TAA_YCOCG 0
                 #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/TemporalAA.hlsl"
 
-                #pragma vertex Vert
-                #pragma fragment TaaFrag
-
                 half4 TaaFrag(Varyings input) : SV_Target
                 {
                     return DoTemporalAA(input, 0, 0, 0, 0);

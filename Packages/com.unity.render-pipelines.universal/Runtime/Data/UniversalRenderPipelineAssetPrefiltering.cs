@@ -37,6 +37,9 @@ namespace UnityEngine.Rendering.Universal
         // Platform specific filtering overrides
         [ShaderKeywordFilter.ApplyRulesIfGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.WriteRenderingLayers)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT1)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT2)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT3)]
         private const bool k_CommonGLDefaults = true;
 
         // Foveated Rendering
@@ -49,11 +52,11 @@ namespace UnityEngine.Rendering.Universal
         // User can change cascade count at runtime so we have to include both MainLightShadows and MainLightShadowCascades.
         // ScreenSpaceShadows renderer feature has separate filter attribute for keeping MainLightShadowScreen.
         // NOTE: off variants are atm always removed when shadows are supported
-        [ShaderKeywordFilter.RemoveIf(PrefilteringModeMainLightShadows.Remove, keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
-        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLight, keywordNames: ShaderKeywordStrings.MainLightShadows)]
-        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndOff, keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows})]
+        [ShaderKeywordFilter.RemoveIf(PrefilteringModeMainLightShadows.Remove,                     keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLight,            keywordNames: ShaderKeywordStrings.MainLightShadows)]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndOff,      keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndCascades, keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
-        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectAll, keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectAll,                  keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
         [SerializeField] private PrefilteringModeMainLightShadows m_PrefilteringModeMainLightShadows = PrefilteringModeMainLightShadows.SelectMainLight;
 
         // Additional Lights
@@ -68,8 +71,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private PrefilteringModeAdditionalLights m_PrefilteringModeAdditionalLight = PrefilteringModeAdditionalLights.SelectPixelAndOff;
 
         // Additional Lights Shadows
-        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select, keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightShadows})]
+        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove,     keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightShadows})]
         [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.AdditionalLightShadows)]
         [SerializeField] private PrefilteringMode m_PrefilteringModeAdditionalLightShadows = PrefilteringMode.Select;
 
@@ -99,11 +102,12 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private PrefilteringMode m_PrefilteringModeScreenSpaceOcclusion = PrefilteringMode.Select;
 
         // Rendering Debugger
-        [ShaderKeywordFilter.RemoveIf(true, keywordNames: new [] {ShaderKeywordStrings.DEBUG_DISPLAY})]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames:ShaderKeywordStrings.DEBUG_DISPLAY)]
         [SerializeField] private bool m_PrefilterDebugKeywords = false;
 
         // Filters out WriteRenderingLayers if nothing requires the feature
         // TODO: Implement a different filter triggers for different passes (i.e. per-pass filter attributes)
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.WriteRenderingLayers)]
         [SerializeField] private bool m_PrefilterWriteRenderingLayers = false;
 
@@ -113,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
         })]
         [SerializeField] private bool m_PrefilterHDROutput = false;
 
-        // Screen Space Ambient Occlusion (SSAO) specifc keywords
+        // Screen Space Ambient Occlusion (SSAO) specific keywords
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthNormalsKeyword)]
         [SerializeField] private bool m_PrefilterSSAODepthNormals = false;
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ScreenSpaceAmbientOcclusion.k_SourceDepthLowKeyword)]
@@ -134,10 +138,15 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private bool m_PrefilterSSAOSampleCountHigh = false;
 
         // Decals
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT1)]
         [SerializeField] private bool m_PrefilterDBufferMRT1 = false;
+
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT2)]
         [SerializeField] private bool m_PrefilterDBufferMRT2 = false;
+
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT3)]
         [SerializeField] private bool m_PrefilterDBufferMRT3 = false;
 

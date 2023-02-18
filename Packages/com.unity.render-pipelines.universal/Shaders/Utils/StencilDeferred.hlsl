@@ -176,7 +176,7 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
 
             #if defined(_LIGHT_COOKIES)
                 real3 cookieColor = SampleMainLightCookie(posWS);
-                unityLight.color *= float4(cookieColor, 1);
+                unityLight.color *= half3(cookieColor);
             #endif
         #else
             unityLight.direction = _LightDirection;
