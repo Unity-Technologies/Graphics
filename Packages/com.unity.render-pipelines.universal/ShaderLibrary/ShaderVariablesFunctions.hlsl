@@ -488,21 +488,7 @@ uint URP_FirstBitLow(uint m)
 #define FIRST_BIT_LOW firstbitlow
 #endif
 
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    float2 TransformStereoScreenSpaceTex(float2 uv, float w)
-    {
-        // TODO: RVS support can be added here, if Universal decides to support it
-        float4 scaleOffset = unity_StereoScaleOffset[unity_StereoEyeIndex];
-        return uv.xy * scaleOffset.xy + scaleOffset.zw * w;
-    }
-
-    float2 UnityStereoTransformScreenSpaceTex(float2 uv)
-    {
-        return TransformStereoScreenSpaceTex(saturate(uv), 1.0);
-    }
-#else
-    #define UnityStereoTransformScreenSpaceTex(uv) uv
-#endif // defined(UNITY_SINGLE_PASS_STEREO)
+#define UnityStereoTransformScreenSpaceTex(uv) uv
 
 uint GetMeshRenderingLayer()
 {
