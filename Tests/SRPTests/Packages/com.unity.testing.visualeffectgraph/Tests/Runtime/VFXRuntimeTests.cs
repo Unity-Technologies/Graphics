@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using NUnit.Framework;
 using Unity.Testing.VisualEffectGraph;
@@ -56,6 +57,47 @@ namespace UnityEngine.VFX.Test
             {
                 //The crash was in this case
                 yield return null;
+            }
+        }
+
+        [UnityTest, Description("Cover Prefab instanciation behavior")
+#if UNITY_EDITOR
+            , Ignore("See UUM-27159, Load Scene in playmode creates a real VisualEffect instance.")
+#endif
+        ]
+        public IEnumerator Prefab_Instanciation()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Packages/com.unity.testing.visualeffectgraph/Scenes/020_PrefabInstanciation.unity");
+            yield return null;
+
+            var references = Resources.FindObjectsOfTypeAll<VFXPrefabReferenceTest>();
+            Assert.AreEqual(1u, references.Length);
+            var reference = references[0];
+
+            for (int i = 0; i <= 6; ++i)
+            {
+                var batchEffectInfos = UnityEngine.VFX.VFXManager.GetBatchedEffectInfo(reference.VfxReference);
+                Assert.AreEqual(i, batchEffectInfos.activeInstanceCount);
+                if (i > 0)
+                {
+                    Assert.AreEqual(1u, batchEffectInfos.activeBatchCount);
+
+                    var batchInfo = UnityEngine.VFX.VFXManager.GetBatchInfo(reference.VfxReference, 0);
+                    Assert.AreEqual(i, batchInfo.activeInstanceCount);
+
+                    Assert.IsFalse(batchInfo.capacity < 6);
+                }
+
+                if (i < 6)
+                {
+                    reference.PrefabReference.GetComponent<VisualEffect>().SetFloat("hue", (float) i / 6.0f);
+                    var newVFX = GameObject.Instantiate(reference.PrefabReference);
+                    newVFX.transform.eulerAngles = new Vector3(0, 0, 60 * i);
+                }
+
+                int frameIndex = Time.frameCount + 1;
+                while (Time.frameCount <= frameIndex)
+                    yield return null;
             }
         }
 

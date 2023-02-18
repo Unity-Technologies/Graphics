@@ -3,6 +3,8 @@
     "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
         "Unity.Testing.VisualEffectGraph",
         "Unity.Testing.XR.Runtime",
         "Unity.VisualEffectGraph.Editor",
@@ -22,6 +24,17 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "1.0.0",
+            "define": "VFX_TESTS_HAS_HDRP"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "1.0.0",
+            "define": "VFX_TESTS_HAS_URP"
+        }
+    ],
     "noEngineReferences": false
 }
