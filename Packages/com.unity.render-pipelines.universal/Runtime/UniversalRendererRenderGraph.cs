@@ -759,11 +759,11 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 var target = isTargetBackbuffer ? backbuffer : cameraColor;
-                postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in activeColor, in internalColorLut, in target, ref renderingData, applyFinalPostProcessing);
+                m_PostProcessPasses.postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in activeColor, in internalColorLut, in target, ref renderingData, applyFinalPostProcessing);
             }
 
             if (applyFinalPostProcessing)
-                postProcessPass.RenderFinalPassRenderGraph(renderGraph, in cameraColor, ref renderingData);
+                m_PostProcessPasses.finalPostProcessPass.RenderFinalPassRenderGraph(renderGraph, in cameraColor, ref renderingData);
 
             cameraTargetResolved =
                 // final PP always blit to camera target
