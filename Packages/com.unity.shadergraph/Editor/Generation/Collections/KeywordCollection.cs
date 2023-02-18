@@ -27,10 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         public KeywordCollection Add(KeywordCollection keywords)
         {
-            foreach (KeywordCollection.Item item in keywords)
-            {
-                m_Items.Add(item);
-            }
+            m_Items.AddRange(keywords);
 
             return this;
         }

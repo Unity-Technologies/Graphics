@@ -631,8 +631,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SceneResources.camera.clearFlags = CameraClearFlags.Color;
 
                 // Render 2D previews
-                m_SceneResources.camera.transform.position = -Vector3.forward * 2;
-                m_SceneResources.camera.transform.rotation = Quaternion.identity;
+                m_SceneResources.camera.transform.SetPositionAndRotation(-Vector3.forward * 2, Quaternion.identity);
                 m_SceneResources.camera.orthographicSize = 0.5f;
                 m_SceneResources.camera.orthographic = true;
 
@@ -640,8 +639,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity, perMaterialPreviewProperties);
 
                 // Render 3D previews
-                m_SceneResources.camera.transform.position = -Vector3.forward * 5;
-                m_SceneResources.camera.transform.rotation = Quaternion.identity;
+                m_SceneResources.camera.transform.SetPositionAndRotation(-Vector3.forward * 5, Quaternion.identity);
                 m_SceneResources.camera.orthographic = false;
 
                 foreach (var renderData in renderList3D)
@@ -670,7 +668,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     var previewTransform = preventRotation ? Matrix4x4.identity : Matrix4x4.Rotate(m_Graph.previewData.rotation);
                     var scale = m_Graph.previewData.scale;
-                    previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
+                    previewTransform *= Matrix4x4.Scale((Vector3.one).magnitude * scale * Vector3.one / mesh.bounds.size.magnitude);
                     previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
 
                     RenderPreview(masterRenderData, mesh, previewTransform, perMaterialPreviewProperties);
@@ -784,7 +782,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // add each node to compile list if it needs a preview, is not already compiling, and we have room
                 // (we don't want to double kick compiles, so wait for the first one to get back before kicking another)
-                for (int i = 0; i < m_PreviewsNeedsRecompile.Count(); i++)
+                for (int i = 0; i < m_PreviewsNeedsRecompile.Count; i++)
                 {
                     if (m_PreviewsCompiling.Count + previewsToCompile.Count >= m_MaxPreviewsCompiling)
                         break;

@@ -572,10 +572,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
                 var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
-                if (!AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible))
-                    return false;
-
-                return true;
+                return AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible);
             }
 
             return false;

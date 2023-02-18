@@ -484,15 +484,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (groupNode == null)
                         continue;
 
-                    foreach (GraphElement graphElement in groupNode.containedElements)
-                    {
-                        nodesInsideGroup.Add(graphElement);
-                    }
+                    nodesInsideGroup.AddRange(groupNode.containedElements);
 
                     SetGroupPosition(groupNode);
                 }
 
-                if (nodesInsideGroup.Any())
+                if (nodesInsideGroup.Count > 0)
                     graphViewChange.movedElements.AddRange(nodesInsideGroup);
 
                 foreach (var element in graphViewChange.movedElements)
@@ -1270,7 +1267,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var nodeView in nodeViews)
                 nodeStack.Push((Node)nodeView);
             PooledList<Edge> edgesToUpdate = PooledList<Edge>.Get();
-            while (nodeStack.Any())
+            while (nodeStack.Count > 0)
             {
                 var nodeView = nodeStack.Pop();
                 if (nodeView is IShaderNodeView shaderNodeView)

@@ -25,10 +25,7 @@ namespace UnityEditor.ShaderGraph
 
         public FieldCollection Add(FieldCollection fields)
         {
-            foreach (FieldCollection.Item item in fields)
-            {
-                m_Items.Add(item);
-            }
+            m_Items.AddRange(fields);
 
             return this;
         }

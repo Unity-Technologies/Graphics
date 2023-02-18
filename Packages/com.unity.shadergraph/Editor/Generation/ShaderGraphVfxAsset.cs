@@ -148,7 +148,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 EnsureProperties();
                 var allProperties = m_Data.m_Properties.SelectValue().ToList();
                 var fragProperties = new List<AbstractShaderProperty>();
-                for (var i = 0; i < allProperties.Count(); i++)
+                for (var i = 0; i < allProperties.Count; i++)
                 {
                     if ((m_PropertiesStages[i] & ShaderStageCapability.Fragment) != 0)
                         fragProperties.Add(allProperties[i]);
@@ -164,7 +164,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 EnsureProperties();
                 var allProperties = m_Data.m_Properties.SelectValue().ToList();
                 var vertexProperties = new List<AbstractShaderProperty>();
-                for (var i = 0; i < allProperties.Count(); i++)
+                for (var i = 0; i < allProperties.Count; i++)
                 {
                     if ((m_PropertiesStages[i] & ShaderStageCapability.Vertex) != 0)
                         vertexProperties.Add(allProperties[i]);

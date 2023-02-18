@@ -260,7 +260,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_BlackboardItemControllers.Add(shaderInput.objectId, blackboardItemController);
                 // If no index specified, or if trying to insert at last index, add to end of category
-                if (insertionIndex == -1 || insertionIndex == m_BlackboardItemControllers.Count() - 1)
+                if (insertionIndex == -1 || insertionIndex == m_BlackboardItemControllers.Count - 1)
                     blackboardCategoryView.Add(blackboardItemController.BlackboardItemView);
                 else
                     blackboardCategoryView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);

@@ -28,10 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public PragmaCollection Add(PragmaCollection pragmas)
         {
-            foreach (PragmaCollection.Item item in pragmas)
-            {
-                m_Items.Add(item);
-            }
+            m_Items.AddRange(pragmas);
 
             return this;
         }

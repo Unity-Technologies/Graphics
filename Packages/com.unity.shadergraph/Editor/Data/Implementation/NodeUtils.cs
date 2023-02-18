@@ -119,7 +119,7 @@ namespace UnityEditor.Graphing
             // The only valid port id is the port that corresponds to that keywords value in the active permutation
             if (node is KeywordNode keywordNode && keywordPermutation != null)
             {
-                var valueInPermutation = keywordPermutation.Where(x => x.Key == keywordNode.keyword).FirstOrDefault();
+                var valueInPermutation = keywordPermutation.FirstOrDefault(x => x.Key == keywordNode.keyword);
                 ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
             }
             else
@@ -387,7 +387,7 @@ namespace UnityEditor.Graphing
             var graph = initialSlot.owner.owner;
             s_SlotStack.Clear();
             s_SlotStack.Push(initialSlot);
-            while (s_SlotStack.Any())
+            while (s_SlotStack.Count > 0)
             {
                 var slot = s_SlotStack.Pop();
                 ShaderStage stage;
@@ -431,7 +431,7 @@ namespace UnityEditor.Graphing
             s_SlotStack.Clear();
             s_SlotStack.Push(initialSlot);
             ShaderStageCapability capabilities = ShaderStageCapability.All;
-            while (s_SlotStack.Any())
+            while (s_SlotStack.Count > 0)
             {
                 var slot = s_SlotStack.Pop();
 

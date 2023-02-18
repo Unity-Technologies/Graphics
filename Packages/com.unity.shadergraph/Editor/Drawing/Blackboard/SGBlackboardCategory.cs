@@ -198,7 +198,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             set
             {
                 m_TitleLabel.text = value;
-                if (m_TitleLabel.text == String.Empty)
+                if (m_TitleLabel.text?.Length == 0)
                 {
                     AddToClassList("unnamed");
                 }

@@ -674,7 +674,7 @@ namespace UnityEditor.ShaderGraph
             if (index >= 0)
             {
                 var guid = m_PropertyGuids[index];
-                return asset?.inputs.Where(x => x.guid.ToString().Equals(guid)).FirstOrDefault();
+                return asset?.inputs.FirstOrDefault(x => x.guid.ToString().Equals(guid));
             }
             return null;
         }

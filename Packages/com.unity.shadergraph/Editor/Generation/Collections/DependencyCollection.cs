@@ -25,10 +25,8 @@ namespace UnityEditor.ShaderGraph
 
         public DependencyCollection Add(DependencyCollection dependencies)
         {
-            foreach (DependencyCollection.Item item in dependencies)
-            {
-                m_Items.Add(item);
-            }
+            m_Items.AddRange(dependencies);
+
             return this;
         }
 

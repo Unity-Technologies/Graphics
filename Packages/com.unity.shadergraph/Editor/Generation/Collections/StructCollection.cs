@@ -27,10 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         public StructCollection Add(StructCollection structs)
         {
-            foreach (StructCollection.Item item in structs)
-            {
-                m_Items.Add(item);
-            }
+            m_Items.AddRange(structs);
 
             return this;
         }

@@ -193,7 +193,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-            for (int i = 0; i < packedCounts.Count(); ++i)
+            for (int i = 0; i < packedCounts.Count; ++i)
             {
                 // todo: ensure this packing adjustment doesn't waste interpolators when many preprocessors are in use.
                 var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + i, "", "float" + packedCounts[i], "INTERP" + i, "", StructFieldOptions.Static);
@@ -1021,7 +1021,7 @@ namespace UnityEditor.ShaderGraph
                         var node = input.owner;
                         var foundEdges = graph.GetEdges(input.slotReference).ToArray();
                         var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
-                        if (foundEdges.Any())
+                        if (foundEdges.Length > 0)
                             surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {node.GetSlotValue(input.id, mode, node.concretePrecision)};");
                         else
                             surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {input.GetDefaultValue(mode, node.concretePrecision)};");
@@ -1035,7 +1035,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var foundEdges = graph.GetEdges(slot.slotReference).ToArray();
                     var hlslName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
-                    if (foundEdges.Any())
+                    if (foundEdges.Length > 0)
                         surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision)};");
                     else
                         surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {slot.GetDefaultValue(mode, rootNode.concretePrecision)};");

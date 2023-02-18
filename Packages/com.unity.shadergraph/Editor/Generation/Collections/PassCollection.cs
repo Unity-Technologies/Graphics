@@ -27,10 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         public PassCollection Add(PassCollection passes)
         {
-            foreach (PassCollection.Item item in passes)
-            {
-                m_Items.Add(item);
-            }
+            m_Items.AddRange(passes);
 
             return this;
         }
