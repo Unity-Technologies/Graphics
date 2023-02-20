@@ -407,6 +407,21 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        bool IsDepthPrimingEnabled(ref CameraData cameraData)
+        {
+            // depth priming requires an extra depth copy, disable it on platforms not supporting it (like GLES when MSAA is on)
+            if (!CanCopyDepth(ref cameraData))
+                return false;
+
+            bool depthPrimingRequested = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || m_DepthPrimingMode == DepthPrimingMode.Forced;
+            bool isForwardRenderingMode = m_RenderingMode == RenderingMode.Forward;
+            bool isFirstCameraToWriteDepth = cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth;
+            // Enabled Depth priming when baking Reflection Probes causes artefacts (UUM-12397)
+            bool isNotReflectionCamera = cameraData.cameraType != CameraType.Reflection;
+
+            return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera;
+        }
+
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -476,8 +491,9 @@ namespace UnityEngine.Rendering.Universal
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
+            useDepthPriming = IsDepthPrimingEnabled(ref cameraData);
             // This indicates whether the renderer will output a depth texture.
-            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || m_DepthPrimingMode == DepthPrimingMode.Forced;
+            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || useDepthPriming;
 
 #if UNITY_EDITOR
             bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
@@ -510,7 +526,7 @@ namespace UnityEngine.Rendering.Universal
             if (requiresDepthPrepass && this.actualRenderingMode == RenderingMode.Deferred && !renderPassInputs.requiresNormalsTexture)
                 requiresDepthPrepass = false;
 
-            requiresDepthPrepass |= m_DepthPrimingMode == DepthPrimingMode.Forced;
+            requiresDepthPrepass |= useDepthPriming;
 
             // If possible try to merge the opaque and skybox passes instead of splitting them when "Depth Texture" is required.
             // The copying of depth should normally happen after rendering opaques.
@@ -545,11 +561,11 @@ namespace UnityEngine.Rendering.Universal
             // deferred pass ("camera color" + "camera depth"), the implicit depth surface of "camera color" is used instead of "camera depth",
             // because BuiltinRenderTextureType.CameraTarget for depth means there is no explicit depth attachment...
             bool createDepthTexture = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && !requiresDepthPrepass;
-            createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
+            createDepthTexture |= !cameraData.resolveFinalTarget;
             // Deferred renderer always need to access depth buffer.
             createDepthTexture |= (this.actualRenderingMode == RenderingMode.Deferred && !useRenderPassEnabled);
             // Some render cases (e.g. Material previews) have shown we need to create a depth texture when we're forcing a prepass.
-            createDepthTexture |= m_DepthPrimingMode == DepthPrimingMode.Forced;
+            createDepthTexture |= useDepthPriming;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
@@ -568,9 +584,6 @@ namespace UnityEngine.Rendering.Universal
                 createColorTexture |= createDepthTexture;
             }
 #endif
-            bool useDepthPriming = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
-            useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
-
             // Temporarily disable depth priming on certain platforms such as Vulkan because we lack proper depth resolve support.
             useDepthPriming &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan || cameraTargetDescriptor.msaaSamples == 1;
 
@@ -775,8 +788,8 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyDepthPass);
             }
 
-            // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
-            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
+            // Set the depth texture to the far Z if we do not have a depth prepass or copy depth
+            if (!requiresDepthPrepass && !requiresDepthCopyPass)
             {
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
@@ -1119,7 +1132,6 @@ namespace UnityEngine.Rendering.Universal
                     var depthDescriptor = descriptor;
                     depthDescriptor.useMipMap = false;
                     depthDescriptor.autoGenerateMips = false;
-
                     depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
 
                     // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
@@ -1208,7 +1220,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
 
-            // copying depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
+            // copying MSAA depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
             if (IsGLESDevice() && msaaDepthResolve)
                 return false;
 

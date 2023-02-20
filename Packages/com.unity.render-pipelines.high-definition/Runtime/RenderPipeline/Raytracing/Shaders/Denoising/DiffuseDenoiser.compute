@@ -95,6 +95,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         #else
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 1.0);
         #endif
+        return;
     }
 
     // Create the local ortho basis for our sampling

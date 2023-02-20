@@ -159,6 +159,12 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
             volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
             volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
+
+            // Camera was potentially Reset() so we need to reset timers on the renderers.
+            if (visualSky != null)
+                visualSky.Reset();
+            if (lightingSky != null && visualSky != lightingSky)
+                lightingSky.Reset();
         }
 
         /// <summary>

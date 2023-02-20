@@ -325,6 +325,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         opacity = volFog.a;
     }
 
+#if 0 // _PBRFogEnabled is disabled from C# anyway
     // Sky pass already applies atmospheric scattering to the far plane.
     // This pass only handles geometry.
     if (_PBRFogEnabled && (posInput.deviceDepth != UNITY_RAW_FAR_CLIP_VALUE))
@@ -374,6 +375,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         CompositeOver(color, opacity, skyColor, skyOpacity, color, opacity);
 #endif
     }
+#endif
 }
 
 

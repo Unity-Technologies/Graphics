@@ -25,8 +25,8 @@
   * [11.x to 12.x](Upgrading-from-2021.1-to-2021.2.md)
 * Volume Framework
   * [Volumes](Volumes.md)
-  * [Volume Profiles](Volume-Profile.md)
-  * [Volume Overrides](Volume-Components.md)
+    * [Volume Profiles](Volume-Profile.md)
+    * [Volume Overrides](Volume-Components.md)
   * Volume Overrides List
     * [Exposure](Override-Exposure.md)
     * [Fog](Override-Fog.md)

@@ -118,6 +118,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         // 0: NOMSAA
         Pass
         {
+            Name "NoMSAA"
+
             Cull Off    ZWrite Off
             Blend One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
             ZTest Less  // Required for XR occlusion mesh optimization
@@ -131,6 +133,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         // 1: MSAA
         Pass
         {
+            Name "MSAA"
+
             Cull Off    ZWrite Off
             Blend One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
             ZTest Less  // Required for XR occlusion mesh optimization
@@ -144,6 +148,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         // 2: NOMSAA PBR FOG
         Pass
         {
+            Name "NoMSAA PBR"
+
             Cull Off    ZWrite Off
             Blend Off   // Manual blending
             ZTest Less  // Required for XR occlusion mesh optimization
@@ -157,6 +163,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         // 3: MSAA PBR FOG
         Pass
         {
+            Name "MSAA PBR"
+
             Cull Off    ZWrite Off
             Blend Off   // Manual blending
             ZTest Less  // Required for XR occlusion mesh optimization

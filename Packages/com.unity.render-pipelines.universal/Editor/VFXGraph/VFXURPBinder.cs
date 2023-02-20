@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.URP
 
         public override void SetupMaterial(Material material, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
-            ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader);
+            ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader, shaderGraph);
             material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
             material.SetShaderPassEnabled("ShadowCaster", hasShadowCasting);
         }
@@ -69,12 +69,15 @@ namespace UnityEditor.VFX.URP
             var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
             if (shader.TryGetMetadataOfType<UniversalMetadata>(out var metaData) && !metaData.allowMaterialOverride)
             {
-                switch (metaData.alphaMode)
+                if (metaData.surfaceType == SurfaceType.Transparent)
                 {
-                    case AlphaMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;
-                    case AlphaMode.Premultiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied; break;
-                    case AlphaMode.Additive: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
-                    case AlphaMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                    switch (metaData.alphaMode)
+                    {
+                        case AlphaMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;
+                        case AlphaMode.Premultiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied; break;
+                        case AlphaMode.Additive: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                        case AlphaMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                    }
                 }
             }
             else

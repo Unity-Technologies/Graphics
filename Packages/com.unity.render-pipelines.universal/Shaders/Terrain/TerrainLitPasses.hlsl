@@ -62,6 +62,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
         half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
         inputData.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
         inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+        // no need for vertex SH when _NORMALMAP is defined as we will evaluate SH per pixel
         half3 SH = 0;
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
@@ -69,7 +70,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
         half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
         half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
         inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
-        half3 SH = 0;
+        half3 SH = IN.vertexSH;
     #else
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
         inputData.normalWS = IN.normal;
