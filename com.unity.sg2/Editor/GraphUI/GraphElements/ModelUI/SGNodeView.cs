@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             bool nodeHasPreview = nodeViewModel.HasPreview;
 
             var shouldShowPreview =
-                graphDataNodeModel.existsInGraphData &&
+                graphDataNodeModel.graphDataOwner.existsInGraphData &&
                 nodeHasPreview;
 
             if (shouldShowPreview)

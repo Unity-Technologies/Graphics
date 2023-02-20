@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void UpdatePartFromModel()
         {
             if (m_Model is not SGNodeModel sgNodeModel) return;
-            if (!sgNodeModel.TryGetNodeHandler(out var handler)) return;
+            if (!sgNodeModel.graphDataOwner.TryGetNodeHandler(out var handler)) return;
 
             // This is a field instead of a port because there's no real string anywhere at runtime -- it affects
             // the generated code like function dropdowns do (which also use fields).

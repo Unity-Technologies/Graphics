@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void UpdatePartFromModel()
         {
-            if (!m_sgNodeModel.TryGetNodeHandler(out var reader))
+            if (!m_sgNodeModel.graphDataOwner.TryGetNodeHandler(out var reader))
                 return; // (Brett) Should maybe log warning here
             var field = reader.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME);
             if (field == null)
