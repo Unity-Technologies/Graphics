@@ -1,7 +1,7 @@
 Pass
 {		
+    Name "${VFXHDRPForwardPassName}"
 	Tags { "LightMode"="${VFXHDRPForwardPassName}"}
-			
 	${VFXStencilForward}
 
 	HLSLPROGRAM
@@ -86,7 +86,7 @@ Pass
 		VFXTransformPSInputs(i);
 
 		#if VFX_USE_GRAPH_VALUES
-		   uint instanceActiveIndex = i.instanceActiveIndex;
+		   uint instanceActiveIndex = i.VFX_VARYINGS_INSTANCE_ACTIVE_INDEX;
 		   ${VFXLoadGraphValues}
 		#endif
 
@@ -107,8 +107,8 @@ Pass
 		#endif
 		normalWS = VFXCubeTransformNormalWS(i,normalWS);
 		normalWS = normalize(normalWS);
-        
-		outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
+
+		outColor = VFXGetPixelOutputForward(i,normalWS,uvData, true);
 	}
 	ENDHLSL
 }

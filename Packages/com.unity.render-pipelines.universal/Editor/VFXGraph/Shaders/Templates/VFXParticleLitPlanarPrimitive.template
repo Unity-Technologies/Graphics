@@ -7,6 +7,7 @@
         ${VFXIncludeRP("Templates/ParticlePlanarPrimitivesLit/PassSelection.template")}
         ${VFXIncludeRP("Templates/ParticlePlanarPrimitivesLit/PassDepth.template"),IS_OPAQUE_PARTICLE}
         ${VFXIncludeRP("Templates/ParticlePlanarPrimitivesLit/PassDepthNormal.template"),IS_OPAQUE_PARTICLE}
+        ${VFXIncludeRP("Templates/ParticlePlanarPrimitivesLit/PassVelocity.template"),USE_MOTION_VECTORS_PASS}
         ${VFXIncludeRP("Templates/ParticlePlanarPrimitivesLit/PassGBuffer.template")}
         ${VFXIncludeRP("Templates/ParticlePlanarPrimitivesLit/PassForward.template")}
         ${VFXIncludeRP("Templates/ParticlePlanarPrimitivesLit/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}

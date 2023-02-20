@@ -88,10 +88,6 @@ half3 ApplyVignette(half3 input, float2 uv, float2 center, float intensity, floa
     center = UnityStereoTransformScreenSpaceTex(center);
     float2 dist = abs(uv - center) * intensity;
 
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    dist.x /= unity_StereoScaleOffset[unity_StereoEyeIndex].x;
-#endif
-
     dist.x *= roundness;
     float vfactor = pow(saturate(1.0 - dot(dist, dist)), smoothness);
     return input * lerp(color, (1.0).xxx, vfactor);
@@ -233,7 +229,7 @@ half3 ApplyFXAA(half3 color, float2 positionNDC, int2 positionSS, float4 sourceS
         kFxaaConsoleEdgeThreshold,
         kFxaaConsoleEdgeThresholdMin,
         kUnusedFloat4
-    );
+    ).rgb;
 #else
     return color;
 #endif

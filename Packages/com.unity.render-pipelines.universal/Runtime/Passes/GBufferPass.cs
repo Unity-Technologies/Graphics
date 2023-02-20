@@ -134,17 +134,21 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList errorRendererList, ref RenderingData renderingData)
         {
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, data.deferredLights.UseRenderingLayers);
+            bool usesRenderingLayers = data.deferredLights.UseRenderingLayers;
+            if (usesRenderingLayers)
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, data.deferredLights.UseRenderingLayers);
 
             if (data.deferredLights.IsOverlay)
-            {
                 data.deferredLights.ClearStencilPartial(cmd);
-            }
 
             cmd.DrawRendererList(rendererList);
 
             // Render objects that did not match any shader pass with error shader
             RenderingUtils.DrawRendererListObjectsWithError(cmd, ref errorRendererList);
+
+            // Clean up
+            if (usesRenderingLayers)
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
         }
 
         /// <summary>
@@ -300,7 +304,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (dbuffer.IsValid())
                         builder.UseTexture(dbuffer);
                 }
-                
+
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 

@@ -169,6 +169,11 @@ float3 GetWorldStereoOffset()
 {
     return _XRWorldSpaceCameraPos[0].xyz - _XRWorldSpaceCameraPos[1].xyz;
 }
+
+float4x4 GetNonJitteredViewProjMatrix(int eye)
+{
+    return _XRNonJitteredViewProjMatrix[eye];
+}
 #endif
 
 float VFXSampleDepth(float4 posSS)

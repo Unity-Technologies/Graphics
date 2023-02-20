@@ -1,4 +1,4 @@
-## Shadow Caster 2D
+## Create shadows with Shadow Caster 2D
 
 The **Shadow Caster 2D** component defines the shape and properties that a Light uses to determine its cast shadows. Add the **Shadow Caster 2D** component to a GameObject by going to menu: **Component > Rendering > 2D > Shadow Caster 2D**.
 

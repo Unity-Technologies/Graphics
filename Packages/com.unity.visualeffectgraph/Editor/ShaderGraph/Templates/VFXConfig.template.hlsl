@@ -366,7 +366,6 @@ void GetElementVertexProperties(AttributesElement element, inout GraphProperties
 #endif
     InternalAttributesElement attributes = element.attributes;
     $splice(VFXVertexPropertiesGeneration)
-    $splice(VFXVertexPropertiesAssign)
 }
 
 void GetElementPixelProperties(VFX_SRP_SURFACE_INPUTS fragInputs, inout GraphProperties properties)

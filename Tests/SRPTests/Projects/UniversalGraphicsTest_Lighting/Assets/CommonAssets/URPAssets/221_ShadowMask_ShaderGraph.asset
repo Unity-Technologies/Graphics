@@ -66,8 +66,8 @@ MonoBehaviour:
   m_AdditionalLightsCookieFormat: 3
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
-  m_MixedLightingSupported: 1
-  m_SupportsLightCookies: 1
+  m_MixedLightingSupported: 0
+  m_SupportsLightCookies: 0
   m_SupportsLightLayers: 0
   m_DebugLevel: 0
   m_StoreActionsOptimization: 0
@@ -91,7 +91,7 @@ MonoBehaviour:
     serializedHasVolumes: []
     bakingSets: []
     m_LightingScenario: Default
-  m_PrefilteringModeMainLightShadows: 2
+  m_PrefilteringModeMainLightShadows: 3
   m_PrefilteringModeAdditionalLight: 3
   m_PrefilteringModeAdditionalLightShadows: 2
   m_PrefilterXRKeywords: 1

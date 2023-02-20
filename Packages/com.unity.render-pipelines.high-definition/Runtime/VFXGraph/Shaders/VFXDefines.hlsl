@@ -42,3 +42,6 @@
 #endif
 
 #define UNITY_ACCESS_HYBRID_INSTANCED_PROP(name, type) name
+
+//HDRP is forcing the USING_STEREO_MATRICES define in case of compute shader (See TextureXR.hlsl)
+#define USE_MULTI_COMPILE_XR_IN_OUTPUT_UPDATE 0

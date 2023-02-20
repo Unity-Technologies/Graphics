@@ -1,4 +1,4 @@
-# 2D Renderer Data Asset
+# Configure the 2D Renderer Asset
 
 ![The 2D Renderer Data Asset property settings](Images/2D/2dRendererData_properties.png)
 

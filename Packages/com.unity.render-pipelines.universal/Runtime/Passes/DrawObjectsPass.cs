@@ -335,9 +335,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             CommandBuffer cmd = renderingData.commandBuffer;
 
+            // Enable Rendering Layers
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
 
+            // Execute
             base.Execute(context, ref renderingData);
+
+            // Clean up
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
         }
 
         private class RenderingLayersPassData
@@ -374,21 +379,24 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((RenderingLayersPassData data, RasterGraphContext context) =>
                 {
+                    // Enable Rendering Layers
                     CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
 
                     RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
-
-                    ref var renderingData = ref data.basePassData.renderingData;
 
                     // Currently we only need to call this additional pass when the user
                     // doesn't want transparent objects to receive shadows
                     if (!data.basePassData.isOpaque && !data.basePassData.shouldTransparentsReceiveShadows)
                         TransparentSettingsPass.ExecutePass(context.cmd, data.basePassData.shouldTransparentsReceiveShadows);
 
+                    ref var renderingData = ref data.basePassData.renderingData;
                     bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.basePassData.albedoHdl, data.basePassData.depthHdl);
 
-                    CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+                    // Execute
                     ExecutePass(context.cmd, data.basePassData, data.basePassData.rendererListHdl, data.basePassData.objectsWithErrorRendererListHdl, ref renderingData, yFlip);
+
+                    // Clean up
+                    CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
                 });
             }
         }

@@ -322,6 +322,22 @@ namespace UnityEditor.Rendering.HighDefinition
             return wgp.oceanIconL;
         }
 
+        static void MapWithExtent(SerializedProperty maskProp, GUIContent content, SerializedProperty extentProp)
+        {
+            var wasEmpty = maskProp.objectReferenceValue == null;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(maskProp, content);
+            if (EditorGUI.EndChangeCheck() && wasEmpty && maskProp.objectReferenceValue != null)
+            {
+                var waterSurface = maskProp.serializedObject.targetObject as WaterSurface;
+                if (!waterSurface.IsInfinite())
+                {
+                    var scale = waterSurface.transform.lossyScale;
+                    extentProp.vector2Value = new Vector2(scale.x, scale.z);
+                }
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             // We need to do this, because in case of a domain reload, sometimes everything becomes bold.

@@ -1,6 +1,7 @@
 // Forward pass
 Pass
 {
+    Name "GBuffer"
 	Tags { "LightMode"="GBuffer" }
 
     ${VFXStencilGBuffer}

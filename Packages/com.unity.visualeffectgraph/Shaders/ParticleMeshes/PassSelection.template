@@ -1,10 +1,11 @@
 Pass
-{		
+{
+    Name "SceneSelectionPass"
 	Tags { "LightMode"="SceneSelectionPass" }
 
 	ZWrite On
 	Blend Off
-	
+
 	HLSLPROGRAM
 	#define VFX_PASSDEPTH VFX_PASSDEPTH_SELECTION
 	${VFXInclude("Shaders/ParticleMeshes/PassDepthOrMV.template")}
@@ -12,12 +13,13 @@ Pass
 }
 
 Pass
-{		
+{
+    Name "Picking"
 	Tags { "LightMode"="Picking" }
 
 	ZWrite On
 	Blend Off
-	
+
 	HLSLPROGRAM
 	#define VFX_PASSDEPTH VFX_PASSDEPTH_PICKING
 	${VFXInclude("Shaders/ParticleMeshes/PassDepthOrMV.template")}

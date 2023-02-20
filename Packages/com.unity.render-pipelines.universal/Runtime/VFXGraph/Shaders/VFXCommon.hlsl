@@ -35,8 +35,7 @@ float2 VFXGetNormalizedScreenSpaceUV(float4 clipPos)
 
 void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
 {
-    //TODO : LWRP doesn't support motion vector & TAA yet
-    outBuffer = (float4)0.0f;
+    outBuffer = float4(velocity.xy, 0, 0);
 }
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
@@ -46,14 +45,12 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
 
 float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
 {
-    //TODO : LWRP doesn't support motion vector & TAA yet
-    return VFXTransformPositionWorldToClip(posWS);
+    return mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
 {
-    //TODO : LWRP doesn't support motion vector & TAA yet
-    return VFXTransformPositionWorldToClip(posWS);
+    return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionObjectToClip(float3 posOS)
@@ -64,19 +61,19 @@ float4 VFXTransformPositionObjectToClip(float3 posOS)
 
 float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
 {
-    //TODO : LWRP doesn't support motion vector & TAA yet
-    return VFXTransformPositionObjectToClip(posOS);
-}
-
-float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
-{
-    //TODO : LWRP doesn't support motion vector & TAA yet
-    return VFXTransformPositionObjectToClip(posOS);
+    float3 posWS = TransformObjectToWorld(posOS);
+    return VFXTransformPositionWorldToNonJitteredClip(posWS);
 }
 
 float3 VFXTransformPreviousObjectToWorld(float3 posOS)
 {
-    return mul(GetPrevObjectToWorldMatrix(),  float4(posOS, 1.0)).xyz;
+    return mul(GetPrevObjectToWorldMatrix(), float4(posOS, 1.0)).xyz;
+}
+
+float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
+{
+    float3 posWS = VFXTransformPreviousObjectToWorld(posOS);
+    return VFXTransformPositionWorldToPreviousClip(posWS);
 }
 
 float3 VFXTransformPositionWorldToView(float3 posWS)
@@ -141,7 +138,12 @@ float4x4 VFXGetViewToWorldMatrix()
 #ifdef USING_STEREO_MATRICES
 float3 GetWorldStereoOffset()
 {
-    return float3(0.0f, 0.0f, 0.0f);
+    return unity_StereoWorldSpaceCameraPos[0].xyz - unity_StereoWorldSpaceCameraPos[1].xyz;
+}
+
+float4x4 GetNonJitteredViewProjMatrix(int eye)
+{
+    return _NonJitteredViewProjMatrixStereo[eye];
 }
 #endif
 

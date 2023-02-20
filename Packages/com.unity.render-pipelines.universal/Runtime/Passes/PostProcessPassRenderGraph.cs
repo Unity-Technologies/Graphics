@@ -1342,6 +1342,9 @@ namespace UnityEngine.Rendering.Universal
 
         public void RenderFinalPassRenderGraph(RenderGraph renderGraph, in TextureHandle source, ref RenderingData renderingData)
         {
+            var stack = VolumeManager.instance.stack;
+            m_FilmGrain = stack.GetComponent<FilmGrain>();
+
             ref var cameraData = ref renderingData.cameraData;
             var material = m_Materials.finalPass;
             var cmd = renderingData.commandBuffer;

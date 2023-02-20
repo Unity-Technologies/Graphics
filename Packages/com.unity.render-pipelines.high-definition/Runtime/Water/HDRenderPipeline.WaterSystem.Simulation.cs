@@ -154,8 +154,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool active = true;
 
         // Overall time that has passed since Unity has been initialized
-        private float m_Time = 0;
-        // Current simulation time (used to compute the dispersion of the Phillips spectrum)
+        float m_Time;
+        // Current simulation time in seconds (used to compute the dispersion of the Phillips spectrum)
         public float simulationTime = 0;
         // Delta time of the current frame
         public float deltaTime = 0;
@@ -267,16 +267,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void EnableTimeSteps()
         {
-            m_Time = Time.realtimeSinceStartup;
             active = true;
             simulationTime = 0;
+            m_Time = Time.realtimeSinceStartup;
         }
 
         public void DisableTimeSteps()
         {
             active = false;
-            m_Time = 0;
             simulationTime = 0;
+            m_Time = 0.0f;
         }
 
         public bool HasActiveTimeSteps()
@@ -285,18 +285,23 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Function that computes the delta time for the frame
-        public void Update(float totalTime, float timeMultiplier)
+        public void Update(float timeMultiplier)
         {
             if (HasActiveTimeSteps())
             {
-#if UNITY_EDITOR
-                if (!EditorApplication.isPaused)
-#endif
+                float delta = Time.deltaTime;
+                #if UNITY_EDITOR
+                if (EditorApplication.isPaused)
+                    delta = 0.0f;
+                else if (!Application.isPlaying)
                 {
-                    deltaTime = (totalTime - m_Time) * timeMultiplier;
-                    simulationTime += deltaTime;
+                    delta = Time.realtimeSinceStartup - m_Time;
+                    m_Time = Time.realtimeSinceStartup;
                 }
-                m_Time = totalTime;
+                #endif
+
+                deltaTime = delta * timeMultiplier;
+                simulationTime += deltaTime;
             }
         }
 
@@ -325,7 +330,6 @@ namespace UnityEngine.Rendering.HighDefinition
             maxNumBands = 0;
 
             // Reset the simulation time
-            m_Time = 0;
             simulationTime = 0;
             deltaTime = 0;
             active = false;

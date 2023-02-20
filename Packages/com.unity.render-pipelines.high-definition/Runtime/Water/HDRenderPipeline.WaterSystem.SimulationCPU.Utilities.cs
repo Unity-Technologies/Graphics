@@ -56,16 +56,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return textureRawBuffer[tapIndex];
         }
 
-        static int2 FloorCoordinate(float2 coord)
+        static void PrepareCoordinates(float2 uv, int2 resolution, out int2 tapCoord, out float2 fract)
         {
-            return new int2((int)Mathf.Floor(coord.x), (int)Mathf.Floor(coord.y));
+            float2 unnormalized = (uv * resolution) - 0.5f;
+            tapCoord = (int2)floor(floor(unnormalized) + 0.5f);
+            fract = frac(unnormalized);
         }
 
         static float4 SampleTexture2DArrayBilinear(NativeArray<float4> textureBuffer, float2 uvCoord, int sliceIndex, int resolution)
         {
             // Convert the position from uv to floating pixel coordinates (for the bilinear interpolation)
-            float2 tapCoord = (uvCoord * resolution);
-            int2 currentTapCoord = FloorCoordinate(tapCoord);
+            PrepareCoordinates(uvCoord, resolution, out int2 currentTapCoord, out float2 fract);
 
             // Read the four samples we want
             float4 p0 = LoadTexture2DArray(textureBuffer, currentTapCoord, sliceIndex, resolution);
@@ -74,7 +75,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float4 p3 = LoadTexture2DArray(textureBuffer, currentTapCoord + new int2(1, 1), sliceIndex, resolution);
 
             // Do the bilinear interpolation
-            float2 fract = tapCoord - currentTapCoord;
             float4 i0 = lerp(p0, p1, fract.x);
             float4 i1 = lerp(p2, p3, fract.x);
             return lerp(i0, i1, fract.y);
@@ -83,8 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static float4 SampleTexture2DBilinear(NativeArray<uint> textureBuffer, float2 uvCoord, int2 resolution)
         {
             // Convert the position from uv to floating pixel coordinates (for the bilinear interpolation)
-            float2 tapCoord = (uvCoord * resolution);
-            int2 currentTapCoord = FloorCoordinate(tapCoord);
+            PrepareCoordinates(uvCoord, resolution, out int2 currentTapCoord, out float2 fract);
 
             // Read the four samples we want
             float4 p0 = LoadTexture2D(textureBuffer, currentTapCoord, resolution);
@@ -93,7 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float4 p3 = LoadTexture2D(textureBuffer, currentTapCoord + new int2(1, 1), resolution);
 
             // Do the bilinear interpolation
-            float2 fract = tapCoord - currentTapCoord;
             float4 i0 = lerp(p0, p1, fract.x);
             float4 i1 = lerp(p2, p3, fract.x);
             return lerp(i0, i1, fract.y);
@@ -102,8 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static float SampleTexture2DBilinear(NativeArray<half> textureBuffer, float2 uvCoord, int2 resolution)
         {
             // Convert the position from uv to floating pixel coordinates (for the bilinear interpolation)
-            float2 tapCoord = (uvCoord * resolution);
-            int2 currentTapCoord = FloorCoordinate(tapCoord);
+            PrepareCoordinates(uvCoord, resolution, out int2 currentTapCoord, out float2 fract);
 
             // Read the four samples we want
             float p0 = LoadTexture2D(textureBuffer, currentTapCoord, resolution);
@@ -112,7 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float p3 = LoadTexture2D(textureBuffer, currentTapCoord + new int2(1, 1), resolution);
 
             // Do the bilinear interpolation
-            float2 fract = tapCoord - currentTapCoord;
             float i0 = lerp(p0, p1, fract.x);
             float i1 = lerp(p2, p3, fract.x);
             return lerp(i0, i1, fract.y);
@@ -121,8 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static float2 SampleTexture2DBilinear_float2(NativeArray<short> textureBuffer, float2 uvCoord, int2 resolution)
         {
             // Convert the position from uv to floating pixel coordinates (for the bilinear interpolation)
-            float2 tapCoord = (uvCoord * resolution);
-            int2 currentTapCoord = FloorCoordinate(tapCoord);
+            PrepareCoordinates(uvCoord, resolution, out int2 currentTapCoord, out float2 fract);
 
             // Read the four samples we want
             float2 p0 = LoadTexture2D(textureBuffer, currentTapCoord, resolution);
@@ -131,7 +126,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float2 p3 = LoadTexture2D(textureBuffer, currentTapCoord + new int2(1, 1), resolution);
 
             // Do the bilinear interpolation
-            float2 fract = tapCoord - currentTapCoord;
             float2 i0 = lerp(p0, p1, fract.x);
             float2 i1 = lerp(p2, p3, fract.x);
             return lerp(i0, i1, fract.y);

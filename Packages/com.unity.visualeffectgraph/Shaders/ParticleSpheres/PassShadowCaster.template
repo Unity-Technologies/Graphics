@@ -11,9 +11,15 @@ Pass
 	HLSLPROGRAM
 	#pragma target 4.5
 
+	#if defined(SHADER_API_D3D11)
+        #define VFX_POSITION_QUALIFIER linear noperspective centroid
+    #else
+        #define VFX_POSITION_QUALIFIER
+    #endif
+
 	struct ps_input
 	{
-		float4 pos : SV_POSITION;
+		VFX_POSITION_QUALIFIER float4 pos : SV_POSITION;
 		float2 uv : TEXCOORD0;
 		float3 posWS : TEXCOORD1;
 		float4 sphereInfo : TEXCOORD2;

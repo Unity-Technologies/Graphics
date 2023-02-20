@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_Texture;
         SerializedProperty m_SurfaceFoamDimmer;
         SerializedProperty m_DeepFoamDimmer;
+        SerializedProperty m_ScaleMode;
 
         HierarchicalBox m_BoxHandle;
 
@@ -25,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Texture = o.Find(x => x.texture);
             m_SurfaceFoamDimmer = o.Find(x => x.surfaceFoamDimmer);
             m_DeepFoamDimmer = o.Find(x => x.deepFoamDimmer);
+            m_ScaleMode = o.Find(x => x.scaleMode);
 
             m_BoxHandle = new HierarchicalBox(k_HandleColor, new[] { k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor })
             {
@@ -42,6 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+
+            EditorGUILayout.PropertyField(m_ScaleMode);
 
             EditorGUILayout.PropertyField(m_Type, k_TypeText);
             EditorGUILayout.PropertyField(m_RegionSize, k_RegionSizeText);
@@ -72,11 +76,12 @@ namespace UnityEditor.Rendering.HighDefinition
             var tr = generator.transform;
             var rotation = Quaternion.Euler(0, tr.eulerAngles.y, 0);
             var regionSize = generator.regionSize;
+            Vector2 scale = generator.scale;
 
             using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one)))
             {
                 m_BoxHandle.center = Quaternion.Inverse(rotation) * tr.position;
-                m_BoxHandle.size = new Vector3(regionSize.x, 1, regionSize.y);
+                m_BoxHandle.size = new Vector3(regionSize.x * scale.x, 1, regionSize.y * scale.y);
                 EditorGUI.BeginChangeCheck();
                 m_BoxHandle.DrawHull(true);
                 m_BoxHandle.DrawHandle();
@@ -84,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     Undo.RecordObjects(new Object[] { tr, generator }, "Update Generator Region");
                     tr.position = rotation * m_BoxHandle.center;
-                    generator.regionSize = new Vector2(m_BoxHandle.size.x, m_BoxHandle.size.z);
+                    generator.regionSize = new Vector2(m_BoxHandle.size.x / scale.x, m_BoxHandle.size.z / scale.y);
                 }
             }
         }

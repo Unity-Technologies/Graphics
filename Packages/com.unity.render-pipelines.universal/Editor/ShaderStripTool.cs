@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Runtime.CompilerServices;
+using IShaderScriptableStrippingData = UnityEditor.Rendering.Universal.ShaderScriptableStripper.IShaderScriptableStrippingData;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -12,18 +13,12 @@ namespace UnityEditor.Rendering.Universal
     internal struct ShaderStripTool<T> where T : Enum
     {
         T m_Features;
-        Shader m_Shader;
-        ShaderKeywordSet m_KeywordSet;
-        ShaderSnippetData m_passData;
-        ShaderCompilerPlatform m_ShaderCompilerPlatform;
+        private IShaderScriptableStrippingData m_StrippingData;
 
-        public ShaderStripTool(T features, Shader shader, ShaderSnippetData passData, in ShaderKeywordSet keywordSet, ShaderCompilerPlatform shaderCompilerPlatform)
+        public ShaderStripTool(T features, ref IShaderScriptableStrippingData strippingData)
         {
             m_Features = features;
-            m_Shader = shader;
-            m_passData = passData;
-            m_KeywordSet = keywordSet;
-            m_ShaderCompilerPlatform = shaderCompilerPlatform;
+            m_StrippingData = strippingData;
         }
 
         public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, T feature, in LocalKeyword kw2, T feature2, in LocalKeyword kw3, T feature3)
@@ -42,10 +37,15 @@ namespace UnityEditor.Rendering.Universal
             if (StripMultiCompileKeepOffVariant(kw, feature, kw2, feature2, kw3, feature3))
                 return true;
 
-            if (ShaderBuildPreprocessor.s_StripUnusedVariants)
+            // To strip out the OFF variant, it needs to check if
+            // * Strip unused variants has been enabled
+            // * ALL THREE keywords are present in that pass
+            // * ALL THREE keywords are disabled in the keyword set
+            // * One one of the keywords is enabled in the feature set gathered in ShaderBuildPreprocessor
+            if (m_StrippingData.stripUnusedVariants)
             {
                 bool containsKeywords = ContainsKeyword(kw) && ContainsKeyword(kw2) && ContainsKeyword(kw3);
-                bool keywordsDisabled = !m_KeywordSet.IsEnabled(kw) && !m_KeywordSet.IsEnabled(kw2) && !m_KeywordSet.IsEnabled(kw3);
+                bool keywordsDisabled = !m_StrippingData.IsKeywordEnabled(kw) && !m_StrippingData.IsKeywordEnabled(kw2) && !m_StrippingData.IsKeywordEnabled(kw3);
                 bool hasAnyFeatureEnabled = m_Features.HasFlag(feature) || m_Features.HasFlag(feature2) || m_Features.HasFlag(feature3);
                 if (containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
                     return true;
@@ -68,10 +68,15 @@ namespace UnityEditor.Rendering.Universal
             if (StripMultiCompileKeepOffVariant(kw, feature, kw2, feature2))
                 return true;
 
-            if (ShaderBuildPreprocessor.s_StripUnusedVariants)
+            // To strip out the OFF variant, it needs to check if
+            // * Strip unused variants has been enabled
+            // * BOTH keywords are present in that pass
+            // * BOTH keywords are disabled in the keyword set
+            // * One one of the keywords is enabled in the feature set gathered in ShaderBuildPreprocessor
+            if (m_StrippingData.stripUnusedVariants)
             {
                 bool containsKeywords = ContainsKeyword(kw) && ContainsKeyword(kw2);
-                bool keywordsDisabled = !m_KeywordSet.IsEnabled(kw) && !m_KeywordSet.IsEnabled(kw2);
+                bool keywordsDisabled = !m_StrippingData.IsKeywordEnabled(kw) && !m_StrippingData.IsKeywordEnabled(kw2);
                 bool hasAnyFeatureEnabled = m_Features.HasFlag(feature) || m_Features.HasFlag(feature2);
                 if (containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
                     return true;
@@ -83,28 +88,33 @@ namespace UnityEditor.Rendering.Universal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, T feature)
         {
-            return !m_Features.HasFlag(feature) && m_KeywordSet.IsEnabled(kw);
+            return !m_Features.HasFlag(feature) && m_StrippingData.IsKeywordEnabled(kw);
         }
 
         public bool StripMultiCompile(in LocalKeyword kw, T feature)
         {
+            // Same as Strip and Keep OFF variant
             if (!m_Features.HasFlag(feature))
             {
-                if (m_KeywordSet.IsEnabled(kw))
+                if (m_StrippingData.IsKeywordEnabled(kw))
                     return true;
             }
-            else if (ShaderBuildPreprocessor.s_StripUnusedVariants)
+            // To strip out the OFF variant, it needs to check if
+            // * Strip unused variants has been enabled
+            // * The keyword is present in that pass
+            // * The keyword is disabled in the keyword set
+            // * The keyword is enabled in the feature set gathered in ShaderBuildPreprocessor (Checked in the HasFlag check above)
+            else if (m_StrippingData.stripUnusedVariants)
             {
-                if (!m_KeywordSet.IsEnabled(kw) && ContainsKeyword(kw))
+                if (!m_StrippingData.IsKeywordEnabled(kw) && ContainsKeyword(kw))
                     return true;
             }
             return false;
         }
 
-        private bool ContainsKeyword(in LocalKeyword kw)
+        internal bool ContainsKeyword(in LocalKeyword kw)
         {
-            return ShaderUtil.PassHasKeyword(m_Shader, m_passData.pass, kw, m_passData.shaderType, m_ShaderCompilerPlatform);
+            return m_StrippingData.PassHasKeyword(kw);
         }
-
     }
 }

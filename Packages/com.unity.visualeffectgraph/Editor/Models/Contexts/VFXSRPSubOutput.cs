@@ -23,7 +23,27 @@ namespace UnityEditor.VFX
 
         // Caps
         public virtual bool supportsExposure { get { return false; } }
-        public virtual bool supportsMotionVector { get { return false; } }
+
+        public virtual bool supportsMotionVector
+        {
+            get
+            {
+                if (!owner.isBlendModeOpaque)
+                    return false;
+
+                if (owner is VFXShaderGraphParticleOutput sgOutput)
+                {
+                    //ShaderGraph & VFX doesn't support motion vector out of the box
+                    //A specific handling is required in SRP target output
+                    var sg = sgOutput.GetOrRefreshShaderGraphObject();
+                    if (sg != null && sg.generatesWithShaderGraph)
+                        return false;
+                }
+
+                return true;
+            }
+        }
+
         public virtual bool supportsExcludeFromTAA { get { return false; } }
         public virtual bool supportsSortingPriority { get { return true; } }
 

@@ -1,35 +1,42 @@
 Pass
-{		
+{
+    Name "${VFXHDRPForwardPassName}"
 	Tags { "LightMode"="${VFXHDRPForwardPassName}"}
-			
 	${VFXStencilForward}
 
 	HLSLPROGRAM
 	#pragma target 4.5
-	
+
+
 	#define UNITY_MATERIAL_LIT
 	#define LIGHTLOOP_TILE_PASS
+
 	${VFXHDRPForwardDefines}
 	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 	#pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 	#pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
 	#pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 	#pragma multi_compile _ DEBUG_DISPLAY
-	
-	${VFXIncludeRP("VFXLitVaryings.template")}	
-	
+
+	${VFXIncludeRP("VFXLitVaryings.template")}
+
+	#if defined(SHADER_API_D3D11)
+        #define VFX_POSITION_QUALIFIER linear noperspective centroid
+    #else
+        #define VFX_POSITION_QUALIFIER
+    #endif
+
 	struct ps_input
 	{
-		linear noperspective centroid float4 pos : SV_POSITION;
-		
+		VFX_POSITION_QUALIFIER float4 pos : SV_POSITION;
 		${VFXHDRPLitDeclareVaryings}
 
-		float2 uv : TEXCOORD1;	
+		float2 uv : TEXCOORD1;
 		float3 posWS : TEXCOORD2;
 		float4 sphereInfo : TEXCOORD3;
-        
+
         ${VFXAdditionalInterpolantsDeclaration}
-		
+
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
 
@@ -48,7 +55,7 @@ Pass
 
 	${VFXInclude("Shaders/ParticleSpheres/Pass.template")}
 	#define SHADERPASS SHADERPASS_FORWARD
-	${VFXIncludeRP("VFXLit.template")}	
+	${VFXIncludeRP("VFXLit.template")}
 
 	#pragma fragment frag
 	void frag(ps_input i
@@ -62,8 +69,8 @@ Pass
 		float3 normalWS;
 		VFXUVData uvData = (VFXUVData)0;
 		VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS, i);
-        
-		outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
+
+		outColor = VFXGetPixelOutputForward(i,normalWS,uvData, true);
 	}
 	ENDHLSL
 }

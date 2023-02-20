@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // NOTE: All these keyword should be automatically stripped so there's no need to handle them ourselves.
             // LIGHTMAP_ON, DIRLIGHTMAP_COMBINED, DYNAMICLIGHTMAP_ON, LIGHTMAP_SHADOW_MIXING, SHADOWS_SHADOWMASK
             // FOG_LINEAR, FOG_EXP, FOG_EXP2
-            // STEREO_INSTANCING_ON, STEREO_MULTIVIEW_ON, STEREO_CUBEMAP_RENDER_ON, UNITY_SINGLE_PASS_STEREO
+            // STEREO_INSTANCING_ON, STEREO_MULTIVIEW_ON, STEREO_CUBEMAP_RENDER_ON
             // INSTANCING_ON
             m_Transparent = new ShaderKeyword("_SURFACE_TYPE_TRANSPARENT");
             m_AlphaTestOn = new ShaderKeyword("_ALPHATEST_ON");

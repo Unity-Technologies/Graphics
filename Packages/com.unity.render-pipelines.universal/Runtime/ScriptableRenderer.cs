@@ -871,12 +871,17 @@ namespace UnityEngine.Rendering.Universal
                 passData.camera = renderingData.cameraData.camera;
                 passData.cullResults = renderingData.cullResults;
 
+                VFX.VFXCameraXRSettings cameraXRSettings;
+                cameraXRSettings.viewTotal = renderingData.cameraData.xr.enabled ? 2u : 1u;
+                cameraXRSettings.viewCount = renderingData.cameraData.xr.enabled ? (uint)renderingData.cameraData.xr.viewCount : 1u;
+                cameraXRSettings.viewOffset = (uint)renderingData.cameraData.xr.multipassId;
+
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((VFXProcessCameraPassData data, RenderGraphContext context) =>
                 {
                     //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    VFX.VFXManager.ProcessCameraCommand(data.camera, context.cmd, new VFX.VFXCameraXRSettings(), data.cullResults);
+                    VFX.VFXManager.ProcessCameraCommand(data.camera, context.cmd, cameraXRSettings, data.cullResults);
                 });
 
             }
@@ -1216,8 +1221,12 @@ namespace UnityEngine.Rendering.Universal
                     //VFXManager.ProcessCameraCommand needs to be called before any rendering (incl. shadows)
                     SetPerCameraProperties(context, ref cameraData, camera, cmd);
 
-                    //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    VFX.VFXManager.ProcessCameraCommand(camera, cmd, new VFX.VFXCameraXRSettings(), renderingData.cullResults);
+                    VFX.VFXCameraXRSettings cameraXRSettings;
+                    cameraXRSettings.viewTotal = cameraData.xr.enabled ? 2u : 1u;
+                    cameraXRSettings.viewCount = cameraData.xr.enabled ? (uint)cameraData.xr.viewCount : 1u;
+                    cameraXRSettings.viewOffset = (uint)cameraData.xr.multipassId;
+
+                    VFX.VFXManager.ProcessCameraCommand(camera, cmd, cameraXRSettings, renderingData.cullResults);
                 }
 #endif
 

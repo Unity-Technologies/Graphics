@@ -403,7 +403,37 @@ namespace UnityEditor.VFX.Test
             ShaderGraphSortingVerify(vfxPath, false);
         }
 
-        public class WrapperWindow : EditorWindow
+        [Test]
+        public void ShaderGraph_Interpolators_Generation()
+        {
+            string vfxPath = "Assets/AllTests/Editor/Tests/SGInterpolatorTest.vfx"; 
+            AssetDatabase.ImportAsset(vfxPath);
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath).GetResource();
+
+            var quadOutputSrc = vfx.GetShaderSource(2);
+            var meshOutputSrc = vfx.GetShaderSource(3);
+
+            void CheckShaderStructs(string source, uint[] expectedResults)
+            {
+                var graphPropertiesFields = VFXTestShaderSrcUtils.GetStructFieldsFromSource(source, "GraphProperties", "ForwardOnly");
+                var fragInputFields = VFXTestShaderSrcUtils.GetStructFieldsFromSource(source, "FragInputsVFX", "ForwardOnly");
+                var varyingsFields = VFXTestShaderSrcUtils.GetStructFieldsFromSource(source, "VaryingsMeshToPS", "ForwardOnly");
+                var packedVaryingFields = VFXTestShaderSrcUtils.GetStructFieldsFromSource(source, "PackedVaryingsMeshToPS", "ForwardOnly");
+
+                Assert.AreEqual(expectedResults[0], graphPropertiesFields.Length);
+                Assert.AreEqual(expectedResults[1], fragInputFields.Length);
+                Assert.AreEqual(expectedResults[2], varyingsFields.Length);
+                Assert.AreEqual(expectedResults[3], packedVaryingFields.Length);
+
+                Assert.IsTrue(varyingsFields.Any(f => f.name == "_FragPerElement_i"));
+                Assert.IsTrue(varyingsFields.Any(f => f.name == "_FragPerElement_f2"));
+            }
+
+            CheckShaderStructs(quadOutputSrc, new uint[] { 9, 5, 6, 6 });
+            CheckShaderStructs(meshOutputSrc, new uint[] { 9, 5, 7, 6 });
+        }
+
+public class WrapperWindow : EditorWindow
         {
             public Action onGUIDelegate;
             public bool testRun;

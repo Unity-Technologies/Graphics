@@ -1,11 +1,9 @@
-# Common properties of 2D Lights
-Each 2D Light Type has various properties and options to customize their appearance and behavior. This page documents the properties that are common to all 2D Light Types.
-
- following are the common properties used by the different Light types. For properties specific to each of the available Light Types, refer to their respective sections:
+# Common 2D Light Type properties
+Each 2D **Light Type** has various properties and options to customize their appearance and behavior. This page documents the properties that are common to all 2D **Light Types**. Select from the list below to refer to the specific properties of each of the available **Light Types**:
 
 - [Freeform](LightTypes.md#freeform)
 - [Sprite](LightTypes.md#sprite)
-- [Spot](LightTypes.md#spot) (**Note:** The **Point** Light Type has been renamed to the **Spot** Light Type from URP 11 onwards.)
+- [Spot](LightTypes.md#spot) (**Note:** The **Point Light 2D** has been renamed to the **Spot Light 2D** from URP 11 onwards.)
 - [Global](LightTypes.md#global)
 
 

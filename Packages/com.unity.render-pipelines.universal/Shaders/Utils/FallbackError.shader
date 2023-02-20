@@ -22,7 +22,7 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+            #pragma multi_compile _ STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
 
             //--------------------------------------
             // GPU Instancing

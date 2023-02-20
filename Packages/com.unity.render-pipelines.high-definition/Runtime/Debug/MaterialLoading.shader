@@ -10,7 +10,7 @@ Shader "Hidden/HDRP/MaterialLoading"
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+            #pragma multi_compile _ STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             #pragma editor_sync_compilation

@@ -62,8 +62,13 @@ struct ps_input
     float4 tangent : TEXCOORD5;
     #endif
     #endif
+
     #if VFX_NEEDS_POSWS_INTERPOLATOR
     float3 posWS : TEXCOORD6;
+    #endif
+
+    #if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+    VFX_DECLARE_MOTION_VECTORS_STORAGE(7,8)
     #endif
 
     ${VFXAdditionalInterpolantsDeclaration}
@@ -79,6 +84,11 @@ struct ps_input
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.y
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+#define VFX_VARYING_VELOCITY_CPOS VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS
+#endif
 
 #if NEEDS_NORMAL
 #define VFX_VARYING_NORMAL normal

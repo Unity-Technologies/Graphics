@@ -9,6 +9,10 @@ ${VFXGlobalDeclaration}
 #pragma multi_compile _ VFX_COMPUTE_AABBS
 #endif
 
+#if USE_MULTI_COMPILE_XR_IN_OUTPUT_UPDATE
+#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+#endif
+
 #if HAS_STRIPS
 RWStructuredBuffer<uint> stripDataBuffer;
 #endif
@@ -170,7 +174,9 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #endif
                 {
                     float viewZ = mul(GetWorldToViewMatrix(), float4(elementToWorld._m03_m13_m23, 1)).z;
-                    float4 clip = mul(GetViewToHClipMatrix(), float4(radius, radius, viewZ, 1));
+                    float4x4 centeredProjMatrix = GetViewToHClipMatrix();
+                    centeredProjMatrix._13_14_23_24 = 0.0f; //Cancels the jittering and/or the eye offset when in VR
+                    float4 clip = mul(centeredProjMatrix, float4(radius, radius, viewZ, 1));
                     float lodValue = max(abs(clip.x),abs(clip.y)) * rcp(max(VFX_EPSILON, clip.w));
 
                     ${VFXLoadParameter:{lodValues}}
@@ -246,8 +252,8 @@ ${VFXFeedSortingKeys}
                     {
                         float4 vertPosWorld = float4(TransformPositionVFXToWorld(verts[itIndexVert]), 1.0f);
                         vertPosWorld.xyz = VFXTransformPositionWorldToCameraRelative(vertPosWorld.xyz);
-                        float4 vertPosA = mul(_XRNonJitteredViewProjMatrix[0], vertPosWorld);
-                        float4 vertPosB = mul(_XRNonJitteredViewProjMatrix[1], vertPosWorld + stereoOffset);
+                        float4 vertPosA = mul(GetNonJitteredViewProjMatrix(0), vertPosWorld);
+                        float4 vertPosB = mul(GetNonJitteredViewProjMatrix(1), vertPosWorld + stereoOffset);
                         elementToVFXBuffer.Store4(elementToVFXIndex << 2, asuint(float4(vertPosA.xy / vertPosA.w, vertPosB.xy / vertPosB.w)));
                         elementToVFXIndex += 4; // 1 vert * 2 floats * 2 views
                     }

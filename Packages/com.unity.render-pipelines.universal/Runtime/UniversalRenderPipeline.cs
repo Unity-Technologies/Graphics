@@ -408,6 +408,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                     //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                    //N.B.: We aren't expecting an XR camera at this stage
                     VFX.VFXManager.PrepareCamera(camera);
 #endif
                     UpdateVolumeFramework(camera, null);
@@ -874,7 +875,11 @@ namespace UnityEngine.Rendering.Universal
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                VFX.VFXManager.PrepareCamera(baseCamera);
+                VFX.VFXCameraXRSettings cameraXRSettings;
+                cameraXRSettings.viewTotal = baseCameraData.xr.enabled ? 2u : 1u;
+                cameraXRSettings.viewCount = baseCameraData.xr.enabled ? (uint)baseCameraData.xr.viewCount : 1u;
+                cameraXRSettings.viewOffset = (uint)baseCameraData.xr.multipassId;
+                VFX.VFXManager.PrepareCamera(baseCamera, cameraXRSettings);
 #endif
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
@@ -930,7 +935,7 @@ namespace UnityEngine.Rendering.Universal
                             }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                            VFX.VFXManager.PrepareCamera(currCamera);
+                            VFX.VFXManager.PrepareCamera(currCamera, cameraXRSettings);
 #endif
                             UpdateVolumeFramework(currCamera, currAdditionalCameraData);
 

@@ -16,6 +16,7 @@
 // (new HDRP/URP Target pathway overrides the type so this is never used)
 #define UNITY_ACCESS_HYBRID_INSTANCED_PROP(name, type) name
 
+#define USE_MULTI_COMPILE_XR_IN_OUTPUT_UPDATE 1
 
 //Unlit can use the DepthNormal pass which creates a discrepancy while computing depth
 #define FORCE_NORMAL_OUTPUT_UNLIT_VERTEX_SHADER 1

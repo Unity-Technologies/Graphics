@@ -108,13 +108,15 @@ namespace UnityEditor.Rendering.HighDefinition
                             serialized.m_SimulationFoamAmount.floatValue = EditorGUILayout.Slider(k_SimulationFoamAmount, serialized.m_SimulationFoamAmount.floatValue, 0.0f, 1.0f);
 
                             // Foam masking
-                            EditorGUILayout.PropertyField(serialized.m_SimulationFoamMask, k_SimulationFoamMask);
+                            using (new BoldLabelScope())
+                                MapWithExtent(serialized.m_SimulationFoamMask, k_SimulationFoamMask, serialized.m_SimulationFoamMaskExtent);
+
                             if (serialized.m_SimulationFoamMask.objectReferenceValue != null)
                             {
                                 using (new IndentLevelScope())
                                 {
-                                    EditorGUILayout.PropertyField(serialized.m_SimulationFoamMaskExtent);
-                                    EditorGUILayout.PropertyField(serialized.m_SimulationFoamMaskOffset);
+                                    EditorGUILayout.PropertyField(serialized.m_SimulationFoamMaskExtent, k_FoamMaskExtent);
+                                    EditorGUILayout.PropertyField(serialized.m_SimulationFoamMaskOffset, k_FoamMaskOffset);
                                 }
                             }
                             EditorGUILayout.PropertyField(serialized.m_SimulationFoamWindCurve, k_WindFoamCurve);

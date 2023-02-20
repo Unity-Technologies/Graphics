@@ -70,6 +70,14 @@ namespace UnityEngine.VFX.Test
             {
                 bool xrCompatible = vfxTestSettingsInScene != null ? vfxTestSettingsInScene.xrCompatible : true;
                 Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(xrCompatible, 0, imageComparisonSettings);
+
+#if VFX_TESTS_HAS_HDRP
+                foreach (var volume in GameObject.FindObjectsByType<Volume>(FindObjectsSortMode.InstanceID))
+                {
+                    if (volume.profile.TryGet<Rendering.HighDefinition.Fog>(out var fog))
+                        fog.volumeSliceCount.value *= 2;
+                }
+#endif
             }
 
             //Setup frame rate capture
