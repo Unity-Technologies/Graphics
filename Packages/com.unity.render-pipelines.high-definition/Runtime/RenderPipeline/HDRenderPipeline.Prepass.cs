@@ -107,6 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle stencilBuffer;
             public BufferHandle coarseStencilBuffer;
+
+            // Output by the water system to mark underwater pixels (during transparent prepass)
+            public BufferHandle waterLine;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples)

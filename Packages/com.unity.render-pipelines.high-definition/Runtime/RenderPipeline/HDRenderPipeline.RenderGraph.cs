@@ -1419,7 +1419,8 @@ namespace UnityEngine.Rendering.HighDefinition
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
 
             // Render the under water if necessary
-            colorBuffer = RenderUnderWaterVolume(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, waterGBuffer);
+            colorBuffer = RenderUnderWaterVolume(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, waterGBuffer, out var waterLine);
+            prepassOutput.waterLine = waterLine;
 
             // Render All forward error
             RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, cullingResults);
@@ -1995,6 +1996,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     normalBufferRG = prepassOutput.resolvedNormalBuffer,
                     motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
                     renderingLayerMaskRG = renderingLayerMaskBuffer,
+                    waterLineRG = prepassOutput.waterLine,
                 };
                 executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets);
             }

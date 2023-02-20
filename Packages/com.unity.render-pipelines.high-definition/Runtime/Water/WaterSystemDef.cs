@@ -553,18 +553,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _WaterTransitionSize;
         // Under water ambient probe contribution
         public float _UnderWaterAmbientProbeContribution;
-
-        // Screen bounds projected on up and right vector in screenspace
-        public float4 _BoundsSS;
-
-        // Screen space up direction of the water surface
-        public float _UpDirectionX;
-        public float _UpDirectionY;
-
-        // Water Line buffer stride for XR
-        public float _BufferStride;
-
-        public float _Padding;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]

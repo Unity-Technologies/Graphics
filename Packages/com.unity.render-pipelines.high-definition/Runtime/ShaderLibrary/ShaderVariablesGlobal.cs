@@ -157,6 +157,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _CachedShadowAtlasSize;
         public Vector4 _CachedAreaShadowAtlasSize;
 
+        // Water Line
+        public Vector4 _BoundsSS;
+        public float _UpDirectionX;
+        public float _UpDirectionY;
+        public float _BufferStride;
+        public int _EnableUnderwater;
+
         public int _SpecularFade;
         public uint _EnableRenderingLayers;
         public int _ReflectionsMode;

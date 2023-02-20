@@ -9,12 +9,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // Flag that allows us to track in which current under water volume we are.
         internal int m_UnderWaterSurfaceIndex;
 
+        // Water line data
+        int m_WaterLineBufferSize;
+        int m_ReductionSize;
+
         // Underwater kernels
         ComputeShader m_UnderWaterRenderingCS;
         int m_ClearWaterLine;
         int m_WaterLineEvaluation1D;
         int m_WaterLineBoundsPropagation;
-        int m_WaterLinePropagation1D;
         int m_UnderWaterKernel;
         int m_UnderWaterDirectionalCausticsKernel;
 
@@ -28,7 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearWaterLine = m_UnderWaterRenderingCS.FindKernel("ClearWaterLine");
             m_WaterLineEvaluation1D = m_UnderWaterRenderingCS.FindKernel("LineEvaluation1D");
             m_WaterLineBoundsPropagation = m_UnderWaterRenderingCS.FindKernel("BoundsPropagation");
-            m_WaterLinePropagation1D = m_UnderWaterRenderingCS.FindKernel("LinePropagation1D");
             m_UnderWaterKernel = m_UnderWaterRenderingCS.FindKernel("UnderWater");
             m_UnderWaterDirectionalCausticsKernel = m_UnderWaterRenderingCS.FindKernel("UnderWaterDirectionalCaustics");
         }
@@ -41,10 +43,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Grab all the water surfaces in the scene
             var waterSurfaces = WaterSurface.instancesAsArray;
             int numWaterSurfaces = WaterSurface.instanceCount;
-
-            // If the water is disabled , no need to render or simulate
-            if (!ShouldRenderWater(hdCamera))
-                return;
 
             // Grab the camera's world space position
             Vector3 cameraWSPos = hdCamera.camera.transform.position;
@@ -113,6 +111,38 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector2(Min4(corner_1, corner_2, corner_3, corner_4), Max4(corner_1, corner_2, corner_3, corner_4));
         }
 
+        unsafe void UpdateShaderVariablesGlobalWater(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        {
+            cb._EnableUnderwater = 0;
+            if (!ShouldRenderWater(hdCamera))
+                return;
+
+            EvaluateUnderWaterSurface(hdCamera);
+            if (m_UnderWaterSurfaceIndex == -1)
+                return;
+
+            WaterSurface waterSurface = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex];
+
+            int maxPixelCount = 2 + Mathf.CeilToInt(Mathf.Sqrt(hdCamera.actualWidth * hdCamera.actualWidth + hdCamera.actualHeight * hdCamera.actualHeight));
+
+            var upVector = hdCamera.mainViewConstants.viewProjMatrix.MultiplyVector(waterSurface.UpVector());
+            upVector = new Vector2(upVector.x, -upVector.y).normalized;
+            var rightVector = new Vector2(upVector.y, -upVector.x);
+
+            Vector2 rightBounds = GetScreenSpaceBounds(rightVector, hdCamera);
+            Vector2 upBounds = GetScreenSpaceBounds(upVector, hdCamera);
+            var boundsSS = new float4(rightBounds.x, rightBounds.y, upBounds.x, upBounds.y);
+
+            cb._BoundsSS = boundsSS;
+            cb._UpDirectionX = upVector.x;
+            cb._UpDirectionY = upVector.y;
+            cb._BufferStride = maxPixelCount;
+            cb._EnableUnderwater = 1;
+
+            m_WaterLineBufferSize = maxPixelCount;
+            m_ReductionSize = HDUtils.DivRoundUp(Mathf.CeilToInt(boundsSS.y - boundsSS.x), 128);
+        }
+
         class WaterLineRenderingData
         {
             // Input data
@@ -125,7 +155,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int clearKernel;
             public int lineEvaluationKernel;
             public int boundsPropagationKernel;
-            public int linePropagationKernel;
 
             // Constant buffers
             public ShaderVariablesUnderWater underWaterCB;
@@ -135,20 +164,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Water Line data
             public BufferHandle waterLine;
-            public TextureHandle lineTexture;
             public int waterLineBufferWidth;
             public int reductionSize;
         }
 
-        TextureHandle RenderWaterLine(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
+        BufferHandle RenderWaterLine(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
         {
             // Execute the unique lighting pass
             using (var builder = renderGraph.AddRenderPass<WaterLineRenderingData>("Render Water Line", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingWaterLine)))
             {
                 // Fetch the water surface we will be using
                 WaterSurface waterSurface = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex];
-
-                var waterLine = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, name = "Water Line" });
 
                 // Prepare all the parameters
                 passData.viewCount = hdCamera.viewCount;
@@ -160,28 +186,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.clearKernel = m_ClearWaterLine;
                 passData.lineEvaluationKernel = m_WaterLineEvaluation1D;
                 passData.boundsPropagationKernel = m_WaterLineBoundsPropagation;
-                passData.linePropagationKernel = m_WaterLinePropagation1D;
 
                 // All the required textures
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.cameraHeightBuffer = builder.ReadBuffer(waterGBuffer.cameraHeight);
 
                 // Water line data
-                int maxPixelCount = 2 + Mathf.CeilToInt(Mathf.Sqrt(hdCamera.actualWidth * hdCamera.actualWidth + hdCamera.actualHeight * hdCamera.actualHeight));
-                passData.waterLine = renderGraph.CreateBuffer(new BufferDesc(maxPixelCount * hdCamera.viewCount, sizeof(int), GraphicsBuffer.Target.Structured) { name = "Waterline" });
+                passData.waterLine = renderGraph.CreateBuffer(new BufferDesc(m_WaterLineBufferSize * hdCamera.viewCount, sizeof(int), GraphicsBuffer.Target.Structured) { name = "Waterline" });
                 passData.waterLine = builder.WriteBuffer(passData.waterLine);
-                passData.lineTexture = builder.WriteTexture(waterLine);
 
-                var upVector = hdCamera.mainViewConstants.viewProjMatrix.MultiplyVector(waterSurface.UpVector());
-                upVector = new Vector2(upVector.x, -upVector.y).normalized;
-                var rightVector = new Vector2(upVector.y, -upVector.x);
-
-                Vector2 rightBounds = GetScreenSpaceBounds(rightVector, hdCamera);
-                Vector2 upBounds = GetScreenSpaceBounds(upVector, hdCamera);
-                var boundsSS = new float4(rightBounds.x, rightBounds.y, upBounds.x, upBounds.y);
-
-                passData.waterLineBufferWidth = maxPixelCount;
-                passData.reductionSize = HDUtils.DivRoundUp(Mathf.CeilToInt(boundsSS.y - boundsSS.x), 128);
+                passData.waterLineBufferWidth = m_WaterLineBufferSize;
+                passData.reductionSize = m_ReductionSize;
 
                 // Fill the under water CB
                 passData.underWaterCB._WaterRefractionColor = waterSurface.refractionColor;
@@ -190,10 +205,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.underWaterCB._OutScatteringCoeff = -Mathf.Log(0.02f) / waterSurface.absorptionDistance;
                 passData.underWaterCB._WaterTransitionSize = hdCamera.camera.nearClipPlane * 2.0f;
                 passData.underWaterCB._UnderWaterAmbientProbeContribution = waterSurface.underWaterAmbientProbeContribution;
-                passData.underWaterCB._BoundsSS = boundsSS;
-                passData.underWaterCB._UpDirectionX = upVector.x;
-                passData.underWaterCB._UpDirectionY = upVector.y;
-                passData.underWaterCB._BufferStride = maxPixelCount;
 
                 builder.SetRenderFunc(
                     (WaterLineRenderingData data, RenderGraphContext ctx) =>
@@ -202,27 +213,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         ConstantBuffer.Push(ctx.cmd, data.underWaterCB, data.underWaterCS, HDShaderIDs._ShaderVariablesUnderWater);
 
                         // Clear water line buffer
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.clearKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.clearKernel, HDShaderIDs._WaterLineBufferRW, data.waterLine);
                         ctx.cmd.DispatchCompute(data.underWaterCS, data.clearKernel, HDUtils.DivRoundUp(data.waterLineBufferWidth * data.viewCount, 8), 1, 1);
 
                         // Generate line buffer
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.lineEvaluationKernel, HDShaderIDs._WaterLineBufferRW, data.waterLine);
                         ctx.cmd.DispatchCompute(data.underWaterCS, data.lineEvaluationKernel, data.threadGroup8.x, data.threadGroup8.y, data.viewCount);
 
                         // Determine line bounds
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.boundsPropagationKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.boundsPropagationKernel, HDShaderIDs._WaterLineBufferRW, data.waterLine);
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.boundsPropagationKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
                         ctx.cmd.DispatchCompute(data.underWaterCS, data.boundsPropagationKernel, data.reductionSize, data.viewCount, 1);
-
-                        // Produce fullscreen buffer
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.linePropagationKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
-                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.linePropagationKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
-                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.linePropagationKernel, HDShaderIDs._WaterRegionTextureRW, data.lineTexture);
-                        ctx.cmd.DispatchCompute(data.underWaterCS, data.linePropagationKernel, data.threadGroup16.x, data.threadGroup16.y, data.viewCount);
                     });
 
-                return waterLine;
+                return passData.waterLine;
             }
         }
 
@@ -252,19 +258,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle waterLineDebugTexture2;
 
             // Water Line Data
-            public TextureHandle waterLine;
+            public BufferHandle waterLine;
 
             // Water rendered to this buffer
             public TextureHandle outputColorBuffer;
         }
 
-        TextureHandle RenderUnderWaterVolume(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, WaterGBuffer waterGBuffer)
+        TextureHandle RenderUnderWaterVolume(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, WaterGBuffer waterGBuffer, out BufferHandle waterLine)
         {
+            waterLine = default;
+
             // Are we in the volume of any surface at all?
             if (m_UnderWaterSurfaceIndex == -1 || !ShouldRenderWater(hdCamera) || !waterGBuffer.valid)
                 return colorBuffer;
 
-            var waterLine = RenderWaterLine(renderGraph, hdCamera, depthBuffer, waterGBuffer);
+            waterLine = RenderWaterLine(renderGraph, hdCamera, depthBuffer, waterGBuffer);
 
             // Execute the unique lighting pass
             using (var builder = renderGraph.AddRenderPass<UnderWaterRenderingData>("Render Under Water", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingUnderWater)))
@@ -285,7 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.cameraHeightBuffer = builder.ReadBuffer(waterGBuffer.cameraHeight);
-                passData.waterLine = builder.ReadTexture(waterLine);
+                passData.waterLine = builder.ReadBuffer(waterLine);
 
                 // Bind the caustics buffer that may be required
                 passData.causticsData = waterSurface.caustics ? renderGraph.ImportTexture(waterSurface.simulation.gpuBuffers.causticsBuffer) : renderGraph.defaultResources.blackTexture;
@@ -336,7 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
                         ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._WaterRegionTexture, data.waterLine);
+                        ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._CameraColorTextureRW, data.outputColorBuffer);
                         ctx.cmd.SetComputeTextureParam(data.underWaterCS, data.underWaterKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.DispatchCompute(data.underWaterCS, data.underWaterKernel, data.threadGroup8.x, data.threadGroup8.y, data.viewCount);

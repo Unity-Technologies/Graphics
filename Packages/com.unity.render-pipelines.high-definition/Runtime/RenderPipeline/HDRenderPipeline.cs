@@ -1009,6 +1009,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera, cmd);
             UpdateShaderVariableGlobalAmbientOcclusion(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalWater(ref m_ShaderVariablesGlobalCB, hdCamera);
 
             // Misc
             MicroShadowing microShadowingSettings = hdCamera.volumeStack.GetComponent<MicroShadowing>();
