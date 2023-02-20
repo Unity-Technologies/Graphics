@@ -495,16 +495,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
                 }
 
+                var portDisplayName = nodeUIDescriptor.GetParameterInfo(portReader.LocalID).DisplayName;
+
                 if (isInput)
                 {
-                    var newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
+                    var newPortModel = this.AddDataInputPort(portDisplayName, type, portReader.LocalID, orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
                         ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeHandler.ID.LocalPath, portReader.LocalID);
                 }
                 else
-                    this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
-
+                    this.AddDataOutputPort(portDisplayName, type,portReader.LocalID, orientation);
             }
 
             HasPreview = nodeHasPreview;
