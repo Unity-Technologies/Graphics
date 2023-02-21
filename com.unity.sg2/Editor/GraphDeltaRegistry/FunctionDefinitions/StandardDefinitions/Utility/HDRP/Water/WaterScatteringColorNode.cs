@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Water Scattering Color",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: Array.Empty<string>(),
+            synonyms: new string[1] { "Evaluate Water Scattering Color" },
             description: "pkg://Documentation~/previews/WaterScatteringColor.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {

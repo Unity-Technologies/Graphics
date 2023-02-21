@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "",
             category: "Utility/HDRP/Water",
             description: "pkg://Documentation~/previews/WaterSimulationCaustics.md",
-            synonyms: Array.Empty<string>(),
+            synonyms: new string[1] { "Evaluate Water Simulation Caustics" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

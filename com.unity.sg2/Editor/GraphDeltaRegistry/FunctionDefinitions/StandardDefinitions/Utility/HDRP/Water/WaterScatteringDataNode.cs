@@ -38,7 +38,7 @@ TipThickness = scatteringData.tipThickness;",
             displayName: "Water Scattering Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: Array.Empty<string>(),
+            synonyms: new string[1] { "Evaluate Water Scattering Data" },
             description: "pkg://Documentation~/previews/WaterScatteringData.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {

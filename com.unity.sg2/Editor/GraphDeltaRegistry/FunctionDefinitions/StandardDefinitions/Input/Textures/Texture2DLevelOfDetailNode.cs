@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Computes LOD values for use with texture sample nodes.",
             category: "Input/Texture",
-            synonyms: new string[0] {  },
+            synonyms: new string[1] { "Calculate Level of Detail Texture 2D" },
             displayName: "Texture 2D Level of Detail",
             description: "pkg://Documentation~/previews/Texture2DLevelOfDetail.md",
             parameters: new ParameterUIDescriptor[5] {

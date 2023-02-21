@@ -35,7 +35,7 @@ DeepFoam = waterAdditionalData.deepFoam;
             tooltip: "",
             category: "Utility/HDRP/Water",
             description: "pkg://Documentation~/previews/WaterSimulationData.md",
-            synonyms: Array.Empty<string>(),
+            synonyms: new string[1] { "Evaluate Water Simulation Additional Data" },
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

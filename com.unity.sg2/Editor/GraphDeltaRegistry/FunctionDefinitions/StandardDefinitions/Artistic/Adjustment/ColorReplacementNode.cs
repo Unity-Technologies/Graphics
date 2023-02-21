@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Color Replacement",
             tooltip: "Converts the chosen color from an input to another color value.",
             category: "Artistic/Adjustment",
-            synonyms: Array.Empty<string>(),
+            synonyms: new string[1] { "Replace Color" },
             description: "pkg://Documentation~/previews/ColorReplacement.md",
             parameters: new ParameterUIDescriptor[6]
             {

@@ -28,7 +28,7 @@ LowFrequencyHeight = displacementData.lowFrequencyHeight;",
             displayName: "Water Displacement",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: new string[0],
+            synonyms: new string[1] { "Evaluate Water Displacement" },
             description: "pkg://Documentation~/previews/WaterDisplacement.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {

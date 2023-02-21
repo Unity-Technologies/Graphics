@@ -32,7 +32,7 @@ Foam = foamData.foamValue;
                 displayName: "Water Foam Data",
                 tooltip: "",
                 category: "Utility/HDRP/Water",
-                synonyms: Array.Empty<string>(),
+                synonyms: new string[1] { "Evaluate Water Foam Data" },
                 description: "pkg://Documentation~/previews/WaterFoamData.md",
                 hasPreview: false,
                 parameters: new ParameterUIDescriptor[] {
