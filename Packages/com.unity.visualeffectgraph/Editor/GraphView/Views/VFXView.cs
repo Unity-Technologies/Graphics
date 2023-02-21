@@ -3050,15 +3050,14 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var blackboardCategory in selection.OfType<VFXBlackboardCategory>())
                 {
-                    var newCategory = blackboard.AddCategory(blackboardCategory.title);
+                    var newCategoryName = blackboard.AddCategory(blackboardCategory.title);
 
                     var parameters = blackboardCategory
                         .Children()
                         .OfType<VFXBlackboardRow>()
                         .Select(x => DuplicateBlackboardField(x.field))
                         .ToList();
-                    parameters.ForEach(x => x.model.category = newCategory.title);
-                    newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
+                    parameters.ForEach(x => x.model.category = newCategoryName);
                 }
             }
         }

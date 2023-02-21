@@ -115,7 +115,7 @@ namespace UnityEditor.VFX.UI
             var blackboard = GetFirstAncestorOfType<VFXBlackboard>();
             if (blackboard != null)
             {
-                blackboard.SetCategoryName(this, string.IsNullOrEmpty(m_NameField.value) ? "Untitled" : m_NameField.value);
+                blackboard.SetCategoryName(this, m_NameField.value);
             }
         }
 
