@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Water Normal Blend ",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: new string[0],
+            synonyms: new string[1] { "Blend Water Normal" },
             description: "pkg://Documentation~/previews/WaterNormalBlend.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
