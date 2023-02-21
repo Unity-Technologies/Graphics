@@ -1,6 +1,10 @@
 using System;
 using UnityEngine.Scripting.APIUpdating;
 
+#if UNITY_EDITOR
+using System.Linq;
+#endif
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -197,6 +201,11 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_ShadowCasterGroup = null;
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerAdded += OnSortingLayerAdded;
+            SortingLayer.onLayerRemoved += OnSortingLayerRemoved;
+#endif
         }
 
         /// <summary>
@@ -205,6 +214,11 @@ namespace UnityEngine.Rendering.Universal
         protected void OnDisable()
         {
             ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerAdded -= OnSortingLayerAdded;
+            SortingLayer.onLayerRemoved -= OnSortingLayerRemoved;
+#endif
         }
 
         /// <summary>
@@ -247,6 +261,18 @@ namespace UnityEngine.Rendering.Universal
                     ShadowCasterGroup2DManager.RemoveGroup(this);
             }
         }
+
+#if UNITY_EDITOR
+        private void OnSortingLayerAdded(SortingLayer layer)
+        {
+            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Append(layer.id).ToArray();
+        }
+
+        private void OnSortingLayerRemoved(SortingLayer layer)
+        {
+            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Where(x => x != layer.id && SortingLayer.IsValid(x)).ToArray();
+        }
+#endif
 
         /// <inheritdoc/>
         public void OnBeforeSerialize()

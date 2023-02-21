@@ -1,9 +1,9 @@
 using System;
-using System.Linq;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
 #if UNITY_EDITOR
+using System.Linq;
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
@@ -423,19 +423,25 @@ namespace UnityEngine.Rendering.Universal
         {
             m_PreviousLightCookieSprite = lightCookieSpriteInstanceID;
             Light2DManager.RegisterLight(this);
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerAdded += OnSortingLayerAdded;
+            SortingLayer.onLayerRemoved += OnSortingLayerRemoved;
+#endif
         }
 
         private void OnDisable()
         {
             Light2DManager.DeregisterLight(this);
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerAdded -= OnSortingLayerAdded;
+            SortingLayer.onLayerRemoved -= OnSortingLayerRemoved;
+#endif
         }
 
         private void LateUpdate()
         {
-#if UNITY_EDITOR
-            Light2DManager.UpdateSortingLayers(ref m_ApplyToSortingLayers);
-#endif
-
             if (m_LightType == LightType.Global)
                 return;
 
@@ -444,6 +450,18 @@ namespace UnityEngine.Rendering.Universal
 
             forceUpdate = false;
         }
+
+#if UNITY_EDITOR
+        private void OnSortingLayerAdded(SortingLayer layer)
+        {
+            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Append(layer.id).ToArray();
+        }
+
+        private void OnSortingLayerRemoved(SortingLayer layer)
+        {
+            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Where(x => x != layer.id && SortingLayer.IsValid(x)).ToArray();
+        }
+#endif
 
         /// <summary>
         /// OnBeforeSerialize implementation.
