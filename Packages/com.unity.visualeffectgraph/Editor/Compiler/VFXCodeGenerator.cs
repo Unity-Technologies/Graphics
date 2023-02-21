@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
             Profiler.EndSample();
         }
 
-        internal static VFXShaderWriter GenerateLoadAttribute(string matching, VFXContext context)
+        internal static VFXShaderWriter GenerateLoadAttribute(string matching, VFXContext context, VFXContextCompiledData taskData)
         {
             var r = new VFXShaderWriter();
 
@@ -95,12 +95,13 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    var linkedOutCount = context.allLinkedOutputSlot.Count();
                     r.WriteAssignement(attribute.type, name, attribute.value.GetCodeString(null));
-                    for (uint i = 0; i < linkedOutCount; ++i)
+                    for (uint i = 0; i < taskData.linkedEventOut.Length; ++i)
                     {
                         r.WriteLine();
-                        r.WriteFormat("uint {0}_{1} = 0u;", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix(i));
+                        var linkedEventOut = taskData.linkedEventOut[i];
+                        var capacity = (uint)linkedEventOut.data.GetSettingValue("capacity");
+                        r.WriteFormat("uint {0}_{1} = 0u; uint {0}_{1}_Capacity = {2};", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix(i), capacity);
                     }
                 }
                 r.WriteLine();
@@ -153,7 +154,14 @@ namespace UnityEditor.VFX
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    r.WriteLineFormat("for (uint i_{0} = 0; i_{0} < {1}_{0}; ++i_{0}) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
+                    r.WriteLineFormat(@"
+for (uint i_{0} = 0; i_{0} < min({1}_{0}, {1}_{0}_Capacity); ++i_{0})
+    AppendEventBuffer({2}_{0}, index, {1}_{0}_Capacity, instanceIndex);
+AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
+",
+                        prefix,
+                        VFXAttribute.EventCount.name,
+                        eventListOutName);
                 }
             }
             return r;
@@ -357,8 +365,6 @@ namespace UnityEditor.VFX
             out string blockFunctionContent,
             out string blockCallFunctionContent)
         {
-            var linkedEventOut = context.allLinkedOutputSlot.Where(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>().CanBeCompiled()).ToList();
-
             //< Block processor
             var blockFunction = new VFXShaderWriter();
             var blockCallFunction = new VFXShaderWriter();
@@ -369,7 +375,7 @@ namespace UnityEditor.VFX
             int cpt = 0;
             foreach (var current in context.activeFlattenedChildrenWithImplicit)
             {
-                BuildBlock(contextData, linkedEventOut, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
+                BuildBlock(contextData, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
             }
 
             blockFunctionContent = blockFunction.builder.ToString();
@@ -590,8 +596,7 @@ namespace UnityEditor.VFX
             globalDeclaration.WriteAttributeStruct(allSourceAttributes.Select(a => a.attrib), "VFXSourceAttributes");
             globalDeclaration.WriteLine();
 
-            var linkedEventOut = context.allLinkedOutputSlot.Where(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>().CanBeCompiled()).ToList();
-            globalDeclaration.WriteEventBuffers(eventListOutName, linkedEventOut.Count);
+            globalDeclaration.WriteEventBuffers(eventListOutName, contextData.linkedEventOut.Length);
 
             //< Block processor
             var blockFunction = new VFXShaderWriter();
@@ -606,7 +611,7 @@ namespace UnityEditor.VFX
             int cpt = 0;
             foreach (var current in context.activeFlattenedChildrenWithImplicit)
             {
-                BuildBlock(contextData, linkedEventOut, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
+                BuildBlock(contextData, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
             }
 
             //< Final composition
@@ -738,7 +743,7 @@ namespace UnityEditor.VFX
             //< Load Attribute
             if (stringBuilder.ToString().Contains("${VFXLoadAttributes}"))
             {
-                var loadAttributes = GenerateLoadAttribute(".*", context);
+                var loadAttributes = GenerateLoadAttribute(".*", context, contextData);
                 ReplaceMultiline(stringBuilder, "${VFXLoadAttributes}", loadAttributes.builder);
             }
 
@@ -746,14 +751,14 @@ namespace UnityEditor.VFX
             {
                 var str = match.Groups[0].Value;
                 var pattern = match.Groups[1].Value;
-                var loadAttributes = GenerateLoadAttribute(pattern, context);
+                var loadAttributes = GenerateLoadAttribute(pattern, context, contextData);
                 ReplaceMultiline(stringBuilder, str, loadAttributes.builder);
             }
 
             //< Store Attribute
             if (stringBuilder.ToString().Contains("${VFXStoreAttributes}"))
             {
-                var storeAttribute = GenerateStoreAttribute(".*", context, (uint)linkedEventOut.Count);
+                var storeAttribute = GenerateStoreAttribute(".*", context, (uint)contextData.linkedEventOut.Length);
                 ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", storeAttribute.builder);
             }
 
@@ -761,7 +766,7 @@ namespace UnityEditor.VFX
             {
                 var str = match.Groups[0].Value;
                 var pattern = match.Groups[1].Value;
-                var storeAttributes = GenerateStoreAttribute(pattern, context, (uint)linkedEventOut.Count);
+                var storeAttributes = GenerateStoreAttribute(pattern, context, (uint)contextData.linkedEventOut.Length);
                 ReplaceMultiline(stringBuilder, str, storeAttributes.builder);
             }
 
@@ -859,7 +864,7 @@ namespace UnityEditor.VFX
             return stringBuilder;
         }
 
-        private static void BuildBlock(VFXContextCompiledData contextData, List<VFXSlot> linkedEventOut, VFXShaderWriter blockFunction, VFXShaderWriter blockCallFunction, HashSet<string> blockDeclared, Dictionary<VFXExpression, string> expressionToName, VFXBlock block, ref int blockIndex)
+        private static void BuildBlock(VFXContextCompiledData contextData, VFXShaderWriter blockFunction, VFXShaderWriter blockCallFunction, HashSet<string> blockDeclared, Dictionary<VFXExpression, string> expressionToName, VFXBlock block, ref int blockIndex)
         {
             // Check enabled state
             VFXExpression enabledExp = contextData.gpuMapper.FromNameAndId(VFXBlock.activationSlotName, blockIndex);
@@ -952,7 +957,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var outputSlot in block.outputSlots.SelectMany(o => o.LinkedSlots))
                 {
-                    var eventIndex = linkedEventOut.IndexOf(outputSlot);
+                    var eventIndex = Array.FindIndex(contextData.linkedEventOut, o => o.slot == outputSlot);
                     if (eventIndex != -1)
                         blockCallFunction.WriteLineFormat("{0}_{1} += {2};", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex), VFXAttribute.EventCount.GetNameInCode(VFXAttributeLocation.Current));
                 }

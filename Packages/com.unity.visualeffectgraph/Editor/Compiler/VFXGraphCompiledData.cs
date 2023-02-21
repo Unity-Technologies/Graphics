@@ -23,6 +23,7 @@ namespace UnityEditor.VFX
         public VFXUniformMapper uniformMapper;
         public ReadOnlyDictionary<VFXExpression, Type> graphicsBufferUsage;
         public VFXMapping[] parameters;
+        public (VFXSlot slot, VFXData data)[] linkedEventOut;
         public int indexInShaderSource;
     }
 
@@ -906,7 +907,7 @@ namespace UnityEditor.VFX
                 if (capacity > 0)
                 {
                     eventBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity, stride = 4 });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = capacity + 2, stride = 4 });
                 }
                 buffers.eventBuffers.Add(data, eventBufferIndex);
             }
@@ -988,6 +989,26 @@ namespace UnityEditor.VFX
 
             m_ExpressionGraph = new VFXExpressionGraph();
             m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
+        }
+
+        private static IEnumerable<(VFXSlot slot, VFXData data)> ComputeEventListFromSlot(IEnumerable<VFXSlot> slots)
+        {
+            foreach (var slot in slots)
+            {
+                var context = ((VFXModel)slot.owner).GetFirstOfType<VFXContext>();
+                if (context.CanBeCompiled())
+                {
+                    var count = context.outputContexts.Count();
+                    if (count == 0)
+                        throw new InvalidOperationException("Unexpected invalid GPU Event");
+
+                    if (count > 1)
+                        throw new InvalidOperationException("Unexpected multiple GPU Event");
+
+                    var outputContext = context.outputContexts.First().GetData();
+                    yield return (slot, outputContext);
+                }
+            }
         }
 
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation, bool enableShaderDebugSymbols)
@@ -1072,6 +1093,7 @@ namespace UnityEditor.VFX
                     var contextData = contextToCompiledData[context];
                     contextData.cpuMapper = cpuMapper;
                     contextData.parameters = context.additionalMappings.ToArray();
+                    contextData.linkedEventOut = ComputeEventListFromSlot(context.allLinkedOutputSlot).ToArray();
                     contextToCompiledData[context] = contextData;
                 }
 
