@@ -2361,6 +2361,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // With the Frame Settings now properly set up, we can resolve the sample budget.
             currentFrameSettings.sssResolvedSampleBudget = currentFrameSettings.GetResolvedSssSampleBudget(m_Asset);
 
+            // If raytracing is not properly initialized, we should disable it. This can happen in the few first frame of enabling raytracing in the editor while raytrace resource are created.
+            currentFrameSettings.SetEnabled(FrameSettingsField.RayTracing, currentFrameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_RayTracingSupported);
+
             // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
             if (additionalCameraData.fullscreenPassthrough)
                 return false;
