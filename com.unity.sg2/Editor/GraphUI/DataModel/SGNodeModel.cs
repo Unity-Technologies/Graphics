@@ -496,7 +496,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
 
                 var portDisplayName = nodeUIDescriptor.GetParameterInfo(portReader.LocalID).DisplayName;
-
                 if (isInput)
                 {
                     var newPortModel = this.AddDataInputPort(portDisplayName, type, portReader.LocalID, orientation, initializationCallback: initCallback);
@@ -505,7 +504,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeHandler.ID.LocalPath, portReader.LocalID);
                 }
                 else
-                    this.AddDataOutputPort(portDisplayName, type,portReader.LocalID, orientation);
+                    this.AddDataOutputPort(portDisplayName, type, portReader.LocalID, orientation);
             }
 
             HasPreview = nodeHasPreview;
