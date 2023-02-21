@@ -485,6 +485,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>If true, the Render Graph will generate execution debug information.</summary>
         internal static bool requireDebugData { get; set; } = false;
 
+        /// <summary>If true, the Render Graph Viewer is active.</summary>
+        public static bool isRenderGraphViewerActive => requireDebugData;
+
         /// <summary>
         /// Set of default resources usable in a pass rendering code.
         /// </summary>

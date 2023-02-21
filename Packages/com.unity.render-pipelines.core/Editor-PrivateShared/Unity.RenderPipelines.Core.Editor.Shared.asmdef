@@ -1,0 +1,18 @@
+{
+    "name": "Unity.RenderPipelines.Core.Editor.Shared",
+    "rootNamespace": "",
+    "references": [
+        "GUID:3eae0364be2026648bf74846acb8a731"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

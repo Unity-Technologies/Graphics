@@ -825,7 +825,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.DirectSpecularLighting] ? 1f : 0f;
 
         // When render graph debug is active, we need async information to be accurate even if not supported. Actual execution will be disabled down the line.
-        bool asyncEnabled => (SystemInfo.supportsAsyncCompute || RenderGraph.requireDebugData) && bitDatas[(int)FrameSettingsField.AsyncCompute];
+        bool asyncEnabled => (SystemInfo.supportsAsyncCompute || RenderGraph.isRenderGraphViewerActive) && bitDatas[(int)FrameSettingsField.AsyncCompute];
 
         internal bool BuildLightListRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.LightListAsync];
         internal bool SSRRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.SSRAsync];

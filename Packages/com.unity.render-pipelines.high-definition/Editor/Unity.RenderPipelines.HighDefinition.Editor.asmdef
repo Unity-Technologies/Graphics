@@ -1,10 +1,13 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Editor",
+    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.ShaderGraph.Editor",
         "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Runtime.Shared",
         "Unity.RenderPipelines.Core.Editor",
+        "Unity.RenderPipelines.Core.Editor.Shared",
         "Unity.ugui",
         "Unity.ugui.Editor",
         "Unity.VisualEffectGraph.Editor",
@@ -47,5 +50,6 @@
             "expression": "1.0.0",
             "define": "ENABLE_UNITY_DENOISING_PLUGIN"
         }
-    ]
+    ],
+    "noEngineReferences": false
 }

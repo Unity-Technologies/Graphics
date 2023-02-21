@@ -1,6 +1,9 @@
 namespace UnityEngine.Rendering
 {
-    static class Hammersley
+    /// <summary>
+    /// Utility class to bind Hammersley shader constants for Compute Shader
+    /// </summary>
+    public static class Hammersley
     {
         static float[]  k_Hammersley2dSeq16 = {
             0.00000000f, 0.00000000f, 0.0f, 0.0f,
@@ -415,6 +418,9 @@ namespace UnityEngine.Rendering
         static readonly int s_hammersley2DSeq64Id = Shader.PropertyToID("Hammersley2dSeq64");
         static readonly int s_hammersley2DSeq256Id = Shader.PropertyToID("Hammersley2dSeq256");
 
+        /// <summary>
+        /// Initializing Hammersley constants.
+        /// </summary>
         unsafe public static void Initialize()
         {
             Hammersley2dSeq16 hammersley2DSeq16 = new Hammersley2dSeq16();
@@ -440,6 +446,11 @@ namespace UnityEngine.Rendering
             ConstantBuffer.UpdateData(hammersley2DSeq256);
         }
 
+        /// <summary>
+        /// Bind the constant buffer to a compute shader via a command buffer using Hammersley constants.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
         public static void BindConstants(CommandBuffer cmd, ComputeShader cs)
         {
             ConstantBuffer.Set<Hammersley2dSeq16>(cmd, cs, s_hammersley2DSeq16Id);
