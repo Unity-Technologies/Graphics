@@ -55,7 +55,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
 
 #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-            uv = RemapFoveatedRenderingResolve(uv);
+            uv = RemapFoveatedRenderingLinearToNonUniform(uv);
 #endif
 
         #if _BLOOM_HQ
