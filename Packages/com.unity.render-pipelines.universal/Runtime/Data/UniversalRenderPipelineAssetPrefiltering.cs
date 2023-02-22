@@ -150,8 +150,11 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT3)]
         [SerializeField] private bool m_PrefilterDBufferMRT3 = false;
 
-        // Screen Coord Override
-        // Controlled by the Global Settings
+        // Decal Layers - Gets overridden in Decal renderer feature if enabled.
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DecalLayers)]
+        private const bool k_DecalLayersDefault = true;
+
+        // Screen Coord Override - Controlled by the Global Settings
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SCREEN_COORD_OVERRIDE)]
         [SerializeField] private bool m_PrefilterScreenCoord = false;
 
