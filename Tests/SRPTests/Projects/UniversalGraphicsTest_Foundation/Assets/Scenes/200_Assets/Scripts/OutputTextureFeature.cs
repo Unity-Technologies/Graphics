@@ -34,7 +34,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             m_Material = new Material(shader);
         }
         m_OutputTexturePassPass.renderPassEvent = renderPassEvent + renderPassEventAdjustment;
-        m_OutputTexturePassPass.Setup(renderer, m_Material, inputRequirement, renderPassEvent, renderPassEventAdjustment);
+        m_OutputTexturePassPass.Setup(renderer, m_Material, inputRequirement);
         renderer.EnqueuePass(m_OutputTexturePassPass);
     }
 
@@ -56,7 +56,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             m_PassData = new PassData();
         }
 
-        public void Setup(ScriptableRenderer renderer, Material material, ScriptableRenderPassInput inputRequirement, RenderPassEvent renderPassEvent, int renderPassEventAdjustment)
+        public void Setup(ScriptableRenderer renderer, Material material, ScriptableRenderPassInput inputRequirement)
         {
             m_Material = material;
             m_Renderer = renderer;

@@ -93,7 +93,7 @@ MonoBehaviour:
     serializedHasVolumes: []
     bakingSets: []
     m_LightingScenario: Default
-  m_PrefilteringModeMainLightShadows: 0
+  m_PrefilteringModeMainLightShadows: 1
   m_PrefilteringModeAdditionalLight: 0
   m_PrefilteringModeAdditionalLightShadows: 2
   m_PrefilterXRKeywords: 1

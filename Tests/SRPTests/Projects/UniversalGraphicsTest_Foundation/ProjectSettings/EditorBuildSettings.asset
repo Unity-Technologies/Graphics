@@ -309,6 +309,9 @@ EditorBuildSettings:
     path: Assets/Scenes/220_ScreenSpaceShadows.unity
     guid: 0ed880bcaac387e4eaef5f365a545090
   - enabled: 1
+    path: Assets/Scenes/225_DepthPriming.unity
+    guid: 06d3d04c77b97ba40969b415bc9a25dd
+  - enabled: 1
     path: Assets/Scenes/230_Decal_Projector.unity
     guid: 443214b3f73466742a19acf21b430d0d
   - enabled: 1
