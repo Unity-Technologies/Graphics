@@ -17,8 +17,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         int length =>
             m_IncludeAlpha ? 4 : 3;
 
-        public ColorPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName, bool includeAlpha, bool isHdr = false)
-            : base(name, model, ownerElement, parentClassName, portName)
+        public ColorPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName, string portDisplayName, bool includeAlpha, bool isHdr = false)
+            : base(name, model, ownerElement, parentClassName, portName, portDisplayName)
         {
             m_IncludeAlpha = includeAlpha;
             m_IsHdr = isHdr;
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
-                m_PortName,
+                m_PortDisplayName,
                 (GraphType.Length)length,
                 GraphType.Height.One,
                 values));

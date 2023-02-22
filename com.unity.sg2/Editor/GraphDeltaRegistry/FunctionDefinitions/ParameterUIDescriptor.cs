@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
         )
         {
             Name = name;
-            DisplayName = displayName ?? name;
+            DisplayName = (displayName ?? name ?? string.Empty).Trim();
             Tooltip = tooltip;
             UseColor = useColor;
             IsHdr = isHdr;

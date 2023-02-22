@@ -14,8 +14,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphElementModel model,
             ModelView ownerElement,
             string parentClassName,
-            string portName
-        ) : base(name, model, ownerElement, parentClassName, portName)
+            string portName,
+            string portDisplayName
+        ) : base(name, model, ownerElement, parentClassName, portName, portDisplayName)
         {
         }
 
@@ -23,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (m_Model is not SGNodeModel graphDataNodeModel) return;
             m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
-                m_PortName,
+                m_PortDisplayName,
                 GraphType.Length.One,
                 GraphType.Height.One,
                 change.newValue));

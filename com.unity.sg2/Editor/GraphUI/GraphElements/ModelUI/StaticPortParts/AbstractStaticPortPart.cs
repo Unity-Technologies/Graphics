@@ -15,11 +15,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected abstract void UpdatePartFromPortReader(PortHandler reader);
 
         protected string m_PortName;
+        protected string m_PortDisplayName;
 
-        protected AbstractStaticPortPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName)
+        protected AbstractStaticPortPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName, string portDisplayName)
             : base(name, model, ownerElement, parentClassName)
         {
             m_PortName = portName;
+            m_PortDisplayName = portDisplayName;
         }
 
         protected override void UpdatePartFromModel()
