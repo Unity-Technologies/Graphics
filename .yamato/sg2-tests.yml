@@ -109,7 +109,7 @@ haderGraph2-Win_Perfomance_Tests:
   name: Run Windows Perf Tests
   agent:
     type: Unity::VM
-    image: sdet/gamecode_win10:stable
+    image: sdet/gamecode_win10:latest
     flavor: b1.xlarge
   variables:
       EDITOR_BRANCH: sg2/staging
