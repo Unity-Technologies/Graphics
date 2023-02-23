@@ -204,26 +204,6 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
-        internal static void SetDisplaySync()
-        {
-            // Disable vsync on the main display when rendering to a XR device.
-            // XRTODO : expose public property to control this behavior and document
-            QualitySettings.vSyncCount = 0;
-
-            // On Android, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
-            // XRTODO : handle iOS
-            if (Application.platform == RuntimePlatform.Android)
-            {
-                float frameRate = 300.0f;
-
-                // XRTODO: investigate why this code is not working as expected
-                //frameRate = s_Display.TryGetDisplayRefreshRate(out float refreshRate) ? refreshRate : frameRate;
-
-                // XRTODO : expose public propety to control this behavior from the render pipeline (causing issues with HDRP timing)
-                Application.targetFrameRate = Mathf.CeilToInt(frameRate);
-            }
-        }
-
         // XRTODO : expose as public API
         static void SetLayoutOverride(Action<XRLayout, Camera> action)
         {
