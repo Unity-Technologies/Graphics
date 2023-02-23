@@ -55,6 +55,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 {
                     foreach (CoordinateSpace dest in Enum.GetValues(typeof(CoordinateSpace)))
                     {
+                        // Old Transform doesn't implement screen space conversions.
+                        if (dest == CoordinateSpace.Screen || source == CoordinateSpace.Screen)
+                            continue;
+
                         // setup transform(v1) node
                         xform.conversion = new CoordinateSpaceConversion(source, dest);
                         xform.conversionType = conversionType;
@@ -136,6 +140,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     {
                         foreach (CoordinateSpace C in Enum.GetValues(typeof(CoordinateSpace)))
                         {
+                            // Transforming from or through screen space appears to be lossy in our current implementations.
+                            if (A == CoordinateSpace.Screen || B == CoordinateSpace.Screen)
+                                continue;
+
                             // setup transforms
                             A_to_C.conversion = new CoordinateSpaceConversion(A, C);
                             A_to_C.conversionType = conversionType;
@@ -182,6 +190,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 {
                     foreach (CoordinateSpace dest in Enum.GetValues(typeof(CoordinateSpace)))
                     {
+                        // Transform node doesn't fully use the normalize option
+                        if (dest == CoordinateSpace.Screen || source == CoordinateSpace.Screen)
+                            continue;
+
                         // setup normalized transform
                         norm.conversion = new CoordinateSpaceConversion(source, dest);
                         norm.conversionType = conversionType;

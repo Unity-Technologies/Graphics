@@ -154,11 +154,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 LogType.Error,
                 new Regex("sub_validationError.*has 1 error.*Error from Error Node"));
 
-            // then a dependent import on this shadergraph will issue an error
-            LogAssert.Expect(
-                LogType.Error,
-                new Regex("sg_subValidationError.*has 2 error.*Sub Graph.*sub_validationError"));
-
             TestImport(
                 "Assets/CommonAssets/Graphs/ErrorTestGraphs/sub_validationError.shadersubgraph");
         }

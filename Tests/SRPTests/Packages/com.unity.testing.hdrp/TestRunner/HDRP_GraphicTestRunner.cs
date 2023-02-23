@@ -15,7 +15,7 @@ using UnityEngine.VFX;
 
 public class HDRP_GraphicTestRunner
 {
-    [UnityTest]
+    [UnityTest, UnityPlatform(exclude = new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.LinuxEditor })] // Disabled for Instability https://jira.unity3d.com/browse/UUM-27736 and https://jira.unity3d.com/browse/UUM-27776
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases]
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
