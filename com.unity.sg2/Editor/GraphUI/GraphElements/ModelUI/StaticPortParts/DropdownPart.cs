@@ -20,8 +20,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             GraphElementModel model,
             ModelView ownerElement,
             string parentClassName,
-            string portName
-        ) : base(name, model, ownerElement, parentClassName, portName)
+            string portName,
+            string portDisplayName
+        ) : base(name, model, ownerElement, parentClassName, portName, portDisplayName)
         {
         }
 

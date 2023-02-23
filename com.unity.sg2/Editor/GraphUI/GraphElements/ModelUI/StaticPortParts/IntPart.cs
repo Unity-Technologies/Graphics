@@ -10,14 +10,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override string FieldName => "sg-int-field";
 
-        public IntPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName)
-            : base(name, model, ownerElement, parentClassName, portName) { }
+        public IntPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName, string portDisplayName)
+            : base(name, model, ownerElement, parentClassName, portName, portDisplayName) { }
 
         protected override void OnFieldValueChanged(ChangeEvent<int> change)
         {
             if (m_Model is not SGNodeModel graphDataNodeModel) return;
             m_OwnerElement.RootView.Dispatch(new SetGraphTypeValueCommand(graphDataNodeModel,
-                m_PortName,
+                m_PortDisplayName,
                 GraphType.Length.One,
                 GraphType.Height.One,
                 change.newValue));

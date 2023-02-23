@@ -16,8 +16,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override VisualElement Root => m_MatrixField;
 
-        public MatrixPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName, int size)
-            : base(name, model, ownerElement, parentClassName, portName)
+        public MatrixPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName, string portDisplayName, int size)
+            : base(name, model, ownerElement, parentClassName, portName, portDisplayName)
         {
             m_Size = size;
         }

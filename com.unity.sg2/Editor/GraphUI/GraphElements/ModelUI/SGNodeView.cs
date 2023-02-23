@@ -30,7 +30,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         GraphElementModel,
                         this,
                         ussClassName,
-                        portUIData.Name);
+                        portUIData.Name,
+                        portUIData.DisplayName);
                     m_StaticFieldParts.PartList.InsertPartAfter(
                         portContainerPartName,
                         gradientPart);
@@ -135,7 +136,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             if (portViewModel.Options is {Count: > 0})
             {
-                return new StaticPortOptionsPart("sg-dropdown", GraphElementModel, this, ussClassName, portViewModel.Name);
+                return new StaticPortOptionsPart("sg-dropdown", GraphElementModel, this, ussClassName, portViewModel.Name, portViewModel.DisplayName);
             }
 
             if (portViewModel.IsMatrix)
@@ -146,6 +147,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     this,
                     ussClassName,
                     portViewModel.Name,
+                    portViewModel.DisplayName,
                     portViewModel.MatrixHeight);
             }
 
@@ -161,14 +163,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                 GraphElementModel,
                                 this,
                                 ussClassName,
-                                portViewModel.Name);
+                                portViewModel.Name,
+                                portViewModel.DisplayName);
                         case NumericType.Int:
                             return new IntPart(
                                 "sg-int",
                                 GraphElementModel,
                                 this,
                                 ussClassName,
-                                portViewModel.Name);
+                                portViewModel.Name,
+                                portViewModel.DisplayName);
                         case NumericType.Float:
                             if (portViewModel.UseSlider)
                             {
@@ -177,7 +181,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                     GraphElementModel,
                                     this,
                                     ussClassName,
-                                    portViewModel.Name);
+                                    portViewModel.Name,
+                                    portViewModel.DisplayName);
                             }
                             else
                             {
@@ -186,7 +191,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                                     GraphElementModel,
                                     this,
                                     ussClassName,
-                                    portViewModel.Name);
+                                    portViewModel.Name,
+                                    portViewModel.DisplayName);
                             }
                         case NumericType.Unknown:
                         // Not valid, the type should've been resolved.
@@ -201,7 +207,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         GraphElementModel,
                         this,
                         ussClassName,
-                        portViewModel.Name);
+                        portViewModel.Name,
+                        portViewModel.DisplayName);
                 case ComponentLength.Three:
                     if (portViewModel.UseColor)
                     {
@@ -211,6 +218,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             this,
                             ussClassName,
                             portViewModel.Name,
+                            portViewModel.DisplayName,
                             includeAlpha: false,
                             isHdr: portViewModel.IsHdr);
                     }
@@ -221,7 +229,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             GraphElementModel,
                             this,
                             ussClassName,
-                            portViewModel.Name);
+                            portViewModel.Name,
+                            portViewModel.DisplayName);
                     }
                 case ComponentLength.Four:
                     if (portViewModel.UseColor)
@@ -232,6 +241,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             this,
                             ussClassName,
                             portViewModel.Name,
+                            portViewModel.DisplayName,
                             includeAlpha: true,
                             isHdr: portViewModel.IsHdr);
                     }
@@ -242,7 +252,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                             GraphElementModel,
                             this,
                             ussClassName,
-                            portViewModel.Name);
+                            portViewModel.Name,
+                            portViewModel.DisplayName);
                     }
                 case ComponentLength.Unknown:
                 // Not valid, the size should've been resolved.
