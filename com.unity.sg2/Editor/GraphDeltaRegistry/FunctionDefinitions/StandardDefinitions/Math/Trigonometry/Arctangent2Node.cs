@@ -60,6 +60,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Default", "Default" },
                 { "Fast", "Fast" }
             },
+            functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",
