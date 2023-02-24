@@ -128,9 +128,6 @@ haderGraph2-Win_Perfomance_Tests:
   artifacts:
     logs:
       paths:
-        -  "**/test-results/**"
-        - "ShaderGraphPerformanceTests/Logs/*.log"
-        - "ShaderGraphPerformanceTests/Logs/*.xml"
         - "ShaderGraphPerformanceTests/UnityPerformanceBenchmarkReporter/UnityPerformanceBenchmark"
         - "ShaderGraphPerformanceTests/PerfTemp/**"
 
