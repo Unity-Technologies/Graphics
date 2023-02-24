@@ -28,7 +28,6 @@ namespace UnityEngine.Experimental.Rendering
             if (XRSystem.displayActive && xrSupported)
             {
                 XRSystem.SetDisplayZRange(camera.nearClipPlane, camera.farClipPlane);
-                XRSystem.SetDisplaySync();
                 XRSystem.CreateDefaultLayout(camera);
             }
             else
