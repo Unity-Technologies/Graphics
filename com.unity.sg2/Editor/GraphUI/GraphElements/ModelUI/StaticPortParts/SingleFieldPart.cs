@@ -33,8 +33,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="change">Change event dispatched from field.</param>
         protected abstract void OnFieldValueChanged(ChangeEvent<T> change);
 
-        protected SingleFieldPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName)
-            : base(name, model, ownerElement, parentClassName, portName) { }
+        protected SingleFieldPart(string name, GraphElementModel model, ModelView ownerElement, string parentClassName, string portName, string portDisplayName)
+            : base(name, model, ownerElement, parentClassName, portName, portDisplayName) { }
 
         protected F m_Field;
         VisualElement m_Root;
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             if (m_Field is BaseField<T> baseField)
             {
-                baseField.label = m_PortName;
+                baseField.label = m_PortDisplayName;
             }
 
             parent.Add(m_Root);

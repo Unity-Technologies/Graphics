@@ -61,7 +61,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "LightTex1", "LightTex1" },
                 { "LightTex2", "LightTex2" },
                 { "LightTex3", "LightTex3" }
-        },
+            },
+            hasModes: true,
             functionSelectorLabel: "Blend Style",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

@@ -55,6 +55,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Coarse", "Coarse" },
                 { "Fine", "Fine" }
             },
+            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

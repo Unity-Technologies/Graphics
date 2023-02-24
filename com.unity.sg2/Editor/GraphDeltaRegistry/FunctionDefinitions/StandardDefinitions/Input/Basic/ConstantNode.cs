@@ -74,6 +74,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "E", "E" },
                 { "SQRT2", "SQRT2" },
             },
+            hasModes: true,
             functionSelectorLabel: " ",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(

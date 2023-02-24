@@ -61,6 +61,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Cheap", "Cheap" },
                 { "Quality", "Quality" }
             },
+            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

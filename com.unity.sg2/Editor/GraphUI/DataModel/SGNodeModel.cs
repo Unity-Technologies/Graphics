@@ -92,7 +92,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // By default every node's preview uses the inherit mode
         [SerializeField]
-        [NodeOption]
+        [NodeOption(true)]
+        [Tooltip("Controls the way the preview output is rendered for this node")]
         PreviewRenderMode m_NodePreviewMode;
         public PreviewRenderMode NodePreviewMode
         {
@@ -116,6 +117,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             get => m_DismissedUpgradeVersion;
             set => m_DismissedUpgradeVersion = value;
         }
+
+        List<string> m_Modes = new();
+        public override List<string> Modes => m_Modes;
 
         internal SGGraphModel graphModel => GraphModel as SGGraphModel;
 
@@ -199,7 +203,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return m_NodeViewModel;
         }
 
-        public void ChangeNodeFunction(string newFunctionName)
+        internal void ChangeNodeFunction(string newFunctionName)
         {
             if (!graphDataOwner.existsInGraphData)
             {
@@ -229,6 +233,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             DefineNode();
+        }
+
+        public override void ChangeMode(int newModeIndex)
+        {
+            if (newModeIndex < 0 || newModeIndex >= Modes.Count)
+            {
+                Debug.LogError("Unable to update selected function. Index is out of bounds.");
+                return;
+            }
+            ChangeNodeFunction(Modes[newModeIndex]);
+            base.ChangeMode(newModeIndex);
         }
 
         /// <summary>
@@ -326,16 +341,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 }
             }
 
-            var selectedFunctionID = string.Empty;
-
-            // If the node has multiple possible topologies, show the selector.
-            if (nodeUIInfo.SelectableFunctions.Count > 0)
-            {
-                var fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-                var selectedFunctionField = node.GetField<string>(fieldName);
-                selectedFunctionID = selectedFunctionField.GetData<string>();
-            }
-
             var shouldShowPreview = nodeUIInfo.HasPreview && showPreviewForType;
             var functionDictionary = new Dictionary<string, string>(nodeUIInfo.SelectableFunctions);
 
@@ -349,8 +354,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 shouldShowPreview,
                 functionDictionary,
                 portViewModels.ToArray(),
-                nodeUIInfo.FunctionSelectorLabel,
-                selectedFunctionID);
+                nodeUIInfo.FunctionSelectorLabel);
         }
 
         /// <summary>
@@ -415,6 +419,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return true;
         }
 
+        protected override void DefineNodeOptions()
+        {
+            if (!graphDataOwner.TryGetNodeHandler(out var nodeHandler))
+            {
+                Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
+                return;
+            }
+
+            var nodeUIDescriptor = graphDataOwner.registry.GetNodeUIDescriptor(registryKey, nodeHandler);
+
+            // If the node has selectable functions but does not have modes, the functions are part of a node option.
+            if (!nodeUIDescriptor.HasModes && nodeUIDescriptor.SelectableFunctions.Count > 0)
+            {
+                var selectedFunctionField = nodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME);
+                AddNodeOption(
+                    nodeUIDescriptor.FunctionSelectorLabel,
+                    TypeHandle.String,
+                    c => ChangeNodeFunction(c.ObjectValue.ToString()),
+                    initializationCallback: c => c.ObjectValue = selectedFunctionField.GetData(),
+                    attributes: new Attribute[] { new EnumAttribute(nodeUIDescriptor.SelectableFunctions.Keys.ToArray()) });
+            }
+        }
+
         protected override void OnDefineNode()
         {
             if (!graphDataOwner.TryGetNodeHandler(out var nodeHandler))
@@ -424,6 +451,10 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
 
             var nodeUIDescriptor = graphDataOwner.registry.GetNodeUIDescriptor(registryKey, nodeHandler);
+
+            if (nodeUIDescriptor.HasModes && m_Modes.Count == 0 && nodeUIDescriptor.SelectableFunctions.Count > 0)
+                m_Modes = nodeUIDescriptor.SelectableFunctions.Select(s => s.Key).ToList();
+
             var nodeHasPreview = nodeUIDescriptor.HasPreview && graphDataOwner.existsInGraphData;
             m_NodeViewModel = CreateNodeViewModel(nodeUIDescriptor, nodeHandler);
 
@@ -464,16 +495,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
                 }
 
+                var portDisplayName = nodeUIDescriptor.GetParameterInfo(portReader.LocalID).DisplayName;
                 if (isInput)
                 {
-                    var newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
+                    var newPortModel = this.AddDataInputPort(portDisplayName, type, portReader.LocalID, orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
                         ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeHandler.ID.LocalPath, portReader.LocalID);
                 }
                 else
-                    this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
-
+                    this.AddDataOutputPort(portDisplayName, type, portReader.LocalID, orientation);
             }
 
             HasPreview = nodeHasPreview;

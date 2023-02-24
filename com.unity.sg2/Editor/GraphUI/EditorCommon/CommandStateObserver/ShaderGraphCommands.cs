@@ -72,11 +72,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 graphModelStateComponent,
                 previewUpdateDispatcher);
 
-            graphTool.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, ChangeNodeFunctionCommand>(
-                ChangeNodeFunctionCommand.DefaultCommandHandler,
-                undoStateComponent,
-                graphModelStateComponent);
-
             // Node upgrade commands
             graphTool.RegisterCommandHandler<UndoStateComponent, GraphModelStateComponent, DismissNodeUpgradeCommand>(
                 DismissNodeUpgradeCommand.DefaultCommandHandler,

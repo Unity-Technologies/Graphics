@@ -71,6 +71,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Standard", "Standard" },
                 { "LODfunction", "LOD" }
             },
+            hasModes: true,
             functionSelectorLabel: "Mip Sampling Mode",
             parameters: new ParameterUIDescriptor[10] {
                 new ParameterUIDescriptor(

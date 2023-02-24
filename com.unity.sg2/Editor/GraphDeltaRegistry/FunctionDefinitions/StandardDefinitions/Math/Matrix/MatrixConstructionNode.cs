@@ -73,6 +73,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Row", "Row" },
                 { "Column", "Column" }
             },
+            hasModes: true,
             functionSelectorLabel: " ",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[7] {

@@ -100,8 +100,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
                         var staticPorts = new StaticPortsInspector(ModelInspector.fieldsPartName, models, elementBuilder.View, ModelInspector.ussClassName);
                         ui.PartList.AppendPart(staticPorts);
 
-                        var inspectorFields = new SGNodeFieldsInspector(ModelInspector.fieldsPartName, models, elementBuilder.View, ModelInspector.ussClassName);
-                        ui.PartList.AppendPart(inspectorFields);
+                        var nodeOptions = NodeOptionsInspector.Create(ModelInspector.fieldsPartName, models, elementBuilder.View, ModelInspector.ussClassName, ModelInspectorView.NodeOptionsFilter);
+                        ui.PartList.AppendPart(nodeOptions);
                         break;
                     }
 
