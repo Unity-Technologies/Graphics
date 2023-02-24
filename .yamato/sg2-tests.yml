@@ -123,7 +123,7 @@ haderGraph2-Win_Perfomance_Tests:
       retries: 2
     - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=ShaderGraphPerformanceTests --category="Performance" --artifacts_path=ShaderGraphPerformanceTests/PerfTemp --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
       retries: 2
-    - command: cd ShaderGraphPerformanceTests/UnityBenchmarkReporter & dotnet UnityPerformanceBenchmarkReporter.dll --baseline=Baseline.xml --results=../ShaderGraphPerformanceTests/PerfTemp/editor/ShaderGraphPerformanceTests
+    - command: cd ShaderGraphPerformanceTests/UnityBenchmarkReporter & dotnet UnityPerformanceBenchmarkReporter.dll --baseline=Baseline.xml --results=../PerfTemp/editor/ShaderGraphPerformanceTests
       retries: 2
   artifacts:
     logs:
