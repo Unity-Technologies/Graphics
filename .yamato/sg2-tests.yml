@@ -121,9 +121,9 @@ haderGraph2-Win_Perfomance_Tests:
       retries: 2
     - command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
       retries: 2
-    - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPerformanceTests --category="Performance" --artifacts-path=./ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
+    - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPerformanceTests --category="Performance" --artifacts-path=./ShaderGraphPerformanceTests/Temp --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
       retries: 2
-    - command: cd ShaderGraphPerformanceTests/Assets/UnityBenchmarkReporter & dotnet UnityPerformanceBenchmarkReporter.dll --baseline=Baseline.xml --results=editor/ShaderGraphPerformanceTests --reportdirpath=ShaderGraphPerformanceTests/Artifacts/PerfTestReport.xml
+    - command: cd ShaderGraphPerformanceTests/UnityBenchmarkReporter & dotnet UnityPerformanceBenchmarkReporter.dll --baseline=Baseline.xml --results=editor/ShaderGraphPerformanceTests/Temp
       retries: 2
   artifacts:
     logs:
@@ -131,6 +131,7 @@ haderGraph2-Win_Perfomance_Tests:
         -  "**/test-results/**"
         - "ShaderGraphPerformanceTests/Logs/*.log"
         - "ShaderGraphPerformanceTests/Logs/*.xml"
+        - "ShaderGraphPerformanceTests/UnityPerformanceBenchmarkReporter/UnityPerformanceBenchmark"
         - "ShaderGraphPerformanceTests/Artifacts/**/*"
 
 ShaderGraph2_nightly_trigger:
