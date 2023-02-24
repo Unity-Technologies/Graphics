@@ -495,7 +495,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
                 }
 
-                var portDisplayName = nodeUIDescriptor.GetParameterInfo(portReader.LocalID).DisplayName;
+                var portDisplayName = nodeUIDescriptor.GetParameterInfo(portReader.LocalID).DisplayName ?? portReader.LocalID;
                 if (isInput)
                 {
                     var newPortModel = this.AddDataInputPort(portDisplayName, type, portReader.LocalID, orientation, initializationCallback: initCallback);
