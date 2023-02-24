@@ -114,7 +114,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "SquareStep", "Square Step" }
 
             },
-            hasModes: true,
             functionSelectorLabel: "Curve",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
@@ -132,6 +131,7 @@ namespace UnityEditor.ShaderGraph.Defs
 
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the result of the selected interpolation between 0 and 1"
                 )
             }

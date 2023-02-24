@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a sine wave with noise added to the amplitude for randomness"
                 )
             }

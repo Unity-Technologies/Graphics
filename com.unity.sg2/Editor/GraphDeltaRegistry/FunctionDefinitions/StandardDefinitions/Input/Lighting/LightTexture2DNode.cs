@@ -62,12 +62,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "LightTex2", "LightTex2" },
                 { "LightTex3", "LightTex3" }
             },
-            hasModes: true,
             functionSelectorLabel: "Blend Style",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "Out",
-                    displayName: "Out",
+                    displayName: string.Empty,
                     tooltip: "selected 2D light texture"
                 )
             }

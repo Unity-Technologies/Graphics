@@ -44,15 +44,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "BaseE", "BaseE" },
                 { "Base2", "Base2" }
             },
-            hasModes: true,
             functionSelectorLabel: "Base",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "the input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "exponential of the input"
                 )
             }

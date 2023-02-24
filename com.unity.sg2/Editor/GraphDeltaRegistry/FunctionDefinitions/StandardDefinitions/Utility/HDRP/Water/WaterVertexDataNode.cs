@@ -32,12 +32,12 @@ NormalOS = GetWaterVertexNormal(norm);",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "PositionOS",
-                    displayName: "PositionOS",
+                    displayName: "Position OS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
                     name: "NormalOS",
-                    displayName: "NormalOS",
+                    displayName: "Normal OS",
                     tooltip: ""
                 )
             }

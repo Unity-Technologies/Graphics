@@ -110,6 +110,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the high dynamic range (HDR) color that this Node produces."
                 )
             }

@@ -30,17 +30,17 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "NormalTS",
-                    displayName: "NormalTS",
+                    displayName: "Normal TS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
                     name: "NormalWSin",
-                    displayName: "NormalWS",
+                    displayName: "Normal WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
                     name: "NormalWS",
-                    displayName: "NormalWS",
+                    displayName: "Normal WS",
                     tooltip: ""
                 )
             }

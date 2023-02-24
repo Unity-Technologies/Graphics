@@ -19,8 +19,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 description: "pkg://Documentation~/previews/Swizzle.md",
                 parameters: new ParameterUIDescriptor[]
                 {
-                    new(name: SwizzleNode.kInput, tooltip: "input value"),
-                    new(name: SwizzleNode.kOutput, tooltip: "vector with components rearranged"),
+                    new(name: SwizzleNode.kInput, tooltip: "input value", displayName: string.Empty),
+                    new(name: SwizzleNode.kOutput, tooltip: "vector with components rearranged", displayName: string.Empty),
                 }
             );
         }

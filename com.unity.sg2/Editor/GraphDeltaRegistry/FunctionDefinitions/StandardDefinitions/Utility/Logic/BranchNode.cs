@@ -42,6 +42,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "either the True branch or the False branch depending on the value of predicate"
                 )
             }

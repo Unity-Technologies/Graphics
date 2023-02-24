@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Direction",
+                    displayName: string.Empty,
                     tooltip: "The direction of the main directional light in the scene."
                 )
             }

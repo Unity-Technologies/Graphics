@@ -61,9 +61,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Cheap", "Cheap" },
                 { "Quality", "Quality" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
-            parameters: new ParameterUIDescriptor[3] {
+            parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "In",
                     tooltip: "input value"
@@ -74,6 +73,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "color with adjusted contrast"
                 )
             }

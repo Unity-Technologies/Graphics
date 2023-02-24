@@ -44,15 +44,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Standard", "Standard" },
                 { "Safe", "Safe" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "a vector to normalize"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "In / Length(In)"
                 )
             }

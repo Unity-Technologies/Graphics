@@ -59,7 +59,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Raw", "Raw" },
                 { "Eye", "Eye" }
             },
-            hasModes: true,
             functionSelectorLabel: "Sampling Mode",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {
@@ -70,6 +69,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the sample of the custom depth buffer"
                 )
             }

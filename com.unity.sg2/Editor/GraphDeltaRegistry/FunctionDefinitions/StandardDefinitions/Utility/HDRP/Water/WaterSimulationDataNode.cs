@@ -39,8 +39,8 @@ DeepFoam = waterAdditionalData.deepFoam;
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
-                    name: "SurfaceGradient",
-                    displayName: "Surface Gradient",
+                    name: "NormalWS",
+                    displayName: "Normal WS",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
@@ -49,13 +49,13 @@ DeepFoam = waterAdditionalData.deepFoam;
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "SurfaceFoam",
-                    displayName: "Surface Foam",
+                    name: "DeepFoam",
+                    displayName: "Deep Foam",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "DeepFoam",
-                    displayName: "Deep Foam",
+                    name: "SurfaceFoam",
+                    displayName: "Surface Foam",
                     tooltip: ""
                 )
             }

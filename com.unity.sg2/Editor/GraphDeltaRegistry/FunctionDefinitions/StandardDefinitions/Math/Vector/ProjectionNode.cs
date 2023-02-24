@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the result of projecting A onto a straight line parallel to B"
                 )
             }

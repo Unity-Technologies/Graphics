@@ -39,6 +39,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a blackbody color value determined by the input temperature"
                 ),
                 new ParameterUIDescriptor(

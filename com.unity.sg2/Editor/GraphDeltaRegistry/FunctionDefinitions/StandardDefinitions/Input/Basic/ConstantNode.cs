@@ -74,11 +74,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "E", "E" },
                 { "SQRT2", "SQRT2" },
             },
-            hasModes: true,
             functionSelectorLabel: " ",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the constant value selected with the dropdown"
                 ),
                 new ParameterUIDescriptor(

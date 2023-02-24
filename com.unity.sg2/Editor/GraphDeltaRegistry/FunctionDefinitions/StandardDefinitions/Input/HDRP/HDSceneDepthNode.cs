@@ -84,7 +84,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Raw", "Raw" },
                 { "Eye", "Eye" }
             },
-            hasModes: true,
             functionSelectorLabel: "Sampling Mode",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[3] {
@@ -99,6 +98,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the sample of the scene depth buffer"
                 )
             }

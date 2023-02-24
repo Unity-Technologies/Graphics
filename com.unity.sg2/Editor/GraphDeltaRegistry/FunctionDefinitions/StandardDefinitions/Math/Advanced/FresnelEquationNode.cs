@@ -74,7 +74,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Dielectric", "Dielectric" },
                 { "DielectricGeneric", "Dielectric Generic" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(

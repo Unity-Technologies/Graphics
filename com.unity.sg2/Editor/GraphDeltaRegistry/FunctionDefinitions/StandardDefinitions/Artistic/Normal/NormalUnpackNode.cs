@@ -43,16 +43,17 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Tangent", "Tangent" },
                 { "Object", "Object" }
             },
-            hasModes: true,
             functionSelectorLabel: "Space",
             description: "pkg://Documentation~/previews/NormalUnpack.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "RGBA value from a texture that is NOT stored in normal map format"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "unpacked normal vector from the input texture value"
                 )
             }

@@ -43,6 +43,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the linear parameter that produces the interpolant specified by T within the range of A to B"
                 )
             }

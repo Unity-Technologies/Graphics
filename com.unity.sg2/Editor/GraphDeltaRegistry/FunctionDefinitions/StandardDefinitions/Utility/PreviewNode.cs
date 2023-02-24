@@ -26,10 +26,12 @@ namespace UnityEditor.ShaderGraph.Defs
             description: "pkg://Documentation~/previews/Preview.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
-                    name: "In"
+                    name: "In",
+                    displayName: string.Empty
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the exact same value as the input"
                 )
             }

@@ -59,6 +59,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "baked GI color values sampled from a light probe or lightmap"
                 )
             }

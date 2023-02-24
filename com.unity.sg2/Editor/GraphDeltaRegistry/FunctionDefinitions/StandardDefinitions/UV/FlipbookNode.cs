@@ -81,7 +81,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "FlipFrames", "Flip Frames" },
                 { "BlendFrames", "Blend Frames" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             description: "pkg://Documentation~/previews/Flipbook.md",
             parameters: new ParameterUIDescriptor[10] {
@@ -114,6 +113,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "UVs for sampling the atlas texture"
                 ),
                 new ParameterUIDescriptor(

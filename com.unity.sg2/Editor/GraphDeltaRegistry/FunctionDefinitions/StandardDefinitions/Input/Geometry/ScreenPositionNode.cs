@@ -28,11 +28,12 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "ScreenPosition",
-                    displayName: "Space",
+                    displayName: "Mode",
                     options: REF.OptionList.ScreenPositions
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "Mesh's screen position in selected coordinate space."
                 )
             }

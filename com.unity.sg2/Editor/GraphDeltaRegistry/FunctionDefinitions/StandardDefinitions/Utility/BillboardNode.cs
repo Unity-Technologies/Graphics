@@ -90,7 +90,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Spherical", "Spherical" },
                 { "Cylindrical", "Cylindrical" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(

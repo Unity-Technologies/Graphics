@@ -36,6 +36,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "1 if the input is greater or equal to Edge,  otherwise 0"
                 )
             }

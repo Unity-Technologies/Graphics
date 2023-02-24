@@ -63,12 +63,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "PreviousMultiplier", "Previous Multiplier" },
                 { "InversePreviousMultiplier", "Inverse Previous Multiplier" }
             },
-            hasModes: true,
             functionSelectorLabel: "Type",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the camera's exposure value"
                 )
             }

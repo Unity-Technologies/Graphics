@@ -128,7 +128,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Deterministic", "Deterministic" },
                 { "LegacySine", "Legacy Sine" }
             },
-            hasModes: true,
             functionSelectorLabel: "Hash Type",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
@@ -142,6 +141,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a smooth, non-tiling noise pattern using a point lattice"
                 )
             }
