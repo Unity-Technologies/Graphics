@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -381,9 +382,39 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="renderingData"></param>
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            SetupLights(renderingData.commandBuffer, ref renderingData);
+        }
+
+        static ProfilingSampler s_SetupForwardLights = new ProfilingSampler("Setup Forward lights.");
+        private class SetupLightPassData
+        {
+            internal RenderingData renderingData;
+            internal ForwardLights forwardLights;
+        };
+        /// <summary>
+        /// Sets up the ForwardLight data for RenderGraph execution
+        /// </summary>
+        internal void SetupRenderGraphLights(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddLowLevelPass<SetupLightPassData>("SetupForwardLights", out var passData,
+                s_SetupForwardLights))
+            {
+                passData.renderingData = renderingData;
+                passData.forwardLights = this;
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((SetupLightPassData data, LowLevelGraphContext rgContext) =>
+                {
+                    data.forwardLights.SetupLights(rgContext.legacyCmd, ref data.renderingData);
+                });
+            }
+        }
+
+        internal void SetupLights(CommandBuffer cmd, ref RenderingData renderingData)
+        {
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
-            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(m_ProfilingSampler))
             {
                 if (m_UseForwardPlus)
@@ -446,15 +477,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (m_LightCookieManager != null)
                 {
-                    m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
+                    m_LightCookieManager.Setup(cmd, ref renderingData.lightData);
                 }
                 else
                 {
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, false);
                 }
             }
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
 
         internal void Cleanup()

@@ -265,7 +265,33 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LightCookieManager = initParams.lightCookieManager;
         }
 
-        internal void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        static ProfilingSampler s_SetupDeferredLights = new ProfilingSampler("Setup Deferred lights.");
+        private class SetupLightPassData
+        {
+            internal RenderingData renderingData;
+            internal DeferredLights deferredLights;
+        };
+        /// <summary>
+        /// Sets up the ForwardLight data for RenderGraph execution
+        /// </summary>
+        internal void SetupRenderGraphLights(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            using (var builder = renderGraph.AddLowLevelPass<SetupLightPassData>("SetupDeferredLights", out var passData,
+                s_SetupDeferredLights))
+            {
+                passData.renderingData = renderingData;
+                passData.deferredLights = this;
+
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc((SetupLightPassData data, LowLevelGraphContext rgContext) =>
+                {
+                    data.deferredLights.SetupLights(rgContext.legacyCmd, ref data.renderingData);
+                });
+            }
+        }
+
+        internal void SetupLights(CommandBuffer cmd, ref RenderingData renderingData)
         {
             Profiler.BeginSample(k_SetupLights);
 
@@ -286,7 +312,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             );
 
             {
-                var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSetupLightConstants))
                 {
                     // Shared uniform constants for all lights.
@@ -314,9 +339,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     RenderingLayerUtils.SetupProperties(CommandBufferHelpers.GetRasterCommandBuffer(cmd), RenderingLayerMaskSize);
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
             }
 
             Profiler.EndSample();
