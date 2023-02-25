@@ -99,7 +99,7 @@ real4 SampleMainLightCookieTexture(float2 uv)
 
 real4 SampleAdditionalLightsCookieAtlasTexture(float2 uv)
 {
-    return SAMPLE_TEXTURE2D(_AdditionalLightsCookieAtlasTexture, sampler_AdditionalLightsCookieAtlasTexture, uv);
+    return SAMPLE_TEXTURE2D_LOD(_AdditionalLightsCookieAtlasTexture, sampler_AdditionalLightsCookieAtlasTexture, uv, 0);
 }
 
 // Helpers
