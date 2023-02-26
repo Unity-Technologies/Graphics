@@ -636,6 +636,7 @@ namespace UnityEngine.Rendering.Universal
                     if (resolveToDebugScreen)
                     {
                         debugHandler.BlitTextureToDebugScreenTexture(cmd, GetSource(), m_Materials.uber, 0);
+                        renderer.ConfigureCameraColorTarget(debugHandler.DebugScreenTextureHandle);
                     }
                     else
                     {

@@ -99,6 +99,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         InternalColorLut,
         /// <summary>
+        /// Output of post-process passes (uberPost and finalPost) when HDR debug views are enabled. It replaces
+        /// the backbuffer as standard output because the later cannot be sampled back (or may not be in HDR format).
+        /// If used, DebugHandler will perform the blit from DebugScreenTexture to BackBufferColor.
+        /// </summary>
+        DebugScreenTexture,
+        /// <summary>
         /// After Post Process Color. Stores the contents of the main color target after the post processing passes.
         /// </summary>
         AfterPostProcessColor,
@@ -229,7 +235,7 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.slices = desc.volumeDepth;
             rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
             rgDesc.name = name;
-            rgDesc.enableRandomWrite = false;
+            rgDesc.enableRandomWrite = desc.enableRandomWrite;
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
             rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None;
@@ -251,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.slices = desc.volumeDepth;
             rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
             rgDesc.name = name;
-            rgDesc.enableRandomWrite = false;
+            rgDesc.enableRandomWrite = desc.enableRandomWrite;
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
 
@@ -434,11 +440,10 @@ namespace UnityEngine.Rendering.Universal
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRendering);
 
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, isActiveTargetBackBuffer);
+
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph, ref renderingData);
 #endif
-            DebugHandler?.Setup(ref renderingData);
-
 
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
@@ -707,6 +712,15 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_OnRenderObjectCallbackPass.Render(renderGraph, activeColorTexture, activeDepthTexture, ref renderingData);
+
+            bool shouldRenderUI = cameraData.rendersOverlayUI;
+            bool outputToHDR = cameraData.isHDROutputActive;
+            if (shouldRenderUI && outputToHDR)
+            {
+                TextureHandle overlayUI;
+                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, out overlayUI, ref renderingData);
+                resources.SetTexture(UniversalResource.OverlayUITexture, overlayUI);
+            }
         }
 
         private void OnAfterRendering(RenderGraph renderGraph, ref RenderingData renderingData)
@@ -733,13 +747,32 @@ namespace UnityEngine.Rendering.Universal
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
 
+            bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
+            bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(ref renderingData.cameraData);
+
             TextureHandle cameraColor = resources.GetTexture(UniversalResource.CameraColor);
+
+            DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(ref renderingData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref renderingData.cameraData);
+            // Allocate debug screen texture if HDR debug views are enabled.
+            if (resolveToDebugScreen)
+            {
+                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+                HDRDebugViewPass.ConfigureDescriptor(ref descriptor);
+                var debugScreenTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_DebugScreenTexture", false);
+                resources.SetTexture(UniversalResource.DebugScreenTexture, debugScreenTexture);
+            }
+
+            // If the debugHandler displays HDR debug views, it needs to redirect (final) post-process output to an intermediate color target (debugScreenTexture)
+            // and it will write into the post-process intended output.
+            TextureHandle debugHandlerColorTarget = resources.GetTexture(UniversalResource.AfterPostProcessColor);
 
             if (applyPostProcessing)
             {
                 TextureHandle activeColor = activeColorTexture;
                 TextureHandle backbuffer = resources.GetTexture(UniversalResource.BackBufferColor);
                 TextureHandle internalColorLut = resources.GetTexture(UniversalResource.InternalColorLut);
+                TextureHandle overlayUITexture = resources.GetTexture(UniversalResource.OverlayUITexture);
 
                 bool isTargetBackbuffer = (renderingData.cameraData.resolveFinalTarget && !applyFinalPostProcessing && !hasPassesAfterPostProcessing);
                 // if the postprocessing pass is trying to read and write to the same CameraColor target, we need to swap so it writes to a different target,
@@ -752,12 +785,37 @@ namespace UnityEngine.Rendering.Universal
                     resources.SetTexture(UniversalResource.CameraColor, cameraColor);
                 }
 
+                // Desired target for post-processing pass.
                 var target = isTargetBackbuffer ? backbuffer : cameraColor;
-                m_PostProcessPasses.postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in activeColor, in internalColorLut, in target, ref renderingData, applyFinalPostProcessing);
+
+                // but we may actually render to an intermediate texture if debug views are enabled.
+                // In that case, DebugHandler will eventually blit DebugScreenTexture into AfterPostProcessColor.
+                if (resolveToDebugScreen && !applyFinalPostProcessing)
+                {
+                    debugHandlerColorTarget = target;
+                    target = resources.GetTexture(UniversalResource.DebugScreenTexture);
+                }
+
+                bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
+                m_PostProcessPasses.postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in activeColor, in internalColorLut, in overlayUITexture, in target, ref renderingData, applyFinalPostProcessing, resolveToDebugScreen, doSRGBEncoding);
             }
 
             if (applyFinalPostProcessing)
-                m_PostProcessPasses.finalPostProcessPass.RenderFinalPassRenderGraph(renderGraph, in cameraColor, ref renderingData);
+            {
+                TextureHandle backbuffer = resources.GetTexture(UniversalResource.BackBufferColor);
+                TextureHandle overlayUITexture = resources.GetTexture(UniversalResource.OverlayUITexture);
+
+                // Desired target for post-processing pass.
+                TextureHandle target = backbuffer;
+
+                if (resolveToDebugScreen)
+                {
+                    debugHandlerColorTarget = target;
+                    target = resources.GetTexture(UniversalResource.DebugScreenTexture);
+                }
+
+                m_PostProcessPasses.finalPostProcessPass.RenderFinalPassRenderGraph(renderGraph, in cameraColor, in overlayUITexture, in target, ref renderingData, needsColorEncoding);
+            }
 
             cameraTargetResolved =
                 // final PP always blit to camera target
@@ -770,9 +828,30 @@ namespace UnityEngine.Rendering.Universal
 
             if (!isActiveTargetBackBuffer && renderingData.cameraData.resolveFinalTarget && !cameraTargetResolved)
             {
-                m_FinalBlitPass.Render(renderGraph, ref renderingData, resources.GetTexture(UniversalResource.CameraColor), resources.GetTexture(UniversalResource.BackBufferColor), resources.GetTexture(UniversalResource.OverlayUITexture));
+                TextureHandle backbuffer = resources.GetTexture(UniversalResource.BackBufferColor);
+                TextureHandle overlayUITexture = resources.GetTexture(UniversalResource.OverlayUITexture);
+                m_FinalBlitPass.Render(renderGraph, ref renderingData, cameraColor, backbuffer, overlayUITexture);
                 m_ActiveColorID = UniversalResource.BackBufferColor;
                 m_ActiveDepthID = UniversalResource.BackBufferDepth;
+            }
+
+            // We can explicitely render the overlay UI from URP when HDR output is not enabled.
+            // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
+            bool shouldRenderUI = renderingData.cameraData.rendersOverlayUI;
+            bool outputToHDR = renderingData.cameraData.isHDROutputActive;
+            if (shouldRenderUI && !outputToHDR)
+            {
+                TextureHandle backbuffer = resources.GetTexture(UniversalResource.BackBufferColor);
+                m_DrawOverlayUIPass.RenderOverlay(renderGraph, in backbuffer, ref renderingData);
+            }
+
+            if (debugHandler != null)
+            {
+                TextureHandle overlayUITexture = resources.GetTexture(UniversalResource.OverlayUITexture);
+                TextureHandle debugScreenTexture = resources.GetTexture(UniversalResource.DebugScreenTexture);
+
+                debugHandler.Setup(ref renderingData);
+                debugHandler.Render(renderGraph, ref renderingData, debugScreenTexture, overlayUITexture, debugHandlerColorTarget);
             }
 
 #if UNITY_EDITOR
@@ -784,7 +863,6 @@ namespace UnityEngine.Rendering.Universal
                 m_FinalDepthCopyPass.Render(renderGraph, activeDepthTexture, cameraDepthTexture, ref renderingData, "Final Depth Copy");
             }
 #endif
-
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, resources.GetTexture(UniversalResource.BackBufferColor), activeDepthTexture, GizmoSubset.PostImageEffects, ref renderingData);
         }
@@ -933,7 +1011,7 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateAfterPostProcessTexture(RenderGraph renderGraph, RenderTextureDescriptor descriptor)
         {
-            var desc = PostProcessPass.GetCompatibleDescriptor(descriptor, descriptor.width, descriptor.height, UniversalRenderPipeline.MakeUnormRenderTextureGraphicsFormat(), DepthBits.None);
+            var desc = PostProcessPass.GetCompatibleDescriptor(descriptor, descriptor.width, descriptor.height, descriptor.graphicsFormat, DepthBits.None);
             TextureHandle afterPostProcessColor = CreateRenderGraphTexture(renderGraph, desc, "_AfterPostProcessTexture", true);
             resources.SetTexture(UniversalResource.AfterPostProcessColor, afterPostProcessColor);
         }

@@ -180,7 +180,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle source, RTHandle destination, ref RenderingData renderingData)
-
         {
             ref var cameraData = ref renderingData.cameraData;
             bool isRenderToBackBufferTarget = !cameraData.isSceneViewCamera;
@@ -267,7 +266,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                         SetupHDROutput(data.blitMaterial, hdrOperation, data.hdrOutputLuminanceParams);
                     }
 
-                    ExecutePass(context.cmd, data, data.source, data.destination, ref data.renderingData);
+                    var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref data.renderingData);
+                    DebugHandler debugHandler = GetActiveDebugHandler(ref data.renderingData);
+                    bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref data.renderingData.cameraData);
+
+                    if (resolveToDebugScreen)
+                    {
+                        RTHandle sourceTex = data.source;
+                        Vector2 viewportScale = sourceTex.useScaling ? new Vector2(sourceTex.rtHandleProperties.rtHandleScale.x, sourceTex.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                        Blitter.BlitTexture(context.cmd, sourceTex, viewportScale, data.blitMaterial, sourceTex.rt?.filterMode == FilterMode.Bilinear ? 1 : 0);
+                    }
+                    else
+                        ExecutePass(context.cmd, data, data.source, data.destination, ref data.renderingData);
                 });
             }
         }

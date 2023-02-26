@@ -528,7 +528,24 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
             var cmd = renderingData.commandBuffer;
-            DebugHandler?.Setup(ref renderingData);
+            if (DebugHandler != null)
+            {
+                DebugHandler.Setup(ref renderingData);
+
+                if (DebugHandler.IsActiveForCamera(ref cameraData) && DebugHandler.HDRDebugViewIsActive(ref cameraData))
+                {
+                    RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
+                    HDRDebugViewPass.ConfigureDescriptor(ref descriptor);
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.m_DebugScreenTextureHandle, descriptor, name: "_DebugScreenTexture");
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
+
+                    RenderTextureDescriptor descriptorCIE = cameraData.cameraTargetDescriptor;
+                    HDRDebugViewPass.ConfigureDescriptorForCIEPrepass(ref descriptorCIE);
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_CIExyTarget, descriptorCIE, name: "_xyBuffer");
+
+                    EnqueuePass(DebugHandler.hdrDebugViewPass);
+                }
+            }
 
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;
@@ -1208,6 +1225,8 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_FinalBlitPass);
                 }
 
+                // We can explicitely render the overlay UI from URP when HDR output is not enabled.
+                // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
                 if (shouldRenderUI && !outputToHDR)
                 {
                     EnqueuePass(m_DrawOverlayUIPass);

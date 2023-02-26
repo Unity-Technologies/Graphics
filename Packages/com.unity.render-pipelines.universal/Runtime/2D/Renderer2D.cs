@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
         CopyCameraSortingLayerPass m_CopyCameraSortingLayerPass;
         FinalBlitPass m_FinalBlitPass;
         DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
-        DrawScreenSpaceUIPass m_DrawOverlayUIPass;
+        DrawScreenSpaceUIPass m_DrawOverlayUIPass; // from HDRP code
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
 
@@ -201,6 +201,20 @@ namespace UnityEngine.Rendering.Universal
                     hasPostProcess = hasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
                 DebugHandler.Setup(ref renderingData);
+
+                if (DebugHandler.IsActiveForCamera(ref cameraData) && DebugHandler.HDRDebugViewIsActive(ref cameraData))
+                {
+                    RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
+                    HDRDebugViewPass.ConfigureDescriptor(ref descriptor);
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.m_DebugScreenTextureHandle, descriptor, name: "_DebugScreenTexture");
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
+
+                    RenderTextureDescriptor descriptorCIE = cameraData.cameraTargetDescriptor;
+                    HDRDebugViewPass.ConfigureDescriptorForCIEPrepass(ref descriptorCIE);
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_CIExyTarget, descriptorCIE, name: "_xyBuffer");
+
+                    EnqueuePass(DebugHandler.hdrDebugViewPass);
+                }
             }
 
 #if UNITY_EDITOR
@@ -325,6 +339,8 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_FinalBlitPass);
             }
 
+            // We can explicitely render the overlay UI from URP when HDR output is not enabled.
+            // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
             if (shouldRenderUI && !outputToHDR)
             {
                 EnqueuePass(m_DrawOverlayUIPass);
