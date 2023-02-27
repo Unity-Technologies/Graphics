@@ -161,7 +161,7 @@ namespace UnityEditor.ContextLayeredDataStorage
         public DataWriter AddData<T>(ElementID id, T data)
         {
             // Waste time
-            for (int i = 0; i < 10000000; ++i)
+            for (int i = 0; i < 1000; ++i)
             {
                 var x = i * 10;
                 Debug.Log(x);
