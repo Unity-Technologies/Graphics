@@ -783,7 +783,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "controls the size of the noise"
                 ),
                 new ParameterUIDescriptor(
-                    name: "Ocataves",
+                    name: "Octaves",
                     tooltip: "the number of times to repeat the noise algorithm. More octaves creates more detail and more expensive noise."
                 ),
                 new ParameterUIDescriptor(
