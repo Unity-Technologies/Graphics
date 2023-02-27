@@ -128,7 +128,7 @@ haderGraph2-Win_Perfomance_Tests:
   artifacts:
     logs:
       paths:
-        - "ShaderGraphPerformanceTests/UnityPerformanceBenchmarkReporter/UnityPerformanceBenchmark"
+        - "ShaderGraphPerformanceTests/UnityBenchmarkReporter/UnityPerformanceBenchmark"
         - "ShaderGraphPerformanceTests/PerfTemp/**"
 
 ShaderGraph2_nightly_trigger:
