@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.</summary>
         [HideInInspector]
-        [Tooltip("Whether Unity should fill empty space between renderers with bricks at the lowest subdivision level.")]
+        [Tooltip("Whether HDRP should fill empty space between renderers with bricks at the lowest subdivision level.")]
         public bool fillEmptySpaces = false;
 
 #if UNITY_EDITOR

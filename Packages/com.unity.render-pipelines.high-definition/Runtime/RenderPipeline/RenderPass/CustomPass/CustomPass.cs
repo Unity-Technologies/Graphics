@@ -146,6 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBufferRG;
             public TextureHandle motionVectorBufferRG;
             public TextureHandle renderingLayerMaskRG;
+            public BufferHandle waterLineRG;
         }
 
         enum Version
@@ -206,6 +207,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // The rendering layer mask buffer is only accessible through the SG node we expose, and we don't allow writing to it
             if (targets.renderingLayerMaskRG.IsValid())
                 output.renderingLayerMaskRG = builder.ReadTexture(targets.renderingLayerMaskRG);
+            if (targets.waterLineRG.IsValid())
+                output.waterLineRG = builder.ReadBuffer(targets.waterLineRG);
 
             return output;
         }
@@ -239,6 +242,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (customPass.currentRenderTarget.renderingLayerMaskRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._RenderingLayerMaskTexture, customPass.currentRenderTarget.renderingLayerMaskRG);
+
+                        if (customPass.currentRenderTarget.waterLineRG.IsValid() && customPass.injectionPoint >= CustomPassInjectionPoint.BeforePostProcess)
+                            ctx.cmd.SetGlobalBuffer(HDShaderIDs._WaterLineBuffer, customPass.currentRenderTarget.waterLineRG);
 
                         if (customPass.currentRenderTarget.normalBufferRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, customPass.currentRenderTarget.normalBufferRG);

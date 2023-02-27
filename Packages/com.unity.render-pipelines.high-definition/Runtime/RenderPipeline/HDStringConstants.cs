@@ -585,7 +585,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WaterDisplacementBuffer = Shader.PropertyToID("_WaterDisplacementBuffer");
         public static readonly int _WaterAdditionalDataBuffer = Shader.PropertyToID("_WaterAdditionalDataBuffer");
         public static readonly int _WaterAdditionalDataBufferRW = Shader.PropertyToID("_WaterAdditionalDataBufferRW");
-        public static readonly int _PreviousWaterAdditionalDataBuffer = Shader.PropertyToID("_PreviousWaterAdditionalDataBuffer");
         public static readonly int _WaterMask = Shader.PropertyToID("_WaterMask");
         public static readonly int _SimulationFoamMask = Shader.PropertyToID("_SimulationFoamMask");
         public static readonly int _FoamTexture = Shader.PropertyToID("_FoamTexture");
@@ -594,23 +593,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WaterGBufferTexture2 = Shader.PropertyToID("_WaterGBufferTexture2");
         public static readonly int _WaterGBufferTexture3 = Shader.PropertyToID("_WaterGBufferTexture3");
         public static readonly int _WaterSurfaceProfiles = Shader.PropertyToID("_WaterSurfaceProfiles");
-        public static readonly int _WaterGBufferTexture0RW = Shader.PropertyToID("_WaterGBufferTexture0RW");
-        public static readonly int _WaterInitialFrame = Shader.PropertyToID("_WaterInitialFrame");
         public static readonly int _WaterPatchData = Shader.PropertyToID("_WaterPatchData");
         public static readonly int _WaterPatchDataRW = Shader.PropertyToID("_WaterPatchDataRW");
         public static readonly int _WaterInstanceDataRW = Shader.PropertyToID("_WaterInstanceDataRW");
         public static readonly int _FrustumGPUBuffer = Shader.PropertyToID("_FrustumGPUBuffer");
         public static readonly int _WaterCameraHeightBuffer = Shader.PropertyToID("_WaterCameraHeightBuffer");
         public static readonly int _WaterCameraHeightBufferRW = Shader.PropertyToID("_WaterCameraHeightBufferRW");
-        public static readonly int _ComplexTileList = Shader.PropertyToID("_ComplexTileList");
-        public static readonly int _ComplexTileListRW = Shader.PropertyToID("_ComplexTileListRW");
-        public static readonly int _WaterLineTexture = Shader.PropertyToID("_WaterLineTexture");
-        public static readonly int _WaterLineTextureRW = Shader.PropertyToID("_WaterLineTextureRW");
-        public static readonly int _WaterLineTileDataBuffer = Shader.PropertyToID("_WaterLineTileDataBuffer");
-        public static readonly int _WaterLineTileDataBufferRW = Shader.PropertyToID("_WaterLineTileDataBufferRW");
-        public static readonly int _WaterRegionTexture = Shader.PropertyToID("_WaterRegionTexture");
-        public static readonly int _WaterRegionTextureRW = Shader.PropertyToID("_WaterRegionTextureRW");
         public static readonly int _WaterLineBuffer = Shader.PropertyToID("_WaterLine");
+        public static readonly int _WaterLineBufferRW = Shader.PropertyToID("_WaterLineRW");
 
         // Water Deferred Lighting
         public static readonly int _WaterDispatchIndirectBuffer = Shader.PropertyToID("_WaterDispatchIndirectBuffer");

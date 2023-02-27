@@ -12,11 +12,29 @@ float GetWaterCameraHeight()
     return _WaterCameraHeightBuffer[unity_StereoEyeIndex];
 }
 
-TEXTURE2D_X_UINT(_WaterRegionTexture);
+StructuredBuffer<uint> _WaterLine;
 
-bool IsUnderWater(uint2 coord)
+float GetUnderWaterDistance(uint2 coord)
 {
-    return LOAD_TEXTURE2D_X(_WaterRegionTexture, coord) == 1;
+    float2 upVector = float2(_UpDirectionX, _UpDirectionY);
+    float2 rightVector = float2(_UpDirectionY, -_UpDirectionX);
+
+    // Find index to sample in 1D buffer
+    uint xr = unity_StereoEyeIndex * _BufferStride;
+    uint2 boundsX = uint2(0xFFFFFFFF - _WaterLine[0 + xr], _WaterLine[1 + xr]);
+    uint posX = round(dot((float2)coord.xy, rightVector) - _BoundsSS.x);
+    posX = clamp(posX, boundsX.x, boundsX.y);
+
+    // Decompress water line height
+    float posY = dot((float2)coord.xy, upVector) - _BoundsSS.z;
+    uint packedValue = _WaterLine[posX + 2 + xr] & 0xFFFF;
+    float waterLine = packedValue - 1;
+
+    // For the columns with missing values, try to guess based on camera pos
+    float maxHeight = (_BoundsSS.w - _BoundsSS.z);
+    float distanceToWaterLine = (posY - waterLine) / maxHeight;
+
+    return distanceToWaterLine;
 }
 
 Texture2D<float4> _WaterCausticsDataBuffer;
