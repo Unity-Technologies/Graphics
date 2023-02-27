@@ -907,7 +907,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "controls the size of the noise."
                 ),
                 new ParameterUIDescriptor(
-                    name: "Ocataves",
+                    name: "Octaves",
                     tooltip: "the number of times to repeat the noise algorithm. More octaves creates more detail and more expensive noise."
                 ),
                 new ParameterUIDescriptor(
@@ -920,7 +920,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Offset",
-                    tooltip: "controls the brightess or height of the multifractal ridges"
+                    tooltip: "controls the brightness or height of the multifractal ridges"
                 ),
                 new ParameterUIDescriptor(
                     name: "GradientVolume",
