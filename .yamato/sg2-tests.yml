@@ -114,17 +114,14 @@ haderGraph2-Win_Perfomance_Tests:
   variables:
       EDITOR_BRANCH: sg2/staging
   commands:
-    - command: gsudo NetSh Advfirewall set allprofiles state off
-    - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      retries: 2
-    - command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      retries: 2
-    - command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
-      retries: 2
-    - command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=ShaderGraphPerformanceTests --category="Performance" --artifacts_path=ShaderGraphPerformanceTests/PerfTemp --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
-      retries: 2
-    - command: cd ShaderGraphPerformanceTests/UnityBenchmarkReporter & dotnet UnityPerformanceBenchmarkReporter.dll --baseline=Baseline.xml --results=../PerfTemp/editor/ShaderGraphPerformanceTests
-      retries: 2
+    - |
+      gsudo NetSh Advfirewall set allprofiles state off
+      curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
+      ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=ShaderGraphPerformanceTests --category="Performance" --artifacts_path=ShaderGraphPerformanceTests/PerfTemp --report-performance-data --performance-project-id=Unity --zero-tests-are-ok=1
+      cd ShaderGraphPerformanceTests/UnityBenchmarkReporter
+      dotnet UnityPerformanceBenchmarkReporter.dll --baseline=Baseline.xml --results=../PerfTemp/editor/ShaderGraphPerformanceTests
   artifacts:
     logs:
       paths:
