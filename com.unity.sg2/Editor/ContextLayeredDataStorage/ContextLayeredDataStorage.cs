@@ -160,13 +160,6 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public DataWriter AddData<T>(ElementID id, T data)
         {
-            // Waste time
-            for (int i = 0; i < 1000; ++i)
-            {
-                var x = i * 10;
-                Debug.Log(x);
-            }
-
             AddData(id, data, out Element<T> element);
             return element.GetWriter();
         }
@@ -202,6 +195,11 @@ namespace UnityEditor.ContextLayeredDataStorage
         internal void AddData<T>(Element elem, ElementID id, T data, out Element<T> output)
         {
             EvaluateParent(in elem, id, out Element parent);
+            // Waste time
+            for (int i = 0; i < 100; ++i)
+            {
+                var x = i * 10;
+            }
             output = new Element<T>(id, data, this);
             AddChild(parent, output);
             UpdateFlattenedStructureAdd(output);
