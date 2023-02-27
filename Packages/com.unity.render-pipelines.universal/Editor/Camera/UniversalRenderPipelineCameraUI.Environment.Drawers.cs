@@ -107,9 +107,10 @@ namespace UnityEditor.Rendering.Universal
 
             static void Drawer_Environment_VolumeUpdate(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
+                Rect volumeUpdateRect = EditorGUILayout.GetControlRect();
                 EditorGUI.BeginChangeCheck();
                 VolumeFrameworkUpdateMode prevVolumeUpdateMode = (VolumeFrameworkUpdateMode)p.volumeFrameworkUpdateMode.intValue;
-                EditorGUILayout.PropertyField(p.volumeFrameworkUpdateMode, Styles.volumeUpdates);
+                VolumeFrameworkUpdateMode selectedValue = (VolumeFrameworkUpdateMode)EditorGUI.EnumPopup(volumeUpdateRect, Styles.volumeUpdates, prevVolumeUpdateMode);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (p.serializedObject.targetObject is not Camera cam)
@@ -117,6 +118,7 @@ namespace UnityEditor.Rendering.Universal
 
                     VolumeFrameworkUpdateMode curVolumeUpdateMode = (VolumeFrameworkUpdateMode)p.volumeFrameworkUpdateMode.intValue;
                     cam.SetVolumeFrameworkUpdateMode(curVolumeUpdateMode);
+                    p.volumeFrameworkUpdateMode.intValue = (int)selectedValue;
                 }
             }
 
