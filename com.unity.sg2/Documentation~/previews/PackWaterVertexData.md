@@ -2,9 +2,9 @@
 
 ## Inputs
 **Position WS** - 
+**Normal WS** - 
 **Displacement** - 
 **Low Frequency Height** - 
-**SSS Mask** - 
 
 ## Output
 **Position OS** -  
