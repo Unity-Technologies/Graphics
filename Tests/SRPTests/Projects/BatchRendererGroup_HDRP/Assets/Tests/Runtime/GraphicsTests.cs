@@ -21,6 +21,7 @@ public class GraphicsTests
     [UnityTest, Category("GraphicsTest")]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases(path)]
+    [Timeout(5 * 60 * 1000)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
         SceneManager.LoadScene(testCase.ScenePath);
