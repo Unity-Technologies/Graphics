@@ -1647,6 +1647,7 @@ namespace UnityEngine.Rendering.Universal
         PaniniProjection,
         UberPostProcess,
         Bloom,
+        LensFlareDataDrivenComputeOcclusion,
         LensFlareDataDriven,
         MotionVectors,
         DrawFullscreen,

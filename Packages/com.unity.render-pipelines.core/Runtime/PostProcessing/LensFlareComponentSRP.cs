@@ -73,6 +73,10 @@ namespace UnityEngine.Rendering
         [Min(0.0f)]
         public float occlusionRadius = 0.1f;
         /// <summary>
+        /// Enable Occlusion using Background Cloud (for instance: CloudLayer)
+        /// </summary>
+        public bool useBackgroundCloudOcclusion = false;
+        /// <summary>
         /// Random Samples Count used inside the disk with 'occlusionRadius'
         /// </summary>
         [Range(1, 64)]

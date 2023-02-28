@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public CloudMap layerB = new CloudMap();
 
         internal int NumLayers => (layers == CloudMapMode.Single) ? 1 : 2;
-        internal bool CastShadows => layerA.castShadows.value || (layers == CloudMapMode.Double && layerB.castShadows.value);
+        internal bool CastShadows => layerA.castShadows.value || (layers.value == CloudMapMode.Double && layerB.castShadows.value);
 
         Vector3Int CastToInt3(Vector3 vec) => new Vector3Int((int)vec.x, (int)vec.y, (int)vec.z);
 

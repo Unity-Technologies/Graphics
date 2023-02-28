@@ -62,6 +62,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandle colorBuffer;
         /// <summary>Depth buffer used for rendering.</summary>
         public RTHandle depthBuffer;
+        /// <summary>Fullscreen texture rendering 1.0f - opacity of the cloud</summary>
+        public RTHandle cloudOpacity;
         /// <summary>Ambient probe containing sky lighting to be used when rendering clouds</summary>
         public ComputeBuffer cloudAmbientProbe;
         /// <summary>Current frame index.</summary>
@@ -211,6 +213,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         DebugDisplaySettings m_CurrentDebugDisplaySettings;
         Light m_CurrentSunLight;
+
+        TextureHandle m_CloudOpacity;
+        /// <summary>
+        /// Cloud Opacity is the sky-visibility
+        /// </summary>
+        public TextureHandle cloudOpacity
+        {
+            get { return m_CloudOpacity; }
+        }
 
         public SkyManager()
         { }
@@ -1259,6 +1270,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public BuiltinSkyParameters builtinParameters = new BuiltinSkyParameters();
             public TextureHandle colorBuffer;
+            public TextureHandle cloudOpacityBuffer;
             public TextureHandle depthBuffer;
             public SkyUpdateContext skyContext;
             public bool renderSunDisk;
@@ -1278,7 +1290,52 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.colorBuffer = builder.WriteTexture(colorBuffer);
                     passData.depthBuffer = builder.WriteTexture(depthBuffer);
+
+                    if (LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera))
+                    {
+                        // Nice-to-have: analyse the asset, if a 16 bits for the Rendering use the alpha channel to back
+                        // the cloud occlusion instead of allocating a new texture
+                        TextureHandle cloudOpacity = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                        {
+                            colorFormat = GraphicsFormat.R8_UNorm,
+                            clearBuffer = true,
+                            clearColor = Color.black,
+                            name = "Cloud Occlusion"
+                        });
+                        m_CloudOpacity = builder.WriteTexture(cloudOpacity);
+                    }
+                    else
+                    {
+                        m_CloudOpacity = TextureHandle.nullHandle;
+                    }
                     passData.skyContext = skyContext;
+                    bool isCloudLayerUsed = false;
+                    if (passData.skyContext.HasClouds())
+                    {
+                        CloudLayer cloudLayer = passData.skyContext.cloudSettings as CloudLayer;
+                        if (cloudLayer)
+                        {
+                            isCloudLayerUsed = cloudLayer.active && cloudLayer.opacity.value > 0.0f;
+                        }
+                    }
+                    // Allocate only if the cloudLayer is used and at least one LensFlare request an occlusion with the CloudLayer
+                    if (isCloudLayerUsed && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera))
+                    {
+                        // Nice-to-have: analyze the asset, if a 16 bits for the Rendering use the alpha channel to back
+                        // the cloud occlusion instead of allocating a new texture
+                        TextureHandle cloudOpacity = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                        {
+                            colorFormat = GraphicsFormat.R8_UNorm,
+                            clearBuffer = true,
+                            clearColor = Color.black,
+                            name = "Cloud Occlusion"
+                        });
+                        m_CloudOpacity = builder.WriteTexture(cloudOpacity);
+                    }
+                    else
+                    {
+                        m_CloudOpacity = TextureHandle.nullHandle;
+                    }
                     // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
                     passData.renderSunDisk = hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value;
                     UpdateBuiltinParameters(ref passData.builtinParameters,
@@ -1286,6 +1343,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         hdCamera,
                         m_CurrentSunLight,
                         m_CurrentDebugDisplaySettings);
+                    passData.cloudOpacityBuffer = m_CloudOpacity;
 
                     if (skyContext.HasClouds())
                     {
@@ -1298,6 +1356,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             data.builtinParameters.colorBuffer = data.colorBuffer;
                             data.builtinParameters.depthBuffer = data.depthBuffer;
+                            data.builtinParameters.cloudOpacity = data.cloudOpacityBuffer;
                             data.builtinParameters.commandBuffer = ctx.cmd;
 
                             CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);
