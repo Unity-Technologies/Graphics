@@ -54,10 +54,11 @@ namespace UnityEngine.Rendering
         public static int mergeNeeded = 1;
 
         /// <summary>
-        /// occlusion texture either provided or created automatically by the SRP for lens flare. (to be created automatically, please set mergeNeeded to 1).
+        /// occlusion texture either provided or created automatically by the SRP for lens flare.
         /// Texture width is the max number of lens flares that have occlusion (x axis the lens flare index).
         /// y axis is the number of samples (maxLensFlareWithOcclusionTemporalSample) plus the number of merge results.
         /// Merge results must be done by the SRP and stored in the [(lens flareIndex), (maxLensFlareWithOcclusionTemporalSample + 1)] coordinate.
+        /// Note: It's not supported on OpenGL3 and OpenGLCore
         /// </summary>
         public static RTHandle occlusionRT = null;
 
@@ -68,13 +69,38 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Check if we can use an OcclusionRT
+        /// </summary>
+        /// <returns>return true if we can have the OcclusionRT</returns>
+        static public bool IsOcclusionRTCompatible()
+        {
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore;
+        }
+
+        /// <summary>
         /// Initialization function which must be called by the SRP.
         /// </summary>
         static public void Initialize()
         {
             frameIdx = 0;
-            if (occlusionRT == null && mergeNeeded > 0)
-                occlusionRT = RTHandles.Alloc(width: maxLensFlareWithOcclusion, height: maxLensFlareWithOcclusionTemporalSample + 1 * mergeNeeded, colorFormat: Experimental.Rendering.GraphicsFormat.R16_SFloat, enableRandomWrite: true, dimension: TextureXR.dimension);
+            if (IsOcclusionRTCompatible())
+            {
+                // The height of occlusion texture is:
+                //      - '1': when no temporal accumulation
+                //      - 'maxLensFlareWithOcclusionTemporalSample + 1': for temporal accumulation, useful when TAA enabled
+                if (occlusionRT == null)
+                {
+                    occlusionRT = RTHandles.Alloc(
+                        width: maxLensFlareWithOcclusion,
+                        height: Mathf.Max(mergeNeeded * (maxLensFlareWithOcclusionTemporalSample + 1), 1),
+                        slices: TextureXR.slices,
+                        // Needed a R32_SFloat for Metal or/and DirectX < 11.3
+                        colorFormat: Experimental.Rendering.GraphicsFormat.R32_SFloat,
+                        enableRandomWrite: true,
+                        dimension: TextureDimension.Tex2DArray);
+                }
+            }
         }
 
         /// <summary>
@@ -82,10 +108,13 @@ namespace UnityEngine.Rendering
         /// </summary>
         static public void Dispose()
         {
-            if (occlusionRT != null)
+            if (IsOcclusionRTCompatible())
             {
-                RTHandles.Release(occlusionRT);
-                occlusionRT = null;
+                if (occlusionRT != null)
+                {
+                    RTHandles.Release(occlusionRT);
+                    occlusionRT = null;
+                }
             }
         }
 
@@ -184,7 +213,7 @@ namespace UnityEngine.Rendering
         /// <returns>Attenuation Factor</returns>
         static public float ShapeAttenuationDirLight(Vector3 forward, Vector3 wo)
         {
-            return Mathf.Max(Vector3.Dot(forward, wo), 0.0f);
+            return Mathf.Max(Vector3.Dot(-forward, wo), 0.0f);
         }
 
         /// <summary>
@@ -294,6 +323,11 @@ namespace UnityEngine.Rendering
             return frontModulation > 0.0f ? worldModulation / frontModulation : 1.0f;
         }
 
+        static float ShapeAttenuateForwardLight(Vector3 forward, Vector3 wo)
+        {
+            return Mathf.Max(Vector3.Dot(forward, wo), 0.0f);
+        }
+
         /// <summary>
         /// Attenuation by Light Shape for Area Light with Rectangular Shape
         /// </summary>
@@ -302,7 +336,7 @@ namespace UnityEngine.Rendering
         /// <returns>Attenuation Factor</returns>
         static public float ShapeAttenuationAreaRectangleLight(Vector3 forward, Vector3 wo)
         {
-            return ShapeAttenuationDirLight(forward, wo);
+            return ShapeAttenuateForwardLight(forward, wo);
         }
 
         /// <summary>
@@ -313,7 +347,7 @@ namespace UnityEngine.Rendering
         /// <returns>Attenuation Factor</returns>
         static public float ShapeAttenuationAreaDiscLight(Vector3 forward, Vector3 wo)
         {
-            return ShapeAttenuationDirLight(forward, wo);
+            return ShapeAttenuateForwardLight(forward, wo);
         }
 
         /// <summary>
@@ -419,7 +453,7 @@ namespace UnityEngine.Rendering
         /// <returns>true if a cloudLayerOpacity is requested</returns>
         static public bool IsCloudLayerOpacityNeeded(Camera cam)
         {
-            if (Instance.IsEmpty() || occlusionRT == null)
+            if (Instance.IsEmpty())
                 return false;
 
 #if UNITY_EDITOR
@@ -470,29 +504,29 @@ namespace UnityEngine.Rendering
         {
             if (useBackgroundCloudOcclusion && hasCloudLayer)
             {
-                cmd.EnableShaderKeyword("FLARE_CLOUD_OPACITY");
+                cmd.EnableShaderKeyword("FLARE_CLOUD_BACKGROUND_OCCLUSION");
                 cmd.SetGlobalTexture(_FlareCloudOpacity, cloudOpacityTexture);
             }
             else
             {
-                cmd.DisableShaderKeyword("FLARE_CLOUD_OPACITY");
+                cmd.DisableShaderKeyword("FLARE_CLOUD_BACKGROUND_OCCLUSION");
             }
 
             if (sunOcclusionTexture != null)
             {
                 if (volumetricCloudOcclusion)
                 {
-                    cmd.EnableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                    cmd.EnableShaderKeyword("FLARE_VOLUMETRIC_CLOUD_OCCLUSION");
                     cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
                 }
                 else
                 {
-                    cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                    cmd.DisableShaderKeyword("FLARE_VOLUMETRIC_CLOUD_OCCLUSION");
                 }
             }
             else
             {
-                cmd.DisableShaderKeyword("FLARE_SAMPLE_WITH_VOLUMETRIC_CLOUD");
+                cmd.DisableShaderKeyword("FLARE_VOLUMETRIC_CLOUD_OCCLUSION");
             }
         }
 
@@ -500,7 +534,6 @@ namespace UnityEngine.Rendering
         /// Effective Job of drawing the set of Lens Flare registered
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
-        /// <param name="lensFlares">Set of Lens Flare</param>
         /// <param name="cam">Camera</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
@@ -526,7 +559,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
-        static public void ComputeOcclusion(Material lensFlareShader, LensFlareCommonSRP lensFlares, Camera cam,
+        static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -535,9 +568,12 @@ namespace UnityEngine.Rendering
             bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
             int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
+            if (!IsOcclusionRTCompatible())
+                return;
+
             Vector2 vScreenRatio;
 
-            if (lensFlares.IsEmpty() || occlusionRT == null)
+            if (Instance.IsEmpty())
                 return;
 
             Vector2 screenSize = new Vector2(actualWidth, actualHeight);
@@ -687,7 +723,8 @@ namespace UnityEngine.Rendering
                 UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, lensFlareShader.FindPass("LensFlareOcclusion"));
             }
 
-            // Clear the remaining buffer
+            // Clear the remaining buffer if not TAA the whole OcclusionRT is already cleared
+            if (taaEnabled)
             {
                 cmd.SetRenderTarget(occlusionRT);
                 cmd.SetViewport(new Rect() { x = m_Data.Count, y = 0, width = (maxLensFlareWithOcclusion - m_Data.Count), height = (maxLensFlareWithOcclusionTemporalSample + mergeNeeded) });
@@ -702,7 +739,6 @@ namespace UnityEngine.Rendering
         /// Effective Job of drawing the set of Lens Flare registered
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
-        /// <param name="lensFlares">Set of Lens Flare</param>
         /// <param name="cam">Camera</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
@@ -732,7 +768,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
-        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, LensFlareCommonSRP lensFlares, Camera cam, float actualWidth, float actualHeight,
+        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -748,7 +784,7 @@ namespace UnityEngine.Rendering
         {
             Vector2 vScreenRatio;
 
-            if (lensFlares.IsEmpty())
+            if (Instance.IsEmpty())
                 return;
 
             Vector2 screenSize = new Vector2(actualWidth, actualHeight);
@@ -872,38 +908,24 @@ namespace UnityEngine.Rendering
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
-                if (comp.useOcclusion && taaEnabled)
+                if (comp.useOcclusion)
                 {
-                    // HDRP Only, have a prepass to resolve occlusion with TAA
-                    if (occlusionRT != null)
-                    {
-                        cmd.EnableShaderKeyword("FLARE_OCCLUSION");
-                        cmd.DisableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
-                    }
-                    // URP compute occlusion on VertexShader
-                    else
-                    {
-                        cmd.DisableShaderKeyword("FLARE_OCCLUSION");
-                        cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
-                    }
-                }
-                else if (comp.useOcclusion && !taaEnabled)
-                {
-                    cmd.DisableShaderKeyword("FLARE_OCCLUSION");
-                    cmd.EnableShaderKeyword("FLARE_MEASURE_OCCLUSION");
-                    SetOcclusionPermutation(cmd,
-                        comp.useBackgroundCloudOcclusion, comp.volumetricCloudOcclusion, hasCloudLayer,
-                        _FlareCloudOpacity, _FlareSunOcclusionTex,
-                        cloudOpacityTexture, sunOcclusionTexture);
+                    cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
+                    cmd.EnableShaderKeyword("FLARE_HAS_OCCLUSION");
                 }
                 else
                 {
-                    cmd.DisableShaderKeyword("FLARE_OCCLUSION");
-                    cmd.DisableShaderKeyword("FLARE_MEASURE_OCCLUSION");
+                    cmd.DisableShaderKeyword("FLARE_HAS_OCCLUSION");
                 }
-
-                if (taaEnabled && occlusionRT != null)
-                    cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
+ 
+                if (IsOcclusionRTCompatible())
+                {
+                    cmd.DisableShaderKeyword("FLARE_OPENGL3_OR_OPENGLCORE");
+                }
+                else
+                {
+                    cmd.EnableShaderKeyword("FLARE_OPENGL3_OR_OPENGLCORE");
+                }
 
                 cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)info.index, 0.0f, 0.0f, 0.0f));
                 cmd.SetGlobalTexture(_FlareOcclusionRemapTex, comp.occlusionRemapCurve.GetTexture());

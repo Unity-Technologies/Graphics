@@ -1007,7 +1007,58 @@ namespace UnityEngine.Rendering.Universal
             internal float paniniCropToFit;
         }
 
-        public void RenderLensFlareDatadriven(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData)
+        void LensFlareDataDrivenComputeOcclusion(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
+            {
+                RTHandle occH = LensFlareCommonSRP.occlusionRT;
+                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+                passData.destinationTexture = builder.WriteTexture(occlusionHandle);
+                passData.camera = renderingData.cameraData.camera;
+                passData.material = m_Materials.lensFlareDataDriven;
+                if (m_PaniniProjection.IsActive())
+                {
+                    passData.usePanini = true;
+                    passData.paniniDistance = m_PaniniProjection.distance.value;
+                    passData.paniniCropToFit = m_PaniniProjection.cropToFit.value;
+                }
+                else
+                {
+                    passData.usePanini = false;
+                    passData.paniniDistance = 1.0f;
+                    passData.paniniCropToFit = 1.0f;
+                }
+
+                UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+                builder.ReadTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture));
+
+                builder.SetRenderFunc(
+                    (LensFlarePassData data, RenderGraphContext ctx) =>
+                    {
+                        var gpuView = data.camera.worldToCameraMatrix;
+                        var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(data.camera.projectionMatrix, true);
+                        // Zero out the translation component.
+                        gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+                        var gpuVP = gpuNonJitteredProj * data.camera.worldToCameraMatrix;
+
+                        LensFlareCommonSRP.ComputeOcclusion(
+                            data.material, data.camera,
+                            (float)data.sourceDescriptor.width, (float)data.sourceDescriptor.height,
+                            data.usePanini, data.paniniDistance, data.paniniCropToFit, true,
+                            data.camera.transform.position,
+                            gpuVP,
+                            ctx.cmd,
+                            false, false, null, null,
+                            ShaderConstants._FlareOcclusionTex, -1, ShaderConstants._FlareOcclusionIndex, ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
+                            -1, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4);
+                    });
+            }
+        }
+
+        public void RenderLensFlareDataDriven(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData)
         {
             using (var builder = renderGraph.AddRenderPass<LensFlarePassData>("Lens Flare Data Driven Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
             {
@@ -1029,6 +1080,11 @@ namespace UnityEngine.Rendering.Universal
                     passData.paniniDistance = 1.0f;
                     passData.paniniCropToFit = 1.0f;
                 }
+                if (LensFlareCommonSRP.IsOcclusionRTCompatible())
+                {
+                    TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+                    builder.ReadTexture(occlusionHandle);
+                }
 
                 builder.SetRenderFunc((LensFlarePassData data, RenderGraphContext context) =>
                 {
@@ -1041,7 +1097,7 @@ namespace UnityEngine.Rendering.Universal
                     gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
                     var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
 
-                    LensFlareCommonSRP.DoLensFlareDataDrivenCommon(data.material, LensFlareCommonSRP.Instance, camera, (float)data.sourceDescriptor.width, (float)data.sourceDescriptor.height,
+                    LensFlareCommonSRP.DoLensFlareDataDrivenCommon(data.material, camera, (float)data.sourceDescriptor.width, (float)data.sourceDescriptor.height,
                         data.usePanini, data.paniniDistance, data.paniniCropToFit,
                         true,
                         camera.transform.position,
@@ -1055,8 +1111,6 @@ namespace UnityEngine.Rendering.Universal
                         ShaderConstants._FlareTex, ShaderConstants._FlareColorValue, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
                         false);
                 });
-
-                return;
             }
         }
 #endregion
@@ -1696,7 +1750,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (useLensFlare)
                 {
-                    RenderLensFlareDatadriven(renderGraph, in currentSource, ref renderingData);
+                    LensFlareDataDrivenComputeOcclusion(renderGraph, ref renderingData);
+                    RenderLensFlareDataDriven(renderGraph, in currentSource, ref renderingData);
                 }
 
                 // TODO RENDERGRAPH: Once we started removing the non-RG code pass in URP, we should move functions below to renderfunc so that material setup happens at
