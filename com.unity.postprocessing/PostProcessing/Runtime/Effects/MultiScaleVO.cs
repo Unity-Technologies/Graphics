@@ -211,6 +211,8 @@ namespace UnityEngine.Rendering.PostProcessing
 
         void PushAllocCommands(CommandBuffer cmd, bool isMSAA, Camera camera)
         {
+            var r16 = RenderTextureFormat.RFloat; // R16 is not supported on all platforms as a storage texture format
+            var r8 = RenderTextureFormat.ARGB32;  // R8 is not supported on all platforms as a storage texture format
             bool dynamicResolutionEnabled = RuntimeUtilities.IsDynamicResolutionEnabled(camera);
             if (isMSAA)
             {
@@ -237,26 +239,26 @@ namespace UnityEngine.Rendering.PostProcessing
             }
             else
             {
-                Alloc(cmd, ShaderIDs.LinearDepth, MipLevel.Original, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.LinearDepth, MipLevel.Original, r16, true, dynamicResolutionEnabled);
 
                 Alloc(cmd, ShaderIDs.LowDepth1, MipLevel.L1, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
                 Alloc(cmd, ShaderIDs.LowDepth2, MipLevel.L2, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
                 Alloc(cmd, ShaderIDs.LowDepth3, MipLevel.L3, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
                 Alloc(cmd, ShaderIDs.LowDepth4, MipLevel.L4, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
 
-                AllocArray(cmd, ShaderIDs.TiledDepth1, MipLevel.L3, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth2, MipLevel.L4, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth3, MipLevel.L5, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth4, MipLevel.L6, RenderTextureFormat.RHalf, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth1, MipLevel.L3, r16, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth2, MipLevel.L4, r16, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth3, MipLevel.L5, r16, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth4, MipLevel.L6, r16, true, dynamicResolutionEnabled);
 
-                Alloc(cmd, ShaderIDs.Occlusion1, MipLevel.L1, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Occlusion2, MipLevel.L2, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Occlusion3, MipLevel.L3, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Occlusion4, MipLevel.L4, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion1, MipLevel.L1, r8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion2, MipLevel.L2, r8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion3, MipLevel.L3, r8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion4, MipLevel.L4, r8, true, dynamicResolutionEnabled);
 
-                Alloc(cmd, ShaderIDs.Combined1, MipLevel.L1, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Combined2, MipLevel.L2, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Combined3, MipLevel.L3, RenderTextureFormat.R8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Combined1, MipLevel.L1, r8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Combined2, MipLevel.L2, r8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Combined3, MipLevel.L3, r8, true, dynamicResolutionEnabled);
             }
         }
 
@@ -287,15 +289,24 @@ namespace UnityEngine.Rendering.PostProcessing
             }
 
             // 1st downsampling pass.
+
+            // Some platforms only support 4 writable storage textures, so we need to split the downsampling
+            // into two passes. The first pass downsamples the depth buffer to 2x2 tiles, the second pass
+            // downsamples to 4x4 tiles.
             var cs = m_Resources.computeShaders.multiScaleAODownsample1;
             int kernel = cs.FindKernel(isMSAA ? "MultiScaleVODownsample1_MSAA" : "MultiScaleVODownsample1");
 
             cmd.SetComputeTextureParam(cs, kernel, "LinearZ", ShaderIDs.LinearDepth);
             cmd.SetComputeTextureParam(cs, kernel, "DS2x", ShaderIDs.LowDepth1);
-            cmd.SetComputeTextureParam(cs, kernel, "DS4x", ShaderIDs.LowDepth2);
             cmd.SetComputeTextureParam(cs, kernel, "DS2xAtlas", ShaderIDs.TiledDepth1);
-            cmd.SetComputeTextureParam(cs, kernel, "DS4xAtlas", ShaderIDs.TiledDepth2);
             cmd.SetComputeVectorParam(cs, "ZBufferParams", CalculateZBufferParams(camera));
+            cmd.SetComputeTextureParam(cs, kernel, "Depth", depthMapId);
+
+            cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L4], m_ScaledHeights[(int)MipLevel.L4], 1);
+
+            kernel = cs.FindKernel(isMSAA ? "MultiScaleVODownsample1_MSAA_4x" : "MultiScaleVODownsample1_4x");
+            cmd.SetComputeTextureParam(cs, kernel, "DS4x", ShaderIDs.LowDepth2);
+            cmd.SetComputeTextureParam(cs, kernel, "DS4xAtlas", ShaderIDs.TiledDepth2);
             cmd.SetComputeTextureParam(cs, kernel, "Depth", depthMapId);
 
             cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L4], m_ScaledHeights[(int)MipLevel.L4], 1);
@@ -492,7 +503,8 @@ namespace UnityEngine.Rendering.PostProcessing
             {
                 RuntimeUtilities.Destroy(m_AmbientOnlyAO);
 
-                m_AmbientOnlyAO = new RenderTexture(context.width, context.height, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear)
+                RenderTextureFormat format = RenderTextureFormat.ARGB32;
+                m_AmbientOnlyAO = new RenderTexture(context.width, context.height, 0, format, RenderTextureReadWrite.Linear)
                 {
                     hideFlags = HideFlags.DontSave,
                     filterMode = FilterMode.Point,
