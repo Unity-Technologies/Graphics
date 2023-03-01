@@ -67,7 +67,7 @@
     #endif
 
     // Ouput textures
-    RWTexture2D<float> AoResult;
+    RWTexture2D<unorm float4> AoResult;
 
     // Shared memory
     groupshared float DepthCache[256];
@@ -416,15 +416,23 @@ void MAIN(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_Group
     int2 OutST = DTid.xy << 1;
 
     #ifdef INVERT
-        AoResult[OutST + int2(-1,  0)] = 1.0 - BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
-        AoResult[OutST + int2( 0,  0)] = 1.0 - BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
-        AoResult[OutST + int2( 0, -1)] = 1.0 - BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
-        AoResult[OutST + int2(-1, -1)] = 1.0 - BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        float x = 1.0 - BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
+        AoResult[OutST + int2(-1,  0)] = float4(x, x, x, x);
+        x = 1.0 - BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
+        AoResult[OutST + int2( 0,  0)] = float4(x, x, x, x);
+        x = 1.0 - BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
+        AoResult[OutST + int2( 0, -1)] = float4(x, x, x, x);
+        x = 1.0 - BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        AoResult[OutST + int2(-1, -1)] = float4(x, x, x, x);
     #else
-        AoResult[OutST + int2(-1,  0)] = BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
-        AoResult[OutST + int2( 0,  0)] = BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
-        AoResult[OutST + int2( 0, -1)] = BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
-        AoResult[OutST + int2(-1, -1)] = BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        float x = BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
+        AoResult[OutST + int2(-1,  0)] = float4(x, x, x, x);
+        x = BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
+        AoResult[OutST + int2( 0,  0)] = float4(x, x, x, x);
+        x = BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
+        AoResult[OutST + int2( 0, -1)] = float4(x, x, x, x);
+        x = BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        AoResult[OutST + int2(-1, -1)] = float4(x, x, x, x);
     #endif
 #endif
 }
