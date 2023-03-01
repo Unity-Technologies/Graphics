@@ -211,9 +211,6 @@
             "m_Id": "d55529268ca24279b7b669b7ae7caa6f"
         },
         {
-            "m_Id": "76ff6cfeb3694c9f85de20879e296128"
-        },
-        {
             "m_Id": "9c9fa9caf5af491bb1df3422ee368eab"
         },
         {
@@ -1342,9 +1339,6 @@
             },
             {
                 "m_Id": "5d1b109c380642d39975ca59a7c01ba7"
-            },
-            {
-                "m_Id": "76ff6cfeb3694c9f85de20879e296128"
             }
         ]
     },
@@ -3253,21 +3247,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "42c20d04c0e04cf7bde155737e4ce4da",
-    "m_Id": 0,
-    "m_DisplayName": "Eye Depth",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "FullscreenEyeDepth",
-    "m_StageCapability": 2,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "42ef6b9e7a6f490f9e0ce904b148d2e9",
     "m_Id": 1,
@@ -3746,7 +3725,7 @@
     "m_DepthWrite": false,
     "m_depthWriteMode": 0,
     "m_AllowMaterialOverride": false,
-    "m_DepthTestMode": 8
+    "m_DepthTestMode": 0
 }
 
 {
@@ -4539,40 +4518,6 @@
         "b": 0.0,
         "a": 1.0
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "76ff6cfeb3694c9f85de20879e296128",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "SurfaceDescription.FullscreenEyeDepth",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "42c20d04c0e04cf7bde155737e4ce4da"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "SurfaceDescription.FullscreenEyeDepth"
 }
 
 {
@@ -7822,7 +7767,8 @@
         }
     ],
     "m_CustomEditorGUI": "",
-    "m_SupportVFX": false
+    "m_SupportVFX": false,
+    "m_SupportLineRendering": false
 }
 
 {
