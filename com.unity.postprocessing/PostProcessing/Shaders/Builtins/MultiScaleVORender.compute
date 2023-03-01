@@ -68,7 +68,7 @@
     #endif
 
     // Output texture
-    RWTexture2D<float> Occlusion;
+    RWTexture2D<unorm float4> Occlusion;
 
     // Shared memory
     groupshared float DepthSamples[TILE_DIM * TILE_DIM];
