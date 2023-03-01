@@ -374,7 +374,8 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.supportsLightCookies)
                 urpAssetShaderFeatures |= ShaderFeatures.LightCookies;
 
-            if (urpAsset.colorGradingMode == ColorGradingMode.HighDynamicRange)
+            bool hasHDROutput = PlayerSettings.useHDRDisplay && urpAsset.supportsHDR;
+            if (urpAsset.colorGradingMode == ColorGradingMode.HighDynamicRange || hasHDROutput)
                 urpAssetShaderFeatures |= ShaderFeatures.HdrGrading;
 
             // Check each renderer & renderer feature
