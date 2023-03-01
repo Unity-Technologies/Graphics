@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering
 {
     partial class LineRendering
     {
+        static int ComputeBinningRecordCapacity(MemoryBudget budget) => (int)Mathf.Ceil(((int) budget * 1024 * 1024) / Marshal.SizeOf<ClusterRecord>()) ;
+        static int ComputeWorkQueueCapacity(MemoryBudget budget)     => (int)Mathf.Ceil(((int) budget * 1024 * 1024) / sizeof(uint)) ;
+
         static int DivRoundUp(int x, int y) => (x + y - 1) / y;
 
         static int NextPowerOfTwo(int v)
@@ -32,11 +36,17 @@ namespace UnityEngine.Rendering
                 offsetName = $"_VertexBuffer{attributeName}Offset";
             }
 
-            public BindRendererToComputeKernel(CommandBuffer cmd, RendererData renderer)
+            internal BindRendererToComputeKernel(CommandBuffer cmd, RendererData renderer)
             {
                 boundBuffers = new List<GraphicsBuffer>();
 
                 renderer.mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+
+                // Disable all keywords first.
+                foreach (var keyword in renderer.vertexSetupCompute.keywordSpace.keywords)
+                {
+                    cmd.SetKeyword(renderer.vertexSetupCompute, keyword, false);
+                }
 
                 cmd.SetComputeIntParam(renderer.vertexSetupCompute, "_VertexCount", renderer.mesh.vertexCount);
 
@@ -87,7 +97,17 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeMatrixParam(renderer.vertexSetupCompute, "unity_MatrixPreviousMI",    renderer.matrixWP.inverse);
                 cmd.SetComputeVectorParam(renderer.vertexSetupCompute, "unity_MotionVectorsParams", renderer.motionVectorParams);
 
-                renderer.vertexSetupCompute.shaderKeywords = renderer.material.shaderKeywords;
+                // Not the greatest way to do this, but not really possible to do any better unless it is done on the native side.
+                foreach (var keywordName in renderer.material.shaderKeywords)
+                {
+                    var keyword = renderer.vertexSetupCompute.keywordSpace.FindKeyword(keywordName);
+
+                    if (keyword.isValid)
+                    {
+                        cmd.SetKeyword(renderer.vertexSetupCompute, keyword, true);
+                    }
+                }
+
                 cmd.SetComputeParamsFromMaterial(renderer.vertexSetupCompute, 0, renderer.material);
             }
 
@@ -95,6 +115,31 @@ namespace UnityEngine.Rendering
             {
                 foreach (var buffer in boundBuffers)
                     buffer.Dispose();
+            }
+        }
+
+        // TODO: Need to optimize this whole routine.
+        private IEnumerable<RendererData[]> SortRenderDatasByCameraDistance(RendererData[] renderData, Camera camera)
+        {
+            var renderDatasNoGroup = renderData.Where(o => o.@group == RendererGroup.None).Select(o => new[] { o });
+            var renderDatasInGroup = renderData.GroupBy(o => o.@group).Where(g => g.Key != RendererGroup.None).Select(o => o.ToArray());
+            var renderDatasToSort  = renderDatasNoGroup.Concat(renderDatasInGroup).ToArray();
+
+            if (renderDatasToSort.Length > 1)
+            {
+                // Sort
+                Array.Sort(renderDatasToSort, (RendererData[] a, RendererData[] b) =>
+                {
+                    float cameraDistanceA = a.Average(i => i.distanceToCamera);
+                    float cameraDistanceB = b.Average(i => i.distanceToCamera);
+
+                    return cameraDistanceA.CompareTo(cameraDistanceB);
+                });
+            }
+
+            foreach (var data in renderDatasToSort)
+            {
+                yield return data;
             }
         }
 

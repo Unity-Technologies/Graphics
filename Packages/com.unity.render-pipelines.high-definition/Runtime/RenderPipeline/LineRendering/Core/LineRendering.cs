@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering
 {
@@ -54,10 +57,6 @@ namespace UnityEngine.Rendering
 
         // Compute resources and utility container.
         private SystemResources m_SystemResources;
-        // Shading Atlas
-        private RenderTexture[] m_LineShadingAtlas = new RenderTexture[]{null, null};
-        private int m_CurrentWriteAtlasIndex = 0;
-        private int m_AtlasUpdateCount = 0;
 
         static readonly ProfilingSampler k_LineRenderingSampler = new ProfilingSampler("LineRendering");
 
@@ -78,225 +77,186 @@ namespace UnityEngine.Rendering
         {
             if (!m_IsInitialized)
             {
-                Debug.LogError("Line Rendering has not been initialized first before calling cleanup.");
+                Debug.LogError("Line Rendering has not been initialized, nothing to cleanup.");
                 return;
             }
+
+            CleanupShadingAtlas();
 
             m_IsInitialized = false;
         }
 
-        internal void PrepareShadingAtlas()
+        ShaderVariables ComputeShaderVariables(Arguments args, RendererData[] renderDatas)
         {
-            //ensure shading atlas is alive
-            bool shadingAtlasNeedsRecreation = m_LineShadingAtlas[0] == null || m_LineShadingAtlas[1] == null || !m_LineShadingAtlas[0].IsCreated() || !m_LineShadingAtlas[1].IsCreated();
-
-            if (shadingAtlasNeedsRecreation)
+            var vars = new ShaderVariables
             {
-                CreateShadingAtlas();
-                m_CurrentWriteAtlasIndex = 0;
-                m_AtlasUpdateCount = 0;
-            }
-            else
-            {
-                m_AtlasUpdateCount++;
-            }
-            m_CurrentWriteAtlasIndex = (m_CurrentWriteAtlasIndex + 1) % 2;
-        }
-
-        internal ShadingSampleAtlas GetShadingSampleAtlas()
-        {
-            int readIndex = (m_CurrentWriteAtlasIndex + 1) % 2;
-            ShadingSampleAtlas shadingSampleAtlas = new ShadingSampleAtlas()
-            {
-                currentAtlas = m_LineShadingAtlas[m_CurrentWriteAtlasIndex],
-                previousAtlas = m_LineShadingAtlas[readIndex],
-                currentAtlasAllocationSize = 0,
-                historyValid = m_AtlasUpdateCount > 0
+                _SegmentCount         = renderDatas.Sum(o => (int)o.mesh.GetIndexCount(0) / 2),
+                _VertexCount          = renderDatas.Sum(o => o.mesh.vertexCount),
+                _DimBin               = new Vector2(DivRoundUp((int)args.viewport.x, Budgets.TileSizeBin) , DivRoundUp((int)args.viewport.y, Budgets.TileSizeBin)),
+                _SizeScreen           = new Vector4(args.viewport.x, args.viewport.y, 1 + (1f / args.viewport.x), 1 + (1f / args.viewport.y)),
+                _SizeBin              = new Vector4(Budgets.TileSizeBin, 2f * Budgets.TileSizeBin / args.viewport.x, 2f * Budgets.TileSizeBin / args.viewport.y, 0),
+                _ClusterDepth         = args.settings.clusterCount,
+                _TileOpacityThreshold = args.settings.tileOpacityThreshold
             };
-            return shadingSampleAtlas;
+
+            // Set up the various bin and clustering counts.
+            {
+                vars._BinCount = ((int)(vars._DimBin.x * vars._DimBin.y));
+                vars._ClusterCount = vars._BinCount * vars._ClusterDepth;
+
+                // Round up the bin count to the next power of two due to our sorting algorithm.
+                // Common resolutions usually result in being very close to the next power of two so this isn't so bad.
+                vars._BinCount = NextPowerOfTwo(vars._BinCount);
+            }
+
+            return vars;
         }
 
-        private void DrawGroup(RenderGraph renderGraph, Vector2 viewport, SystemSettings settings, TextureHandle depthTexture, ShadingSampleAtlas shadingSampleAtlas, RenderTargets targets, RenderData[] renderDatas)
+        void DrawInternal(RendererData[] renderDatas, ref Arguments args)
         {
             if (renderDatas.Length == 0)
                 return;
 
+            ComputeShadingAtlasAllocations(renderDatas, ref args.shadingAtlas);
 
+            var shaderVariables = ComputeShaderVariables(args, renderDatas);
 
-            using (var builder = renderGraph.AddRenderPass<RasterizerResources>("Render Line", out var passData, k_LineRenderingSampler))
+            // Allocate the buffer resources that will be shared between passes one and two.
+            var sharedBuffers = SharedPassData.Buffers.Allocate(args.renderGraph, new SharedPassData.Buffers.AllocationParameters
             {
-                // TODO: Will it always be needed?
-                builder.AllowPassCulling(false);
+                countVertex  = shaderVariables._VertexCount,
+                countSegment = shaderVariables._SegmentCount
+            });
 
-                int groupShadingSampleOffset = shadingSampleAtlas.currentAtlasAllocationSize;
-                UpdateShadingAtlasAllocations(shadingSampleAtlas, renderDatas);
+            shaderVariables._ShadingAtlasDimensions = sharedBuffers.groupShadingSampleAtlasDimensions;
 
-                RenderData[] ImportRenderDatas()
+#if UNITY_EDITOR
+            var shadersStillCompiling = renderDatas.Any(o => !ShaderUtil.IsPassCompiled(o.material, o.offscreenShadingPass));
+#endif
+
+            // Utility for binding the common buffers between passes one and two.
+            void UseSharedBuffers(RenderGraphBuilder builder, SharedPassData.Buffers buff)
+            {
+                builder.WriteBuffer(buff.constantBuffer);
+                builder.WriteBuffer(buff.counterBuffer);
+                builder.WriteBuffer(buff.vertexStream0);
+                builder.WriteBuffer(buff.vertexStream1);
+                builder.WriteBuffer(buff.recordBufferSegment);
+                builder.WriteBuffer(buff.viewSpaceDepthRange);
+                builder.ReadWriteTexture(buff.groupShadingSampleAtlas);
+            }
+
+            // Pass 1: Geometry Processing and Shading
+            using (var builder = args.renderGraph.AddRenderPass<GeometryPassData>("Geometry Processing", out var passData, k_LineRenderingSampler))
+            {
+                // TODO: Get rid of this...
+                // Unfortunately we currently need this utility to "reimport" some buffers.
+                RendererData[] ImportRenderDatas()
                 {
                     var importedRenderers = renderDatas;
 
                     for (uint i = 0; i < importedRenderers.Length; ++i)
                     {
-                        // TODO: Get rid of this...
-                        importedRenderers[i].rendererData.indexBuffer = builder.ReadBuffer(renderDatas[i].rendererData.indexBuffer);
-                        importedRenderers[i].rendererData.lodBuffer = builder.ReadBuffer(renderDatas[i].rendererData.lodBuffer);
+                        importedRenderers[i].indexBuffer = builder.ReadBuffer(renderDatas[i].indexBuffer);
+                        importedRenderers[i].lodBuffer   = builder.ReadBuffer(renderDatas[i].lodBuffer);
                     }
 
                     return importedRenderers;
                 }
 
-                passData.depthTexture = builder.ReadTexture(depthTexture);
-
-                passData.renderTargets = new RenderTargets
-                {
-                    color  = builder.WriteTexture(targets.color),
-                    depth  = builder.WriteTexture(targets.depth),
-                    motion = builder.WriteTexture(targets.motion)
-                };
-
+                // Set up other various dependent data.
+                passData.depthRT          = builder.ReadTexture(args.depthTexture);
                 passData.systemResources  = m_SystemResources;
                 passData.rendererData     = ImportRenderDatas();
-                passData.offsetsVertex    = PrefixSum(renderDatas.Select(o => o.rendererData.mesh.vertexCount).ToArray());
-                passData.offsetsSegment   = PrefixSum(renderDatas.Select(o => (int)o.rendererData.mesh.GetIndexCount(0) / 2).ToArray());
-                passData.debugModeIndex   = (int)settings.debugMode;
-                passData.qualityModeIndex = (int)settings.sortingQuality;
+                passData.offsetsVertex    = PrefixSum(renderDatas.Select(o => o.mesh.vertexCount).ToArray());
+                passData.offsetsSegment   = PrefixSum(renderDatas.Select(o => (int)o.mesh.GetIndexCount(0) / 2).ToArray());
+                passData.matrixIVP        = args.matrixIVP;
+                passData.shadingAtlas     = args.shadingAtlas;
+                passData.shaderVariables  = shaderVariables;
 
-                passData.ShadingSampleAtlas = shadingSampleAtlas;
+                // Set up the shared resources.
+                passData.sharedBuffers = sharedBuffers;
+                UseSharedBuffers(builder, sharedBuffers);
 
-                passData.shaderVariables = new ShaderVariables
-                {
-                    _SegmentCount         = renderDatas.Sum(o => (int)o.rendererData.mesh.GetIndexCount(0) / 2),
-                    _VertexCount          = renderDatas.Sum(o => o.rendererData.mesh.vertexCount),
-                    _DimBin               = new Vector2(DivRoundUp((int)viewport.x, Budgets.TileSizeBin) , DivRoundUp((int)viewport.y, Budgets.TileSizeBin)),
-                    _SizeScreen           = new Vector4(viewport.x, viewport.y, 1 + (1f / viewport.x), 1 + (1f / viewport.y)),
-                    _SizeBin              = new Vector3(Budgets.TileSizeBin, 2f * Budgets.TileSizeBin / viewport.x, 2f * Budgets.TileSizeBin / viewport.y),
-                    _ClusterDepth         = settings.clusterCount,
-                    _TileOpacityThreshold = settings.tileOpacityThreshold,
-                    _GroupShadingSampleOffset = groupShadingSampleOffset
-                };
-
-                // Set up the various bin and clustering counts.
-                {
-                    passData.shaderVariables._BinCount = ((int)(passData.shaderVariables._DimBin.x * passData.shaderVariables._DimBin.y));
-                    passData.shaderVariables._ClusterCount = passData.shaderVariables._BinCount * passData.shaderVariables._ClusterDepth;
-
-                    // Round up the bin count to the next power of two due to our sorting algorithm.
-                    // Common resolutions usually result in being very close to the next power of two so this isn't so bad.
-                    passData.shaderVariables._BinCount = NextPowerOfTwo(passData.shaderVariables._BinCount);
-                }
-
-                passData.buffers = Buffers.Allocate(renderGraph, builder, new Buffers.AllocationParameters
+                // Then set up the resources specific to this pass.
+                passData.transientBuffers = GeometryPassData.Buffers.Allocate(args.renderGraph, builder, new GeometryPassData.Buffers.AllocationParameters
                 {
                     countVertex  = passData.shaderVariables._VertexCount,
-                    countVertexMaxPerRenderer = renderDatas.Max(o => o.rendererData.mesh.vertexCount),
-                    countSegment = passData.shaderVariables._SegmentCount,
+                    countVertexMaxPerRenderer = renderDatas.Max(o => o.mesh.vertexCount),
+                });
+
+                builder.SetRenderFunc((GeometryPassData data, RenderGraphContext context) =>
+                {
+                    // Upload the constant buffer before the geometry pass.
+                    var constantBufferData = new NativeArray<ShaderVariables>(1, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                    {
+                        constantBufferData[0] = shaderVariables;
+                        context.cmd.SetBufferData(data.sharedBuffers.constantBuffer, constantBufferData);
+                        constantBufferData.Dispose();
+                    }
+
+                    ExecuteGeometryPass(context.cmd, data);
+                });
+            }
+
+            // Pass 2: Rasterization
+            using (var builder = args.renderGraph.AddRenderPass<RasterizationPassData>("Rasterization", out var passData, k_LineRenderingSampler))
+            {
+                // Optionally schedule this pass in async. (This is actually the whole reason we split this process into two passes).
+                builder.EnableAsyncCompute(args.settings.executeAsync);
+
+                // Set up other various dependent data.
+                passData.systemResources  = m_SystemResources;
+                passData.debugModeIndex   = (int)args.settings.debugMode;
+                passData.qualityModeIndex = (int)args.settings.sortingQuality;
+                passData.shaderVariables  = shaderVariables;
+#if UNITY_EDITOR
+                passData.renderDataStillHasShadersCompiling = shadersStillCompiling;
+#endif
+                // Configure the render targets that the rasterizer will draw to.
+                passData.renderTargets = new RenderTargets
+                {
+                    color  = builder.WriteTexture(args.targets.color),
+                    depth  = builder.WriteTexture(args.targets.depth),
+                    motion = builder.WriteTexture(args.targets.motion)
+                };
+
+                // Set up the shared resources.
+                passData.sharedBuffers = sharedBuffers;
+                UseSharedBuffers(builder, sharedBuffers);
+
+                // Then set up the resources specific to this pass.
+                passData.transientBuffers = RasterizationPassData.Buffers.Allocate(args.renderGraph, builder, new RasterizationPassData.Buffers.AllocationParameters
+                {
                     countBin     = passData.shaderVariables._BinCount,
                     countCluster = passData.shaderVariables._ClusterCount,
-                    depthCluster = passData.shaderVariables._ClusterDepth
+                    depthCluster = passData.shaderVariables._ClusterDepth,
+
+                    countBinRecords = ComputeBinningRecordCapacity(args.settings.memoryBudget),
+                    countWorkQUeue  = ComputeWorkQueueCapacity(args.settings.memoryBudget)
                 });
 
-                builder.SetRenderFunc((RasterizerResources data, RenderGraphContext context) =>
+                builder.SetRenderFunc((RasterizationPassData data, RenderGraphContext context) =>
                 {
-                    Rasterize(context.cmd, data);
+                    ExecuteRasterizationPass(context.cmd, data);
                 });
             }
         }
 
-        internal void UpdateShadingAtlasAllocations(ShadingSampleAtlas sampleAtlas, RenderData[] renderDatas)
-        {
-            int currentAtlasOffset = sampleAtlas.currentAtlasAllocationSize;
-            foreach (var renderData in renderDatas)
-            {
-
-                PerRendererPersistentData persistentRenderData = renderData.persistentData;
-                persistentRenderData.shadingAtlasAllocation.previousAllocationOffset = persistentRenderData.shadingAtlasAllocation.currentAllocationOffset;
-                persistentRenderData.shadingAtlasAllocation.previousAllocationSize = persistentRenderData.shadingAtlasAllocation.currentAllocationSize;
-
-                int shadingSamplesNeeded = renderData.rendererData.mesh.vertexCount;
-
-                persistentRenderData.shadingAtlasAllocation.currentAllocationOffset = currentAtlasOffset;
-                persistentRenderData.shadingAtlasAllocation.currentAllocationSize = shadingSamplesNeeded;
-
-                persistentRenderData.updateCount = sampleAtlas.historyValid ? persistentRenderData.updateCount + 1 : 0;
-
-                currentAtlasOffset += shadingSamplesNeeded;
-            }
-
-            sampleAtlas.currentAtlasAllocationSize = currentAtlasOffset;
-        }
-
-        internal void Draw(Camera camera, RenderGraph renderGraph, TextureHandle depthTexture, SystemSettings settings, ShadingSampleAtlas shadingSampleAtlas, Vector2 viewport, RenderTargets targets)
+        internal void Draw(Arguments args)
         {
             if (!HasRenderDatas())
                 return;
 
-            var renderDatas = GetValidRenderDatas(renderGraph, camera);
+            var renderDatas = GetValidRenderDatas(args.renderGraph, args.camera);
 
             if (renderDatas.Length == 0)
                 return;
 
-            foreach (var group in Enum.GetValues(typeof(RendererGroup)).Cast<RendererGroup>())
+            foreach (var renderData in SortRenderDatasByCameraDistance(renderDatas, args.camera))
             {
-                // Skip the non-grouped renderers as those will be done individually in the next pass.
-                if (group == RendererGroup.None)
-                    continue;
-
-                // Renderer components with grouping will be merged into one draw call to get proper inter-renderer sorting.
-                RenderData[] groupRenderData = GetRenderDatasInGroup(renderDatas, group);
-                DrawGroup(renderGraph, viewport, settings, depthTexture, shadingSampleAtlas, targets, groupRenderData);
+                DrawInternal(renderData, ref args);
             }
-
-            foreach (var renderData in GetRenderDatasNoGroup(renderDatas))
-            {
-                // Renderer components without grouping are drawn individually and not merged.
-                RenderData[] individualRenderData = new[] {renderData};
-                DrawGroup(renderGraph, viewport, settings, depthTexture, shadingSampleAtlas, targets, individualRenderData);
-            }
-        }
-
-        internal void CreateShadingAtlas()
-        {
-            RenderTexture CreateRenderTexture(GraphicsFormat format, int width, int height, string name)
-            {
-                RenderTextureDescriptor textureDesc = new RenderTextureDescriptor()
-                {
-                    dimension = TextureDimension.Tex2D,
-                    width = width,
-                    height = height,
-                    volumeDepth = 1,
-                    graphicsFormat = format,
-                    enableRandomWrite = true,
-                    msaaSamples = 1,
-                };
-                RenderTexture tex = new RenderTexture(textureDesc);
-                tex.name = name;
-                tex.Create();
-                return tex;
-            }
-
-            DestroyShadingAtlas();
-
-            int atlasDim = 4096; //hardcoded for now (note that the shaders also assume this)
-
-            m_LineShadingAtlas[0] = CreateRenderTexture(GraphicsFormat.R32G32B32A32_SFloat, atlasDim, atlasDim,
-                "Line Rasterizer Shading Atlas 0");
-            m_LineShadingAtlas[1] = CreateRenderTexture(GraphicsFormat.R32G32B32A32_SFloat, atlasDim, atlasDim,
-                "Line Rasterizer Shading Atlas 1");
-        }
-
-        internal void DestroyShadingAtlas()
-        {
-            if (m_LineShadingAtlas[0] != null)
-            {
-                m_LineShadingAtlas[0].Release();
-            }
-            if (m_LineShadingAtlas[1] != null)
-            {
-                m_LineShadingAtlas[1].Release();
-            }
-
-            m_LineShadingAtlas[0] = null;
-            m_LineShadingAtlas[1] = null;
         }
     }
 }

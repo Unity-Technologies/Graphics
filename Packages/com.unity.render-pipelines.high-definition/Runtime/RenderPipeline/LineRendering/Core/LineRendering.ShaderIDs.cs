@@ -34,6 +34,27 @@ namespace UnityEngine.Rendering
             public static int _Vertex3RecordBuffer              = Shader.PropertyToID("_Vertex3RecordBuffer");
             public static int _ActiveClusterIndices             = Shader.PropertyToID("_ActiveClusterIndices");
             public static int _BinningArgsBuffer                = Shader.PropertyToID("_BinningArgsBuffer");
+            public static int _VertexOffset                     = Shader.PropertyToID("_VertexOffset");
+            public static int _SegmentOffset                    = Shader.PropertyToID("_SegmentOffset");
+
+            // Shading Atlas
+            public static int _SampleCount                    = Shader.PropertyToID("_SampleCount");
+            public static int _ShadingAtlasSampleOffset       = Shader.PropertyToID("_ShadingAtlasSampleOffset");
+            public static int _SourceShadingAtlasSampleOffset = Shader.PropertyToID("_SourceShadingAtlasSampleOffset");
+            public static int _TargetTextureWidth             = Shader.PropertyToID("_TargetTextureWidth");
+            public static int _TargetTextureHeight            = Shader.PropertyToID("_TargetTextureHeight");
+            public static int _SourceTextureWidth             = Shader.PropertyToID("_SourceTextureWidth");
+            public static int _SourceTextureHeight            = Shader.PropertyToID("_SourceTextureHeight");
+            public static int _HistogramBuffer                = Shader.PropertyToID("_HistogramBuffer");
+            public static int _SampleIDOffset                 = Shader.PropertyToID("_SampleIDOffset");
+            public static int _MaxSamplesToShade              = Shader.PropertyToID("_MaxSamplesToShade");
+            public static int _PrefixSumBuffer                = Shader.PropertyToID("_PrefixSumBuffer");
+
+            // LOD
+            public static int _LODBuffer       = Shader.PropertyToID("_LODBuffer");
+            public static int _SegmentsPerLine = Shader.PropertyToID("_SegmentsPerLine");
+            public static int _LineCount       = Shader.PropertyToID("_LineCount");
+            public static int _LOD             = Shader.PropertyToID("_LOD");
         }
     }
 }

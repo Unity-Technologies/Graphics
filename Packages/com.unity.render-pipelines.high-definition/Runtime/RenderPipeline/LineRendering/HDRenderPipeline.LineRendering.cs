@@ -12,12 +12,12 @@ namespace UnityEngine.Rendering.HighDefinition
         private TextureHandle m_LineDepthBuffer;
         private TextureHandle m_LineMVBuffer;
 
-        // Misc. Compute Utility
+        // Compute Utility
         private GPUSort      m_Sorter;
         private GPUPrefixSum m_PrefixSum;
 
+        // Misc.
         private Material m_LineCompositePass;
-
         private static bool s_SupportLineRendering;
 
         void InitializeLineRendering()
@@ -174,30 +174,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            // TODO: HDCamera.finalViewport
-            var viewport = new Vector2(
-                hdCamera.actualWidth, hdCamera.actualHeight
-            );
-
             var systemSettings = new LineRendering.SystemSettings
             {
                 clusterCount         = settings.clusterCount.value,
                 compositionMode      = settings.compositionMode.value,
                 sortingQuality       = settings.sortingQuality.value,
                 tileOpacityThreshold = settings.tileOpacityThreshold.value,
+                executeAsync         = hdCamera.frameSettings.HighQualityLinesRunsAsync(),
+                memoryBudget         = asset.currentPlatformRenderPipelineSettings.highQualityLineRenderingMemoryBudget,
 
                 // Patch in the debug mode to request from the line renderer (if any).
                 debugMode = debugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.HighQualityLines ? -1 : (int)debugDisplaySettings.data.lineRenderingDebugMode
             };
 
-            LineRendering.Instance.PrepareShadingAtlas();
-            LineRendering.ShadingSampleAtlas shadingAtlas = LineRendering.Instance.GetShadingSampleAtlas();
-
-            LineRendering.Instance.Draw(hdCamera.camera, renderGraph, depthPrepassTexture, systemSettings, shadingAtlas, viewport, new LineRendering.RenderTargets
+            var targets = new LineRendering.RenderTargets
             {
                 color  = m_LineColorBuffer,
                 depth  = m_LineDepthBuffer,
                 motion = m_LineMVBuffer
+            };
+
+            LineRendering.Instance.Draw(new LineRendering.Arguments
+            {
+                camera       = hdCamera.camera,
+                renderGraph  = renderGraph,
+                depthTexture = depthPrepassTexture,
+                settings     = systemSettings,
+                shadingAtlas = LineRendering.Instance.GetShadingAtlas(renderGraph, hdCamera.camera),
+                viewport     = new Vector2(hdCamera.actualWidth, hdCamera.actualHeight),
+                matrixIVP    = hdCamera.mainViewConstants.nonJitteredViewProjMatrix.inverse,
+                targets      = targets
             });
 
             PushFullScreenDebugTexture(renderGraph, m_LineColorBuffer, FullScreenDebugMode.HighQualityLines);

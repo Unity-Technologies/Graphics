@@ -24,7 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection OffscreenShadingLines = new DefineCollection
         {
             { CoreKeywordDescriptors.ForceEnableTransparent, 1 },
-            { CoreKeywordDescriptors.LineRenderingOffscreenShading, 1 }
+            { CoreKeywordDescriptors.LineRenderingOffscreenShading, 1 },
+            { CoreKeywordDescriptors.FogOnTransparent, 1 }
         };
 
         public static PassDescriptor LineRenderingOffscreenShadingPass(bool supportLighting)

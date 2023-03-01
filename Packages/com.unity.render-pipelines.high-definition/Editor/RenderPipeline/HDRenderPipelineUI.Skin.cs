@@ -125,6 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // High Quality Line Rendering
             public static readonly GUIContent highQualityLineRenderingSubTitle = EditorGUIUtility.TrTextContent("High Quality Line Rendering");
             public static readonly GUIContent supportHighQualityLineRenderingContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for high quality line rendering. This allows you to render lines with high quality anti-aliasing and transparency in your Unity Project.");
+            public static readonly GUIContent highQualityLineRenderingMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the size of graphics memory allocations for high quality line rendering.");
             // Compute Thickness
             public static readonly GUIContent computeThicknessSubTitle = EditorGUIUtility.TrTextContent("Compute Thickness");
             public static readonly GUIContent computeThicknessEnableContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for the Compute Thickness pass. For each Game Object layer selected in LayerMask, the thickness of all objects in that layer is written in a buffer. This buffer can be sampled only in Shader Graph via HDSampleBuffer node with the layer index as input.");
