@@ -493,7 +493,7 @@ MonoBehaviour:
   captureFrameRate: 20
   fixedTimeStepScale: 1
   simulateTime: 5.95
-  xrCompatible: 1
+  xrCompatible: 0
 --- !u!4 &299252011
 Transform:
   m_ObjectHideFlags: 0
