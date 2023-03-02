@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.3.2] - 2023-08-16
+
+### Fixed
+- Fixed MSVO to support platforms with limited storage texture support.
+- added WebGPU API platform defines
+
 ## [3.3.1] - 2023-06-02
 
 ### Fixed
