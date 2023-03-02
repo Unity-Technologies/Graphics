@@ -1,6 +1,7 @@
 #ifndef UNIVERSAL_LIGHT_COOKIE_INPUT_INCLUDED
 #define UNIVERSAL_LIGHT_COOKIE_INPUT_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookieTypes.hlsl"
 
 // Textures
@@ -9,7 +10,6 @@ TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
 
 // Samplers
 SAMPLER(sampler_MainLightCookieTexture);
-SAMPLER(sampler_AdditionalLightsCookieAtlasTexture);
 
 // Buffers
 // GLES3 causes a performance regression in some devices when using CBUFFER.
@@ -99,7 +99,8 @@ real4 SampleMainLightCookieTexture(float2 uv)
 
 real4 SampleAdditionalLightsCookieAtlasTexture(float2 uv)
 {
-    return SAMPLE_TEXTURE2D_LOD(_AdditionalLightsCookieAtlasTexture, sampler_AdditionalLightsCookieAtlasTexture, uv, 0);
+    // No mipmap support
+    return SAMPLE_TEXTURE2D_LOD(_AdditionalLightsCookieAtlasTexture, sampler_LinearClamp, uv, 0);
 }
 
 // Helpers
