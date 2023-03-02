@@ -285,6 +285,8 @@ namespace UnityEngine.Rendering.Universal
 
             var requireDepthTexture = RequireDepthTexture(ref renderingData, renderPassInputs, requiresDepthPrepass);
 
+            useDepthPriming = IsDepthPrimingEnabled(ref renderingData.cameraData);
+
             // Intermediate texture has different yflip state than backbuffer. In case we use intermedaite texture, we must use both color and depth together.
             bool intermediateRenderTexture = (requireColorTexture || requireDepthTexture);
             createDepthTexture = intermediateRenderTexture;
