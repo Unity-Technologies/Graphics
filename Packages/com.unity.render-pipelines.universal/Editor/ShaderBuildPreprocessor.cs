@@ -373,8 +373,10 @@ namespace UnityEditor.Rendering.Universal
 
             if (urpAsset.supportsLightCookies)
                 urpAssetShaderFeatures |= ShaderFeatures.LightCookies;
-
-            if (urpAsset.colorGradingMode == ColorGradingMode.HighDynamicRange)
+			
+			// HDR Output will force High Dynamic Range Color Grading
+            bool hasHDROutput = PlayerSettings.useHDRDisplay && urpAsset.supportsHDR;
+            if (urpAsset.colorGradingMode == ColorGradingMode.HighDynamicRange || hasHDROutput)
                 urpAssetShaderFeatures |= ShaderFeatures.HdrGrading;
 
             // Check each renderer & renderer feature
