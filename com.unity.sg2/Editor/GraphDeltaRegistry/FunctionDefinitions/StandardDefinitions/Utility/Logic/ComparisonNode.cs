@@ -104,6 +104,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "true if the two input values meet the comparison criteria in the dropdown"
                 )
             }

@@ -44,15 +44,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Default", "Default" },
                 { "Fast", "Fast" }
             },
-            hasModes: true,
             functionSelectorLabel: "Method",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "the input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "one divided by the input"
                 )
             }

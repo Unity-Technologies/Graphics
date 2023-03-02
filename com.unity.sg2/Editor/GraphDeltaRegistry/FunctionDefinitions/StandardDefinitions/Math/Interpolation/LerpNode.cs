@@ -41,6 +41,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "A * (1-T) + B * T"
                 )
             }

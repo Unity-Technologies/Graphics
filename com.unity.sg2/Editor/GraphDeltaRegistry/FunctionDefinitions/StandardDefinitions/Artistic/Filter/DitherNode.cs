@@ -49,6 +49,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "dither patterned based on the input value"
                 )
             }

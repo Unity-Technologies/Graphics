@@ -28,10 +28,12 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "a value in degrees"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the input converted to radians"
                 )
             }

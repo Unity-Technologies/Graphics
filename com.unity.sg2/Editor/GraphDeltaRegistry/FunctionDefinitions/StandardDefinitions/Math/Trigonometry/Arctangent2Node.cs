@@ -60,6 +60,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Default", "Default" },
                 { "Fast", "Fast" }
             },
+            functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",
@@ -71,6 +72,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the arctangent of A divided by B"
                 )
             }

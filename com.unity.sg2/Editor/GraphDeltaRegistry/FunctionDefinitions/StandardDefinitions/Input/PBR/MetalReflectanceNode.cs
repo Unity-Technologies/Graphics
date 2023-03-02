@@ -186,11 +186,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Bronze", "Bronze" },
                 { "Tungsten", "Tungsten" }
             },
-            hasModes: true,
             functionSelectorLabel: "Material",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the reflectance value of the metal selected with the dropdown"
                 )
             }

@@ -61,6 +61,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "A rectangle shape with rounded corners with the given dimensions."
                 )
             }

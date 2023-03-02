@@ -345,7 +345,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "VividLight", "Vivid Light" },
                 { "Overwrite", "Overwrite" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
@@ -367,6 +366,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "base and blend values blended using the selected blend mode"
                 )
             }

@@ -28,10 +28,11 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "IntConst",
-                    displayName: " "
+                    displayName: string.Empty
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a single channel value without a decimal"
                 )
             }

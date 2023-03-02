@@ -98,7 +98,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "World", "World" },
                 { "Tangent", "Tangent" }
             },
-            hasModes: true,
             functionSelectorLabel: "Space",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
@@ -106,6 +105,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a vector from the current point to the camera position (not normalized)"
                 )
             }

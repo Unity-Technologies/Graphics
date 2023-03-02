@@ -50,7 +50,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Default", "Default" },
                 { "HDR", "HDR" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[3] {
@@ -124,7 +123,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Default", "Default" },
                 { "HDR", "HDR" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
@@ -142,7 +140,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
-                    displayName: " ",
+                    displayName: string.Empty,
                     tooltip: "a constant RGBA color value"
                 )
             }

@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "Color_Sky",
-                    displayName:"Color/Sky",
+                    displayName:"Color / Sky",
                     tooltip: "Color (Color) or Sky (Gradient) color value."
                 ),
                 new ParameterUIDescriptor(

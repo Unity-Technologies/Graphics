@@ -49,15 +49,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Default", "Default" },
                 { "Fast", "Fast" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the arccosine of each component of the input"
                 )
             }

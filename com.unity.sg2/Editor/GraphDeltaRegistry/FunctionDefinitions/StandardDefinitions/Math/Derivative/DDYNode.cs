@@ -55,15 +55,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Coarse", "Coarse" },
                 { "Fine", "Fine" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the difference between the value of the current pixel and the vertical neighboring pixel"
                 )
             }

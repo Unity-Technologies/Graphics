@@ -158,7 +158,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "FourSamples", "4 Samples" },
                 { "EightSamples", "8 Samples" }
             },
-            hasModes: true,
             functionSelectorLabel: "Sample Count",
             description: "pkg://Documentation~/previews/NormalFromTexture.md",
             parameters: new ParameterUIDescriptor[8] {
@@ -195,6 +194,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "normal created from the input height texture"
                 )
             }

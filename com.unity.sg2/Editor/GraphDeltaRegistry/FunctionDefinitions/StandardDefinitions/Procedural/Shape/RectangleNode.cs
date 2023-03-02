@@ -73,7 +73,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Fastest", "Fastest" },
                 { "Nicest", "Nicest" }
             },
-            hasModes: true,
             functionSelectorLabel: " ",
             description: "pkg://Documentation~/previews/Rectangle.md",
             parameters: new ParameterUIDescriptor[4] {
@@ -92,6 +91,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a 4-sided polygon"
                 )
             }

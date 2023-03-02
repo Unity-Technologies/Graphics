@@ -30,6 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
@@ -44,6 +45,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the input value with it's range remapped to the Out Min Max values"
                 )
             }

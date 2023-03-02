@@ -46,6 +46,11 @@ uv1 = packedWaterData.uv1;",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
+                    name: "NormalWS",
+                    displayName: "Normal WS",
+                    tooltip: ""
+                ),
+                new ParameterUIDescriptor(
                     name: "Displacement",
                     displayName: "Displacement",
                     tooltip: ""
@@ -56,10 +61,6 @@ uv1 = packedWaterData.uv1;",
                     tooltip: ""
                 ),
                 new ParameterUIDescriptor(
-                    name: "SSSMask",
-                    displayName: "SSS Mask",
-                    tooltip: ""
-                ),                new ParameterUIDescriptor(
                     name: "PositionOS",
                     displayName: "Position OS",
                     tooltip: ""

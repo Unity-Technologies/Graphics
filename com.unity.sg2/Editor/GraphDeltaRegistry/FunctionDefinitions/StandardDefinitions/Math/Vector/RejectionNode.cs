@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the projection of A onto the plane orthogonal, or perpendicular, to B"
                 )
             }

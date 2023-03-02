@@ -130,7 +130,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Gradient", "Gradient" },
                 { "Biasfunction", "Bias" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mip Sampling Mode",
             parameters: new ParameterUIDescriptor[14] {
                 new ParameterUIDescriptor(

@@ -27,10 +27,12 @@ namespace UnityEditor.ShaderGraph.Defs
             description: "pkg://Documentation~/previews/Truncate.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
-                    name: "In"
+                    name: "In",
+                    displayName: string.Empty
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the whole number of the input without the decimal portion"
                 )
             }

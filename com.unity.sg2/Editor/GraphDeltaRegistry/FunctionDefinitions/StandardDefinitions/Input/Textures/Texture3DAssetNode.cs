@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "A Texture 3D asset."
                 )
             }

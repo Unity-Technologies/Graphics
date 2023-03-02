@@ -84,7 +84,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "DefaultO", "Whiteout Opacity" },
                 { "ReorientedO", "Reoriented Opacity" }
             },
-            hasModes: true,
             functionSelectorLabel: "Mode",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
@@ -97,6 +96,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a combination of both normals"
                 )
             }

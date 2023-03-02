@@ -1,5 +1,6 @@
 ## Description
-Calculates the vertex position of water vertices.
+Calculates the vertex data (position and normal) of water vertices.
 
 ## Output
-**Out** - The vertex position.
+**Position OS** - The object space position of the vertices
+**Normal OS** - The object space normal of the vertices

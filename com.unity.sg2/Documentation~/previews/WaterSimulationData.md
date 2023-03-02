@@ -1,10 +1,7 @@
 ## Description
 
-## Inputs
-**Bands Multiplier** - 
-
 ## Output
-**Surface Gradient** - 
+**Normal WS** - 
 **Low Frequency Surface Gradient** - 
-**Surface Foam** - 
 **Deep Foam** - 
+**Surface Foam** - 

@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the inverted dot product between the view direction and the normal"
                 )
             }
