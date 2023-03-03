@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalTexture("_BlitTexture", m_Source);
                     // This set render target is necessary so we change the LOAD state to DontCare.
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare, // color
+                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
                     Vector2 viewportScale = m_Source.useScaling ? new Vector2(m_Source.rtHandleProperties.rtHandleScale.x, m_Source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Vector4 scaleBias = new Vector4(viewportScale.x, viewportScale.y, 0, 0);
