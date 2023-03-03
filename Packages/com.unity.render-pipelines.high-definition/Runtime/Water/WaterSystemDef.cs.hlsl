@@ -159,11 +159,6 @@ CBUFFER_START(ShaderVariablesUnderWater)
     float _OutScatteringCoeff;
     float _WaterTransitionSize;
     float _UnderWaterAmbientProbeContribution;
-    float4 _BoundsSS;
-    float _UpDirectionX;
-    float _UpDirectionY;
-    float _BufferStride;
-    float _Padding;
 CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering

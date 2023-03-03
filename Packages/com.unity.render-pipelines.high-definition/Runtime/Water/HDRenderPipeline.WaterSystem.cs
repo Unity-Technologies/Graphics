@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._OutScatteringCoefficient = -Mathf.Log(0.02f) / currentWater.absorptionDistance;
             cb._TransparencyColor = new Vector3(Mathf.Min(currentWater.refractionColor.r, 0.99f), Mathf.Min(currentWater.refractionColor.g, 0.99f), Mathf.Min(currentWater.refractionColor.b, 0.99f));
-            cb._WaterUpDirection = new Unity.Mathematics.float4(currentWater.UpVector(), 0.0f);
+            cb._WaterUpDirection = new float4(currentWater.UpVector(), 0.0f);
 
             cb._AmbientScattering = currentWater.ambientScattering;
             cb._HeightBasedScattering = currentWater.heightScattering;
@@ -1051,9 +1051,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We need to tag the stencil for water rejection
             WaterRejectionTag(renderGraph, cull, hdCamera, depthBuffer);
-
-            // Evaluate which surface will have under water rendering
-            EvaluateUnderWaterSurface(hdCamera);
 
             // Copy the frustum data to the GPU
             PropagateFrustumDataToGPU(hdCamera);

@@ -346,11 +346,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>False if the material doesn't have an HDRP Shader.</returns>
         public static bool ValidateMaterial(Material material)
         {
-            k_PlainShadersMaterialResetters.TryGetValue(GetShaderID(material), out var resetter);
+            var shaderID = GetShaderID(material);
+            k_PlainShadersMaterialResetters.TryGetValue(shaderID, out var resetter);
             if (resetter == null)
                 return false;
 
-            material.shaderKeywords = null;
+            // To avoid keeping unused keywords when switching shader on a material, we want to clear the list
+            // But we can only do that on our standard shaders because custom shaders or ShaderGraphs may define
+            // their own keywords, so we can't clear them
+            if (0 <= (int)shaderID && shaderID < ShaderID.Count_Standard)
+                material.shaderKeywords = null;
+
             resetter(material);
             return true;
         }

@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
             passData.drawSystem = m_DrawSystem;
             passData.settings = m_Settings;
             passData.decalLayers = m_DecalLayers;
-            passData.isGLDevice = IsGLDevice();
+            passData.isGLDevice = DecalRendererFeature.isGLDevice;
         }
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
@@ -143,11 +143,6 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, false);
 
-        }
-
-        bool IsGLDevice()
-        {
-            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
         }
     }
 }

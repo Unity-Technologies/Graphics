@@ -54,13 +54,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// A scale to apply to probes falling within the invalidation volume. It is really important to use this with caution as it can lead to inconsistent lighting.
         /// </summary>
-        [Range(0.0001f, 2.0f), InspectorName("Probe Intensity Scale"), Tooltip("A scale to be applied to all probes that fall within this Probe Adjustment Volume.")]
+        [Range(0.0001f, 2.0f), Tooltip("A scale to be applied to all probes that fall within this Probe Adjustment Volume.")]
         public float intensityScale = 1.0f;
 
         /// <summary>
         /// The overridden dilation threshold.
         /// </summary>
-        [Range(0.0f, 0.95f), InspectorName("Dilation Validity Threshold"), Tooltip("Override the Dilation Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.")]
+        [Range(0.0f, 0.95f)]
         public float overriddenDilationThreshold = 0.75f;
 
         /// <summary>The rotation angles for the virtual offset direction.</summary>

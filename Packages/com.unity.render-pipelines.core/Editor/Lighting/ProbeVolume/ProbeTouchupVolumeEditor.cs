@@ -33,6 +33,8 @@ namespace UnityEditor.Rendering
             internal static readonly GUIContent s_VolumeHeader = EditorGUIUtility.TrTextContent("Influence Volume");
             internal static readonly GUIContent s_TouchupHeader = EditorGUIUtility.TrTextContent("Probe Volume Overrides");
 
+            internal static readonly GUIContent s_DilationThreshold = new GUIContent("Dilation Validity Threshold", "Override the Dilation Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.");
+
             internal static readonly EditMode.SceneViewEditMode VirtualOffsetEditMode = (EditMode.SceneViewEditMode)110;
 
             internal static readonly Color k_GizmoColorBase = ProbeTouchupColorPreferences.s_ProbeTouchupVolumeGizmoColorDefault;
@@ -95,17 +97,18 @@ namespace UnityEditor.Rendering
             {
                 ProbeTouchupVolume ptv = (serialized.serializedObject.targetObject as ProbeTouchupVolume);
 
-                var bakeSettings = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(ptv.gameObject.scene).settings;
+                var bakingSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(ptv.gameObject.scene);
+                bool useVirtualOffset = bakingSet != null ? bakingSet.settings.virtualOffsetSettings.useVirtualOffset : false;
 
                 EditorGUILayout.PropertyField(serialized.mode);
 
                 if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.OverrideValidityThreshold)
                 {
-                    EditorGUILayout.PropertyField(serialized.overriddenDilationThreshold);
+                    EditorGUILayout.PropertyField(serialized.overriddenDilationThreshold, Styles.s_DilationThreshold);
                 }
                 else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.ApplyVirtualOffset)
                 {
-                    EditorGUI.BeginDisabledGroup(!bakeSettings.virtualOffsetSettings.useVirtualOffset);
+                    EditorGUI.BeginDisabledGroup(!useVirtualOffset);
                     EditorGUILayout.BeginHorizontal();
 
                     EditorGUILayout.PropertyField(serialized.virtualOffsetRotation);
@@ -123,19 +126,19 @@ namespace UnityEditor.Rendering
                     EditorGUILayout.PropertyField(serialized.virtualOffsetDistance);
                     EditorGUI.EndDisabledGroup();
 
-                    if (!bakeSettings.virtualOffsetSettings.useVirtualOffset)
+                    if (!useVirtualOffset)
                     {
                         EditorGUILayout.HelpBox("Apply Virtual Offset can be used only if Virtual Offset is enabled for the Baking Set.", MessageType.Warning);
                     }
                 }
                 else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.OverrideVirtualOffsetSettings)
                 {
-                    EditorGUI.BeginDisabledGroup(!bakeSettings.virtualOffsetSettings.useVirtualOffset);
+                    EditorGUI.BeginDisabledGroup(!useVirtualOffset);
                     EditorGUILayout.PropertyField(serialized.geometryBias);
                     EditorGUILayout.PropertyField(serialized.rayOriginBias);
                     EditorGUI.EndDisabledGroup();
 
-                    if (!bakeSettings.virtualOffsetSettings.useVirtualOffset)
+                    if (!useVirtualOffset)
                     {
                         EditorGUILayout.HelpBox("Override Virtual Offset can be used only if Virtual Offset is enabled for the Baking Set.", MessageType.Warning);
                     }
