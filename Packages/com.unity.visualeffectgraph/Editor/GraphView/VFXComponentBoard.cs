@@ -169,6 +169,7 @@ namespace UnityEditor.VFX.UI
             m_Step.clickable.clicked += EffectStep;
             m_Restart = this.Query<Button>("restart");
             m_Restart.clickable.clicked += EffectRestart;
+            m_PlayIcon = m_Play.Q<Image>("icon");
 
             m_PlayRateSlider = this.Query<Slider>("play-rate-slider");
             m_PlayRateSlider.lowValue = Mathf.Pow(VisualEffectControl.minSlider, 1 / VisualEffectControl.sliderPower);
@@ -483,6 +484,8 @@ namespace UnityEditor.VFX.UI
                 {
                     m_Play.RemoveFromClassList("paused");
                 }
+
+                m_PlayIcon.MarkDirtyRepaint();
             }
         }
 
@@ -689,6 +692,7 @@ namespace UnityEditor.VFX.UI
         Image m_SubtitleIcon;
         Button m_Stop;
         Button m_Play;
+        Image m_PlayIcon;
         Button m_Step;
         Button m_Restart;
         Slider m_PlayRateSlider;

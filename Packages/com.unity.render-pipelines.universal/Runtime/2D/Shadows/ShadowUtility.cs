@@ -120,41 +120,29 @@ namespace UnityEngine.Rendering.Universal
                 tangents.Add(Vector4.zero);
         }
 
-        static internal void ComputeBoundingSphere(Vector3[] shapePath, out BoundingSphere boundingSphere)
+        static internal Bounds CalculateLocalBounds(Vector3[] inVertices)
         {
-            float minX = float.MaxValue;
-            float maxX = float.MinValue;
-            float minY = float.MaxValue;
-            float maxY = float.MinValue;
+            if (inVertices.Length <= 0)
+                return new Bounds(Vector3.zero, Vector3.zero);
+
+            Vector2 minVec = Vector2.positiveInfinity;
+            Vector2 maxVec = Vector2.negativeInfinity;
+
+            int inVerticesLength = inVertices.Length;
 
             // Add outline vertices
-            int pathLength = shapePath.Length;
-            for (int i = 0; i < pathLength; i++)
+            for (int i = 0; i < inVerticesLength; i++)
             {
-                Vector3 vertex = shapePath[i];
+                Vector2 vertex = new Vector2(inVertices[i].x, inVertices[i].y);
 
-                if (minX > vertex.x)
-                    minX = vertex.x;
-                if (maxX < vertex.x)
-                    maxX = vertex.x;
-
-                if (minY > vertex.y)
-                    minY = vertex.y;
-                if (maxY < vertex.y)
-                    maxY = vertex.y;
+                minVec = Vector2.Min(minVec, vertex);
+                maxVec = Vector2.Max(maxVec, vertex);
             }
 
-            // Calculate bounding sphere (circle)
-            Vector3 origin = new Vector2(0.5f * (minX + maxX), 0.5f * (minY + maxY));
-            float deltaX = maxX - minX;
-            float deltaY = maxY - minY;
-            float radius = 0.5f * Mathf.Sqrt(deltaX * deltaX + deltaY * deltaY);
-
-            boundingSphere.position = origin;
-            boundingSphere.radius = radius;
+            return new Bounds { max = maxVec, min = minVec };
         }
 
-        public static BoundingSphere GenerateShadowMesh(Mesh mesh, Vector3[] shapePath)
+        public static Bounds GenerateShadowMesh(Mesh mesh, Vector3[] shapePath)
         {
             List<Vector3> vertices = new List<Vector3>();
             List<int> triangles = new List<int>();
@@ -205,10 +193,7 @@ namespace UnityEngine.Rendering.Universal
             mesh.tangents = finalTangents;
             mesh.colors = finalExtrusion;
 
-            BoundingSphere retSphere;
-            ComputeBoundingSphere(shapePath, out retSphere);
-
-            return retSphere;
+            return CalculateLocalBounds(finalVertices);
         }
     }
 }

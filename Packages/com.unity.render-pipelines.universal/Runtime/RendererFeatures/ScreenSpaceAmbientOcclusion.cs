@@ -487,8 +487,24 @@ namespace UnityEngine.Rendering.Universal
 
                     cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTextures[k_FinalTexID]);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
                     if (renderingData.cameraData.xr.supportsFoveatedRendering)
-                        cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                    {
+                        // If we are downsampling we can't use the VRS texture
+                        // If it's a non uniform raster foveated rendering has to be turned off because it will keep applying non uniform for the other passes.
+                        // When calculating normals from depth, this causes artifacts that are amplified from VRS when going to say 4x4. Thus we disable foveated because of that
+                        if (m_CurrentSettings.Downsample || SystemInfo.foveatedRenderingCaps == FoveatedRenderingCaps.NonUniformRaster ||
+                            (SystemInfo.foveatedRenderingCaps == FoveatedRenderingCaps.FoveationImage && m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth))
+                        {
+                            cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                        }
+                        // If we aren't downsampling and it's a VRS texture we can apply foveation in this case
+                        else if (SystemInfo.foveatedRenderingCaps == FoveatedRenderingCaps.FoveationImage)
+                        {
+                            cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+                        }
+                    }
+#endif
 
                     if (m_BlurType == BlurTypes.Kawase)
                     {

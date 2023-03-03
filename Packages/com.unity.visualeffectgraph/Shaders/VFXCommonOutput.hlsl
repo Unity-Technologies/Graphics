@@ -227,6 +227,16 @@ float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
         return color;
     #endif
 }
+
+float4 VFXApplyAO(float4 color, VFX_VARYING_PS_INPUTS i)
+{
+#if defined(VFX_VARYING_POSCS)
+    return VFXApplyAO(color, i.VFX_VARYING_POSCS);
+#else
+    return color;
+#endif
+}
+
 #endif
 
 bool TryGetElementToVFXBaseIndex(uint elementIndex, uint instanceIndex, out uint elementToVFXBaseIndex, uint currentFrameIndex)

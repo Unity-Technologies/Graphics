@@ -3,6 +3,7 @@ ${VFXBegin:VFXPassForward2D}"Universal2D"${VFXEnd}
 ${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
 ${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
 ${VFXBegin:VFXPassDepth}"DepthOnly"${VFXEnd}
+${VFXBegin:VFXPassDepthNormal}"DepthNormalsOnly"${VFXEnd}
 
 ${VFXBegin:VFXPassDepthDefine}
 #if defined(WRITE_NORMAL_BUFFER)
@@ -15,6 +16,7 @@ ${VFXBegin:VFXPassShadowDefine}#define SHADERPASS SHADERPASS_SHADOWS${VFXEnd}
 ${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${VFXEnd}
 
 ${VFXBegin:VFXPassForwardAdditionalPragma}
+#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 #pragma multi_compile_fog
 ${VFXEnd}
 

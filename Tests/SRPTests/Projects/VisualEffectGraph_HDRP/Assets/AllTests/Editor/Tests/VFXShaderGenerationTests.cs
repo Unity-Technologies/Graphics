@@ -149,7 +149,8 @@ namespace UnityEditor.VFX.Test
             {
                 gpuMapper = new VFXExpressionMapper(),
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
-                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>())
+                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>()),
+                linkedEventOut = Array.Empty<(VFXSlot slot, VFXData data)>()
             };
             HashSet<string> dependencies = new HashSet<string>();
             var stringBuilderNoDebugSymbols = VFXCodeGenerator.Build(updateContext, VFXCompilationMode.Runtime, contextCompiledData, dependencies, false);
@@ -178,7 +179,8 @@ namespace UnityEditor.VFX.Test
             {
                 gpuMapper = new VFXExpressionMapper(),
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
-                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>())
+                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>()),
+                linkedEventOut = new (VFXSlot slot, VFXData data)[] { }
             };
             HashSet<string> dependencies = new HashSet<string>();
             var stringBuilder = VFXCodeGenerator.Build(updateContext, VFXCompilationMode.Runtime, contextCompiledData, dependencies, false);

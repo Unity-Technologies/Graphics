@@ -1,6 +1,10 @@
 using System;
 using UnityEngine.Scripting.APIUpdating;
 
+#if UNITY_EDITOR
+using System.Linq;
+#endif
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -44,7 +48,8 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
         [SerializeField]
-        internal BoundingSphere m_ProjectedBoundingSphere;
+        internal Bounds m_LocalBounds;
+        internal BoundingSphere m_BoundingSphere;
 
         /// <summary>
         /// The mesh to draw with.
@@ -124,17 +129,13 @@ namespace UnityEngine.Rendering.Universal
         {
             // Oddly adding and subtracting vectors is expensive here because of the new structures created...
             Vector3 deltaPos;
-            deltaPos.x = m_ProjectedBoundingSphere.position.x + m_CachedPosition.x;
-            deltaPos.y = m_ProjectedBoundingSphere.position.y + m_CachedPosition.y;
-            deltaPos.z = m_ProjectedBoundingSphere.position.z + m_CachedPosition.z;
-
-            deltaPos.x = light.m_CachedPosition.x - deltaPos.x;
-            deltaPos.y = light.m_CachedPosition.y - deltaPos.y;
-            deltaPos.z = light.m_CachedPosition.z - deltaPos.z;
+            deltaPos.x = light.m_CachedPosition.x - m_BoundingSphere.position.x;
+            deltaPos.y = light.m_CachedPosition.y - m_BoundingSphere.position.y;
+            deltaPos.z = light.m_CachedPosition.z - m_BoundingSphere.position.z;
 
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
-            float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;
+            float radiiLength = light.boundingSphere.radius + m_BoundingSphere.radius;
             return distanceSq <= (radiiLength * radiiLength);
         }
 
@@ -192,11 +193,16 @@ namespace UnityEngine.Rendering.Universal
             if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
                 m_Mesh = new Mesh();
-                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_LocalBounds = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
                 m_InstanceId = GetInstanceID();
             }
 
             m_ShadowCasterGroup = null;
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerAdded += OnSortingLayerAdded;
+            SortingLayer.onLayerRemoved += OnSortingLayerRemoved;
+#endif
         }
 
         /// <summary>
@@ -205,6 +211,11 @@ namespace UnityEngine.Rendering.Universal
         protected void OnDisable()
         {
             ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
+
+#if UNITY_EDITOR
+            SortingLayer.onLayerAdded -= OnSortingLayerAdded;
+            SortingLayer.onLayerRemoved -= OnSortingLayerRemoved;
+#endif
         }
 
         /// <summary>
@@ -218,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)
             {
-                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_LocalBounds = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
             }
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
@@ -246,7 +257,21 @@ namespace UnityEngine.Rendering.Universal
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
             }
+
+            UpdateBoundingSphere();
         }
+
+#if UNITY_EDITOR
+        private void OnSortingLayerAdded(SortingLayer layer)
+        {
+            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Append(layer.id).ToArray();
+        }
+
+        private void OnSortingLayerRemoved(SortingLayer layer)
+        {
+            m_ApplyToSortingLayers = m_ApplyToSortingLayers.Where(x => x != layer.id && SortingLayer.IsValid(x)).ToArray();
+        }
+#endif
 
         /// <inheritdoc/>
         public void OnBeforeSerialize()
@@ -260,9 +285,19 @@ namespace UnityEngine.Rendering.Universal
             // Upgrade from no serialized version
             if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
             {
-                ShadowUtility.ComputeBoundingSphere(m_ShapePath, out m_ProjectedBoundingSphere);
+                m_LocalBounds = ShadowUtility.CalculateLocalBounds(m_ShapePath);
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
+        }
+
+        private void UpdateBoundingSphere()
+        {
+            var maxBound = transform.TransformPoint(m_LocalBounds.max);
+            var minBound = transform.TransformPoint(m_LocalBounds.min);
+            var center = 0.5f * (maxBound + minBound);
+            var radius = Vector3.Magnitude(maxBound - center);
+
+            m_BoundingSphere = new BoundingSphere(center, radius);
         }
 
 #if UNITY_EDITOR

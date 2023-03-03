@@ -113,8 +113,8 @@ namespace UnityEngine.Rendering.Universal
                 camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 // TODO: add option to only draw either one?
-                DrawCameraMotionVectors(context, cmd, camera, cameraMaterial);
-                DrawObjectMotionVectors(context, ref renderingData, camera, objectMaterial);
+                DrawCameraMotionVectors(context, cmd, ref renderingData, camera, cameraMaterial);
+                DrawObjectMotionVectors(context, ref renderingData, camera, objectMaterial, cmd);
             }
         }
 
@@ -149,21 +149,60 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // NOTE: depends on camera depth to reconstruct static geometry positions
-        private static void DrawCameraMotionVectors(ScriptableRenderContext context, CommandBuffer cmd, Camera camera, Material cameraMaterial)
+        private static void DrawCameraMotionVectors(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, Camera camera, Material cameraMaterial)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            bool foveatedRendering = renderingData.cameraData.xr.supportsFoveatedRendering;
+            bool nonUniformFoveatedRendering = foveatedRendering && XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
+            if (foveatedRendering)
+            {
+                if (nonUniformFoveatedRendering)
+                    // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                else
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+            }
+#endif
+
             // Draw fullscreen quad
             cmd.DrawProcedural(Matrix4x4.identity, cameraMaterial, 0, MeshTopology.Triangles, 3, 1);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (foveatedRendering && !nonUniformFoveatedRendering)
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+#endif
+
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
 
-        private static void DrawObjectMotionVectors(ScriptableRenderContext context, ref RenderingData renderingData, Camera camera, Material objectMaterial)
+        private static void DrawObjectMotionVectors(ScriptableRenderContext context, ref RenderingData renderingData, Camera camera, Material objectMaterial, CommandBuffer cmd)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            bool foveatedRendering = renderingData.cameraData.xr.supportsFoveatedRendering;
+            if (foveatedRendering)
+            {
+                // This is a geometry pass, enable foveated rendering (we need to disable it after)
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+#endif
+
             var drawingSettings = GetDrawingSettings(ref renderingData, objectMaterial);
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (foveatedRendering)
+            {
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+#endif
         }
         #endregion
 

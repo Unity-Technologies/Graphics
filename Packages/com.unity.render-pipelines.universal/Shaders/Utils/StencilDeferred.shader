@@ -180,7 +180,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 #if defined(_LIGHT_COOKIES)
                     real3 cookieColor = SampleMainLightCookie(posWS);
-                    unityLight.color *= float4(cookieColor, 1);
+                    unityLight.color *= half3(cookieColor);
                 #endif
             #else
                 unityLight.direction = _LightDirection;
