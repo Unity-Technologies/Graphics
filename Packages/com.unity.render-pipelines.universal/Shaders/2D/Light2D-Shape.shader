@@ -21,6 +21,7 @@ Shader "Hidden/Light2D-Shape"
             #pragma fragment frag
             #pragma multi_compile_local SPRITE_LIGHT __
             #pragma multi_compile_local USE_NORMAL_MAP __
+            #pragma multi_compile_local LIGHT_QUALITY_FAST __
             #pragma multi_compile_local USE_ADDITIVE_BLENDING __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
