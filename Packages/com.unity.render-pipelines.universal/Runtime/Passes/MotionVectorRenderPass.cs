@@ -20,7 +20,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal const GraphicsFormat k_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
-        static readonly string[] s_ShaderTags = new string[] { "MotionVectors" };
+        public const string k_MotionVectorsLightModeTag = "MotionVectors";
+        static readonly string[] s_ShaderTags = new string[] { k_MotionVectorsLightModeTag };
 
         RTHandle m_Color;
         RTHandle m_Depth;

@@ -768,6 +768,14 @@ namespace UnityEditor
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._RECEIVE_SHADOWS_OFF, material.GetFloat(Property.ReceiveShadows) == 0.0f);
         }
 
+        internal static void UpdateMotionVectorKeywordsAndPass(Material material)
+        {
+            bool passShouldBeEnabled = !HasMotionVectorLightModeTag(GetShaderID(material.shader));
+            // Calling this always as we might be in a situation where the material's shader was just changed to one
+            // which doesn't have a pass with the { "LightMode" = "MotionVectors" } tag so we want to stop disabling
+            material.SetShaderPassEnabled(MotionVectorRenderPass.k_MotionVectorsLightModeTag, passShouldBeEnabled);
+        }
+
         // this function is shared between ShaderGraph and hand-written GUIs
         internal static void UpdateMaterialRenderQueueControl(Material material)
         {
@@ -853,6 +861,8 @@ namespace UnityEditor
             // Normal Map
             if (material.HasProperty("_BumpMap"))
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._NORMALMAP, material.GetTexture("_BumpMap"));
+
+            BaseShaderGUI.UpdateMotionVectorKeywordsAndPass(material);
 
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);

@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7 };
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7, UpgradeV8 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -340,9 +340,26 @@ namespace UnityEditor.Rendering.Universal
                     var blendModePreserveSpecularPID = Shader.PropertyToID(Property.BlendModePreserveSpecular);
                     if (material.HasProperty(blendModePreserveSpecularPID))
                     {
+                        // TL;DR; As Complex Lit was not being versioned before we want to only upgrade it in certain
+                        // cases to not alter visuals
+                        //
+                        // To elaborate, this is needed for the following reasons:
+                        // 1) Premultiplied used to mean something different before V6
+                        // 2) If the update is applied twice it will change visuals
+                        // 3) As Complex Lit was missing form the ShaderID enum it was never being upgraded, so its
+                        //    version is not a reliable indicator of which version of Premultiplied alpha the user
+                        //    had intended (e.g. the URP Foundation test project is currently at V7 but some
+                        //    Complex Lit materials are at V3)
+                        // 5) To determine the intended version we can check which version the project is being upgraded
+                        //    from (as we can then know which version it was being actually used as). If the project is
+                        //    at version 6 or higher then we know that if the user had selected Premultiplied it is
+                        //    already working based on the new interpretation and should not be changed
+                        bool skipChangingBlendMode = shaderID == ShaderID.ComplexLit &&
+                                          UniversalProjectSettings.materialVersionForUpgrade >= 6;
+
                         var blendModePID = Shader.PropertyToID(Property.BlendMode);
                         var blendMode = (BaseShaderGUI.BlendMode)material.GetFloat(blendModePID);
-                        if (blendMode == BaseShaderGUI.BlendMode.Premultiply)
+                        if (blendMode == BaseShaderGUI.BlendMode.Premultiply && !skipChangingBlendMode)
                         {
                             material.SetFloat(blendModePID, (float)BaseShaderGUI.BlendMode.Alpha);
                             material.SetFloat(blendModePreserveSpecularPID, 1.0f);
@@ -375,6 +392,23 @@ namespace UnityEditor.Rendering.Universal
 
                 material.SetFloat(alphaToMaskPropertyID, alphaToMask);
             }
+        }
+
+        // We need to disable the passes with a { "LightMode" = "MotionVectors" } tag for URP shaders that have them,
+        // otherwise they'll be rendered for static objects (transform not moving and no skeletal animation) regressing MV perf.
+        //
+        // This is now needed as most URP material types have their own dedicated MV pass (this is so they work with
+        // Alpha-Clipping which needs per material data and not just generic vertex data like for the override shader).
+        //
+        // In Unity (both Built-in and SRP), the MV pass will be used even if disabled on frames where the object's
+        // transform changes or there's skeletal animation. But for URP disabling wasn't necessary before as the single
+        // object MV override shader was only used when needed (and there wasn't even anything to disable per material)
+        //
+        // N.B. the SetShaderPassEnabled API takes a tag value corresponding to the "LightMode" key and not a pass name
+        static void UpgradeV8(Material material, ShaderID shaderID)
+        {
+            if (HasMotionVectorLightModeTag(shaderID))
+                material.SetShaderPassEnabled(MotionVectorRenderPass.k_MotionVectorsLightModeTag, false);
         }
     }
 

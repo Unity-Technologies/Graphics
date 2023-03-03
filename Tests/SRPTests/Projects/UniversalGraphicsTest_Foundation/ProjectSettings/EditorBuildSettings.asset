@@ -312,6 +312,18 @@ EditorBuildSettings:
     path: Assets/Scenes/209_Motion_Vectors_Camera_And_Objects.unity
     guid: d84ff56928dab4734b69906d7e13638d
   - enabled: 1
+    path: Assets/Scenes/210_Motion_Vectors_All_Shader_Types.unity
+    guid: aca920b1cf9c39c4cb9a4ccfe056b6cb
+  - enabled: 1
+    path: Assets/Scenes/211_Motion_Vectors_All_Shader_Types_Skeletal_Animation.unity
+    guid: 461358db1ebae7041bda815e6fdc66d0
+  - enabled: 1
+    path: Assets/Scenes/212_Motion_Vectors_All_Shader_Types_Alpha_Clip.unity
+    guid: 38043c1358e12da40a057c3f5836a0c7
+  - enabled: 1
+    path: Assets/Scenes/213_Motion_Vectors_All_Shader_Types_LOD_CrossFade.unity
+    guid: 577b7f10e868a3a4ca2ffc9d46622e41
+  - enabled: 1
     path: Assets/Scenes/220_ScreenSpaceShadows.unity
     guid: 0ed880bcaac387e4eaef5f365a545090
   - enabled: 1

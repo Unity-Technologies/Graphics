@@ -64,6 +64,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         SpeedTree8,
         // If you add a value here, also add it to ShaderID in Editor/ShaderUtils.cs
+
+        /// <summary>
+        /// Use this for URP Complex Lit shader.
+        /// </summary>
+        ComplexLit,
     }
 
     /// <summary>
@@ -84,6 +89,7 @@ namespace UnityEngine.Rendering.Universal
             "Universal Render Pipeline/Nature/SpeedTree7",
             "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
             "Universal Render Pipeline/Nature/SpeedTree8_PBRLit",
+            "Universal Render Pipeline/Complex Lit",
         };
 
         /// <summary>
@@ -137,6 +143,7 @@ namespace UnityEngine.Rendering.Universal
             "0f4122b9a743b744abe2fb6a0a88868b",
             "5ec81c81908db34429b4f6ddecadd3bd",
             "9920c1f1781549a46ba081a2a15a16ec",
+            "ee7e4c9a5f6364b688a332c67fc32cca",
         };
 
         /// <summary>
