@@ -142,10 +142,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         private InternalRenderGraphContext wrappedContext;
 
-        ///<summary>Scriptable Render Context used for rendering.</summary>
-        public ScriptableRenderContext renderContext { get => wrappedContext.renderContext; }
+        ///<summary>Underlying CommandBuffer used for rendering. It should only be used for backward-compatibility purpose.</summary>
+        public CommandBuffer legacyCmd { get => llcmd.m_WrappedCommandBuffer; }
 
-        ///<summary>Command Buffer used for rendering.</summary>
+        ///<summary>LowLevel Command Buffer used for rendering.</summary>
         public LowLevelCommandBuffer cmd;
 
         ///<summary>Render Graph default resources.</summary>
@@ -484,6 +484,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public string name { get; private set; } = "RenderGraph";
         /// <summary>If true, the Render Graph will generate execution debug information.</summary>
         internal static bool requireDebugData { get; set; } = false;
+
+        /// <summary>If true, the Render Graph Viewer is active.</summary>
+        public static bool isRenderGraphViewerActive => requireDebugData;
 
         /// <summary>
         /// Set of default resources usable in a pass rendering code.

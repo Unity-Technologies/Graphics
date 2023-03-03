@@ -1100,7 +1100,7 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        public void RemoveElements(AbstractMaterialNode[] nodes, IEdge[] edges, GroupData[] groups, StickyNoteData[] notes)
+        public void RemoveElements(AbstractMaterialNode[] nodes, IEdge[] edges, GroupData[] groups, StickyNoteData[] notes, ShaderInput[] inputs = null)
         {
             foreach (var node in nodes)
             {
@@ -1142,6 +1142,14 @@ namespace UnityEditor.ShaderGraph
             foreach (var groupData in groups)
             {
                 RemoveGroupNoValidate(groupData);
+            }
+
+            if (inputs != null)
+            {
+                foreach (var shaderInput in inputs)
+                {
+                    RemoveGraphInputNoValidate(shaderInput);
+                }
             }
 
             ValidateGraph();

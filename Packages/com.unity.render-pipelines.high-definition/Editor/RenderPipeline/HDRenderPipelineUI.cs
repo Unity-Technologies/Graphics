@@ -708,7 +708,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionWaterSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWater, Styles.supportWaterContent);
+            if (EditorGUI.EndChangeCheck())
+                HDSampleBufferNode.UpdateWarningBadges(HDSampleBufferNode.BufferType.IsUnderWater, serialized.renderPipelineSettings.supportWater.boolValue);
+
             ++EditorGUI.indentLevel;
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWater.boolValue))
             {
@@ -744,11 +748,22 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionHighQualityLineRenderingSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportHighQualityLineRendering, Styles.supportHighQualityLineRenderingContent);
+
+            ++EditorGUI.indentLevel;
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportHighQualityLineRendering.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.highQualityLineRenderingMemoryBudget, Styles.highQualityLineRenderingMemoryBudget);
+            }
+            --EditorGUI.indentLevel;
         }
 
         static void Drawer_SectionComputeThicknessSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportComputeThickness, Styles.computeThicknessEnableContent);
+            if (EditorGUI.EndChangeCheck())
+                HDSampleBufferNode.UpdateWarningBadges(HDSampleBufferNode.BufferType.Thickness, serialized.renderPipelineSettings.supportComputeThickness.boolValue);
+
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportComputeThickness.boolValue))
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.computeThicknessResolution, Styles.computeThicknessResolutionContent);
@@ -1018,7 +1033,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.renderingLayerMaskBuffer, Styles.renderingLayerMaskBuffer);
             if (EditorGUI.EndChangeCheck())
-                HDSampleBufferNode.OnRenderingLayerMaskBufferChange(serialized.renderPipelineSettings.renderingLayerMaskBuffer.boolValue);
+                HDSampleBufferNode.UpdateWarningBadges(HDSampleBufferNode.BufferType.RenderingLayerMask, serialized.renderPipelineSettings.renderingLayerMaskBuffer.boolValue);
 
             EditorGUILayout.Space(); //to separate with following sub sections
         }

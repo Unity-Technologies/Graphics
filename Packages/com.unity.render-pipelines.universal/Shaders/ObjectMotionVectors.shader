@@ -111,7 +111,7 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
                 #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
                     // Convert velocity from NDC space (-1..1) to screen UV 0..1 space since FoveatedRendering remap needs that range.
                     half2 posUV = RemapFoveatedRenderingResolve(posNDC * 0.5 + 0.5);
-                    half2 prevPosUV = RemapFoveatedRenderingPrevFrameResolve(prevPosNDC * 0.5 + 0.5);
+                    half2 prevPosUV = RemapFoveatedRenderingPrevFrameLinearToNonUniform(prevPosNDC * 0.5 + 0.5);
 
                     // Calculate forward velocity
                     half2 velocity = (posUV - prevPosUV);

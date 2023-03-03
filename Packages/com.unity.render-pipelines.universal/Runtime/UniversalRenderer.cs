@@ -126,8 +126,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_ColorFrontBuffer;
         internal RTHandle m_ActiveCameraDepthAttachment;
         internal RTHandle m_CameraDepthAttachment;
-        RTHandle m_XRTargetHandleAlias;
-        RTHandle m_XRDepthHandleAlias;
+        RTHandle m_TargetColorHandle;
+        RTHandle m_TargetDepthHandle;
         internal RTHandle m_DepthTexture;
         RTHandle m_NormalsTexture;
         RTHandle m_DecalLayersTexture;
@@ -385,8 +385,8 @@ namespace UnityEngine.Rendering.Universal
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
 
-            m_XRTargetHandleAlias?.Release();
-            m_XRDepthHandleAlias?.Release();
+            m_TargetColorHandle?.Release();
+            m_TargetDepthHandle?.Release();
             ReleaseRenderTargets();
 
             DebugHandler?.Dispose();
@@ -528,7 +528,24 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
             var cmd = renderingData.commandBuffer;
-            DebugHandler?.Setup(ref renderingData);
+            if (DebugHandler != null)
+            {
+                DebugHandler.Setup(ref renderingData);
+
+                if (DebugHandler.IsActiveForCamera(ref cameraData) && DebugHandler.HDRDebugViewIsActive(ref cameraData))
+                {
+                    RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
+                    HDRDebugViewPass.ConfigureDescriptor(ref descriptor);
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.m_DebugScreenTextureHandle, descriptor, name: "_DebugScreenTexture");
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
+
+                    RenderTextureDescriptor descriptorCIE = cameraData.cameraTargetDescriptor;
+                    HDRDebugViewPass.ConfigureDescriptorForCIEPrepass(ref descriptorCIE);
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_CIExyTarget, descriptorCIE, name: "_xyBuffer");
+
+                    EnqueuePass(DebugHandler.hdrDebugViewPass);
+                }
+            }
 
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;
@@ -726,18 +743,24 @@ namespace UnityEngine.Rendering.Universal
                     targetId = cameraData.xr.renderTarget;
 #endif
 
-                if (m_XRTargetHandleAlias == null || m_XRTargetHandleAlias.nameID != targetId)
+                if (m_TargetColorHandle == null || m_TargetColorHandle.nameID != targetId)
                 {
-                    m_XRTargetHandleAlias?.Release();
-                    m_XRTargetHandleAlias = RTHandles.Alloc(targetId);
+                    m_TargetColorHandle?.Release();
+                    m_TargetColorHandle = RTHandles.Alloc(targetId);
+                }
+
+                if (m_TargetDepthHandle == null || m_TargetDepthHandle.nameID != targetId)
+                {
+                    m_TargetDepthHandle?.Release();
+                    m_TargetDepthHandle = RTHandles.Alloc(targetId);
                 }
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, cmd, ref cameraData);
 
-                m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.PeekBackBuffer() : m_XRTargetHandleAlias;
-                m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
+                m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.PeekBackBuffer() : m_TargetColorHandle;
+                m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_TargetDepthHandle;
             }
             else
             {
@@ -750,7 +773,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
                 m_ActiveCameraDepthAttachment = baseRenderer.m_ActiveCameraDepthAttachment;
-                m_XRTargetHandleAlias = baseRenderer.m_XRTargetHandleAlias;
+                m_TargetColorHandle = baseRenderer.m_TargetColorHandle;
+                m_TargetDepthHandle = baseRenderer.m_TargetDepthHandle;
             }
 
             if (rendererFeatures.Count != 0 && !isPreviewCamera)
@@ -1192,7 +1216,7 @@ namespace UnityEngine.Rendering.Universal
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                     (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions) ||
                     // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
-                    m_ActiveCameraColorAttachment.nameID == m_XRTargetHandleAlias.nameID;
+                    m_ActiveCameraColorAttachment.nameID == m_TargetColorHandle.nameID;
 
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
@@ -1201,6 +1225,8 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_FinalBlitPass);
                 }
 
+                // We can explicitely render the overlay UI from URP when HDR output is not enabled.
+                // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
                 if (shouldRenderUI && !outputToHDR)
                 {
                     EnqueuePass(m_DrawOverlayUIPass);
@@ -1214,7 +1240,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (!depthTargetResolved && cameraData.xr.copyDepth)
                     {
-                        m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_XRTargetHandleAlias);
+                        m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_TargetDepthHandle);
                         m_XRCopyDepthPass.CopyToDepth = true;
                         EnqueuePass(m_XRCopyDepthPass);
                     }
@@ -1243,10 +1269,10 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_ForwardLights.Setup(context, ref renderingData);
+            m_ForwardLights.SetupLights(renderingData.commandBuffer, ref renderingData);
 
             if (this.renderingModeActual == RenderingMode.Deferred)
-                m_DeferredLights.SetupLights(context, ref renderingData);
+                m_DeferredLights.SetupLights(renderingData.commandBuffer, ref renderingData);
         }
 
         /// <inheritdoc />

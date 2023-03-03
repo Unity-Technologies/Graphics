@@ -403,6 +403,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP calculates volumetric voxelization asynchronously.</summary>
         [FrameSettingsField(2, displayedName: "Volume Voxelizations", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates volumetric voxelization asynchronously.")]
         VolumeVoxelizationsAsync = 45,
+        /// <summary>When enabled, HDRP calculates High Quality Lines partially asynchronously.</summary>
+        [FrameSettingsField(2, displayedName: "High Quality Line Rendering", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates High Quality Lines partially asynchronously")]
+        HighQualityLinesAsync = 52,
 
         //lightLoop settings (group 3)
         /// <summary>When enabled, HDRP uses FPTL for forward opaque.</summary>
@@ -506,6 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
+                (uint)FrameSettingsField.HighQualityLinesAsync,
                 (uint)FrameSettingsField.DeferredTile,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
@@ -576,6 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
+                (uint)FrameSettingsField.HighQualityLinesAsync,
                 (uint)FrameSettingsField.DeferredTile,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
@@ -640,6 +645,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
+                (uint)FrameSettingsField.HighQualityLinesAsync,
                 (uint)FrameSettingsField.DeferredTile,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
@@ -825,13 +831,15 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.DirectSpecularLighting] ? 1f : 0f;
 
         // When render graph debug is active, we need async information to be accurate even if not supported. Actual execution will be disabled down the line.
-        bool asyncEnabled => (SystemInfo.supportsAsyncCompute || RenderGraph.requireDebugData) && bitDatas[(int)FrameSettingsField.AsyncCompute];
+        bool asyncEnabled => (SystemInfo.supportsAsyncCompute || RenderGraph.isRenderGraphViewerActive) && bitDatas[(int)FrameSettingsField.AsyncCompute];
 
         internal bool BuildLightListRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.LightListAsync];
         internal bool SSRRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.SSRAsync];
         internal bool SSAORunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.SSAOAsync];
         internal bool ContactShadowsRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
         internal bool VolumeVoxelizationRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
+        internal bool HighQualityLinesRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(uint)FrameSettingsField.HighQualityLinesAsync];
+
 
         /// <summary>Override a frameSettings according to a mask.</summary>
         /// <param name="overriddenFrameSettings">Overrided FrameSettings. Must contains default data before attempting the override.</param>
@@ -963,6 +971,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= (sanitizedFrameSettings.asyncEnabled && !rayTracingActive);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= sanitizedFrameSettings.asyncEnabled;
+			sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.HighQualityLinesAsync] &= sanitizedFrameSettings.asyncEnabled;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;

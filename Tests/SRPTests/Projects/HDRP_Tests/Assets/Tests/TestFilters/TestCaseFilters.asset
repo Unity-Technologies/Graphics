@@ -15,24 +15,6 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: db02f2dc6427fce4b9372c28c86f0f73, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: temporarily disabled
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: db02f2dc6427fce4b9372c28c86f0f73, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: temporarily disabled
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 439ce9822b2644f4ea064429ed2c5955, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -42,6 +24,24 @@ MonoBehaviour:
     Reason: Disable this test as we disable the feature for Yamto on Mac
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 029a23150c357e745b0a9f972f07049c, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-28487
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0acf4cd0f0aaa4b42b69cb92491da8bd, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-27776
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -96,10 +96,19 @@ MonoBehaviour:
     Reason: unstable with cache server
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 65ec8013d474e1a4e85d97b29e7302f0, type: 3}
+    - {fileID: 102900000, guid: 86f8f2a99d6720b48abc19c684103d74, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on  XR yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0ab0b142387a4e7469f3ed9d0e03b84f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
-    Reason: Temporarily Disabled, will be fixed as a bugfix for 23.1
+    Reason: Instability only on yamato (black rabbit)

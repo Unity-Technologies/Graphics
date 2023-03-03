@@ -20,12 +20,14 @@ namespace UnityEditor.Rendering.HighDefinition
         const string k_OutputSlotName = "Output";
         const string k_OutputThicknessSlotName = "Thickness";
         const string k_OutputOverlapCountSlotName = "Overlap Count";
+        const string k_OutputDistanceSlotName = "Distance";
 
         const int k_ScreenPositionSlotId = 0;
         const int k_ThicknessLayerIDSlotId = 1;
         const int k_OutputSlotId = 2;
         const int k_OutputThicknessSlotId = 3;
         const int k_OutputOverlapSlotId = 4;
+        const int k_OutputDistanceSlotId = 5;
 
         public enum BufferType
         {
@@ -35,7 +37,8 @@ namespace UnityEditor.Rendering.HighDefinition
             IsSky,
             PostProcessInput,
             RenderingLayerMask,
-            Thickness
+            Thickness,
+            IsUnderWater,
         }
 
         [SerializeField]
@@ -64,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDSampleBufferNode()
         {
             name = "HD Sample Buffer";
-            synonyms = new string[] { "normal", "motion vector", "smoothness", "postprocessinput", "issky", "thickness" };
+            synonyms = new string[] { "normal", "motion vector", "smoothness", "postprocessinput", "issky", "thickness", "underwater" };
             UpdateNodeAfterDeserialization();
 
             nodeList.Add(this);
@@ -142,6 +145,15 @@ namespace UnityEditor.Rendering.HighDefinition
                         channelCount = 2;
                     }
                     break;
+                case BufferType.IsUnderWater:
+                    {
+                        var last = AddSlot(new BooleanMaterialSlot(k_OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, false, ShaderStageCapability.Fragment));
+                        addedSlots.Add(last.id);
+                        var distance = AddSlot(new Vector1MaterialSlot(k_OutputDistanceSlotId, k_OutputDistanceSlotName, k_OutputDistanceSlotName, SlotType.Output, 0, ShaderStageCapability.Fragment));
+                        addedSlots.Add(distance.id);
+                        channelCount = 1;
+                    }
+                    break;
             }
 
             RemoveSlotsNameNotMatching(addedSlots, supressWarnings: true);
@@ -156,6 +168,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 registry.RequiresIncludePath("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl");
                 registry.RequiresIncludePath("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl");
+
+                if (bufferType == BufferType.IsUnderWater)
+                    registry.RequiresIncludePath("Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl");
 
                 registry.ProvideFunction(GetFunctionName(), s =>
                 {
@@ -204,6 +219,10 @@ namespace UnityEditor.Rendering.HighDefinition
                                 s.AppendLine(GetRayTracingError());
                                 s.AppendLine("return SampleThickness(uv.xy, layerID);");
                                 break;
+                            case BufferType.IsUnderWater:
+                                s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
+                                s.AppendLine("return _EnableUnderwater ? GetUnderWaterDistance(pixelCoords) : 1.0f;");
+                                break;
                             default:
                                 s.AppendLine("return 0.0;");
                                 break;
@@ -233,6 +252,9 @@ namespace UnityEditor.Rendering.HighDefinition
                                 // Thickness of a centered sphere seen from an infinite point of view
                                 s.AppendLine("return pow(abs(1.0f - saturate(dot(uv * 2 - 1, uv * 2 - 1))), 2.2f);");
                                 break;
+                            case BufferType.IsUnderWater:
+                                s.AppendLine("return uv.y * 2 - 1;");
+                                break;
                             default:
                                 s.AppendLine("return 0.0f;");
                                 break;
@@ -252,6 +274,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine($"$precision {GetVariableNameForSlot(k_OutputThicknessSlotId)} = {GetVariableNameForSlot(k_OutputThicknessSlotId)}_Value.x;");
                 sb.AppendLine($"$precision {GetVariableNameForSlot(k_OutputOverlapSlotId)} = {GetVariableNameForSlot(k_OutputThicknessSlotId)}_Value.y;");
             }
+            else if (bufferType == BufferType.IsUnderWater)
+            {
+                sb.AppendLine($"$precision {GetVariableNameForSlot(k_OutputSlotId)}_Value = {GetFunctionName()}({uv}.xy, 0);");
+                sb.AppendLine($"$precision {GetVariableNameForSlot(k_OutputSlotId)} = {GetVariableNameForSlot(k_OutputSlotId)}_Value <= 0.0f;");
+                sb.AppendLine($"$precision {GetVariableNameForSlot(k_OutputDistanceSlotId)} = {GetVariableNameForSlot(k_OutputSlotId)}_Value;");
+            }
             else
             {
                 sb.AppendLine($"$precision{channelCount} {GetVariableNameForSlot(k_OutputSlotId)} = {GetFunctionName()}({uv}.xy, 0);");
@@ -262,33 +290,38 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool RequiresNDCPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
 
-        static readonly ShaderMessage renderingLayerWarning = new ShaderMessage("Rendering Layer Mask Buffer is not enabled in the HDRP Asset. This will not work.", ShaderCompilerMessageSeverity.Warning);
-        static readonly ShaderMessage thicknessWarning = new ShaderMessage("Compute Thickness is not enabled in the HDRP Asset. This will not work.", ShaderCompilerMessageSeverity.Warning);
+        #region Warning Badge
+        static readonly Dictionary<BufferType, ShaderMessage> s_TypeToMessage = new()
+        {
+            { BufferType.RenderingLayerMask, new ShaderMessage("Rendering Layer Mask Buffer is not enabled in the HDRP Asset. This will not work.", ShaderCompilerMessageSeverity.Warning) },
+            { BufferType.Thickness, new ShaderMessage("Compute Thickness is not enabled in the HDRP Asset. This will not work.", ShaderCompilerMessageSeverity.Warning) },
+            { BufferType.IsUnderWater, new ShaderMessage("Water is not enabled in the HDRP Asset. This will not work.", ShaderCompilerMessageSeverity.Warning) },
+        };
 
         public override void ValidateNode()
         {
-            if (bufferType == BufferType.RenderingLayerMask && HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer == false)
-                owner.messageManager?.AddOrAppendError(owner, objectId, renderingLayerWarning);
-            if (bufferType == BufferType.Thickness && HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportComputeThickness == false)
-                owner.messageManager?.AddOrAppendError(owner, objectId, thicknessWarning);
+            if ((bufferType == BufferType.RenderingLayerMask && HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.renderingLayerMaskBuffer == false) ||
+                (bufferType == BufferType.Thickness && HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportComputeThickness == false) ||
+                (bufferType == BufferType.IsUnderWater && HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportWater == false))
+                owner.messageManager?.AddOrAppendError(owner, objectId, s_TypeToMessage[bufferType]);
         }
 
-        private void UpdateWarningBadge(bool readableBuffer)
+        private void UpdateWarningBadge(BufferType bufferType, bool supported)
         {
             if (owner == null) return;
 
-            if (!readableBuffer && bufferType == BufferType.RenderingLayerMask)
-                owner.messageManager?.AddOrAppendError(owner, objectId, renderingLayerWarning);
+            if (!supported && this.bufferType == bufferType)
+                owner.messageManager?.AddOrAppendError(owner, objectId, s_TypeToMessage[bufferType]);
             else
                 owner.ClearErrorsForNode(this);
         }
 
-        internal static void OnRenderingLayerMaskBufferChange(bool readableBuffer)
+        internal static void UpdateWarningBadges(BufferType bufferType, bool supported)
         {
             foreach (var node in nodeList)
             {
                 if (node != null)
-                    node.UpdateWarningBadge(readableBuffer);
+                    node.UpdateWarningBadge(bufferType, supported);
             }
 
             EditorApplication.delayCall += () => {
@@ -299,5 +332,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             };
         }
+        #endregion
     }
 }

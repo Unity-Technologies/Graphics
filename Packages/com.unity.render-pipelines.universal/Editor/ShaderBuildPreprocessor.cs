@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.Universal
         GBufferWriteRenderingLayers = (1L << 34),
         DepthNormalPassRenderingLayers = (1L << 35),
         LightCookies = (1L << 36),
-        // Unused =  (1L << 37),
+        LODCrossFade =  (1L << 37),
         ProbeVolumeL1 = (1L << 38),
         ProbeVolumeL2 = (1L << 39),
         HdrGrading = (1L << 40),
@@ -129,6 +129,8 @@ namespace UnityEditor.Rendering.Universal
             public bool isUniversalRenderer;
             public bool needsUnusedVariants;
             public bool needsProcedural;
+            public bool needsMainLightShadows;
+            public bool needsAdditionalLightShadows;
             public bool needsSoftShadows;
             public bool needsShadowsOff;
             public bool needsAdditionalLightsOff;
@@ -322,19 +324,6 @@ namespace UnityEditor.Rendering.Universal
         {
             ShaderFeatures urpAssetShaderFeatures = ShaderFeatures.MainLight;
 
-            // Main Light Shadows & Soft Shadows...
-            // Main Light Shadows keyword is always included to improve build times.
-            // ShaderFeatures.ShadowsKeepOffVariants controls whether the OFF variant is kept or not.
-            urpAssetShaderFeatures |= ShaderFeatures.MainLightShadows;
-            if (urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel)
-            {
-                // User can change cascade count at runtime, so we have to include both of them for now
-                urpAssetShaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
-
-                if (urpAsset.supportsSoftShadows)
-                    urpAssetShaderFeatures |= ShaderFeatures.SoftShadows;
-            }
-
             // Additional Lights and Shadows...
             switch (urpAsset.additionalLightsRenderingMode)
             {
@@ -374,8 +363,12 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.supportsLightCookies)
                 urpAssetShaderFeatures |= ShaderFeatures.LightCookies;
 
-            if (urpAsset.colorGradingMode == ColorGradingMode.HighDynamicRange)
+            bool hasHDROutput = PlayerSettings.useHDRDisplay && urpAsset.supportsHDR;
+            if (urpAsset.colorGradingMode == ColorGradingMode.HighDynamicRange || hasHDROutput)
                 urpAssetShaderFeatures |= ShaderFeatures.HdrGrading;
+
+            if (urpAsset.enableLODCrossFade)
+                urpAssetShaderFeatures |= ShaderFeatures.LODCrossFade;
 
             // Check each renderer & renderer feature
             urpAssetShaderFeatures = GetSupportedShaderFeaturesFromRenderers(
@@ -446,7 +439,9 @@ namespace UnityEditor.Rendering.Universal
             rsd.isUniversalRenderer               = universalRendererData != null && universalRenderer != null;
             rsd.msaaSampleCount                   = urpAsset.msaaSampleCount;
             rsd.renderingMode                     = rsd.isUniversalRenderer ? universalRendererData.renderingMode : RenderingMode.Forward;
-            rsd.needsSoftShadows                  = (urpAsset.supportsAdditionalLightShadows && urpAsset.supportsSoftShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || rsd.renderingMode == RenderingMode.ForwardPlus));
+            rsd.needsMainLightShadows             = urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel;
+            rsd.needsAdditionalLightShadows       = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || rsd.renderingMode == RenderingMode.ForwardPlus);
+            rsd.needsSoftShadows                  = urpAsset.supportsSoftShadows && (rsd.needsMainLightShadows || rsd.needsAdditionalLightShadows);
             rsd.needsShadowsOff                   = !renderer.stripShadowsOffVariants;
             rsd.needsAdditionalLightsOff          = s_KeepOffVariantForAdditionalLights || !renderer.stripAdditionalLightOffVariants;
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred && urpAsset.useRenderingLayers);
@@ -499,10 +494,6 @@ namespace UnityEditor.Rendering.Universal
             if (rendererRequirements.needsAdditionalLightsOff)
                 shaderFeatures |= ShaderFeatures.AdditionalLightsKeepOffVariants;
 
-            // The Off variant for Main and Additional Light shadows
-            if (rendererRequirements.needsShadowsOff)
-                shaderFeatures |= ShaderFeatures.ShadowsKeepOffVariants;
-
             // Forward+
             if (rendererRequirements.renderingMode == RenderingMode.ForwardPlus)
             {
@@ -511,11 +502,37 @@ namespace UnityEditor.Rendering.Universal
                 shaderFeatures &= ~(ShaderFeatures.AdditionalLightsPixel | ShaderFeatures.AdditionalLightsVertex);
             }
 
-            // Additional Light Shadows - Always included to reduce build times.
-            // ShaderFeatures.ShadowsKeepOffVariants controls whether the OFF variant is kept or not.
-            shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+            // Main & Additional Light Shadows
 
-            // Soft shadows
+            // When the OFF variant is available, the shadow keywords can
+            // be stripped based on the settings in the URP Assets.
+            if (rendererRequirements.needsShadowsOff)
+            {
+                // Keeps the Off variant for Main and Additional Light shadows
+                shaderFeatures |= ShaderFeatures.ShadowsKeepOffVariants;
+
+                if (rendererRequirements.needsMainLightShadows)
+                {
+                    // Cascade count can be changed at runtime, so include both of them
+                    shaderFeatures |= ShaderFeatures.MainLightShadows;
+                    shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
+                }
+
+                if (rendererRequirements.needsAdditionalLightShadows)
+                    shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+            }
+            // When the OFF variant should be stripped, the Main & Additional Light Keywords
+            // are always included and Main Light Cascade is added if main light shadows are enabled in the asset
+            else
+            {
+                shaderFeatures |= ShaderFeatures.MainLightShadows;
+                shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+
+                if (rendererRequirements.needsMainLightShadows)
+                    shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
+            }
+
+            // Soft shadows for Main and Additional Lights
             if (rendererRequirements.needsSoftShadows)
                 shaderFeatures |= ShaderFeatures.SoftShadows;
 
@@ -660,12 +677,6 @@ namespace UnityEditor.Rendering.Universal
                 }
                 else
                 {
-                    // Rendering Layers always require the keyword in the Opaque passes
-                    if (isDeferredRenderer)
-                        shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
-                    else
-                        shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
-
                     // Check if other passes need the keyword
                     switch (renderingLayersEvent)
                     {
@@ -674,6 +685,10 @@ namespace UnityEditor.Rendering.Universal
                             break;
 
                         case RenderingLayerUtils.Event.Opaque:
+                            if (isDeferredRenderer)
+                                shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
+                            else
+                                shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
                             break;
 
                         default:
@@ -787,24 +802,34 @@ namespace UnityEditor.Rendering.Universal
 
             // Shadows...
             // Main Light Shadows...
-            spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLight;
-            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.MainLightShadowsCascade))
+            spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.Remove;
+            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.MainLightShadows))
             {
-                if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
-                    spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectAll;
+                if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.MainLightShadowsCascade))
+                {
+                    if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
+                        spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectAll;
+                    else
+                        spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndCascades;
+                }
                 else
-                    spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndCascades;
+                {
+                    if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
+                        spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndOff;
+                    else
+                        spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLight;
+                }
             }
-            else if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
-                spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndOff;
 
             // Additional Light Shadows...
-            // The _ADDITIONAL_LIGHT_SHADOWS keyword is always kept.
-            // But whether the OFF variant is kept as well is controlled by ShadowsKeepOffVariants
-            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
-                spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Select;
-            else
-                spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.SelectOnly;
+            spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Remove;
+            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.AdditionalLightShadows))
+            {
+                if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
+                    spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Select;
+                else
+                    spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.SelectOnly;
+            }
 
             // Decals' MRT keywords
             spd.stripDBufferMRT1 = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.DBufferMRT1);

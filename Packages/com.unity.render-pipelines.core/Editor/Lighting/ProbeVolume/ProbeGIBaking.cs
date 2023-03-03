@@ -1327,6 +1327,11 @@ namespace UnityEngine.Rendering
 
         static void OnLightingDataCleared()
         {
+            if (ProbeReferenceVolume.instance == null)
+                return;
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
+                return;
+
             Clear();
         }
 

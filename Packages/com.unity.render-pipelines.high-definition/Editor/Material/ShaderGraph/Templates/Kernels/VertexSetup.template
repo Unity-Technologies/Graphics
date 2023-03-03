@@ -185,18 +185,17 @@ void VertexSetup (uint3 dispatchThreadID : SV_DispatchThreadID)
         inputMesh.uv0 = LOAD_ATTRIBUTE_FLOAT(TexCoord0, i);
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD1
-    //   // Demo team hair package stores the UV in the upper 16 bits.
-    //   const uint mask = 0xFFFF << 16;
+        // Demo team hair package stores the UV in the upper 16 bits.
+        const uint mask = 0xFFFF << 16;
 
-    //   // Manually decode the UNORM value back into a float.
-    //   uint texCoord1 = LOAD_ATTRIBUTE_UINT(TexCoord1, i);
+        // Manually decode the UNORM value back into a float.
+        uint texCoord1 = LOAD_ATTRIBUTE_UINT(TexCoord1, i);
 
-    //   // Mask out the lower bits.
-    //   texCoord1 &= mask;
+        // Mask out the lower bits.
+        texCoord1 &= mask;
 
-    //   // Retrieve a decimal value.
-    //   inputMesh.uv1 = texCoord1 / float(mask);
-        inputMesh.uv1 = LOAD_ATTRIBUTE_FLOAT(TexCoord1, i);
+        // Retrieve a decimal value.
+        inputMesh.uv1 = texCoord1 / float(mask);
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD2
     // TODO

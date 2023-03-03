@@ -80,7 +80,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
 
             #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
                 // Get the UVs from non-unifrom space to linear space to determine the right world-space position
-                uv = RemapFoveatedRenderingDistort(uv);
+                uv = RemapFoveatedRenderingNonUniformToLinear(uv);
             #endif
 
                 // Reconstruct world position
@@ -97,7 +97,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
                     // Convert velocity from NDC space (-1..1) to screen UV 0..1 space since FoveatedRendering remap needs that range.
                     // Also return both position in non-uniform UV space to get the right velocity vector
                     half2 posUV = RemapFoveatedRenderingResolve(posNDC * 0.5f + 0.5f);
-                    half2 prevPosUV = RemapFoveatedRenderingPrevFrameResolve(prevPosNDC * 0.5f + 0.5f);
+                    half2 prevPosUV = RemapFoveatedRenderingPrevFrameLinearToNonUniform(prevPosNDC * 0.5f + 0.5f);
 
                     // Calculate forward velocity
                     half2 velocity = (posUV - prevPosUV);

@@ -1007,7 +1007,58 @@ namespace UnityEngine.Rendering.Universal
             internal float paniniCropToFit;
         }
 
-        public void RenderLensFlareDatadriven(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData)
+        void LensFlareDataDrivenComputeOcclusion(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<LensFlarePassData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
+            {
+                RTHandle occH = LensFlareCommonSRP.occlusionRT;
+                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+                passData.destinationTexture = builder.WriteTexture(occlusionHandle);
+                passData.camera = renderingData.cameraData.camera;
+                passData.material = m_Materials.lensFlareDataDriven;
+                if (m_PaniniProjection.IsActive())
+                {
+                    passData.usePanini = true;
+                    passData.paniniDistance = m_PaniniProjection.distance.value;
+                    passData.paniniCropToFit = m_PaniniProjection.cropToFit.value;
+                }
+                else
+                {
+                    passData.usePanini = false;
+                    passData.paniniDistance = 1.0f;
+                    passData.paniniCropToFit = 1.0f;
+                }
+
+                UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+                builder.ReadTexture(renderer.resources.GetTexture(UniversalResource.CameraDepthTexture));
+
+                builder.SetRenderFunc(
+                    (LensFlarePassData data, RenderGraphContext ctx) =>
+                    {
+                        var gpuView = data.camera.worldToCameraMatrix;
+                        var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(data.camera.projectionMatrix, true);
+                        // Zero out the translation component.
+                        gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+                        var gpuVP = gpuNonJitteredProj * data.camera.worldToCameraMatrix;
+
+                        LensFlareCommonSRP.ComputeOcclusion(
+                            data.material, data.camera,
+                            (float)data.sourceDescriptor.width, (float)data.sourceDescriptor.height,
+                            data.usePanini, data.paniniDistance, data.paniniCropToFit, true,
+                            data.camera.transform.position,
+                            gpuVP,
+                            ctx.cmd,
+                            false, false, null, null,
+                            ShaderConstants._FlareOcclusionTex, -1, ShaderConstants._FlareOcclusionIndex, ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
+                            -1, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4);
+                    });
+            }
+        }
+
+        public void RenderLensFlareDataDriven(RenderGraph renderGraph, in TextureHandle destination, ref RenderingData renderingData)
         {
             using (var builder = renderGraph.AddRenderPass<LensFlarePassData>("Lens Flare Data Driven Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
             {
@@ -1029,6 +1080,11 @@ namespace UnityEngine.Rendering.Universal
                     passData.paniniDistance = 1.0f;
                     passData.paniniCropToFit = 1.0f;
                 }
+                if (LensFlareCommonSRP.IsOcclusionRTCompatible())
+                {
+                    TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+                    builder.ReadTexture(occlusionHandle);
+                }
 
                 builder.SetRenderFunc((LensFlarePassData data, RenderGraphContext context) =>
                 {
@@ -1041,7 +1097,7 @@ namespace UnityEngine.Rendering.Universal
                     gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
                     var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
 
-                    LensFlareCommonSRP.DoLensFlareDataDrivenCommon(data.material, LensFlareCommonSRP.Instance, camera, (float)data.sourceDescriptor.width, (float)data.sourceDescriptor.height,
+                    LensFlareCommonSRP.DoLensFlareDataDrivenCommon(data.material, camera, (float)data.sourceDescriptor.width, (float)data.sourceDescriptor.height,
                         data.usePanini, data.paniniDistance, data.paniniCropToFit,
                         true,
                         camera.transform.position,
@@ -1055,8 +1111,6 @@ namespace UnityEngine.Rendering.Universal
                         ShaderConstants._FlareTex, ShaderConstants._FlareColorValue, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
                         false);
                 });
-
-                return;
             }
         }
 #endregion
@@ -1272,21 +1326,26 @@ namespace UnityEngine.Rendering.Universal
             internal CameraData cameraData;
             internal bool isFxaaEnabled;
             internal bool isFsrEnabled;
+            internal bool resolveToDebugScreen;
         }
 
-        public void RenderFinalBlit(RenderGraph renderGraph, in TextureHandle source, ref RenderingData renderingData, bool performFXAA, bool performFsr)
+        public void RenderFinalBlit(RenderGraph renderGraph, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, ref RenderingData renderingData, bool performFXAA, bool performFsr, bool requireHDROutput, bool resolveToDebugScreen)
         {
             UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalBlitPassData>("Postprocessing Final Blit Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalBlit)))
             {
                 builder.AllowGlobalStateModification(true);
-                passData.destinationTexture = builder.UseTextureFragment(renderer.resources.GetTexture(UniversalResource.BackBufferColor), 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.destinationTexture = builder.UseTextureFragment(postProcessingTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.cameraData = renderingData.cameraData;
                 passData.material = m_Materials.finalPass;
                 passData.isFxaaEnabled = performFXAA;
                 passData.isFsrEnabled = performFsr;
+                passData.resolveToDebugScreen = resolveToDebugScreen;
+
+                if (requireHDROutput && m_EnableColorEncodingIfNeeded)
+                    builder.UseTexture(overlayUITexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc((PostProcessingFinalBlitPassData data, RasterGraphContext context) =>
                 {
@@ -1295,6 +1354,7 @@ namespace UnityEngine.Rendering.Universal
                     var material = data.material;
                     var isFxaaEnabled = data.isFxaaEnabled;
                     var isFsrEnabled = data.isFsrEnabled;
+                    var resolveToDebugScreen = data.resolveToDebugScreen;
                     RTHandle sourceTextureHdl = data.sourceTexture;
                     RTHandle destinationTextureHdl = data.destinationTexture;
 
@@ -1324,6 +1384,9 @@ namespace UnityEngine.Rendering.Universal
                     if (cameraData.xr.enabled)
                         isRenderToBackBufferTarget = destinationTextureHdl == cameraData.xr.renderTarget;
 #endif
+                    // HDR debug views force-renders to DebugScreenTexture.
+                    isRenderToBackBufferTarget &= !resolveToDebugScreen;
+
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
 
                     // We y-flip if
@@ -1340,7 +1403,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void RenderFinalPassRenderGraph(RenderGraph renderGraph, in TextureHandle source, ref RenderingData renderingData)
+        public void RenderFinalPassRenderGraph(RenderGraph renderGraph, in TextureHandle source, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, ref RenderingData renderingData, bool enableColorEncodingIfNeeded)
         {
             var stack = VolumeManager.instance.stack;
             m_FilmGrain = stack.GetComponent<FilmGrain>();
@@ -1356,8 +1419,10 @@ namespace UnityEngine.Rendering.Universal
             m_HasFinalPass = false;
             // m_IsFinalPass is used by effects called by RenderFinalPassRenderGraph, so we let them know that we are in a final PP pass
             m_IsFinalPass = true;
+            m_EnableColorEncodingIfNeeded = enableColorEncodingIfNeeded;
 
-            if (m_FilmGrain.active)
+            // TODO: Investigate how to make grain work with HDR output.
+            if (m_FilmGrain.active && !cameraData.isHDROutputActive)
             {
                 material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
                 PostProcessUtils.ConfigureFilmGrain(
@@ -1368,7 +1433,8 @@ namespace UnityEngine.Rendering.Universal
                 );
             }
 
-            if (cameraData.isDitheringEnabled)
+            // TODO: Investigate how to make dithering work with HDR output.
+            if (cameraData.isDitheringEnabled && !cameraData.isHDROutputActive)
             {
                 material.EnableKeyword(ShaderKeywordStrings.Dithering);
                 m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
@@ -1382,7 +1448,20 @@ namespace UnityEngine.Rendering.Universal
             if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
+            bool requireHDROutput = RequireHDROutput(ref cameraData);
+            if (requireHDROutput)
+            {
+                // If there is a final post process pass, it's always the final pass so do color encoding
+                HDROutputUtils.Operation hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                // If the color space conversion wasn't applied by the uber pass, do it here
+                if (!cameraData.postProcessEnabled)
+                    hdrOperations |= HDROutputUtils.Operation.ColorConversion;
+
+                SetupHDROutput(material, hdrOperations);
+            }
+            DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
+            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
             // TODO: Investigate how to make FXAA and FSR work with HDR output.
             bool outputToHDR = cameraData.isHDROutputActive;
@@ -1448,7 +1527,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            RenderFinalBlit(renderGraph, in currentSource, ref renderingData, performFxaa, isFsrEnabled);
+            RenderFinalBlit(renderGraph, in currentSource, in overlayUITexture, in postProcessingTarget, ref renderingData, performFxaa, isFsrEnabled, requireHDROutput, resolveToDebugScreen);
         }
 #endregion
 
@@ -1468,7 +1547,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool isBackbuffer;
         }
 
-        public void RenderUberPost(RenderGraph renderGraph, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, ref RenderingData renderingData)
+        public void RenderUberPost(RenderGraph renderGraph, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, ref RenderingData renderingData, bool requireHDROutput, bool resolveToDebugScreen)
         {
             var material = m_Materials.uber;
             ref var postProcessingData = ref renderingData.postProcessingData;
@@ -1500,6 +1579,8 @@ namespace UnityEngine.Rendering.Universal
                     passData.userLutTexture = builder.UseTexture(userLutTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 if (m_Bloom.IsActive())
                     builder.UseTexture(_BloomMipUp[0], IBaseRenderGraphBuilder.AccessFlags.Read);
+                if (requireHDROutput && m_EnableColorEncodingIfNeeded)
+                    builder.UseTexture(overlayUITexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.userLutParams = userLutParams;
                 passData.cameraData = renderingData.cameraData;
                 passData.material = material;
@@ -1544,7 +1625,7 @@ namespace UnityEngine.Rendering.Universal
 
         private class PostFXSetupPassData { }
 
-        public void RenderPostProcessingRenderGraph(RenderGraph renderGraph, in TextureHandle activeCameraColorTexture, in TextureHandle lutTexture, in TextureHandle postProcessingTarget ,ref RenderingData renderingData, bool hasFinalPass)
+        public void RenderPostProcessingRenderGraph(RenderGraph renderGraph, in TextureHandle activeCameraColorTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, in TextureHandle postProcessingTarget, ref RenderingData renderingData, bool hasFinalPass, bool resolveToDebugScreen, bool enableColorEndingIfNeeded)
         {
             var stack = VolumeManager.instance.stack;
             m_DepthOfField = stack.GetComponent<DepthOfField>();
@@ -1565,6 +1646,7 @@ namespace UnityEngine.Rendering.Universal
             m_Descriptor.useMipMap = false;
             m_Descriptor.autoGenerateMips = false;
             m_HasFinalPass = hasFinalPass;
+            m_EnableColorEncodingIfNeeded = enableColorEndingIfNeeded;
 
             ref CameraData cameraData = ref renderingData.cameraData;
             ref ScriptableRenderer renderer = ref cameraData.renderer;
@@ -1668,7 +1750,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (useLensFlare)
                 {
-                    RenderLensFlareDatadriven(renderGraph, in currentSource, ref renderingData);
+                    LensFlareDataDrivenComputeOcclusion(renderGraph, ref renderingData);
+                    RenderLensFlareDataDriven(renderGraph, in currentSource, ref renderingData);
                 }
 
                 // TODO RENDERGRAPH: Once we started removing the non-RG code pass in URP, we should move functions below to renderfunc so that material setup happens at
@@ -1692,9 +1775,20 @@ namespace UnityEngine.Rendering.Universal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.Gamma20);
                 }
 
-                GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, ref cameraData, !m_HasFinalPass);
+                bool requireHDROutput = RequireHDROutput(ref cameraData);
+                if (requireHDROutput)
+                {
+                    // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
+                    // Otherwise encoding will happen in the final post process pass or the final blit pass
+                    HDROutputUtils.Operation hdrOperations = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
 
-                RenderUberPost(renderGraph, in currentSource, in postProcessingTarget, in lutTexture, ref renderingData);
+                    SetupHDROutput(m_Materials.uber, hdrOperations);
+                }
+
+                DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, ref cameraData, !m_HasFinalPass && !resolveToDebugScreen);
+
+                RenderUberPost(renderGraph, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, ref renderingData, requireHDROutput, resolveToDebugScreen);
             }
         }
     }

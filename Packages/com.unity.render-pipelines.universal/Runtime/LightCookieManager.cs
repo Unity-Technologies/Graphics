@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.Universal
             return m_VisibleLightIndexToShaderDataIndex[visibleLightIndex];
         }
 
-        public void Setup(ScriptableRenderContext ctx, CommandBuffer cmd, ref LightData lightData)
+        public void Setup(CommandBuffer cmd, ref LightData lightData)
         {
             using var profScope = new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LightCookies));
 

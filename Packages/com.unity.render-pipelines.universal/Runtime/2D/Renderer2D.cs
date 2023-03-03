@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
         CopyCameraSortingLayerPass m_CopyCameraSortingLayerPass;
         FinalBlitPass m_FinalBlitPass;
         DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
-        DrawScreenSpaceUIPass m_DrawOverlayUIPass;
+        DrawScreenSpaceUIPass m_DrawOverlayUIPass; // from HDRP code
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
 
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
-            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.coreBlitPS);
             m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(data.blitHDROverlay);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
 
@@ -86,6 +86,9 @@ namespace UnityEngine.Rendering.Universal
             supportedRenderingFeatures = new RenderingFeatures();
 
             m_Renderer2DData.lightCullResult = new Light2DCullResult();
+
+            // the fall back here because 2D Renderer is in another unreferenced DLL.
+            Blitter.Initialize(data.coreBlitPS, data.coreBlitColorAndDepthPS);
         }
 
         protected override void Dispose(bool disposing)
@@ -198,6 +201,20 @@ namespace UnityEngine.Rendering.Universal
                     hasPostProcess = hasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
                 DebugHandler.Setup(ref renderingData);
+
+                if (DebugHandler.IsActiveForCamera(ref cameraData) && DebugHandler.HDRDebugViewIsActive(ref cameraData))
+                {
+                    RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
+                    HDRDebugViewPass.ConfigureDescriptor(ref descriptor);
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.m_DebugScreenTextureHandle, descriptor, name: "_DebugScreenTexture");
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
+
+                    RenderTextureDescriptor descriptorCIE = cameraData.cameraTargetDescriptor;
+                    HDRDebugViewPass.ConfigureDescriptorForCIEPrepass(ref descriptorCIE);
+                    RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.hdrDebugViewPass.m_CIExyTarget, descriptorCIE, name: "_xyBuffer");
+
+                    EnqueuePass(DebugHandler.hdrDebugViewPass);
+                }
             }
 
 #if UNITY_EDITOR
@@ -322,6 +339,8 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_FinalBlitPass);
             }
 
+            // We can explicitely render the overlay UI from URP when HDR output is not enabled.
+            // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
             if (shouldRenderUI && !outputToHDR)
             {
                 EnqueuePass(m_DrawOverlayUIPass);
@@ -335,6 +354,11 @@ namespace UnityEngine.Rendering.Universal
             cullingParameters.shadowDistance = 0.0f;
             var cullResult = m_Renderer2DData.lightCullResult as Light2DCullResult;
             cullResult.SetupCulling(ref cullingParameters, cameraData.camera);
+        }
+
+        internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
+        {
+            return m_ColorTextureHandle;;
         }
     }
 }

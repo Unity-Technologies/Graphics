@@ -588,9 +588,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
                 bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, sunOcclusionTexture, taaEnabled);
                 if (taaEnabled)
                 {
-                    LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, sunOcclusionTexture, taaEnabled);
                     LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
                 }
 
@@ -3214,16 +3214,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle sunOcclusionTexture, bool taaEnabled)
         {
+            if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
+                return;
+
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
-                RTHandle occH = LensFlareCommonSRP.occlusionRT;
-                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
-
                 using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareComputeOcclusionDataDriven)))
                 {
+                    TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
                     passData.source = builder.WriteTexture(occlusionHandle);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
-                    passData.viewport = new Vector2Int(LensFlareCommonSRP.maxLensFlareWithOcclusion, LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample);
+                    passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
@@ -3253,11 +3254,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             float height = (float)data.viewport.y;
 
                             LensFlareCommonSRP.ComputeOcclusion(
-                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera,
+                                data.parameters.lensFlareShader, data.hdCamera.camera,
                                 width, height,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                data.hdCamera.mainViewConstants.viewProjMatrix,
+                                data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
                                 ctx.cmd,
                                 data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
                                 HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareCloudOpacity, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
@@ -3269,6 +3270,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void LensFlareMergeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, bool taaEnabled)
         {
+            if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
+                return;
+
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
                 TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
@@ -3297,36 +3301,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
-                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
-
                 using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareDataDriven)))
                 {
+                    TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+
                     passData.source = builder.WriteTexture(source);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.taaEnabled = taaEnabled;
-                    if (taaEnabled)
-                    {
-                        passData.occlusion = builder.ReadTexture(occlusionHandle);
-                    }
-                    else
-                    {
-                        CloudSettings cloudSettings;
-                        CloudRenderer cloudRenderer;
-                        bool hasCloud = m_SkyManager.TryGetCloudSettings(hdCamera, out cloudSettings, out cloudRenderer);
-                        CloudLayer cloudLayer = cloudSettings as CloudLayer;
-                        passData.hasCloudLayer = hasCloud && cloudLayer && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera);
-                        if (passData.hasCloudLayer && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera))
-                        {
-                            passData.hasCloudLayer &= cloudSettings.active && cloudLayer.opacity.value > 0.0f;
-                            if (passData.hasCloudLayer && skyManager.cloudOpacity.IsValid())
-                            {
-                                passData.cloudOpacityTexture = builder.ReadTexture(skyManager.cloudOpacity);
-                            }
-                        }
-                    }
+                    passData.occlusion = builder.ReadTexture(occlusionHandle);
 
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(hdCamera, renderGraph, "Lens Flare Destination");
 
@@ -3339,11 +3324,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
 
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,
+                                data.parameters.lensFlareShader, data.hdCamera.camera, width, height,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
                                 ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                data.hdCamera.mainViewConstants.viewProjMatrix,
+                                data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
                                 ctx.cmd,
                                 data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
                                 data.source,
@@ -3368,7 +3353,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material lensFlareShader;
             public ComputeShader lensFlareMergeOcclusion;
             public int mergeOcclusionKernel;
-            public LensFlareCommonSRP lensFlares;
             public float paniniDistance;
             public float paniniCropToFit;
             public bool skipCopy;
@@ -3379,7 +3363,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             LensFlareParameters parameters;
 
-            parameters.lensFlares = LensFlareCommonSRP.Instance;
             parameters.lensFlareShader = m_LensFlareDataDrivenShader;
             parameters.lensFlareMergeOcclusion = m_LensFlareMergeOcclusionDataDrivenCS;
             parameters.mergeOcclusionKernel = m_LensFlareMergeOcclusionDataDrivenCS.FindKernel("MainCS");
@@ -3411,7 +3394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (light.type)
                 {
                     case LightType.Directional:
-                        return LensFlareCommonSRP.ShapeAttenuationDirLight(hdLightData.transform.forward, wo);
+                        return LensFlareCommonSRP.ShapeAttenuationDirLight(hdLightData.transform.forward, cam.transform.forward);
                     case LightType.Point:
                         // Do nothing point are omnidirectional for the Lens Flare
                         return LensFlareCommonSRP.ShapeAttenuationPointLight();

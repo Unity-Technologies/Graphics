@@ -179,6 +179,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
+                    // Render the software line raster path.
+                    RenderLines(m_RenderGraph, prepassOutput.depthPyramidTexture, hdCamera, gpuLightListOutput);
+
                     // Evaluate the clear coat mask texture based on the lit shader mode
                     var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
                     lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, clearCoatMask, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
@@ -1364,9 +1367,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // This means our flagging process needs to happen before the transparent depth prepass as we use the depth to discriminate pixels that do not need recursive rendering.
             var flagMaskBuffer = RenderRayTracingFlagMask(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer);
 
-            // Render the software line raster path.
-            RenderLines(renderGraph, prepassOutput.depthPyramidTexture, hdCamera, lightLists);
-
             // Immediately compose the lines if the user wants lines in the color pyramid (refraction), but with poor TAA ghosting.
             ComposeLines(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramid);
 
@@ -1419,7 +1419,8 @@ namespace UnityEngine.Rendering.HighDefinition
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
 
             // Render the under water if necessary
-            colorBuffer = RenderUnderWaterVolume(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, waterGBuffer);
+            colorBuffer = RenderUnderWaterVolume(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.normalBuffer, waterGBuffer, out var waterLine);
+            prepassOutput.waterLine = waterLine;
 
             // Render All forward error
             RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, cullingResults);
@@ -1995,6 +1996,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     normalBufferRG = prepassOutput.resolvedNormalBuffer,
                     motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
                     renderingLayerMaskRG = renderingLayerMaskBuffer,
+                    waterLineRG = prepassOutput.waterLine,
                 };
                 executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets);
             }

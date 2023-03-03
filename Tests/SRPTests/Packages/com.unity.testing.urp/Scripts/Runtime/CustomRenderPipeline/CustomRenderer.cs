@@ -42,9 +42,22 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
         }
 
+
+        static ProfilingSampler s_SetupLights = new ProfilingSampler("Setup URP lights.");
+        private class SetupLightPassData
+        {
+            internal RenderingData renderingData;
+            internal ForwardLights forwardLights;
+        };
+        private void SetupRenderGraphLights(RenderGraph renderGraph, ref RenderingData renderingData)
+        {
+            m_ForwardLights.SetupRenderGraphLights(renderGraph, ref renderingData);
+        }
+
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_ForwardLights.PreSetup(ref renderingData);
+            SetupRenderGraphLights(renderGraph, ref renderingData);
 
             TextureHandle mainShadowsTexture = TextureHandle.nullHandle;
             TextureHandle additionalShadowsTexture = TextureHandle.nullHandle;
@@ -66,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_ForwardLights.Setup(context, ref renderingData);
+            m_ForwardLights.SetupLights(renderingData.commandBuffer, ref renderingData);
         }
     }
 }

@@ -851,8 +851,6 @@ namespace UnityEngine.Rendering.Universal
 
                     ClearRenderingState(cmd);
                     SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
-
-                    data.renderer.SetupLights(rgContext.renderContext, ref data.renderingData);
                 });
             }
         }
