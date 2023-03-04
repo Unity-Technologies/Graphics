@@ -138,7 +138,7 @@ namespace UnityEditor.VFX.UI
 
             m_NameField = new TextField() { name = "name-field" };
             m_Header.Add(m_NameField);
-            m_Header.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+            m_Header.RegisterCallback<MouseDownEvent>(OnMouseDownEvent, TrickleDown.TrickleDown);
             m_NameField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditTextSucceded(); }, TrickleDown.TrickleDown);
             m_NameField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed, TrickleDown.TrickleDown);
             m_Header.pickingMode = PickingMode.Position;
@@ -321,7 +321,7 @@ namespace UnityEditor.VFX.UI
             if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse)
             {
                 OpenTextEditor();
-                e.PreventDefault();
+                e.StopPropagation();
             }
         }
 

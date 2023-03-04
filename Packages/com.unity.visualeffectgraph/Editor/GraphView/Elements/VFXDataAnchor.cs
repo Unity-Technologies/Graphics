@@ -57,8 +57,8 @@ namespace UnityEditor.VFX.UI
 
             m_Node = node;
 
-            RegisterCallback<MouseEnterEvent>(OnMouseEnter);
-            RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
+            RegisterCallback<PointerEnterEvent>(OnPointerEnter, TrickleDown.TrickleDown);
+            RegisterCallback<PointerLeaveEvent>(OnPointerLeave, TrickleDown.TrickleDown);
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
             Profiler.EndSample();
@@ -108,16 +108,17 @@ namespace UnityEditor.VFX.UI
             highlight = true;
         }
 
-        void OnMouseEnter(MouseEnterEvent e)
+        void OnPointerEnter(PointerEnterEvent e)
         {
+            // Prevent VisualElement from setting hover pseudo-state
             if (m_EdgeDragging && !highlight)
-                e.PreventDefault();
+                e.StopPropagation();
         }
 
-        void OnMouseLeave(MouseLeaveEvent e)
+        void OnPointerLeave(PointerLeaveEvent e)
         {
             if (m_EdgeDragging && !highlight)
-                e.PreventDefault();
+                e.StopPropagation();
         }
 
         public override bool collapsed

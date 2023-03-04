@@ -251,7 +251,8 @@ namespace UnityEditor.VFX.UI
             if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse && m_CanEdit && controller != null)
             {
                 StartEditingPath();
-                evt.PreventDefault();
+                evt.StopPropagation();
+                focusController.IgnoreEvent(evt);
             }
         }
 
