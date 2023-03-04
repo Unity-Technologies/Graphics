@@ -35,6 +35,8 @@
   * Volume Overrides List
     * [Exposure](Override-Exposure.md)
     * [Fog](Override-Fog.md)
+    * Rendering
+      * [High Quality Lines](Override-High-Quality-Lines.md)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion.md)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller.md)
@@ -206,6 +208,7 @@
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug.md)
 * Components
   * [Decal Projector](Decal-Projector.md)
+  * [Mesh Renderer Extension](Mesh-Renderer-Extension.md)
   * [Lens Flare](shared/lens-flare/lens-flare-component.md)
     * [Lens Flare asset](shared/lens-flare/lens-flare-asset.md)
 * Tools

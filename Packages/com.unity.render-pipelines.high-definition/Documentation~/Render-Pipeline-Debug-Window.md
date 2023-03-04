@@ -609,7 +609,7 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 </thead>
 <tbody>
 <tr>
-<td rowspan="11"><strong>Fullscreen Debug Mode</strong></td>
+<td rowspan="12"><strong>Fullscreen Debug Mode</strong></td>
 <td colspan="2">Use the drop-down to select a rendering mode to display as an overlay on the screen.</td>
 </tr>
 <tr>
@@ -656,6 +656,10 @@ Debug View Color Scale:<br/>
 <tr>
 <td><strong>Max Pixel Cost</strong></td>
 <td>The scale of the transparency overdraw heat map. For example, a value of 10 displays a red pixel if 10 transparent pixels overlap. Any number of overdraw above this value also displays as red.<br/>This property only appears if you set <strong>Fullscreen Debug Mode</strong> to <strong>TransparencyOverdraw</strong>.</td>
+</tr>
+<tr>
+<td><strong>High Quality Lines</strong></td>
+<td>Select this option to view underlying data used by tile-based software rasterizer for the <a href="Override-High-Quality-Lines.md">High Quality Line Rendering</a> feature.<ul><li> <strong>Segments per Tile</strong> displays a heatmap representing the number of segments in each tile. </li><li><strong>Tile Processor UV</strong> displays the uv coordinate for each tile.</li><li><strong>Cluster Depth</strong> displays segments based on their depth in the cluster structure that's used for transparent sorting.</li></ul></td>
 </tr>
 <tr>
 <td rowspan="8"><strong>MipMaps</strong></td>
