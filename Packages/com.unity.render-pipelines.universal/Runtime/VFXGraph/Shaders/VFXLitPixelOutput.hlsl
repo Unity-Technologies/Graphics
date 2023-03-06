@@ -49,20 +49,6 @@ float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, Surfac
 }
 #endif
 
-#elif (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
-
-void VFXComputePixelOutputToNormalBuffer(float3 normalWS, out float4 outNormalBuffer)
-{
-#if defined(_GBUFFER_NORMALS_OCT)
-    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
-    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-    outNormalBuffer = float4(packedNormalWS, 0.0);
-#else
-    outNormalBuffer = float4(normalWS, 0.0);
-#endif
-}
-
 #else
 
 #ifndef VFX_SHADERGRAPH
