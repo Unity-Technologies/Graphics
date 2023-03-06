@@ -434,7 +434,7 @@ namespace ShaderStrippingAndPrefiltering
 
             TestStripInvalidVariants_HDR(shader);
             StripInvalidVariants_TerrainHoles(shader, expectedTerrainHoles, expectedTerrainHolesWithAlphaTestOn);
-            TestStripInvalidVariants_SoftShadows(shader, expectedSoftShadows);
+            TestStripInvalidVariants_Shadows(shader, expectedSoftShadows);
         }
 
         public void TestStripInvalidVariants_HDR(Shader shader)
@@ -481,72 +481,72 @@ namespace ShaderStrippingAndPrefiltering
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
         }
 
-        public void TestStripInvalidVariants_SoftShadows(Shader shader, bool expectedSoftShadows)
+        public void TestStripInvalidVariants_Shadows(Shader shader, bool expectedSoftShadows)
         {
             TestHelper helper;
 
             // Soft Shadows
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
-            helper.IsFalse(helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
 
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.SoftShadows};
-            helper.AreEqual(expectedSoftShadows, helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.AreEqual(expectedSoftShadows, helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.AreEqual(expectedSoftShadows, helper.stripper.StripInvalidVariants(ref helper.data));
 
             // MainLightShadows
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.MainLightShadows};
-            helper.IsFalse(helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
 
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.SoftShadows};
-            helper.IsFalse(helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
 
             // MainLightShadowCascades
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.MainLightShadowCascades};
-            helper.IsFalse(helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
 
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.MainLightShadowCascades, ShaderKeywordStrings.SoftShadows};
-            helper.IsFalse(helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
 
             // MainLightShadowScreen
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.MainLightShadowScreen};
-            helper.IsFalse(helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
 
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.MainLightShadowScreen, ShaderKeywordStrings.SoftShadows};
-            helper.IsFalse(helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
 
             // AdditionalLightShadows
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.AdditionalLightShadows};
-            helper.IsFalse(helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
 
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.IsHDRShaderVariantValid = true;
             TestHelper.s_EnabledKeywords = new List<string>{ShaderKeywordStrings.AdditionalLightShadows, ShaderKeywordStrings.SoftShadows};
-            helper.IsFalse(helper.stripper.StripInvalidVariants_SoftShadows(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants_Shadows(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
         }
 
@@ -887,7 +887,7 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.None);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadows };
             TestHelper.s_PassKeywords = mainLightShadowKeywords;
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.None);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadowCascades };
@@ -927,7 +927,7 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.MainLightShadowsCascade);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadows };
             TestHelper.s_PassKeywords = mainLightShadowKeywords;
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.MainLightShadowsCascade);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadowCascades };
@@ -947,7 +947,7 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceShadows);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadows };
             TestHelper.s_PassKeywords = mainLightShadowKeywords;
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.ScreenSpaceShadows);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadowCascades };
@@ -973,7 +973,7 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.ShadowsKeepOffVariants);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadows };
             TestHelper.s_PassKeywords = mainLightShadowKeywords;
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.ShadowsKeepOffVariants);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadowCascades };
@@ -1013,7 +1013,7 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.ShadowsKeepOffVariants | ShaderFeatures.MainLightShadowsCascade);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadows };
             TestHelper.s_PassKeywords = mainLightShadowKeywords;
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.ShadowsKeepOffVariants | ShaderFeatures.MainLightShadowsCascade);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadowCascades };
@@ -1033,7 +1033,7 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.ShadowsKeepOffVariants | ShaderFeatures.ScreenSpaceShadows);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadows };
             TestHelper.s_PassKeywords = mainLightShadowKeywords;
-            helper.IsFalse(helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_MainLightShadows(ref helper.data, ref helper.featureStripTool));
 
             helper = new TestHelper(shader, ShaderFeatures.ShadowsKeepOffVariants | ShaderFeatures.ScreenSpaceShadows);
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.MainLightShadowCascades };
