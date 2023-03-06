@@ -361,7 +361,7 @@
         half3 workingColor = ApplyHistoryColorLerp(clampAccum, colorCenter, frameInfluence);
 
         half3 dstSceneColor = WorkingSpaceToScene(workingColor);
-        return half4(dstSceneColor, 1.0);
+        return half4(max(dstSceneColor, 0.0), 1.0);
     }
 
 
