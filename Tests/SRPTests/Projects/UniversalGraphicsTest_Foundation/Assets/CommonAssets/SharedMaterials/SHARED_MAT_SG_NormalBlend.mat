@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SSAO_MAT_SG_NormalBlend
+  m_Name: SHARED_MAT_SG_NormalBlend
   m_Shader: {fileID: -6465566751694194690, guid: d9dc1b0fa23c1a74fb51f83950d9e347,
     type: 3}
   m_Parent: {fileID: 0}
@@ -29,7 +29,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - Texture2D_FCA8A621:
-        m_Texture: {fileID: 2800000, guid: 25c6f434d9610ef44bf44671ef0be504, type: 3}
+        m_Texture: {fileID: 2800000, guid: 01ed40737c5fe4576be9b3064f9b7686, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_3dbe9e0c101145b5b69f32a2e0c603bc_Texture_1:
