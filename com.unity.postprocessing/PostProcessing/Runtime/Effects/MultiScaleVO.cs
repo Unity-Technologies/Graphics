@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -53,6 +54,11 @@ namespace UnityEngine.Rendering.PostProcessing
         // command buffer warning
         RenderTexture m_AmbientOnlyAO;
 
+        RenderTextureFormat m_R8Format;
+        RenderTextureFormat m_R16Format;
+        bool float4Texture = false;
+        bool m_splitDownsamplePass = false;
+
         readonly RenderTargetIdentifier[] m_MRT =
         {
             BuiltinRenderTextureType.GBuffer0,    // Albedo, Occ
@@ -62,6 +68,33 @@ namespace UnityEngine.Rendering.PostProcessing
         public MultiScaleVO(AmbientOcclusion settings)
         {
             m_Settings = settings;
+            // R16 is not supported on all platforms as a storage texture format
+            // R8 is not supported on all platforms as a storage texture format
+            m_R8Format  = RenderTextureFormat.R8;
+            m_R16Format = RenderTextureFormat.RHalf;
+
+            if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R8Format, false), FormatUsage.LoadStore))
+            {
+                if (SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.ARGB32, false), FormatUsage.LoadStore))
+                {
+                    m_R8Format = RenderTextureFormat.ARGB32;
+                    float4Texture = true;
+                }
+            }
+
+            if (!SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(m_R16Format, false), FormatUsage.LoadStore))
+            {
+                if (SystemInfo.IsFormatSupported(GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.RFloat, false), FormatUsage.LoadStore))
+                {
+                    m_R16Format = RenderTextureFormat.RFloat;
+                }
+            }
+
+            // 5 storage textures is not supported on all platforms
+            if (SystemInfo.supportedRandomWriteTargetCount < 5)
+            {
+                m_splitDownsamplePass = true;
+            }
         }
 
         public DepthTextureMode GetCameraFlags()
@@ -211,8 +244,6 @@ namespace UnityEngine.Rendering.PostProcessing
 
         void PushAllocCommands(CommandBuffer cmd, bool isMSAA, Camera camera)
         {
-            var r16 = RenderTextureFormat.RFloat; // R16 is not supported on all platforms as a storage texture format
-            var r8 = RenderTextureFormat.ARGB32;  // R8 is not supported on all platforms as a storage texture format
             bool dynamicResolutionEnabled = RuntimeUtilities.IsDynamicResolutionEnabled(camera);
             if (isMSAA)
             {
@@ -239,26 +270,26 @@ namespace UnityEngine.Rendering.PostProcessing
             }
             else
             {
-                Alloc(cmd, ShaderIDs.LinearDepth, MipLevel.Original, r16, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.LinearDepth, MipLevel.Original, m_R16Format, true, dynamicResolutionEnabled);
 
                 Alloc(cmd, ShaderIDs.LowDepth1, MipLevel.L1, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
                 Alloc(cmd, ShaderIDs.LowDepth2, MipLevel.L2, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
                 Alloc(cmd, ShaderIDs.LowDepth3, MipLevel.L3, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
                 Alloc(cmd, ShaderIDs.LowDepth4, MipLevel.L4, RenderTextureFormat.RFloat, true, dynamicResolutionEnabled);
 
-                AllocArray(cmd, ShaderIDs.TiledDepth1, MipLevel.L3, r16, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth2, MipLevel.L4, r16, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth3, MipLevel.L5, r16, true, dynamicResolutionEnabled);
-                AllocArray(cmd, ShaderIDs.TiledDepth4, MipLevel.L6, r16, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth1, MipLevel.L3, m_R16Format, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth2, MipLevel.L4, m_R16Format, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth3, MipLevel.L5, m_R16Format, true, dynamicResolutionEnabled);
+                AllocArray(cmd, ShaderIDs.TiledDepth4, MipLevel.L6, m_R16Format, true, dynamicResolutionEnabled);
 
-                Alloc(cmd, ShaderIDs.Occlusion1, MipLevel.L1, r8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Occlusion2, MipLevel.L2, r8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Occlusion3, MipLevel.L3, r8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Occlusion4, MipLevel.L4, r8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion1, MipLevel.L1, m_R8Format, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion2, MipLevel.L2, m_R8Format, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion3, MipLevel.L3, m_R8Format, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Occlusion4, MipLevel.L4, m_R8Format, true, dynamicResolutionEnabled);
 
-                Alloc(cmd, ShaderIDs.Combined1, MipLevel.L1, r8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Combined2, MipLevel.L2, r8, true, dynamicResolutionEnabled);
-                Alloc(cmd, ShaderIDs.Combined3, MipLevel.L3, r8, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Combined1, MipLevel.L1, m_R8Format, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Combined2, MipLevel.L2, m_R8Format, true, dynamicResolutionEnabled);
+                Alloc(cmd, ShaderIDs.Combined3, MipLevel.L3, m_R8Format, true, dynamicResolutionEnabled);
             }
         }
 
@@ -294,22 +325,32 @@ namespace UnityEngine.Rendering.PostProcessing
             // into two passes. The first pass downsamples the depth buffer to 2x2 tiles, the second pass
             // downsamples to 4x4 tiles.
             var cs = m_Resources.computeShaders.multiScaleAODownsample1;
-            int kernel = cs.FindKernel(isMSAA ? "MultiScaleVODownsample1_MSAA" : "MultiScaleVODownsample1");
+            string kernelName = isMSAA ? "MultiScaleVODownsample1_MSAA" : "MultiScaleVODownsample1";
+            if (m_splitDownsamplePass) kernelName += "_Split";
+            int kernel = cs.FindKernel(kernelName);
 
             cmd.SetComputeTextureParam(cs, kernel, "LinearZ", ShaderIDs.LinearDepth);
             cmd.SetComputeTextureParam(cs, kernel, "DS2x", ShaderIDs.LowDepth1);
             cmd.SetComputeTextureParam(cs, kernel, "DS2xAtlas", ShaderIDs.TiledDepth1);
             cmd.SetComputeVectorParam(cs, "ZBufferParams", CalculateZBufferParams(camera));
             cmd.SetComputeTextureParam(cs, kernel, "Depth", depthMapId);
+            if (!m_splitDownsamplePass)
+            {
+                cmd.SetComputeTextureParam(cs, kernel, "DS4x", ShaderIDs.LowDepth2);
+                cmd.SetComputeTextureParam(cs, kernel, "DS4xAtlas", ShaderIDs.TiledDepth2);
+            }
 
             cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L4], m_ScaledHeights[(int)MipLevel.L4], 1);
 
-            kernel = cs.FindKernel(isMSAA ? "MultiScaleVODownsample1_MSAA_4x" : "MultiScaleVODownsample1_4x");
-            cmd.SetComputeTextureParam(cs, kernel, "DS4x", ShaderIDs.LowDepth2);
-            cmd.SetComputeTextureParam(cs, kernel, "DS4xAtlas", ShaderIDs.TiledDepth2);
-            cmd.SetComputeTextureParam(cs, kernel, "Depth", depthMapId);
+            if (m_splitDownsamplePass)
+            {
+                kernel = cs.FindKernel(isMSAA ? "MultiScaleVODownsample1_MSAA_4x" : "MultiScaleVODownsample1_4x");
+                cmd.SetComputeTextureParam(cs, kernel, "DS4x", ShaderIDs.LowDepth2);
+                cmd.SetComputeTextureParam(cs, kernel, "DS4xAtlas", ShaderIDs.TiledDepth2);
+                cmd.SetComputeTextureParam(cs, kernel, "Depth", depthMapId);
 
-            cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L4], m_ScaledHeights[(int)MipLevel.L4], 1);
+                cmd.DispatchCompute(cs, kernel, m_ScaledWidths[(int)MipLevel.L4], m_ScaledHeights[(int)MipLevel.L4], 1);
+            }
 
             if (needDepthMapRelease)
                 Release(cmd, ShaderIDs.DepthCopy);
@@ -395,7 +436,9 @@ namespace UnityEngine.Rendering.PostProcessing
 
             // Set the arguments for the render kernel.
             var cs = m_Resources.computeShaders.multiScaleAORender;
-            int kernel = isMSAA ? cs.FindKernel("MultiScaleVORender_MSAA_interleaved") : cs.FindKernel("MultiScaleVORender_interleaved");
+            string kernelName = isMSAA ? "MultiScaleVORender_MSAA_interleaved" : "MultiScaleVORender_interleaved";
+            if (float4Texture) kernelName += "_Float4";
+            int kernel = cs.FindKernel(kernelName);
 
             cmd.SetComputeFloatParams(cs, "gInvThicknessTable", m_InvThicknessTable);
             cmd.SetComputeFloatParams(cs, "gSampleWeightTable", m_SampleWeightTable);
@@ -422,17 +465,27 @@ namespace UnityEngine.Rendering.PostProcessing
             int kernel = 0;
             if (!isMSAA)
             {
-                kernel = cs.FindKernel(highResAO == null ? invert
+                string kernelName = highResAO == null ? invert
                     ? "MultiScaleVOUpSample_invert"
                     : "MultiScaleVOUpSample"
-                    : "MultiScaleVOUpSample_blendout");
+                    : "MultiScaleVOUpSample_blendout";
+                if (float4Texture)
+                {
+                    kernelName += "_Float4";
+                }
+                kernel = cs.FindKernel(kernelName);
             }
             else
             {
-                kernel = cs.FindKernel(highResAO == null ? invert
+                string kernelName = highResAO == null ? invert
                     ? "MultiScaleVOUpSample_MSAA_invert"
                     : "MultiScaleVOUpSample_MSAA"
-                    : "MultiScaleVOUpSample_MSAA_blendout");
+                    : "MultiScaleVOUpSample_MSAA_blendout";
+                if (float4Texture)
+                {
+                    kernelName += "_Float4";
+                }
+                kernel = cs.FindKernel(kernelName);
             }
 
 
@@ -502,9 +555,7 @@ namespace UnityEngine.Rendering.PostProcessing
             if (AOUpdateNeeded)
             {
                 RuntimeUtilities.Destroy(m_AmbientOnlyAO);
-
-                RenderTextureFormat format = RenderTextureFormat.ARGB32;
-                m_AmbientOnlyAO = new RenderTexture(context.width, context.height, 0, format, RenderTextureReadWrite.Linear)
+                m_AmbientOnlyAO = new RenderTexture(context.width, context.height, 0, m_R8Format, RenderTextureReadWrite.Linear)
                 {
                     hideFlags = HideFlags.DontSave,
                     filterMode = FilterMode.Point,
