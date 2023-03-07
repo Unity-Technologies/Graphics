@@ -9,8 +9,16 @@ using System.Collections.Generic;
 using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
 using System.IO;
+using System.Runtime.CompilerServices;
+#if VFX_HAS_TIMELINE
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
+#endif
+
+[assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests")]
+[assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests-testable")]
+[assembly: InternalsVisibleTo("Unity.VisualEffectGraph.RuntimeTests")]
+[assembly: InternalsVisibleTo("Unity.VisualEffectGraph.RuntimeTests-testable")]
 
 namespace UnityEditor.VFX.Test
 {
@@ -56,6 +64,7 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
+#if VFX_HAS_TIMELINE
         public static TimelineAsset CopyTemporaryTimeline(string path)
         {
             var guid = System.Guid.NewGuid().ToString();
@@ -67,6 +76,7 @@ namespace UnityEditor.VFX.Test
             var asset = AssetDatabase.LoadAssetAtPath<TimelineAsset>(tempFilePath);
             return asset;
         }
+#endif
 
         public static VFXViewController StartEditTestAsset()
         {

@@ -1,6 +1,8 @@
 {
     "name": "Unity.VisualEffectGraph.EditorTests",
     "references": [
+        "Unity.Testing.VisualEffectGraph.Editor",
+        "Unity.Testing.VisualEffectGraph.EditorTests",
         "Unity.VisualEffectGraph.Editor",
         "Unity.VisualEffectGraph.Runtime",
         "Unity.ShaderGraph.Editor",
