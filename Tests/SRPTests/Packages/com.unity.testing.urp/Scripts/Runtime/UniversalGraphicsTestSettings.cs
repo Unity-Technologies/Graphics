@@ -6,6 +6,9 @@ public class UniversalGraphicsTestSettings : GraphicsTestSettings
     public bool XRCompatible = true;
     public bool CheckMemoryAllocation = true;
 
+    [UnityEngine.Tooltip("If enabled, the back buffer resolution will be set to the value specified by Image Comparison Settings -> Image Resolution, before doing the back buffer capture.")]
+    public bool SetBackBufferResolution = false;
+
     public UniversalGraphicsTestSettings()
     {
         ImageComparisonSettings.TargetWidth = 512;

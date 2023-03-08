@@ -42,6 +42,16 @@ public class UniversalGraphicsTests
         if (settings.ImageComparisonSettings.UseBackBuffer && waitFrames < 1)
             waitFrames = 1;
 
+        if (settings.ImageComparisonSettings.UseBackBuffer && settings.SetBackBufferResolution)
+        {
+            // Set screen/backbuffer resolution before doing the capture in ImageAssert.AreEqual. This will avoid doing
+            // any resizing/scaling of the rendered image when comparing with the reference image in ImageAssert.AreEqual.
+            // This has to be done before WaitForEndOfFrame, as the request will only be applied after the frame ends.
+            int targetWidth = settings.ImageComparisonSettings.TargetWidth;
+            int targetHeight = settings.ImageComparisonSettings.TargetHeight;
+            Screen.SetResolution(targetWidth, targetHeight, true);
+        }
+
         for (int i = 0; i < waitFrames; i++)
             yield return new WaitForEndOfFrame();
 
