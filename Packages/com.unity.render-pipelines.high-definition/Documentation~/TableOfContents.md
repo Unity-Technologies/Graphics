@@ -98,6 +98,7 @@
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering.md)
     * [Diffusion Profile](Diffusion-Profile.md)
+  * [Compute Thickness](Compute-Thickness.md)
   * Shader List
     * 3DSMaxPhysicalMaterial
       * [PhysicalMaterial3DsMax](3ds-physical-shader)
