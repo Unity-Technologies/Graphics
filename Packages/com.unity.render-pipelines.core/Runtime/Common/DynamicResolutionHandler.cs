@@ -53,10 +53,19 @@ namespace UnityEngine.Rendering
         private float m_PrevFraction;
         private bool m_ForceSoftwareFallback;
         private bool m_RunUpscalerFilterOnFullResolution;
+        private int m_NumScaleSteps;
+        private float m_ScaleStepSize;
+        private int m_CurrentStepIndex;
 
         private float m_PrevHWScaleWidth;
         private float m_PrevHWScaleHeight;
         private Vector2Int m_LastScaledSize;
+
+        // Some platforms only support scaling in steps of 0.05 and cannot scale beyond the range of 0.25 <-> 1.0.
+        // We apply these restrictions at all times to avoid portability issues.
+        private const float kHwScalingGranularity = 0.05f;
+        private const float kMinHwScale = 0.25f;
+        private const float kMaxHwScale = 1.0f;
 
         private void Reset()
         {
@@ -70,6 +79,9 @@ namespace UnityEngine.Rendering
             m_PrevFraction = -1.0f;
             m_ForceSoftwareFallback = false;
             m_RunUpscalerFilterOnFullResolution = false;
+            m_NumScaleSteps = 1;
+            m_ScaleStepSize = 0.0f;
+            m_CurrentStepIndex = 0;
 
             m_PrevHWScaleWidth = 1.0f;
             m_PrevHWScaleHeight = 1.0f;
@@ -117,7 +129,23 @@ namespace UnityEngine.Rendering
         public bool runUpscalerFilterOnFullResolution
         {
             set { m_RunUpscalerFilterOnFullResolution = value; }
-            get { return m_RunUpscalerFilterOnFullResolution || filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres; }
+            get { return m_RunUpscalerFilterOnFullResolution || ((filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres) || (filter == DynamicResUpscaleFilter.STP)); }
+        }
+
+        /// <summary>
+        /// The number of unique resolution scaling steps.
+        /// </summary>
+        public int numScaleSteps
+        {
+            get { return m_NumScaleSteps; }
+        }
+
+        /// <summary>
+        /// The index of the current resolution scaling step.
+        /// </summary>
+        public int currentStepIndex
+        {
+            get { return m_CurrentStepIndex; }
         }
 
         private DynamicResolutionType type;
@@ -256,8 +284,59 @@ namespace UnityEngine.Rendering
             return 1.0f;
         }
 
+        // Returns the input fraction, but quantized to the nearest factor of the hardware scaling granularity.
+        private static float QuantizeScalingFraction(float fraction)
+        {
+            return Mathf.Round(fraction / kHwScalingGranularity) * kHwScalingGranularity;
+        }
+
+        /// <summary>
+        /// Structure that describes how the dynamic scaling steps are configured
+        /// </summary>
+        public struct DynamicScalingParameters
+        {
+            public float minScreenFraction;
+            public float maxScreenFraction;
+            public float scaleStepSize;
+            public int numScaleSteps;
+        }
+
+        /// <summary>
+        /// Calculates information about the dynamic scaling step configuration
+        /// </summary>
+        /// <param name="minPercentage">The minimum dynamic scaling value as a percentage</param>
+        /// <param name="maxPercentage">The maximum dynamic scaling value as a percentage</param>
+        /// <param name="dynamicResolutionStepSize">The dynamic scaling step size as a percentage</param>
+        /// <returns>Parameters that describe the dynamic scaling step configuration</returns>
+        public static DynamicScalingParameters CalculateScalingParameters(float minPercentage, float maxPercentage, float dynamicResolutionStepSize)
+        {
+            DynamicScalingParameters parameters;
+
+            parameters.minScreenFraction = QuantizeScalingFraction(Mathf.Clamp(minPercentage / 100.0f, kMinHwScale, kMaxHwScale));
+            parameters.maxScreenFraction = QuantizeScalingFraction(Mathf.Clamp(maxPercentage / 100.0f, parameters.minScreenFraction, kMaxHwScale));
+
+            // Calculate the step size and number of steps based on the current settings.
+            parameters.scaleStepSize = QuantizeScalingFraction(Mathf.Min(dynamicResolutionStepSize / 100.0f, (parameters.maxScreenFraction - parameters.minScreenFraction)));
+            if (parameters.scaleStepSize > 0.0f)
+            {
+                parameters.numScaleSteps = Mathf.CeilToInt((parameters.maxScreenFraction - parameters.minScreenFraction) / parameters.scaleStepSize) + 1;
+            }
+            else
+            {
+                parameters.numScaleSteps = 1;
+            }
+
+            return parameters;
+        }
+
         private void ProcessSettings(GlobalDynamicResolutionSettings settings)
         {
+            // Mark the current instance as dirty if any relevant settings have been modified since the last update.
+            if (!m_CachedSettings.Equals(settings))
+            {
+                s_ActiveInstanceDirty = true;
+            }
+
             m_Enabled = settings.enabled && (Application.isPlaying || settings.forceResolution);
 
             if (!m_Enabled)
@@ -268,10 +347,10 @@ namespace UnityEngine.Rendering
             {
                 type = settings.dynResType;
                 m_UseMipBias = settings.useMipBias;
-                float minScreenFrac = Mathf.Clamp(settings.minPercentage / 100.0f, 0.1f, 1.0f);
-                m_MinScreenFraction = minScreenFrac;
-                float maxScreenFrac = Mathf.Clamp(settings.maxPercentage / 100.0f, m_MinScreenFraction, 3.0f);
-                m_MaxScreenFraction = maxScreenFrac;
+
+                DynamicScalingParameters scalingParameters = CalculateScalingParameters(settings.minPercentage, settings.maxPercentage, settings.dynamicResolutionStepSize);
+                m_MinScreenFraction = scalingParameters.minScreenFraction;
+                m_MaxScreenFraction = scalingParameters.maxScreenFraction;
 
                 // Check if a filter has been set via user API, if so we use that, otherwise we use the default from the GlobalDynamicResolutionSettings
                 bool hasUserRequestedFilter = s_CameraUpscaleFilters.TryGetValue(s_ActiveCameraId, out DynamicResUpscaleFilter requestedFilter);
@@ -281,10 +360,23 @@ namespace UnityEngine.Rendering
 
                 if (m_ForcingRes)
                 {
-                    float fraction = Mathf.Clamp(settings.forcedPercentage / 100.0f, 0.1f, 1.5f);
-                    m_CurrentFraction = fraction;
+                    // Set the min/max fractions to that forced percentage value and configure a single resolution step.
+                    m_CurrentFraction = QuantizeScalingFraction(Mathf.Clamp(settings.forcedPercentage / 100.0f, kMinHwScale, kMaxHwScale));
+                    m_CurrentStepIndex = 0;
+
+                    m_MinScreenFraction = m_CurrentFraction;
+                    m_MaxScreenFraction = m_CurrentFraction;
+
+                    m_ScaleStepSize = 0.0f;
+                    m_NumScaleSteps = 1;
+                }
+                else
+                {
+                    m_ScaleStepSize = scalingParameters.scaleStepSize;
+                    m_NumScaleSteps = scalingParameters.numScaleSteps;
                 }
             }
+
             m_CachedSettings = settings;
         }
 
@@ -449,6 +541,22 @@ namespace UnityEngine.Rendering
                     float percentageRequested = Mathf.Max(scaler.method(), 5.0f);
                     m_CurrentFraction = Mathf.Clamp(percentageRequested / 100.0f, m_MinScreenFraction, m_MaxScreenFraction);
                 }
+
+                if (m_MinScreenFraction != m_MaxScreenFraction)
+                {
+                    // Calculate the current scaling step index and correct the fraction value so it matches the selected step.
+                    m_CurrentStepIndex = Math.Min(Mathf.FloorToInt(((m_CurrentFraction - m_MinScreenFraction) / (m_MaxScreenFraction - m_MinScreenFraction)) * m_NumScaleSteps), (m_NumScaleSteps - 1));
+                    m_CurrentFraction = Mathf.Min(m_MinScreenFraction + (m_CurrentStepIndex * m_ScaleStepSize), m_MaxScreenFraction);
+                }
+                else
+                {
+                    // In the case where the screen fractions match, we should only have a single scaling step
+                    Debug.Assert(m_NumScaleSteps == 1);
+
+                    // The min/max screen fractions are identical, just choose the minimum and the first step.
+                    m_CurrentFraction = m_MinScreenFraction;
+                    m_CurrentStepIndex = 0;
+                }
             }
 
             bool hardwareResolutionChanged = false;
@@ -587,6 +695,71 @@ namespace UnityEngine.Rendering
         public Vector2Int GetLastScaledSize()
         {
             return m_LastScaledSize;
+        }
+
+        /// <summary>
+        /// Computes the scaled viewport size at the provided dynamic scaling step
+        /// </summary>
+        /// <param name="stepIndex">Indicates the target dynamic scaling step</param>
+        /// <param name="scalingParams">Information about how the scaling steps are configured</param>
+        /// <param name="finalViewportSize">Size of the final rendered viewport</param>
+        /// <param name="useSwScaling">True if the software scaling mode is currently active and false if hardware scaling is active</param>
+        /// <returns>Size of the viewport at the target dynamic scaling step</returns>
+        public static Vector2Int CalculateScaledViewportSizeForStep(int stepIndex, DynamicScalingParameters scalingParams, Vector2Int finalViewportSize, bool useSwScaling)
+        {
+            float scale = Math.Min(scalingParams.minScreenFraction + stepIndex * scalingParams.scaleStepSize, scalingParams.maxScreenFraction);
+            Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(finalViewportSize.x * scale), Mathf.CeilToInt(finalViewportSize.y * scale));
+
+            if (useSwScaling)
+            {
+                scaledSize.x = (scaledSize.x + 1) & ~1;
+                scaledSize.y = (scaledSize.y + 1) & ~1;
+            }
+
+            return scaledSize;
+        }
+
+        /// <summary>
+        /// Computes the scaled viewport size at the provided dynamic scaling step
+        /// </summary>
+        /// <param name="stepIndex">Indicates the target dynamic scaling step</param>
+        /// <returns>Size of the viewport at the target dynamic scaling step</returns>
+        public Vector2Int GetScaledViewportSizeForStep(int stepIndex)
+        {
+            Debug.Assert(stepIndex < m_NumScaleSteps);
+
+            bool useSwScaling = (m_ForceSoftwareFallback || type != DynamicResolutionType.Hardware);
+
+            DynamicScalingParameters scalingParams;
+
+            scalingParams.minScreenFraction = m_MinScreenFraction;
+            scalingParams.maxScreenFraction = m_MaxScreenFraction;
+            scalingParams.scaleStepSize = m_ScaleStepSize;
+            scalingParams.numScaleSteps = m_NumScaleSteps;
+
+            return CalculateScaledViewportSizeForStep(stepIndex, scalingParams, finalViewport, useSwScaling);
+        }
+
+        /// <summary>
+        /// Returns a hash that changes whenever the set of scaled viewport sizes change.
+        /// External systems typically use this to detect when they need to resize internal buffers.
+        /// </summary>
+        /// <returns>A hash that changes whenever the set of scaled viewport sizes change.</returns>
+        public Hash128 ComputeScaledViewportSizesHash()
+        {
+            Hash128 hash = new Hash128();
+
+            hash.Append(finalViewport.x);
+            hash.Append(finalViewport.y);
+
+            hash.Append(m_NumScaleSteps);
+            hash.Append(m_MinScreenFraction);
+            hash.Append(m_MaxScreenFraction);
+            hash.Append(m_ScaleStepSize);
+            hash.Append(m_ForceSoftwareFallback ? 1 : 0);
+            hash.Append((int)type);
+
+            return hash;
         }
 
         /// <summary>

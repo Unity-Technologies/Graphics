@@ -47,12 +47,17 @@ namespace UnityEngine.Rendering
         /// Temporal Upscaling.
         /// </summary>
         [InspectorName("TAA Upscale")]
-        TAAU
+        TAAU,
+        /// <summary>
+        /// Scalable Temporal Post-Processing
+        /// </summary>
+        [InspectorName("Scalable Temporal Post-Processing")]
+        STP
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
     [Serializable]
-    public struct GlobalDynamicResolutionSettings
+    public struct GlobalDynamicResolutionSettings : IEquatable<GlobalDynamicResolutionSettings>
     {
         /// <summary>Default GlobalDynamicResolutionSettings</summary>
         /// <returns></returns>
@@ -67,6 +72,7 @@ namespace UnityEngine.Rendering
             forcedPercentage = 100.0f,
             lowResTransparencyMinimumThreshold = 0.0f,
             rayTracingHalfResThreshold = 50.0f,
+            dynamicResolutionStepSize = 25.0f,
 
             // Defaults for dlss
             enableDLSS = false,
@@ -76,8 +82,34 @@ namespace UnityEngine.Rendering
             DLSSInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
 
             fsrOverrideSharpness = false,
-            fsrSharpness = FSRUtils.kDefaultSharpnessLinear
+            fsrSharpness = FSRUtils.kDefaultSharpnessLinear,
+            stpQuality = true,
+            stpResponsive = true,
         };
+
+        public bool Equals(GlobalDynamicResolutionSettings other)
+        {
+            return ((enabled == other.enabled) &&
+                    (useMipBias == other.useMipBias) &&
+                    (enableDLSS == other.enableDLSS) &&
+                    (DLSSPerfQualitySetting == other.DLSSPerfQualitySetting) &&
+                    (DLSSInjectionPoint == other.DLSSInjectionPoint) &&
+                    (DLSSUseOptimalSettings == other.DLSSUseOptimalSettings) &&
+                    (DLSSSharpness == other.DLSSSharpness) &&
+                    (fsrOverrideSharpness == other.fsrOverrideSharpness) &&
+                    (fsrSharpness == other.fsrSharpness) &&
+                    (stpQuality == other.stpQuality) &&
+                    (stpResponsive == other.stpResponsive) &&
+                    (maxPercentage == other.maxPercentage) &&
+                    (minPercentage == other.minPercentage) &&
+                    (dynResType == other.dynResType) &&
+                    (upsampleFilter == other.upsampleFilter) &&
+                    (forceResolution == other.forceResolution) &&
+                    (forcedPercentage == other.forcedPercentage) &&
+                    (lowResTransparencyMinimumThreshold == other.lowResTransparencyMinimumThreshold) &&
+                    (rayTracingHalfResThreshold == other.rayTracingHalfResThreshold) &&
+                    (dynamicResolutionStepSize == other.dynamicResolutionStepSize));
+        }
 
         /// <summary>Select whether the dynamic resolution is enabled or not.</summary>
         public bool enabled;
@@ -111,6 +143,16 @@ namespace UnityEngine.Rendering
         [Range(0, 1)]
         public float fsrSharpness;
 
+        /// <summary>
+        /// Toggle STP high quality configuration preset (prefer quality over performance)
+        /// </summary>
+        public bool stpQuality;
+
+        /// <summary>
+        /// Toggle STP responsive AA feature (Avoids ghosting artifacts on transparent objects such as particle effects)
+        /// </summary>
+        public bool stpResponsive;
+
         /// <summary>The maximum resolution percentage that dynamic resolution can reach.</summary>
         public float maxPercentage;
         /// <summary>The minimum resolution percentage that dynamic resolution can reach.</summary>
@@ -131,5 +173,8 @@ namespace UnityEngine.Rendering
 
         /// <summary>The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.</summary>
         public float rayTracingHalfResThreshold;
+
+        /// <summary>The size of each step between unique resolutions supported by dynamic resolution.</summary>
+        public float dynamicResolutionStepSize;
     }
 }

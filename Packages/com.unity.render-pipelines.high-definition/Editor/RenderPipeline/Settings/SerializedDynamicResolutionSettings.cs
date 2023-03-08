@@ -16,6 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty DLSSSharpness;
         public SerializedProperty fsrOverrideSharpness;
         public SerializedProperty fsrSharpness;
+        public SerializedProperty stpQuality;
+        public SerializedProperty stpResponsive;
         public SerializedProperty maxPercentage;
         public SerializedProperty minPercentage;
         public SerializedProperty dynamicResType;
@@ -24,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty forcedPercentage;
         public SerializedProperty lowResTransparencyMinimumThreshold;
         public SerializedProperty rayTracingHalfResThreshold;
+        public SerializedProperty dynamicResolutionStepSize;
 
         public SerializedDynamicResolutionSettings(SerializedProperty root)
         {
@@ -38,6 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition
             DLSSSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSSharpness);
             fsrOverrideSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.fsrOverrideSharpness);
             fsrSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.fsrSharpness);
+            stpQuality = root.Find((GlobalDynamicResolutionSettings s) => s.stpQuality);
+            stpResponsive = root.Find((GlobalDynamicResolutionSettings s) => s.stpResponsive);
             maxPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.maxPercentage);
             minPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.minPercentage);
             dynamicResType = root.Find((GlobalDynamicResolutionSettings s) => s.dynResType);
@@ -46,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             forcedPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.forcedPercentage);
             lowResTransparencyMinimumThreshold = root.Find((GlobalDynamicResolutionSettings s) => s.lowResTransparencyMinimumThreshold);
             rayTracingHalfResThreshold = root.Find((GlobalDynamicResolutionSettings s) => s.rayTracingHalfResThreshold);
+            dynamicResolutionStepSize = root.Find((GlobalDynamicResolutionSettings s) => s.dynamicResolutionStepSize);
         }
     }
 }
