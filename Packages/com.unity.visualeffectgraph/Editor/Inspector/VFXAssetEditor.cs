@@ -199,8 +199,8 @@ class VisualEffectAssetEditor : Editor
     void OnEnable()
     {
         m_OutputContexts.Clear();
-        VisualEffectAsset target = this.target as VisualEffectAsset;
-        var resource = target.GetResource();
+        VisualEffectAsset vfxTarget = target as VisualEffectAsset;
+        var resource = vfxTarget.GetResource();
         if (resource != null) //Can be null if VisualEffectAsset is in Asset Bundle
         {
             m_CurrentGraph = resource.GetOrCreateGraph();
@@ -225,81 +225,6 @@ class VisualEffectAssetEditor : Editor
 
         m_ReorderableList.drawElementCallback = DrawOutputContextItem;
 
-        if (m_VisualEffectGO == null)
-        {
-            m_PreviewUtility?.Cleanup();
-
-            m_PreviewUtility = new PreviewRenderUtility();
-            m_PreviewUtility.camera.fieldOfView = 60.0f;
-            m_PreviewUtility.camera.allowHDR = true;
-            m_PreviewUtility.camera.allowMSAA = false;
-            m_PreviewUtility.camera.farClipPlane = 10000.0f;
-            m_PreviewUtility.camera.clearFlags = CameraClearFlags.SolidColor;
-            m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 1.0f);
-            m_PreviewUtility.lights[0].intensity = 1.4f;
-            m_PreviewUtility.lights[0].transform.rotation = Quaternion.Euler(40f, 40f, 0);
-            m_PreviewUtility.lights[1].intensity = 1.4f;
-
-            m_VisualEffectGO = new GameObject("VisualEffect (Preview)");
-
-            m_VisualEffectGO.hideFlags = HideFlags.DontSave;
-            m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
-            m_VisualEffect.pause = true;
-            m_RemainingFramesToRender = 1;
-            m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
-
-            m_VisualEffectGO.transform.localPosition = Vector3.zero;
-            m_VisualEffectGO.transform.localRotation = Quaternion.identity;
-            m_VisualEffectGO.transform.localScale = Vector3.one;
-
-            m_VisualEffect.visualEffectAsset = target;
-
-            m_CurrentBounds = new Bounds(Vector3.zero, Vector3.one);
-            m_Distance = null;
-            m_Angles = Vector2.zero;
-
-            if (s_CubeWireFrame == null)
-            {
-                s_CubeWireFrame = new Mesh();
-
-                var vertices = new Vector3[]
-                {
-                    new Vector3(-0.5f, -0.5f, -0.5f),
-                    new Vector3(-0.5f, -0.5f, 0.5f),
-                    new Vector3(-0.5f, 0.5f, 0.5f),
-                    new Vector3(-0.5f, 0.5f, -0.5f),
-
-                    new Vector3(0.5f, -0.5f, -0.5f),
-                    new Vector3(0.5f, -0.5f, 0.5f),
-                    new Vector3(0.5f, 0.5f, 0.5f),
-                    new Vector3(0.5f, 0.5f, -0.5f)
-                };
-
-
-                var indices = new int[]
-                {
-                    0, 1,
-                    0, 3,
-                    0, 4,
-
-                    6, 2,
-                    6, 5,
-                    6, 7,
-
-                    1, 2,
-                    1, 5,
-
-                    3, 7,
-                    3, 2,
-
-                    4, 5,
-                    4, 7
-                };
-                s_CubeWireFrame.vertices = vertices;
-                s_CubeWireFrame.SetIndices(indices, MeshTopology.Lines, 0);
-            }
-        }
-
         var targetResources = targets.Cast<VisualEffectAsset>().Select(t => t.GetResource()).Where(t => t != null).ToArray();
         if (targetResources.Any())
         {
@@ -320,6 +245,83 @@ class VisualEffectAssetEditor : Editor
         }
     }
 
+    private void CreateVisualEffect()
+    {
+        Debug.Assert(m_VisualEffectGO == null);
+
+        m_PreviewUtility?.Cleanup();
+
+        m_PreviewUtility = new PreviewRenderUtility();
+        m_PreviewUtility.camera.fieldOfView = 60.0f;
+        m_PreviewUtility.camera.allowHDR = true;
+        m_PreviewUtility.camera.allowMSAA = false;
+        m_PreviewUtility.camera.farClipPlane = 10000.0f;
+        m_PreviewUtility.camera.clearFlags = CameraClearFlags.SolidColor;
+        m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 1.0f);
+        m_PreviewUtility.lights[0].intensity = 1.4f;
+        m_PreviewUtility.lights[0].transform.rotation = Quaternion.Euler(40f, 40f, 0);
+        m_PreviewUtility.lights[1].intensity = 1.4f;
+
+        m_VisualEffectGO = new GameObject("VisualEffect (Preview)");
+
+        m_VisualEffectGO.hideFlags = HideFlags.DontSave;
+        m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
+        m_VisualEffect.pause = true;
+        m_RemainingFramesToRender = 1;
+        m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
+
+        m_VisualEffectGO.transform.localPosition = Vector3.zero;
+        m_VisualEffectGO.transform.localRotation = Quaternion.identity;
+        m_VisualEffectGO.transform.localScale = Vector3.one;
+
+        VisualEffectAsset vfxTarget = target as VisualEffectAsset;
+        m_VisualEffect.visualEffectAsset = vfxTarget;
+
+        m_CurrentBounds = new Bounds(Vector3.zero, Vector3.one);
+        m_Distance = null;
+        m_Angles = Vector2.zero;
+
+        if (s_CubeWireFrame == null)
+        {
+            s_CubeWireFrame = new Mesh();
+
+            var vertices = new Vector3[]
+            {
+                new Vector3(-0.5f, -0.5f, -0.5f),
+                new Vector3(-0.5f, -0.5f, 0.5f),
+                new Vector3(-0.5f, 0.5f, 0.5f),
+                new Vector3(-0.5f, 0.5f, -0.5f),
+
+                new Vector3(0.5f, -0.5f, -0.5f),
+                new Vector3(0.5f, -0.5f, 0.5f),
+                new Vector3(0.5f, 0.5f, 0.5f),
+                new Vector3(0.5f, 0.5f, -0.5f)
+            };
+
+
+            var indices = new int[]
+            {
+                0, 1,
+                0, 3,
+                0, 4,
+
+                6, 2,
+                6, 5,
+                6, 7,
+
+                1, 2,
+                1, 5,
+
+                3, 7,
+                3, 2,
+
+                4, 5,
+                4, 7
+            };
+            s_CubeWireFrame.vertices = vertices;
+            s_CubeWireFrame.SetIndices(indices, MeshTopology.Lines, 0);
+        }
+    }
 
     PreviewRenderUtility m_PreviewUtility;
 
@@ -379,7 +381,7 @@ class VisualEffectAssetEditor : Editor
     public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
     {
         if (m_VisualEffectGO == null)
-            OnEnable();
+            CreateVisualEffect();
 
         bool isRepaint = Event.current.type == EventType.Repaint;
 
