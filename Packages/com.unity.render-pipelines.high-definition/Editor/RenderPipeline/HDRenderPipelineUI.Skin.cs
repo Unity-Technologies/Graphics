@@ -117,6 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent waterSimulationResolutionContent = EditorGUIUtility.TrTextContent("Simulation Resolution", "Specifies the resolution of the water simulation. A higher resolution increases the visual quality, but increases the cost.");
             public static readonly GUIContent supportWaterDeformationContent = EditorGUIUtility.TrTextContent("Deformation", "When enabled, HDRP allocates additional memory to support water deformation.");
             public static readonly GUIContent deformationAtlasSizeContent = EditorGUIUtility.TrTextContent("Deformation Atlas Size", "Specifies the size of the atlas used to store texture water deformers.");
+            public static readonly GUIContent maximumDeformerCountContent = EditorGUIUtility.TrTextContent("Maximum Deformer Count", "Sets the maximum amount of water deformers HDRP can support.");
             public static readonly GUIContent supportWaterFoamContent = EditorGUIUtility.TrTextContent("Foam", "When enabled, HDRP allocates additional memory to support water foam.");
             public static readonly GUIContent foamAtlasSizeContent = EditorGUIUtility.TrTextContent("Foam Atlas Size", "Specifies the size of the atlas used to store texture water foam.");
             public static readonly GUIContent supportWaterExclusionContent = EditorGUIUtility.TrTextContent("Exclusion", "When enabled, HDRP allocates a stencil bit to support water excluders.");

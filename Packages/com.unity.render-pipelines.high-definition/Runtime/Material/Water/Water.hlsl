@@ -359,6 +359,7 @@ struct PreLightData
     float outScatteringCoefficient;
     float colorPyramidScale;
     int colorPyramidMipOffset;
+    int disableIOR;
 
     float NdotV;                     // Could be negative due to normal mapping, use ClampNdotV()
     float partLambdaV;
@@ -429,12 +430,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Profile data
     preLightData.tipScatteringHeight = profile.tipScatteringHeight;
     preLightData.bodyScatteringHeight = profile.bodyScatteringHeight;
-    preLightData.maxRefractionDistance = profile.maxRefractionDistance;
+    preLightData.maxRefractionDistance = bsdfData.frontFace ? profile.maxRefractionDistance : 1.0f;
     preLightData.transparencyColor = profile.transparencyColor;
     preLightData.outScatteringCoefficient = profile.outScatteringCoefficient;
     preLightData.upDirection = profile.upDirection;
     preLightData.colorPyramidScale = profile.colorPyramidScale;
     preLightData.colorPyramidMipOffset = profile.colorPyramidMipOffset;
+    preLightData.disableIOR = profile.disableIOR;
     // Evaluate the scattering color and take into account the under water ambient probe contribution as this value is only used for under-water scenarios
     preLightData.scatteringColor = profile.scatteringColor * lerp(1.0, _WaterAmbientProbe.w * GetCurrentExposureMultiplier(), profile.underWaterAmbientProbeContribution);
 
@@ -839,7 +841,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float refractedWaterDistance;
     float3 absorptionTint;
     ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
-        posInput.positionSS * _ScreenSize.zw, V, bsdfData.frontFace,
+        posInput.positionSS * _ScreenSize.zw, V, bsdfData.frontFace, preLightData.disableIOR,
         preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
         refractedWaterPosRWS, distortedWaterNDC, refractedWaterDistance, absorptionTint);
 
@@ -849,6 +851,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     if (!bsdfData.frontFace)
     {
         pixelCoordinates *= preLightData.colorPyramidScale;
+        pixelCoordinates = min(pixelCoordinates, _ScreenSize.xy * preLightData.colorPyramidScale - 1);
         lod += preLightData.colorPyramidMipOffset;
     }
 

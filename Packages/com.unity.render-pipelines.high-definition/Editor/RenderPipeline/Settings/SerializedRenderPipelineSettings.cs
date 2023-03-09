@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty waterSimulationResolution;
         public SerializedProperty supportWaterDeformation;
         public SerializedProperty deformationAtlasSize;
+        public SerializedProperty maximumDeformerCount;
         public SerializedProperty supportWaterFoam;
         public SerializedProperty foamAtlasSize;
         public SerializedProperty supportWaterExclusion;
@@ -119,6 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
             supportWaterDeformation = root.Find((RenderPipelineSettings s) => s.supportWaterDeformation);
             deformationAtlasSize = root.Find((RenderPipelineSettings s) => s.deformationAtlasSize);
+            maximumDeformerCount = root.Find((RenderPipelineSettings s) => s.maximumDeformerCount);
             supportWaterFoam = root.Find((RenderPipelineSettings s) => s.supportWaterFoam);
             foamAtlasSize = root.Find((RenderPipelineSettings s) => s.foamAtlasSize);
             supportWaterExclusion = root.Find((RenderPipelineSettings s) => s.supportWaterExclusion);

@@ -405,7 +405,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>
         /// Controls how the scattering color is evaluated for the underwater scenario.
-        /// Controls how the scattering color is evaluated for the underwater scenario.
         /// </summary>
         public enum UnderWaterScatteringColorMode
         {
@@ -432,6 +431,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the color that is used to simulate the scattering when the camera is under-water.")]
         [ColorUsage(false)]
         public Color underWaterScatteringColor = new Color(0.0f, 0.27f, 0.23f);
+
+        /// <summary>
+        /// Determines if water surface should refract light when looking at objects from underwater.
+        /// This simulates the correct behavior of water but may introduce visual artifacts as it relies on screen space refraction.
+        /// </summary>
+        public bool underWaterRefraction = false;
         #endregion
 
         /// <summary>

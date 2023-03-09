@@ -137,11 +137,29 @@ namespace UnityEngine.Rendering.HighDefinition
         public float ripplesFadeDistance = 200.0f;
         #endregion
 
+        internal int numActiveBands
+        {
+            get
+            {
+                switch (surfaceType)
+                {
+                    case WaterSurfaceType.OceanSeaLake:
+                        return ripples ? 3 : 2;
+                    case WaterSurfaceType.River:
+                        return ripples ? 2 : 1;
+                    default:
+                        return 1;
+                }
+            }
+        }
+
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal void CheckResources(int bandResolution, int bandCount, bool activeFoam, bool cpuSimActive, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
+        internal void CheckResources(int bandResolution, bool activeFoam, bool cpuSimActive, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
         {
+            int bandCount = numActiveBands;
+
             // By default we shouldn't need an update
             gpuSpectrumValid = true;
             cpuSpectrumValid = true;
@@ -196,11 +214,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Evaluate the spectrum parameters
             WaterSpectrumParameters spectrum = EvaluateSpectrumParams(surfaceType);
 
-            if (simulation.spectrum.numActiveBands != spectrum.numActiveBands)
-            {
-                historyValid = false;
-            }
-
             // If the spectrum defining data changed, we need to invalidate the buffers
             if (simulation.spectrum != spectrum)
             {
@@ -215,11 +228,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Re-evaluate the simulation data
             simulation.rendering = EvaluateRenderingParams(surfaceType);
-        }
-
-        bool SpectrumParametersAreValid(WaterSpectrumParameters spectrum)
-        {
-            return (simulation.spectrum == spectrum);
         }
 
         internal static void EvaluateWaterSurfaceMatrices(bool instancedQuads, Vector3 position, Quaternion rotation, ref float4x4 waterToWorld, ref float4x4 worldToWater)
@@ -242,9 +250,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // We need to evaluate the radio between the first and second band
                     float swellSecondBandRatio = HDRenderPipeline.EvaluateSwellSecondPatchSize(swellPatchSize);
-
-                    // Propagate the high frequency bands flag
-                    spectrum.numActiveBands = ripples ? 3 : 2;
 
                     // Set the patch groups
                     spectrum.patchGroup.x = 0;
@@ -280,9 +285,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 break;
                 case WaterSurfaceType.River:
                 {
-                    // Propagate the high frequency bands flag
-                    spectrum.numActiveBands = ripples ? 2 : 1;
-
                     // Set the patch groups
                     spectrum.patchGroup.x = 0;
                     spectrum.patchGroup.y = ripplesMotionMode == WaterPropertyOverrideMode.Inherit ? 0 : 1;
@@ -312,9 +314,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 break;
                 case WaterSurfaceType.Pool:
                 {
-                    // Propagate the high frequency bands flag
-                    spectrum.numActiveBands = 1;
-
                     // Set the patch groups
                     spectrum.patchGroup.x = 1;
 

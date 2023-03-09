@@ -54,18 +54,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void WaterSurfaceFoamSection(WaterSurfaceEditor serialized, Editor owner)
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWater ?? false)
-            {
-                EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWater");
-                return;
-            }
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWaterFoam ?? false)
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support foam for Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWaterFoam");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering, HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWaterFoam");
                 return;
             }
 

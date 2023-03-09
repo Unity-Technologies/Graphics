@@ -627,7 +627,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     // Evaluate the foam region coordinates
     if (_WaterFoamRegionResolution > 0 && all(foamUV > 0.0) && all(foamUV < 1.0))
     {
-        float2 foamRegion = SAMPLE_TEXTURE2D(_WaterFoamBuffer, sampler_SimulationFoamMask, foamUV).xy;
+        float2 foamRegion = SAMPLE_TEXTURE2D(_WaterFoamBuffer, s_linear_clamp_sampler, foamUV).xy;
         waterAdditionalData.surfaceFoam += foamRegion.x;
         waterAdditionalData.deepFoam += foamRegion.y;
     }
@@ -774,7 +774,7 @@ float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
 }
 
 void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals,
-    float2 screenUV, float3 viewWS, bool aboveWater,
+    float2 screenUV, float3 viewWS, bool aboveWater, bool disableUnderWaterIOR,
     float maxRefractionDistance, float3 transparencyColor, float outScatteringCoeff,
     out float3 refractedWaterPosRWS, out float2 distortedWaterNDC, out float refractedWaterDistance, out float3 absorptionTint)
 {
@@ -785,16 +785,18 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     // Compute the distance between the water surface and the object behind
     float underWaterDistance = directWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(directWaterPosRWS - waterPosRWS);
 
-    // Blend both normals to decide what normal will be used for the refraction
-    float3 refractionNormal = normalize(lerp(waterNormal, lowFrequencyNormals, saturate(underWaterDistance / max(maxRefractionDistance, 0.00001f))));
-
     // We approach the refraction differently if we are under or above water for various reasons
     float3 refractedView;
     float3 distortedWaterWS;
-    if (aboveWater)
+    if (aboveWater || disableUnderWaterIOR)
     {
-        refractedView = lerp(refractionNormal, float3(0, 1, 0), EdgeBlendingFactor(screenUV, length(waterPosRWS))) * float3(1, 0, 1);
+        refractedView = lerp(waterNormal, float3(0, 1, 0), EdgeBlendingFactor(screenUV, length(waterPosRWS))) * float3(1, 0, 1);
         distortedWaterWS = waterPosRWS + refractedView * min(underWaterDistance, maxRefractionDistance);
+
+        // When disable IOR is active, we are sure that refraction data is always avalaible on screen
+        // but we still compute a total internal refraction
+        if (disableUnderWaterIOR)
+            refractedView = refract(-viewWS, waterNormal, WATER_IOR);
     }
     else
     {
@@ -820,17 +822,16 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     }
 
     // Evaluate the absorption tint
-    absorptionTint = exp(-refractedWaterDistance * outScatteringCoeff * (1.f - transparencyColor));
-
-    // If we are underwater and we detect a total internal refraction, we need to adjust the parameters
     if (!aboveWater)
     {
-        // Evaluate the absorption tint
-        bool invalidSamplePoint = dot(-viewWS, refractedView) <= 0.0
-                                || distortedWaterNDC.x < 0.0 || distortedWaterNDC.y < 0.0
-                                || distortedWaterNDC.x > 1.0 || distortedWaterNDC.y > 1.0;
-        absorptionTint = invalidSamplePoint ? 0.0 : 1;
+        // If we are underwater and we detect a total internal refraction, we need to adjust the parameters
+        bool totalInternalReflection = all(refractedView == 0.0f);
+        bool invalidSample = !disableUnderWaterIOR && any(saturate(distortedWaterNDC) != distortedWaterNDC);
+
+        absorptionTint = (totalInternalReflection || invalidSample) ? 0.0f : 1.0f;
     }
+    else
+        absorptionTint = exp(-refractedWaterDistance * outScatteringCoeff * (1.f - transparencyColor));
 }
 
 float EvaluateTipThickness(float3 viewWS, float3 lowFrequencyNormals, float lowFrequencyHeight)

@@ -133,6 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly GUIContent k_ColorPyramidOffset = EditorGUIUtility.TrTextContent("Color Pyramid Mip Offset", "Sets the mip offset used to evaluated the underwater refraction. Higher values produce blurrier results but introduce aliasing artifacts.");
         public static readonly GUIContent k_UnderWaterScatteringColorMode = EditorGUIUtility.TrTextContent("Scattering Color Mode", "Sets how the underwater scattering color is specified.");
         public static readonly GUIContent k_UnderWaterScatteringColor = EditorGUIUtility.TrTextContent("Scattering Color", "Sets the color that is used to simulate the scattering when the camera is underwater.");
+        public static readonly GUIContent k_UnderWaterRefraction = EditorGUIUtility.TrTextContent("Screen Space Refraction", "When enabled, the water surface will refract light when looking at objects from underwater. Distant and Local Wind will still have an effect on refraction.\nThis setting only affects screen space refraction when sampling the color pyramid from underwater.");
         public static readonly GUIContent k_UnderWaterAmbientProbeContribution = EditorGUIUtility.TrTextContent("Ambient Probe Contribution", "Sets the contribution of the ambient probe to the underwater scattering color.");
 
         // Foam
