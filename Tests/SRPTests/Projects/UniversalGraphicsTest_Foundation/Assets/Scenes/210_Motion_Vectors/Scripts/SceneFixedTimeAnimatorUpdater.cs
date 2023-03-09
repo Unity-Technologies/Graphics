@@ -10,7 +10,7 @@ public class SceneFixedTimeAnimatorUpdater : MonoBehaviour
     void Start()
     {
         m_SceneAnimators = new List<Animator>();
-        var foundObjects = FindObjectsOfType(typeof(Animator),true);
+        var foundObjects = FindObjectsByType<Animator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         if (foundObjects != null)
         {
             foreach (var obj in foundObjects)

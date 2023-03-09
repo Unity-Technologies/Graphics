@@ -73,22 +73,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
 
             cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1f / viewport.width, 1f / viewport.height, width * -viewport.x * 2, height * -viewport.y * 2));
             cmd.SetViewport(new Rect(width * viewport.x, height * viewport.y, width * viewport.width, height * viewport.height));
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            bool useDrawProcedural =  cameraData.xrRendering;
-#else
-            bool useDrawProcedural = false;
-#endif
-
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity); // Prepare for manual blit
-            if (useDrawProcedural)
-            {
-                cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Quads, 4, 1, null);
-            }
-            else
-            {
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, 0);
-            }
+            Blitter.BlitTexture(cmd,  Vector2.one, m_Material, 0);
             cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
         }
 

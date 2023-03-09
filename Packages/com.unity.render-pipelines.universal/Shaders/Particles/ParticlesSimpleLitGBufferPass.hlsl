@@ -66,7 +66,7 @@ inline void InitializeParticleSimpleLitSurfaceData(VaryingsParticle input, out S
     outSurfaceData.albedo = AlphaModulate(albedo.rgb, albedo.a);
     outSurfaceData.alpha = albedo.a;
 #if defined(_EMISSION)
-    outSurfaceData.emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv) * _EmissionColor.rgb;
+    outSurfaceData.emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
 #else
     outSurfaceData.emission = half3(0, 0, 0);
 #endif

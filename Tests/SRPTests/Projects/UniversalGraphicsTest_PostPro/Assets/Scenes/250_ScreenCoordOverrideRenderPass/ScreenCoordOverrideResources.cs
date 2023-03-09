@@ -13,7 +13,7 @@ public class ScreenCoordOverrideResources : MonoBehaviour
     {
         if (s_Instance == null)
         {
-            s_Instance = FindObjectOfType<ScreenCoordOverrideResources>();
+            s_Instance = FindAnyObjectByType<ScreenCoordOverrideResources>();
             Assert.IsNotNull(s_Instance, $"Could not find instance of \"{nameof(ScreenCoordOverrideResources)}\".");
         }
 

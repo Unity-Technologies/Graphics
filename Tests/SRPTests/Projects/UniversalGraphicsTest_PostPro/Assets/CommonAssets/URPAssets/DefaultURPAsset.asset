@@ -21,7 +21,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 676c15eaf197b43079a39998e6c23816, type: 2}
   - {fileID: 11400000, guid: e46834cadfc4eb241bd46a362765a390, type: 2}
   - {fileID: 11400000, guid: 00d10fe6866821340b490e3b5b5c19f6, type: 2}
-  - {fileID: 11400000, guid: 25dd23104304c1c44af89227207beefb, type: 2}
+  - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
   - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
   - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
   - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
@@ -96,10 +96,16 @@ MonoBehaviour:
     bayerMatrixTex: {fileID: 2800000, guid: f9ee4ed84c1d10c49aabb9b210b0fc44, type: 3}
   apvScenesData:
     m_ObsoleteSerializedBakingSets: []
-    serializedBounds: []
-    serializedHasVolumes: []
+    sceneToBakingSet:
+      m_Keys: []
+      m_Values: []
     bakingSets: []
-    m_LightingScenario: Default
+    sceneBounds:
+      m_Keys: []
+      m_Values: []
+    hasProbeVolumes:
+      m_Keys: []
+      m_Values: 
   m_PrefilteringModeMainLightShadows: 2
   m_PrefilteringModeAdditionalLight: 0
   m_PrefilteringModeAdditionalLightShadows: 1

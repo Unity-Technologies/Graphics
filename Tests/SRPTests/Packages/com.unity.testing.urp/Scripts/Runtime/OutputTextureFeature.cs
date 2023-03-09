@@ -34,7 +34,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             m_Material = new Material(shader);
         }
         m_OutputTexturePassPass.renderPassEvent = renderPassEvent + renderPassEventAdjustment;
-        m_OutputTexturePassPass.Setup(renderer, m_Material, inputRequirement, renderPassEvent, renderPassEventAdjustment);
+        m_OutputTexturePassPass.Setup(renderer, m_Material, inputRequirement);
         renderer.EnqueuePass(m_OutputTexturePassPass);
     }
 
@@ -56,7 +56,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             m_PassData = new PassData();
         }
 
-        public void Setup(ScriptableRenderer renderer, Material material, ScriptableRenderPassInput inputRequirement, RenderPassEvent renderPassEvent, int renderPassEventAdjustment)
+        public void Setup(ScriptableRenderer renderer, Material material, ScriptableRenderPassInput inputRequirement)
         {
             m_Material = material;
             m_Renderer = renderer;
@@ -80,46 +80,26 @@ public class OutputTextureFeature : ScriptableRendererFeature
         {
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
-            bool yflip = renderingData.cameraData.IsCameraProjectionMatrixFlipped();
-
             CoreUtils.SetRenderTarget(cmd, m_Renderer.cameraColorTargetHandle, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
-
             m_PassData.profilingSampler = m_ProfilingSampler;
             m_PassData.material = m_Material;
-
-            ExecutePass(m_PassData, context, cmd, yflip);
+            ExecutePass(m_PassData, cmd);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        internal class PassData
+        private class PassData
         {
             internal ProfilingSampler profilingSampler;
             internal Material material;
-
-            // used only by RG
-            internal CameraData cameraData;
-            internal bool isTargetBackbuffer;
-            internal TextureHandle colorTarget;
-            internal TextureHandle depthTarget;
-
         }
 
-        public static void ExecutePass(PassData passData, ScriptableRenderContext context, CommandBuffer cmd, bool yFlip)
+        private static void ExecutePass(PassData passData, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, passData.profilingSampler))
             {
-                // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
-                float flipSign = yFlip ? -1.0f : 1.0f;
-                Vector4 scaleBiasRt = (flipSign < 0.0f)
-                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
-
-                cmd.ClearRenderTarget(true, true, Color.white, 1.0f);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, passData.material, 0, 0);
+                Blitter.BlitTexture(cmd,  Vector2.one, passData.material, 0);
             }
         }
 
@@ -130,24 +110,13 @@ public class OutputTextureFeature : ScriptableRendererFeature
             using (var builder = renderGraph.AddRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
                 builder.UseColorBuffer(renderer.activeColorTexture, 0);
-
                 builder.AllowPassCulling(false);
-
                 passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_Material;
-                passData.cameraData = renderingData.cameraData;
-
-                passData.isTargetBackbuffer = renderer.isActiveTargetBackBuffer;
-                passData.colorTarget = renderer.activeColorTexture;
-                passData.depthTarget = renderer.activeDepthTexture;
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                 {
-                    CameraData cameraData = data.cameraData;
-                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && data.isTargetBackbuffer);
-                    bool yFlip = cameraData.IsRenderTargetProjectionMatrixFlipped(data.colorTarget, data.depthTarget) && !isGameViewFinalTarget;
-
-                    ExecutePass(data, rgContext.renderContext, rgContext.cmd, yFlip);
+                    ExecutePass(data, rgContext.cmd);
                 });
             }
         }

@@ -14,40 +14,17 @@ Shader "Hidden/Test/OutputDepthTexture"
 
 
             HLSLPROGRAM
-            #pragma vertex FullscreenVert
+            #pragma vertex Vert
             #pragma fragment Fragment
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
-
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
-
-            Varyings FullscreenVert(Attributes input)
-            {
-                Varyings output;
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-                output.positionCS = float4(input.positionOS.xyz, 1.0);
-                return output;
-            }
 
             half4 Fragment(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-                float2 uv = input.positionCS.xy;
-                float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(uv);
+                float2 normalizedScreenSpaceUV = input.texcoord;
 
                 float depth = SampleSceneDepth(normalizedScreenSpaceUV);
                 #if !UNITY_REVERSED_Z
