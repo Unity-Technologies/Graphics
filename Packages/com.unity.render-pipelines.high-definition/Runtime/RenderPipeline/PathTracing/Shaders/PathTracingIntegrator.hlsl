@@ -14,11 +14,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 #endif
 
-float PowerHeuristic(float f, float b)
-{
-    return Sq(f) / (Sq(f) + Sq(b));
-}
-
 float3 GetPositionBias(float3 geomNormal, float bias, bool below)
 {
     return geomNormal * (below ? -bias : bias);
