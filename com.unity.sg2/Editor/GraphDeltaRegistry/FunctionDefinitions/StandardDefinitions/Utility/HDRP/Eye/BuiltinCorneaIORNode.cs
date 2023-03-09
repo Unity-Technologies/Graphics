@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "BuiltinCorneaIOR",
-                    displayName: "Built In Cornea IOR",
+                    displayName: string.Empty,
                     tooltip: "the refractive index of the cornea"
                 )
             }

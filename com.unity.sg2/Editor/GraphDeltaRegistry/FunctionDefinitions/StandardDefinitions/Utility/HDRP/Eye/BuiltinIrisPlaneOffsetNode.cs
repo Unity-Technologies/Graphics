@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "BuiltinIrisPlaneOffset",
-                    displayName: "Built In Iris Plane Offset",
+                    displayName: string.Empty,
                     tooltip: ""
                 )
             }

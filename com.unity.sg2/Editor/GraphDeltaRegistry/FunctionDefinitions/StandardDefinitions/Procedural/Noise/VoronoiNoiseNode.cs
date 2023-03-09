@@ -155,7 +155,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
-                    displayName: string.Empty,
+                    displayName: "Out",
                     tooltip: "a cell noise pattern using ranomly-placed points as cell centers"
                 ),
                 new ParameterUIDescriptor(

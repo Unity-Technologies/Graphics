@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "In",
-                    displayName: string.Empty,
+                    displayName: "In",
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
