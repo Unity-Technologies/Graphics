@@ -26,7 +26,6 @@
     TEXTURE2D_X(_TaaAccumulationTex);
 
     CBUFFER_START(TemporalAAData)
-        float4 _BlitTexture_TexelSize;          // (1/w, 1/h, w, h) "SourceSize"
         float4 _TaaMotionVectorTex_TexelSize;   // (1/w, 1/h, w, h)
         float4 _TaaAccumulationTex_TexelSize;   // (1/w, 1/h, w, h)
 

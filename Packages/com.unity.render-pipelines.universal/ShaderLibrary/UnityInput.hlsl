@@ -84,6 +84,9 @@ float4 unity_OrthoParams;
 uniform float4 _ScaleBias;
 uniform float4 _ScaleBiasRt;
 
+// { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+uniform float4 _RTHandleScale;
+
 float4 unity_CameraWorldClipPlanes[6];
 
 #if !defined(USING_STEREO_MATRICES)

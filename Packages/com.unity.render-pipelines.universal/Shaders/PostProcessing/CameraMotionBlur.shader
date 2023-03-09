@@ -37,7 +37,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 
             output.positionCS  = pos;
-            output.texcoord.xy = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
+            output.texcoord.xy = DYNAMIC_SCALING_APPLY_SCALEBIAS(uv);
 
             float4 projPos = output.positionCS * 0.5;
             projPos.xy = projPos.xy + projPos.w;
