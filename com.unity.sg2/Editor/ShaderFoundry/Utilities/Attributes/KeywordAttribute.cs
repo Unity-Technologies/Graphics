@@ -58,12 +58,12 @@ namespace UnityEditor.ShaderFoundry
         {
             var attributeBuilder = new ShaderAttribute.Builder(container, AttributeName);
             if (KeywordName != null)
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, KeywordNameParamName, KeywordName).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, KeywordNameParamName, KeywordName).Build());
             if (Scope != null)
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, ScopeParamName, Scope).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, ScopeParamName, Scope).Build());
             if (Stage != null)
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, StageParamName, Stage).Build());
-            attributeBuilder.Param(new ShaderAttributeParam.Builder(container, KeywordModeParamName, KeywordMode.ToString()).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, StageParamName, Stage).Build());
+            attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, KeywordModeParamName, KeywordMode.ToString()).Build());
             return attributeBuilder.Build();
         }
 
@@ -165,14 +165,14 @@ namespace UnityEditor.ShaderFoundry
 
             var attributeBuilder = new ShaderAttribute.Builder(container, AttributeName);
             foreach (var pair in enumPairs)
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, pair.Name, pair.Value.ToString()).Build());
-            attributeBuilder.Param(new ShaderAttributeParam.Builder(container, KeywordModeParamName, KeywordMode.ToString()).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, pair.Name, pair.Value.ToString()).Build());
+            attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, KeywordModeParamName, KeywordMode.ToString()).Build());
             if (AllowsNone == false)
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, AllowsNoneParamName, AllowsNone.ToString()).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, AllowsNoneParamName, AllowsNone.ToString()).Build());
             if (Scope != null)
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, ScopeParamName, Scope).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, ScopeParamName, Scope).Build());
             if (Stage != null)
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, StageParamName, Stage).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, StageParamName, Stage).Build());
             return attributeBuilder.Build();
         }
 
@@ -212,7 +212,7 @@ namespace UnityEditor.ShaderFoundry
             UnknownParameterCallback = (param, index, target) => ParseEnumEntry(param, index, target),
         };
 
-        static void ParseValues(ShaderAttributeParam param, int index, EnumKeywordAttribute target)
+        static void ParseValues(ShaderAttributeParameter param, int index, EnumKeywordAttribute target)
         {
             if (!param.ValueIsArray)
             {
@@ -230,7 +230,7 @@ namespace UnityEditor.ShaderFoundry
                 ++enumValue;
             }
         }
-        static void ParseEnumEntry(ShaderAttributeParam param, int index, EnumKeywordAttribute target)
+        static void ParseEnumEntry(ShaderAttributeParameter param, int index, EnumKeywordAttribute target)
         {
             string enumName;
             int enumValue = 0;

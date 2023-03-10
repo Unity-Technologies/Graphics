@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderFoundry
         internal ShaderAttribute Build(ShaderContainer container)
         {
             var attributeBuilder = new ShaderAttribute.Builder(container, AttributeName);
-            attributeBuilder.Param(new ShaderAttributeParam.Builder(container, LayerCountParamName, LayerCount.ToString()).Build());
+            attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, LayerCountParamName, LayerCount.ToString()).Build());
             return attributeBuilder.Build();
         }
 
@@ -70,15 +70,15 @@ namespace UnityEditor.ShaderFoundry
         internal ShaderAttribute Build(ShaderContainer container)
         {
             var attributeBuilder = new ShaderAttribute.Builder(container, AttributeName);
-            attributeBuilder.Param(new ShaderAttributeParam.Builder(container, IndexParamName, Index.ToString()).Build());
+            attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, IndexParamName, Index.ToString()).Build());
             if (!string.IsNullOrEmpty(UniformName))
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, UniformNameParamName, UniformName).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, UniformNameParamName, UniformName).Build());
             if (!string.IsNullOrEmpty(DisplayName))
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, DisplayNameParamName, DisplayName).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, DisplayNameParamName, DisplayName).Build());
             if (!string.IsNullOrEmpty(TextureName))
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, TextureNameParamName, TextureName).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, TextureNameParamName, TextureName).Build());
             if (TextureType != LayerTextureType.Default)
-                attributeBuilder.Param(new ShaderAttributeParam.Builder(container, TextureTypeParamName, TextureType.ToString()).Build());
+                attributeBuilder.Parameter(new ShaderAttributeParameter.Builder(container, TextureTypeParamName, TextureType.ToString()).Build());
             return attributeBuilder.Build();
         }
 

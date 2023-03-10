@@ -15,8 +15,8 @@ namespace UnityEditor.ShaderFoundry
         internal ShaderAttribute Build(ShaderContainer container)
         {
             var attributeBuilder = new ShaderAttribute.Builder(container, AttributeName);
-            attributeBuilder.Param(Min.ToString());
-            attributeBuilder.Param(Max.ToString());
+            attributeBuilder.Parameter(Min.ToString());
+            attributeBuilder.Parameter(Max.ToString());
             return attributeBuilder.Build();
         }
 

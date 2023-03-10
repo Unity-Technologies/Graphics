@@ -437,7 +437,7 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void WriteCommands(IEnumerable<UnityEditor.ShaderFoundry.CommandDescriptor> descriptors, ShaderStringBuilder builder)
+        void WriteCommands(IEnumerable<UnityEditor.ShaderFoundry.RenderStateDescriptor> descriptors, ShaderStringBuilder builder)
         {
             foreach (var commandDesc in descriptors)
             {
@@ -542,7 +542,7 @@ namespace UnityEditor.ShaderFoundry
             string vertexCode = "// GraphVertex: <None>";
             string fragmentCode = "// GraphPixel: <None>";
             var sharedFunctions = "// GraphFunctions: <None>";
-            var shaderCommands = new List<CommandDescriptor>();
+            var shaderCommands = new List<RenderStateDescriptor>();
             var shaderDefines = new List<DefineDescriptor>();
             var shaderIncludes = new List<IncludeDescriptor>();
             var shaderKeywords = new List<KeywordDescriptor>();
@@ -561,7 +561,7 @@ namespace UnityEditor.ShaderFoundry
                     code = blockBuilder.ToString();
 
                     var block = blockSequenceElement.Block;
-                    shaderCommands.AddRange(block.Commands);
+                    shaderCommands.AddRange(block.RenderStates);
                     shaderDefines.AddRange(block.Defines);
                     shaderIncludes.AddRange(block.Includes);
 

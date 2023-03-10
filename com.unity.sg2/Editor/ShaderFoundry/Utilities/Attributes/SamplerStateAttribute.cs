@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderFoundry
             },
         };
 
-        static void ParseWrapMode(ShaderAttributeParam attributeParam, int parameterIndex, ref SamplerStateAttribute target)
+        static void ParseWrapMode(ShaderAttributeParameter attributeParam, int parameterIndex, ref SamplerStateAttribute target)
         {
             // Handles emitting a warning if a value was specified twice.
             void UpdateWrapMode(ref WrapModeEnum? wrapMode, WrapModeEnum value, WrapModeParameterStates paramValue)
@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderFoundry
             target.WrapModeW = wrapModeW ?? wrapModeUVW ?? WrapModeEnum.Repeat;
         }
 
-        static void ParseAnisotropicLevel(ShaderAttributeParam attributeParam, int parameterIndex, ref int result)
+        static void ParseAnisotropicLevel(ShaderAttributeParameter attributeParam, int parameterIndex, ref int result)
         {
             AttributeParsing.ParseInt(attributeParam, parameterIndex, ref result);
             switch (result)

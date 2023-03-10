@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderFoundry
                 foreach (var alias in field.Aliases)
                 {
                     var attBuilder = new ShaderAttribute.Builder(Container, CommonShaderAttributes.Alias);
-                    attBuilder.Param(alias);
+                    attBuilder.Parameter(alias);
                     fieldBuilder.AddAttribute(attBuilder.Build());
                 }
                 builder.AddField(fieldBuilder.Build());

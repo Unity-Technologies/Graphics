@@ -306,9 +306,9 @@ namespace UnityEditor.ShaderFoundry
         CustomizationPoint BuildCustomizationPoint(CustomizationPoint.Builder builder, Block preBlock, Block postBlock, List<BlockSequenceElement> defaultBlockSequenceElements)
         {
             foreach (var output in preBlock.Outputs)
-                builder.AddInput(CloneVariable(output));
+                builder.AddInterfaceField(CloneVariable(output));
             foreach (var input in postBlock.Inputs)
-                builder.AddOutput(CloneVariable(input));
+                builder.AddInterfaceField(CloneVariable(input));
             foreach (var blockSequenceElement in defaultBlockSequenceElements)
                 builder.AddDefaultBlockSequenceElement(blockSequenceElement);
             return builder.Build();
