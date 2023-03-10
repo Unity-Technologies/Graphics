@@ -728,6 +728,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_AccurateGbufferNormals(shader);
             TestStripUnusedFeatures_LightCookies(shader);
             TestStripUnusedFeatures_ProbesVolumes(shader);
+            TestStripUnusedFeatures_SHAuto(shader);
         }
 
         public void TestStripUnusedFeatures_DebugDisplay(Shader shader)
@@ -845,6 +846,59 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.FoveatedRenderingNonUniformRaster};
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_FoveatedRendering(ref helper.data));
         }
+
+        public void TestStripUnusedFeatures_SHAuto(Shader shader)
+        {
+            TestHelper helper;
+            List<string> shShaderKeywords = new List<string>() { ShaderKeywordStrings.EVALUATE_SH_VERTEX, ShaderKeywordStrings.EVALUATE_SH_MIXED };
+
+            // None, should not strip any variant(stripping handled by ShaderKeywordFilter system instead).
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_PassKeywords = shShaderKeywords;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.EVALUATE_SH_VERTEX };
+            TestHelper.s_PassKeywords = shShaderKeywords;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.EVALUATE_SH_MIXED };
+            TestHelper.s_PassKeywords = shShaderKeywords;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
+
+            // ShaderFeatures.AutoSHMode | AutoSHModePerVertex
+            helper = new TestHelper(shader, ShaderFeatures.AutoSHMode | ShaderFeatures.AutoSHModePerVertex);
+            TestHelper.s_PassKeywords = shShaderKeywords;
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.AutoSHMode | ShaderFeatures.AutoSHModePerVertex);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.EVALUATE_SH_VERTEX };
+            TestHelper.s_PassKeywords = shShaderKeywords;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.AutoSHMode | ShaderFeatures.AutoSHModePerVertex);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.EVALUATE_SH_MIXED };
+            TestHelper.s_PassKeywords = shShaderKeywords;
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
+
+
+            // ShaderFeatures.AutoSHMode
+            helper = new TestHelper(shader, ShaderFeatures.AutoSHMode);
+            TestHelper.s_PassKeywords = shShaderKeywords;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.AutoSHMode);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.EVALUATE_SH_VERTEX };
+            TestHelper.s_PassKeywords = shShaderKeywords;
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.AutoSHMode);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.EVALUATE_SH_MIXED };
+            TestHelper.s_PassKeywords = shShaderKeywords;
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_SHAuto(ref helper.data, ref helper.featureStripTool));
+        }
+
 
         public void TestStripUnusedFeatures_DeferredRendering(Shader shader)
         {

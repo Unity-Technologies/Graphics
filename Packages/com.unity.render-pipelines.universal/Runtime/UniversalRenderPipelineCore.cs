@@ -1175,6 +1175,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for sixteenth size downsampling. </summary>
         public const string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
 
+        /// <summary> Keyword used for mixed Spherical Harmonic (SH) evaluation in URP Lit shaders.</summary>
+        public const string EVALUATE_SH_MIXED = "EVALUATE_SH_MIXED";
+
+        /// <summary> Keyword used for vertex Spherical Harmonic (SH) evaluation in URP Lit shaders.</summary>
+        public const string EVALUATE_SH_VERTEX = "EVALUATE_SH_VERTEX";
+
         /// <summary> Keyword used for APV with SH L1 </summary>
         public const string ProbeVolumeL1 = "PROBE_VOLUMES_L1";
 
@@ -1677,5 +1683,54 @@ namespace UnityEngine.Rendering.Universal
         [HideInDebugUI] RG_FinalBlit,
 
         FinalBlit
+    }
+
+    // Internal class to detect and cache runtime platform information.
+    // TODO: refine the logic to provide platform abstraction. Eg, we should devide platforms based on capabilities and perf budget.
+    // TODO: isXRMobile is a bad catagory. Alignment and refactor needed.
+    // TODO: Compress all the query data into "isXRMobile" style bools and enums.
+    internal static class PlatformAutoDetect
+    {
+        /// <summary>
+        /// Detect and cache runtime platform information. This function should only be called once when creating the URP.
+        /// </summary>
+        internal static void Initialize()
+        {
+            bool isRunningMobile = false;
+#if ENABLE_VR && ENABLE_VR_MODULE
+#if PLATFORM_WINRT || PLATFORM_ANDROID
+            isRunningMobile = IsRunningXRMobile();
+#endif
+#endif
+            isXRMobile = isRunningMobile;
+        }
+
+#if ENABLE_VR && ENABLE_VR_MODULE
+#if PLATFORM_WINRT || PLATFORM_ANDROID
+        // XR mobile platforms are not treated as dedicated mobile platforms in Core. Handle them specially here. (Quest and HL).
+        private static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
+        private static bool IsRunningXRMobile()
+        {
+            var platform = Application.platform;
+            if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64 || platform == RuntimePlatform.Android)
+            {
+                XR.XRDisplaySubsystem display = null;
+                SubsystemManager.GetInstances(displaySubsystemList);
+
+                if (displaySubsystemList.Count > 0)
+                    display = displaySubsystemList[0];
+
+                if (display != null)
+                    return true;
+            }
+            return false;
+        }
+#endif
+#endif
+
+        /// <summary>
+        /// If true, the runtime platform is an XR mobile platform.
+        /// </summary>
+        static internal bool isXRMobile { get; private set; } = false;
     }
 }

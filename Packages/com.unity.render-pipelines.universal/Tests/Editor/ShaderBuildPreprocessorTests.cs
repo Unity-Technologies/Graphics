@@ -35,7 +35,8 @@ namespace ShaderStrippingAndPrefiltering
                 | ShaderFeatures.TerrainHoles
                 | ShaderFeatures.DrawProcedural
                 | ShaderFeatures.LightCookies
-                | ShaderFeatures.LODCrossFade;
+                | ShaderFeatures.LODCrossFade
+                | ShaderFeatures.AutoSHMode;
 
             internal RendererRequirements defaultRendererRequirements = new()
             {
