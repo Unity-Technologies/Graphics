@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering
         internal override void Interp(VolumeParameter from, VolumeParameter to, float t)
         {
             // Note: this is relatively unsafe (assumes that from and to are both holding type T)
-            Interp(from.GetValue<T>(), to.GetValue<T>(), t);
+            Interp((from as VolumeParameter<T>).value, (to as VolumeParameter<T>).value, t);
         }
 
         /// <summary>
