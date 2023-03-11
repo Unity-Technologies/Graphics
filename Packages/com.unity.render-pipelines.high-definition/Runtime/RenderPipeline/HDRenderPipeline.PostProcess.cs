@@ -730,6 +730,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public DLSSPass.Parameters parameters;
             public DLSSPass.CameraResourcesHandles resourceHandles;
+            public DLSSPass pass;
         }
 
         TextureHandle DoDLSSPasses(RenderGraph renderGraph, HDCamera hdCamera, DynamicResolutionHandler.UpsamplerScheduleType upsamplerSchedule,
@@ -768,11 +769,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.resourceHandles = DLSSPass.CreateCameraResources(hdCamera, renderGraph, builder, viewHandles);
 
                 source = viewHandles.output;
+                passData.pass = m_DLSSPass;
 
                 builder.SetRenderFunc(
                     (DLSSData data, RenderGraphContext ctx) =>
                     {
-                        m_DLSSPass.Render(data.parameters, DLSSPass.GetCameraResources(data.resourceHandles), ctx.cmd);
+                        data.pass.Render(data.parameters, DLSSPass.GetCameraResources(data.resourceHandles), ctx.cmd);
                     });
             }
             return source;
