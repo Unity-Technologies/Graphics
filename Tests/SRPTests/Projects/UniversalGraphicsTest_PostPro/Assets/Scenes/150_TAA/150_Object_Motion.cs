@@ -25,12 +25,6 @@ public class TestObjectMotion : MonoBehaviour
         frame = 0;
         pause = false;
         timeBased = false;
-
-        var mainCam = Camera.main;
-        if (mainCam.TryGetComponent<UniversalAdditionalCameraData>(out var data))
-        {
-            data.resetHistory = true;
-        }
     }
 
     // Update is called once per frame
