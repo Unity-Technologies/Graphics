@@ -1,0 +1,14 @@
+Welcome to the Water System Samples.
+The [Water_System](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/WaterSystem.html) component allows users to add Water onto their scene. 
+Multiple surface type are available, this scene focuses on setting up a Before Post Process Custom Pass for the water line.
+
+If HDRP Asset Settings Helper shows, make sure to enable every properties to get the most of this sample. 
+
+*<size=20>Custom</size> *<size=20>Pass</size>
+
+• The default Water line is a hard line separating Over and Under-water rendering. 
+• This scene uses a {Custom_Pass}(Waterline_Custom_Pass_Post_Process) with a Full Screen Shader Graph with an injected Before Post Process.
+• The Full Screen Shader Graph samples the the underwater buffer by using the HD Sample Buffer node with 'isUnderwater' selected. 
+• The shader creates a blur effect around the line by sampling the HD Scene Color node.
+• A small distortion is added by stretching the UV above the water line to create a meniscus like effect. 
+• Distortion needs to be enabled in the HDRP Asset so that Water is copied on the Color pyramid to be able to see it when sampling HD Scene Color node. 
