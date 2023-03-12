@@ -1,3 +1,4 @@
+
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -26,8 +27,8 @@ public class KeepFrameFeature : ScriptableRendererFeature
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get("CopyFramePass");
-            RenderTargetIdentifier opaqueColorRT = destination.nameID;
-            Blit(cmd, source, opaqueColorRT);
+            Blit(cmd, source, destination);
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -37,22 +38,16 @@ public class KeepFrameFeature : ScriptableRendererFeature
     class DrawOldFramePass : ScriptableRenderPass
     {
         private Material m_DrawOldFrameMaterial;
-        private RTHandle m_handle;
-        private string m_textureName;
+        private RTHandle m_Handle;
+        private string m_TextureName;
 
         public void Setup(Material drawOldFrameMaterial, RTHandle handle, string textureName)
         {
             m_DrawOldFrameMaterial = drawOldFrameMaterial;
-            m_handle = handle;
-            m_textureName = textureName;
-        }
+            m_TextureName = textureName;
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {
-            RenderTextureDescriptor descriptor = cameraTextureDescriptor;
-            descriptor.msaaSamples = 1;
-            descriptor.depthBufferBits = 0;
-            RenderingUtils.ReAllocateIfNeeded(ref m_handle, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_handle.name);
+            m_Handle = handle;
+
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -60,10 +55,13 @@ public class KeepFrameFeature : ScriptableRendererFeature
             if (m_DrawOldFrameMaterial != null)
             {
                 CommandBuffer cmd = CommandBufferPool.Get("DrawOldFramePass");
-                cmd.SetGlobalTexture(m_textureName, m_handle.id);
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_DrawOldFrameMaterial, 0, 0);
-                cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
+                cmd.SetGlobalTexture(m_TextureName, m_Handle);
+
+                var source = renderingData.cameraData.renderer.cameraColorTargetHandle;
+
+                Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                Blitter.BlitTexture(cmd, source, viewportScale, m_DrawOldFrameMaterial, 0);
+
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
@@ -80,7 +78,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
     }
 
     private CopyFramePass m_CopyFrame;
-    private DrawOldFramePass m_DrawOldFame;
+    private DrawOldFramePass m_DrawOldFrame;
 
     private RTHandle m_OldFrameHandle;
 
@@ -92,22 +90,26 @@ public class KeepFrameFeature : ScriptableRendererFeature
         m_CopyFrame = new CopyFramePass();
         m_CopyFrame.renderPassEvent = RenderPassEvent.AfterRenderingTransparents; //Frame color is copied late in the frame
 
-        m_DrawOldFame = new DrawOldFramePass();
-        m_DrawOldFame.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques; //Old frame is drawn early in the frame
+        m_DrawOldFrame = new DrawOldFramePass();
+        m_DrawOldFrame.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques; //Old frame is drawn early in the frame
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         renderer.EnqueuePass(m_CopyFrame);
-        renderer.EnqueuePass(m_DrawOldFame);
+        renderer.EnqueuePass(m_DrawOldFrame);
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {
-        RTHandles.Alloc(Shader.PropertyToID("_OldFrameRenderTarget"), name: "_OldFrameRenderTarget");
-        m_DrawOldFame.ConfigureClear(ClearFlag.None, Color.red);
-        m_CopyFrame.Setup(renderer.cameraColorTarget, m_OldFrameHandle);
-        m_DrawOldFame.Setup(settings.displayMaterial, m_OldFrameHandle, String.IsNullOrEmpty(settings.textureName) ? "_FrameCopyTex" : settings.textureName);
+        var descriptor = renderingData.cameraData.cameraTargetDescriptor;
+        descriptor.msaaSamples = 1;
+        descriptor.depthBufferBits = 0;
+        var textureName = String.IsNullOrEmpty(settings.textureName) ? "_FrameCopyTex" : settings.textureName;
+        RenderingUtils.ReAllocateIfNeeded(ref m_OldFrameHandle, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: textureName);
+        
+        m_CopyFrame.Setup(renderer.cameraColorTargetHandle, m_OldFrameHandle);
+        m_DrawOldFrame.Setup(settings.displayMaterial, m_OldFrameHandle, textureName);
     }
 
     protected override void Dispose(bool disposing)

@@ -397,7 +397,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Release the old handles before creating the new one
                 for (int i = 0; i < this.GbufferRTHandles.Length; ++i)
                 {
-                    RTHandles.Release(this.GbufferRTHandles[i]);
+                    if (i == GBufferLightingIndex) // Not on GBuffer to release
+                        continue;
+                    this.GbufferRTHandles[i].Release();
+                    this.GbufferAttachments[i].Release();
                 }
             }
         }
