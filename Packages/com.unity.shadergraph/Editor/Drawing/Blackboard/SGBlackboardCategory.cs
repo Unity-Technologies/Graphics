@@ -318,7 +318,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_RenameInProgress = true;
         }
 
-        void OnEditTextFinished()
+        internal void OnEditTextFinished()
         {
             m_TitleLabel.visible = true;
             m_TextField.style.display = DisplayStyle.None;
