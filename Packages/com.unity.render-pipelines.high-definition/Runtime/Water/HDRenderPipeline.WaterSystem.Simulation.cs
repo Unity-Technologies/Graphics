@@ -146,8 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class WaterSimulationResources
     {
         // Overall time that has passed since Unity has been initialized
-        private float m_Time = 0;
-        // Current simulation time (used to compute the dispersion of the Phillips spectrum)
+        float m_Time;
+        // Current simulation time in seconds (used to compute the dispersion of the Phillips spectrum)
         public float simulationTime = 0;
         // Delta time of the current frame
         public float deltaTime = 0;
@@ -258,16 +258,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Function that computes the delta time for the frame
-        public void Update(float totalTime, float timeMultiplier)
+        public void Update(float timeMultiplier)
         {
-#if UNITY_EDITOR
-            if (!EditorApplication.isPaused)
-#endif
+            float delta = Time.deltaTime;
+            #if UNITY_EDITOR
+            if (EditorApplication.isPaused)
+                delta = 0.0f;
+            else if (!Application.isPlaying)
             {
-                deltaTime = (totalTime - m_Time) * timeMultiplier;
-                simulationTime += deltaTime;
+                delta = Time.realtimeSinceStartup - m_Time;
+                m_Time = Time.realtimeSinceStartup;
             }
-            m_Time = totalTime;
+            #endif
+
+            deltaTime = delta * timeMultiplier;
+            simulationTime += deltaTime;
         }
 
         // Function that releases the resources and resets all the internal variables
@@ -297,7 +302,6 @@ namespace UnityEngine.Rendering.HighDefinition
             maxNumBands = 0;
 
             // Reset the simulation time
-            m_Time = 0;
             simulationTime = 0;
             deltaTime = 0;
         }

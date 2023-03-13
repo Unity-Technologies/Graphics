@@ -132,8 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Convert the position from uv to floating pixel coords (for the bilinear interpolation)
             Vector2 uv = new Vector2(windSpeed / WaterConsts.k_SwellMaximumWindSpeed, Mathf.Clamp((patchSize - 25.0f) / 4975.0f, 0.0f, 1.0f));
-            float2 tapCoord = new float2(uv.x * (WaterConsts.k_TableResolution - 1), uv.y * (WaterConsts.k_TableResolution - 1));
-            int2 pixelCoord = FloorCoordinate(tapCoord);
+            PrepareCoordinates(uv, WaterConsts.k_TableResolution - 1, out int2 pixelCoord, out float2 fract);
 
             // Evaluate the UV for this sample
             float p0 = SampleMaxAmplitudeTable(pixelCoord);
@@ -142,7 +141,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float p3 = SampleMaxAmplitudeTable(pixelCoord + new int2(1, 1));
 
             // Do the bilinear interpolation
-            float2 fract = tapCoord - pixelCoord;
             float i0 = lerp(p0, p1, fract.x);
             float i1 = lerp(p2, p3, fract.x);
             return lerp(i0, i1, fract.y);
