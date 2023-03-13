@@ -2,7 +2,7 @@
     "MonoBehaviour": {
         "m_Enabled": true,
         "m_EditorHideFlags": 0,
-        "m_Name": "LODSystem",
+        "m_Name": "LODsystem",
         "m_EditorClassIdentifier": "",
         "m_GraphModel": {
             "rid": 1000
@@ -405,11 +405,11 @@
                         },
                         "m_Color": {
                             "r": 0.0,
-                            "g": 0.0,
-                            "b": 0.0,
-                            "a": 0.0
+                            "g": 0.25,
+                            "b": 0.5,
+                            "a": 1.0
                         },
-                        "m_HasUserColor": false,
+                        "m_HasUserColor": true,
                         "m_Version": 2,
                         "m_Position": {
                             "x": 306.0,
@@ -493,7 +493,7 @@
                         "nodeName": "0780380f892c3e153706b38cd3d9df90",
                         "portName": "B",
                         "m_StoredValue": {
-                            "e00": 0.0,
+                            "e00": 2.0,
                             "e01": 0.0,
                             "e02": 0.0,
                             "e03": 0.0,
@@ -529,11 +529,11 @@
                         },
                         "m_Color": {
                             "r": 0.0,
-                            "g": 0.0,
-                            "b": 0.0,
-                            "a": 0.0
+                            "g": 0.25,
+                            "b": 0.5,
+                            "a": 1.0
                         },
-                        "m_HasUserColor": false,
+                        "m_HasUserColor": true,
                         "m_Version": 2,
                         "m_Position": {
                             "x": 538.0,
@@ -617,7 +617,7 @@
                         "nodeName": "3eea7909ba721ac1e9c0720edad96ec2",
                         "portName": "B",
                         "m_StoredValue": {
-                            "e00": 0.0,
+                            "e00": 2.0,
                             "e01": 0.0,
                             "e02": 0.0,
                             "e03": 0.0,
@@ -652,12 +652,12 @@
                             "m_Value1": 15037750879524528549
                         },
                         "m_Color": {
-                            "r": 0.0,
+                            "r": 0.5,
                             "g": 0.0,
-                            "b": 0.0,
-                            "a": 0.0
+                            "b": 0.25,
+                            "a": 1.0
                         },
-                        "m_HasUserColor": false,
+                        "m_HasUserColor": true,
                         "m_Version": 2,
                         "m_Position": {
                             "x": 770.1549682617188,
@@ -767,8 +767,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": 1193.811279296875,
-                            "y": 492.3118896484375
+                            "x": 1192.48876953125,
+                            "y": 409.8118591308594
                         },
                         "m_Title": "Sample Texture 2D",
                         "m_Tooltip": "",
@@ -874,8 +874,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": 1483.8917236328125,
-                            "y": 540.6954345703125
+                            "x": 1482.5692138671875,
+                            "y": 458.1954040527344
                         },
                         "m_Title": "Combine",
                         "m_Tooltip": "",
@@ -1156,8 +1156,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": 1695.79345703125,
-                            "y": 540.5556640625
+                            "x": 1694.470947265625,
+                            "y": 458.0556335449219
                         },
                         "m_Title": "Multiply",
                         "m_Tooltip": "",
@@ -1319,8 +1319,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": 2010.014404296875,
-                            "y": 540.5556640625
+                            "x": 2008.69189453125,
+                            "y": 458.0556335449219
                         },
                         "m_Title": "Subtract",
                         "m_Tooltip": "",
@@ -1482,8 +1482,8 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": 2324.635986328125,
-                            "y": 540.5556640625
+                            "x": 2323.3134765625,
+                            "y": 458.0556335449219
                         },
                         "m_Title": "Normal Reconstruct Z",
                         "m_Tooltip": "",
@@ -1609,10 +1609,10 @@
                         "m_TitleAlignment": 0,
                         "m_Position": {
                             "serializedVersion": "2",
-                            "x": 1184.6358642578125,
-                            "y": 419.5556640625,
+                            "x": 1183.1776123046875,
+                            "y": 399.1575012207031,
                             "width": 1449.5001220703125,
-                            "height": 496.0
+                            "height": 456.3424987792969
                         },
                         "m_Comment": ""
                     }
