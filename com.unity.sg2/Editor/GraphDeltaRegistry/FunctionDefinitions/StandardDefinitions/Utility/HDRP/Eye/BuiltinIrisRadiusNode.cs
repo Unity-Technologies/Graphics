@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "BuiltinIrisRadius",
-                    displayName: "Built In Iris Radius",
+                    displayName: string.Empty,
                     tooltip: ""
                 )
             }
