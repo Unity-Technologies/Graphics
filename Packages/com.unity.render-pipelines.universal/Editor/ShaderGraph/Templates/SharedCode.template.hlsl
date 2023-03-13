@@ -4,7 +4,10 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
 #ifdef HAVE_VFX_MODIFICATION
-    // FragInputs from VFX come from two places: Interpolator or CBuffer.
+#if VFX_USE_GRAPH_VALUES
+    uint instanceActiveIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceActiveIndex));
+    $splice(VFXLoadGraphValues)
+#endif
     $splice(VFXSetFragInputs)
 
     $SurfaceDescriptionInputs.elementToWorld: BuildElementToWorld(input);

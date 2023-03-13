@@ -1361,10 +1361,16 @@ namespace UnityEditor.VFX
                 var gpuMapper = graph.BuildGPUMapper(context);
                 var contextUniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, true);
 
+                // SG inputs if needed
+                var fragInputNames = context.fragmentParameters;
+                var vertInputNames = context.vertexParameters;
+                var contextSGInputs = fragInputNames.Any() || vertInputNames.Any() ? new VFXSGInputs(gpuMapper, contextUniformMapper, vertInputNames, fragInputNames) : null;
+
                 // Add gpu and uniform mapper
                 var contextData = contextToCompiledData[context];
                 contextData.gpuMapper = gpuMapper;
                 contextData.uniformMapper = contextUniformMapper;
+                contextData.SGInputs = contextSGInputs;
                 contextToCompiledData[context] = contextData;
 
                 if (uniformMapper == null)

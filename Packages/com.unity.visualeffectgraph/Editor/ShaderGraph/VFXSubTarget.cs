@@ -36,6 +36,11 @@ namespace UnityEditor.VFX
             { typeof(bool),      ShaderValueType.Float   }, // NOTE: Map boolean to float for VFX interpolator due to how ShaderGraph handles semantics for boolean interpolator.
         };
 
+        public static ShaderValueType VFXTypeToSGType(VFXValueType t)
+        {
+            return kVFXShaderValueTypeMap[VFXExpression.TypeToType(t)];
+        }
+
         public static FieldDescriptor VFXAttributeToFieldDescriptor(VFXAttribute attribute)
         {
             var type = VFXExpression.TypeToType(attribute.type);
@@ -82,6 +87,25 @@ namespace UnityEditor.VFX
             "InternalAttributesElement",
             "InternalSourceAttributesElement"
         };
+
+        public static IEnumerable<FieldDescriptor> GetVFXInterpolators(string structName, VFXContext context, VFXContextCompiledData contextData)
+        {
+            if (contextData.SGInputs != null)
+            {
+                bool requiresInterpolation = context is VFXAbstractParticleOutput output && output.HasStrips();
+                string interpolationStr = requiresInterpolation ? string.Empty : "nointerpolation";
+
+                foreach (var interp in contextData.SGInputs.interpolators)
+                {
+                    var (exp, name) = (interp.Key, interp.Value);
+
+                    if (!VFXSubTarget.kVFXShaderValueTypeMap.TryGetValue(VFXExpression.TypeToType(exp.valueType), out var shaderValueType))
+                        throw new Exception($"Unsupported interpolator type for {name}: {exp.valueType}");
+
+                    yield return new FieldDescriptor(structName, name, "", shaderValueType, subscriptOptions: StructFieldOptions.Static, interpolation: interpolationStr);
+                }
+            }
+        }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)
         {
@@ -130,9 +154,9 @@ namespace UnityEditor.VFX
             out AdditionalCommandDescriptor loadTexcoordAttributesDescriptor,
             out AdditionalCommandDescriptor loadCurrentFrameIndexParameterDescriptor,
             out AdditionalCommandDescriptor vertexPropertiesGenerationDescriptor,
-            out AdditionalCommandDescriptor vertexPropertiesAssignDescriptor,
             out AdditionalCommandDescriptor setInstancingIndicesDescriptor,
-            out AdditionalCommandDescriptor fillGraphValuesDescriptor)
+            out AdditionalCommandDescriptor fillGraphValuesDescriptor,
+            out AdditionalCommandDescriptor additionalFragInputs)
         {
             // TODO: Clean all of this up. Currently just an adapter between VFX Code Gen + SG Code Gen and *everything* has been stuffed here.
 
@@ -157,9 +181,6 @@ namespace UnityEditor.VFX
             // Vertex Input
             VFXCodeGenerator.BuildVertexProperties(context, contextData, out var vertexPropertiesGeneration);
             vertexPropertiesGenerationDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesGeneration", vertexPropertiesGeneration);
-
-            VFXCodeGenerator.BuildVertexPropertiesAssign(context, contextData, out var vertexPropertiesAssign);
-            vertexPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesAssign", vertexPropertiesAssign);
 
             // Interpolator
             VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, out var interpolatorsGeneration);
@@ -248,32 +269,19 @@ namespace UnityEditor.VFX
             //Set VFX Instancing indices
             setInstancingIndicesDescriptor = new AdditionalCommandDescriptor("VFXInitInstancing", VFXCodeGenerator.GenerateSetInstancingIndices(context).ToString());
 
+            additionalFragInputs = GenerateFragInputs(context, contextData);
         }
 
         static AdditionalCommandDescriptor GenerateFragInputs(VFXContext context, VFXContextCompiledData contextData)
         {
             var builder = new ShaderStringBuilder();
 
-            // VFX Material Properties
-            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
-
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
-
-            foreach (string fragmentParameter in context.fragmentParameters)
-            {
-                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
-
-                if (filteredNamedExpression.exp != null)
+            if (contextData.SGInputs != null)
+                foreach (var input in contextData.SGInputs.fragInputs)
                 {
-                    var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
-
-                    if (!VFXSubTarget.kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
-                        continue;
-
-                    builder.AppendLine($"{shaderValueType.ToShaderString("float")} {filteredNamedExpression.name};");
+                    var (name, exp) = (input.Key, input.Value);
+                    builder.AppendLine($"{VFXTypeToSGType(exp.valueType).ToShaderString("float")} {name};");
                 }
-            }
 
             return new AdditionalCommandDescriptor("FragInputsVFX", builder.ToString());
         }
@@ -340,9 +348,9 @@ namespace UnityEditor.VFX
                 out var loadTexcoordAttributesDescriptor,
                 out var loadCurrentFrameIndexParameterDescriptor,
                 out var vertexPropertiesGenerationDescriptor,
-                out var vertexPropertiesAssignDescriptor,
                 out var setInstancingIndicesDescriptor,
-                out var fillGraphValuesDescriptor
+                out var fillGraphValuesDescriptor,
+                out var fragInputsDescriptor
             );
 
             // Omit MV or Shadow Pass if disabled on the context.
@@ -394,10 +402,9 @@ namespace UnityEditor.VFX
                     loadTexcoordAttributesDescriptor,
                     loadCurrentFrameIndexParameterDescriptor,
                     vertexPropertiesGenerationDescriptor,
-                    vertexPropertiesAssignDescriptor,
                     setInstancingIndicesDescriptor,
                     fillGraphValuesDescriptor,
-                    GenerateFragInputs(context, data)
+                    fragInputsDescriptor
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);

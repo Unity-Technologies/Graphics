@@ -753,7 +753,7 @@ namespace UnityEditor.VFX
             {
                 var shaderGraph = GetOrRefreshShaderGraphObject();
                 if (shaderGraph != null)
-                    foreach (var param in shaderGraph.properties)
+                    foreach (var param in shaderGraph.fragmentProperties)
                         if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
                             yield return param.referenceName;
             }
