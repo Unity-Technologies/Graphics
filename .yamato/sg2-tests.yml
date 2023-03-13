@@ -37,7 +37,7 @@ ShaderGraph2_Win:
     -  command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
        retries: 2
     -  command: git clone {{coverage_meta.history_repo}} History
-    -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground --enable-code-coverage --coverage-results-path=%CD%/CodeCoverageResults --coverage-history-path=%CD%/History/{{coverage_meta.coverage_history_path}} --coverage-options="generateAdditionalMetrics;assemblyFilters:{% for assembly in coverage_meta.assemblies %}{{ assembly }}{%if assembly != coverage_meta.assemblies.last %},{% endif %}{% endfor %};verbosity:warning;generateHtmlReport;generateHtmlReportHistory;"
+    -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground --enable-code-coverage --coverage-results-path=%CD%/CodeCoverageResults --coverage-history-path=%CD%/History/{{coverage_meta.coverage_history_path}} --coverage-options="generateAdditionalMetrics;assemblyFilters:{% for assembly in coverage_meta.assemblies %}{{ assembly }}{%if assembly != coverage_meta.assemblies.last %},{% endif %}{% endfor %};verbosity:warning;generateHtmlReport;generateHtmlReportHistory;generateAdditionalReports;"
   artifacts:
     logs:
       paths:
@@ -81,7 +81,16 @@ ShaderGraph2_Win_CodeCoverage_Verification:
   dependencies:
     - .yamato/sg2-tests.yml#ShaderGraph2_Win
   commands:
+    - |
+      if defined YAMATO_PR_ID ( :: Run code coverage diff if this is triggered from a PR
+        pip install diff_cover
+        diff-cover CodeCoverageResults\Report\Cobertura.xml --compare-branch=origin/%YAMATO_PR_TARGET_BRANCH% --html-report CodeCoverageResults\coverage-diff-report.html
+      )
     -  command: python History\ci-scripts\verify_coverage.py History\{{coverage_meta.coverage_history_path}} {{coverage_meta.min_pct}} {{coverage_meta.max_decrease_pct}}
+  artifacts:
+    CodeCoverageResults:
+      paths:
+        - CodeCoverageResults/coverage-diff-report.html
 
 ShaderGraph2_nightly_trigger:
   name: ShaderGraph2 - Nightly Trigger
