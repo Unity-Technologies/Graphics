@@ -835,7 +835,14 @@ namespace UnityEngine.Rendering.Universal
                 else
                     renderingLayersDescriptor.graphicsFormat = RenderingLayerUtils.GetFormat(renderingLayerMaskSize);
 
-                RenderingUtils.ReAllocateIfNeeded(ref renderingLayersTexture, renderingLayersDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: renderingLayersTextureName);
+                if (renderingModeActual == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers)
+                {
+                    m_DeferredLights.ReAllocateGBufferIfNeeded(renderingLayersDescriptor, (int)m_DeferredLights.GBufferRenderingLayers);
+                }
+                else
+                {
+                    RenderingUtils.ReAllocateIfNeeded(ref renderingLayersTexture, renderingLayersDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: renderingLayersTextureName);
+                }
 
                 cmd.SetGlobalTexture(renderingLayersTexture.name, renderingLayersTexture.nameID);
                 RenderingLayerUtils.SetupProperties(cmd, renderingLayerMaskSize);
@@ -869,7 +876,14 @@ namespace UnityEngine.Rendering.Universal
                 else
                     normalDescriptor.graphicsFormat = DepthNormalOnlyPass.GetGraphicsFormat();
 
-                RenderingUtils.ReAllocateIfNeeded(ref normalsTexture, normalDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: normalsTextureName);
+                if (this.renderingModeActual == RenderingMode.Deferred)
+                {
+                    m_DeferredLights.ReAllocateGBufferIfNeeded(normalDescriptor, (int)m_DeferredLights.GBufferNormalSmoothnessIndex);
+                }
+                else
+                {
+                    RenderingUtils.ReAllocateIfNeeded(ref normalsTexture, normalDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: normalsTextureName);
+                }
 
                 cmd.SetGlobalTexture(normalsTexture.name, normalsTexture.nameID);
                 if (this.renderingModeActual == RenderingMode.Deferred) // As this is requested by render pass we still want to set it
