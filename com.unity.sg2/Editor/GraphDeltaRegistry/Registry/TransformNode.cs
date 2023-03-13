@@ -18,8 +18,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 synonyms: new[] { "world", "object", "tangent", "screen", "view", "convert" },
                 description: "pkg://Documentation~/previews/Transform.md",
                 parameters: new ParameterUIDescriptor[] {
-                    new("In", displayName: string.Empty, tooltip: "Input value"),
-                    new("Out", displayName: string.Empty, tooltip: "Output value"),
+                    new(TransformNode.kInput, displayName: string.Empty, tooltip: "Input value"),
+                    new(TransformNode.kOutput, displayName: string.Empty, tooltip: "Output value"),
                 }
             );
         }
