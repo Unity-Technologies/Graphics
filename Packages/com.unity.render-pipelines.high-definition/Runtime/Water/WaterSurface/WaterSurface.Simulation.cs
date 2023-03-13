@@ -137,6 +137,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public float ripplesFadeDistance = 200.0f;
         #endregion
 
+        /// <summary>Used to sync different water surfaces simulation time, for example across network.</summary>
+        public DateTime simulationStart
+        {
+            get
+            {
+                float timeScale = Time.timeScale * timeMultiplier;
+                if (timeScale == 0.0f) timeScale = 1.0f;
+
+                return DateTime.Now - TimeSpan.FromSeconds(simulation != null ? simulation.simulationTime / timeScale : 0.0f);
+            }
+            set
+            {
+                TimeSpan elapsed = DateTime.Now - value;
+                if (simulation != null)
+                    simulation.simulationTime = (float)elapsed.TotalSeconds * Time.timeScale * timeMultiplier;
+            }
+        }
+
         internal int numActiveBands
         {
             get
