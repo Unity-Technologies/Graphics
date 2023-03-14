@@ -4,23 +4,19 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     partial class WaterSurfacePresets
     {
-        static internal void ApplyWaterOceanPreset(WaterSurface waterSurface)
+        static internal void ApplyCommonPreset(WaterSurface waterSurface)
         {
-            // Set the various parameters
-            waterSurface.surfaceType = WaterSurfaceType.OceanSeaLake;
-            waterSurface.geometryType = WaterGeometryType.Infinite;
-            waterSurface.geometryType = WaterGeometryType.Infinite;
-            waterSurface.cpuSimulation = true;
-            waterSurface.waterMask = null;
+            waterSurface.cpuSimulation = false;
+            waterSurface.timeMultiplier = 1.0f;
 
-            // Swell
-            waterSurface.repetitionSize = 500.0f;
+            // Simulation
+            waterSurface.waterMask = null;
+            waterSurface.waterMaskRemap.Set(0.0f, 1.0f);
+            waterSurface.waterMaskExtent.Set(100.0f, 100.0f);
+            waterSurface.waterMaskOffset = Vector2.zero;
             waterSurface.largeOrientationValue = 0.0f;
-            waterSurface.largeWindSpeed = 30.0f;
-            waterSurface.largeChaos = 0.85f;
-            waterSurface.largeCurrentSpeedValue = 0.0f;
             waterSurface.largeCurrentMap = null;
-            waterSurface.largeCurrentRegionExtent = new Vector2(100.0f, 100.0f);
+            waterSurface.largeCurrentRegionExtent.Set(100f, 100f);
             waterSurface.largeCurrentRegionOffset = Vector2.zero;
             waterSurface.largeCurrentMapInfluence = 1.0f;
             waterSurface.largeBand0Multiplier = 1.0f;
@@ -31,19 +27,15 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.largeBand1FadeMode = FadeMode.Automatic;
             waterSurface.ripplesFadeMode = FadeMode.Automatic;
 
-            waterSurface.largeBand0FadeStart = 1500.0f;
-            waterSurface.largeBand0FadeDistance = 3000.0f;
-            waterSurface.largeBand1FadeStart = 300.0f;
-            waterSurface.largeBand1FadeDistance = 800.0f;
             waterSurface.ripplesFadeStart = 50.0f;
             waterSurface.ripplesFadeDistance = 200.0f;
 
             // Ripples
             waterSurface.ripples = true;
-            waterSurface.ripplesWindSpeed = 8.0f;
             waterSurface.ripplesChaos = 0.8f;
+            waterSurface.ripplesWindSpeed = 8.0f;
             waterSurface.ripplesCurrentMap = null;
-            waterSurface.ripplesCurrentRegionExtent = new Vector2(100.0f, 100.0f);
+            waterSurface.ripplesCurrentRegionExtent.Set(100f, 100f);
             waterSurface.ripplesCurrentRegionOffset = Vector2.zero;
             waterSurface.ripplesCurrentMapInfluence = 1.0f;
 
@@ -51,6 +43,34 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.refractionColor = new Color(0.1f, 0.5f, 0.5f).linear;
             waterSurface.maxRefractionDistance = 0.5f;
             waterSurface.absorptionDistance = 1.5f;
+
+            // Foam
+            waterSurface.foam = false;
+            waterSurface.foamAreaSize.Set(200f, 200f);
+            waterSurface.foamAreaOffset = Vector2.zero;
+        }
+
+        static internal void ApplyWaterOceanPreset(WaterSurface waterSurface)
+        {
+            ApplyCommonPreset(waterSurface);
+
+            // Set the various parameters
+            waterSurface.surfaceType = WaterSurfaceType.OceanSeaLake;
+            waterSurface.geometryType = WaterGeometryType.Infinite;
+            waterSurface.geometryType = WaterGeometryType.Infinite;
+            waterSurface.cpuSimulation = true;
+
+            // Swell
+            waterSurface.repetitionSize = 500.0f;
+            waterSurface.largeWindSpeed = 30.0f;
+            waterSurface.largeChaos = 0.85f;
+            waterSurface.largeCurrentSpeedValue = 0.0f;
+
+            // Fade
+            waterSurface.largeBand0FadeStart = 1500.0f;
+            waterSurface.largeBand0FadeDistance = 3000.0f;
+            waterSurface.largeBand1FadeStart = 300.0f;
+            waterSurface.largeBand1FadeDistance = 800.0f;
 
             // Scattering
             waterSurface.scatteringColor = new Color(0.0f, 0.4f, 0.4f).linear;
@@ -60,10 +80,9 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.directLightTipScattering = 0.6f;
             waterSurface.directLightBodyScattering = 0.5f;
 
+            // Foam
             waterSurface.foam = true;
-            waterSurface.foamResolution = WaterSurface.WaterFoamResolution.Resolution512;
-            waterSurface.foamAreaSize.Set(200f, 200f);
-            waterSurface.foamAreaOffset.Set(0, 0);
+            waterSurface.foamResolution = WaterFoamResolution.Resolution512;
             waterSurface.foamTextureTiling = 0.15f;
             waterSurface.foamSmoothness = 1.0f;
             waterSurface.simulationFoam = true;
@@ -78,43 +97,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal void ApplyWaterRiverPreset(WaterSurface waterSurface)
         {
+            ApplyCommonPreset(waterSurface);
+
             // Set the various parameters
             waterSurface.surfaceType = WaterSurfaceType.River;
             waterSurface.geometryType = WaterGeometryType.InstancedQuads;
-            waterSurface.cpuSimulation = false;
-            waterSurface.timeMultiplier = 1.0f;
-            waterSurface.waterMask = null;
 
             // Agitation
             waterSurface.repetitionSize = 75.0f;
-            waterSurface.largeOrientationValue = 0.0f;
             waterSurface.largeWindSpeed = 17.5f;
             waterSurface.largeChaos = 0.9f;
             waterSurface.largeCurrentSpeedValue = 1.5f;
-            waterSurface.largeCurrentMap = null;
-            waterSurface.largeCurrentRegionExtent = new Vector2(100.0f, 100.0f);
-            waterSurface.largeCurrentRegionOffset = Vector2.zero;
-            waterSurface.largeCurrentMapInfluence = 1.0f;
-            waterSurface.largeBand0Multiplier = 1.0f;
-            waterSurface.largeBand1Multiplier = 1.0f;
 
             // Fade
-            waterSurface.largeBand0FadeMode = FadeMode.Automatic;
-            waterSurface.ripplesFadeMode = FadeMode.Automatic;
-
             waterSurface.largeBand0FadeStart = 150.0f;
             waterSurface.largeBand0FadeDistance = 300.0f;
-            waterSurface.ripplesFadeStart = 50.0f;
-            waterSurface.ripplesFadeDistance = 200.0f;
 
             // Ripples
-            waterSurface.ripples = true;
-            waterSurface.ripplesWindSpeed = 8.0f;
             waterSurface.ripplesChaos = 0.2f;
-            waterSurface.ripplesCurrentMap = null;
-            waterSurface.ripplesCurrentRegionExtent = new Vector2(100.0f, 100.0f);
-            waterSurface.ripplesCurrentRegionOffset = Vector2.zero;
-            waterSurface.ripplesCurrentMapInfluence = 1.0f;
 
             // Scattering
             waterSurface.scatteringColor = new Color(0.0f, 0.4f, 0.45f).linear;
@@ -123,9 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.displacementScattering = 0.1f;
             waterSurface.directLightTipScattering = 0.6f;
             waterSurface.directLightBodyScattering = 0.5f;
-
-            // Foam
-            waterSurface.foam = false;
 
             // Caustics
             waterSurface.caustics = true;
@@ -138,27 +135,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static internal void ApplyWaterPoolPreset(WaterSurface waterSurface)
         {
+            ApplyCommonPreset(waterSurface);
+
             // Set the various parameters
             waterSurface.surfaceType = WaterSurfaceType.Pool;
             waterSurface.geometryType = WaterGeometryType.Quad;
-            waterSurface.cpuSimulation = false;
 
             // Make the time multiplier a bit slower
             waterSurface.timeMultiplier = 0.8f;
-            waterSurface.waterMask = null;
-
-            // Fade
-            waterSurface.ripplesFadeMode = FadeMode.Automatic;
-            waterSurface.ripplesFadeStart = 50.0f;
-            waterSurface.ripplesFadeDistance = 200.0f;
 
             // Ripples
             waterSurface.ripplesWindSpeed = 5.0f;
             waterSurface.ripplesChaos = 1.0f;
-            waterSurface.ripplesCurrentMap = null;
-            waterSurface.ripplesCurrentRegionExtent = new Vector2(100.0f, 100.0f);
-            waterSurface.ripplesCurrentRegionOffset = Vector2.zero;
-            waterSurface.ripplesCurrentMapInfluence = 1.0f;
 
             // Refraction
             waterSurface.refractionColor = new Color(0.2f, 0.55f, 0.55f).linear;
@@ -181,13 +169,9 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.causticsBand = 0;
             waterSurface.virtualPlaneDistance = 4.0f;
 
-            // Foam
-            waterSurface.foam = false;
-
             // Under Water
             waterSurface.underWater = true;
-            waterSurface.TryGetComponent<BoxCollider>(out BoxCollider boxCollider);
-            waterSurface.volumeBounds = boxCollider;
+            waterSurface.volumeBounds = waterSurface.GetComponent<BoxCollider>();
             waterSurface.volumePrority = 0;
             waterSurface.absorptionDistanceMultiplier = 1.0f;
         }

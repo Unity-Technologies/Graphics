@@ -400,7 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
             currentWater.CheckResources((int)m_WaterBandResolution, WaterConsts.k_WaterHighBandCount, m_ActiveWaterFoam, m_ActiveWaterSimulationCPU, out validGPUResources, out validCPUResources, out validHistory);
 
             // Update the simulation time (include timescale)
-            currentWater.simulation.Update(Time.realtimeSinceStartup, currentWater.timeMultiplier * Time.timeScale);
+            currentWater.simulation.Update(currentWater.timeMultiplier);
 
             // Update the constant buffer
             UpdateShaderVariablesWater(currentWater, surfaceIndex, ref m_ShaderVariablesWater);
@@ -1024,7 +1024,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Grab all the water surfaces in the scene
             var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = WaterSurface.instanceCount;
+            int numWaterSurfaces = Mathf.Min(WaterSurface.instanceCount, k_MaxNumWaterSurfaceProfiles);
 
             // If the water is disabled, no need to render or simulate
             if (!ShouldRenderWater(hdCamera))
@@ -1196,7 +1196,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Grab all the water surfaces in the scene
             var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = WaterSurface.instanceCount;
+            int numWaterSurfaces = Mathf.Min(WaterSurface.instanceCount, k_MaxNumWaterSurfaceProfiles);
 
             // If the water is disabled, no need to render or simulate
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();

@@ -91,13 +91,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the extent of the foam mask in meters.
         /// </summary>
-        [Tooltip("Sets the extent of the foam mask in meters.")]
         public Vector2 simulationFoamMaskExtent = new Vector2(100.0f, 100.0f);
 
         /// <summary>
         /// Sets the offset of the foam mask in meters.
         /// </summary>
-        [Tooltip("Sets the offset of the foam mask in meters.")]
         public Vector2 simulationFoamMaskOffset = new Vector2(0.0f, 0.0f);
 
         /// <summary>

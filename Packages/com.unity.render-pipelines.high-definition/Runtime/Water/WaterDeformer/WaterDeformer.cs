@@ -53,6 +53,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Min(1.0f)]
         public Vector2 regionSize = new Vector2(20.0f, 20.0f);
+
+        /// <summary>
+        /// The scaling mode to apply to this Foam Generator.
+        /// </summary>
+        [Tooltip("Specify the scaling mode")]
+        public DecalScaleMode scaleMode = DecalScaleMode.ScaleInvariant;
         #endregion
 
         #region Box Deformer
