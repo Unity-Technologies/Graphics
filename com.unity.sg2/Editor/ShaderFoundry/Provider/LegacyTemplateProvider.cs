@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 
 using UnityEditor.ShaderFoundry;
+using UnityEngine;
 using PassIdentifier = UnityEngine.Rendering.PassIdentifier;
 using BlockInput = UnityEditor.ShaderFoundry.BlockVariable;
 using BlockOutput = UnityEditor.ShaderFoundry.BlockVariable;
@@ -305,10 +306,39 @@ namespace UnityEditor.ShaderFoundry
 
         CustomizationPoint BuildCustomizationPoint(CustomizationPoint.Builder builder, Block preBlock, Block postBlock, List<BlockSequenceElement> defaultBlockSequenceElements)
         {
+            var varMap = new Dictionary<string, BlockVariable.Builder>();
+            // Merge input and outputs together
             foreach (var output in preBlock.Outputs)
-                builder.AddInterfaceField(CloneVariable(output));
+            {
+                if(!varMap.TryGetValue(output.Name, out var varBuilder))
+                {
+                    varBuilder = new BlockVariable.Builder(Container);
+                    varBuilder.Type = output.Type;
+                    varBuilder.Name = output.Name;
+                    foreach (var attribute in output.Attributes)
+                        varBuilder.AddAttribute(attribute);
+                    varMap[output.Name] = varBuilder;
+                }
+                varBuilder.IsInput = true;
+            }
             foreach (var input in postBlock.Inputs)
-                builder.AddInterfaceField(CloneVariable(input));
+            {
+                if(!varMap.TryGetValue(input.Name, out var varBuilder))
+                {
+                    varBuilder = new BlockVariable.Builder(Container);
+                    varBuilder.Type = input.Type;
+                    varBuilder.Name = input.Name;
+                    foreach (var attribute in input.Attributes)
+                        varBuilder.AddAttribute(attribute);
+                    varMap[input.Name] = varBuilder;
+                }
+                varBuilder.IsOutput = true;
+            }
+            foreach(var varBuilder in varMap.Values)
+            {
+                builder.AddInterfaceField(varBuilder.Build());
+            }
+
             foreach (var blockSequenceElement in defaultBlockSequenceElements)
                 builder.AddDefaultBlockSequenceElement(blockSequenceElement);
             return builder.Build();
