@@ -1266,6 +1266,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle gbuffer2;
             public TextureHandle gbuffer3;
             public TextureHandle depthBuffer;
+            public TextureHandle depthPyramid;
 
             // Profiles
             public BufferHandle waterSurfaceProfiles;
@@ -1285,7 +1286,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderWaterLighting(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle colorBuffer, TextureHandle depthBuffer,
+            TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle depthPyramid,
             TextureHandle volumetricLightingTexture, TextureHandle ssrLighting,
             in WaterGBuffer waterGBuffer, in BuildGPULightListOutput lightLists)
         {
@@ -1313,6 +1314,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.gbuffer3 = builder.ReadTexture(waterGBuffer.waterGBuffer3);
 
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
+                passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.waterSurfaceProfiles = builder.ReadBuffer(renderGraph.ImportBuffer(m_WaterProfileArrayGPU));
                 passData.scatteringFallbackTexture = renderGraph.defaultResources.blackTexture3DXR;
                 passData.volumetricLightingTexture = builder.ReadTexture(volumetricLightingTexture);
@@ -1357,6 +1359,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
                             ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
                             ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
+                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
 
                             // Bind the output texture
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraColorTextureRW, data.waterLightingBuffer);

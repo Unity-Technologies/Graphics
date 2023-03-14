@@ -1401,7 +1401,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Render the deferred water lighting
-            RenderWaterLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, volumetricLighting, ssrLightingBuffer, waterGBuffer, lightLists);
+            RenderWaterLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ssrLightingBuffer, waterGBuffer, lightLists);
 
             // If required, render the water mask debug views
             RenderWaterMaskDebug(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, waterGBuffer);
