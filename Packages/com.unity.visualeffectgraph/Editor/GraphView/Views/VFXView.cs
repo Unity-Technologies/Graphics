@@ -2982,11 +2982,11 @@ namespace UnityEditor.VFX.UI
                 DragAndDrop.AcceptDrag();
                 var offset = Vector2.zero;
 
-                foreach (var draggedObject in DragAndDrop.objectReferences)
+                foreach (var draggedObject in DragAndDrop.objectReferences.OfType<VisualEffectObject>())
                 {
                     var mousePosition = contentViewContainer.WorldToLocal(e.mousePosition) + offset;
 
-                    var dropMode = GetDragAndDropModeForVisualEffectObject((VisualEffectObject)draggedObject);
+                    var dropMode = GetDragAndDropModeForVisualEffectObject(draggedObject);
                     if (dropMode == DragAndDropVisualMode.Rejected)
                     {
                         Debug.LogWarning($"Could not drag & drop asset '{draggedObject.name}' because it's not compatible with the graph");

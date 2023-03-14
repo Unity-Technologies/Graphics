@@ -152,6 +152,12 @@
     --height: 18px;
 }
 
+.propertyrm .unity-enum-field
+{
+    flex:1 1;
+    flex-basis: auto;
+}
+
 BoolPropertyRM > .unity-toggle
 {
     padding-top:0;
