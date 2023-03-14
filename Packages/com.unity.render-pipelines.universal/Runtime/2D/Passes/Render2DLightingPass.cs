@@ -484,7 +484,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
-                RendererLighting.SetShapeLightShaderGlobals(m_Renderer2DData, cmd);
+                RendererLighting.SetLightShaderGlobals(m_Renderer2DData, cmd);
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
 

@@ -65,13 +65,12 @@ namespace UnityEngine.Rendering.Universal
                         var slotIndex = RendererLighting.lightBatch.SlotIndex(index);
                         bool canBatch = RendererLighting.lightBatch.CanBatch(light, lightMaterial, index, out int lightHash);
 
-                        RendererLighting.SetGeneralLightShaderGlobals(cmd, light, slotIndex, passData.isVolumetric, false, LightBatch.isBatchingSupported);
+                        RendererLighting.SetPerLightShaderGlobals(cmd, light, slotIndex, passData.isVolumetric, false, LightBatch.isBatchingSupported);
 
                         if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
-                            RendererLighting.SetPointLightShaderGlobals(passData.rendererData, cmd, light, slotIndex, LightBatch.isBatchingSupported);
+                            RendererLighting.SetPerPointLightShaderGlobals(passData.rendererData, cmd, light, slotIndex, LightBatch.isBatchingSupported);
 
-                        if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                            cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
+                        RendererLighting.SetCookieShaderGlobals(cmd, light);
 
                         if (LightBatch.isBatchingSupported)
                         {
