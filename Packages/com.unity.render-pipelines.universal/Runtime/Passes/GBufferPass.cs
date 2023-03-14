@@ -96,11 +96,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (m_DeferredLights.UseRenderPass && i != m_DeferredLights.GBufferShadowMask && i != m_DeferredLights.GBufferRenderingLayers && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
                         continue;
 
-                    RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
-                    gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
-                    gbufferSlice.stencilFormat = GraphicsFormat.None;
-                    gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                    RenderingUtils.ReAllocateIfNeeded(ref m_DeferredLights.GbufferAttachments[i], gbufferSlice, FilterMode.Point, TextureWrapMode.Clamp, name: DeferredLights.k_GBufferNames[i]);
+                    m_DeferredLights.ReAllocateGBufferIfNeeded(cameraTextureDescriptor, i);
+
                     cmd.SetGlobalTexture(m_DeferredLights.GbufferAttachments[i].name, m_DeferredLights.GbufferAttachments[i].nameID);
                 }
             }
