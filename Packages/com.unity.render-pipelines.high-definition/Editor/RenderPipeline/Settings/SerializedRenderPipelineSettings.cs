@@ -57,6 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSurfaceGradient;
         public SerializedProperty decalNormalBufferHP;
         public SerializedProperty supportHighQualityLineRendering;
+        public SerializedProperty highQualityLineRenderingMemoryBudget;
 
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
@@ -159,6 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportVFXRayTracing = root.Find((RenderPipelineSettings s) => s.supportVFXRayTracing);
             supportedRayTracingMode = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
             supportHighQualityLineRendering = root.Find((RenderPipelineSettings s) => s.supportHighQualityLineRendering);
+            highQualityLineRenderingMemoryBudget = root.Find((RenderPipelineSettings s) => s.highQualityLineRenderingMemoryBudget);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));

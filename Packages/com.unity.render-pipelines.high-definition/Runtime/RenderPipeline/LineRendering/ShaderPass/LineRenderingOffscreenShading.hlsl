@@ -14,6 +14,7 @@ int _VertexOffset;
 int _SoftwareLineOffscreenAtlasWidth;
 int _SoftwareLineOffscreenAtlasHeight;
 int _ShadingSampleVisibilityCount;
+float4x4 _InverseCamMatNoJitter;
 
 #define OffscreenAtlasWidth _SoftwareLineOffscreenAtlasWidth
 #define OffscreenAtlasHeight _SoftwareLineOffscreenAtlasHeight
@@ -73,7 +74,7 @@ void OffscreenShadingFillFragInputs(
     // Configure the fragment.
     {
         output.tangentToWorld = BuildTangentToWorld(float4(T, 1), N);
-        output.positionRWS    = ComputeWorldSpacePosition(positionCS, UNITY_MATRIX_I_VP);
+        output.positionRWS    = ComputeWorldSpacePosition(positionCS, _InverseCamMatNoJitter);
         output.positionSS     = ClipSpaceToRasterSpacePosition(positionCS);
         output.positionPixel  = output.positionSS;
         output.isFrontFace    = true;

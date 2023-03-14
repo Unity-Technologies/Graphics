@@ -171,6 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportProbeVolumeScenarios = false,
                 supportProbeVolumeScenarioBlending = true,
                 supportHighQualityLineRendering = false,
+                highQualityLineRenderingMemoryBudget = LineRendering.MemoryBudget.MemoryBudgetLow,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
@@ -338,6 +339,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool decalNormalBufferHP;
         /// <summary>Support High Quality Line Rendering.</summary>
         public bool supportHighQualityLineRendering;
+        /// <summary>High Quality Line Rendering Memory Budget.</summary>
+        public LineRendering.MemoryBudget highQualityLineRenderingMemoryBudget;
 
         /// <summary>Default Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;

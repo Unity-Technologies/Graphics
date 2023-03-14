@@ -98,7 +98,14 @@ void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0)
             specularLighting *= GetCurrentExposureMultiplier();
 
             outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
-            outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
+
+            #ifdef _ENABLE_FOG_ON_TRANSPARENT
+            {
+                float3 volColor, volOpacity;
+                EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
+                outColor.rgb = outColor.rgb * (1 - volOpacity) + volColor;
+            }
+            #endif
         }
 
 #ifdef DEBUG_DISPLAY

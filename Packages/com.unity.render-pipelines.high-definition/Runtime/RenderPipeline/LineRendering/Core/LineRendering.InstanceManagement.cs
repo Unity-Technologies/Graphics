@@ -12,14 +12,8 @@ namespace UnityEngine.Rendering
 
     partial class LineRendering
     {
-
-        struct LineRendererEntry
-        {
-            public ILineRenderer renderer;
-            public PerRendererPersistentData perRendererResources;
-        }
-        private static Dictionary<ILineRenderer, PerRendererPersistentData> s_RendererInstances = new Dictionary<ILineRenderer, PerRendererPersistentData>();
-        private static LineRendererEntry[]    s_RendererInstancesAsArray = null;
+        private static HashSet<ILineRenderer> s_RendererInstances = new HashSet<ILineRenderer>();
+        private static ILineRenderer[]        s_RendererInstancesAsArray = null;
         private static int                    s_RendererInstanceCount = 0;
 
         private static void UpdateInstanceArray()
@@ -28,12 +22,8 @@ namespace UnityEngine.Rendering
 
             if (s_RendererInstanceCount > 0)
             {
-                s_RendererInstancesAsArray = new LineRendererEntry[s_RendererInstanceCount];
-                int i = 0;
-                foreach (var entry in s_RendererInstances)
-                {
-                    s_RendererInstancesAsArray[i++] = new LineRendererEntry() {renderer = entry.Key, perRendererResources = entry.Value};
-                }
+                s_RendererInstancesAsArray = new ILineRenderer[s_RendererInstanceCount];
+                s_RendererInstances.CopyTo(s_RendererInstancesAsArray);
             }
             else
             {
@@ -43,10 +33,7 @@ namespace UnityEngine.Rendering
 
         internal static void AddRenderer(ILineRenderer renderer)
         {
-            if (s_RendererInstances.ContainsKey(renderer))
-                return;
-
-            s_RendererInstances.TryAdd(renderer, new PerRendererPersistentData());
+            s_RendererInstances.Add(renderer);
             UpdateInstanceArray();
         }
 
@@ -57,8 +44,7 @@ namespace UnityEngine.Rendering
         }
 
         private static bool HasRenderDatas() => s_RendererInstancesAsArray != null;
-        private static RenderData[] GetValidRenderDatas(RenderGraph renderGraph, Camera camera) => s_RendererInstancesAsArray.Where(o => o.renderer.LineRendererIsValid()).Select(o => new RenderData {rendererData = o.renderer.GetLineRendererData(renderGraph, camera), persistentData = o.perRendererResources}).ToArray();
-        private static RenderData[] GetRenderDatasInGroup(RenderData[] data, RendererGroup group) => data.Where(o => o.rendererData.group == group).ToArray();
-        private static RenderData[] GetRenderDatasNoGroup(RenderData[] data) => data.Where(o => o.rendererData.group == RendererGroup.None).ToArray();
+        private static RendererData[] GetValidRenderDatas(RenderGraph renderGraph, Camera camera) =>
+            s_RendererInstancesAsArray.Where(o => o.LineRendererIsValid()).Select(o => o.GetLineRendererData(renderGraph, camera)).ToArray();
     }
 }

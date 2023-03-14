@@ -47,22 +47,35 @@ namespace UnityEngine.Rendering
             Assert.IsNotNull(resources.computeAsset);
 
             // When the is no geometry, instead of computing the distance field, we clear it with a big value.
-            using (new ProfilingScope(cmd, new ProfilingSampler(m_StageNames[(int)stage])))
+            using (new ProfilingScope(cmd, new ProfilingSampler(m_StageNames[(int) stage])))
             {
-    #if false
+#if false
                 m_SortCS.enabledKeywords = new[]  { keywords[(int)stage] };
-    #else
+#else
                 // Unfortunately need to configure the keywords like this. Might be worth just having a kernel per stage.
                 foreach (var k in m_Keywords)
                     cmd.SetKeyword(resources.computeAsset, k, false);
-                cmd.SetKeyword(resources.computeAsset, m_Keywords[(int)stage], true);
-    #endif
+                cmd.SetKeyword(resources.computeAsset, m_Keywords[(int) stage], true);
+#endif
 
-                cmd.SetComputeIntParam(resources.computeAsset, "_H", (int)h);
+                cmd.SetComputeIntParam(resources.computeAsset, "_H", (int) h);
                 cmd.SetComputeBufferParam(resources.computeAsset, 0, "_KeyBuffer", args.resources.sortBufferKeys);
                 cmd.SetComputeBufferParam(resources.computeAsset, 0, "_ValueBuffer", args.resources.sortBufferValues);
                 cmd.DispatchCompute(resources.computeAsset, 0, args.workGroupCount, 1, 1);
             }
+        }
+
+        void CopyBuffer(CommandBuffer cmd, GraphicsBuffer src, GraphicsBuffer dst)
+        {
+            //disable all keywords for copy
+            foreach (var k in m_Keywords)
+                cmd.SetKeyword(resources.computeAsset, k, false);
+
+            int entriesToCopy = src.count * src.stride / 4;
+            cmd.SetComputeBufferParam(resources.computeAsset, 1, "_CopySrcBuffer", src);
+            cmd.SetComputeBufferParam(resources.computeAsset, 1, "_CopyDstBuffer", dst);
+            cmd.SetComputeIntParam(resources.computeAsset, "_CopyEntriesCount", entriesToCopy);
+            cmd.DispatchCompute(resources.computeAsset, 1, (entriesToCopy + 63) / 64, 1, 1);
         }
 
         internal static int DivRoundUp(int x, int y) => (x + y - 1) / y;
@@ -71,10 +84,10 @@ namespace UnityEngine.Rendering
         {
             var n = args.count;
 
-            cmd.CopyBuffer(args.inputKeys,   args.resources.sortBufferKeys);
-            cmd.CopyBuffer(args.inputValues, args.resources.sortBufferValues);
+            CopyBuffer(cmd, args.inputKeys, args.resources.sortBufferKeys);
+            CopyBuffer(cmd, args.inputValues, args.resources.sortBufferValues);
 
-            args.workGroupCount = Math.Max(1, DivRoundUp((int)n, (int)kWorkGroupSize * 2));
+            args.workGroupCount = Math.Max(1, DivRoundUp((int) n, (int) kWorkGroupSize * 2));
 
             uint h = Math.Min(kWorkGroupSize * 2, args.maxDepth);
 
@@ -98,6 +111,5 @@ namespace UnityEngine.Rendering
                 }
             }
         }
-
     }
 }

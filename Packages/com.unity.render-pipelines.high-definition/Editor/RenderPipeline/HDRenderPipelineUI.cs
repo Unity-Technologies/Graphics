@@ -745,6 +745,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionHighQualityLineRenderingSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportHighQualityLineRendering, Styles.supportHighQualityLineRenderingContent);
+
+            ++EditorGUI.indentLevel;
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportHighQualityLineRendering.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.highQualityLineRenderingMemoryBudget, Styles.highQualityLineRenderingMemoryBudget);
+            }
+            --EditorGUI.indentLevel;
         }
 
         static void Drawer_SectionComputeThicknessSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
