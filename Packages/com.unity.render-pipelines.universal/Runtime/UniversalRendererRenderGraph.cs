@@ -279,7 +279,8 @@ namespace UnityEngine.Rendering.Universal
             bool isPreviewCamera = renderingData.cameraData.isPreviewCamera;
             bool requiresDepthPrepass = RequireDepthPrepass(ref renderingData, renderPassInputs);
 
-            var requireColorTexture = (rendererFeatures.Count != 0 && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera;
+            var requireColorTexture = HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always;
+            requireColorTexture |= Application.isEditor && m_Clustering;
             requireColorTexture |= RequiresIntermediateColorTexture(ref renderingData.cameraData);
             requireColorTexture &= !isPreviewCamera;
 

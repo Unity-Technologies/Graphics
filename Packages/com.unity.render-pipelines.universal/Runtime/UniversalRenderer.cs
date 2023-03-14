@@ -497,6 +497,20 @@ namespace UnityEngine.Rendering.Universal
             return IsGLESDevice() || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
         }
 
+        internal bool HasActiveRenderFeatures()
+        {
+            if (rendererFeatures.Count == 0)
+                return false;
+
+            foreach (var rf in rendererFeatures)
+            {
+                if (rf.isActive)
+                    return true;
+            }
+
+            return false;
+        }
+
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -550,7 +564,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            var createColorTexture = ((rendererFeatures.Count != 0 && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera) ||
+            var createColorTexture = ((HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera) ||
                 (Application.isEditor && m_Clustering);
 
             // Gather render passe input requirements
