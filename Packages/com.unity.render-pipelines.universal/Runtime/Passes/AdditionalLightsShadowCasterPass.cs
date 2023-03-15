@@ -938,7 +938,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
 
                 if (anyShadowSliceRenderer)
-                    SetupAdditionalLightsShadowReceiverConstants(cmd, ref shadowData, softShadows);
+                    SetupAdditionalLightsShadowReceiverConstants(cmd, softShadows);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -946,13 +946,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // Set constant buffer data that will be used during the lighting/shadowing pass
-        void SetupAdditionalLightsShadowReceiverConstants(CommandBuffer cmd, ref ShadowData shadowData, bool softShadows)
+        void SetupAdditionalLightsShadowReceiverConstants(CommandBuffer cmd, bool softShadows)
         {
-            float invShadowAtlasWidth = 1.0f / shadowData.additionalLightsShadowmapWidth;
-            float invShadowAtlasHeight = 1.0f / shadowData.additionalLightsShadowmapHeight;
-            float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
-            float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
-
             cmd.SetGlobalTexture(m_AdditionalLightsShadowmap.id, m_AdditionalLightsShadowmapTexture);
 
             if (m_UseStructuredBuffer)
@@ -978,19 +973,25 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (softShadows)
             {
+                Vector2Int allocatedShadowAtlasSize = new Vector2Int(m_AdditionalLightsShadowmapTexture.width, m_AdditionalLightsShadowmapTexture.height);
+                Vector2 invShadowAtlasSize = Vector2.one / allocatedShadowAtlasSize;
+                Vector2 invHalfShadowAtlasSize = invShadowAtlasSize * 0.5f;
+
                 cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset0,
-                        new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+                        new Vector4(-invHalfShadowAtlasSize.x, -invHalfShadowAtlasSize.y,
+                            invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y));
                 cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset1,
-                        new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+                        new Vector4(invHalfShadowAtlasSize.x, -invHalfShadowAtlasSize.y,
+                            invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y));
                 cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset2,
-                        new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
+                        new Vector4(-invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y, invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y));
                 cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset3,
-                        new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
+                        new Vector4(invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y, invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y));
 
                 // Currently only used when !SHADER_API_MOBILE but risky to not set them as it's generic
                 // enough so custom shaders might use it.
-                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
-                    shadowData.additionalLightsShadowmapWidth, shadowData.additionalLightsShadowmapHeight));
+                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowmapSize, new Vector4(invShadowAtlasSize.x, invShadowAtlasSize.y,
+                    allocatedShadowAtlasSize.x, allocatedShadowAtlasSize.y));
             }
         }
 
