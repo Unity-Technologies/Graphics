@@ -2379,16 +2379,16 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "a6f135e6897c408f865c93956d05fec7",
-    "m_Title": "DOT PRODUCT NODE",
-    "m_Content": "",
+    "m_Title": "Dot Product Node",
+    "m_Content": "Returns the dot product, or scalar product, of the two input vectors A and B.\r\n\r\nThe dot product is a value equal to the magnitudes of the two vectors multiplied together and then multiplied by the cosine of the angle between them.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
         "serializedVersion": "2",
         "x": -1566.0001220703125,
         "y": -335.5000305175781,
-        "width": 233.0,
-        "height": 100.00001525878906
+        "width": 292.207763671875,
+        "height": 115.7803955078125
     },
     "m_Group": {
         "m_Id": ""
