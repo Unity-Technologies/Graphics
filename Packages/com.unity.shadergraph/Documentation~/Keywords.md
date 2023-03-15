@@ -9,7 +9,7 @@ Keywords enable you to create shaders:
 * With features that behave differently on certain platforms.
 * That scale in complexity based on conditions you set.
 
-There are three types of Keywords: Boolean, Enum, and Built-in. Unity defines a Keyword in the graph, shader, and optionally, the Material Inspector based on its type. See [Boolean Keyword](#BooleanKeywords), [Enum Keyword](#EnumKeywords), and [Built-in Keyword](#BuiltinKeywords) for more information about Keyword types. For more information about how these Keywords affect the final shader, see documentation on M[Making multiple shader program variants](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
+There are three types of Keywords: Boolean, Enum, and Built-in. Unity defines a Keyword in the graph, shader, and optionally, the Material Inspector based on its type. See [Boolean Keyword](#BooleanKeywords), [Enum Keyword](#EnumKeywords), and [Built-in Keyword](#BuiltinKeywords) for more information about Keyword types. For more information about how these Keywords affect the final shader, see documentation on [Making multiple shader program variants](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
 
 In Shader Graph, you first define a Keyword on the [Blackboard](Blackboard.md), then use a [Keyword Node](Keyword-Node.md) to create a branch in the graph.
 
