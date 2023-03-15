@@ -1903,16 +1903,16 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "7bd2b1da0d03403bbd49f2c309374e3d",
-    "m_Title": "LERP NODE",
-    "m_Content": "\n",
+    "m_Title": "Lerp Node",
+    "m_Content": "The Lerp Node performs linear interpolation or linear blending between the input values A and B. \n\nThe point on the line between A and B is defined by input T where a T value of 0 will give only input A, a T value of 1 will give only input B, and a T value of 0.5 will give a blend result that's half way between A and B.\n",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
         "serializedVersion": "2",
         "x": -322.5000305175781,
-        "y": -166.00001525878907,
-        "width": 200.00003051757813,
-        "height": 100.00000762939453
+        "y": -167.50001525878907,
+        "width": 321.7353820800781,
+        "height": 135.45938110351563
     },
     "m_Group": {
         "m_Id": ""
