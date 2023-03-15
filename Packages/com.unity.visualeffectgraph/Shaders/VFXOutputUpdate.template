@@ -170,7 +170,9 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #endif
                 {
                     float viewZ = mul(GetWorldToViewMatrix(), float4(elementToWorld._m03_m13_m23, 1)).z;
-                    float4 clip = mul(GetViewToHClipMatrix(), float4(radius, radius, viewZ, 1));
+                    float4x4 centeredProjMatrix = GetViewToHClipMatrix();
+                    centeredProjMatrix._13_14_23_24 = 0.0f; //Cancels the jittering and/or the eye offset when in VR
+                    float4 clip = mul(centeredProjMatrix, float4(radius, radius, viewZ, 1));
                     float lodValue = max(abs(clip.x),abs(clip.y)) * rcp(max(VFX_EPSILON, clip.w));
 
                     ${VFXLoadParameter:{lodValues}}

@@ -1,10 +1,11 @@
 // Forward pass
 Pass
-{		
+{
+    Name "SceneSelectionPass"
 	Tags { "LightMode"="SceneSelectionPass" }
-	
+
 	ZWrite Off
-	
+
 	HLSLPROGRAM
 	#define VFX_PASSDEPTH VFX_PASSDEPTH_SELECTION
 	${VFXInclude("Shaders/ParticleDecals/Pass.template")}
@@ -12,11 +13,12 @@ Pass
 }
 
 Pass
-{		
+{
+    Name "Picking"
 	Tags { "LightMode"="Picking" }
-	
+
 	ZWrite Off
-	
+
 	HLSLPROGRAM
 	#define VFX_PASSDEPTH VFX_PASSDEPTH_PICKING
 	${VFXInclude("Shaders/ParticleDecals/Pass.template")}
