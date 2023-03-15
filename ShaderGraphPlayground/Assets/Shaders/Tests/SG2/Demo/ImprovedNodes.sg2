@@ -350,6 +350,7 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
                         "m_Blocks": [
                             {
                                 "rid": 1004
@@ -361,6 +362,10 @@
                                 "m_Value1": 744340428415298114
                             }
                         ],
+                        "m_RegistryKey": {
+                            "Name": "_Context",
+                            "Version": 1
+                        },
                         "m_GraphDataName": "DefaultContextDescriptor"
                     }
                 },
@@ -451,6 +456,7 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
                         "m_ContextNodeModel": {
                             "rid": 1001
                         },
@@ -536,11 +542,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "4325e5be5300fc2ddf956abee96a3668",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "Contrast",
                             "Version": 1
                         },
+                        "m_GraphDataName": "4325e5be5300fc2ddf956abee96a3668",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -664,11 +671,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "a9ea13ffa84a6fea9bef588a79817df6",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "NormalBlend",
                             "Version": 1
                         },
+                        "m_GraphDataName": "a9ea13ffa84a6fea9bef588a79817df6",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -814,11 +822,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "65dfe33eec25483421262bdf4bb79411",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "MetalReflectance",
                             "Version": 1
                         },
+                        "m_GraphDataName": "65dfe33eec25483421262bdf4bb79411",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -870,11 +879,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "2ff9b464250fe7ad87213f692a8f4141",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "Smoothstep",
                             "Version": 1
                         },
+                        "m_GraphDataName": "2ff9b464250fe7ad87213f692a8f4141",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -1026,11 +1036,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "80a20419e74e4364b21999362a48c8a7",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "DDX",
                             "Version": 1
                         },
+                        "m_GraphDataName": "80a20419e74e4364b21999362a48c8a7",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -1092,7 +1103,7 @@
                         "m_HasUserColor": false,
                         "m_Version": 2,
                         "m_Position": {
-                            "x": 366.11834716796877,
+                            "x": 364.1182861328125,
                             "y": 1057.0618896484375
                         },
                         "m_Title": "DDY",
@@ -1110,11 +1121,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "214565bd386f1a63401c84843a17b7cd",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "DDY",
                             "Version": 1
                         },
+                        "m_GraphDataName": "214565bd386f1a63401c84843a17b7cd",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -1194,11 +1206,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "4d7e3c129e3e1f8c8b6cfec2e5ce758b",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "DDXY",
                             "Version": 1
                         },
+                        "m_GraphDataName": "4d7e3c129e3e1f8c8b6cfec2e5ce758b",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -1290,11 +1303,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "4340c9a9198b785a035ccbc9d8177c93",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "Flipbook",
                             "Version": 1
                         },
+                        "m_GraphDataName": "4340c9a9198b785a035ccbc9d8177c93",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -1490,11 +1504,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "753f34288654c2e27af52143e2e48e8b",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "Blend",
                             "Version": 1
                         },
+                        "m_GraphDataName": "753f34288654c2e27af52143e2e48e8b",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -1654,11 +1669,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "e1a8589e08f0d5931c3b293407c0b240",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "SampleTexture2D",
                             "Version": 1
                         },
+                        "m_GraphDataName": "e1a8589e08f0d5931c3b293407c0b240",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -1785,11 +1801,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "8e590501ba928ef8b77bb0b7c9d48bfb",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "NormalFromTexture",
                             "Version": 1
                         },
+                        "m_GraphDataName": "8e590501ba928ef8b77bb0b7c9d48bfb",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -1984,11 +2001,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "751f272b6d7cb27f237b400a5501cb12",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "SampleTexture2DArray",
                             "Version": 1
                         },
+                        "m_GraphDataName": "751f272b6d7cb27f237b400a5501cb12",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -2118,7 +2136,7 @@
                         "m_Version": 2,
                         "m_Position": {
                             "x": 164.08248901367188,
-                            "y": 2474.00146484375
+                            "y": 2492.945068359375
                         },
                         "m_Title": "Sample Cubemap",
                         "m_Tooltip": "",
@@ -2147,11 +2165,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "7621f6c018c7738f494797894449169e",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "SampleCubemap",
                             "Version": 1
                         },
+                        "m_GraphDataName": "7621f6c018c7738f494797894449169e",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -2281,7 +2300,7 @@
                         "m_Version": 2,
                         "m_Position": {
                             "x": 164.0399627685547,
-                            "y": 2734.98876953125
+                            "y": 2753.932373046875
                         },
                         "m_Title": "Sample Reflected Cubemap",
                         "m_Tooltip": "",
@@ -2314,11 +2333,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "f3cd8e91fb2f1da328d25a0eaeea6f18",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "SampleReflectedCubemap",
                             "Version": 1
                         },
+                        "m_GraphDataName": "f3cd8e91fb2f1da328d25a0eaeea6f18",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -2484,7 +2504,7 @@
                         "m_Version": 2,
                         "m_Position": {
                             "x": 163.9974822998047,
-                            "y": 2995.921630859375
+                            "y": 3014.865234375
                         },
                         "m_Title": "Sample Triplanar",
                         "m_Tooltip": "",
@@ -2521,11 +2541,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "e01edc3147ad7fca12e7206bd3d3459f",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "SampleTriplanar",
                             "Version": 1
                         },
+                        "m_GraphDataName": "e01edc3147ad7fca12e7206bd3d3459f",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -2727,7 +2748,7 @@
                         "m_Version": 2,
                         "m_Position": {
                             "x": 163.03489685058595,
-                            "y": 3256.78125
+                            "y": 3275.724853515625
                         },
                         "m_Title": "Sample Texture 3D",
                         "m_Tooltip": "",
@@ -2752,11 +2773,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "4bc6fdeca2dd35a27ea768eb4f857920",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "SampleTexture3D",
                             "Version": 1
                         },
+                        "m_GraphDataName": "4bc6fdeca2dd35a27ea768eb4f857920",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -2850,7 +2872,7 @@
                         "m_Version": 2,
                         "m_Position": {
                             "x": 162.9149169921875,
-                            "y": 3518.0517578125
+                            "y": 3536.995361328125
                         },
                         "m_Title": "Time",
                         "m_Tooltip": "",
@@ -2867,11 +2889,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "608ecefc8bf18bc677f5a99d48807b50",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "Time",
                             "Version": 1
                         },
+                        "m_GraphDataName": "608ecefc8bf18bc677f5a99d48807b50",
                         "m_IsPreviewExpanded": true,
                         "m_NodePreviewMode": 0
                     }
@@ -2934,7 +2957,7 @@
                         "m_Version": 2,
                         "m_Position": {
                             "x": 163.91995239257813,
-                            "y": 3713.98388671875
+                            "y": 3732.927490234375
                         },
                         "m_Title": "UV",
                         "m_Tooltip": "",
@@ -2945,11 +2968,12 @@
                         },
                         "m_State": 0,
                         "m_Collapsed": false,
-                        "m_GraphDataName": "8c7b747f7020bbf966f7726698c13fd2",
-                        "<duplicationRegistryKey>k__BackingField": {
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
                             "Name": "UV",
                             "Version": 1
                         },
+                        "m_GraphDataName": "8c7b747f7020bbf966f7726698c13fd2",
                         "m_IsPreviewExpanded": false,
                         "m_NodePreviewMode": 0
                     }
@@ -2981,7 +3005,7 @@
                         "m_Position": {
                             "serializedVersion": "2",
                             "x": 462.0000305175781,
-                            "y": 3749.500244140625,
+                            "y": 3768.44384765625,
                             "width": 165.61502075195313,
                             "height": 100.0
                         }
@@ -3014,7 +3038,7 @@
                         "m_Position": {
                             "serializedVersion": "2",
                             "x": 462.2374267578125,
-                            "y": 3555.541259765625,
+                            "y": 3574.48486328125,
                             "width": 165.61502075195313,
                             "height": 100.0
                         }
@@ -3047,7 +3071,7 @@
                         "m_Position": {
                             "serializedVersion": "2",
                             "x": 601.7374877929688,
-                            "y": 3324.10400390625,
+                            "y": 3343.047607421875,
                             "width": 165.61502075195313,
                             "height": 100.0
                         }
@@ -3080,7 +3104,7 @@
                         "m_Position": {
                             "serializedVersion": "2",
                             "x": 612.5000610351563,
-                            "y": 3055.500244140625,
+                            "y": 3074.44384765625,
                             "width": 215.7550048828125,
                             "height": 100.0
                         }
@@ -3113,7 +3137,7 @@
                         "m_Position": {
                             "serializedVersion": "2",
                             "x": 637.5000610351563,
-                            "y": 2799.000244140625,
+                            "y": 2817.94384765625,
                             "width": 246.1724853515625,
                             "height": 100.0
                         }
@@ -3179,7 +3203,7 @@
                         "m_Position": {
                             "serializedVersion": "2",
                             "x": 618.9299926757813,
-                            "y": 2547.796630859375,
+                            "y": 2566.740234375,
                             "width": 246.1724853515625,
                             "height": 100.0
                         }
