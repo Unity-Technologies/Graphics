@@ -3428,7 +3428,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "96b06a9ed9ef45f78b83dae7bf166ffb",
     "m_Title": "Sine Node",
-    "m_Content": "",
+    "m_Content": "Returns the sine of the value of the input.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

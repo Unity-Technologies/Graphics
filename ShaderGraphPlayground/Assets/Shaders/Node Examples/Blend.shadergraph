@@ -5954,7 +5954,7 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "c3b768e4352042e5b5c9a016dd82dc70",
-    "m_Title": "",
+    "m_Title": "Blend Node",
     "m_Content": "The Blend Node blends two colors or values together using Mode you select.\n\nBlend Modes match those commonly available in image editing software such as Photoshop.\n\nUsing the Opacity input, you control how much the Blend value should contribute to the final result.  An Opacity value of 0 will only show the Base value and an Opacity value of 1 will show the full combination of both Base and Blend.",
     "m_TextSize": 0,
     "m_Theme": 0,
@@ -5963,7 +5963,7 @@
         "x": -1877.5001220703125,
         "y": -67.50000762939453,
         "width": 337.0,
-        "height": 160.00001525878907
+        "height": 169.00001525878907
     },
     "m_Group": {
         "m_Id": ""
