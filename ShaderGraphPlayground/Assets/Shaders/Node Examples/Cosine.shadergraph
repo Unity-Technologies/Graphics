@@ -1959,7 +1959,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "80d0f0b96c1247fb9c0123a5db2a5254",
     "m_Title": "Cosine Node",
-    "m_Content": "\n",
+    "m_Content": "The Cosine Node returns the cosine of the value of the input.\n",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
