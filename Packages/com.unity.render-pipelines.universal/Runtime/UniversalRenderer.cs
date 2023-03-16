@@ -153,39 +153,18 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
 
-#if ENABLE_VR && ENABLE_VR_MODULE
-#if PLATFORM_WINRT || PLATFORM_ANDROID
-        // XRTODO: Remove this platform specific code(runs on Quest and HL).
-        static List<XR.XRDisplaySubsystem> displaySubsystemList = new List<XR.XRDisplaySubsystem>();
-        internal static bool IsRunningXRMobile()
-        {
-            var platform = Application.platform;
-            if (platform == RuntimePlatform.WSAPlayerX86 || platform == RuntimePlatform.WSAPlayerARM || platform == RuntimePlatform.WSAPlayerX64 || platform == RuntimePlatform.Android)
-            {
-                XR.XRDisplaySubsystem display = null;
-                SubsystemManager.GetInstances(displaySubsystemList);
-
-                if (displaySubsystemList.Count > 0)
-                    display = displaySubsystemList[0];
-
-                if (display != null)
-                    return true;
-            }
-            return false;
-        }
-#endif
-#endif
-
         /// <summary>
         /// Constructor for the Universal Renderer.
         /// </summary>
         /// <param name="data">The settings to create the renderer with.</param>
         public UniversalRenderer(UniversalRendererData data) : base(data)
         {
+            // Query and cache runtime platform info first before setting up URP.
+            PlatformAutoDetect.Initialize();
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, data.xrSystemData.shaders.xrOcclusionMeshPS, data.xrSystemData.shaders.xrMirrorViewPS);
 #endif
-
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
@@ -221,7 +200,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_VR_MODULE
 #if PLATFORM_WINRT || PLATFORM_ANDROID
             // AdditionalLightOff variant is available on HL&Quest platform due to performance consideration.
-            this.stripAdditionalLightOffVariants = !IsRunningXRMobile();
+            this.stripAdditionalLightOffVariants = !PlatformAutoDetect.isXRMobile;
 #endif
 #endif
 

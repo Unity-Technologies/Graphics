@@ -58,6 +58,9 @@ namespace UnityEditor.Rendering.Universal
         DepthNormalPassRenderingLayers = (1L << 35),
         LightCookies = (1L << 36),
         HdrGrading = (1L << 37),
+        AutoSHMode = (1L << 38),
+        AutoSHModePerVertex = (1L << 39),
+        ExplicitSHMode = (1L << 40),
     }
 
     [Flags]
@@ -73,6 +76,42 @@ namespace UnityEditor.Rendering.Universal
         DepthOfField = (1 << 6),
         CameraMotionBlur = (1 << 7),
         PaniniProjection = (1 << 8),
+    }
+
+    // Helper calss to detect XR build targets at build time.
+    internal sealed class XRPlatformBuildTimeDetect
+    {
+        private static XRPlatformBuildTimeDetect xrPlatformInfo;
+        internal bool isStandaloneXR { get; private set; }
+        internal bool isHololens { get; private set; }
+        internal bool isQuest { get; private set; }
+
+        private XRPlatformBuildTimeDetect()
+        {
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+            var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
+            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            {
+                isStandaloneXR = buildTargetGroup == BuildTargetGroup.Standalone;
+                isHololens = buildTargetGroup == BuildTargetGroup.WSA;
+                isQuest = buildTargetGroup == BuildTargetGroup.Android;
+            }
+#endif
+        }
+
+        internal static XRPlatformBuildTimeDetect GetInstance()
+        {
+            if (xrPlatformInfo == null)
+                xrPlatformInfo = new XRPlatformBuildTimeDetect();
+
+            return xrPlatformInfo;
+        }
+
+        internal static void ClearInstance()
+        {
+            xrPlatformInfo = null;
+        }
     }
 
     internal class ShaderPreprocessor : IShaderVariantStripper, IShaderVariantStripperScope
@@ -136,6 +175,8 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
         LocalKeyword m_ScreenCoordOverride;
+        LocalKeyword m_SHPerVertex;
+        LocalKeyword m_SHMixed;
 
         Shader m_BokehDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/BokehDepthOfField");
         Shader m_GaussianDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/GaussianDepthOfField");
@@ -208,7 +249,9 @@ namespace UnityEditor.Rendering.Universal
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
 
             m_ScreenCoordOverride = TryGetLocalKeyword(shader, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE);
-        }
+            m_SHPerVertex = TryGetLocalKeyword(shader, ShaderKeywordStrings.EVALUATE_SH_VERTEX);
+            m_SHMixed = TryGetLocalKeyword(shader, ShaderKeywordStrings.EVALUATE_SH_MIXED);
+        } 
 
         bool IsFeatureEnabled(ShaderFeatures featureMask, ShaderFeatures feature)
         {
@@ -366,25 +409,21 @@ namespace UnityEditor.Rendering.Universal
             bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || globalSettings.stripDebugVariants);
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
-            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
-            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
-            {
+            if(XRPlatformBuildTimeDetect.GetInstance().isStandaloneXR)
                 stripDebugDisplayShaders = true;
-            }
 
-            // XRTODO: We need to figure out what's the proper way to detect HL target platform when building. For now, HL is the only XR platform available on WSA so we assume this case targets HL platform.
-            var wsaTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.WSA);
-            if (wsaTargetSettings != null && wsaTargetSettings.AssignedSettings != null && wsaTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            if(XRPlatformBuildTimeDetect.GetInstance().isHololens)
             {
                 // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
                 features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
+                features |= ShaderFeatures.AutoSHModePerVertex;
             }
 
-            var questTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
-            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null && questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            if(XRPlatformBuildTimeDetect.GetInstance().isQuest)
             {
                 // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
                 features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
+                features |= ShaderFeatures.AutoSHModePerVertex;
             }
 #endif
 
@@ -498,8 +537,25 @@ namespace UnityEditor.Rendering.Universal
             else
             {
                 if (stripTool.StripMultiCompile(m_AdditionalLightsVertex, ShaderFeatures.VertexLighting,
-                    m_AdditionalLightsPixel, ShaderFeatures.AdditionalLights))
+                    m_AdditionalLightsPixel, ShaderFeatures.AdditionalLights)) 
                     return true;
+            }
+
+            // SH auto mode is per-vertex or per-pixel.
+            if (IsFeatureEnabled(ShaderFeatures.AutoSHMode, features))
+            {
+                if (IsFeatureEnabled(ShaderFeatures.AutoSHModePerVertex, features))
+                {
+                    // Strip Mixed variant and Off(perPixel) variant
+                    if (stripTool.StripMultiCompile(m_SHMixed, ShaderFeatures.ExplicitSHMode, m_SHPerVertex, ShaderFeatures.AutoSHModePerVertex))
+                        return true;
+                }
+                else
+                {
+                    // Strip Mixed variant and PerVertex variant
+                    if (stripTool.StripMultiCompileKeepOffVariant(m_SHPerVertex, ShaderFeatures.AutoSHModePerVertex, m_SHMixed, ShaderFeatures.ExplicitSHMode))
+                        return true;
+                }
             }
 
             if (stripTool.StripMultiCompile(m_ForwardPlus, ShaderFeatures.ForwardPlus))
@@ -811,13 +867,15 @@ namespace UnityEditor.Rendering.Universal
         private static VolumeFeatures s_VolumeFeatures;
 
         public int callbackOrder { get { return 0; } }
-#if PROFILE_BUILD
         public void OnPostprocessBuild(BuildReport report)
         {
+            XRPlatformBuildTimeDetect.ClearInstance();
+#if PROFILE_BUILD
+
             Profiler.enabled = false;
+#endif
         }
 
-#endif
 
         public void OnPreprocessBuild(BuildReport report)
         {
@@ -1079,6 +1137,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.colorGradingMode == ColorGradingMode.HighDynamicRange)
                 shaderFeatures |= ShaderFeatures.HdrGrading;
+
+            if (pipelineAsset.shEvalMode == ShEvalMode.Auto)
+                shaderFeatures |= ShaderFeatures.AutoSHMode;
 
             return shaderFeatures;
         }
