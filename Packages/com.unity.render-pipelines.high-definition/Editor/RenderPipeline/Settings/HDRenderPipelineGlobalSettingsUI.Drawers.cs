@@ -305,12 +305,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static MethodInfo s_CleanupRenderPipelineMethod = typeof(RenderPipelineManager).GetMethod("CleanupRenderPipeline", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
 
-        static readonly CED.IDrawer MiscSection = CED.Group(
+        private static readonly CED.IDrawer MiscSection = CED.Group(
             CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.generalSettingsLabel)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawMiscSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group((serialized, owner) => RenderPipelineGlobalSettingsUI.DrawShaderStrippingSettings(serialized, owner))
+            CED.Group((s, owner) =>
+            {
+#pragma warning disable 618 // Obsolete warning
+                CoreEditorUtils.DrawSectionHeader(RenderPipelineGlobalSettingsUI.Styles.shaderStrippingSettingsLabel);
+#pragma warning restore 618 // Obsolete warning
+                EditorGUI.indentLevel++;
+                EditorGUILayout.Space();
+                EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_ShaderStrippingSetting"));
+                EditorGUI.indentLevel--;
+            })
         );
         static void DrawMiscSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {

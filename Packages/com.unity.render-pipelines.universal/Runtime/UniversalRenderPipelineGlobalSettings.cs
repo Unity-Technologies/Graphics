@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
     {
         #region Version system
 
-        private const int k_LastVersion = 3;
+        private const int k_LastVersion = 4;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -54,7 +54,9 @@ namespace UnityEngine.Rendering.Universal
 
                 // For old test projects lets keep post processing stripping enabled, as huge chance they did not used runtime profile creating
 #if UNITY_INCLUDE_TESTS
+#pragma warning disable 618 // Obsolete warning
                 asset.m_StripUnusedPostProcessingVariants = true;
+#pragma warning restore 618 // Obsolete warning
 #endif
             }
 
@@ -74,6 +76,18 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618 // Obsolete warning
                 asset.m_AssetVersion = 3;
                 asset.UpdateRenderingLayerNames();
+            }
+
+            if (asset.m_AssetVersion < 4)
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                asset.m_ShaderStrippingSetting.exportShaderVariants = asset.m_ExportShaderVariants;
+                asset.m_ShaderStrippingSetting.shaderVariantLogLevel = asset.m_ShaderVariantLogLevel;
+                asset.m_ShaderStrippingSetting.stripRuntimeDebugShaders = asset.m_StripDebugVariants;
+                asset.m_URPShaderStrippingSetting.stripScreenCoordOverrideVariants = asset.m_StripScreenCoordOverrideVariants;
+                asset.m_URPShaderStrippingSetting.stripUnusedPostProcessingVariants = asset.m_StripUnusedPostProcessingVariants;
+                asset.m_URPShaderStrippingSetting.stripUnusedVariants = asset.m_StripUnusedVariants;
+#pragma warning restore 618
             }
 
             // If the asset version has changed, means that a migration step has been executed

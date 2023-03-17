@@ -8,14 +8,9 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class SerializedHDRenderPipelineGlobalSettings : ISerializedRenderPipelineGlobalSettings
+    class SerializedHDRenderPipelineGlobalSettings
     {
-        #region ISerializedRenderPipelineGlobalSettings
-        public SerializedObject serializedObject { get; }
-        public SerializedProperty shaderVariantLogLevel { get; }
-        public SerializedProperty exportShaderVariants { get; }
-        public SerializedProperty stripDebugVariants { get; }
-        #endregion
+        public SerializedObject serializedObject;
 
         public SerializedProperty renderPipelineResources;
         public SerializedProperty renderPipelineRayTracingResources;
@@ -125,11 +120,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     list.serializedProperty.GetArrayElementAtIndex(index).stringValue = HDRenderPipelineGlobalSettings.GetDefaultLayerName(index);
                 },
             };
-
-            // ISerializedRenderPipelineGlobalSettings
-            shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.shaderVariantLogLevel);
-            exportShaderVariants = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.exportShaderVariants);
-            stripDebugVariants = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.stripDebugVariants);
 
             // HDRP
             lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
