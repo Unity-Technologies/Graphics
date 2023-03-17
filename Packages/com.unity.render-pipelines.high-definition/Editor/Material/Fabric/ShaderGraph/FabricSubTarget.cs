@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool requireSplitLighting => fabricData.subsurfaceScattering;
 
         // SubShader features
-        protected override bool supportPathtracing => true;
+        protected override bool supportPathtracing => !TargetsVFX();
 
         FabricData m_FabricData;
 
