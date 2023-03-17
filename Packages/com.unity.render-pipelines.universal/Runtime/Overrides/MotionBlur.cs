@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
         public ClampedFloatParameter clamp = new ClampedFloatParameter(0.05f, 0f, 0.2f);
 
         /// <inheritdoc/>
-        public bool IsActive() => intensity.value > 0f && mode.value == MotionBlurMode.CameraOnly;
+        public bool IsActive() => intensity.value > 0f;
 
         /// <inheritdoc/>
         [Obsolete("Unused #from(2023.1)", false)]

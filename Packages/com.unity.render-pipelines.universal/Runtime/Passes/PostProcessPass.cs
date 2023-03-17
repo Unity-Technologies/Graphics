@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(cmd, GetSource(), GetDestination(), ref cameraData);
+                    DoMotionBlur(cmd, GetSource(), GetDestination(), m_MotionVectors, ref cameraData);
                     Swap(ref renderer);
                 }
             }
@@ -1086,7 +1086,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        void DoMotionBlur(CommandBuffer cmd, RTHandle source, RTHandle destination, ref CameraData cameraData)
+        void DoMotionBlur(CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle motionVectors, ref CameraData cameraData)
         {
             var material = m_Materials.cameraMotionBlur;
 
@@ -1095,9 +1095,17 @@ namespace UnityEngine.Rendering.Universal
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
 
+            int pass = (int)m_MotionBlur.quality.value;
+            var mode = m_MotionBlur.mode.value;
+            if (mode == MotionBlurMode.CameraAndObjects)
+            {
+                pass += 3;
+                material.SetTexture(MotionVectorRenderPass.k_MotionVectorTextureName, motionVectors);
+            }
+
             PostProcessUtils.SetSourceSize(cmd, source);
 
-            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, (int)m_MotionBlur.quality.value);
+            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, pass);
         }
 
 #endregion

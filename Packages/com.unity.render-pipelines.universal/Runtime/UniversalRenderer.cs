@@ -1411,6 +1411,13 @@ namespace UnityEngine.Rendering.Universal
             if (renderingData.cameraData.IsTemporalAAEnabled())
                 inputSummary.requiresMotionVectors = true;
 
+            // Object motion blur requires motion vectors.
+            if (renderingData.postProcessingEnabled)
+            {
+                var motionBlur = VolumeManager.instance.stack.GetComponent<MotionBlur>();
+                if(motionBlur != null && motionBlur.IsActive() && motionBlur.mode.value == MotionBlurMode.CameraAndObjects)
+                    inputSummary.requiresMotionVectors = true;
+            }
 
             // Motion vectors imply depth
             if (inputSummary.requiresMotionVectors)
