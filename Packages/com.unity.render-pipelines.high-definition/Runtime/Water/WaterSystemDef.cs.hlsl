@@ -91,7 +91,7 @@ CBUFFER_START(ShaderVariablesWater)
     float4 _TransparencyColor;
     float4 _ScatteringColorTips;
     float _DisplacementScattering;
-    int _WaterInitialFrame;
+    int _PaddingW1;
     int _SurfaceIndex;
     float _CausticsRegionSize;
     float4 _WaterUpDirection;
@@ -220,9 +220,10 @@ struct WaterSurfaceProfile
     float colorPyramidScale;
     float3 upDirection;
     int colorPyramidMipOffset;
-    float2 padding;
+    int disableIOR;
     float tipScatteringHeight;
     float underWaterAmbientProbeContribution;
+    float padding;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterDebug

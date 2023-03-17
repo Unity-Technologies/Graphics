@@ -131,6 +131,25 @@ EnvLightData InitDefaultRefractionEnvLightData(int envIndex)
 bool IsEnvIndexCubemap(int index)   { return index >= 0; }
 bool IsEnvIndexTexture2D(int index) { return index < 0; }
 
+float EdgeSampleFade(float2 positionNDC, float2 samplePositionNDC, float amplitude = 100.0f)
+{
+    float2 ndc = samplePositionNDC;
+    float2 rcoords = abs(saturate(ndc.xy) * 2.0 - 1.0);
+
+    // When the object normal is not aligned with the reflection plane, the reflected ray might deviate too much and go out
+    // of the reflection frustum. So we apply blending when the reflection sample coords are on the edges of the texture
+    // These "edges" depend on the screen space coordinates of the pixel, because it is expected that a pixel on the
+    // edge of the screen will sample on the edge of the texture
+
+    // Blending factors taking the above into account
+    bool2 blend = (positionNDC < ndc.xy) ^ (ndc.xy < 0.5);
+    float2 alphas = saturate(amplitude * abs(ndc.xy - positionNDC));
+    alphas = float2(Smoothstep01(alphas.x), Smoothstep01(alphas.y));
+
+    float2 weights = lerp(1.0, saturate(2.0 - 2.0 * rcoords), blend * alphas);
+    return weights.x * weights.y;
+}
+
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
@@ -166,25 +185,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             if (dot(capturedForwardWS, texCoord) < 0.0)
                 color.a = 0.0;
             else
-            {
-                // Controls the blending on the edges of the screen
-                const float amplitude = 100.0;
-
-                float2 rcoords = abs(saturate(ndc.xy) * 2.0 - 1.0);
-
-                // When the object normal is not aligned with the reflection plane, the reflected ray might deviate too much and go out
-                // of the reflection frustum. So we apply blending when the reflection sample coords are on the edges of the texture
-                // These "edges" depend on the screen space coordinates of the pixel, because it is expected that a pixel on the
-                // edge of the screen will sample on the edge of the texture
-
-                // Blending factors taking the above into account
-                bool2 blend = (positionNDC < ndc.xy) ^ (ndc.xy < 0.5);
-                float2 alphas = saturate(amplitude * abs(ndc.xy - positionNDC));
-                alphas = float2(Smoothstep01(alphas.x), Smoothstep01(alphas.y));
-
-                float2 weights = lerp(1.0, saturate(2.0 - 2.0 * rcoords), blend * alphas);
-                color.a *= weights.x * weights.y;
-            }
+                color.a *= EdgeSampleFade(positionNDC, ndc.xy);
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {

@@ -154,6 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
                 supportWaterDeformation = false,
                 deformationAtlasSize = WaterAtlasSize.AtlasSize512,
+                maximumDeformerCount = 64,
                 supportWaterFoam = false,
                 foamAtlasSize = WaterAtlasSize.AtlasSize512,
                 supportWaterExclusion = false,
@@ -267,6 +268,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportWaterDeformation;
         /// <summary>Defines the resolution of the deformer atlas.</summary>
         public WaterAtlasSize deformationAtlasSize;
+        /// <summary>Maximum amount of water deformers supported.</summary>
+        public int maximumDeformerCount;
         /// <summary>Support Water Surfaces foam.</summary>
         public bool supportWaterFoam;
         /// <summary>Defines the resolution of the foam system atlas.</summary>

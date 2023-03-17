@@ -61,7 +61,7 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         triplanarW = ComputeTriplanarWeights(_WaterProceduralGeometry ? mul(_WaterSurfaceTransform_Inverse, float4(normalData.normalWS, 0.0)).xyz : normalData.normalWS);
 
         // Convert the position to absolute world space and move the position to the water local space
-        float3 causticPosOS = GetAbsolutePositionWS(refractedWaterPosRWS * _CausticsTilingFactor);
+        float3 causticPosOS = GetAbsolutePositionWS(refractedWaterPosRWS) * _CausticsTilingFactor;
         causticPosOS = _WaterProceduralGeometry ? mul(_WaterSurfaceTransform_Inverse, float4(causticPosOS, 1.0)).xyz : causticPosOS;
 
         // Evaluate the triplanar coodinates

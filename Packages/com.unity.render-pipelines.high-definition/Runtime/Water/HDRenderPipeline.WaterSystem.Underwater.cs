@@ -63,10 +63,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the surface is infinite, we need to check if the camera is between the top plane + max displacement  and the top plane - volume depth
                 if (currentWater.IsInfinite())
                 {
-                    // If the resources are invalid, we cannot render this surface
-                    if (!currentWater.simulation.ValidResources((int)m_WaterBandResolution, WaterConsts.k_WaterHighBandCount))
-                        continue;
-
                     // Maximal possible wave height of the current setup
                     float maxWaveHeight = HDRenderPipeline.EvaluateMaxAmplitude(currentWater.simulation.spectrum.patchSizes.x, currentWater.simulation.spectrum.patchWindSpeed.x * WaterConsts.k_MeterPerSecondToKilometerPerHour);
 

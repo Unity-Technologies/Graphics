@@ -461,7 +461,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // To avoid re-evaluating
                 // If we get here, it means the spectrum is invalid and we need to go re-evaluate it
-                for (int bandIndex = 0; bandIndex < waterSurface.simulation.spectrum.numActiveBands; ++bandIndex)
+                for (int bandIndex = 0; bandIndex < waterSurface.simulation.numActiveBands; ++bandIndex)
                 {
                     // Prepare the first band
                     WaterCPUSimulation.PhillipsSpectrumInitialization spectrumInit = new WaterCPUSimulation.PhillipsSpectrumInitialization();
