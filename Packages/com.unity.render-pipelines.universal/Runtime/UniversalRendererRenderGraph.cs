@@ -435,6 +435,8 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             useRenderPassEnabled = false;
 
+            SetupMotionVectorGlobalMatrix(renderingData.commandBuffer, ref cameraData);
+            
             SetupRenderGraphLights(renderGraph, ref renderingData);
 
             SetupRenderingLayers(ref renderingData);

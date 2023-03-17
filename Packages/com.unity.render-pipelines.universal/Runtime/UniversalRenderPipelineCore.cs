@@ -855,6 +855,13 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int billboardTangent = Shader.PropertyToID("unity_BillboardTangent");
         public static readonly int billboardCameraParams = Shader.PropertyToID("unity_BillboardCameraParams");
 
+        public static readonly int previousViewProjectionNoJitter = Shader.PropertyToID("_PrevViewProjMatrix");
+        public static readonly int viewProjectionNoJitter = Shader.PropertyToID("_NonJitteredViewProjMatrix");
+#if ENABLE_VR && ENABLE_XR_MODULE
+        public static readonly int previousViewProjectionNoJitterStereo = Shader.PropertyToID("_PrevViewProjMatrixStereo");
+        public static readonly int viewProjectionNoJitterStereo = Shader.PropertyToID("_NonJitteredViewProjMatrixStereo");
+#endif
+
         public static readonly int blitTexture = Shader.PropertyToID("_BlitTexture");
         public static readonly int blitScaleBias = Shader.PropertyToID("_BlitScaleBias");
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");

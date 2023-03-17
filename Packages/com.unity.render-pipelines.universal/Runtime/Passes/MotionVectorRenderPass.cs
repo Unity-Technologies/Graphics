@@ -8,13 +8,6 @@ namespace UnityEngine.Rendering.Universal
     sealed class MotionVectorRenderPass : ScriptableRenderPass
     {
         #region Fields
-        const string k_PreviousViewProjectionNoJitter = "_PrevViewProjMatrix";
-        const string k_ViewProjectionNoJitter = "_NonJitteredViewProjMatrix";
-#if ENABLE_VR && ENABLE_XR_MODULE
-        const string k_PreviousViewProjectionNoJitterStereo = "_PrevViewProjMatrixStereo";
-        const string k_ViewProjectionNoJitterStereo = "_NonJitteredViewProjMatrixStereo";
-#endif
-
         internal const string k_MotionVectorTextureName = "_MotionVectorTexture";
         internal const string k_MotionVectorDepthTextureName = "_MotionVectorDepthTexture";
 
@@ -79,13 +72,6 @@ namespace UnityEngine.Rendering.Universal
             // Get data
             ref var cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
-            MotionVectorsPersistentData motionData = null;
-
-            if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
-                motionData = additionalCameraData.motionVectorsPersistentData;
-
-            if (motionData == null)
-                return;
 
             // Never draw in Preview
             if (camera.cameraType == CameraType.Preview)
@@ -94,22 +80,6 @@ namespace UnityEngine.Rendering.Universal
             // Profiling command
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionVectors)))
             {
-                int passID = motionData.GetXRMultiPassId(ref cameraData);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
-                {
-                    cmd.SetGlobalMatrixArray(k_PreviousViewProjectionNoJitterStereo, motionData.previousViewProjectionStereo);
-                    cmd.SetGlobalMatrixArray(k_ViewProjectionNoJitterStereo, motionData.viewProjectionStereo);
-                }
-                else
-#endif
-                {
-                    // TODO: These should be part of URP main matrix set. For now, we set them here for motion vector rendering.
-                    cmd.SetGlobalMatrix(k_PreviousViewProjectionNoJitter, motionData.previousViewProjectionStereo[passID]);
-                    cmd.SetGlobalMatrix(k_ViewProjectionNoJitter, motionData.viewProjectionStereo[passID]);
-                }
-
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
