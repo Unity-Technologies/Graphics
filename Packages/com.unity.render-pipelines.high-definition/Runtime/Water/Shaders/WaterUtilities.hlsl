@@ -54,7 +54,7 @@ Texture2D<float> _WaterDeformationBuffer;
 Texture2D<float2> _WaterDeformationSGBuffer;
 
 #if UNITY_ANY_INSTANCING_ENABLED
-StructuredBuffer<float4> _WaterPatchData;
+StructuredBuffer<float2> _WaterPatchData;
 #endif
 
 float2 OrientationToDirection(float orientation)
@@ -231,13 +231,15 @@ float3 TransformCustomMeshNormal(float3 normalOS, bool doNormalize = true)
 float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
 {
     // Grab the patch data for the current instance/patch
-    float4 patchData = _WaterPatchData[instanceID];
+    float2 patchData = _WaterPatchData[instanceID];
 
-    // Scale the position by the size of the grid
-    float3 simulationPos = objectPosition * float3(patchData.x, 1.0, patchData.y);
+    float3 simulationPos = objectPosition;
 
-    // Offset the surface to where it should be
-    simulationPos += float3(_PatchOffset.x + patchData.z, 0.0f, _PatchOffset.z + patchData.w);
+    // Scale and offset the position to where it should be
+    simulationPos.x = objectPosition.x * patchData.x - objectPosition.z * patchData.y;
+    simulationPos.z = objectPosition.x * patchData.y + objectPosition.z * patchData.x;
+
+    simulationPos.xz = simulationPos.xz * _GridSize + _PatchOffset.xz;
 
     // Return the simulation position
     return simulationPos;
@@ -245,11 +247,24 @@ float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
 #else
 float3 WaterSimulationPosition(float3 objectPosition)
 {
-    // Scale the position by the size of the grid
-    float3 simulationPos = objectPosition * float3(_GridSize.x, 1.0, _GridSize.y);
+    float3 simulationPos = objectPosition;
 
-    // Offset the surface to where it should be
-    simulationPos += float3(_PatchOffset.x, _PatchOffset.y, _PatchOffset.z);
+    float2 gridSize = _GridSize;
+    #ifndef WATER_DISPLACEMENT
+    gridSize *= _PatchOffset.w;
+    #endif
+
+    // Scale and offset the position to where it should be
+    simulationPos.x = objectPosition.x * _PatchRotation.x - objectPosition.z * _PatchRotation.y;
+    simulationPos.z = objectPosition.x * _PatchRotation.y + objectPosition.z * _PatchRotation.x;
+
+    simulationPos.xz = simulationPos.xz * gridSize + _PatchOffset.xz;
+
+    #ifndef WATER_DISPLACEMENT
+    // Clamp the mesh inside the region so that it's never empty
+    simulationPos.xz = max(simulationPos.xz, _RegionCenter - _RegionExtent);
+    simulationPos.xz = min(simulationPos.xz, _RegionCenter + _RegionExtent);
+    #endif
 
     // Return the simulation position
     return simulationPos;
@@ -424,6 +439,10 @@ void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData disp
 
     // Make sure the low frequency is packed
     displacementData.lowFrequencyHeight = PackLowFrequencyHeight(displacementData.lowFrequencyHeight);
+
+#if defined(SHADER_STAGE_VERTEX) && !defined(WATER_DISPLACEMENT)
+    ZERO_INITIALIZE(WaterDisplacementData, displacementData);
+#endif
 }
 
 struct PackedWaterData
@@ -499,18 +518,16 @@ void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float dist
         // Read the raw additional data
         float4 additionalData = SampleAdditionalData(currentData.uv, bandIdx, texSize);
 
-        // Apply the current blend (if any)
-        additionalData *= currentData.blend;
+        float fade = DistanceFade(distanceToCamera, bandIdx) * waterMask[bandIdx];
 
-        // Here we only apply the water mask to the surface gradient as the jacobian is not a linear profile.
-        additionalData.xy *= waterMask[bandIdx];
+        // Apply the camera distance attenuation and water mask
+        additionalData.xy *= currentData.blend * fade;
 
         // Add the jacobian contribution
-        jcbSurface += additionalData.z;
-        jcbDeep += additionalData.w;
-
-        // Apply the camera distance attenuation
-        additionalData.xy *= DistanceFade(distanceToCamera, bandIdx);
+        // This cannot be easily faded like displacement, but each band roughly has a maximum jacobian of 4
+        // This is not accurate, empirically gives good enough results
+        jcbSurface += currentData.blend * lerp(4.0f, additionalData.z, fade);
+        jcbDeep    += currentData.blend * lerp(4.0f * WATER_DEEP_FOAM_JACOBIAN_OVER_ESTIMATION, additionalData.w, fade);
 
         // Swizzle the displacement
         additionalData.xy = float2(dot(additionalData.xy, currentData.swizzle.xy), dot(additionalData.xy, currentData.swizzle.zw));
@@ -529,6 +546,8 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     float3 positionRWS = mul(_WaterSurfaceTransformRWS, float4(positionOS, 1.0)).xyz;
     // Evaluate the distance to the camera
     float distanceToCamera = length(positionRWS);
+    // Get the world space transformed postion
+    float3 transformedAWS = GetAbsolutePositionWS(transformedPosition);
 
     // Compute the texture size param for the filtering
     float4 texSize = 0.0;
@@ -545,6 +564,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     float jacobianSurface = 0.0;
     float jacobianDeep = 0.0;
 
+#ifdef WATER_DISPLACEMENT
     #if !defined(WATER_LOCAL_CURRENT)
     // Sample the simulation
     WaterSimCoord waterCoord;
@@ -597,15 +617,13 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     jacobianDeep = jacobianDeep0 + jacobianDeep1;
     #endif
 
-    // Get the world space transformed postion
-    float3 transformedAWS = GetAbsolutePositionWS(transformedPosition);
-
-#if defined(SUPPORT_WATER_DEFORMATION)
+    #if defined(SUPPORT_WATER_DEFORMATION)
     // Apply the deformation data
     float2 deformationUV = (transformedAWS.xz - _WaterDeformationCenter) / _WaterDeformationExtent;
     float2 deformationSG = SAMPLE_TEXTURE2D_LOD(_WaterDeformationSGBuffer, s_linear_clamp_sampler, deformationUV + 0.5f, 0);
     lFSurfaceGradient += deformationSG;
     surfaceGradient += deformationSG;
+    #endif
 #endif
 
     // Evaluate the normals
@@ -614,6 +632,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     float3 normalOS = SurfaceGradientResolveNormal(meshNormalOS, float3(surfaceGradient.x, 0, surfaceGradient.y));
     waterAdditionalData.normalWS = mul(_WaterSurfaceTransformRWS, float4(normalOS, 0.0)).xyz;
 
+#ifdef WATER_DISPLACEMENT
     // Attenuate using the foam mask
     float2 foamMaskUV = EvaluateFoamMaskUV(positionOS.xz);
     float foamMask = SAMPLE_TEXTURE2D(_SimulationFoamMask, sampler_SimulationFoamMask, foamMaskUV).x;
@@ -621,6 +640,10 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     // Evaluate the foam from the jacobian
     waterAdditionalData.surfaceFoam = EvaluateFoam(jacobianSurface, _SimulationFoamAmount) * SURFACE_FOAM_BRIGHTNESS * _SimulationFoamIntensity * foamMask * _SimulationFoamWindAttenuation;
     waterAdditionalData.deepFoam = EvaluateFoam(jacobianDeep, _SimulationFoamAmount * WATER_DEEP_FOAM_JACOBIAN_OVER_ESTIMATION) * SCATTERING_FOAM_BRIGHTNESS * _SimulationFoamIntensity * foamMask * _SimulationFoamWindAttenuation;
+#else
+    waterAdditionalData.surfaceFoam = 0;
+    waterAdditionalData.deepFoam = 0;
+#endif
 
     float2 foamUV = EvaluateFoamUV(transformedAWS.xz);
 #if !defined(IGNORE_FOAM_REGION)

@@ -183,6 +183,30 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         /// </summary>
         public float smoothnessFadeDistance = 500.0f;
+
+        /// <summary>
+        /// Use hardware tessellation when rendering the water surface
+        /// </summary>
+        [Tooltip("When enabled, HDRP activates tessellation for this Water Surface.\nThis improves the visual quality but may have a significant performance cost depending on the platform.")]
+        public bool tessellation = true;
+
+        /// <summary>
+        /// Sets the maximum tessellation factor for the water surface.
+        /// </summary>
+        [Range(0.0f, 10.0f), Tooltip("Sets the maximum tessellation factor for the water surface.")]
+        public float maxTessellationFactor = 3.0f;
+
+        /// <summary>
+        /// Sets the distance at which the tessellation factor start to lower.
+        /// </summary>
+        [Min(0.0f), Tooltip(" Sets the distance at which the tessellation factor start to lower.")]
+        public float tessellationFactorFadeStart = 150.0f;
+
+        /// <summary>
+        /// Sets the range at which the tessellation factor reaches zero.
+        /// </summary>
+        [Min(0.0f), Tooltip("Sets the range at which the tessellation factor reaches zero.")]
+        public float tessellationFactorFadeRange = 1850.0f;
         #endregion
 
         #region Water Refraction

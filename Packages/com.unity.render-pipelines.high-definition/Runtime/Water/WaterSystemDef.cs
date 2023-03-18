@@ -475,17 +475,19 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesWaterRendering
     {
-        // Offset of the patch w/r to the origin
+        // Used to rotate patches on metal and for debug modes
+        public Vector4 _PatchRotation;
+        // Offset of the patch w/r to the origin. w is used to scale the low res water mesh
         public Vector4 _PatchOffset;
 
         // Horizontal size of the grid in the horizontal plane
         public Vector2 _GridSize;
-        // Number of LODs used to render infinite water surfaces
-        public uint _WaterLODCount;
-        // Number of water patches that need to be rendered
-        public uint _NumWaterPatches;
-
+        // Maximum fade distance
+        public uint _MaxLOD;
         // Padding
+        public float _PaddingWR0;
+
+        // Intensity of the water caustics in shadow
         public float _CausticsShadowIntensity;
         // Intensity of the water caustics
         public float _CausticsIntensity;
@@ -512,8 +514,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _WaterTessellationFadeStart;
         // Size of the range of the tessellation
         public float _WaterTessellationFadeRange;
-        // Flag that defines if the camera is in the underwater volume of this surface
-        public int _CameraInUnderwaterRegion;
+        // Padding
+        public int _PaddingWR2;
 
         // This is only used for the instanced quad (non-infinite)
         // Center of the quad in world space
@@ -528,7 +530,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _CausticsMaxLOD;
         public float _MaxWaterDeformation;
         public float _CausticsTilingFactor;
-        public float _PaddingWR2;
+        public float _PaddingWR3;
 
         // Transform of the water surface
         public Matrix4x4 _WaterSurfaceTransformRWS;

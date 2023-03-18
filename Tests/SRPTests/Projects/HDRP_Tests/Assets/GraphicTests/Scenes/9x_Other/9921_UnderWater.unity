@@ -383,6 +383,10 @@ MonoBehaviour:
   endSmoothness: 0.85
   smoothnessFadeStart: 100
   smoothnessFadeDistance: 500
+  tessellation: 0
+  maxTessellationFactor: 3
+  tessellationFactorFadeStart: 150
+  tessellationFactorFadeRange: 1850
   refractionColor: {r: 0.6509804, g: 0.06226745, b: 0, a: 1}
   maxRefractionDistance: 1
   absorptionDistance: 5
@@ -491,11 +495,11 @@ MonoBehaviour:
   largeWindSpeed: 30
   largeChaos: 0.8
   largeBand0Multiplier: 1
-  largeBand0FadeMode: 2
+  largeBand0FadeMode: 1
   largeBand0FadeStart: 1500
   largeBand0FadeDistance: 3000
   largeBand1Multiplier: 1
-  largeBand1FadeMode: 2
+  largeBand1FadeMode: 1
   largeBand1FadeStart: 300
   largeBand1FadeDistance: 800
   ripples: 1
@@ -503,7 +507,7 @@ MonoBehaviour:
   ripplesOrientationValue: 0
   ripplesWindSpeed: 8
   ripplesChaos: 0.8
-  ripplesFadeMode: 2
+  ripplesFadeMode: 1
   ripplesFadeStart: 50
   ripplesFadeDistance: 200
   waterMask: {fileID: 0}

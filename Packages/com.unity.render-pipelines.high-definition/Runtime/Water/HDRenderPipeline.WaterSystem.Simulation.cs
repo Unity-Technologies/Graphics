@@ -135,6 +135,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // The second fade factor for each band
         internal Vector4 patchFadeB;
 
+        // Maximum distance at which displacement happens
+        internal float maxFadeDistance;
+
         // Matrix to convert from the water space to world space
         internal float4x4 waterToWorldMatrix;
 

@@ -139,7 +139,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the various parameters
             waterSurface.surfaceType = WaterSurfaceType.Pool;
-            waterSurface.geometryType = WaterGeometryType.Quad;
+            waterSurface.geometryType = WaterGeometryType.InstancedQuads;
+            waterSurface.cpuSimulation = false;
+            waterSurface.tessellation = false;
 
             // Make the time multiplier a bit slower
             waterSurface.timeMultiplier = 0.8f;
