@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.Universal
 
             selectionData.shadowCaster.Update();
             castingSource.intValue  = selectionData.newCastingSource;
-            shapeProvider.managedReferenceValue = selectionData.newShadowShapeProvider;
+            shapeProvider.objectReferenceValue = selectionData.newShadowShapeProvider;
             shapeComponent.objectReferenceValue = selectionData.newShadowShapeComponent;
             selectionData.shadowCaster.ApplyModifiedProperties();
         }
@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.Universal
                 else if (shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider && shadowCaster.shadowShape2DProvider != null)
                 {
                     if (shadowCaster.shadowShape2DComponent != null)
-                        selected = new GUIContent(GetCompactTypeName(shadowCaster.shadowShape2DComponent));
+                        selected = new GUIContent(shadowCaster.shadowShape2DProvider.ProviderName(GetCompactTypeName(shadowCaster.shadowShape2DComponent)));
                     else
                         selected = new GUIContent("None");
                 }
