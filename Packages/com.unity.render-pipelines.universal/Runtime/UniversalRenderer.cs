@@ -223,11 +223,6 @@ namespace UnityEngine.Rendering.Universal
             this.m_DepthPrimingMode = data.depthPrimingMode;
             this.m_CopyDepthMode = data.copyDepthMode;
             useRenderPassEnabled = data.useNativeRenderPass;
-            if (SystemInfo.graphicsDeviceName.Contains("Apple M"))
-            {
-                // Currently Apple silicon machines do not support native render passes
-                useRenderPassEnabled = false;
-            }
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_TVOS
             this.m_DepthPrimingRecommended = false;
