@@ -138,7 +138,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// DBufferDepth. Written to by the Decals pass.
         /// </summary>
-        DBufferDepth
+        DBufferDepth,
+
+        /// <summary>
+        /// Screen Space Ambient Occlusion texture. Written to by the SSAO pass.
+        /// </summary>
+        SSAOTexture
     }
 
     public sealed partial class UniversalRenderer

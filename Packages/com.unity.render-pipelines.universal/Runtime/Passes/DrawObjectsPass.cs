@@ -248,6 +248,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (additionalShadowsTexture.IsValid())
                     builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
+                UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
+
+                TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
+                if (ssaoTexture.IsValid())
+                    builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+
                 InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
                 var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
                 if (activeDebugHandler != null)
@@ -374,6 +380,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 if (additionalShadowsTexture.IsValid())
                     builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+
+                UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
+
+                TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
+                if (ssaoTexture.IsValid())
+                    builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.AllowPassCulling(false);
                 // Required here because of RenderingLayerUtils.SetupProperties

@@ -282,6 +282,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         builder.UseTexture(dbuffer, IBaseRenderGraphBuilder.AccessFlags.Read);
                 }
 
+                TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
+                if (ssaoTexture.IsValid())
+                    builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+
                 InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
                 var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
                 if (activeDebugHandler != null)
