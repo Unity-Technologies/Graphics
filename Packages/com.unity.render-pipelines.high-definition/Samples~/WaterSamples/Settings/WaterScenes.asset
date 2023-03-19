@@ -41,3 +41,6 @@ MonoBehaviour:
   - uiSection: 128
     propertyPath: m_RenderPipelineSettings.supportDistortion
     message: Enable Distortion
+  - uiSection: 128
+    propertyPath: m_RenderPipelineSettings.supportVolumetricClouds
+    message: Enable Volumetric Clouds

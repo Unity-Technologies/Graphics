@@ -24,7 +24,8 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Shader Graphs_Shore Smoothness
-  m_Shader: {fileID: -6465566751694194690, guid: cd80d1e1f9c007d479555e519c073886, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: cd80d1e1f9c007d479555e519c073886,
+    type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -99,7 +100,7 @@ Material:
     - _DrawOrder: 0
     - _Normal_Strength: 0
     - _Opacity: 0
-    - _Smoothness: 1
+    - _Smoothness: 0.6
     m_Colors:
     - _Vector4: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

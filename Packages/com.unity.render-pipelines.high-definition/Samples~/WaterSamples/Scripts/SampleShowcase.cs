@@ -179,7 +179,7 @@ public class SampleShowcaseEditor : Editor
             foreach (var word in paragraphText.Split(' '))
             {
                 var displayText = word;
-
+                
                 // Markdown _ for italics, before each word
                 if (word.StartsWith("_")) displayText = $"<i>{word.Replace("_", "")}</i>";
 
@@ -194,19 +194,28 @@ public class SampleShowcaseEditor : Editor
                 {
                     var paren = word.IndexOf("(");
                     Debug.Assert(paren > -1, $"Incorrectly formatted link {word}");
+                    int charsCountToSubtractDisplay = word.EndsWith(")") ? 2 : 1;  
                     displayText = word.Substring(1, paren - 2);
                     displayText = displayText.Replace("_", " ");
+                    int charsCountToSubtractLink = word.EndsWith(")") ? 2 : 3;  //This is because if there's a coma or a period after the parenthesis, it's going to be included in the word and will break the link.
                     displayText = "<color=#" + ColorUtility.ToHtmlStringRGBA(linkColor) + ">" + "<b><u>" + displayText + "</u></b>" + "</color>";
-                    linkText = word.Substring(paren + 1, word.Length - paren - 2);
+                    
+                    //If there's a period or coma after the parenthesis, it's included in the word, so we need to add it back. 
+                    if(!word.EndsWith(")"))
+                        displayText += word[word.Length-1];
+                    
+                    linkText = word.Substring(paren + 1, word.Length - paren - charsCountToSubtractLink);
                     
                     var wordElementLink = new Label(displayText);
                     if (linkText != "")
                     {
                         wordElementLink.RegisterCallback<MouseDownEvent>(evt => OpenURL(linkText));
-                        wordElementLink.tooltip = $"opens {linkText}";
+                        wordElementLink.tooltip = $"opens '{linkText}'";
                     }
                     paragraph.Add(wordElementLink);
                 }
+                // Markdown-style link to highlight objects in hierachy, but we have to use underscores as word separation:
+                // {highlight_text_here}(name_of_the_gameobject_in_hierarchy)
                 else if(word.StartsWith("{"))
                 {
                     var paren = word.IndexOf("(");
@@ -214,14 +223,20 @@ public class SampleShowcaseEditor : Editor
                     displayText = word.Substring(1, paren - 2);
                     displayText = displayText.Replace("_", " ");
                     displayText = "<color=#" + ColorUtility.ToHtmlStringRGBA(linkColor) + ">" + "<b><u>" + displayText + "</u></b>" + "</color>";
-                    highlightText = word.Substring(paren + 1, word.Length - paren - 2);
+                    
+                    //If there's a period or coma after the parenthesis, it's included in the word, so we need to add it back. 
+                    if(!word.EndsWith(")"))
+                        displayText += word[word.Length-1];
+                    
+                    int charsCountToSubtractLink = word.EndsWith(")") ? 2 : 3;  //This is because if there's a coma or a period after the parenthesis, it's going to be included in the word and will break the link.
+                    highlightText = word.Substring(paren + 1, word.Length - paren - charsCountToSubtractLink);
                     highlightText = highlightText.Replace("_", " ");
                     
                     var wordElementHighlight = new Label(displayText);
                     if (highlightText != "")
                     {
                         wordElementHighlight.RegisterCallback<MouseDownEvent>(evt => Ping(highlightText));
-                        wordElementHighlight.tooltip = $"Highlight {highlightText}";
+                        wordElementHighlight.tooltip = $"Highlight '{highlightText}'";
                     }
                     paragraph.Add(wordElementHighlight);
                 }

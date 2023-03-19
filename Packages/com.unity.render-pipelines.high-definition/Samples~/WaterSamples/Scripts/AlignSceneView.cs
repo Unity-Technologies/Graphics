@@ -8,7 +8,7 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class AlignSceneView : MonoBehaviour
 {
-    public Transform target;
+    private Transform target;
 
     // Start is called before the first frame update
     void Awake()
