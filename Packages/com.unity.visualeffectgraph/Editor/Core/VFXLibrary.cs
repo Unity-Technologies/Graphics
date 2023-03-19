@@ -507,31 +507,21 @@ namespace UnityEditor.VFX
 
         public static IEnumerable<Type> FindConcreteSubclasses(Type objectType = null, Type attributeType = null)
         {
-            foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                Type[] assemblyTypes = null;
-                try
-                {
-                    assemblyTypes = domainAssembly.GetTypes();
-                }
-                catch (Exception)
-                {
-                    if (VFXViewPreference.advancedLogs)
-                        Debug.Log("Cannot access assembly: " + domainAssembly);
-                    continue;
-                }
-
-                foreach (var assemblyType in assemblyTypes.Where(x => IsCompatible(x, objectType, attributeType)))
-                {
-                    yield return assemblyType;
+            TypeCache.TypeCollection unfilteredTypes;
+            if (objectType != null)
+                unfilteredTypes = TypeCache.GetTypesDerivedFrom(objectType);
+            else if (attributeType != null)
+                unfilteredTypes = TypeCache.GetTypesWithAttribute(attributeType);
+            else
+                throw new ArgumentException("objectType and attributeType cannot both be null");
+            foreach (var type in unfilteredTypes) {
+                // We still need to check for the attribute here, even if we are already only operating on types with that attribute:
+                //  - we want to ensure there is only a single attribute
+                //  - we want to only get types that have this attribute themselves, and the type cache also returns those that have it on a base class
+                if (!type.IsAbstract && (attributeType == null || type.GetCustomAttributes(attributeType, false).Length == 1)) {
+                    yield return type;
                 }
             }
-        }
-
-        private static bool IsCompatible(Type typeToTest, Type objectType, Type attributeType)
-        {
-            return !typeToTest.IsAbstract && (objectType == null || typeToTest.IsSubclassOf(objectType))
-                && (attributeType == null || typeToTest.GetCustomAttributes(attributeType, false).Length == 1);
         }
 
         [NonSerialized]
