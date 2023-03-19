@@ -66,8 +66,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_SwellFadeDistance = EditorGUIUtility.TrTextContent("Distance", "Sets the length in meters during which HDRP fades out the contribution of this frequency band.");
 
         // Ripples
-        static public readonly GUIContent k_RipplesEnable = EditorGUIUtility.TrTextContent("Ripples", "When enabled, the Water System allows you to simulate and render ripples for finer details. The frequencies range is not affected by the swell/agitation parameters. When enabled, the Water System allows you to simulate and render water ripples.");
-        static public readonly GUIContent k_RipplesWindSpeed = EditorGUIUtility.TrTextContent("Local Wind Speed", "Controls the speed of the local wind in kilometers per hour that is blowing over the water surface.This indirectly controls the maximum amplitude and shape of the ripples in a non-linear way.");
+        static public readonly GUIContent k_RipplesEnable = EditorGUIUtility.TrTextContent("Ripples", "When enabled, the Water System allows you to simulate and render ripples.\nThe frequency range is not affected by the swell/agitation parameters.");
+        static public readonly GUIContent k_RipplesWindSpeed = EditorGUIUtility.TrTextContent("Local Wind Speed", "Controls the speed of the local wind in kilometers per hour that is blowing over the water surface. This indirectly controls the maximum amplitude and shape of the ripples in a non-linear way.");
         static public readonly GUIContent k_RipplesChaos = EditorGUIUtility.TrTextContent("Chaos", "Controls how directional the ripples are. The lower the value, the more the ripples are traveling in the Local Wind Orientation.");
         static public readonly GUIContent k_RipplesMotionInherit = EditorGUIUtility.TrTextContent("Motion", "Specifies if the Local Wind's Orientation and Current properties are inherited from the Swell/Agitation or set independently.");
         static public readonly GUIContent k_RipplesOrientation = EditorGUIUtility.TrTextContent("Orientation", "Sets the orientation of local wind in degrees in a counterclockwise fashion relative to the X world vector. This parameter only affects the ripples with a chaos value inferior to one.");
@@ -134,7 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly GUIContent k_UnderWaterScatteringColorMode = EditorGUIUtility.TrTextContent("Scattering Color Mode", "Sets how the underwater scattering color is specified.");
         public static readonly GUIContent k_UnderWaterScatteringColor = EditorGUIUtility.TrTextContent("Scattering Color", "Sets the color that is used to simulate the scattering when the camera is underwater.");
         public static readonly GUIContent k_UnderWaterRefraction = EditorGUIUtility.TrTextContent("Screen Space Refraction", "When enabled, the water surface will refract light when looking at objects from underwater. Distant and Local Wind will still have an effect on refraction.\nThis setting only affects screen space refraction when sampling the color pyramid from underwater.");
-        public static readonly GUIContent k_UnderWaterAmbientProbeContribution = EditorGUIUtility.TrTextContent("Ambient Probe Contribution", "Sets the contribution of the ambient probe to the underwater scattering color.");
+        public static readonly GUIContent k_UnderWaterAmbientProbeContribution = EditorGUIUtility.TrTextContent("Ambient Probe Contribution", "Sets the contribution of the ambient probe luminance when multiplied by the underwater scattering color.");
 
         // Foam
         static public readonly GUIContent k_FoamMaskExtent = EditorGUIUtility.TrTextContent("Extent", "Sets the extent of the foam mask in meters.");

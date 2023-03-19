@@ -155,21 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal int numActiveBands
-        {
-            get
-            {
-                switch (surfaceType)
-                {
-                    case WaterSurfaceType.OceanSeaLake:
-                        return ripples ? 3 : 2;
-                    case WaterSurfaceType.River:
-                        return ripples ? 2 : 1;
-                    default:
-                        return 1;
-                }
-            }
-        }
+        internal int numActiveBands => HDRenderPipeline.EvaluateBandCount(surfaceType, ripples);
 
         // Internal simulation data
         internal WaterSimulationResources simulation = null;

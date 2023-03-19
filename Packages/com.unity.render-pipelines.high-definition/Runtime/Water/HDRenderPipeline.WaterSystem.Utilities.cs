@@ -298,6 +298,11 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "WATER_LOCAL_CURRENT", false);
         }
 
+        static internal int SanitizeCausticsBand(int band, int bandCount)
+        {
+            return Mathf.Min(band, bandCount - 1);
+        }
+
         static internal int EvaluateBandCount(WaterSurfaceType surfaceType, bool ripplesOn)
         {
             switch (surfaceType)
