@@ -188,6 +188,11 @@
 #if UNITY_ANY_INSTANCING_ENABLED
     void UnitySetupInstanceID(uint inputInstanceID)
     {
+		#if defined(UNITY_SUPPORT_INSTANCING) && defined(DOTS_INSTANCING_ON)
+            const int localBaseInstanceId = 0;		// base instance id is always 0 in BRG (avoid using useless UnityDrawCallInfo cbuffer)
+		#else
+            const int localBaseInstanceId = unity_BaseInstanceID;
+		#endif
         #ifdef UNITY_STEREO_INSTANCING_ENABLED
             #if !defined(SHADEROPTIONS_XR_MAX_VIEWS) || SHADEROPTIONS_XR_MAX_VIEWS <= 2
                 #if defined(SHADER_API_GLES3)
@@ -199,21 +204,21 @@
                     // emitting the bitfieldInsert function and thereby increase the number of devices we
                     // can run stereo instancing on.
                     unity_StereoEyeIndex = round(fmod(inputInstanceID, 2.0));
-                    unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+                    unity_InstanceID = localBaseInstanceId + (inputInstanceID >> 1);
                 #else
                     // stereo eye index is automatically figured out from the instance ID
                     unity_StereoEyeIndex = inputInstanceID & 0x01;
-                    unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+                    unity_InstanceID = localBaseInstanceId + (inputInstanceID >> 1);
                 #endif
             #else
                 unity_StereoEyeIndex = inputInstanceID % _XRViewCount;
-                unity_InstanceID = unity_BaseInstanceID + (inputInstanceID / _XRViewCount);
+                unity_InstanceID = localBaseInstanceId + (inputInstanceID / _XRViewCount);
             #endif
         #elif defined(SHADER_STAGE_RAY_TRACING)
             // InstanceIndex() intrinsic is the global ray tracing instance index in the TLAS and unity_BaseInstanceID is where the array of instances starts in the TLAS
-            unity_InstanceID = InstanceIndex() - unity_BaseInstanceID;
+            unity_InstanceID = InstanceIndex() - localBaseInstanceId;
         #else
-            unity_InstanceID = inputInstanceID + unity_BaseInstanceID;
+            unity_InstanceID = inputInstanceID + localBaseInstanceId;
         #endif
     }
 
