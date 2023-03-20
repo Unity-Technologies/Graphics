@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering
                 else
                     cmd.EndSample(name);
 #else
-                m_Cmd.EndSample(name);
+                cmd.EndSample(name);
 #endif
             inlineSampler?.End();
         }
