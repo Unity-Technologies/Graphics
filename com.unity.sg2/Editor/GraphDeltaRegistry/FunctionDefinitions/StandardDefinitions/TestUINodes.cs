@@ -926,7 +926,7 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                 new(
                     "Func1",
-                    "",
+                    "Out = Func1In;",
                     new ParameterDescriptor[]
                     {
                         new("Func1In", TYPE.Vec3, GraphType.Usage.In),
@@ -935,7 +935,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "Func2",
-                "",
+                    "Out = Func2In;",
                     new ParameterDescriptor[]
                     {
                         new(
