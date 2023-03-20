@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public bool UseSlider { get; }
         public bool InspectorOnly { get; }
         public readonly List<(string, object)> Options { get; }
+        public string DefaultOption { get; }
 
         public ParameterUIDescriptor(
             string name,
@@ -25,7 +26,8 @@ namespace UnityEditor.ShaderGraph.Defs
             bool isHdr = false,
             bool useSlider = false,
             bool inspectorOnly = false,
-            List<(string, object)> options = null
+            List<(string, object)> options = null,
+            string defaultOption = null
         )
         {
             Name = name;
@@ -36,6 +38,7 @@ namespace UnityEditor.ShaderGraph.Defs
             UseSlider = useSlider;
             InspectorOnly = inspectorOnly;
             Options = options;
+            DefaultOption = defaultOption;
         }
     }
 }
