@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
 
@@ -905,6 +906,75 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: string.Empty,
             category: "Test/Upgradeable",
+            synonyms: Array.Empty<string>()
+        );
+    }
+
+    // Dropdown sample:
+    //   - Node defaults to Func2 instead of the first entry, Func1.
+    //   - Default position value for "Func 2 In" is View instead of the first entry, World.
+    internal class TestDropdownDefaults : IStandardNode
+    {
+        public static string Name => "TestDropdownDefaults";
+        public static int Version => 1;
+
+        public static NodeDescriptor NodeDescriptor => new(
+            Version,
+            Name,
+            // Change the default value of the function selector:
+            mainFunction: "Func2",
+            functions: new FunctionDescriptor[] {
+                new(
+                    "Func1",
+                    "",
+                    new ParameterDescriptor[]
+                    {
+                        new("Func1In", TYPE.Vec3, GraphType.Usage.In),
+                        new("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
+                ),
+                new(
+                    "Func2",
+                "",
+                    new ParameterDescriptor[]
+                    {
+                        new(
+                            "Func2In",
+                            TYPE.Vec3,
+                            GraphType.Usage.In,
+                            // Change the default value of a port dropdown.
+                            // This is one of the values in REF.OptionList.Positions:
+                            defaultValue: REF.ViewSpace_Position
+                        ),
+                        new("Out", TYPE.Vec3, GraphType.Usage.Out)
+                    }
+                )
+            }
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            selectableFunctions: new Dictionary<string, string>
+            {
+                { "Func1", "Func1" },
+                { "Func2", "Func2" },
+            },
+            parameters: new ParameterUIDescriptor[]
+            {
+                new(
+                    name: "Func1In",
+                    displayName: "Func 1 In",
+                    options: REF.OptionList.Positions
+                ),
+                new(
+                    name: "Func2In",
+                    displayName: "Func 2 In",
+                    options: REF.OptionList.Positions
+                ),
+            },
+            tooltip: string.Empty,
+            category: "Test",
             synonyms: Array.Empty<string>()
         );
     }
