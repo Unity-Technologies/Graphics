@@ -753,7 +753,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Import an external Graphics Buffer to the Render Graph
+        /// Import an external Graphics Buffer to the Render Graph.
         /// Any pass writing to an imported graphics buffer will be considered having side effects and can't be automatically culled.
         /// </summary>
         /// <param name="graphicsBuffer">External Graphics Buffer that needs to be imported.</param>
@@ -792,6 +792,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public BufferDesc GetBufferDesc(in BufferHandle graphicsBuffer)
         {
             return m_Resources.GetBufferResourceDesc(graphicsBuffer.handle);
+        }
+
+        /// <summary>
+        /// Import an external RayTracingAccelerationStructure to the Render Graph.
+        /// Any pass writing to (building) an imported RayTracingAccelerationStructure will be considered having side effects and can't be automatically culled.
+        /// </summary>
+        /// <param name="accelStruct">External RayTracingAccelerationStructure that needs to be imported.</param>
+        /// <returns>A new RayTracingAccelerationStructureHandle.</returns>
+        public RayTracingAccelerationStructureHandle ImportRayTracingAccelerationStructure(in RayTracingAccelerationStructure accelStruct, string name = null)
+        {
+            return m_Resources.ImportRayTracingAccelerationStructure(accelStruct, name);
         }
 
         private class MovePassData
@@ -1300,6 +1311,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             InitResourceInfosData(m_CompiledResourcesInfos[(int)RenderGraphResourceType.Texture], m_Resources.GetTextureResourceCount());
             InitResourceInfosData(m_CompiledResourcesInfos[(int)RenderGraphResourceType.Buffer], m_Resources.GetBufferResourceCount());
+            InitResourceInfosData(m_CompiledResourcesInfos[(int)RenderGraphResourceType.AccelerationStructure], m_Resources.GetRayTracingAccelerationStructureResourceCount());
 
             m_CompiledPassInfos.Resize(m_RenderPasses.Count);
             for (int i = 0; i < m_CompiledPassInfos.size; ++i)
