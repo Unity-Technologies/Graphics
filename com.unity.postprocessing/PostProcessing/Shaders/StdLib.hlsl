@@ -27,6 +27,8 @@
     #include "API/Metal.hlsl"
 #elif defined(SHADER_API_PSP2)
     #include "API/PSP2.hlsl"
+#elif defined(SHADER_API_WEBGPU)
+    #include "API/WebGPU.hlsl"
 #else
     #include "API/OpenGL.hlsl"
 #endif
