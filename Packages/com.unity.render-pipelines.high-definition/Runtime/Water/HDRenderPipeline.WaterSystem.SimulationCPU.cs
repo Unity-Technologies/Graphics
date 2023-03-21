@@ -632,16 +632,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return displacementBuffer[repeatCoord.x + repeatCoord.y * simResolution + bandOffset];
         }
 
-        static int2 FloorCoordinate(float2 coord)
+        static void PrepareCoordinates(float2 uv, int resolution, out int2 tapCoord, out float2 fract)
         {
-            return new int2((int)Mathf.Floor(coord.x), (int)Mathf.Floor(coord.y));
+            float2 unnormalized = (uv * resolution) - 0.5f;
+            tapCoord = (int2)floor(floor(unnormalized) + 0.5f);
+            fract = frac(unnormalized);
         }
 
         static float4 SampleDisplacementBilinear(NativeArray<float4> displacementBuffer, float2 uvCoord, int bandIndex, int simResolution)
         {
             // Convert the position from uv to floating pixel coords (for the bilinear interpolation)
-            float2 tapCoord = (uvCoord * simResolution);
-            int2 currentTapCoord = FloorCoordinate(tapCoord);
+            PrepareCoordinates(uvCoord, simResolution, out int2 currentTapCoord, out float2 fract);
 
             // Read the four samples we want
             float4 p0 = LoadDisplacementData(displacementBuffer, currentTapCoord, bandIndex, simResolution);
@@ -650,7 +651,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float4 p3 = LoadDisplacementData(displacementBuffer, currentTapCoord + new int2(1, 1), bandIndex, simResolution);
 
             // Do the bilinear interpolation
-            float2 fract = tapCoord - currentTapCoord;
             float4 i0 = lerp(p0, p1, fract.x);
             float4 i1 = lerp(p2, p3, fract.x);
             return lerp(i0, i1, fract.y);

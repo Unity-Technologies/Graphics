@@ -427,6 +427,29 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBlending, renderingData.lightData.reflectionProbeBlending);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBoxProjection, renderingData.lightData.reflectionProbeBoxProjection);
 
+                var asset = UniversalRenderPipeline.asset;
+
+                // TODO: If we can robustly detect LIGHTMAP_ON, we can skip SH logic.
+                {
+                    ShEvalMode ShAutoDetect(ShEvalMode mode)
+                    {
+                        if (mode == ShEvalMode.Auto)
+                        {
+                            if (PlatformAutoDetect.isXRMobile)
+                                return ShEvalMode.PerVertex;
+                            else
+                                return ShEvalMode.PerPixel;
+                        }
+
+                        return mode;
+                    }
+
+                    var shMode = ShAutoDetect(asset.shEvalMode);
+
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.EVALUATE_SH_MIXED, shMode == ShEvalMode.Mixed);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.EVALUATE_SH_VERTEX, shMode == ShEvalMode.PerVertex);
+                }
+
                 bool lightLayers = renderingData.lightData.supportsLightLayers;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
 

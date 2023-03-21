@@ -389,6 +389,21 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// The type of Spherical Harmonics lighting evaluation in a shader.
+    /// </summary>
+    public enum ShEvalMode
+    {
+        /// <summary>Unity selects a mode automatically.</summary>
+        Auto = 0,
+        /// <summary>Evaluate lighting per vertex.</summary>
+        PerVertex = 1,
+        /// <summary>Evaluate lighting partially per vertex, partially per pixel.</summary>
+        Mixed = 2,
+        /// <summary>Evaluate lighting per pixel.</summary>
+        PerPixel = 3,
+    }
+
+    /// <summary>
     /// The asset that contains the URP setting.
     /// You can use this asset as a graphics quality level.
     /// <see cref="RenderPipelineAsset"/>
@@ -467,6 +482,14 @@ namespace UnityEngine.Rendering.Universal
 #endif
         [SerializeField] bool m_EnableLODCrossFade = true;
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
+
+        // ShEvalMode.Auto is handled in shader preprocessor.
+#if UNITY_EDITOR // multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
+        [ShaderKeywordFilter.RemoveIf(ShEvalMode.PerPixel,  keywordNames:  new [] { ShaderKeywordStrings.EVALUATE_SH_MIXED, ShaderKeywordStrings.EVALUATE_SH_VERTEX })]
+        [ShaderKeywordFilter.SelectIf(ShEvalMode.Mixed,     keywordNames:  new [] { ShaderKeywordStrings.EVALUATE_SH_MIXED })]
+        [ShaderKeywordFilter.SelectIf(ShEvalMode.PerVertex, keywordNames: new [] { ShaderKeywordStrings.EVALUATE_SH_VERTEX })]
+#endif
+        [SerializeField] ShEvalMode m_ShEvalMode = ShEvalMode.Auto;
 
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
@@ -1155,6 +1178,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_FsrSharpness; }
             set { m_FsrSharpness = value; }
+        }
+
+        /// <summary>
+        /// Defines the type of Spherical Harmonic (SH) evaluation in lighting.
+        /// </summary>
+        public ShEvalMode shEvalMode
+        {
+            get { return m_ShEvalMode; }
+            internal set { m_ShEvalMode = value; }
         }
 
         /// <summary>

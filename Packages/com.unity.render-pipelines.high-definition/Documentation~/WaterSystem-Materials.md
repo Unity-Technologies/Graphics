@@ -7,9 +7,6 @@ The environment affects water surfaces in ways beyond winds and currents. A rive
 ## Smoothness
 At a distance, it is harder to perceive the details of a water surface. Adjust the **Close** and **Distant** properties to determine how close to the camera HDRP should start to reduce smoothness in order to simulate the way distant reflection behaves in the real world, where specular reflection appears larger at a distance.
 
-![](Images/watersystem-smoothness-publicdomain.jpg)
-
-[//]: # (Comment: Illustration is ublic domain file from commons.wikimedia.org / wiki / File:Sunset_at_Saimaa_Lake.jpg)
 ## Refraction
 If you increase **Absorption Distance** the camera can see further into the water. A higher **Absorption Distance** makes caustics and the refraction effect controlled by **Maximum Distance** more visible.
 

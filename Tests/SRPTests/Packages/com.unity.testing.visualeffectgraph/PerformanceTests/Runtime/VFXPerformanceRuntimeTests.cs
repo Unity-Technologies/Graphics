@@ -100,6 +100,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return "VisualEffect.Update";
                 yield return "VisualEffect.Simulate";
                 yield return "VisualEffect.Transfer";
+                yield return "QueuePrepareIntegrateMainThreadObjects"; //VFXRenderer.AddAsRenderNode
             }
         }
 

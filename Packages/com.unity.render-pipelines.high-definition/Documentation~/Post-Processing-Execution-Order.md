@@ -4,4 +4,23 @@ The post-processing system in the High Definition Render Pipeline applies post-p
 
 ## Execution order and effect grouping
 
-![](Images/Post-processingExecutionOrder1.png))
+HDRP executes post processing effects in the following order, from top to bottom.
+
+| Post-processing passes     | Compute shader stack  | Final post-processing pass |
+| -------------------------- | --------------------- | -------------------------- |
+| NaN Killer                 |                       |                            |
+| Anti-aliasing (TAA, SMAA)  |                       |                            |
+| Depth of Field             |                       |                            |
+| Motion Blur                |                       |                            |
+| Panini Projection          |                       |                            |
+| Bloom (Pyramid)            |                       |                            |
+| Color Grading (LUT Baking) |                       |                            |
+| Data driven lens flare     |                       |                            |
+|                            | Lens Distortion       |                            |
+|                            | Chromatic Aberration  |                            |
+|                            | Bloom (Apply)         |                            |
+|                            | Vignette              |                            |
+|                            | Color Grading (Apply) |                            |
+|                            |                       | Antialiasing (FXAA)        |
+|                            |                       | Film Grain                 |
+|                            |                       | 8-bit Dithering            |

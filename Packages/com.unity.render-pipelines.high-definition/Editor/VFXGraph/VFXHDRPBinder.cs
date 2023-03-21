@@ -167,29 +167,7 @@ namespace UnityEditor.VFX.HDRP
         {
             var fields = interpolator.fields.ToList();
 
-            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
-
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
-
-            // Warning/TODO: FragmentParameters are created from the ShaderGraphVfxAsset.
-            // We may ultimately need to move this handling of VFX Interpolators + SurfaceDescriptionFunction function signature directly into the SG Generator (since it knows about the exposed properties).
-            foreach (string fragmentParameter in context.fragmentParameters)
-            {
-                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
-                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
-
-                if (filteredNamedExpression.exp != null)
-                {
-                    var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
-
-                    if (!VFXSubTarget.kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
-                        continue;
-
-                    // TODO: NoInterpolation only for non-strips.
-                    fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation"));
-                }
-            }
+            fields.AddRange(VFXSubTarget.GetVFXInterpolators(HDStructFields.VaryingsMeshToPS.name, context, contextData));
 
             // VFX Object Space Interpolators
             fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement0);

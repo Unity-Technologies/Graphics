@@ -4,12 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 using NUnit.Framework;
 
 using UnityEngine;
 using UnityEngine.TestTools;
-using System.Reflection;
 using UnityEditor.VFX.UI;
 using UnityEditor.VFX.Block.Test;
 using UnityEngine.UIElements;
@@ -576,7 +576,7 @@ namespace UnityEditor.VFX.Test
         {
             // Prepare
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-            var window = CreateGraphWithSubgraph();
+            var window = CreateSimpleVFXGraph();
 
             yield return null;
 
@@ -604,7 +604,7 @@ namespace UnityEditor.VFX.Test
         {
             // Prepare
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-            var window = CreateGraphWithSubgraph();
+            var window = CreateSimpleVFXGraph();
 
             yield return null;
 
@@ -634,7 +634,7 @@ namespace UnityEditor.VFX.Test
         {
             // Prepare
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-            var window = CreateGraphWithSubgraph();
+            var window = CreateSimpleVFXGraph();
 
             yield return null;
 
@@ -665,7 +665,7 @@ namespace UnityEditor.VFX.Test
         {
             // Prepare
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-            var window = CreateGraphWithSubgraph();
+            var window = CreateSimpleVFXGraph();
             var graphTitle = window.titleContent.text;
 
             yield return null;
@@ -699,7 +699,7 @@ namespace UnityEditor.VFX.Test
         {
             // Prepare
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-            var window = CreateGraphWithSubgraph();
+            var window = CreateSimpleVFXGraph();
 
             yield return null;
 
@@ -726,7 +726,7 @@ namespace UnityEditor.VFX.Test
         {
             // Prepare
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-            var window = CreateGraphWithSubgraph();
+            var window = CreateSimpleVFXGraph();
             var originalTitle = window.titleContent.text;
 
             yield return null;
@@ -763,7 +763,7 @@ namespace UnityEditor.VFX.Test
         {
             // Prepare
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-            var window = CreateGraphWithSubgraph();
+            var window = CreateSimpleVFXGraph();
             var originalTitle = window.titleContent.text;
             var originalResource = window.displayedResource;
 
@@ -806,7 +806,7 @@ namespace UnityEditor.VFX.Test
         {
             // Prepare
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-            var window = CreateGraphWithSubgraph();
+            var window = CreateSimpleVFXGraph();
             var originalGraphPath = AssetDatabase.GetAssetPath(window.displayedResource);
 
             yield return null;
@@ -843,7 +843,7 @@ namespace UnityEditor.VFX.Test
             enterSubgraphMethod.Invoke(vfxView, new object[] { model, newTab });
         }
 
-        private VFXViewWindow CreateGraphWithSubgraph()
+        private VFXViewWindow CreateSimpleVFXGraph()
         {
             //Create a new vfx based on the usual template
             System.IO.Directory.CreateDirectory(TempDirectoryName);
@@ -906,6 +906,32 @@ namespace UnityEditor.VFX.Test
             // Assert
             Assert.AreEqual(256, capacityField.value);
             Assert.AreEqual(256u, (uint)initializeContext.GetSetting("capacity").value);
+        }
+
+        [UnityTest]
+        public IEnumerator Drag_And_Drop_VFX_With_Circular_Dependency()
+        {
+            // Create main graph
+            var window1 = CreateSimpleVFXGraph();
+            var mainGraph = window1.graphView.controller.graph.GetResource();
+            window1.graphView.OnSave();
+            window1.Close();
+            yield return null;
+
+            // Create another graph that only contains a Subgraph context referencing the graph above
+            var controller = VFXTestCommon.StartEditTestAsset();
+            var subgraphContext = ScriptableObject.CreateInstance<VFXSubgraphContext>();;
+            subgraphContext.SetSettingValue("m_Subgraph", mainGraph.asset);
+            controller.graph.AddChild(subgraphContext);
+            controller.ApplyChanges();
+            var subgraphResource = controller.graph.GetResource();
+            subgraphResource.WriteAsset();
+            yield return null;
+
+            window1 = VFXViewWindow.GetWindow((VisualEffectAsset)null, true);//.CreateWindow<VFXViewWindow>();
+            window1.LoadResource(mainGraph);
+            yield return null;
+            Assert.AreEqual(DragAndDropVisualMode.Rejected, window1.graphView.GetDragAndDropModeForVisualEffectObject(subgraphResource.asset), "Should not be able to create a circular dependency");
         }
 
         private static VFXModelDescriptor<VFXBlock>[] GetAllBlocks(bool filterOut, Predicate<VFXModelDescriptor<VFXBlock>> predicate)

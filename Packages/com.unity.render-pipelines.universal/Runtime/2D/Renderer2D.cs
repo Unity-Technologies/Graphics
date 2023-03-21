@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
-            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.coreBlitPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
 
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
@@ -74,6 +74,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_LightCullResult = new Light2DCullResult();
             m_Renderer2DData.lightCullResult = m_LightCullResult;
+            // the fall back here because 2D Renderer is in another unreferenced DLL.
+            Blitter.Initialize(data.coreBlitPS, data.coreBlitColorAndDepthPS);
         }
 
         protected override void Dispose(bool disposing)
@@ -294,6 +296,11 @@ namespace UnityEngine.Rendering.Universal
             cullingParameters.isOrthographic = cameraData.camera.orthographic;
             cullingParameters.shadowDistance = 0.0f;
             m_LightCullResult.SetupCulling(ref cullingParameters, cameraData.camera);
+        }
+
+        internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
+        {
+            return m_ColorTextureHandle;;
         }
     }
 }

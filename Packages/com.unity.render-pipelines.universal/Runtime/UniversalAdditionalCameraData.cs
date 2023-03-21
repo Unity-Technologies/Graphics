@@ -168,9 +168,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
             if (cameraData.volumeFrameworkUpdateMode == mode)
-            {
                 return;
-            }
 
             bool requiredUpdatePreviously = cameraData.requiresVolumeFrameworkUpdate;
             cameraData.volumeFrameworkUpdateMode = mode;
@@ -180,9 +178,7 @@ namespace UnityEngine.Rendering.Universal
             // We also check the previous value to make sure we're not updating when
             // switching between Camera ViaScripting and the URP Asset set to ViaScripting
             if (requiredUpdatePreviously && !cameraData.requiresVolumeFrameworkUpdate)
-            {
                 camera.UpdateVolumeStack(cameraData);
-            }
         }
 
         /// <summary>
@@ -211,15 +207,11 @@ namespace UnityEngine.Rendering.Universal
             // We only update the local volume stacks for cameras set to ViaScripting.
             // Otherwise it will be updated in the frame.
             if (cameraData.requiresVolumeFrameworkUpdate)
-            {
                 return;
-            }
 
             // Create stack for camera
             if (cameraData.volumeStack == null)
-            {
-                cameraData.volumeStack = VolumeManager.instance.CreateStack();
-            }
+                cameraData.GetOrCreateVolumeStack();
 
             camera.GetVolumeLayerMaskAndTrigger(cameraData, out LayerMask layerMask, out Transform trigger);
             VolumeManager.instance.Update(cameraData.volumeStack, trigger, layerMask);
@@ -242,7 +234,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData"></param>
         public static void DestroyVolumeStack(this Camera camera, UniversalAdditionalCameraData cameraData)
         {
-            cameraData.volumeStack.Dispose();
+            if (cameraData == null || cameraData.volumeStack == null)
+                return;
+
             cameraData.volumeStack = null;
         }
 
@@ -589,14 +583,53 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Container for volume stacks in order to reuse stacks and avoid
+        /// creating new ones every time a new camera is instantiated.
+        /// </summary>
+        private static List<VolumeStack> s_CachedVolumeStacks;
+
+        /// <summary>
         /// Returns the current volume stack used by this camera.
         /// </summary>
         public VolumeStack volumeStack
         {
             get => m_VolumeStack;
-            set => m_VolumeStack = value;
+            set
+            {
+                // If the volume stack is being removed,
+                // add it back to the list so it can be reused later
+                if (value == null && m_VolumeStack != null)
+                {
+                    if (s_CachedVolumeStacks == null)
+                        s_CachedVolumeStacks = new List<VolumeStack>(4);
+
+                    m_VolumeStack.Dispose();
+                    s_CachedVolumeStacks.Add(m_VolumeStack);
+                }
+
+                m_VolumeStack = value;
+            }
         }
         VolumeStack m_VolumeStack = null;
+
+        /// <summary>
+        /// Tries to retrieve a volume stack from the container
+        /// and creates a new one if that fails.
+        /// </summary>
+        internal void GetOrCreateVolumeStack()
+        {
+            // Try first to reuse a volume stack
+            if (s_CachedVolumeStacks != null && s_CachedVolumeStacks.Count > 0)
+            {
+                int index = s_CachedVolumeStacks.Count - 1;
+                volumeStack = s_CachedVolumeStacks[index];
+                s_CachedVolumeStacks.RemoveAt(index);
+            }
+
+            // Create a new stack if was not possible to reuse an old one
+            if (volumeStack == null)
+                volumeStack = VolumeManager.instance.CreateStack();
+        }
 
         /// <summary>
         /// Returns true if this camera should render post-processing.
@@ -763,6 +796,12 @@ namespace UnityEngine.Rendering.Universal
             }
             Gizmos.DrawIcon(transform.position, gizmoName);
 #endif
+        }
+
+        /// <inheritdoc/>
+        public void OnDestroy()
+        {
+            m_Camera.DestroyVolumeStack(this);
         }
     }
 }
