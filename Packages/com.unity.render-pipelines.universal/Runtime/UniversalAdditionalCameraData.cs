@@ -813,6 +813,7 @@ namespace UnityEngine.Rendering.Universal
         public void OnDestroy()
         {
             m_Camera.DestroyVolumeStack(this);
+            scriptableRenderer?.ReleaseRenderTargets();
         }
     }
 }
