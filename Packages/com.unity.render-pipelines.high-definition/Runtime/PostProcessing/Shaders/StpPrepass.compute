@@ -1,0 +1,80 @@
+#pragma kernel StpPrepass
+
+#pragma multi_compile _ ENABLE_QUALITY_MODE
+#pragma multi_compile _ ENABLE_RESPONSIVE_FEATURE
+#pragma multi_compile _ UNITY_DEVICE_SUPPORTS_NATIVE_16BIT
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+
+TEXTURE2D_X(_StpInputColor);
+TEXTURE2D_X(_StpInputDepth);
+TEXTURE2D_X(_StpInputMotion);
+
+#if ENABLE_RESPONSIVE_FEATURE
+TEXTURE2D_X_UINT2(_StpInputStencil);
+#endif
+
+RW_TEXTURE2D_X(float4, _StpIntermediateColor);
+
+TYPED_TEXTURE2D_X(uint, _StpPriorDepthMotion);
+RW_TEXTURE2D_X(uint, _StpDepthMotion);
+
+TEXTURE2D_X(_StpPriorLuma);
+RW_TEXTURE2D_X(float, _StpLuma);
+
+TEXTURE2D_X(_StpPriorFeedback);
+
+#define STP_IN 1
+#define STP_POINT_CLAMP_SAMPLER s_point_clamp_sampler
+#define STP_LINEAR_CLAMP_SAMPLER s_linear_clamp_sampler
+#define STP_PRIOR_LUMA_TEXTURE _StpPriorLuma
+#define STP_PRIOR_DEPTH_MOTION_TEXTURE _StpPriorDepthMotion
+#define STP_PRIOR_FEEDBACK_TEXTURE _StpPriorFeedback
+#define STP_INPUT_COLOR_TEXTURE _StpInputColor
+#define STP_INPUT_DEPTH_TEXTURE _StpInputDepth
+#define STP_INPUT_MOTION_TEXTURE _StpInputMotion
+
+#if ENABLE_RESPONSIVE_FEATURE
+    #define STP_INPUT_STENCIL_TEXTURE _StpInputStencil
+#endif
+
+#if ENABLE_QUALITY_MODE
+    #define STP_CONFIG_1 1
+#endif
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/StpCommon.hlsl"
+
+#define THREADING_BLOCK_SIZE 64
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+[numthreads(64, 1, 1)]
+void StpPrepass(Threading::Group group)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(group.groupID.z);
+
+    uint2 pos = (group.groupID.xy << 3) + group.RemapLaneTo8x16();
+
+    PositionInputs posInputs = GetPositionInput(float2(pos), _PostProcessScreenSize.zw, uint2(64, 1));
+    float2 uv = posInputs.positionNDC;
+
+    half4 outColor;
+    uint outMotion;
+    half outLuma;
+
+    ApplyStpInline(
+        outColor,
+        outMotion,
+        outLuma,
+        pos
+    );
+
+    _StpIntermediateColor[COORD_TEXTURE2D_X(pos)] = outColor;
+    _StpDepthMotion[COORD_TEXTURE2D_X(pos)] = outMotion;
+    _StpLuma[COORD_TEXTURE2D_X(pos)] = outLuma;
+}
+

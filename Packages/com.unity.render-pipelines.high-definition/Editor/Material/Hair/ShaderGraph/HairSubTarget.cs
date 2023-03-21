@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string raytracingInclude => CoreIncludes.kHairRaytracing;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Hair SubShader", "");
         protected override bool requireSplitLighting => false;
-        protected override bool supportPathtracing => true;
+        protected override bool supportPathtracing => !TargetsVFX();
         protected override string pathtracingInclude => CoreIncludes.kHairPathtracing;
 
         // Only allow advanced scattering for Marschner Strands explicitly set to advanced.

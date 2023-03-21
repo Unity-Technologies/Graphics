@@ -11,12 +11,14 @@ struct Attributes
     float3 normal       : NORMAL;
     float4 positionOS   : POSITION;
     float4 tangentOS    : TANGENT;
+    float2 texcoord     : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings
 {
     float4 positionCS   : SV_POSITION;
+    float2 uv           : TEXCOORD0;
     float3 normalWS     : TEXCOORD1;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -27,8 +29,10 @@ Varyings DepthNormalsVertex(Attributes input)
 {
     Varyings output = (Varyings)0;
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
+    output.uv         = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
 
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangentOS);
@@ -45,7 +49,10 @@ void DepthNormalsFragment(
 #endif
 )
 {
+    UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
 
     #ifdef LOD_FADE_CROSSFADE
         LODFadeCrossFade(input.positionCS);

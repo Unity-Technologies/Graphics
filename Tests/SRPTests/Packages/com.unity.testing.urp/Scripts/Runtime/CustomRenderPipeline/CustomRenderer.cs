@@ -69,8 +69,8 @@ namespace UnityEngine.Rendering.Universal
 
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, true);
 
-            var targetHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CameraTarget);
-            var depthHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.Depth);
+            var targetHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CurrentActive);
+            var depthHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CurrentActive);
 
             ClearTargetsPass.Render(renderGraph, targetHandle, depthHandle, renderingData.cameraData);
 

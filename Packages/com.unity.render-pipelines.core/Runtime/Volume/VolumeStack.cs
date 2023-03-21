@@ -23,9 +23,28 @@ namespace UnityEngine.Rendering
         {
         }
 
+        internal void Clear()
+        {
+            foreach (var component in components)
+                CoreUtils.Destroy(component.Value);
+
+            components.Clear();
+
+            if (defaultParameters != null)
+            {
+                foreach (var tuple in defaultParameters)
+                {
+                    tuple.defaultValue?.Release();
+                }
+
+                defaultParameters = null;
+            }
+        }
+
         internal void Reload(List<VolumeComponent> componentDefaultStates)
         {
-            components.Clear();
+            Clear();
+
             requiresReset = true;
 
             List<(VolumeParameter parameter, VolumeParameter defaultValue)> defaultParametersList = new();
@@ -34,14 +53,13 @@ namespace UnityEngine.Rendering
                 var type = defaultVolumeComponent.GetType();
                 var component = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 components.Add(type, component);
-
-                int count = component.parameters.Count;
-                for (int i = 0; i < count; i++)
+                
+                for (int i = 0; i < component.parameterList.Count; i++)
                 {
                     defaultParametersList.Add(new()
                     {
                         parameter = component.parameters[i],
-                        defaultValue = defaultVolumeComponent.parameters[i]
+                        defaultValue = defaultVolumeComponent.parameterList[i].Clone() as VolumeParameter,
                     });
                 }
             }
@@ -82,10 +100,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void Dispose()
         {
-            foreach (var component in components)
-                CoreUtils.Destroy(component.Value);
-
-            components.Clear();
+            Clear();
         }
     }
 }

@@ -71,10 +71,10 @@ Varyings BuildVaryings(Attributes input)
 
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;
-    #if defined(VARYINGS_NEED_NORMAL_WS)
+    #if defined(ATTRIBUTES_NEED_NORMAL) && defined(FEATURES_GRAPH_VERTEX_NORMAL_OUTPUT)
         input.normalOS = vertexDescription.Normal;
     #endif //FEATURES_GRAPH_NORMAL
-    #if defined(VARYINGS_NEED_TANGENT_WS)
+    #if defined(ATTRIBUTES_NEED_TANGENT) && defined(FEATURES_GRAPH_VERTEX_TANGENT_OUTPUT)
         input.tangentOS.xyz = vertexDescription.Tangent.xyz;
     #endif //FEATURES GRAPH TANGENT
 #endif //FEATURES_GRAPH_VERTEX

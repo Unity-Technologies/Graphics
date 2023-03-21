@@ -49,18 +49,18 @@ namespace UnityEditor.Rendering.Universal
 
         #region Misc Settings
 
-        static readonly CED.IDrawer MiscSection = CED.Group(
-            CED.Group((serialized, owner) => RenderPipelineGlobalSettingsUI.DrawShaderStrippingSettings(serialized, owner, CoreEditorDrawer<ISerializedRenderPipelineGlobalSettings>.Group((s, e) =>
+        static readonly CED.IDrawer MiscSection =
+            CED.Group((s, owner) =>
             {
-                if (s is SerializedUniversalRenderPipelineGlobalSettings universalRenderPipelineGlobalSettings)
-                {
-                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
-                    EditorGUILayout.PropertyField(universalRenderPipelineGlobalSettings.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
-                    EditorGUILayout.PropertyField(serialized.stripScreenCoordOverrideVariants, Styles.stripScreenCoordOverrideVariants);
-                }
-            }))),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
-        );
+#pragma warning disable 618 // Obsolete warning
+                CoreEditorUtils.DrawSectionHeader(RenderPipelineGlobalSettingsUI.Styles.shaderStrippingSettingsLabel);
+#pragma warning restore 618 // Obsolete warning
+                EditorGUI.indentLevel++;
+                EditorGUILayout.Space();
+                EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_ShaderStrippingSetting"));
+                EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_URPShaderStrippingSetting"));
+                EditorGUI.indentLevel--;
+            });
         #endregion
 
         public static readonly CED.IDrawer Inspector = CED.Group(

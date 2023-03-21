@@ -138,7 +138,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// DBufferDepth. Written to by the Decals pass.
         /// </summary>
-        DBufferDepth
+        DBufferDepth,
+
+        /// <summary>
+        /// Screen Space Ambient Occlusion texture. Written to by the SSAO pass.
+        /// </summary>
+        SSAOTexture
     }
 
     public sealed partial class UniversalRenderer
@@ -279,7 +284,8 @@ namespace UnityEngine.Rendering.Universal
             bool isPreviewCamera = renderingData.cameraData.isPreviewCamera;
             bool requiresDepthPrepass = RequireDepthPrepass(ref renderingData, renderPassInputs);
 
-            var requireColorTexture = (rendererFeatures.Count != 0 && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera;
+            var requireColorTexture = HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always;
+            requireColorTexture |= Application.isEditor && m_Clustering;
             requireColorTexture |= RequiresIntermediateColorTexture(ref renderingData.cameraData);
             requireColorTexture &= !isPreviewCamera;
 
@@ -293,7 +299,7 @@ namespace UnityEngine.Rendering.Universal
             createColorTexture = intermediateRenderTexture;
         }
 
-        void CreateRenderGraphCameraRenderTargets(RenderGraph renderGraph, ref RenderingData renderingData)
+        void CreateRenderGraphCameraRenderTargets(RenderGraph renderGraph, ref RenderingData renderingData, bool isCameraTargetOffscreenDepth)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
 
@@ -335,7 +341,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base)
                  RequiresColorAndDepthTextures(renderGraph, out m_CreateColorTexture, out m_CreateDepthTexture, ref renderingData, renderPassInputs);
 
-            if (m_CreateColorTexture)
+            if (m_CreateColorTexture && !isCameraTargetOffscreenDepth)
             {
                 var cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
                 cameraTargetDescriptor.useMipMap = false;
@@ -401,7 +407,8 @@ namespace UnityEngine.Rendering.Universal
 
             CreateRenderingLayersTexture(renderGraph, cameraData.cameraTargetDescriptor);
 
-            CreateAfterPostProcessTexture(renderGraph, cameraData.cameraTargetDescriptor);
+            if (!isCameraTargetOffscreenDepth)
+                CreateAfterPostProcessTexture(renderGraph, cameraData.cameraTargetDescriptor);
         }
 
         void SetupRenderingLayers(ref RenderingData renderingData)
@@ -433,11 +440,15 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             useRenderPassEnabled = false;
 
+            SetupMotionVectorGlobalMatrix(renderingData.commandBuffer, ref cameraData);
+            
             SetupRenderGraphLights(renderGraph, ref renderingData);
 
             SetupRenderingLayers(ref renderingData);
 
-            CreateRenderGraphCameraRenderTargets(renderGraph, ref renderingData);
+            bool isCameraTargetOffscreenDepth = cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth;
+
+            CreateRenderGraphCameraRenderTargets(renderGraph, ref renderingData, isCameraTargetOffscreenDepth);
 
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRendering);
 
@@ -446,10 +457,9 @@ namespace UnityEngine.Rendering.Universal
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph, ref renderingData);
 #endif
-
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
-            if (cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth)
+            if (isCameraTargetOffscreenDepth)
             {
                 OnOffscreenDepthTextureRendering(renderGraph, context, ref renderingData);
                 return;
@@ -479,15 +489,15 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnOffscreenDepthTextureRendering(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            ClearTargetsPass.Render(renderGraph, activeColorTexture, resources.GetTexture(UniversalResource.BackBufferDepth), RTClearFlags.Depth, renderingData.cameraData.backgroundColor);
+
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
-            m_RenderOpaqueForwardPass.Render(renderGraph, resources.GetTexture(UniversalResource.BackBufferColor), TextureHandle.nullHandle, TextureHandle.nullHandle, TextureHandle.nullHandle, ref renderingData);
-            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingSkybox);
-            m_DrawSkyboxPass.Render(renderGraph, context, resources.GetTexture(UniversalResource.BackBufferColor), TextureHandle.nullHandle, ref renderingData);
-            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingSkybox, RenderPassEvent.BeforeRenderingTransparents);
+            m_RenderOpaqueForwardPass.Render(renderGraph, TextureHandle.nullHandle, resources.GetTexture(UniversalResource.BackBufferDepth), TextureHandle.nullHandle, TextureHandle.nullHandle, ref renderingData);
+            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingTransparents);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
-            m_RenderTransparentForwardPass.Render(renderGraph, resources.GetTexture(UniversalResource.BackBufferColor), TextureHandle.nullHandle, TextureHandle.nullHandle, TextureHandle.nullHandle, ref renderingData);
+            m_RenderTransparentForwardPass.Render(renderGraph, TextureHandle.nullHandle, resources.GetTexture(UniversalResource.BackBufferDepth), TextureHandle.nullHandle, TextureHandle.nullHandle, ref renderingData);
             RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingTransparents, RenderPassEvent.AfterRendering);
         }
         private void OnBeforeRendering(RenderGraph renderGraph, ref RenderingData renderingData)

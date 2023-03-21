@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(MotionBlur))]
     sealed class MotionBlurEditor : VolumeComponentEditor
     {
-        //SerializedDataParameter m_Mode;
+        SerializedDataParameter m_Mode;
         SerializedDataParameter m_Quality;
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_Clamp;
@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Universal
         {
             var o = new PropertyFetcher<MotionBlur>(serializedObject);
 
-            //m_Mode = Unpack(o.Find(x => x.mode));
+            m_Mode = Unpack(o.Find(x => x.mode));
             m_Quality = Unpack(o.Find(x => x.quality));
             m_Intensity = Unpack(o.Find(x => x.intensity));
             m_Clamp = Unpack(o.Find(x => x.clamp));
@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.Universal
 
             //if (m_Mode.value.intValue == (int)MotionBlurMode.CameraOnly)
             //{
+            PropertyField(m_Mode);
             PropertyField(m_Quality);
             PropertyField(m_Intensity);
             PropertyField(m_Clamp);

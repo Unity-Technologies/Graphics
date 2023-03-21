@@ -61,6 +61,9 @@ namespace UnityEditor.Rendering.Universal
         ProbeVolumeL1 = (1L << 38),
         ProbeVolumeL2 = (1L << 39),
         HdrGrading = (1L << 40),
+        AutoSHMode = (1L << 41),
+        AutoSHModePerVertex = (1L << 42),
+        ExplicitSHMode = (1L << 43),
     }
 
     [Flags]
@@ -120,8 +123,45 @@ namespace UnityEditor.Rendering.Universal
         // Private
         private static bool s_StripXRVariants;
         private static bool s_KeepOffVariantForAdditionalLights;
+        private static bool s_UseSHPerVertexForSHAuto;
         private static VolumeFeatures s_VolumeFeatures;
         private static List<ShaderFeatures> s_SupportedFeaturesList = new();
+
+        // Helper calss to detect XR build targets at build time.
+        internal sealed class XRPlatformBuildTimeDetect
+        {
+            private static XRPlatformBuildTimeDetect xrPlatformInfo;
+            internal bool isStandaloneXR { get; private set; }
+            internal bool isHololens { get; private set; }
+            internal bool isQuest { get; private set; }
+
+            private XRPlatformBuildTimeDetect()
+            {
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+                var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+                var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
+                if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+                {
+                    isStandaloneXR = buildTargetGroup == BuildTargetGroup.Standalone;
+                    isHololens = buildTargetGroup == BuildTargetGroup.WSA;
+                    isQuest = buildTargetGroup == BuildTargetGroup.Android;
+                }
+#endif
+            }
+
+            internal static XRPlatformBuildTimeDetect GetInstance()
+            {
+                if (xrPlatformInfo == null)
+                    xrPlatformInfo = new XRPlatformBuildTimeDetect();
+
+                return xrPlatformInfo;
+            }
+
+            internal static void ClearInstance()
+            {
+                xrPlatformInfo = null;
+            }
+        }
 
         internal struct RendererRequirements
         {
@@ -139,6 +179,7 @@ namespace UnityEditor.Rendering.Universal
             public bool needsRenderPass;
             public bool needsReflectionProbeBlending;
             public bool needsReflectionProbeBoxProjection;
+            public bool needsSHVertexForSHAuto;
             public RenderingMode renderingMode;
         }
 
@@ -159,6 +200,7 @@ namespace UnityEditor.Rendering.Universal
         public void OnPostprocessBuild(BuildReport report)
         {
             AssetDatabase.SaveAssets();
+            XRPlatformBuildTimeDetect.ClearInstance();
 #if PROFILE_BUILD
             Profiler.enabled = false;
 #endif
@@ -208,22 +250,20 @@ namespace UnityEditor.Rendering.Universal
             XRGeneralSettings generalSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
             s_StripXRVariants = generalSettings == null || generalSettings.Manager == null || generalSettings.Manager.activeLoaders.Count <= 0;
 
-            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
-            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            if (XRPlatformBuildTimeDetect.GetInstance().isStandaloneXR)
                 s_StripDebugDisplayShaders = true;
 
-            // Additional Lights for XR...
-
-            // XRTODO: We need to figure out what's the proper way to detect HL target platform when building.
-            // For now, HL is the only XR platform available on WSA so we assume this case targets HL platform.
-            // Due to the performance consideration, keep additional light off variant to avoid extra ALU cost related to dummy additional light handling.
-            XRGeneralSettings wsaTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.WSA);
-            if (wsaTargetSettings != null && wsaTargetSettings.AssignedSettings != null && wsaTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            if (XRPlatformBuildTimeDetect.GetInstance().isHololens)
+            {
                 s_KeepOffVariantForAdditionalLights = true;
+                s_UseSHPerVertexForSHAuto = true;
+            }
 
-            XRGeneralSettings questTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
-            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null && questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            if (XRPlatformBuildTimeDetect.GetInstance().isQuest)
+            {
                 s_KeepOffVariantForAdditionalLights = true;
+                s_UseSHPerVertexForSHAuto = true;
+            }
             #else
             s_StripXRVariants = true;
             #endif
@@ -366,9 +406,12 @@ namespace UnityEditor.Rendering.Universal
             bool hasHDROutput = PlayerSettings.useHDRDisplay && urpAsset.supportsHDR;
             if (urpAsset.colorGradingMode == ColorGradingMode.HighDynamicRange || hasHDROutput)
                 urpAssetShaderFeatures |= ShaderFeatures.HdrGrading;
-
+            
             if (urpAsset.enableLODCrossFade)
                 urpAssetShaderFeatures |= ShaderFeatures.LODCrossFade;
+                
+            if (urpAsset.shEvalMode == ShEvalMode.Auto)
+                urpAssetShaderFeatures |= ShaderFeatures.AutoSHMode;
 
             // Check each renderer & renderer feature
             urpAssetShaderFeatures = GetSupportedShaderFeaturesFromRenderers(
@@ -455,6 +498,7 @@ namespace UnityEditor.Rendering.Universal
             #else
             rsd.needsProcedural                   = false;
             #endif
+            rsd.needsSHVertexForSHAuto            = s_UseSHPerVertexForSHAuto;
 
             return rsd;
         }
@@ -555,6 +599,9 @@ namespace UnityEditor.Rendering.Universal
             // Reflection Probe Box Projection
             if (rendererRequirements.needsReflectionProbeBoxProjection)
                 shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
+
+            if (rendererRequirements.needsSHVertexForSHAuto)
+                shaderFeatures |= ShaderFeatures.AutoSHModePerVertex;
 
             return shaderFeatures;
         }

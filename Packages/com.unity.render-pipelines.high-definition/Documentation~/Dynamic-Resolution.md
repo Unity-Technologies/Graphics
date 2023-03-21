@@ -105,6 +105,7 @@ HDRP provides the following upscale filter methods:
 | Contrast Adaptive Sharpen (CAS)      | Contrast Adaptive Sharpen (CAS) uses **FidelityFX (CAS) AMD™**. This method produces a sharp image with an aggressive sharpening step. Do not use this option when the dynamic resolution screen percentage is less than 50%. For information about FidelityFX and Contrast Adaptive Sharpening, see[ AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> Contrast Adaptive Sharpen (CAS) has no dependencies and runs at the end of the post-processing pipeline. |
 | FidelityFX Super Resolution 1.0      | FidelityFX Super Resolution 1.0 uses a spatial super-resolution method that balances quality and performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> FidelityFX Super Resolution 1.0 has no dependencies and runs at the end of the post-processing pipeline.<br />FidelityFX Super Resolution 1.0 also runs when at 100% resolution as it can have beneficial sharpening effects.  <br />For more information, see the section [Notes on FidelityFX Super Resolution 1.0](Dynamic-Resolution.md#notes-on-fidelityfx-super-resolution-1.0-(FSR))|
 | Temporal Anti-Aliasing (TAA) Upscale | Temporal Anti-Aliasing (TAA) Upscale uses temporal integration to produce a sharp image. Unity performs this method alongside the normal anti-aliasing.<br />HDRP executes this upscale filter before post processing and at the same time as the TAA step. This means you can only use the TAA anti-aliasing method. This filter is not compatible with other anti-aliasing methods. <br /><br/>Temporal Anti-Aliasing (TAA) Upscale performs antialiasing on each frame. This means that it also runs when you enable Dynamic Resolution, even when the screen percentage is at 100% resolution. <br />For more information, see the section [Notes on TAA Upscale](Dynamic-Resolution.md#Notes). |
+| Scalable Temporal Post-Processing (STP) | Scalable Temporal Post-Processing (STP) uses spatial and temporal upsampling techniques to produce a high quality, anti-aliased image.<br />HDRP executes this upscale filter before post processing and it acts as a replacement for the TAA step. This means you can only use the TAA anti-aliasing method. This filter is not compatible with other anti-aliasing methods. <br /><br/>Scalable Temporal Post-Processing (STP) performs antialiasing on each frame. This means that it also runs when you enable Dynamic Resolution, even when the screen percentage is at 100% resolution. <br />For more information, see the section [Notes on STP](Dynamic-Resolution.md#Notes). |
 
 ## Overriding upscale options with code
 
@@ -140,3 +141,18 @@ The intensity of the sharpening filter used by FSR can be controlled using the *
 ![FSR Sharpness Camera](Images/DynamicRes_FSR_Sharpness_Camera.png)
 
 > This setting is **not visible** in the editor until the **Override FSR Sharpness** checkbox is checked. The checkbox itself is **also not visible** unless the default  default upscaling filter is set to FSR.
+
+<a name="STP_Notes"></a>
+
+## Notes on Scalable Temporal Post-Processing (STP)
+
+When STP is selected as the default upscaling filter, some STP-specific configuration options will become available.
+
+### Pipeline Asset Configuration
+![STP Configuration Asset](Images/DynamicRes_STP_Config.png)
+
+### Quality Mode
+When this option is enabled, STP will run in a mode that prioritizes quality over performance. This mode primarily consists of an additional shader pass which performs image cleanup and sharpening logic on the final upscaled image. The performance overhead of this option is relatively low, so it should typically be enabled when possible.
+
+### Responsive Feature
+When this option is enabled, STP will attempt to avoid causing artifacts on transparent objects such as sparks or dust particles. This option should typically be enabled since it doesn't affect the rendered image when there are no transparent objects in the scene. However, this feature can cause visual artifacts in some cases (especially at high scaling factors), so the option is available to allow users to disable it when necessary.

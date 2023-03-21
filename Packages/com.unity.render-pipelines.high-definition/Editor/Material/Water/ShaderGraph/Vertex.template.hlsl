@@ -21,7 +21,11 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 // The water shader graph required these four fields to be fed (not an option)
 AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     #ifdef USE_CUSTOMINTERP_SUBSTRUCT
+    #ifdef TESSELLATION_ON
     , inout VaryingsMeshToDS varyings
+    #else
+    , inout VaryingsMeshToPS varyings
+    #endif
     #endif
     )
 {
@@ -37,8 +41,13 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     // We need to ensure that the value that gets pushed through the pipeline
     // is camera relative for it to not get culled.
     input.normalOS = vertexDescription.Normal;
+	#ifdef TESSELLATION_ON
     input.uv0 = float4(vertexDescription.Position - input.positionOS, 1.0);
     input.uv1 = float4(GetCameraRelativePositionWS(input.positionOS), 1.0);
+    #else
+    input.uv0 = vertexDescription.uv0;
+    input.uv1 = vertexDescription.uv1;
+    #endif
     input.positionOS = vertexDescription.Position;
 
     $splice(CustomInterpolatorVertMeshCustomInterpolation)

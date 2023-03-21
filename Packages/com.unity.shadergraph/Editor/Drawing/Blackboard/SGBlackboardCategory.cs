@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SelectionDropperManipulator = new SelectionDropper();
             this.AddManipulator(m_SelectionDropperManipulator);
 
-            RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+            RegisterCallback<MouseDownEvent>(OnMouseDownEvent, TrickleDown.TrickleDown);
             var textInputElement = m_TextField.Q(TextField.textInputUssName);
             textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); }, TrickleDown.TrickleDown);
             // Register hover callbacks
@@ -294,7 +294,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
             {
                 OpenTextEditor();
-                e.PreventDefault();
+                e.StopPropagation();
             }
             else if (e.clickCount == 1 && e.button == (int)MouseButton.LeftMouse && IsRenamable())
             {
@@ -318,7 +318,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_RenameInProgress = true;
         }
 
-        void OnEditTextFinished()
+        internal void OnEditTextFinished()
         {
             m_TitleLabel.visible = true;
             m_TextField.style.display = DisplayStyle.None;

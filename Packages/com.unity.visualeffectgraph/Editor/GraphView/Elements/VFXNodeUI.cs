@@ -101,20 +101,19 @@ namespace UnityEditor.VFX.UI
 
         bool m_Hovered;
 
-        void OnMouseEnter(MouseEnterEvent e)
+        void OnPointerEnter(PointerEnterEvent e)
         {
+            // Prevent VisualElement from setting hover pseudo-state
             m_Hovered = true;
             UpdateBorder();
-            e.PreventDefault();
-            //e.StopPropagation();
+            e.StopPropagation();
         }
 
-        void OnMouseLeave(MouseLeaveEvent e)
+        void OnPointerLeave(PointerLeaveEvent e)
         {
             m_Hovered = false;
             UpdateBorder();
-            e.PreventDefault();
-            //e.StopPropagation();
+            e.StopPropagation();
         }
 
         bool m_Selected;
@@ -159,8 +158,8 @@ namespace UnityEditor.VFX.UI
             this.AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
 
-            RegisterCallback<MouseEnterEvent>(OnMouseEnter);
-            RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
+            RegisterCallback<PointerEnterEvent>(OnPointerEnter, TrickleDown.TrickleDown);
+            RegisterCallback<PointerLeaveEvent>(OnPointerLeave, TrickleDown.TrickleDown);
             RegisterCallback<FocusInEvent>(OnFocusIn);
 
             m_SelectionBorder = this.Query("selection-border");

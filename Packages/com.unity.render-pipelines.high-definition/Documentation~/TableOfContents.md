@@ -35,6 +35,8 @@
   * Volume Overrides List
     * [Exposure](Override-Exposure.md)
     * [Fog](Override-Fog.md)
+    * Rendering
+      * [High Quality Lines](Override-High-Quality-Lines.md)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion.md)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller.md)
@@ -77,26 +79,10 @@
   * [HDRP Asset](HDRP-Asset.md)
   * [Frame Settings](Frame-Settings.md)
   * [HDRP Global Settings](Default-Settings-Window.md)
-  * [HDRP Config Package](HDRP-Config-Package.md)
+  * [HDRP Config package](HDRP-Config-Package.md)
   * [Scalability](Scalability-Manual.md)
-* Materials
-  * [Alpha Clipping](Alpha-Clipping.md)
-  * [Ambient Occlusion](Ambient-Occlusion.md)
-  * [Displacement Mode](Displacement-Mode.md)
-  * [Double Sided](Double-Sided.md)
-  * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing.md)
-  * [Mask Map and Detail Map](Mask-Map-and-Detail-Map.md)
-  * [Material Type](Material-Type.md)
-  * [Material Variants](materialvariant-HDRP)
-  * [Reduce shader variants in your build](Shader-Stripping)
-  * [Tessellation](Tessellation.md)
-  * [Surface Type](Surface-Type.md)
-  * [Renderer and Material Priority](Renderer-And-Material-Priority.md)
-  * [Decal](Decal.md)
-  * Subsurface Scattering
-    * [Subsurface Scattering Materials](Subsurface-Scattering.md)
-    * [Diffusion Profile](Diffusion-Profile.md)
-  * Shader List
+* Shaders and materials
+  * Built-in shaders
     * 3DSMaxPhysicalMaterial
       * [PhysicalMaterial3DsMax](3ds-physical-shader)
     * ArnoldStandardSurface
@@ -106,7 +92,8 @@
       * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked.md)
       * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent.md)
     * [AxF Shader](AxF-Shader.md)
-    * [Decal Shader](Decal-Shader.md)
+    * [Decal](Decal.md)
+      * [Decal Shader](Decal-Shader.md)
     * [Cotton/Wool Shader](cotton-wool-shader.md)
     * [Eye Shader](eye-shader.md)
     * [Fullscreen Shader](fullscreen-shader.md)
@@ -118,18 +105,35 @@
     * [Silk Shader](silk-shader.md)
     * [Terrain Lit Shader](Terrain-Lit-Shader.md)
     * [Unlit Shader](Unlit-Shader.md)
+  * [Material variants](materialvariant-HDRP)
+  * [Reduce shader variants in your build](Shader-Stripping)
+  * HDRP material properties 
+    * [Alpha Clipping](Alpha-Clipping.md)
+    * [Ambient Occlusion](Ambient-Occlusion.md)
+    * [Displacement Mode](Displacement-Mode.md)
+    * [Double Sided](Double-Sided.md)
+    * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing.md)
+    * [Mask Map and Detail Map](Mask-Map-and-Detail-Map.md)
+    * [Material Type](Material-Type.md)
+    * [Tessellation](Tessellation.md)
+    * [Surface Type](Surface-Type.md)
+    * [Renderer and Material Priority](Renderer-And-Material-Priority.md)
+  * Subsurface Scattering
+    * [Subsurface Scattering Materials](Subsurface-Scattering.md)
+    * [Diffusion Profile](Diffusion-Profile.md)
+  * [Compute Thickness](Compute-Thickness.md)
   * [Master Stacks in HDRP](master-stack-hdrp.md)
-    * [Contexts and Blocks](ss-contexts-and-blocks.md)
-      * [Vertex](ss-context-vertex.md)
-      * [Fragment](ss-context-fragment.md)
-    * [Decal Master Stack](master-stack-decal.md)
-    * [Eye Master Stack](master-stack-eye.md)
-    * [Fabric Master Stack](master-stack-fabric.md)
-    * [Fullscreen Master Stack](master-stack-fullscreen.md)
-    * [Hair Master Stack](master-stack-hair.md)
-    * [Lit Master Stack](master-stack-lit.md)
-    * [StackLit Master Stack](master-stack-stacklit.md)
-    * [Unlit Master Stack](master-stack-unlit.md)
+      * [Contexts and Blocks](ss-contexts-and-blocks.md)
+        * [Vertex](ss-context-vertex.md)
+        * [Fragment](ss-context-fragment.md)
+      * [Decal Master Stack](master-stack-decal.md)
+      * [Eye Master Stack](master-stack-eye.md)
+      * [Fabric Master Stack](master-stack-fabric.md)
+      * [Fullscreen Master Stack](master-stack-fullscreen.md)
+      * [Hair Master Stack](master-stack-hair.md)
+      * [Lit Master Stack](master-stack-lit.md)
+      * [StackLit Master Stack](master-stack-stacklit.md)
+      * [Unlit Master Stack](master-stack-unlit.md)
   * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP.md)
@@ -206,6 +210,7 @@
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug.md)
 * Components
   * [Decal Projector](Decal-Projector.md)
+  * [Mesh Renderer Extension](Mesh-Renderer-Extension.md)
   * [Lens Flare](shared/lens-flare/lens-flare-component.md)
     * [Lens Flare asset](shared/lens-flare/lens-flare-asset.md)
 * Tools

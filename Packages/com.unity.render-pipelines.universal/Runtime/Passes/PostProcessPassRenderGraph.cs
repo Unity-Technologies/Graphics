@@ -942,6 +942,7 @@ namespace UnityEngine.Rendering.Universal
         {
             internal TextureHandle destinationTexture;
             internal TextureHandle sourceTexture;
+            internal TextureHandle motionVectors;
             internal Material material;
             internal int passIndex;
             internal Camera camera;
@@ -962,15 +963,23 @@ namespace UnityEngine.Rendering.Universal
 
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_MotionBlurTarget", true, FilterMode.Bilinear);
 
+            var mode = m_MotionBlur.mode.value;
+            int passIndex = (int)m_MotionBlur.quality.value;
+            passIndex += (mode == MotionBlurMode.CameraAndObjects) ? 3 : 0;
+
+            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
+            TextureHandle motionVectorColor = renderer.resources.GetTexture(UniversalResource.MotionVectorColor);
+            TextureHandle cameraDepthTexture = renderer.resources.GetTexture(UniversalResource.CameraDepthTexture);
+
             using (var builder = renderGraph.AddRasterRenderPass<MotionBlurPassData>("Motion Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_MotionBlur)))
             {
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
-                builder.UseTexture( renderer.resources.GetTexture(UniversalResource.CameraDepthTexture), IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.motionVectors = (mode == MotionBlurMode.CameraAndObjects) ? builder.UseTexture(motionVectorColor, IBaseRenderGraphBuilder.AccessFlags.Read) : TextureHandle.nullHandle;
+                builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.material = material;
-                passData.passIndex = (int)m_MotionBlur.quality.value;
+                passData.passIndex = passIndex;
                 passData.camera = cameraData.camera;
                 passData.xr = cameraData.xr;
                 passData.intensity = m_MotionBlur.intensity.value;
@@ -987,7 +996,7 @@ namespace UnityEngine.Rendering.Universal
 
                     PostProcessUtils.SetSourceSize(cmd, data.sourceTexture);
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, data.material, 0);
+                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, data.material, data.passIndex);
                 });
 
                 return;
@@ -1153,7 +1162,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.camera = renderingData.cameraData.camera;
                 passData.material = m_Materials.lensFlareScreenSpace;
                 passData.downsample = downsample;
-                
+
                 passData.result = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = false, name = "Lens Flare Screen Space Result" }));
 
@@ -1213,7 +1222,7 @@ namespace UnityEngine.Rendering.Universal
                         ShaderConstants._LensFlareScreenSpaceParams5,
                         false);
                 });
-                return passData.bloomTexture;   
+                return passData.bloomTexture;
             }
         }
 

@@ -116,6 +116,12 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_MeshRenderers;
         SerializedProperty m_TimeMultiplier;
 
+        // Tessellation parameters
+        SerializedProperty m_Tessellation;
+        SerializedProperty m_MaxTessellationFactor;
+        SerializedProperty m_TessellationFactorFadeStart;
+        SerializedProperty m_TessellationFactorFadeRange;
+
         // CPU Simulation
         SerializedProperty m_CPUSimulation;
         SerializedProperty m_CPUFullResolution;
@@ -130,6 +136,12 @@ namespace UnityEditor.Rendering.HighDefinition
             m_GeometryType = o.Find(x => x.geometryType);
             m_MeshRenderers = o.Find(x => x.meshRenderers);
             m_TimeMultiplier = o.Find(x => x.timeMultiplier);
+
+            // Tessellation parameters
+            m_Tessellation = o.Find(x => x.tessellation);
+            m_MaxTessellationFactor = o.Find(x => x.maxTessellationFactor);
+            m_TessellationFactorFadeStart = o.Find(x => x.tessellationFactorFadeStart);
+            m_TessellationFactorFadeRange = o.Find(x => x.tessellationFactorFadeRange);
 
             // CPU Simulation
             m_CPUSimulation = o.Find(x => x.cpuSimulation);
@@ -273,10 +285,23 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!cpuSimSupported)
             {
                 HDEditorUtils.QualitySettingsHelpBox("Enable 'Script Interactions' in your HDRP Asset if you want to replicate the water simulation on CPU. There is a performance cost of enabling this option.",
-                    MessageType.Info,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering,
-                    HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.waterCPUSimulation");
+                    MessageType.Info, HDRenderPipelineUI.ExpandableGroup.Rendering, HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.waterCPUSimulation");
                 EditorGUILayout.Space();
+            }
+
+            using (new BoldLabelScope())
+                EditorGUILayout.PropertyField(serialized.m_Tessellation);
+            if (serialized.m_Tessellation.boolValue)
+            {
+                using (new IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(serialized.m_MaxTessellationFactor);
+                    if (WaterSurfaceUI.ShowAdditionalProperties())
+                    {
+                        EditorGUILayout.PropertyField(serialized.m_TessellationFactorFadeStart);
+                        EditorGUILayout.PropertyField(serialized.m_TessellationFactorFadeRange);
+                    }
+                }
             }
         }
 
@@ -350,9 +375,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("Enable the 'Water' system in your HDRP Asset to simulate and render water surfaces in your HDRP project.",
-                    MessageType.Info,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering,
-                    HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWater");
+                    MessageType.Info, HDRenderPipelineUI.ExpandableGroup.Rendering, HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWater");
                 return;
             }
 

@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.UI
             {
                 OnRename();
                 e.StopPropagation();
-                e.PreventDefault();
+                focusController.IgnoreEvent(e);
             }
         }
 

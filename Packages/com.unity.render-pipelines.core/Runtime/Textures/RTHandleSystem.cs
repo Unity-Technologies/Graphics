@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering
                 {
                     leakingResources = string.Format("{0}\n    {1}", leakingResources, rt.name);
                 }
-                Debug.LogError(string.Format("RTHandle.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.\n{0}\n", leakingResources));
+                Debug.LogError(string.Format("RTHandleSystem.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.\n{0}\n", leakingResources));
             }
 
             m_MaxWidths = width;

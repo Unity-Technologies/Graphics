@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Add(mainContainer);
 
-            RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+            RegisterCallback<MouseDownEvent>(OnMouseDownEvent, TrickleDown.TrickleDown);
 
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable;
 
@@ -259,10 +259,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
             {
                 OpenTextEditor();
-                e.PreventDefault();
-            }
-            else
-            {
                 e.StopPropagation();
             }
         }

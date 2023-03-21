@@ -186,20 +186,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 if(newCategory == null)
                     Assert.Fail("Failed to create Category during RenameCategoryTests");
 
-                var categoryClickOffset = new Vector2(40, 10);
-                // Trigger category rename
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseDown, positionOffset: categoryClickOffset, clickCount: 2);
-                yield return null;
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, newCategory, EventType.MouseUp, positionOffset: categoryClickOffset);
+                var changeCategoryNameAction = new ChangeCategoryNameAction();
 
-                // Send the test rename input
-                ShaderGraphUITestHelpers.SendKeyEvent(m_Window, newCategory.textField, keyboardCharacter: 'T', keyCode: KeyCode.T);
-                ShaderGraphUITestHelpers.SendKeyEvent(m_Window, newCategory.textField, keyboardCharacter: 'e', keyCode: KeyCode.E);
-                ShaderGraphUITestHelpers.SendKeyEvent(m_Window, newCategory.textField, keyboardCharacter: 's', keyCode: KeyCode.S);
-                ShaderGraphUITestHelpers.SendKeyEvent(m_Window, newCategory.textField, keyboardCharacter: 't', keyCode: KeyCode.T);
+                changeCategoryNameAction.newCategoryNameValue = "Test";
+                changeCategoryNameAction.categoryGuid = newCategory.viewModel.associatedCategoryGuid;
+                newCategory.viewModel.requestModelChangeAction(changeCategoryNameAction);
 
-                // Confirm the change to the text field
-                ShaderGraphUITestHelpers.SendKeyEvent(m_Window, newCategory.textField, keyboardCharacter: '\n', keyCode: KeyCode.Return);
                 yield return null;
 
                 Assert.IsTrue(newCategory.title == "Test", "Failed to rename blackboard category");

@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GenericRenderingLayers,
             SupportRuntimeDebugDisplayToStripRuntimeDebugShaders, 
             EnableAmethystFeaturesByDefault, 
+            ShaderStrippingSettings
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -33,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #if UNITY_EDITOR
-        static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
+        private static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.UpdateMSAA, (HDRenderPipelineGlobalSettings data) =>
             {
                 FrameSettingsOverrideMask unusedMaskForDefault = new FrameSettingsOverrideMask();
@@ -144,6 +145,14 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.EnableAmethystFeaturesByDefault, (HDRenderPipelineGlobalSettings data) =>
             {
                 FrameSettings.MigrateAmethystFeatures(ref data.m_RenderingPathDefaultCameraFrameSettings);
+            }),
+            MigrationStep.New(Version.ShaderStrippingSettings, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                data.m_ShaderStrippingSetting.exportShaderVariants = data.m_ExportShaderVariants;
+                data.m_ShaderStrippingSetting.shaderVariantLogLevel = data.m_ShaderVariantLogLevel;
+                data.m_ShaderStrippingSetting.stripRuntimeDebugShaders= data.m_StripDebugVariants;
+#pragma warning restore 618
             })
         );
         bool IMigratableAsset.Migrate()

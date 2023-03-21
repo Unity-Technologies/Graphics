@@ -161,7 +161,8 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ScreenCoordOverride;
         LocalKeyword m_ProbeVolumesL1;
         LocalKeyword m_ProbeVolumesL2;
-
+        LocalKeyword m_SHPerVertex;
+        LocalKeyword m_SHMixed;
 
         private LocalKeyword TryGetLocalKeyword(Shader shader, string name)
         {
@@ -222,6 +223,8 @@ namespace UnityEditor.Rendering.Universal
             m_ToneMapACES = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapACES);
             m_ToneMapNeutral = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapNeutral);
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
+            m_SHPerVertex = TryGetLocalKeyword(shader, ShaderKeywordStrings.EVALUATE_SH_VERTEX);
+            m_SHMixed = TryGetLocalKeyword(shader, ShaderKeywordStrings.EVALUATE_SH_MIXED);
         }
 
 
@@ -486,6 +489,27 @@ namespace UnityEditor.Rendering.Universal
             return stripTool.StripMultiCompile(m_ForwardPlus, ShaderFeatures.ForwardPlus);
         }
 
+        internal bool StripUnusedFeatures_SHAuto(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
+        {
+            // SH auto mode is per-vertex or per-pixel. Strip unused variants
+            if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.AutoSHMode))
+            {
+                if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.AutoSHModePerVertex))
+                {
+                    // Strip Mixed variant and Off(perPixel) variant
+                    if (stripTool.StripMultiCompile(m_SHMixed, ShaderFeatures.ExplicitSHMode, m_SHPerVertex, ShaderFeatures.AutoSHModePerVertex))
+                        return true;
+                }
+                else
+                {
+                    // Strip Mixed variant and PerVertex variant
+                    if (stripTool.StripMultiCompileKeepOffVariant(m_SHPerVertex, ShaderFeatures.AutoSHModePerVertex, m_SHMixed, ShaderFeatures.ExplicitSHMode))
+                        return true;
+                }
+            }
+            return false;
+        }
+
         internal bool StripUnusedFeatures_AdditionalLights(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
         {
             // Forward Plus doesn't use Vertex or the Pixel Light variants.
@@ -679,6 +703,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_AdditionalLights(ref strippingData, ref stripTool))
+                return true;
+
+            if (StripUnusedFeatures_SHAuto(ref strippingData, ref stripTool))
                 return true;
 
             if (StripUnusedFeatures_ScreenSpaceOcclusion(ref strippingData, ref stripTool))

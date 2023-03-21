@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FoamMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterFoamPS);
             m_WaterFoamGeneratorDataCPU = new NativeArray<WaterGeneratorData>(k_MaxNumWaterFoamGenerators, Allocator.Persistent);
             m_WaterFoamGeneratorData = new ComputeBuffer(k_MaxNumWaterFoamGenerators, System.Runtime.InteropServices.Marshal.SizeOf<WaterGeneratorData>());
-            m_FoamTextureAtlas = new PowerOfTwoTextureAtlas((int)m_Asset.currentPlatformRenderPipelineSettings.foamAtlasSize, 1, GraphicsFormat.R16G16_UNorm, name: "Water Foam Atlas", useMipMap: false);
+            m_FoamTextureAtlas = new PowerOfTwoTextureAtlas((int)m_Asset.currentPlatformRenderPipelineSettings.foamAtlasSize, 0, GraphicsFormat.R16G16_UNorm, name: "Water Foam Atlas", useMipMap: false);
             m_WaterFoamCS = defaultResources.shaders.waterFoamCS;
             m_ReprojectFoamKernel = m_WaterFoamCS.FindKernel("ReprojectFoam");
             m_PostProcessFoamKernel = m_WaterFoamCS.FindKernel("PostProcessFoam");
@@ -65,9 +65,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ProcessWaterFoamGenerators(CommandBuffer cmd)
         {
+            if (WaterFoamGenerator.instanceCount >= k_MaxNumWaterFoamGenerators)
+                Debug.LogWarning("Maximum amount of Foam Generator reached. Some of them will be ignored.");
+
             // Grab all the procedural generators in the scene
             var foamGenerators = WaterFoamGenerator.instancesAsArray;
-            int numWaterGenerators = WaterFoamGenerator.instanceCount;
+            int numWaterGenerators = Mathf.Min(WaterFoamGenerator.instanceCount, k_MaxNumWaterFoamGenerators);
 
             // Reset the atlas
             m_FoamTextureAtlas.ResetRequestedTexture();
@@ -76,10 +79,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool needRelayout = false;
             for (int generatorIdx = 0; generatorIdx < numWaterGenerators; ++generatorIdx)
             {
-                // If we don't have any slots left, we're done
-                if (m_ActiveWaterFoamGenerators >= k_MaxNumWaterFoamGenerators)
-                    break;
-
                 WaterFoamGenerator foamGenerator = foamGenerators[generatorIdx];
                 if (foamGenerator.type == WaterFoamGeneratorType.Texture && foamGenerator.texture != null)
                 {
@@ -99,10 +98,6 @@ namespace UnityEngine.Rendering.HighDefinition
             WaterGeneratorData data = new WaterGeneratorData();
             for (int generatorIdx = 0; generatorIdx < numWaterGenerators; ++generatorIdx)
             {
-                // If we don't have any slots left, we're done
-                if (m_ActiveWaterFoamGenerators >= k_MaxNumWaterFoamGenerators)
-                    break;
-
                 // Grab the current generator to process
                 WaterFoamGenerator currentGenerator = foamGenerators[generatorIdx];
 
@@ -187,14 +182,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Reproject the previous frame's foam buffer
                 int tileC = ((int)currentWater.foamResolution + 7) / 8;
-                ConstantBuffer.Push(cmd, m_ShaderVariablesWater, m_WaterFoamCS, HDShaderIDs._ShaderVariablesWater);
+                ConstantBuffer.Set<ShaderVariablesWater>(cmd, m_WaterFoamCS, HDShaderIDs._ShaderVariablesWater);
                 cmd.SetComputeVectorParam(m_WaterFoamCS, HDShaderIDs._PreviousFoamRegionData, currentWater.previousFoamData);
                 cmd.SetComputeTextureParam(m_WaterFoamCS, m_ReprojectFoamKernel, HDShaderIDs._WaterFoamBuffer, currentFoamBuffer);
                 cmd.SetComputeTextureParam(m_WaterFoamCS, m_ReprojectFoamKernel, HDShaderIDs._WaterFoamBufferRW, previousFoamBuffer);
                 cmd.DispatchCompute(m_WaterFoamCS, m_ReprojectFoamKernel, tileC, tileC, 1);
 
                 // Then we render the deformers and the generators
-                ConstantBuffer.Push(cmd, m_ShaderVariablesWater, m_FoamMaterial, HDShaderIDs._ShaderVariablesWater);
+                ConstantBuffer.Set<ShaderVariablesWater>(m_FoamMaterial, HDShaderIDs._ShaderVariablesWater);
                 CoreUtils.SetRenderTarget(cmd, currentFoamBuffer, ClearFlag.Color, Color.black);
                 if (waterDeformers)
                     cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 0, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);

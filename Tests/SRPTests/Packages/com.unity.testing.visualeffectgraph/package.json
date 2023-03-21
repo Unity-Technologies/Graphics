@@ -7,9 +7,9 @@
   "description": "This package contains common graphics tests from several scriptable renderpipeline",
   "dependencies": {
     "com.unity.visualeffectgraph": "16.0.0",
-    "com.unity.testframework.graphics": "7.11.0-exp.1",
     "com.unity.testing.graphics-performance": "8.0.0",
-    "com.unity.test-framework": "1.1.30",
+    "local.gtf.references": "file:../GraphicsTestFrameworkPackages",
+    "local.utf.references": "file:../UnityTestFrameworkPackages",
     "nuget.moq": "2.0.0-exp.2"
   }
 }

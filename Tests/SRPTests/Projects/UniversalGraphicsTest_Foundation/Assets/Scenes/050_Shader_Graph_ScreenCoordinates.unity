@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.18263894, g: 0.22835018, b: 0.30714685, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -135,7 +135,6 @@ GameObject:
   - component: {fileID: 971756571}
   - component: {fileID: 971756570}
   - component: {fileID: 971756576}
-  - component: {fileID: 971756577}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -158,6 +157,7 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 640
     TargetHeight: 360
+    TargetMSAASamples: 1
     PerPixelCorrectnessThreshold: 0.005
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
@@ -168,7 +168,7 @@ MonoBehaviour:
     UseBackBuffer: 0
     ImageResolution: 0
     ActiveImageTests: 1
-    ActivePixelTests: 7
+    ActivePixelTests: -1
   WaitFrames: 10
   XRCompatible: 0
   CheckMemoryAllocation: 1
@@ -297,20 +297,6 @@ MonoBehaviour:
     mipBias: 0
     varianceClampScale: 0.9
     contrastAdaptiveSharpening: 0
---- !u!114 &971756577
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 971756569}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c1341477569e634cabd23203016109a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  urpAsset: {fileID: 0}
-  playRenderScale: 1
 --- !u!1 &1161206970
 GameObject:
   m_ObjectHideFlags: 0
@@ -337,9 +323,8 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1161206970}
   m_Enabled: 1
-  serializedVersion: 10
+  serializedVersion: 11
   m_Type: 1
-  m_Shape: 0
   m_Color: {r: 1, g: 0.86381423, b: 0.5801887, a: 1}
   m_Intensity: 1
   m_Range: 10
@@ -497,8 +482,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: TestRig
       objectReference: {fileID: 0}
+    - target: {fileID: 7892866616399533767, guid: d6db0b4af8005fb47a5e0202ab1b4170,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 4693111588840031982, guid: d6db0b4af8005fb47a5e0202ab1b4170, type: 3}
+    - {fileID: 1271724224, guid: d6db0b4af8005fb47a5e0202ab1b4170, type: 3}
+    - {fileID: 7892866616243754618, guid: d6db0b4af8005fb47a5e0202ab1b4170, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d6db0b4af8005fb47a5e0202ab1b4170, type: 3}

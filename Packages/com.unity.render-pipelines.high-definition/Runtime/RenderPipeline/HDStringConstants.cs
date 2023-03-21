@@ -1208,6 +1208,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumetricTiling = Shader.PropertyToID("_Tiling");
         public static readonly int _VolumetricViewCount = Shader.PropertyToID("_ViewCount");
         public static readonly int _VolumetricMaterialDataCBuffer = Shader.PropertyToID("VolumetricMaterialDataCBuffer");
+
+        // STP
+        public static readonly int _StpInputColor = Shader.PropertyToID("_StpInputColor");
+        public static readonly int _StpInputDepth = Shader.PropertyToID("_StpInputDepth");
+        public static readonly int _StpInputMotion = Shader.PropertyToID("_StpInputMotion");
+        public static readonly int _StpInputStencil = Shader.PropertyToID("_StpInputStencil");
+        public static readonly int _StpIntermediateColor = Shader.PropertyToID("_StpIntermediateColor");
+        public static readonly int _StpLuma = Shader.PropertyToID("_StpLuma");
+        public static readonly int _StpPriorLuma = Shader.PropertyToID("_StpPriorLuma");
+        public static readonly int _StpDepthMotion = Shader.PropertyToID("_StpDepthMotion");
+        public static readonly int _StpPriorDepthMotion = Shader.PropertyToID("_StpPriorDepthMotion");
+        public static readonly int _StpFeedback = Shader.PropertyToID("_StpFeedback");
+        public static readonly int _StpPriorFeedback = Shader.PropertyToID("_StpPriorFeedback");
+        public static readonly int _StpColor = Shader.PropertyToID("_StpColor");
     }
 
     /// <summary>

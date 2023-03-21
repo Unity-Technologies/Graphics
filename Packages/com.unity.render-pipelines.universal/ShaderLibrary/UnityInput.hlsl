@@ -3,7 +3,7 @@
 #ifndef UNIVERSAL_SHADER_VARIABLES_INCLUDED
 #define UNIVERSAL_SHADER_VARIABLES_INCLUDED
 
-#if defined(STEREO_INSTANCING_ON) && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN))
+#if defined(STEREO_INSTANCING_ON) && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || (defined(SHADER_API_METAL) && !defined(UNITY_COMPILER_DXC)))
 #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
@@ -83,6 +83,9 @@ float4 unity_OrthoParams;
 // scaleBias.w = unused
 uniform float4 _ScaleBias;
 uniform float4 _ScaleBiasRt;
+
+// { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+uniform float4 _RTHandleScale;
 
 float4 unity_CameraWorldClipPlanes[6];
 

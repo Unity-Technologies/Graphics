@@ -203,7 +203,7 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXViewSettings m_VFXSettings;
-        VisualElement m_NoAssetLabel;
+        VisualElement m_NoAssetElement;
         VisualElement m_LockedElement;
         Button m_BackButton;
         Vector2 m_pastCenter;
@@ -621,20 +621,13 @@ namespace UnityEditor.VFX.UI
             m_Toolbar.Add(helpDropDownButton);
             // End Toolbar
 
-            m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset" };
-            m_NoAssetLabel.style.position = PositionType.Absolute;
-            m_NoAssetLabel.style.left = new StyleLength(40f);
-            m_NoAssetLabel.style.right = new StyleLength(40f);
-            m_NoAssetLabel.style.top = new StyleLength(40f);
-            m_NoAssetLabel.style.bottom = new StyleLength(140f);
-            m_NoAssetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-            m_NoAssetLabel.style.fontSize = new StyleLength(12f);
-            m_NoAssetLabel.style.color = Color.white * 0.75f;
-            Add(m_NoAssetLabel);
-
-            var createButton = new Button() { text = "Create new Visual Effect Graph" };
-            m_NoAssetLabel.Add(createButton);
+            var noAssetLabel = new Label("To begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)");
+            var createButton = new Button { text = "Create new Visual Effect Graph" };
             createButton.clicked += OnCreateAsset;
+
+            m_NoAssetElement = new VisualElement { name = "no-asset" };
+            m_NoAssetElement.Add(noAssetLabel);
+            m_NoAssetElement.Add(createButton);
 
             m_LockedElement = new VisualElement();
             m_LockedElement.style.position = PositionType.Absolute;
@@ -668,6 +661,7 @@ namespace UnityEditor.VFX.UI
 
             Add(m_Toolbar);
             Add(m_LockedElement);
+            Add(m_NoAssetElement);
             SetToolbarEnabled(false);
 
             m_VFXSettings = new VFXViewSettings();
@@ -687,8 +681,6 @@ namespace UnityEditor.VFX.UI
             graphViewChanged = VFXGraphViewChanged;
             elementResized = VFXElementResized;
             canPasteSerializedData = VFXCanPaste;
-
-            viewDataKey = "VFXView";
 
             RegisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
@@ -1182,7 +1174,7 @@ namespace UnityEditor.VFX.UI
 
             if (controller != null)
             {
-                m_NoAssetLabel.RemoveFromHierarchy();
+                m_NoAssetElement.RemoveFromHierarchy();
                 SetToolbarEnabled(true);
 
                 m_AttachDropDownButton.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
@@ -1193,9 +1185,9 @@ namespace UnityEditor.VFX.UI
             else
             {
                 VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.UpdateFromVFXView(this, Enumerable.Empty<IGizmoController>());
-                if (m_NoAssetLabel.parent == null)
+                if (m_NoAssetElement.parent == null)
                 {
-                    Add(m_NoAssetLabel);
+                    Add(m_NoAssetElement);
                     SetToolbarEnabled(false);
                 }
             }

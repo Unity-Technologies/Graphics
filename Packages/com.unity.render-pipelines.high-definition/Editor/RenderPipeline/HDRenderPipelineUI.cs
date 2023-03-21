@@ -523,6 +523,21 @@ namespace UnityEditor.Rendering.HighDefinition
         static bool s_DisplayNvidiaModuleButtonInstall = true;
 #endif
 
+        /// Returns the total GPU memory (in bytes) used by STP at the provided final viewport size
+        /// The memory usage of each supported dynamic resolution is included in this total
+        static long CalculateStpMemoryUsage(DynamicResolutionHandler.DynamicScalingParameters scalingParameters, Vector2Int finalViewportSize)
+        {
+            long memoryUsage = 0;
+            for (int stepIndex = 0; stepIndex < scalingParameters.numScaleSteps; ++stepIndex)
+            {
+                Vector2Int scaledViewportSize = DynamicResolutionHandler.CalculateScaledViewportSizeForStep(stepIndex, scalingParameters, finalViewportSize, true);
+
+                memoryUsage += StpUtils.CalculateMemoryUsageForViewport(scaledViewportSize);
+            }
+
+            return memoryUsage;
+        }
+
         static void Drawer_SectionDynamicResolutionSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enabled, Styles.enabled);
@@ -609,7 +624,65 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
+
+                bool isStpEnabled = (currentUpscaleFilter == DynamicResUpscaleFilter.STP);
+                if (isStpEnabled)
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.stpQuality, Styles.stpQuality);
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.stpResponsive, Styles.stpResponsive);
+                    }
+
+#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+                    EditorGUILayout.HelpBox(Styles.STPXRWarningMsg, MessageType.Warning, wide: true);
+#endif
+                }
+
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.useMipBias, Styles.useMipBias);
+
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage, Styles.forceScreenPercentage);
+
+                if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue && isStpEnabled)
+                {
+                    var drsSettings = serialized.renderPipelineSettings.dynamicResolutionSettings;
+
+                    // Calculate dynamic scaling step information
+                    var scalingParameters = DynamicResolutionHandler.CalculateScalingParameters(
+                        drsSettings.minPercentage.floatValue,
+                        drsSettings.maxPercentage.floatValue,
+                        drsSettings.dynamicResolutionStepSize.floatValue
+                    );
+
+                    // When multiple dynamic resolutions are supported with STP, we display a warning about memory usage.
+                    if (scalingParameters.numScaleSteps > 1)
+                    {
+                        long memoryUsage4k = CalculateStpMemoryUsage(scalingParameters, new Vector2Int(3840, 2160));
+                        long memoryUsage1k = CalculateStpMemoryUsage(scalingParameters, new Vector2Int(1920, 1080));
+
+                        var estimatedMemoryMsg = $"Estimated memory usage with {scalingParameters.numScaleSteps} supported dynamic resolutions: 4k [{HDEditorUtils.HumanizeWeight(memoryUsage4k)}], 1080p [{HDEditorUtils.HumanizeWeight(memoryUsage1k)}]";
+                        EditorGUILayout.HelpBox($"{Styles.STPDynamicResolutionWarningMsg}\n{estimatedMemoryMsg}", MessageType.Warning, wide: true);
+                    }
+                }
+
+                if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
+                    && serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
+                {
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.hasMultipleDifferentValues;
+                    float forcePercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    forcePercentage = EditorGUILayout.DelayedFloatField(Styles.forcedScreenPercentage, forcePercentage);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue = Mathf.Clamp(forcePercentage, 25.0f, 100.0f);
+                    EditorGUI.showMixedValue = false;
+                }
+
+
+                if (serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues)
+                {
+                    using (new EditorGUI.DisabledGroupScope(true))
+                        EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
+                }
 
                 if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
                     && !serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
@@ -627,7 +700,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.BeginChangeCheck();
                     minPercentage = EditorGUILayout.DelayedFloatField(HDRenderPipelineUI.Styles.minPercentage, minPercentage);
                     if (EditorGUI.EndChangeCheck())
-                        serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue = Mathf.Clamp(minPercentage, 0.0f, maxPercentage);
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue = Mathf.Clamp(minPercentage, 25.0f, maxPercentage);
 
                     EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.hasMultipleDifferentValues;
                     EditorGUI.BeginChangeCheck();
@@ -635,28 +708,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (EditorGUI.EndChangeCheck())
                         serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, minPercentage, 100.0f);
 
-                    EditorGUI.showMixedValue = false;
-                }
-
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage, Styles.forceScreenPercentage);
-
-                if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
-                    && serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
-                {
-                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.hasMultipleDifferentValues;
-                    float forcePercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue;
+                    float dynamicResolutionStepSize = serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResolutionStepSize.floatValue;
                     EditorGUI.BeginChangeCheck();
-                    forcePercentage = EditorGUILayout.DelayedFloatField(Styles.forcedScreenPercentage, forcePercentage);
+                    dynamicResolutionStepSize = EditorGUILayout.DelayedFloatField(Styles.dynamicResolutionStepSize, dynamicResolutionStepSize);
                     if (EditorGUI.EndChangeCheck())
-                        serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue = Mathf.Clamp(forcePercentage, 0.0f, 100.0f);
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResolutionStepSize.floatValue = Mathf.Clamp(dynamicResolutionStepSize, 5.0f, 100.0f);
+
                     EditorGUI.showMixedValue = false;
-                }
-
-
-                if (serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues)
-                {
-                    using (new EditorGUI.DisabledGroupScope(true))
-                        EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
                 }
 
                 {
@@ -724,6 +782,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWaterDeformation.boolValue))
                 {
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.deformationAtlasSize, Styles.deformationAtlasSizeContent);
+
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.maximumDeformerCount, Styles.maximumDeformerCountContent);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.maximumDeformerCount.intValue = Mathf.Clamp(serialized.renderPipelineSettings.maximumDeformerCount.intValue, 1, 256);
                 }
                 --EditorGUI.indentLevel;
 

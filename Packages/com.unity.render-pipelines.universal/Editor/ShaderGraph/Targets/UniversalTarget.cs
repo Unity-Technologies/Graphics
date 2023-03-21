@@ -1057,6 +1057,46 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return result;
         }
 
+        public static PassDescriptor MotionVectors(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "MotionVectors",
+                referenceName = "SHADERPASS_MOTION_VECTORS",
+                lightMode = "MotionVectors",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.MotionVectorVertex,
+                validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = new FieldCollection(),
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.MotionVector(target),
+                pragmas = CorePragmas.MotionVectors,
+                defines = new DefineCollection(),
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.MotionVectors,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            AddAlphaClipControlToPass(ref result, target);
+            AddLODCrossFadeControlToPass(ref result, target);
+
+            return result;
+        }
+
         public static PassDescriptor SceneSelection(UniversalTarget target)
         {
             var result = new PassDescriptor()
@@ -1214,6 +1254,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region PortMasks
     class CoreBlockMasks
     {
+        public static readonly BlockFieldDescriptor[] MotionVectorVertex = new BlockFieldDescriptor[]
+        {
+            BlockFields.VertexDescription.Position,
+        };
+
         public static readonly BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
         {
             BlockFields.VertexDescription.Position,
@@ -1406,6 +1451,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return RenderState.Cull(RenderFaceToCull(target.renderFace));
         }
 
+        public static RenderStateCollection MotionVector(UniversalTarget target)
+        {
+            var result = new RenderStateCollection
+            {
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { UberSwitchedCullRenderState(target) },
+                { RenderState.ColorMask("ColorMask RG") },
+            };
+            return result;
+        }
+
         // used by lit/unlit targets
         public static RenderStateCollection ShadowCaster(UniversalTarget target)
         {
@@ -1487,6 +1544,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
+        public static readonly PragmaCollection MotionVectors = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target35) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
@@ -1532,6 +1597,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
         const string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
+        const string kMotionVectorPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/MotionVectorPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
         const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
         const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
@@ -1601,6 +1667,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kDepthNormalsOnlyPass, IncludeLocation.Postgraph },
+        };
+
+        public static readonly IncludeCollection MotionVectors = new IncludeCollection
+        {
+            // Pre-graph
+            { DOTSPregraph },
+            { WriteRenderLayersPregraph },
+            { CorePregraph },
+            { ShaderGraphPregraph },
+
+            //Post-graph
+            { CorePostgraph },
+            { kMotionVectorPass, IncludeLocation.Postgraph },
         };
 
         public static readonly IncludeCollection ShadowCaster = new IncludeCollection

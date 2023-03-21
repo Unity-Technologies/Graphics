@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 wsd.activeGroup0CurrentMap = true;
                 wsd.group0CurrentMap = currentBuffer;
+                wsd.group0CurrentMapWrapModeU = largeCurrentMap.wrapModeU;
+                wsd.group0CurrentMapWrapModeV = largeCurrentMap.wrapModeV;
                 wsd.group0CurrentMapResolution = largeCurrentMapSynchronizer.CurrentResolution();
             }
             else
@@ -88,6 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 wsd.activeGroup1CurrentMap = true;
                 wsd.group1CurrentMap = currentBuffer;
+                wsd.group1CurrentMapWrapModeU = ripplesCurrentMap.wrapModeU;
+                wsd.group1CurrentMapWrapModeV = ripplesCurrentMap.wrapModeV;
                 wsd.group1CurrentMapResolution = ripplesCurrentMapSynchronizer.CurrentResolution();
             }
             else

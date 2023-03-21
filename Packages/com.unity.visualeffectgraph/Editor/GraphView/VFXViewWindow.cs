@@ -40,22 +40,13 @@ namespace UnityEditor.VFX.UI
         {
             VFXAnalytics.GetInstance().OnQuitApplication();
 
-#if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
-            foreach (var window in GetAllWindows().ToList())
-            {
-                if (window.graphView != null)
-                {
-                    window.graphView.controller = null;
-                }
-            }
-#endif
-
             return true;
         }
 
         void OnEnable()
         {
             s_VFXWindows.Add(this);
+            DisableViewDataPersistence();
         }
 
         protected void SetupFramingShortcutHandler(VFXView view)
@@ -331,6 +322,7 @@ namespace UnityEditor.VFX.UI
                     + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
                 titleContent.image = icon;
             }
+            graphView?.OnFocus();
         }
 
         protected void OnDestroy()

@@ -239,12 +239,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 InitPassData(ref renderingData, ref passData);
                 passData.renderingData = renderingData;
 
-                passData.albedoHdl = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.depthHdl = builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                if (colorTarget.IsValid())
+                    passData.albedoHdl = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                if (depthTarget.IsValid())
+                    passData.depthHdl = builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
                 if (mainShadowsTexture.IsValid())
                     builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 if (additionalShadowsTexture.IsValid())
                     builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+
+                UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
+
+                TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
+                if (ssaoTexture.IsValid())
+                    builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
                 var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
@@ -372,6 +380,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 if (additionalShadowsTexture.IsValid())
                     builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+
+                UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
+
+                TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
+                if (ssaoTexture.IsValid())
+                    builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.AllowPassCulling(false);
                 // Required here because of RenderingLayerUtils.SetupProperties

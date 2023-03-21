@@ -183,6 +183,30 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         /// </summary>
         public float smoothnessFadeDistance = 500.0f;
+
+        /// <summary>
+        /// Use hardware tessellation when rendering the water surface
+        /// </summary>
+        [Tooltip("When enabled, HDRP activates tessellation for this Water Surface.\nThis improves the visual quality but may have a significant performance cost depending on the platform.")]
+        public bool tessellation = true;
+
+        /// <summary>
+        /// Sets the maximum tessellation factor for the water surface.
+        /// </summary>
+        [Range(0.0f, 10.0f), Tooltip("Sets the maximum tessellation factor for the water surface.")]
+        public float maxTessellationFactor = 3.0f;
+
+        /// <summary>
+        /// Sets the distance at which the tessellation factor start to lower.
+        /// </summary>
+        [Min(0.0f), Tooltip(" Sets the distance at which the tessellation factor start to lower.")]
+        public float tessellationFactorFadeStart = 150.0f;
+
+        /// <summary>
+        /// Sets the range at which the tessellation factor reaches zero.
+        /// </summary>
+        [Min(0.0f), Tooltip("Sets the range at which the tessellation factor reaches zero.")]
+        public float tessellationFactorFadeRange = 1850.0f;
         #endregion
 
         #region Water Refraction
@@ -278,14 +302,17 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>
             /// The water caustics are rendered at 256x256
             /// </summary>
+            [InspectorName("Low 256")]
             Caustics256 = 256,
             /// <summary>
             /// The water caustics are rendered at 512x512
             /// </summary>
+            [InspectorName("Medium 512")]
             Caustics512 = 512,
             /// <summary>
             /// The water caustics are rendered at 1024x1024
             /// </summary>
+            [InspectorName("High 1024")]
             Caustics1024 = 1024,
         }
 
@@ -399,12 +426,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public int colorPyramidOffset = 1;
 
         /// <summary>
-        /// Sets the contribution of the ambient probe to the underwater scattering color.
+        /// Sets the contribution of the ambient probe luminance when multiplied by the underwater scattering color.
         /// </summary>
         public float underWaterAmbientProbeContribution = 1.0f;
 
         /// <summary>
-        /// Controls how the scattering color is evaluated for the underwater scenario.
         /// Controls how the scattering color is evaluated for the underwater scenario.
         /// </summary>
         public enum UnderWaterScatteringColorMode
@@ -432,6 +458,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the color that is used to simulate the scattering when the camera is under-water.")]
         [ColorUsage(false)]
         public Color underWaterScatteringColor = new Color(0.0f, 0.27f, 0.23f);
+
+        /// <summary>
+        /// Determines if water surface should refract light when looking at objects from underwater.
+        /// This simulates the correct behavior of water but may introduce visual artifacts as it relies on screen space refraction.
+        /// </summary>
+        public bool underWaterRefraction = false;
         #endregion
 
         /// <summary>
@@ -455,10 +487,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>A boolean that defines if the function was able to fill the search data.</returns>
         public bool FillWaterSearchData(ref WaterSimSearchData wsd)
         {
+            var hdrp = HDRenderPipeline.currentPipeline;
+            if (hdrp == null|| !hdrp.m_ActiveWaterSimulationCPU)
+                return false;
+
             if (simulation != null
                 && simulation.cpuBuffers != null
-                && HDRenderPipeline.currentPipeline != null
-                && HDRenderPipeline.currentPipeline.m_ActiveWaterSimulationCPU)
+                && simulation.ValidResources((int)hdrp.m_WaterBandResolution, numActiveBands))
             {
                 // General
                 wsd.simulationTime = simulation.simulationTime;
@@ -637,7 +672,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (caustics && simulation?.gpuBuffers?.causticsBuffer != null)
             {
-                regionSize = simulation.spectrum.patchSizes[causticsBand];
+                int causticsBandIndex = HDRenderPipeline.SanitizeCausticsBand(causticsBand, simulation.numActiveBands);
+                regionSize = simulation.spectrum.patchSizes[causticsBandIndex];
                 return simulation.gpuBuffers.causticsBuffer;
             }
             regionSize = 0.0f;

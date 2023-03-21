@@ -21,6 +21,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Water/ShaderGraph/"
         };
+
+        // We can't name it simply GBuffer otherwise it's stripped in forward only
+        public static readonly string k_MainPassName = "WaterGBuffer";
+        public static readonly string k_MaskPassName = "WaterMask";
+        public static readonly string k_LowResPassName = "LowRes";
         public static readonly string k_CullWaterMask = "_CullWaterMask";
         public static readonly string k_StencilWaterReadMaskGBuffer = "_StencilWaterReadMaskGBuffer";
         public static readonly string k_StencilWaterWriteMaskGBuffer = "_StencilWaterWriteMaskGBuffer";
@@ -162,6 +167,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Default,
         };
+
+        public static KeywordDescriptor WaterDisplacement = new KeywordDescriptor()
+        {
+            displayName = "WaterDisplacement",
+            referenceName = "WATER_DISPLACEMENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Default,
+        };
         #endregion
 
         #region Defines
@@ -211,14 +226,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.FragInputs.IsFrontFace,
         };
 
-        public static PassDescriptor GenerateWaterGBufferPass(bool useTessellation, bool useDebugSymbols)
+        public static DefineCollection GenerateDefines(DefineCollection input, bool useVFX, bool useTessellation, bool lowRes)
         {
+            DefineCollection defines = HDShaderPasses.GenerateDefines(input, useVFX, useTessellation);
+
+            if (!lowRes)
+                defines.Add(WaterDisplacement, 1);
+
+            return defines;
+        }
+
+        public static PassDescriptor GenerateWaterGBufferPass(bool lowRes, bool useTessellation, bool useDebugSymbols)
+        {
+            string passName = lowRes ? k_LowResPassName : k_MainPassName;
+            if (useTessellation)
+                passName += "Tessellation";
+
             return new PassDescriptor
             {
                 // Definition
-                displayName = "GBufferTesselation",
+                displayName = passName,
                 referenceName = "SHADERPASS_GBUFFER",
-                lightMode = "GBufferTesselation",
+                lightMode = passName,
                 useInPreview = false,
 
                 // Collections
@@ -226,8 +255,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = BasicWaterGBuffer,
                 renderStates = WaterGBuffer,
                 pragmas = GeneratePragmas(useTessellation, useDebugSymbols),
-                defines = HDShaderPasses.GenerateDefines(WaterGBufferDefines, false, useTessellation),
                 includes = GenerateIncludes(),
+                defines = GenerateDefines(WaterGBufferDefines, false, useTessellation, lowRes),
 
                 virtualTextureFeedback = false,
                 customInterpolators = CoreCustomInterpolators.Common
@@ -272,12 +301,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PassDescriptor GenerateWaterMaskPass(bool useTessellation, bool useDebugSymbols)
         {
+            string passName = k_MaskPassName + (useTessellation ? "Tessellation" : "");
+
             return new PassDescriptor
             {
                 // Definition
-                displayName = "MaskTesselation",
+                displayName = passName,
                 referenceName = "SHADERPASS_WATER_MASK",
-                lightMode = "MaskTesselation",
+                lightMode = passName,
                 useInPreview = false,
 
                 // Collections
@@ -320,8 +351,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passes = new PassCollection
                 {
-                    // Generate the water GBuffer pass
-                    GenerateWaterGBufferPass(true, systemData.debugSymbols),
+                    // Generate the water GBuffer passes
+                    // We generate one with tessellation and one without to allow control from the water surface
+                    GenerateWaterGBufferPass(false, false, systemData.debugSymbols),
+                    GenerateWaterGBufferPass(false, true, systemData.debugSymbols),
+                    // Low res gbuffer
+                    GenerateWaterGBufferPass(true, false, systemData.debugSymbols),
+                    // Debug pass, this one never use tessellation for simplicity
                     GenerateWaterMaskPass(true, systemData.debugSymbols),
                 };
                 return passes;
@@ -338,11 +374,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(StructFields.VertexDescriptionInputs.WorldSpacePosition);
             context.AddField(StructFields.SurfaceDescriptionInputs.FaceSign);
 
-            if (true) // if (systemData.useTessellation)
-            {
+            if (context.pass.displayName.EndsWith("Tessellation"))
                 context.AddField(HDFields.GraphTessellation);
-                context.AddField(HDFields.TessellationFactor);
-            }
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -366,13 +399,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
+            if (pass.displayName.StartsWith(k_LowResPassName))
+                return;
+
             pass.keywords.Add(WaterBandCount);
             pass.keywords.Add(WaterSurfaceCurrent);
             pass.keywords.Add(CoreKeywordDescriptors.ProceduralInstancing);
             pass.keywords.Add(CoreKeywordDescriptors.StereoInstancing);
 
             // The following keywords/multicompiles are only required for the gbuffer pass
-            if (pass.displayName == "GBufferTesselation")
+            if (pass.displayName.StartsWith(k_MainPassName))
             {
                 if (lightingData.receiveDecals)
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);

@@ -13,20 +13,23 @@ namespace UnityEditor.ShaderGraph
         {
             static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
             {
-                foreach (string str in deletedAssets)
+                if (m_KnownSubGraphLookupTable != null)
                 {
-                    var guid = AssetDatabase.AssetPathToGUID(str);
-                    if (m_KnownSubGraphLookupTable.ContainsKey(guid))
+                    foreach (string str in deletedAssets)
                     {
-                        m_KnownSubGraphLookupTable.Remove(guid);
+                        var guid = AssetDatabase.AssetPathToGUID(str);
+                        if (m_KnownSubGraphLookupTable.ContainsKey(guid))
+                        {
+                            m_KnownSubGraphLookupTable.Remove(guid);
+                        }
                     }
-                }
-                foreach (string str in movedFromAssetPaths)
-                {
-                    var guid = AssetDatabase.AssetPathToGUID(str);
-                    if (m_KnownSubGraphLookupTable.ContainsKey(guid))
+                    foreach (string str in movedFromAssetPaths)
                     {
-                        m_KnownSubGraphLookupTable.Remove(guid);
+                        var guid = AssetDatabase.AssetPathToGUID(str);
+                        if (m_KnownSubGraphLookupTable.ContainsKey(guid))
+                        {
+                            m_KnownSubGraphLookupTable.Remove(guid);
+                        }
                     }
                 }
 
@@ -49,18 +52,34 @@ namespace UnityEditor.ShaderGraph
 
 
         private static Dictionary<Type, List<ContextFilterableAttribute>> m_KnownTypeLookupTable;
+        private static Dictionary<Type, List<ContextFilterableAttribute>> KnownTypeLookupTable
+        {
+            get
+            {
+                EnsureKnownTypeLookupTable();
+                return m_KnownTypeLookupTable;
+            }
+        }
 
         public static IEnumerable<Type> knownNodeTypes
         {
-            get => m_KnownTypeLookupTable.Keys;
+            get => KnownTypeLookupTable.Keys;
         }
 
 
         private static Dictionary<string, SubGraphAsset> m_KnownSubGraphLookupTable;
+        private static Dictionary<string, SubGraphAsset> KnownSubGraphLookupTable
+        {
+            get
+            {
+                EnsureKnownSubGraphLookupTable();
+                return m_KnownSubGraphLookupTable;
+            }
+        }
 
         public static IEnumerable<SubGraphAsset> knownSubGraphAssets
         {
-            get => m_KnownSubGraphLookupTable.Values;
+            get => KnownSubGraphLookupTable.Values;
         }
 
         public static void UpdateSubGraphEntry(string path)
@@ -73,20 +92,20 @@ namespace UnityEditor.ShaderGraph
             var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(path);
 
             bool valid = asset != null && asset.isValid;
-            if (m_KnownSubGraphLookupTable.TryGetValue(guid, out SubGraphAsset known))
+            if (KnownSubGraphLookupTable.TryGetValue(guid, out SubGraphAsset known))
             {
                 if (!valid)
                 {
-                    m_KnownSubGraphLookupTable.Remove(guid);
+                    KnownSubGraphLookupTable.Remove(guid);
                 }
                 else if (asset != known)
                 {
-                    m_KnownSubGraphLookupTable[guid] = asset;
+                    KnownSubGraphLookupTable[guid] = asset;
                 }
             }
             else if (valid)
             {
-                m_KnownSubGraphLookupTable.Add(guid, asset);
+                KnownSubGraphLookupTable.Add(guid, asset);
             }
         }
 
@@ -97,7 +116,7 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentNullException("Cannot get attributes on a null Type");
             }
 
-            if (m_KnownTypeLookupTable.TryGetValue(nodeType, out List<ContextFilterableAttribute> filterableAttributes))
+            if (KnownTypeLookupTable.TryGetValue(nodeType, out List<ContextFilterableAttribute> filterableAttributes))
             {
                 return filterableAttributes;
             }
@@ -120,43 +139,53 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        private static void ReCacheKnownNodeTypes()
+        private static void EnsureKnownTypeLookupTable()
         {
-            Profiler.BeginSample("NodeClassCache: Re-caching all known node types");
-            m_KnownTypeLookupTable = new Dictionary<Type, List<ContextFilterableAttribute>>();
-            foreach (Type nodeType in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
+            if (m_KnownTypeLookupTable == null)
             {
-                if (!nodeType.IsAbstract)
+                Profiler.BeginSample("EnsureKnownTypeLookupTable");
+                m_KnownTypeLookupTable = new Dictionary<Type, List<ContextFilterableAttribute>>();
+                foreach (Type nodeType in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
                 {
-                    List<ContextFilterableAttribute> filterableAttributes = new List<ContextFilterableAttribute>();
-                    foreach (Attribute attribute in Attribute.GetCustomAttributes(nodeType))
+                    if (!nodeType.IsAbstract)
                     {
-                        Type attributeType = attribute.GetType();
-                        if (!attributeType.IsAbstract && attribute is ContextFilterableAttribute contextFilterableAttribute)
+                        List<ContextFilterableAttribute> filterableAttributes = new List<ContextFilterableAttribute>();
+                        foreach (Attribute attribute in Attribute.GetCustomAttributes(nodeType))
                         {
-                            filterableAttributes.Add(contextFilterableAttribute);
+                            Type attributeType = attribute.GetType();
+                            if (!attributeType.IsAbstract && attribute is ContextFilterableAttribute contextFilterableAttribute)
+                            {
+                                filterableAttributes.Add(contextFilterableAttribute);
+                            }
                         }
+                        m_KnownTypeLookupTable.Add(nodeType, filterableAttributes);
                     }
-                    m_KnownTypeLookupTable.Add(nodeType, filterableAttributes);
                 }
+                Profiler.EndSample();
             }
+        }
 
-            m_KnownSubGraphLookupTable = new Dictionary<string, SubGraphAsset>();
-            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
+        private static void EnsureKnownSubGraphLookupTable()
+        {
+            if (m_KnownSubGraphLookupTable == null)
             {
-                var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
-                if (asset != null && asset.isValid)
+                Profiler.BeginSample("EnsureKnownSubGraphLookupTable");
+                m_KnownSubGraphLookupTable = new Dictionary<string, SubGraphAsset>();
+                foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
                 {
-                    m_KnownSubGraphLookupTable.Add(guid, asset);
+                    var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                    if (asset != null && asset.isValid)
+                    {
+                        m_KnownSubGraphLookupTable.Add(guid, asset);
+                    }
                 }
+                Profiler.EndSample();
             }
-
-            Profiler.EndSample();
         }
 
         private static void DebugPrintKnownNodes()
         {
-            foreach (var entry in m_KnownTypeLookupTable)
+            foreach (var entry in KnownTypeLookupTable)
             {
                 var nodeType = entry.Key;
                 var filterableAttributes = entry.Value;
@@ -167,12 +196,6 @@ namespace UnityEditor.ShaderGraph
                 }
                 Debug.Log(nodeType.ToString() + $": [{attrs}]");
             }
-        }
-
-        static NodeClassCache()
-        {
-            ReCacheKnownNodeTypes();
-            //DebugPrintKnownNodes();
         }
     }
 }

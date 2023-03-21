@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f8956dc6cb223549b119c965026921c, type: 3}
+  m_Name: WaterScenes
+  m_EditorClassIdentifier: 
+  header: 'For this scene to work properly, make sure these settings are enabled:'
+  requiredSettings:
+  - uiSection: 16
+    propertyPath: m_RenderPipelineSettings.supportWater
+    message: Enable Water
+  - uiSection: 16
+    propertyPath: m_RenderPipelineSettings.supportWaterDeformation
+    message: Enable Water Deformation
+  - uiSection: 16
+    propertyPath: m_RenderPipelineSettings.supportWaterFoam
+    message: Enable Water Foam
+  - uiSection: 16
+    propertyPath: m_RenderPipelineSettings.waterCPUSimulation
+    message: Enable Scripts Interactions
+  - uiSection: 16
+    propertyPath: m_RenderPipelineSettings.supportWaterExclusion
+    message: Enable Water Exclusion
+  - uiSection: 16
+    propertyPath: m_RenderPipelineSettings.supportDecalLayers
+    message: Enable Decal Layers
+  - uiSection: 32
+    propertyPath: m_RenderPipelineSettings.supportSSR
+    message: Enable SSR
+  - uiSection: 32
+    propertyPath: m_RenderPipelineSettings.supportSSRTransparent
+    message: Enable SSR on Transparent
+  - uiSection: 128
+    propertyPath: m_RenderPipelineSettings.supportDistortion
+    message: Enable Distortion
+  - uiSection: 128
+    propertyPath: m_RenderPipelineSettings.supportVolumetricClouds
+    message: Enable Volumetric Clouds

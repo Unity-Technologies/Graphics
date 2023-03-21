@@ -704,7 +704,9 @@ PlayerSettings:
     XboxOne: LWRP_DEBUG_STATIC_POSTFX
     iPhone: LWRP_DEBUG_STATIC_POSTFX
     tvOS: LWRP_DEBUG_STATIC_POSTFX
-  additionalCompilerArguments: {}
+  additionalCompilerArguments:
+    Standalone:
+    - -warnaserror+
   platformArchitecture: {}
   scriptingBackend:
     Android: 0

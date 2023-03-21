@@ -246,6 +246,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
+
             // Additional light
             EditorGUILayout.PropertyField(serialized.additionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
             EditorGUI.indentLevel++;
@@ -293,6 +294,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.mixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
             EditorGUILayout.PropertyField(serialized.useRenderingLayers, Styles.useRenderingLayers);
             EditorGUILayout.PropertyField(serialized.supportsLightCookies, Styles.supportsLightCookies);
+            EditorGUILayout.PropertyField(serialized.shEvalModeProp, Styles.shEvalModeText);
 
             if (serialized.useRenderingLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(serialized.asset, out var unsupportedGraphicsApisMessage))
                 EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);

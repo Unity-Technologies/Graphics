@@ -34,6 +34,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4 invViewMatrix;
             /// <summary>Projection matrix.</summary>
             public Matrix4x4 projMatrix;
+            /// <summary>Non-jittered Projection matrix.</summary>
+            public Matrix4x4 nonJitteredProjMatrix;
             /// <summary>Inverse Projection matrix.</summary>
             public Matrix4x4 invProjMatrix;
             /// <summary>View Projection matrix.</summary>
@@ -44,6 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4 nonJitteredViewProjMatrix;
             /// <summary>Previous view matrix from previous frame.</summary>
             public Matrix4x4 prevViewMatrix;
+            /// <summary>Non-jittered Projection matrix from previous frame.</summary>
+            public Matrix4x4 prevProjMatrix;
             /// <summary>Non-jittered View Projection matrix from previous frame.</summary>
             public Matrix4x4 prevViewProjMatrix;
             /// <summary>Non-jittered Inverse View Projection matrix from previous frame.</summary>
@@ -66,6 +70,14 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>World Space camera position from previous frame.</summary>
             public Vector3 prevWorldSpaceCameraPos;
             internal float pad2;
+
+            /// <summary>View matrix from the frame before the previous frame.</summary>
+            public Matrix4x4 prevPrevViewMatrix;
+            /// <summary>Non-jittered projection matrix from the frame before the previous frame.</summary>
+            public Matrix4x4 prevPrevProjMatrix;
+            /// <summary>World Space camera position from the frame before the previous frame.</summary>
+            public Vector3 prevPrevWorldSpaceCameraPos;
+            internal float pad3;
         };
 
         /// <summary>Camera name.</summary>
@@ -297,6 +309,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool rayTracingAccumulation = true;
         internal bool animateMaterials;
         internal float lastTime;
+        internal float currentRenderDeltaTime;
+        internal float lastRenderDeltaTime;
 
         private Camera m_parentCamera = null; // Used for recursive rendering, e.g. a reflection in a scene view.
         internal Camera parentCamera { get { return m_parentCamera; } }
@@ -621,6 +635,135 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureTextures.previous = currentTexture;
         }
 
+        // Represents a set of STP history textures for a single resolution
+        internal class StpTextures : IDisposable
+        {
+            internal RTHandle[] depthMotionTextures;
+            internal RTHandle[] lumaTextures;
+            internal RTHandle intermediateColorTexture;
+
+            public void Alloc(Vector2Int size)
+            {
+                depthMotionTextures = new RTHandle[2];
+                lumaTextures = new RTHandle[2];
+
+                for (int i = 0; i < 2; ++i)
+                {
+                    depthMotionTextures[i] = RTHandles.Alloc(
+                        size.x, size.y, TextureXR.slices, DepthBits.None, GraphicsFormat.R32_UInt,
+                        dimension: TextureXR.dimension, enableRandomWrite: true, name: $"STP Depth & Motion {i}"
+                    );
+
+                    lumaTextures[i] = RTHandles.Alloc(
+                        size.x, size.y, TextureXR.slices, DepthBits.None, GraphicsFormat.R8_UNorm,
+                        dimension: TextureXR.dimension, enableRandomWrite: true, name: $"STP Luma {i}"
+                    );
+                }
+
+                intermediateColorTexture = RTHandles.Alloc(
+                    size.x, size.y, TextureXR.slices, DepthBits.None, GraphicsFormat.R8G8B8A8_UNorm,
+                    dimension: TextureXR.dimension, enableRandomWrite: true, name: $"STP Intermediate Color"
+                );
+            }
+
+            public void Dispose()
+            {
+                foreach (var tex in depthMotionTextures)
+                {
+                    tex.Release();
+                }
+
+                foreach (var tex in lumaTextures)
+                {
+                    tex.Release();
+                }
+
+                intermediateColorTexture.Release();
+            }
+        }
+
+        // Contains STP history textures for each unique resolution supported by the dynamic resolution system
+        internal class StpHistoryContainer
+        {
+            private StpTextures[] m_buffers;
+            private Hash128 m_drsViewportSizesHash;
+
+            public bool IsValid(Hash128 drsViewportSizesHash)
+            {
+                return (m_drsViewportSizesHash == drsViewportSizesHash);
+            }
+
+            public StpHistoryContainer(DynamicResolutionHandler drsHandler, Hash128 drsViewportSizesHash)
+            {
+                m_drsViewportSizesHash = drsViewportSizesHash;
+
+                m_buffers = new StpTextures[drsHandler.numScaleSteps];
+
+                for (int bufferIndex = 0; bufferIndex < m_buffers.Length; ++bufferIndex)
+                {
+                    Vector2Int scaledSize = drsHandler.GetScaledViewportSizeForStep(bufferIndex);
+
+                    m_buffers[bufferIndex] = new StpTextures();
+                    m_buffers[bufferIndex].Alloc(scaledSize);
+                }
+            }
+
+            public StpTextures[] buffers
+            {
+                get { return m_buffers; }
+            }
+
+            public void Dispose()
+            {
+                foreach (var buffer in m_buffers)
+                {
+                    buffer.Dispose();
+                }
+            }
+        }
+
+        private StpHistoryContainer m_stpHistory = null;
+        private int m_lastStpHistoryIndex = -1;
+
+        // When STP is enabled, this function updates the state of the history textures used by STP.
+        internal void GetStpTextures(out StpTextures curTextures, out StpTextures prevTextures)
+        {
+            // This function should only be called when STP is enabled
+            Debug.Assert(IsSTPEnabled());
+
+            var drsHandler = DynamicResolutionHandler.instance;
+            var drsViewportSizesHash = drsHandler.ComputeScaledViewportSizesHash();
+
+            // Recreate the STP history if there is none, or if it's no longer valid for the current DRS viewport sizes.
+            if (m_stpHistory == null || !m_stpHistory.IsValid(drsViewportSizesHash))
+            {
+                if (m_stpHistory != null)
+                {
+                    m_stpHistory.Dispose();
+                }
+
+                m_stpHistory = new StpHistoryContainer(drsHandler, drsViewportSizesHash);
+
+                // Indicate that we don't have history textures for the prior frame.
+                m_lastStpHistoryIndex = -1;
+            }
+
+            // If we have a valid set of history textures for the prior frame and this camera hasn't cleared its history,
+            // then return the prior frame's history textures. Otherwise we just pretend we don't have any.
+            if (m_lastStpHistoryIndex != -1 && !resetPostProcessingHistory)
+            {
+                prevTextures = m_stpHistory.buffers[m_lastStpHistoryIndex];
+            }
+            else
+            {
+                prevTextures = null;
+            }
+
+            // Select the correct history textures based on the current dynamic resolution state.
+            m_lastStpHistoryIndex = drsHandler.currentStepIndex;
+            curTextures = m_stpHistory.buffers[m_lastStpHistoryIndex];
+        }
+
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
@@ -757,7 +900,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsTAAUEnabled()
         {
-            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled();
+            return (DynamicResolutionHandler.instance.DynamicResolutionEnabled() && (DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU) && !IsDLSSEnabled()) || IsSTPEnabled();
+        }
+
+        internal bool IsSTPEnabled()
+        {
+            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && (DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.STP) && !IsDLSSEnabled();
         }
 
         internal bool IsPathTracingEnabled()
@@ -863,6 +1011,19 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 time = 0;
                 lastTime = 0;
+            }
+
+            // Keep track of the delta time for the current frame, and the previous frame.
+            // STP uses this information to reproject motion vectors across frames.
+            if (isFirstFrame)
+            {
+                currentRenderDeltaTime = Time.deltaTime;
+                lastRenderDeltaTime = currentRenderDeltaTime;
+            }
+            else
+            {
+                lastRenderDeltaTime = currentRenderDeltaTime;
+                currentRenderDeltaTime = Time.deltaTime;
             }
 
             // Make sure that the shadow history identification array is allocated and is at the right size
@@ -1041,9 +1202,9 @@ namespace UnityEngine.Rendering.HighDefinition
             SetPostProcessScreenSize(screenWidth, screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
-            const int kMaxSampleCount = 8;
-            if (++taaFrameIndex >= kMaxSampleCount)
-                taaFrameIndex = 0;
+            // STP's jitter pattern is 16 samples long, and the regular TAA jitter pattern is intentionally clamped to 8 samples to maintain visual compatibility with HDRP's older TAA implementation.
+            int kMaxSampleCount = IsSTPEnabled() ? 16 : 8;
+            taaFrameIndex = (taaFrameIndex + 1) & (kMaxSampleCount - 1);
 
             UpdateAllViewConstants();
             isFirstFrame = false;
@@ -1678,16 +1839,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (isFirstFrame)
                 {
+                    viewConstants.prevPrevWorldSpaceCameraPos = cameraPosition;
+                    viewConstants.prevPrevViewMatrix = gpuView;
+                    viewConstants.prevPrevProjMatrix = gpuNonJitteredProj;
                     viewConstants.prevWorldSpaceCameraPos = cameraPosition;
                     viewConstants.prevViewMatrix = gpuView;
+                    viewConstants.prevProjMatrix = gpuNonJitteredProj;
                     viewConstants.prevViewProjMatrix = gpuVP;
                     viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
                     viewConstants.prevViewProjMatrixNoCameraTrans = gpuVPNoTrans;
                 }
                 else
                 {
+                    viewConstants.prevPrevWorldSpaceCameraPos = viewConstants.prevWorldSpaceCameraPos;
+                    viewConstants.prevPrevViewMatrix = viewConstants.prevViewMatrix;
+                    viewConstants.prevPrevProjMatrix = viewConstants.prevProjMatrix;
                     viewConstants.prevWorldSpaceCameraPos = viewConstants.worldSpaceCameraPos;
                     viewConstants.prevViewMatrix = viewConstants.viewMatrix;
+                    viewConstants.prevProjMatrix = viewConstants.projMatrix;
                     viewConstants.prevViewProjMatrix = viewConstants.nonJitteredViewProjMatrix;
                     viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.viewProjectionNoCameraTrans;
                 }
@@ -1695,6 +1864,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             viewConstants.viewMatrix = gpuView;
             viewConstants.invViewMatrix = gpuView.inverse;
+            viewConstants.nonJitteredProjMatrix = gpuNonJitteredProj;
             viewConstants.projMatrix = gpuProj;
             viewConstants.invProjMatrix = gpuProj.inverse;
             viewConstants.viewProjMatrix = gpuProj * gpuView;
@@ -1870,10 +2040,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
-            // The variance between 0 and the actual halton sequence values reveals noticeable
-            // instability in Unity's shadow maps, so we avoid index 0.
-            float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
-            float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+            float jitterX;
+            float jitterY;
+            if (IsSTPEnabled())
+            {
+                Vector2 stpJit = StpUtils.Jit16(taaFrameIndex);
+                jitterX = stpJit.x;
+                jitterY = stpJit.y;
+            }
+            else
+            {
+                // The variance between 0 and the actual halton sequence values reveals noticeable
+                // instability in Unity's shadow maps, so we avoid index 0.
+                jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
+                jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+            }
 
             if (!(IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
             {
@@ -2025,6 +2206,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var historySystem = aovHistory.Value;
                 historySystem.ReleaseAll();
+            }
+
+            if (m_stpHistory != null)
+            {
+                m_stpHistory.Dispose();
+                m_stpHistory = null;
             }
         }
 

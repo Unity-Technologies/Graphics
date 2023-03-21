@@ -44,13 +44,18 @@ namespace UnityEngine.Rendering.Universal
             m_PassData = new PassData();
         }
 
+        private RendererListParams CreateRenderListParams(ref RenderingData renderingData)
+        {
+            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
+            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+            return new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             InitPassData(ref renderingData, ref m_PassData);
             RenderingUtils.SetScaleBiasRt(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), in renderingData);
-            SortingCriteria sortingCriteria = SortingCriteria.CommonTransparent;
-            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
-            var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+            var param = CreateRenderListParams(ref renderingData);
             var rendererList = context.CreateRendererList(ref param);
             using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
             {
@@ -112,9 +117,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                SortingCriteria sortingCriteria = SortingCriteria.CommonTransparent;
-                DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
-                var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+                var param = CreateRenderListParams(ref renderingData);
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 

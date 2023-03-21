@@ -8,7 +8,7 @@ public class SetDynamicResolution : MonoBehaviour
 
     private void Start()
     {
-        var cameras = FindObjectsOfType<Camera>();
+        var cameras = FindObjectsByType<Camera>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
         foreach (var camera in cameras)
             camera.allowDynamicResolution = true;
         ScalableBufferManager.ResizeBuffers(scale, scale);

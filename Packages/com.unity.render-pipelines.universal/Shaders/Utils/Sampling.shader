@@ -21,7 +21,6 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
             SAMPLER(sampler_BlitTexture);
-            float4 _BlitTexture_TexelSize;
 
             float _SampleOffset;
 

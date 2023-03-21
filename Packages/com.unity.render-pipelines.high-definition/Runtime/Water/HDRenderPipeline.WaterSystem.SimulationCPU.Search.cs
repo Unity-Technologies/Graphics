@@ -23,6 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Water Mask
         internal bool activeMask;
         [ReadOnly] internal NativeArray<uint> maskBuffer;
+        internal TextureWrapMode maskWrapModeU;
+        internal TextureWrapMode maskWrapModeV;
         internal int2 maskResolution;
         internal float2 maskRemap;
         internal float2 maskScale;
@@ -41,6 +43,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Group 0
         internal bool activeGroup0CurrentMap;
         [ReadOnly] internal NativeArray<uint> group0CurrentMap;
+        internal TextureWrapMode group0CurrentMapWrapModeU;
+        internal TextureWrapMode group0CurrentMapWrapModeV;
         internal int2 group0CurrentMapResolution;
         internal float2 group0CurrentRegionScale;
         internal float2 group0CurrentRegionOffset;
@@ -49,6 +53,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Group 1
         internal bool activeGroup1CurrentMap;
         [ReadOnly] internal NativeArray<uint> group1CurrentMap;
+        internal TextureWrapMode group1CurrentMapWrapModeU;
+        internal TextureWrapMode group1CurrentMapWrapModeV;
         internal int2 group1CurrentMapResolution;
         internal float2 group1CurrentRegionScale;
         internal float2 group1CurrentRegionOffset;

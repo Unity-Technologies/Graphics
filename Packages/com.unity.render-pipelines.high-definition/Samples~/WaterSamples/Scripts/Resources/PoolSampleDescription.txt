@@ -1,0 +1,16 @@
+Welcome to the Water System Samples.
+The [WaterSystem](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/WaterSystem.html) allows you to add water to your scenes. 
+Multiple water presets are available, this scene showcases the customisation of a Pool.
+
+Please use the HDRP Asset Settings Helper buttons to make sure the project is set up properly otherwise some features might not be visible.
+
+*<size=20>General</size>
+
+• Screen Space Reflection on Transparent is enabled in the HDRP Asset, it allows us to see various reflections on the water surface.
+
+*<size=20>Water</size> *<size=20>Surface</size>
+
+• To define the pool's shape and position, we are using a Custom Geometry Type. Linked objects are disabled but can be inspected under the Geometry group. 
+• Enabling Directional Shadow in the Caustics section allows you to dim the caustics effect in the directional shadow areas.
+• There's also an underwater effect. To define what’s considered underwater, we placed a BoxCollider on each Water object.
+• The {beach_ball}(Ball) sticks to the kidney pool Water Surface using the FitToWaterSurface script.  
