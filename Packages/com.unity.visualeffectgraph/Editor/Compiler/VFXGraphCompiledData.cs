@@ -1049,6 +1049,9 @@ namespace UnityEditor.VFX
                 foreach (var data in compilableData)
                     data.ProcessDependencies();
 
+                // Sort the systems by layer so they get updated in the right order. It has to be done after processing the dependencies
+                compilableData = compilableData.OrderBy(d => d.layer);
+
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Compiling expression Graph", 3 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();
                 var exposedExpressionContext = ScriptableObject.CreateInstance<VFXImplicitContextOfExposedExpression>();

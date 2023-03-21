@@ -64,7 +64,7 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 #if defined(EVALUATE_SH_VERTEX)
     return L2Term;
 #elif defined(EVALUATE_SH_MIXED)
-    half3 res = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
+    half3 res = L2Term + SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
 #ifdef UNITY_COLORSPACE_GAMMA
     res = LinearToSRGB(res);
 #endif
