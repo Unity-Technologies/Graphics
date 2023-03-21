@@ -138,8 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Convert the position from uv to floating pixel coordinates (for the bilinear interpolation)
             Vector2 uv = new Vector2(windSpeed / WaterConsts.k_SwellMaximumWindSpeed, Mathf.Clamp((patchSize - 25.0f) / 4975.0f, 0.0f, 1.0f));
-            float2 tapCoord = new float2(uv.x * (WaterConsts.k_TableResolution - 1), uv.y * (WaterConsts.k_TableResolution - 1));
-            int2 pixelCoord = FloorCoordinate(tapCoord);
+            PrepareCoordinates(uv, WaterConsts.k_TableResolution - 1, out int2 pixelCoord, out float2 fract);
 
             // Evaluate the UV for this sample
             float p0 = SampleMaxAmplitudeTable(pixelCoord);
@@ -148,7 +147,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float p3 = SampleMaxAmplitudeTable(pixelCoord + new int2(1, 1));
 
             // Do the bilinear interpolation
-            float2 fract = tapCoord - pixelCoord;
             float i0 = lerp(p0, p1, fract.x);
             float i1 = lerp(p2, p3, fract.x);
             return lerp(i0, i1, fract.y);
@@ -207,25 +205,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void SetupWaterShaderKeyword(CommandBuffer cmd, int bandCount, bool localCurrent)
         {
-            if (bandCount == 1)
-            {
-                CoreUtils.SetKeyword(cmd, "WATER_ONE_BAND", true);
-                CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", false);
-                CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", false);
-            }
-            else if (bandCount == 2)
-            {
-                CoreUtils.SetKeyword(cmd, "WATER_ONE_BAND", false);
-                CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", true);
-                CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", false);
-            }
-            else
-            {
-                CoreUtils.SetKeyword(cmd, "WATER_ONE_BAND", false);
-                CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", false);
-                CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", true);
-            }
-
+            CoreUtils.SetKeyword(cmd, "WATER_ONE_BAND", bandCount == 1);
+            CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", bandCount == 2);
+            CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", bandCount == 3);
             CoreUtils.SetKeyword(cmd, "WATER_LOCAL_CURRENT", localCurrent);
         }
 
@@ -306,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return all(intersectionMin < intersectionMax);
         }
 
-        static void DrawInstancedQuadsCPU(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex)
+        static void DrawInstancedIndirectCPU(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex)
         {
             int radius = (int)parameters.waterRenderingCB._WaterLODCount - 1;
             float gridSize = parameters.waterRenderingCB._GridSize.x;
@@ -362,6 +344,32 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static void DrawInstancedQuads(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex, bool supportIndirectGPU,
+            GraphicsBuffer patchDataBuffer, GraphicsBuffer indirectBuffer, GraphicsBuffer cameraFrustumBuffer)
+        {
+            // At the moment indirect buffer for instanced mesh draw with tessellation does not work
+            if (supportIndirectGPU)
+            {
+                // Makes both constant buffers are properly injected
+                ConstantBuffer.Set<ShaderVariablesWater>(cmd, parameters.waterSimulation, HDShaderIDs._ShaderVariablesWater);
+                ConstantBuffer.Set<ShaderVariablesWaterRendering>(cmd, parameters.waterSimulation, HDShaderIDs._ShaderVariablesWaterRendering);
+
+                // Prepare the indirect parameters
+                cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._FrustumGPUBuffer, cameraFrustumBuffer);
+                cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._WaterPatchDataRW, patchDataBuffer);
+                cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._WaterInstanceDataRW, indirectBuffer);
+                cmd.DispatchCompute(parameters.waterSimulation, parameters.patchEvaluation, 1, 1, 1);
+
+                // Draw all the patches
+                ConstantBuffer.Set<ShaderVariablesWaterRendering>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
+                cmd.DrawMeshInstancedIndirect(parameters.tessellableMesh, 0, parameters.waterMaterial, passIndex, indirectBuffer, 0, parameters.mbp);
+            }
+            else
+            {
+                DrawInstancedIndirectCPU(cmd, parameters, passIndex);
+            }
+        }
+
         static void DrawMeshRenderers(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex)
         {
             int numMeshRenderers = parameters.meshRenderers.Count;
@@ -370,6 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 MeshRenderer currentRenderer = parameters.meshRenderers[meshRenderer];
                 if (currentRenderer != null)
                 {
+                    // can this be sent to cmd.DrawMesh ? that would avoid having to reupload the constant buffer
                     parameters.waterRenderingCB._WaterCustomMeshTransform = currentRenderer.transform.localToWorldMatrix;
                     parameters.waterRenderingCB._WaterCustomMeshTransform_Inverse = currentRenderer.transform.worldToLocalMatrix;
                     ConstantBuffer.Push(cmd, parameters.waterRenderingCB, parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
@@ -383,6 +392,32 @@ namespace UnityEngine.Rendering.HighDefinition
                         for (int subMeshIdx = 0; subMeshIdx < numSubMeshes; ++subMeshIdx)
                             cmd.DrawMesh(mesh, Matrix4x4.identity, parameters.waterMaterial, subMeshIdx, passIndex, parameters.mbp);
                     }
+                }
+            }
+        }
+
+        static void DrawWaterSurface(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex, bool supportIndirectGPU,
+            GraphicsBuffer patchDataBuffer, GraphicsBuffer indirectBuffer, GraphicsBuffer cameraFrustumBuffer)
+        {
+            // Bind the constant buffers
+            ConstantBuffer.Set<ShaderVariablesWater>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWater);
+            ConstantBuffer.Set<ShaderVariablesWaterRendering>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
+            ConstantBuffer.Set<ShaderVariablesWaterDeformation>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterDeformation);
+
+            if (parameters.instancedQuads)
+            {
+                DrawInstancedQuads(cmd, parameters, passIndex, supportIndirectGPU, patchDataBuffer, indirectBuffer, cameraFrustumBuffer);
+            }
+            else
+            {
+                // Based on if this is a custom mesh or not trigger the right geometry/geometries and shader pass
+                if (!parameters.customMesh)
+                {
+                    cmd.DrawMesh(parameters.tessellableMesh, Matrix4x4.identity, parameters.waterMaterial, 0, passIndex, parameters.mbp);
+                }
+                else
+                {
+                    DrawMeshRenderers(cmd, parameters, passIndex);
                 }
             }
         }

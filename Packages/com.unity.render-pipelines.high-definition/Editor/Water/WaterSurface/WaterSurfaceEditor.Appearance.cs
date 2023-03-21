@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_ColorPyramidOffset;
         SerializedProperty m_UnderWaterScatteringColorMode;
         SerializedProperty m_UnderWaterScatteringColor;
+        SerializedProperty m_UnderWaterRefraction;
         SerializedProperty m_UnderWaterAmbientProbeContribution;
 
         void OnEnableAppearance(PropertyFetcher<WaterSurface> o)
@@ -94,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ColorPyramidOffset = o.Find(x => x.colorPyramidOffset);
             m_UnderWaterScatteringColorMode = o.Find(x => x.underWaterScatteringColorMode);
             m_UnderWaterScatteringColor = o.Find(x => x.underWaterScatteringColor);
+            m_UnderWaterRefraction = o.Find(x => x.underWaterRefraction);
             m_UnderWaterAmbientProbeContribution = o.Find(x => x.underWaterAmbientProbeContribution);
         }
 
@@ -344,6 +346,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         using (new IndentLevelScope())
                             ColorFieldLinear(serialized.m_UnderWaterScatteringColor, k_UnderWaterScatteringColor);
                     }
+
+                    // Refraction fallback
+                    EditorGUILayout.PropertyField(serialized.m_UnderWaterRefraction, k_UnderWaterRefraction);
 
                     // Ambient probe contribution
                     serialized.m_UnderWaterAmbientProbeContribution.floatValue = EditorGUILayout.Slider(k_UnderWaterAmbientProbeContribution, serialized.m_UnderWaterAmbientProbeContribution.floatValue, 0.0f, 1.0f);

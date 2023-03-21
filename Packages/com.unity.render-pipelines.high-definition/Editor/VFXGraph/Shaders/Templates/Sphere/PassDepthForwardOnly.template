@@ -1,0 +1,16 @@
+Pass
+{
+    Name "DepthForwardOnly"
+	Tags { "LightMode"="DepthForwardOnly" }
+
+	ZWrite On
+	Blend Off
+
+	HLSLPROGRAM
+
+	#define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
+	${VFXIncludeRP("Templates/Sphere/PassDepthOrMV.template")}
+
+
+	ENDHLSL
+}

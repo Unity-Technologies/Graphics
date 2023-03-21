@@ -1,26 +1,31 @@
 Pass
-{		
+{
+    Name "GBuffer"
 	Tags { "LightMode"="GBuffer" }
-	
+
     ${VFXStencilGBuffer}
-		
 	HLSLPROGRAM
 	#pragma target 4.5
-	
+
 	#pragma multi_compile _ RENDERING_LAYERS
 	#pragma multi_compile _ DEBUG_DISPLAY
-    #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+    #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
 	#define UNITY_MATERIAL_LIT
-		
-	${VFXIncludeRP("VFXLitVaryings.template")}		
-		
+	#if defined(SHADER_API_D3D11)
+        #define VFX_POSITION_QUALIFIER linear noperspective centroid
+    #else
+        #define VFX_POSITION_QUALIFIER
+    #endif
+
+	${VFXIncludeRP("VFXLitVaryings.template")}
+
 	struct ps_input
 	{
-		float4 pos : SV_POSITION;
-		
+		VFX_POSITION_QUALIFIER float4 pos : SV_POSITION;
+
 		${VFXHDRPLitDeclareVaryings}
-		
+
 		float2 uv : TEXCOORD1;
 		float3 posWS : TEXCOORD2;
 		float4 sphereInfo : TEXCOORD3;

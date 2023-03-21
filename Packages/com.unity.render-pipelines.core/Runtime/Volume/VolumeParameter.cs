@@ -4,8 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Unity.Collections;
-using UnityEngine.Assertions;
+using System.Runtime.CompilerServices;
 
 namespace UnityEngine.Rendering
 {
@@ -17,7 +16,7 @@ namespace UnityEngine.Rendering
     /// The base class for all parameters types stored in a <see cref="VolumeComponent"/>.
     /// </summary>
     /// <seealso cref="VolumeParameter{T}"/>
-    public abstract class VolumeParameter
+    public abstract class VolumeParameter : ICloneable
     {
         /// <summary>
         /// A beautified string for debugger output. This is set on a <c>DebuggerDisplay</c> on every
@@ -110,6 +109,13 @@ namespace UnityEngine.Rendering
         /// Override this method to free all allocated resources
         /// </summary>
         public virtual void Release() { }
+
+        /// <summary>
+        /// Clones the current instance of the <see cref="VolumeParameter"/>
+        /// </summary>
+        /// <returns>A new created instance with the same values as the current instance of <see cref="VolumeParameter"/></returns>
+
+        public abstract object Clone();
     }
 
     /// <summary>
@@ -220,9 +226,10 @@ namespace UnityEngine.Rendering
         /// Sets the value of this parameter to the value in <paramref name="parameter"/>.
         /// </summary>
         /// <param name="parameter">The <see cref="VolumeParameter"/> to copy the value from.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void SetValue(VolumeParameter parameter)
         {
-            m_Value = parameter.GetValue<T>();
+            m_Value = ((VolumeParameter<T>)parameter).m_Value;
         }
 
         /// <summary>
@@ -298,6 +305,12 @@ namespace UnityEngine.Rendering
                 return false;
 
             return Equals((VolumeParameter<T>)obj);
+        }
+
+        /// <inheritdoc/>
+        public override object Clone()
+        {
+            return new VolumeParameter<T>(GetValue<T>(), overrideState);
         }
 
         /// <summary>
@@ -1849,6 +1862,18 @@ namespace UnityEngine.Rendering
         {
             m_Value = lhsCurve;
             KeyframeUtility.InterpAnimationCurve(ref m_Value, rhsCurve, t);
+        }
+
+        /// <inheritdoc/>
+        public override void SetValue(VolumeParameter parameter)
+        {
+            m_Value.CopyFrom(((AnimationCurveParameter)parameter).m_Value);
+        }
+
+        /// <inheritdoc/>
+        public override object Clone()
+        {
+            return new AnimationCurveParameter(new AnimationCurve(GetValue<AnimationCurve>().keys), overrideState);
         }
     }
 

@@ -91,7 +91,7 @@ The StackLit Shader is a higher quality than the Lit Shader, but more resource i
 
 ![](Images/HDRPFeatures-HairShader.png)
 
-The Hair Shader is purpose-built to accurately render realistic hair in your Unity Project. It uses an improved Kajiya Kay lighting model which features better energy conservation and provides you with more flexibility. For more information, including a full list of Shader properties, see the [Hair Shader](hair-shader.md) and [Hair Master Stack](master-stack-hair.md) documentation.
+The Hair Shader is purpose-built to accurately render realistic and stylized hair in your Unity Project. Use the improved Kajiya Kay lighting model which features better energy conservation and provides you with more flexibility. For more information, including a full list of Shader properties, see the [Hair Shader](hair-shader.md) and [Hair Master Stack](master-stack-hair.md) documentation.
 
 ### Fabric Shader
 
@@ -387,6 +387,12 @@ Custom Passes allow you to inject shader and C# at certain points inside the ren
 The Custom Pass API allows you to render GameObjects from another point of view, like a disabled camera, within the rendering of your main Camera. This API also comes with built-in support for rendering Depth, Normal, and Tangent into an RTHandle.
 
 You can also use this Camera override to render some GameObjects with a different field of view, like arms in a first-person application.
+
+### High Quality Line Rendering
+
+![img](Images/HQLines-Hero.png)
+
+High Quality Line Rendering allows you to render hair, wires, and other line-based geometry with high quality anti-aliasing and transparency. For more information, refer to [High Quality Line Rendering](Override-High-Quality-Lines.md).
 
 ### Custom Pass AOV Export
 

@@ -338,10 +338,8 @@ namespace UnityEngine.Rendering
         }
 
         // Faster version of OverrideData to force replace values in the global state
-        void ReplaceData(VolumeStack stack)
+        internal void ReplaceData(VolumeStack stack)
         {
-            using var profilerScope = k_ProfilerMarkerReplaceData.Auto();
-
             var resetParameters = stack.defaultParameters;
             var resetParametersCount = resetParameters.Length;
             for (int i = 0; i < resetParametersCount; i++)

@@ -62,6 +62,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper cpuMapper;
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
+        public VFXSGInputs SGInputs;
         public ReadOnlyDictionary<VFXExpression, Type> graphicsBufferUsage;
         public VFXMapping[] parameters;
         public (VFXSlot slot, VFXData data)[] linkedEventOut;
@@ -93,7 +94,8 @@ namespace UnityEditor.VFX
         // 3: Serialize material
         // 4: Bounds helper change
         // 5: HasAttributeBuffer flag
-        public const uint compiledVersion = 5;
+        // 6: needsComputeBounds needs Sanitization
+        public const uint compiledVersion = 6;
 
         public VFXGraphCompiledData(VFXGraph graph)
         {

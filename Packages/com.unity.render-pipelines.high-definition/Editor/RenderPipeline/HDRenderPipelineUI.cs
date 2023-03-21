@@ -721,6 +721,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWaterDeformation.boolValue))
                 {
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.deformationAtlasSize, Styles.deformationAtlasSizeContent);
+
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.maximumDeformerCount, Styles.maximumDeformerCountContent);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.maximumDeformerCount.intValue = Mathf.Clamp(serialized.renderPipelineSettings.maximumDeformerCount.intValue, 1, 256);
                 }
                 --EditorGUI.indentLevel;
 
@@ -745,6 +750,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionHighQualityLineRenderingSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportHighQualityLineRendering, Styles.supportHighQualityLineRenderingContent);
+
+            ++EditorGUI.indentLevel;
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportHighQualityLineRendering.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.highQualityLineRenderingMemoryBudget, Styles.highQualityLineRenderingMemoryBudget);
+            }
+            --EditorGUI.indentLevel;
         }
 
         static void Drawer_SectionComputeThicknessSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

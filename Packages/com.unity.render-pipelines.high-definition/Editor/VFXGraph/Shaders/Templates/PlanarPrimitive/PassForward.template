@@ -1,6 +1,7 @@
 // Forward pass
 Pass
 {
+    Name "${VFXHDRPForwardPassName}"
 	Tags { "LightMode"="${VFXHDRPForwardPassName}"}
 
     ${VFXStencilForward}
@@ -14,9 +15,9 @@ Pass
     #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 	#pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
     #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-    #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+    #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
     #else
-    #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+    #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
     #endif
 	#pragma multi_compile _ DEBUG_DISPLAY
 	//#pragma enable_d3d11_debug_symbols

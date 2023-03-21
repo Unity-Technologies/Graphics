@@ -101,7 +101,15 @@ void Main(Group group)
     const SegmentRecord s_segment = LoadSegmentRecord(_SegmentRecordBuffer, s_segmentIndex);
 
     uint2 v_segmentMin, v_segmentMax;
-    GetSegmentBoundingBox(s_segment, v_segmentMin, v_segmentMax);
+
+    if(s_segmentIndex < gs_ActiveSegmentCount)
+        GetSegmentBoundingBox(s_segment, v_segmentMin, v_segmentMax);
+    else
+    {
+        // Fall back to a zero-sized AABB to prevent uninitialized memory creating a huge one. 
+        v_segmentMin = 0;
+        v_segmentMax = 0;
+    }
 
     const Wave wave = group.GetWave();
 

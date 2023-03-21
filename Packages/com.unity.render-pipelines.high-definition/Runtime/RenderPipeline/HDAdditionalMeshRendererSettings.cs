@@ -154,6 +154,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [NonSerialized]
         private GraphicsBuffer m_LODBuffer;
 
+        [NonSerialized] private GraphicsBuffer m_IndexBuffer;
+
         private bool TryGetDependentComponents() => TryGetComponent(out m_MeshRenderer) && TryGetComponent(out m_MeshFilter);
         private bool ComponentsValid() => m_MeshRenderer != null && m_MeshFilter != null;
 
@@ -250,6 +252,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SafeRelease(m_LODBuffer);
                 m_LODBuffer = null;
 
+                CoreUtils.SafeRelease(m_IndexBuffer);
+                m_IndexBuffer = null;
+
                 SetLineRenderingEnabled(false);
             }
         }
@@ -262,6 +267,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SafeRelease(m_LODBuffer);
                 m_LODBuffer = null;
+
+                CoreUtils.SafeRelease(m_IndexBuffer);
+                m_IndexBuffer = null;
 
                 SetLineRenderingEnabled(false);
             }
@@ -464,8 +472,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         public LineRendering.RendererData GetLineRendererData(RenderGraph renderGraph, Camera camera)
         {
+            CoreUtils.SafeRelease(m_IndexBuffer);
+
             // Required for binding internal buffer resources of the mesh in the rasterization.
             m_MeshFilter.sharedMesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
+            m_IndexBuffer = m_MeshFilter.sharedMesh.GetIndexBuffer();
 
             // Re-compute various data for LOD if there was a topological change to the mesh.
             ComputeLODDataIfNeeded();
@@ -491,15 +502,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 vertexSetupCompute   = m_VertexSetupCompute,
                 offscreenShadingPass = m_MeshRenderer.sharedMaterial.FindPass(HDShaderPassNames.s_LineRenderingOffscreenShading),
                 renderingLayerMask   = m_MeshRenderer.renderingLayerMask,
-                indexBuffer          = renderGraph.ImportBuffer(m_MeshFilter.sharedMesh.GetIndexBuffer(), true),
+                indexBuffer          = renderGraph.ImportBuffer(m_IndexBuffer),
+                distanceToCamera     = Vector3.Distance(transform.position, camera.transform.position),
 
                 // LOD
                 segmentsPerLine = (int)m_SegmentsPerLine,
                 lineCount       = (int)m_LineCount,
                 lodBuffer       = renderGraph.ImportBuffer(m_LODBuffer),
-                lodMode = m_RendererLODMode,
-                lod = strandLOD,
-                shadingFraction = m_ShadingSampleFraction
+                lodMode         = m_RendererLODMode,
+                lod             = strandLOD,
+                shadingFraction = m_ShadingSampleFraction,
+                hash            = GetInstanceID()
             };
         }
     }

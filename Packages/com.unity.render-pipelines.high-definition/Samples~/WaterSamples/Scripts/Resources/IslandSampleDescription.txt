@@ -1,0 +1,21 @@
+Welcome to the Water System Samples.
+The [WaterSystem](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/WaterSystem.html) allows you to add water to your scenes. 
+Multiple surface types are available, this scene showcases the Ocean preset.
+
+Please use the HDRP Asset Settings Helper buttons to make sure the project is set up properly otherwise some features might not be visible.
+
+*<size=20>General</size>
+
+• A Water Mask texture is used on the Water Surface to reduce the water agitation closer to the island. 
+• A Current Map Texture is set on the Water Surface to slightly change the direction of the current around the island. The Wrap Mode of the texture is set to Clamp to prevent the texture from repeating.
+
+*<size=20>Exclusion</size>
+
+• A {Water_Excluder}(Water_Excluder) with a specifically authored mesh is set on the boat to exclude water from rendering inside it. 
+
+*<size=20>Shores</size> *<size=20>Waves</size>
+
+• There are 3 different {Shore_Wave_Water_Deformers}(Water_Wave_Deformer_Middle). Each Water Deformer has a {child_gameobject}(DecalTriggerDummy). It’s used to trigger a {Decal_Projector}(ShoreFoam) when submerged underwater. To prevent unwanted effects, the trigger script ignores the general water agitation and only calculates if the dummy gets submerged due to a wave deformation.
+• The Decal Projector has a component "FoamShore" controling the scale, opacity and position, effectively describing how far can the wave decals be seen after reaching the shore.
+• In addition, the Decal Projector Material is animated using a flipbook texture.
+• Finally, a very large {Decal_Projector}(Decal_Projector_Wave_Foam) retrieves the foam texture of the Shore Wave Deformers using the <i><color=#e8912b>GetFoamBuffer()</color></i> function to further blend the foam on the shore. 

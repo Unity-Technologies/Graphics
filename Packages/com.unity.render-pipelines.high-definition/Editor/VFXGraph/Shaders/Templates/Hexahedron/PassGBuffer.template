@@ -1,6 +1,7 @@
 // Forward pass
 Pass
 {
+    Name "GBuffer"
 	Tags { "LightMode"="GBuffer" }
 
     ${VFXStencilGBuffer}
@@ -10,7 +11,7 @@ Pass
 
 	#pragma multi_compile _ RENDERING_LAYERS
 	#pragma multi_compile _ DEBUG_DISPLAY
-    #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+    #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
 	#define UNITY_MATERIAL_LIT
 

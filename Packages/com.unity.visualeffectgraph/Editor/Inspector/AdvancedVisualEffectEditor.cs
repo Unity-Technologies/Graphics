@@ -1,19 +1,15 @@
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.Experimental;
-using UnityEditor.SceneManagement;
+using System.Reflection;
+
 using UnityEngine;
 using UnityEngine.VFX;
-
-using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
-using UnityEditor.Experimental.GraphView;
+
 using EditMode = UnityEditorInternal.EditMode;
 using UnityObject = UnityEngine.Object;
-using System.Reflection;
+
 namespace UnityEditor.VFX
 {
     static class VisualEffectSerializationUtility
@@ -128,6 +124,8 @@ namespace UnityEditor.VFX
                     graph.BuildParameterInfo();
                 }
             }
+
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
 
         new void OnDisable()
@@ -141,6 +139,8 @@ namespace UnityEditor.VFX
             {
                 OnDisableWithoutResetting();
             }
+
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
@@ -172,6 +172,15 @@ namespace UnityEditor.VFX
             if (owner == (IToolModeOwner)this)
                 OnEditEnd();
         }
+
+        void OnUndoRedoPerformed()
+        {
+            foreach (var contextAndGizmo in m_ContextsPerComponent)
+            {
+                contextAndGizmo.Value.context.Unprepare();
+            }
+        }
+
 
         protected override void AssetField(VisualEffectResource resource)
         {
@@ -320,12 +329,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        Dictionary<VisualEffect, ContextAndGizmo> m_ContextsPerComponent = new Dictionary<VisualEffect, ContextAndGizmo>();
+        readonly Dictionary<VisualEffect, ContextAndGizmo> m_ContextsPerComponent = new();
 
         ContextAndGizmo GetGizmo()
         {
-            ContextAndGizmo context;
-            if (!m_ContextsPerComponent.TryGetValue((VisualEffect)target, out context))
+            if (!m_ContextsPerComponent.TryGetValue((VisualEffect)target, out var context))
             {
                 context.context = new GizmoContext(new SerializedObject(target), m_GizmoedParameter);
                 context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
@@ -347,6 +355,12 @@ namespace UnityEditor.VFX
 
         class GizmoContext : VFXGizmoUtility.Context
         {
+            readonly SerializedObject m_SerializedObject;
+            readonly SerializedProperty m_VFXPropertySheet;
+            readonly List<Action<List<object>>> m_ValueCmdList = new();
+
+            VFXParameter m_Parameter;
+
             public GizmoContext(SerializedObject obj, VFXParameter parameter)
             {
                 m_SerializedObject = obj;
@@ -354,20 +368,11 @@ namespace UnityEditor.VFX
                 m_VFXPropertySheet = m_SerializedObject.FindProperty("m_PropertySheet");
             }
 
-            public override System.Type portType
-            {
-                get { return m_Parameter.type; }
-            }
+            public override Type portType => m_Parameter.type;
 
-            public override VFXSpace space
-            {
-                get
-                {
-                    return m_Parameter.outputSlots[0].space;
-                }
-            }
+            public override VFXSpace space => m_Parameter.outputSlots[0].space;
 
-            public List<object> m_Stack = new List<object>();
+            private readonly List<object> m_Stack = new();
 
             public override object value
             {
@@ -385,9 +390,6 @@ namespace UnityEditor.VFX
                     return m_Stack[0];
                 }
             }
-
-            SerializedObject m_SerializedObject;
-            SerializedProperty m_VFXPropertySheet;
 
             public override VFXGizmo.IProperty<T> RegisterProperty<T>(string memberPath)
             {
@@ -432,26 +434,24 @@ namespace UnityEditor.VFX
                         return false;
 
                     SerializedProperty property = null;
-                    if (vfxField != null)
+                    for (int i = 0; i < vfxField.arraySize; ++i)
                     {
-                        for (int i = 0; i < vfxField.arraySize; ++i)
+                        property = vfxField.GetArrayElementAtIndex(i);
+                        var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                        if (nameProperty == propertyPath)
                         {
-                            property = vfxField.GetArrayElementAtIndex(i);
-                            var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                            if (nameProperty == propertyPath)
-                            {
-                                break;
-                            }
-                            property = null;
+                            break;
                         }
+                        property = null;
                     }
+
                     if (property != null)
                     {
                         SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
                         property = property.FindPropertyRelative("m_Value");
                         cmdList.Add((l, o) => overrideProperty.boolValue = true);
                     }
-                    else if (vfxField != null)
+                    else
                     {
                         cmdList.Add((l, o) =>
                         {
@@ -485,23 +485,19 @@ namespace UnityEditor.VFX
                         var currentValue = GetObjectValue(property);
                         if (specialSpacableVector3CaseField != null)
                         {
-                            cmdList.Add(
-                                (l, o) =>
-                                {
-                                    object vector3Property = specialSpacableVector3CaseField.GetValue(o);
-                                    SetObjectValue(property, vector3Property);
-                                });
-                        }
-                        else
-                        {
-                            if (!typeof(T).IsAssignableFrom(currentValue.GetType()))
+                            cmdList.Add((l, o) =>
                             {
-                                return false;
-                            }
-
-                            cmdList.Add((l, o) => SetObjectValue(property, o));
+                                var vector3Property = specialSpacableVector3CaseField.GetValue(o);
+                                SetObjectValue(property, vector3Property);
+                            });
                         }
-                        return true;
+                        else if (currentValue is T)
+                        {
+                            cmdList.Add((l, o) => SetObjectValue(property, o));
+                            return true;
+                        }
+
+                        return false;
                     }
                 }
                 else if (depth < memberPath.Length)
@@ -560,8 +556,6 @@ namespace UnityEditor.VFX
                 }
             }
 
-            List<Action<List<object>>> m_ValueCmdList = new List<Action<List<object>>>();
-
             protected override void InternalPrepare()
             {
                 m_ValueCmdList.Clear();
@@ -594,9 +588,8 @@ namespace UnityEditor.VFX
                             property = null;
                         }
                     }
-                    if (property != null)
+                    if (property?.FindPropertyRelative("m_Overridden") is { } overrideProperty)
                     {
-                        var overrideProperty = property.FindPropertyRelative("m_Overridden");
                         property = property.FindPropertyRelative("m_Value");
                         cmdList.Add(o => { if (overrideProperty.boolValue) PushProperty(o, property); });
                     }
@@ -638,19 +631,18 @@ namespace UnityEditor.VFX
 
             class Property<T> : VFXGizmo.IProperty<T>
             {
-                public Property(SerializedObject serilializedObject, List<Action<List<object>, object>> cmdlist)
+                readonly List<Action<List<object>, object>> m_CmdList;
+                readonly List<object> m_Stack = new();
+                readonly SerializedObject m_SerializedObject;
+
+                public Property(SerializedObject serializedObject, List<Action<List<object>, object>> cmdList)
                 {
-                    m_SerializedObject = serilializedObject;
-                    m_CmdList = cmdlist;
+                    m_SerializedObject = serializedObject;
+                    m_CmdList = cmdList;
                 }
 
-                public bool isEditable { get { return true; } }
+                public bool isEditable => true;
 
-
-                List<Action<List<object>, object>> m_CmdList;
-                List<object> m_Stack = new List<object>();
-
-                SerializedObject m_SerializedObject;
 
                 public void SetValue(T value)
                 {
@@ -662,8 +654,6 @@ namespace UnityEditor.VFX
                     m_SerializedObject.ApplyModifiedProperties();
                 }
             }
-
-            VFXParameter m_Parameter;
         }
 
 

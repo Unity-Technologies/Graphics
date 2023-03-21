@@ -1,11 +1,12 @@
 // Forward pass
 Pass
-{		
+{
+    Name "SceneSelectionPass"
 	Tags { "LightMode"="SceneSelectionPass" }
-	
+
 	ZWrite Off
 	Blend Off
-	
+
 	HLSLPROGRAM
 	#define VFX_PASSDEPTH VFX_PASSDEPTH_SELECTION
 	${VFXIncludeRP("Templates/Sphere/PassDepthOrMV.template")}
@@ -13,12 +14,13 @@ Pass
 }
 
 Pass
-{		
+{
+    Name "Picking"
 	Tags { "LightMode"="Picking" }
-	
+
 	ZWrite Off
 	Blend Off
-	
+
 	HLSLPROGRAM
 	#define VFX_PASSDEPTH VFX_PASSDEPTH_PICKING
 	${VFXIncludeRP("Templates/Sphere/PassDepthOrMV.template")}

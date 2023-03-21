@@ -365,10 +365,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 upDirection;
         public int colorPyramidMipOffset;
 
-        // Padding
-        public Vector2 padding;
+        public int disableIOR;
         public float tipScatteringHeight;
         public float underWaterAmbientProbeContribution;
+        public float padding;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -430,7 +430,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _ScatteringColorTips;
 
         public float _DisplacementScattering;
-        public int _WaterInitialFrame;
+        public int _PaddingW1;
         public int _SurfaceIndex;
         public float _CausticsRegionSize;
 

@@ -431,9 +431,29 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
                 ProbeVolumeSHBands probeVolumeSHBands = asset.probeVolumeSHBands;
 
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_OFF", !apvIsEnabled);
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L1", apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
-                CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES_L2", apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ProbeVolumeL1, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ProbeVolumeL2, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+
+                // TODO: If we can robustly detect LIGHTMAP_ON, we can skip SH logic.
+                {
+                    ShEvalMode ShAutoDetect(ShEvalMode mode)
+                    {
+                        if (mode == ShEvalMode.Auto)
+                        {
+                            if (PlatformAutoDetect.isXRMobile)
+                                return ShEvalMode.PerVertex;
+                            else
+                                return ShEvalMode.PerPixel;
+                        }
+
+                        return mode;
+                    }
+
+                    var shMode = ShAutoDetect(asset.shEvalMode);
+
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.EVALUATE_SH_MIXED, shMode == ShEvalMode.Mixed);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.EVALUATE_SH_VERTEX, shMode == ShEvalMode.PerVertex);
+                }
 
                 var stack = VolumeManager.instance.stack;
 

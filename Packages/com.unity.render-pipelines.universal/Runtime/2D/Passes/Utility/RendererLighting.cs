@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.Universal
 
             // For Batching.
             bool canBatch = lightBatch.CanBatch(light, lightMaterial, light.batchSlotIndex, out int lightHash);
-            bool hasCookies = (light.lightType == Light2D.LightType.Point || light.lightType == Light2D.LightType.Sprite) && (light.lightCookieSprite != null && light.lightCookieSprite.texture != null);
+            bool hasCookies = SetCookieShaderGlobals(cmd, light);
 
             // Flush on Break.
             bool breakBatch = hasShadows || hasCookies || !canBatch;
@@ -216,13 +216,10 @@ namespace UnityEngine.Rendering.Universal
             if (hasShadows)
                 ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowLightCount++);
 
-            if (hasCookies)
-                cmd.SetGlobalTexture(light.lightType == Light2D.LightType.Sprite ? k_CookieTexID : k_PointLightCookieTexID, light.lightCookieSprite.texture);
-
             var slotIndex = lightBatch.SlotIndex(light.batchSlotIndex);
-            SetGeneralLightShaderGlobals(cmd, light, slotIndex, isVolume, hasShadows, batchingSupported);
+            SetPerLightShaderGlobals(cmd, light, slotIndex, isVolume, hasShadows, batchingSupported);
             if (light.lightType == Light2D.LightType.Point)
-                SetPointLightShaderGlobals(pass.rendererData, cmd, light, slotIndex, batchingSupported);
+                SetPerPointLightShaderGlobals(pass.rendererData, cmd, light, slotIndex, batchingSupported);
 
             // Check if StructuredBuffer is supported, if not fallback.
             if (batchingSupported)
@@ -248,10 +245,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             NativeArray<bool> doesLightAtIndexHaveShadows = new NativeArray<bool>(lights.Count, Allocator.Temp);
-
-            // Setup Global Props.
-            cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
-            cmd.SetGlobalTexture(k_FalloffLookupID, pass.rendererData.fallOffLookup);
 
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
@@ -334,10 +327,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Setup Global Props.
-            cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
-            cmd.SetGlobalTexture(k_FalloffLookupID, pass.rendererData.fallOffLookup);
-
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
             while (lightIndex < lights.Count)
@@ -397,7 +386,7 @@ namespace UnityEngine.Rendering.Universal
             doesLightAtIndexHaveShadows.Dispose();
         }
 
-        public static void SetShapeLightShaderGlobals(Renderer2DData rendererData, CommandBuffer cmd)
+        public static void SetLightShaderGlobals(Renderer2DData rendererData, CommandBuffer cmd)
         {
             for (var i = 0; i < rendererData.lightBlendStyles.Length; i++)
             {
@@ -411,6 +400,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             cmd.SetGlobalTexture(k_FalloffLookupID, rendererData.fallOffLookup);
+            cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
         }
 
         private static float GetNormalizedInnerRadius(Light2D light)
@@ -435,7 +425,7 @@ namespace UnityEngine.Rendering.Universal
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
         }
 
-        public static void SetGeneralLightShaderGlobals(CommandBuffer cmd, Light2D light, int slot, bool isVolumetric, bool hasShadows, bool batchingSupported)
+        public static void SetPerLightShaderGlobals(CommandBuffer cmd, Light2D light, int slot, bool isVolumetric, bool hasShadows, bool batchingSupported)
         {
             float intensity = light.intensity * light.color.a;
             Color color = intensity * light.color;
@@ -470,7 +460,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void SetPointLightShaderGlobals(Renderer2DData rendererData, CommandBuffer cmd, Light2D light, int slot, bool batchingSupported)
+        public static void SetPerPointLightShaderGlobals(Renderer2DData rendererData, CommandBuffer cmd, Light2D light, int slot, bool batchingSupported)
         {
             // This is used for the lookup texture
             GetScaledLightInvMatrix(light, out var lightInverseMatrix);
@@ -497,6 +487,16 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalFloat(k_L2DInnerAngle, innerAngle);
                 cmd.SetGlobalFloat(k_L2DOuterAngle, outerAngle);
             }
+        }
+
+        public static bool SetCookieShaderGlobals(CommandBuffer cmd, Light2D light)
+        {
+            bool hasCookies = (light.lightType == Light2D.LightType.Point || light.lightType == Light2D.LightType.Sprite) && (light.lightCookieSprite != null && light.lightCookieSprite.texture != null);
+
+            if (hasCookies)
+                cmd.SetGlobalTexture(light.lightType == Light2D.LightType.Sprite ? k_CookieTexID : k_PointLightCookieTexID, light.lightCookieSprite.texture);
+
+            return hasCookies;
         }
 
         public static void ClearDirtyLighting(this IRenderPass2D pass, CommandBuffer cmd, uint blendStylesUsed)

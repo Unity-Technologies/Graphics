@@ -56,6 +56,21 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(0.0f, 1.0f)]
         public float deepFoamDimmer = 1.0f;
 
+        /// <summary>
+        /// The scaling mode to apply to this Foam Generator.
+        /// </summary>
+        [Tooltip("Specify the scaling mode")]
+        public DecalScaleMode scaleMode = DecalScaleMode.ScaleInvariant;
+
+        internal Vector2 scale
+        {
+            get
+            {
+                Vector3 scale = scaleMode == DecalScaleMode.InheritFromHierarchy ? transform.lossyScale : Vector3.one;
+                return new Vector2(scale.x, scale.z);
+            }
+        }
+
         #region Instance Management
         // Management to avoid memory allocations at fetch time
         internal static HashSet<WaterFoamGenerator> instances = new HashSet<WaterFoamGenerator>();

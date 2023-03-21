@@ -402,6 +402,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP calculates volumetric voxelization asynchronously.</summary>
         [FrameSettingsField(2, displayedName: "Volume Voxelizations", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates volumetric voxelization asynchronously.")]
         VolumeVoxelizationsAsync = 45,
+        /// <summary>When enabled, HDRP calculates High Quality Lines partially asynchronously.</summary>
+        [FrameSettingsField(2, displayedName: "High Quality Line Rendering", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates High Quality Lines partially asynchronously")]
+        HighQualityLinesAsync = 52,
 
         //lightLoop settings (group 3)
         /// <summary>When enabled, HDRP uses FPTL for forward opaque.</summary>
@@ -505,6 +508,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
+                (uint)FrameSettingsField.HighQualityLinesAsync,
                 (uint)FrameSettingsField.DeferredTile,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
@@ -575,6 +579,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
+                (uint)FrameSettingsField.HighQualityLinesAsync,
                 (uint)FrameSettingsField.DeferredTile,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
@@ -639,6 +644,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SSAOAsync,
                 (uint)FrameSettingsField.ContactShadowsAsync,
                 (uint)FrameSettingsField.VolumeVoxelizationsAsync,
+                (uint)FrameSettingsField.HighQualityLinesAsync,
                 (uint)FrameSettingsField.DeferredTile,
                 (uint)FrameSettingsField.ComputeLightEvaluation,
                 (uint)FrameSettingsField.ComputeLightVariants,
@@ -828,6 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool SSAORunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSAOAsync];
         internal bool ContactShadowsRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
         internal bool VolumeVoxelizationRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
+        internal bool HighQualityLinesRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(uint)FrameSettingsField.HighQualityLinesAsync];
 
         /// <summary>Override a frameSettings according to a mask.</summary>
         /// <param name="overriddenFrameSettings">Overrided FrameSettings. Must contains default data before attempting the override.</param>
@@ -960,6 +967,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= (async && !rayTracingActive);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= (async && !rayTracingActive);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
+			sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.HighQualityLinesAsync] &= async;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;

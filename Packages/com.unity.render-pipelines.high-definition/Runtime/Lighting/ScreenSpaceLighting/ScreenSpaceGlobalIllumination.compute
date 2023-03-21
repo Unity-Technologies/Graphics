@@ -28,7 +28,7 @@
 #pragma kernel ReprojectGlobalIllumination      REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIllumination GI_REPROJECT
 #pragma kernel ReprojectGlobalIlluminationHalf  REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIlluminationHalf GI_REPROJECT HALF_RES
 
-#pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+#pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
 // The dispatch tile resolution
 #define INDIRECT_DIFFUSE_TILE_SIZE 8

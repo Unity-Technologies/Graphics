@@ -380,6 +380,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        internal void ReAllocateGBufferIfNeeded(RenderTextureDescriptor gbufferSlice, int gbufferIndex)
+        {
+            if (this.GbufferRTHandles != null)
+            {
+                // In case DeferredLight does not own the RTHandle, we can skip realloc.
+                if (this.GbufferRTHandles[gbufferIndex].GetInstanceID() != this.GbufferAttachments[gbufferIndex].GetInstanceID())
+                    return;
+
+                gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
+                gbufferSlice.stencilFormat = GraphicsFormat.None;
+                gbufferSlice.graphicsFormat = GetGBufferFormat(gbufferIndex);
+                RenderingUtils.ReAllocateIfNeeded(ref GbufferRTHandles[gbufferIndex], gbufferSlice, FilterMode.Point, TextureWrapMode.Clamp, name: k_GBufferNames[gbufferIndex]);
+                GbufferAttachments[gbufferIndex] = GbufferRTHandles[gbufferIndex];
+            }
+        }
+
         internal void CreateGbufferResources()
         {
             int gbufferSliceCount = this.GBufferSliceCount;

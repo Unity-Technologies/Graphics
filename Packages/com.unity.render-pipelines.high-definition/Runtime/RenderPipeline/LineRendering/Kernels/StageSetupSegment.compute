@@ -128,14 +128,34 @@ void Main(Group group)
 
     // Naive temporary depth test.
     {
-        uint2 viewportPos = _SizeScreen.xy * (positionSS1.xy * 0.5 + 0.5);
-        viewportPos.y = _SizeScreen.y - viewportPos.y;
-        float cameraDepth = LoadCameraDepth(viewportPos);
+        int numberOfPointsBehind = 0;
+        {
+            uint2 viewportPos = _SizeScreen.xy * (positionSS1.xy * 0.5 + 0.5);
+            viewportPos.y = _SizeScreen.y - viewportPos.y;
+            float cameraDepth = LoadCameraDepth(viewportPos);
 
-        if (positionSS1.z < cameraDepth)
+            if (positionSS1.z < cameraDepth)
+            {
+                ++numberOfPointsBehind;
+            }
+        }
+
+        {
+            uint2 viewportPos = _SizeScreen.xy * (positionSS0.xy * 0.5 + 0.5);
+            viewportPos.y = _SizeScreen.y - viewportPos.y;
+            float cameraDepth = LoadCameraDepth(viewportPos);
+
+            if (positionSS0.z < cameraDepth)
+            {
+                ++numberOfPointsBehind;
+            }
+        }
+
+        if(numberOfPointsBehind > 1)
         {
             culled = true;
         }
+
     }
 
     SegmentRecord record;

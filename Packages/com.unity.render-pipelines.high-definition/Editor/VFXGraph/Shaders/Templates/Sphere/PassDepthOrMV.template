@@ -2,9 +2,15 @@
 #define UNITY_MATERIAL_LIT
 #pragma multi_compile _ WRITE_NORMAL_BUFFER
 
+#if defined(SHADER_API_D3D11)
+    #define VFX_POSITION_QUALIFIER linear noperspective centroid
+#else
+    #define VFX_POSITION_QUALIFIER
+#endif
+
 struct ps_input
 {
-	linear noperspective centroid float4 pos : SV_POSITION;
+	VFX_POSITION_QUALIFIER float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD1;
 	float4 posWS : TEXCOORD2;
 	float4 sphereInfo : TEXCOORD3;

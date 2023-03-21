@@ -1,0 +1,18 @@
+Pass
+{
+    Name "DepthForwardOnly"
+	Tags { "LightMode"="DepthForwardOnly" }
+
+	ZWrite On
+	Blend Off
+
+	HLSLPROGRAM
+	#define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
+	#pragma multi_compile _ WRITE_NORMAL_BUFFER
+	#pragma multi_compile _ WRITE_DECAL_BUFFER
+	#pragma multi_compile _ WRITE_MSAA_DEPTH
+	${VFXInclude("Shaders/ParticleHexahedron/PassDepthOrMV.template")}
+
+
+	ENDHLSL
+}

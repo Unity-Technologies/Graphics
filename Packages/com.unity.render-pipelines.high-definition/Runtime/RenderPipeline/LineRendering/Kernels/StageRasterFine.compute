@@ -107,7 +107,7 @@ float3 ColorCycle(uint index, uint count)
 
 uint2 VertexIndexToShadingAtlasCoord(uint vertexIndex)
 {
-    const uint shadingAtlasSize = 4096;
+    const uint shadingAtlasSize = _ShadingAtlasDimensions.x;
     uint sampleIndex = vertexIndex;
     return uint2(sampleIndex % shadingAtlasSize, sampleIndex / shadingAtlasSize);
 }
@@ -193,8 +193,8 @@ Segment GetSegment(uint workQueueIndex)
         segment.coverageMask = Coverage::LineCoverageMask(v0, v1, 0.15, 0.0f);
 
         // Collect the shading samples from the segment vertices.
-        uint2 shadingOffset1 = VertexIndexToShadingAtlasCoord(_GroupShadingSampleOffset + segmentRecord.vertexIndex0);
-        uint2 shadingOffset2 = VertexIndexToShadingAtlasCoord(_GroupShadingSampleOffset + segmentRecord.vertexIndex1);
+        uint2 shadingOffset1 = VertexIndexToShadingAtlasCoord(segmentRecord.vertexIndex0);
+        uint2 shadingOffset2 = VertexIndexToShadingAtlasCoord(segmentRecord.vertexIndex1);
         segment.shadingSamples[0] = _ShadingSamplesTexture[shadingOffset1];
         segment.shadingSamples[1] = _ShadingSamplesTexture[shadingOffset2];
 
@@ -350,6 +350,9 @@ void OutputFragment(uint2 dispatchThreadID, Fragment fragment)
     // TODO: Coarsely sort hair instances in back to front order and blend them.
     if (fragment.depth > outputPixelDepth)
     {
+        // Invert the alpha for AOVs to work.
+        fragment.colorAndAlpha.a = 1.0 - fragment.colorAndAlpha.a;
+
         _OutputTargetColor[COORD_TEXTURE2D_X(dispatchThreadID)] = fragment.colorAndAlpha;
         _OutputTargetDepth[COORD_TEXTURE2D_X(dispatchThreadID)] = fragment.depth;
 

@@ -111,7 +111,8 @@ public unsafe class BRGSetup : MonoBehaviour
             meshID = m_meshID,
             submeshIndex = 0,
             splitVisibilityMask = 0xff,
-            flags = m_motionVectorTest ? BatchDrawCommandFlags.HasMotion : BatchDrawCommandFlags.None,
+            flags = BatchDrawCommandFlags.None,
+//            flags = m_motionVectorTest ? BatchDrawCommandFlags.HasMotion : BatchDrawCommandFlags.None,
             sortingPosition = 0
         };
 
@@ -229,6 +230,7 @@ public unsafe class BRGSetup : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        /*
         m_phase += Time.fixedDeltaTime * m_motionSpeed;
 
         if (m_motionAmplitude > 0.0f)
@@ -238,6 +240,7 @@ public unsafe class BRGSetup : MonoBehaviour
             // upload the full buffer
             m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
         }
+        */
     }
 
     private void OnDestroy()

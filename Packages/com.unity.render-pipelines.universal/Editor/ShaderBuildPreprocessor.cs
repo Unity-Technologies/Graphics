@@ -57,10 +57,13 @@ namespace UnityEditor.Rendering.Universal
         GBufferWriteRenderingLayers = (1L << 34),
         DepthNormalPassRenderingLayers = (1L << 35),
         LightCookies = (1L << 36),
-        // Unused =  (1L << 37),
+        LODCrossFade =  (1L << 37),
         ProbeVolumeL1 = (1L << 38),
         ProbeVolumeL2 = (1L << 39),
         HdrGrading = (1L << 40),
+        AutoSHMode = (1L << 41),
+        AutoSHModePerVertex = (1L << 42),
+        ExplicitSHMode = (1L << 43),
     }
 
     [Flags]
@@ -120,8 +123,45 @@ namespace UnityEditor.Rendering.Universal
         // Private
         private static bool s_StripXRVariants;
         private static bool s_KeepOffVariantForAdditionalLights;
+        private static bool s_UseSHPerVertexForSHAuto;
         private static VolumeFeatures s_VolumeFeatures;
         private static List<ShaderFeatures> s_SupportedFeaturesList = new();
+
+        // Helper calss to detect XR build targets at build time.
+        internal sealed class XRPlatformBuildTimeDetect
+        {
+            private static XRPlatformBuildTimeDetect xrPlatformInfo;
+            internal bool isStandaloneXR { get; private set; }
+            internal bool isHololens { get; private set; }
+            internal bool isQuest { get; private set; }
+
+            private XRPlatformBuildTimeDetect()
+            {
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+                var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+                var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
+                if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+                {
+                    isStandaloneXR = buildTargetGroup == BuildTargetGroup.Standalone;
+                    isHololens = buildTargetGroup == BuildTargetGroup.WSA;
+                    isQuest = buildTargetGroup == BuildTargetGroup.Android;
+                }
+#endif
+            }
+
+            internal static XRPlatformBuildTimeDetect GetInstance()
+            {
+                if (xrPlatformInfo == null)
+                    xrPlatformInfo = new XRPlatformBuildTimeDetect();
+
+                return xrPlatformInfo;
+            }
+
+            internal static void ClearInstance()
+            {
+                xrPlatformInfo = null;
+            }
+        }
 
         internal struct RendererRequirements
         {
@@ -129,6 +169,8 @@ namespace UnityEditor.Rendering.Universal
             public bool isUniversalRenderer;
             public bool needsUnusedVariants;
             public bool needsProcedural;
+            public bool needsMainLightShadows;
+            public bool needsAdditionalLightShadows;
             public bool needsSoftShadows;
             public bool needsShadowsOff;
             public bool needsAdditionalLightsOff;
@@ -137,6 +179,7 @@ namespace UnityEditor.Rendering.Universal
             public bool needsRenderPass;
             public bool needsReflectionProbeBlending;
             public bool needsReflectionProbeBoxProjection;
+            public bool needsSHVertexForSHAuto;
             public RenderingMode renderingMode;
         }
 
@@ -157,6 +200,7 @@ namespace UnityEditor.Rendering.Universal
         public void OnPostprocessBuild(BuildReport report)
         {
             AssetDatabase.SaveAssets();
+            XRPlatformBuildTimeDetect.ClearInstance();
 #if PROFILE_BUILD
             Profiler.enabled = false;
 #endif
@@ -206,22 +250,20 @@ namespace UnityEditor.Rendering.Universal
             XRGeneralSettings generalSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
             s_StripXRVariants = generalSettings == null || generalSettings.Manager == null || generalSettings.Manager.activeLoaders.Count <= 0;
 
-            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
-            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            if (XRPlatformBuildTimeDetect.GetInstance().isStandaloneXR)
                 s_StripDebugDisplayShaders = true;
 
-            // Additional Lights for XR...
-
-            // XRTODO: We need to figure out what's the proper way to detect HL target platform when building.
-            // For now, HL is the only XR platform available on WSA so we assume this case targets HL platform.
-            // Due to the performance consideration, keep additional light off variant to avoid extra ALU cost related to dummy additional light handling.
-            XRGeneralSettings wsaTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.WSA);
-            if (wsaTargetSettings != null && wsaTargetSettings.AssignedSettings != null && wsaTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            if (XRPlatformBuildTimeDetect.GetInstance().isHololens)
+            {
                 s_KeepOffVariantForAdditionalLights = true;
+                s_UseSHPerVertexForSHAuto = true;
+            }
 
-            XRGeneralSettings questTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
-            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null && questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            if (XRPlatformBuildTimeDetect.GetInstance().isQuest)
+            {
                 s_KeepOffVariantForAdditionalLights = true;
+                s_UseSHPerVertexForSHAuto = true;
+            }
             #else
             s_StripXRVariants = true;
             #endif
@@ -322,19 +364,6 @@ namespace UnityEditor.Rendering.Universal
         {
             ShaderFeatures urpAssetShaderFeatures = ShaderFeatures.MainLight;
 
-            // Main Light Shadows & Soft Shadows...
-            // Main Light Shadows keyword is always included to improve build times.
-            // ShaderFeatures.ShadowsKeepOffVariants controls whether the OFF variant is kept or not.
-            urpAssetShaderFeatures |= ShaderFeatures.MainLightShadows;
-            if (urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel)
-            {
-                // User can change cascade count at runtime, so we have to include both of them for now
-                urpAssetShaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
-
-                if (urpAsset.supportsSoftShadows)
-                    urpAssetShaderFeatures |= ShaderFeatures.SoftShadows;
-            }
-
             // Additional Lights and Shadows...
             switch (urpAsset.additionalLightsRenderingMode)
             {
@@ -373,11 +402,16 @@ namespace UnityEditor.Rendering.Universal
 
             if (urpAsset.supportsLightCookies)
                 urpAssetShaderFeatures |= ShaderFeatures.LightCookies;
-			
-			// HDR Output will force High Dynamic Range Color Grading
+
             bool hasHDROutput = PlayerSettings.useHDRDisplay && urpAsset.supportsHDR;
             if (urpAsset.colorGradingMode == ColorGradingMode.HighDynamicRange || hasHDROutput)
                 urpAssetShaderFeatures |= ShaderFeatures.HdrGrading;
+
+            if (urpAsset.enableLODCrossFade)
+                urpAssetShaderFeatures |= ShaderFeatures.LODCrossFade;
+
+            if (urpAsset.shEvalMode == ShEvalMode.Auto)
+                urpAssetShaderFeatures |= ShaderFeatures.AutoSHMode;
 
             // Check each renderer & renderer feature
             urpAssetShaderFeatures = GetSupportedShaderFeaturesFromRenderers(
@@ -448,7 +482,9 @@ namespace UnityEditor.Rendering.Universal
             rsd.isUniversalRenderer               = universalRendererData != null && universalRenderer != null;
             rsd.msaaSampleCount                   = urpAsset.msaaSampleCount;
             rsd.renderingMode                     = rsd.isUniversalRenderer ? universalRendererData.renderingMode : RenderingMode.Forward;
-            rsd.needsSoftShadows                  = (urpAsset.supportsAdditionalLightShadows && urpAsset.supportsSoftShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || rsd.renderingMode == RenderingMode.ForwardPlus));
+            rsd.needsMainLightShadows             = urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel;
+            rsd.needsAdditionalLightShadows       = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || rsd.renderingMode == RenderingMode.ForwardPlus);
+            rsd.needsSoftShadows                  = urpAsset.supportsSoftShadows && (rsd.needsMainLightShadows || rsd.needsAdditionalLightShadows);
             rsd.needsShadowsOff                   = !renderer.stripShadowsOffVariants;
             rsd.needsAdditionalLightsOff          = s_KeepOffVariantForAdditionalLights || !renderer.stripAdditionalLightOffVariants;
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred && urpAsset.useRenderingLayers);
@@ -462,6 +498,7 @@ namespace UnityEditor.Rendering.Universal
             #else
             rsd.needsProcedural                   = false;
             #endif
+            rsd.needsSHVertexForSHAuto            = s_UseSHPerVertexForSHAuto;
 
             return rsd;
         }
@@ -501,10 +538,6 @@ namespace UnityEditor.Rendering.Universal
             if (rendererRequirements.needsAdditionalLightsOff)
                 shaderFeatures |= ShaderFeatures.AdditionalLightsKeepOffVariants;
 
-            // The Off variant for Main and Additional Light shadows
-            if (rendererRequirements.needsShadowsOff)
-                shaderFeatures |= ShaderFeatures.ShadowsKeepOffVariants;
-
             // Forward+
             if (rendererRequirements.renderingMode == RenderingMode.ForwardPlus)
             {
@@ -513,11 +546,37 @@ namespace UnityEditor.Rendering.Universal
                 shaderFeatures &= ~(ShaderFeatures.AdditionalLightsPixel | ShaderFeatures.AdditionalLightsVertex);
             }
 
-            // Additional Light Shadows - Always included to reduce build times.
-            // ShaderFeatures.ShadowsKeepOffVariants controls whether the OFF variant is kept or not.
-            shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+            // Main & Additional Light Shadows
 
-            // Soft shadows
+            // When the OFF variant is available, the shadow keywords can
+            // be stripped based on the settings in the URP Assets.
+            if (rendererRequirements.needsShadowsOff)
+            {
+                // Keeps the Off variant for Main and Additional Light shadows
+                shaderFeatures |= ShaderFeatures.ShadowsKeepOffVariants;
+
+                if (rendererRequirements.needsMainLightShadows)
+                {
+                    // Cascade count can be changed at runtime, so include both of them
+                    shaderFeatures |= ShaderFeatures.MainLightShadows;
+                    shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
+                }
+
+                if (rendererRequirements.needsAdditionalLightShadows)
+                    shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+            }
+            // When the OFF variant should be stripped, the Main & Additional Light Keywords
+            // are always included and Main Light Cascade is added if main light shadows are enabled in the asset
+            else
+            {
+                shaderFeatures |= ShaderFeatures.MainLightShadows;
+                shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
+
+                if (rendererRequirements.needsMainLightShadows)
+                    shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
+            }
+
+            // Soft shadows for Main and Additional Lights
             if (rendererRequirements.needsSoftShadows)
                 shaderFeatures |= ShaderFeatures.SoftShadows;
 
@@ -540,6 +599,9 @@ namespace UnityEditor.Rendering.Universal
             // Reflection Probe Box Projection
             if (rendererRequirements.needsReflectionProbeBoxProjection)
                 shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
+
+            if (rendererRequirements.needsSHVertexForSHAuto)
+                shaderFeatures |= ShaderFeatures.AutoSHModePerVertex;
 
             return shaderFeatures;
         }
@@ -662,12 +724,6 @@ namespace UnityEditor.Rendering.Universal
                 }
                 else
                 {
-                    // Rendering Layers always require the keyword in the Opaque passes
-                    if (isDeferredRenderer)
-                        shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
-                    else
-                        shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
-
                     // Check if other passes need the keyword
                     switch (renderingLayersEvent)
                     {
@@ -676,6 +732,10 @@ namespace UnityEditor.Rendering.Universal
                             break;
 
                         case RenderingLayerUtils.Event.Opaque:
+                            if (isDeferredRenderer)
+                                shaderFeatures |= ShaderFeatures.GBufferWriteRenderingLayers;
+                            else
+                                shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
                             break;
 
                         default:
@@ -789,24 +849,34 @@ namespace UnityEditor.Rendering.Universal
 
             // Shadows...
             // Main Light Shadows...
-            spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLight;
-            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.MainLightShadowsCascade))
+            spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.Remove;
+            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.MainLightShadows))
             {
-                if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
-                    spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectAll;
+                if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.MainLightShadowsCascade))
+                {
+                    if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
+                        spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectAll;
+                    else
+                        spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndCascades;
+                }
                 else
-                    spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndCascades;
+                {
+                    if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
+                        spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndOff;
+                    else
+                        spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLight;
+                }
             }
-            else if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
-                spd.mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectMainLightAndOff;
 
             // Additional Light Shadows...
-            // The _ADDITIONAL_LIGHT_SHADOWS keyword is always kept.
-            // But whether the OFF variant is kept as well is controlled by ShadowsKeepOffVariants
-            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
-                spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Select;
-            else
-                spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.SelectOnly;
+            spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Remove;
+            if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.AdditionalLightShadows))
+            {
+                if (IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsKeepOffVariants))
+                    spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.Select;
+                else
+                    spd.additionalLightsShadowsPrefilteringMode = PrefilteringMode.SelectOnly;
+            }
 
             // Decals' MRT keywords
             spd.stripDBufferMRT1 = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.DBufferMRT1);

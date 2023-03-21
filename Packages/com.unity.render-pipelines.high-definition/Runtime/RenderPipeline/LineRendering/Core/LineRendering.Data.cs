@@ -7,73 +7,16 @@ namespace UnityEngine.Rendering
 {
     partial class LineRendering
     {
-        internal class RasterizerResources
+        internal struct Arguments
         {
-            public RenderData[]  rendererData;
-            public SystemResources systemResources;
-            public ShaderVariables shaderVariables;
-            public RenderTargets   renderTargets;
-            public Buffers         buffers;
-
-            // Depth-prepass result for segment culling.
-            public TextureHandle depthTexture;
-
-            public TextureHandle shadingAtlas;
-            public TextureHandle shadingAtlasHistory;
-            public int shadingAtlasWidth;
-            public int shadingAtlasHeight;
-
-            public ShadingSampleAtlas ShadingSampleAtlas;
-
-            // TODO: Move into RendererData?
-            public int[] offsetsVertex;
-            public int[] offsetsSegment;
-            public int   qualityModeIndex;
-            public int   debugModeIndex;
-        }
-
-        /// <summary>
-        /// Container for parameters defining a renderable instance for the line rendering system.
-        /// </summary>
-        [Serializable]
-        public struct RendererData
-        {
-            /// <summary>Mesh with line topology.</summary>
-            public Mesh                 mesh;
-            /// <summary>World Matrix.</summary>
-            public Matrix4x4            matrixW;
-            /// <summary>Previous World Matrix.</summary>
-            public Matrix4x4            matrixWP;
-            /// <summary>Material to draw the lines.</summary>
-            public Material             material;
-            /// <summary>Compute asset for computing the vertex shader in a compute shader.</summary>
-            public ComputeShader        vertexSetupCompute;
-            /// <summary>Merging group for sorting between multiple renderer datas.</summary>
-            public RendererGroup        group;
-            /// <summary>Spherical harmonic coefficients for probe lighting.</summary>
-            public SphericalHarmonicsL2 probe;
-            /// <summary>Rendering mask.</summary>
-            public uint                 renderingLayerMask;
-            /// <summary>Motion vector parameters.</summary>
-            public Vector4              motionVectorParams;
-            /// <summary>Offscreen shading pass index.</summary>
-            public int                  offscreenShadingPass;
-            /// <summary>Handle to the line topology's index buffer resource.</summary>
-            public BufferHandle         indexBuffer;
-
-            // LOD Data
-            /// <summary>The number of lines in the mesh.</summary>
-            public int lineCount;
-            /// <summary>The number of segments-per-line.</summary>
-            public int segmentsPerLine;
-            /// <summary>Handle to a buffer for computing level of detail.</summary>
-            public BufferHandle lodBuffer;
-            /// <summary>Level of detail mode.</summary>
-            public RendererLODMode lodMode;
-            /// <summary>Level of detail amount.</summary>
-            public float lod;
-            /// <summary>Number of shading samples to compute.</summary>
-            public float shadingFraction;
+            public Camera         camera;
+            public RenderGraph    renderGraph;
+            public TextureHandle  depthTexture;
+            public SystemSettings settings;
+            public ShadingAtlas   shadingAtlas;
+            public Vector2        viewport;
+            public Matrix4x4      matrixIVP;
+            public RenderTargets  targets;
         }
 
         internal struct SystemSettings
@@ -83,6 +26,8 @@ namespace UnityEngine.Rendering
             public SortingQuality  sortingQuality;
             public float           tileOpacityThreshold;
             public int             debugMode;
+            public MemoryBudget    memoryBudget;
+            public bool            executeAsync;
         }
 
         internal struct SystemResources
@@ -98,32 +43,78 @@ namespace UnityEngine.Rendering
             public ComputeShader stageRasterFineCS;
         }
 
-        internal struct RenderData
+        /// <summary>
+        /// Determines the size of graphics memory allocations for high quality line rendering.
+        /// </summary>
+        [Serializable]
+        public enum MemoryBudget
         {
-            public RendererData rendererData;
-            public PerRendererPersistentData persistentData;
+            /// <summary>Low Budget</summary>
+            MemoryBudgetLow = 128,
+            /// <summary>Medium Budget</summary>
+            MemoryBudgetMedium = 256,
+            /// <summary>High Budget</summary>
+            MemoryBudgetHigh = 512,
         }
 
-        internal class PerRendererPersistentData
+        /// <summary>
+        /// List of line rendering debug views.
+        /// </summary>
+        [GenerateHLSL]
+        public enum DebugMode
         {
-            public PerRendererPersistentData()
-            {
-                shadingAtlasAllocation.currentAllocationOffset = -1;
-                shadingAtlasAllocation.currentAllocationSize = -1;
-                shadingAtlasAllocation.previousAllocationOffset = -1;
-                shadingAtlasAllocation.previousAllocationSize = -1;
-                updateCount = 0;
-            }
-            public ShadingAtlasAllocationInfo shadingAtlasAllocation;
-            public int updateCount;
+            /// <summary>Draw a heat value per tile representing the number of segments being computed in the tile.</summary>
+            SegmentsPerTile,
+            /// <summary>Draw the tile's compute index.</summary>
+            TileProcessorUV,
+            /// <summary>Draw the cluster index for each computed fragment.</summary>
+            ClusterDepth,
         }
 
-        internal struct ShadingAtlasAllocationInfo
+        /// <summary>
+        /// Container for parameters defining a renderable instance for the line rendering system.
+        /// </summary>
+        [Serializable]
+        public struct RendererData
         {
-            public int currentAllocationOffset;
-            public int currentAllocationSize;
-            public int previousAllocationOffset;
-            public int previousAllocationSize;
+            /// <summary>Mesh with line topology.</summary>
+            public Mesh mesh;
+            /// <summary>World Matrix.</summary>
+            public Matrix4x4 matrixW;
+            /// <summary>Previous World Matrix.</summary>
+            public Matrix4x4 matrixWP;
+            /// <summary>Material to draw the lines.</summary>
+            public Material material;
+            /// <summary>Compute asset for computing the vertex shader in a compute shader.</summary>
+            public ComputeShader vertexSetupCompute;
+            /// <summary>Merging group for sorting between multiple renderer datas.</summary>
+            public RendererGroup group;
+            /// <summary>Spherical harmonic coefficients for probe lighting.</summary>
+            public SphericalHarmonicsL2 probe;
+            /// <summary>Rendering mask.</summary>
+            public uint renderingLayerMask;
+            /// <summary>Motion vector parameters.</summary>
+            public Vector4 motionVectorParams;
+            /// <summary>Offscreen shading pass index.</summary>
+            public int offscreenShadingPass;
+            /// <summary>Handle to the line topology's index buffer resource.</summary>
+            public BufferHandle indexBuffer;
+            /// <summary>Distance to camera for sorting purposes.</summary>
+            public float distanceToCamera;
+            /// <summary>The number of lines in the mesh.</summary>
+            public int lineCount;
+            /// <summary>The number of segments-per-line.</summary>
+            public int segmentsPerLine;
+            /// <summary>Handle to a buffer for computing level of detail.</summary>
+            public BufferHandle lodBuffer;
+            /// <summary>Level of detail mode.</summary>
+            public RendererLODMode lodMode;
+            /// <summary>Percentage of strands to render.</summary>
+            public float lod;
+            /// <summary>Percentage of shading samples to compute.</summary>
+            public float shadingFraction;
+            /// <summary>Unique identifier for the renderer data.</summary>
+            public int hash;
         }
 
         /// <summary>
@@ -159,109 +150,11 @@ namespace UnityEngine.Rendering
             Group4,
         }
 
-        internal class ShadingSampleAtlas
-        {
-            public RenderTexture previousAtlas;
-            public RenderTexture currentAtlas;
-            public int currentAtlasAllocationSize;
-            public bool historyValid;
-        }
         internal struct RenderTargets
         {
             public TextureHandle color;
             public TextureHandle depth;
             public TextureHandle motion;
-        }
-
-        internal struct Buffers
-        {
-            internal struct AllocationParameters
-            {
-                public int countVertex;
-                public int countVertexMaxPerRenderer;
-                public int countSegment;
-                public int countBin;
-                public int countCluster;
-                public int depthCluster;
-            }
-            public const int SHADING_SAMPLE_HISTOGRAM_SIZE = 512; //needs to match the shader
-            public TextureHandle shadingScratchTexture;
-            public Vector2Int shadingScratchTextureDimensions;
-
-
-            public BufferHandle  vertexStream0;          // Vertex Stream 0: Position CS
-            public BufferHandle  vertexStream1;          // Vertex Stream 1: Previous Position CS
-            public BufferHandle  vertexStream2;          // Vertex Stream 2: XY Tangent ZW Normal
-            public BufferHandle  vertexStream3;          // Vertex Stream 3: Texcoord
-            public BufferHandle  recordBufferSegment;
-            public BufferHandle  recordBufferCluster;
-            public BufferHandle  counterBuffer;
-            public BufferHandle  counterBufferClusters;
-            public BufferHandle  binCounters;
-            public BufferHandle  binIndices;
-            public BufferHandle  workQueueArgs;
-            public BufferHandle  workQueue;
-            public BufferHandle  clusterCounters;
-            public BufferHandle  clusterRanges;
-            public BufferHandle  activeClusterIndices;
-            public BufferHandle  viewSpaceDepthRange;
-            public BufferHandle  binningIndirectArgs;
-            public BufferHandle  shadingScratchBuffer;
-            public BufferHandle  shadingSampleHistogram;
-
-
-            public GPUPrefixSum.RenderGraphResources prefixResources;
-            public GPUSort.RenderGraphResources binSortResources;
-
-            public static Buffers Allocate(RenderGraph renderGraph, RenderGraphBuilder builder, AllocationParameters parameters)
-            {
-                BufferHandle CreateBuffer(int elementCount, int stride, GraphicsBuffer.Target target, string name)
-                {
-                    return builder.CreateTransientBuffer(new BufferDesc(elementCount, stride, target) { name = name });
-                }
-
-                int scratchTextureDimension =  Mathf.NextPowerOfTwo(Mathf.CeilToInt(Mathf.Sqrt(parameters.countVertexMaxPerRenderer)));
-                int shadingScratchSize = parameters.countVertexMaxPerRenderer + 1;
-
-                int prefixMaxItems = Mathf.Max(parameters.countCluster,
-                    Mathf.Max(SHADING_SAMPLE_HISTOGRAM_SIZE, shadingScratchSize));
-
-                var resource = new Buffers
-                {
-                    counterBuffer           = CreateBuffer(8, sizeof(uint), GraphicsBuffer.Target.Raw, "Counters"),
-                    clusterCounters         = CreateBuffer(parameters.countCluster, sizeof(uint), GraphicsBuffer.Target.Raw, "Cluster Counters"),
-                    vertexStream0           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 0]"),
-                    vertexStream1           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 1]"),
-                    vertexStream2           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 2]"),
-                    vertexStream3           = CreateBuffer(8  * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 3]"),
-                    recordBufferSegment     = CreateBuffer(4 * 4 * 2 * parameters.countSegment, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Segment]"),
-                    recordBufferCluster     = CreateBuffer(Budgets.BinRecordCount, Marshal.SizeOf<ClusterRecord>(), GraphicsBuffer.Target.Structured, "Record Buffer [Cluster]"),
-                    binCounters             = CreateBuffer(parameters.countBin, sizeof(uint), GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.CopySource, "Bin Counters"),
-                    binIndices              = CreateBuffer(parameters.countBin, sizeof(uint), GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.CopySource, "Bin Indices"),
-                    clusterRanges           = CreateBuffer(2 * parameters.depthCluster, sizeof(float), GraphicsBuffer.Target.Raw, "Cluster Ranges"),
-                    viewSpaceDepthRange     = CreateBuffer(2, sizeof(float), GraphicsBuffer.Target.Raw, "View Space Depth Range"),
-                    activeClusterIndices    = CreateBuffer(parameters.countCluster, sizeof(uint), GraphicsBuffer.Target.Raw, "Active Cluster Indices"),
-                    workQueueArgs           = CreateBuffer(4, sizeof(uint), GraphicsBuffer.Target.IndirectArguments, "Work Queue Args"),
-                    workQueue               = CreateBuffer(Budgets.WorkQueueCount, sizeof(uint), GraphicsBuffer.Target.Raw, "Segment Queue"),
-                    binningIndirectArgs     = CreateBuffer(4, sizeof(uint), GraphicsBuffer.Target.IndirectArguments, "Binning Args"),
-                    shadingScratchBuffer    = CreateBuffer(shadingScratchSize, sizeof(uint), GraphicsBuffer.Target.Raw, "Shading Scratch"),
-                    shadingSampleHistogram  = CreateBuffer(SHADING_SAMPLE_HISTOGRAM_SIZE + 1, sizeof(uint), GraphicsBuffer.Target.Raw, "Shading Sample Histogram"),
-
-
-
-                    prefixResources = GPUPrefixSum.RenderGraphResources.Create(prefixMaxItems, renderGraph, builder),
-                    binSortResources   = GPUSort.RenderGraphResources.Create(parameters.countBin, renderGraph, builder),
-
-                    shadingScratchTexture = builder.CreateTransientTexture(new TextureDesc(scratchTextureDimension, scratchTextureDimension)
-                    {
-                        colorFormat = GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite = true
-                    }),
-                    shadingScratchTextureDimensions = new Vector2Int(scratchTextureDimension, scratchTextureDimension),
-
-                };
-
-                return resource;
-            }
         }
 
         [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -277,18 +170,16 @@ namespace UnityEngine.Rendering
             public int _BinCount;
 
             public Vector4 _SizeScreen;
+            public Vector4 _SizeBin;
 
-            public Vector3 _SizeBin;
             public int _VertexCount;
-
             public int _VertexStride;
             public int _ActiveBinCount;
             public int _ClusterDepth;
-            public int _ClusterCount;
 
-            public Vector2 _Unused0;
+            public Vector2Int _ShadingAtlasDimensions;
+            public int _ClusterCount;
             public float _TileOpacityThreshold;
-            public int _GroupShadingSampleOffset;
         }
 
         [GenerateHLSL(PackingRules.Exact, false)]
@@ -324,18 +215,190 @@ namespace UnityEngine.Rendering
             public uint clusterOffset;
         }
 
-        /// <summary>
-        /// List of line rendering debug views.
-        /// </summary>
-        [GenerateHLSL]
-        public enum DebugMode
+        internal class SharedPassData
         {
-            /// <summary>Draw a heat value per tile representing the number of segments being computed in the tile.</summary>
-            SegmentsPerTile,
-            /// <summary>Draw the tile's compute index.</summary>
-            TileProcessorUV,
-            /// <summary>Draw the cluster index for each computed fragment.</summary>
-            ClusterDepth,
+            public SystemResources systemResources;
+            public ShaderVariables shaderVariables;
+            public Buffers         sharedBuffers;
+
+            internal struct Buffers
+            {
+                public BufferHandle  constantBuffer;
+                public BufferHandle  vertexStream0;          // Vertex Stream 0: Position CS
+                public BufferHandle  vertexStream1;          // Vertex Stream 1: Previous Position CS
+                public BufferHandle  viewSpaceDepthRange;
+                public BufferHandle  counterBuffer;
+                public BufferHandle  recordBufferSegment;
+                public TextureHandle groupShadingSampleAtlas;
+                public Vector2Int    groupShadingSampleAtlasDimensions;
+
+                internal struct AllocationParameters
+                {
+                    public int countSegment;
+                    public int countVertex;
+                }
+
+                public static Buffers Allocate(RenderGraph renderGraph, AllocationParameters parameters)
+                {
+                    BufferHandle CreateBuffer(int elementCount, int stride, GraphicsBuffer.Target target, string name)
+                    {
+                        return renderGraph.CreateBuffer(new BufferDesc(elementCount, stride, target) {name = name});
+                    }
+
+                    int constantBufferSize;
+                    unsafe
+                    {
+                        constantBufferSize = sizeof(ShaderVariables);
+                    }
+
+                    int shadingSampleAtlasWidth =  Mathf.NextPowerOfTwo(Mathf.CeilToInt(Mathf.Sqrt(parameters.countVertex)));
+                    shadingSampleAtlasWidth = Math.Max(shadingSampleAtlasWidth, 1);
+                    int shadingSampleAtlasHeight = Mathf.NextPowerOfTwo(Mathf.CeilToInt(DivRoundUp(parameters.countVertex, shadingSampleAtlasWidth)));
+
+                    var resource = new Buffers
+                    {
+                        vertexStream0           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 0]"),
+                        vertexStream1           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 1]"),
+                        counterBuffer = CreateBuffer(8, sizeof(uint), GraphicsBuffer.Target.Raw, "Counters"),
+                        recordBufferSegment = CreateBuffer(4 * 4 * 2 * parameters.countSegment, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Segment]"),
+                        viewSpaceDepthRange = CreateBuffer(2, sizeof(float), GraphicsBuffer.Target.Raw, "View Space Depth Range"),
+                        constantBuffer = CreateBuffer(1, constantBufferSize, GraphicsBuffer.Target.Constant, "Line Rendering Constants"),
+
+                        groupShadingSampleAtlas = renderGraph.CreateTexture(new TextureDesc(shadingSampleAtlasWidth, shadingSampleAtlasHeight)
+                        {
+                            colorFormat = GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite = true
+                        }),
+                        groupShadingSampleAtlasDimensions = new Vector2Int(shadingSampleAtlasWidth, shadingSampleAtlasHeight)
+                    };
+
+                    return resource;
+                }
+            }
+        }
+
+        internal class GeometryPassData : SharedPassData
+        {
+            public Buffers        transientBuffers;
+            public RendererData[] rendererData;
+            public ShadingAtlas   shadingAtlas;
+            public TextureHandle  depthRT;
+            public Matrix4x4      matrixIVP;
+
+            // TODO: Move into RendererData?
+            public int[] offsetsVertex;
+            public int[] offsetsSegment;
+
+            internal new struct Buffers
+            {
+                public const int SHADING_SAMPLE_HISTOGRAM_SIZE = 512; //needs to match the shader
+                public TextureHandle shadingScratchTexture;
+                public Vector2Int shadingScratchTextureDimensions;
+                public BufferHandle  vertexStream2;          // Vertex Stream 2: XY Tangent ZW Normal
+                public BufferHandle  vertexStream3;          // Vertex Stream 3: Texcoord
+                public GPUPrefixSum.RenderGraphResources prefixResources;
+                public BufferHandle  shadingScratchBuffer;
+                public BufferHandle  shadingSampleHistogram;
+
+                internal struct AllocationParameters
+                {
+                    public int countVertex;
+                    public int countVertexMaxPerRenderer;
+
+                }
+
+                public static Buffers Allocate(RenderGraph renderGraph, RenderGraphBuilder builder, AllocationParameters parameters)
+                {
+                    BufferHandle CreateBuffer(int elementCount, int stride, GraphicsBuffer.Target target, string name)
+                    {
+                        return builder.CreateTransientBuffer(new BufferDesc(elementCount, stride, target) { name = name });
+                    }
+
+                    int scratchTextureDimension =  Mathf.NextPowerOfTwo(Mathf.CeilToInt(Mathf.Sqrt(parameters.countVertexMaxPerRenderer)));
+                    int shadingScratchSize = parameters.countVertexMaxPerRenderer + 1;
+
+                    int prefixMaxItems = Mathf.Max(SHADING_SAMPLE_HISTOGRAM_SIZE, shadingScratchSize);
+
+                    var resource = new Buffers
+                    {
+                        vertexStream2           = CreateBuffer(16 * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 2]"),
+                        vertexStream3           = CreateBuffer(8  * parameters.countVertex, sizeof(uint), GraphicsBuffer.Target.Raw, "Record Buffer [Vertex Stream 3]"),
+                        shadingScratchBuffer    = CreateBuffer(shadingScratchSize, sizeof(uint), GraphicsBuffer.Target.Raw, "Shading Scratch"),
+                        shadingSampleHistogram  = CreateBuffer(SHADING_SAMPLE_HISTOGRAM_SIZE + 1, sizeof(uint), GraphicsBuffer.Target.Raw, "Shading Sample Histogram"),
+                        prefixResources = GPUPrefixSum.RenderGraphResources.Create(prefixMaxItems, renderGraph, builder),
+                        shadingScratchTexture = builder.CreateTransientTexture(new TextureDesc(scratchTextureDimension, scratchTextureDimension)
+                        {
+                            colorFormat = GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite = true
+                        }),
+                        shadingScratchTextureDimensions = new Vector2Int(scratchTextureDimension, scratchTextureDimension),
+
+                    };
+
+                    return resource;
+                }
+            }
+        }
+
+        internal class RasterizationPassData : SharedPassData
+        {
+            public Buffers         transientBuffers;
+            public RenderTargets   renderTargets;
+
+            public int   qualityModeIndex;
+            public int   debugModeIndex;
+#if UNITY_EDITOR
+            public bool  renderDataStillHasShadersCompiling;
+#endif
+
+            internal new struct Buffers
+            {
+                public BufferHandle  counterBufferClusters;
+                public BufferHandle  binCounters;
+                public BufferHandle  binIndices;
+                public BufferHandle  workQueueArgs;
+                public BufferHandle  workQueue;
+                public BufferHandle  clusterCounters;
+                public BufferHandle  clusterRanges;
+                public BufferHandle  activeClusterIndices;
+                public BufferHandle  binningIndirectArgs;
+                public BufferHandle  recordBufferCluster;
+
+                public GPUPrefixSum.RenderGraphResources prefixResources;
+                public GPUSort.RenderGraphResources binSortResources;
+
+                internal struct AllocationParameters
+                {
+                    public int countBin;
+                    public int countCluster;
+                    public int depthCluster;
+                    public int countBinRecords;
+                    public int countWorkQUeue;
+                }
+
+                public static Buffers Allocate(RenderGraph renderGraph, RenderGraphBuilder builder, AllocationParameters parameters)
+                {
+                    BufferHandle CreateBuffer(int elementCount, int stride, GraphicsBuffer.Target target, string name)
+                    {
+                        return builder.CreateTransientBuffer(new BufferDesc(elementCount, stride, target) { name = name });
+                    }
+
+                    var resource = new Buffers
+                    {
+                        clusterCounters         = CreateBuffer(parameters.countCluster, sizeof(uint), GraphicsBuffer.Target.Raw, "Cluster Counters"),
+                        recordBufferCluster     = CreateBuffer(parameters.countBinRecords, Marshal.SizeOf<ClusterRecord>(), GraphicsBuffer.Target.Structured, "Record Buffer [Cluster]"),
+                        binCounters             = CreateBuffer(parameters.countBin, sizeof(uint), GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.CopySource, "Bin Counters"),
+                        binIndices              = CreateBuffer(parameters.countBin, sizeof(uint), GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.CopySource, "Bin Indices"),
+                        clusterRanges           = CreateBuffer(2 * parameters.depthCluster, sizeof(float), GraphicsBuffer.Target.Raw, "Cluster Ranges"),
+                        activeClusterIndices    = CreateBuffer(parameters.countCluster, sizeof(uint), GraphicsBuffer.Target.Raw, "Active Cluster Indices"),
+                        workQueueArgs           = CreateBuffer(4, sizeof(uint), GraphicsBuffer.Target.IndirectArguments, "Work Queue Args"),
+                        workQueue               = CreateBuffer(parameters.countWorkQUeue, sizeof(uint), GraphicsBuffer.Target.Raw, "Segment Queue"),
+                        binningIndirectArgs     = CreateBuffer(4, sizeof(uint), GraphicsBuffer.Target.IndirectArguments, "Binning Args"),
+                        prefixResources    = GPUPrefixSum.RenderGraphResources.Create(parameters.countCluster, renderGraph, builder),
+                        binSortResources   = GPUSort.RenderGraphResources.Create(parameters.countBin, renderGraph, builder),
+                    };
+
+                    return resource;
+                }
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_Type;
         SerializedProperty m_Amplitude;
         SerializedProperty m_RegionSize;
+        SerializedProperty m_ScaleMode;
 
         // Waves parameters
         SerializedProperty m_WaveLength;
@@ -51,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Type = o.Find(x => x.type);
             m_Amplitude = o.Find(x => x.amplitude);
             m_RegionSize = o.Find(x => x.regionSize);
+            m_ScaleMode = o.Find(x => x.scaleMode);
 
             // Waves parameters
             m_WaveLength = o.Find(x => x.waveLength);
@@ -161,6 +163,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+
+            EditorGUILayout.PropertyField(m_ScaleMode);
+
             // Region Size
             EditorGUILayout.PropertyField(m_RegionSize, k_RegionSizeText);
 
@@ -276,8 +281,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one)))
             {
+                Vector3 scale = deformer.scaleMode == DecalScaleMode.InheritFromHierarchy ? tr.lossyScale : Vector3.one;
                 m_BoxHandle.center = Quaternion.Inverse(rotation) * tr.position;
-                m_BoxHandle.size = regionSize;
+                m_BoxHandle.size = Vector3.Scale(regionSize, scale);
                 EditorGUI.BeginChangeCheck();
                 m_BoxHandle.DrawHull(true);
                 m_BoxHandle.DrawHandle();
@@ -285,7 +291,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     Undo.RecordObjects(new UnityEngine.Object[] { tr, deformer }, "Update Deformer Region");
                     tr.position = rotation * m_BoxHandle.center;
-                    deformer.regionSize = Vector2.Max(new Vector2(m_BoxHandle.size.x, m_BoxHandle.size.z), Vector2.one);
+                    deformer.regionSize = Vector2.Max(new Vector2(m_BoxHandle.size.x / scale.x, m_BoxHandle.size.z / scale.z), Vector2.one);
                     deformer.amplitude = m_BoxHandle.size.y * 0.5f;
                 }
             }

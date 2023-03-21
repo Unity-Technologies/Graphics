@@ -118,15 +118,15 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.m_LargeCurrentSpeedValue, k_LargeCurrentSpeed);
 
             using (new BoldLabelScope())
-                EditorGUILayout.PropertyField(serialized.m_LargeCurrentMap, k_LargeCurrentMap);
+                MapWithExtent(serialized.m_LargeCurrentMap, k_LargeCurrentMap, serialized.m_LargeCurrentRegionExtent);
 
             using (new IndentLevelScope())
             {
                 if (serialized.m_LargeCurrentMap.objectReferenceValue != null)
                 {
-                    EditorGUILayout.PropertyField(serialized.m_LargeCurrentRegionExtent, k_LargeCurrentRegionExtent);
+                    EditorGUILayout.PropertyField(serialized.m_LargeCurrentRegionExtent, k_CurrentRegionExtent);
                     SanitizeExtentsVector2(serialized.m_LargeCurrentRegionExtent);
-                    EditorGUILayout.PropertyField(serialized.m_LargeCurrentRegionOffset, k_LargeCurrentRegionOffset);
+                    EditorGUILayout.PropertyField(serialized.m_LargeCurrentRegionOffset, k_CurrentRegionOffset);
                     serialized.m_LargeCurrentMapInfluence.floatValue = EditorGUILayout.Slider(k_LargeCurrentMapInfluence, serialized.m_LargeCurrentMapInfluence.floatValue, 0.0f, 1.0f);
                 }
             }
@@ -150,15 +150,15 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.m_RipplesOrientationValue, k_RipplesOrientation);
             EditorGUILayout.PropertyField(serialized.m_RipplesCurrentSpeedValue, k_RipplesCurrentSpeed);
             using (new BoldLabelScope())
-                EditorGUILayout.PropertyField(serialized.m_RipplesCurrentMap, k_RipplesCurrentMap);
+                MapWithExtent(serialized.m_RipplesCurrentMap, k_RipplesCurrentMap, serialized.m_RipplesCurrentRegionExtent);
 
             using (new IndentLevelScope())
             {
                 if (serialized.m_RipplesCurrentMap.objectReferenceValue != null)
                 {
-                    EditorGUILayout.PropertyField(serialized.m_RipplesCurrentRegionExtent, k_RipplesCurrentRegionExtent);
+                    EditorGUILayout.PropertyField(serialized.m_RipplesCurrentRegionExtent, k_CurrentRegionExtent);
                     SanitizeExtentsVector2(serialized.m_RipplesCurrentRegionExtent);
-                    EditorGUILayout.PropertyField(serialized.m_RipplesCurrentRegionOffset, k_RipplesCurrentRegionOffset);
+                    EditorGUILayout.PropertyField(serialized.m_RipplesCurrentRegionOffset, k_CurrentRegionOffset);
                     serialized.m_RipplesCurrentMapInfluence.floatValue = EditorGUILayout.Slider(k_RipplesCurrentMapInfluence, serialized.m_RipplesCurrentMapInfluence.floatValue, 0.0f, 1.0f);
                 }
             }
@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Water Mask
             using (new BoldLabelScope())
-                EditorGUILayout.PropertyField(serialized.m_WaterMask, maskContent);
+                MapWithExtent(serialized.m_WaterMask, maskContent, serialized.m_WaterMaskExtent);
 
             using (new IndentLevelScope())
             {

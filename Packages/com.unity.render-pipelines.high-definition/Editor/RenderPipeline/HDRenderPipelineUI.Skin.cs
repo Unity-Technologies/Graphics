@@ -117,6 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent waterSimulationResolutionContent = EditorGUIUtility.TrTextContent("Simulation Resolution", "Specifies the resolution of the water simulation. A higher resolution increases the visual quality, but increases the cost.");
             public static readonly GUIContent supportWaterDeformationContent = EditorGUIUtility.TrTextContent("Deformation", "When enabled, HDRP allocates additional memory to support water deformation.");
             public static readonly GUIContent deformationAtlasSizeContent = EditorGUIUtility.TrTextContent("Deformation Atlas Size", "Specifies the size of the atlas used to store texture water deformers.");
+            public static readonly GUIContent maximumDeformerCountContent = EditorGUIUtility.TrTextContent("Maximum Deformer Count", "Sets the maximum amount of water deformers HDRP can support.");
             public static readonly GUIContent supportWaterFoamContent = EditorGUIUtility.TrTextContent("Foam", "When enabled, HDRP allocates additional memory to support water foam.");
             public static readonly GUIContent foamAtlasSizeContent = EditorGUIUtility.TrTextContent("Foam Atlas Size", "Specifies the size of the atlas used to store texture water foam.");
             public static readonly GUIContent supportWaterExclusionContent = EditorGUIUtility.TrTextContent("Exclusion", "When enabled, HDRP allocates a stencil bit to support water excluders.");
@@ -125,6 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // High Quality Line Rendering
             public static readonly GUIContent highQualityLineRenderingSubTitle = EditorGUIUtility.TrTextContent("High Quality Line Rendering");
             public static readonly GUIContent supportHighQualityLineRenderingContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for high quality line rendering. This allows you to render lines with high quality anti-aliasing and transparency in your Unity Project.");
+            public static readonly GUIContent highQualityLineRenderingMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the size of graphics memory allocations for high quality line rendering.");
             // Compute Thickness
             public static readonly GUIContent computeThicknessSubTitle = EditorGUIUtility.TrTextContent("Compute Thickness");
             public static readonly GUIContent computeThicknessEnableContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for the Compute Thickness pass. For each Game Object layer selected in LayerMask, the thickness of all objects in that layer is written in a buffer. This buffer can be sampled only in Shader Graph via HDSampleBuffer node with the layer index as input.");

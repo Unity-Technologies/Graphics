@@ -146,6 +146,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ForwardPlus;
         LocalKeyword m_FoveatedRenderingNonUniformRaster;
         LocalKeyword m_EditorVisualization;
+        LocalKeyword m_LODFadeCrossFade;
         LocalKeyword m_LightCookies;
         LocalKeyword m_LensDistortion;
         LocalKeyword m_ChromaticAberration;
@@ -160,7 +161,8 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ScreenCoordOverride;
         LocalKeyword m_ProbeVolumesL1;
         LocalKeyword m_ProbeVolumesL2;
-
+        LocalKeyword m_SHPerVertex;
+        LocalKeyword m_SHMixed;
 
         private LocalKeyword TryGetLocalKeyword(Shader shader, string name)
         {
@@ -203,6 +205,7 @@ namespace UnityEditor.Rendering.Universal
             m_ForwardPlus = TryGetLocalKeyword(shader, ShaderKeywordStrings.ForwardPlus);
             m_FoveatedRenderingNonUniformRaster = TryGetLocalKeyword(shader, ShaderKeywordStrings.FoveatedRenderingNonUniformRaster);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
+            m_LODFadeCrossFade = TryGetLocalKeyword(shader, ShaderKeywordStrings.LOD_FADE_CROSSFADE);
             m_LightCookies = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightCookies);
 
             m_ScreenCoordOverride = TryGetLocalKeyword(shader, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE);
@@ -220,6 +223,8 @@ namespace UnityEditor.Rendering.Universal
             m_ToneMapACES = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapACES);
             m_ToneMapNeutral = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapNeutral);
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
+            m_SHPerVertex = TryGetLocalKeyword(shader, ShaderKeywordStrings.EVALUATE_SH_VERTEX);
+            m_SHMixed = TryGetLocalKeyword(shader, ShaderKeywordStrings.EVALUATE_SH_MIXED);
         }
 
 
@@ -397,12 +402,7 @@ namespace UnityEditor.Rendering.Universal
                         m_MainLightShadows, ShaderFeatures.MainLightShadows,
                         m_MainLightShadowsCascades, ShaderFeatures.MainLightShadowsCascade,
                         m_MainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
-                {
-                    // Here we want to keep MainLightShadows and the OFF variants...
-                    bool canRemove = strippingData.IsKeywordEnabled(m_MainLightShadowsCascades) || strippingData.IsKeywordEnabled(m_MainLightShadowsScreen);
-                    if (canRemove)
-                        return true;
-                }
+                    return true;
             }
             else
             {
@@ -410,11 +410,7 @@ namespace UnityEditor.Rendering.Universal
                         m_MainLightShadows, ShaderFeatures.MainLightShadows,
                         m_MainLightShadowsCascades, ShaderFeatures.MainLightShadowsCascade,
                         m_MainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
-                {
-                    // Here we want to only keep the MainLightShadows variant...
-                    if (!strippingData.IsKeywordEnabled(m_MainLightShadows))
-                        return true;
-                }
+                    return true;
             }
 
             return false;
@@ -491,6 +487,27 @@ namespace UnityEditor.Rendering.Universal
         internal bool StripUnusedFeatures_ForwardPlus(ref ShaderStripTool<ShaderFeatures> stripTool)
         {
             return stripTool.StripMultiCompile(m_ForwardPlus, ShaderFeatures.ForwardPlus);
+        }
+
+        internal bool StripUnusedFeatures_SHAuto(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
+        {
+            // SH auto mode is per-vertex or per-pixel. Strip unused variants
+            if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.AutoSHMode))
+            {
+                if (strippingData.IsShaderFeatureEnabled(ShaderFeatures.AutoSHModePerVertex))
+                {
+                    // Strip Mixed variant and Off(perPixel) variant
+                    if (stripTool.StripMultiCompile(m_SHMixed, ShaderFeatures.ExplicitSHMode, m_SHPerVertex, ShaderFeatures.AutoSHModePerVertex))
+                        return true;
+                }
+                else
+                {
+                    // Strip Mixed variant and PerVertex variant
+                    if (stripTool.StripMultiCompileKeepOffVariant(m_SHPerVertex, ShaderFeatures.AutoSHModePerVertex, m_SHMixed, ShaderFeatures.ExplicitSHMode))
+                        return true;
+                }
+            }
+            return false;
         }
 
         internal bool StripUnusedFeatures_AdditionalLights(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
@@ -688,6 +705,9 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedFeatures_AdditionalLights(ref strippingData, ref stripTool))
                 return true;
 
+            if (StripUnusedFeatures_SHAuto(ref strippingData, ref stripTool))
+                return true;
+
             if (StripUnusedFeatures_ScreenSpaceOcclusion(ref strippingData, ref stripTool))
                 return true;
 
@@ -704,6 +724,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_AccurateGbufferNormals(ref strippingData, ref stripTool))
+                return true;
+
+            if (stripTool.StripMultiCompileKeepOffVariant(m_LODFadeCrossFade, ShaderFeatures.LODCrossFade))
                 return true;
 
             if (StripUnusedFeatures_LightCookies(ref strippingData, ref stripTool))
@@ -783,14 +806,25 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        internal bool StripInvalidVariants_SoftShadows(ref IShaderScriptableStrippingData strippingData)
+        internal bool StripInvalidVariants_Shadows(ref IShaderScriptableStrippingData strippingData)
         {
+            // Strip Additional Shadow variants if it's not set to PerPixel and not F+/Deferred
+            bool areAdditionalShadowsEnabled = strippingData.IsKeywordEnabled(m_AdditionalLightShadows);
+            bool hasShadowsOff = strippingData.IsShaderFeatureEnabled(ShaderFeatures.ShadowsKeepOffVariants);
+            if (hasShadowsOff && areAdditionalShadowsEnabled)
+            {
+                bool isPerPixel    = strippingData.IsKeywordEnabled(m_AdditionalLightsPixel);
+                bool isForwardPlus = strippingData.IsKeywordEnabled(m_ForwardPlus);
+                bool isDeferred    = strippingData.IsShaderFeatureEnabled(ShaderFeatures.DeferredShading);
+                if (!isPerPixel && !isForwardPlus && !isDeferred)
+                    return true;
+            }
+
             // Strip Soft Shadows if shadows are disabled for both Main and Additional Lights...
             bool isMainShadowNoCascades = strippingData.IsKeywordEnabled(m_MainLightShadows);
             bool isMainShadowCascades = strippingData.IsKeywordEnabled(m_MainLightShadowsCascades);
             bool isMainShadowScreen = strippingData.IsKeywordEnabled(m_MainLightShadowsScreen);
             bool isMainShadow = isMainShadowNoCascades || isMainShadowCascades || isMainShadowScreen;
-            bool areAdditionalShadowsEnabled = strippingData.IsKeywordEnabled(m_AdditionalLightShadows);
             bool isShadowVariant = isMainShadow || areAdditionalShadowsEnabled;
             if (!isShadowVariant && strippingData.IsKeywordEnabled(m_SoftShadows))
                 return true;
@@ -806,7 +840,7 @@ namespace UnityEditor.Rendering.Universal
             if (StripInvalidVariants_TerrainHoles(ref strippingData))
                 return true;
 
-            if (StripInvalidVariants_SoftShadows(ref strippingData))
+            if (StripInvalidVariants_Shadows(ref strippingData))
                 return true;
 
             return false;

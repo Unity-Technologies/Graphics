@@ -40,6 +40,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 wsd.activeMask = true;
                 wsd.maskBuffer = currentBuffer;
+                wsd.maskWrapModeU = waterMask.wrapModeU;
+                wsd.maskWrapModeV = waterMask.wrapModeV;
                 wsd.maskResolution = waterMaskSynchronizer.CurrentResolution();
             }
             else

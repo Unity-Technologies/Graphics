@@ -1503,6 +1503,9 @@ namespace UnityEditor.VFX
                 SetSettingValue("boundsMode", BoundsSettingMode.Manual);
             }
 
+            if(boundsMode != BoundsSettingMode.Automatic && needsComputeBounds)
+                SetSettingValue(nameof(needsComputeBounds), false);
+
             if (version < 12 && (int)m_Space == int.MaxValue)
             {
                 m_Space = VFXSpace.None;
@@ -1620,13 +1623,20 @@ namespace UnityEditor.VFX
                 var gpuMapper = graph.BuildGPUMapper(context);
                 var contextUniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, true);
 
+                // SG inputs if needed
+                var fragInputNames = context.fragmentParameters;
+                var vertInputNames = context.vertexParameters;
+                var contextSGInputs = fragInputNames.Any() || vertInputNames.Any() ? new VFXSGInputs(gpuMapper, contextUniformMapper, vertInputNames, fragInputNames) : null;
+
                 // Add gpu and uniform mapper
                 foreach (var task in compiledData.contextToCompiledData[context].tasks)
                 {
-                    var contextData = compiledData.taskToCompiledData[task];
-                    contextData.gpuMapper = gpuMapper;
-                    contextData.uniformMapper = contextUniformMapper;
-                    compiledData.taskToCompiledData[task] = contextData;
+                    var taskData = compiledData.taskToCompiledData[task];
+                    taskData.gpuMapper = gpuMapper;
+                    taskData.uniformMapper = contextUniformMapper;
+                    taskData.SGInputs = contextSGInputs;
+
+                    compiledData.taskToCompiledData[task] = taskData;
 
                     if (uniformMapper == null)
                         uniformMapper = new VFXUniformMapper(gpuMapper, true, true);

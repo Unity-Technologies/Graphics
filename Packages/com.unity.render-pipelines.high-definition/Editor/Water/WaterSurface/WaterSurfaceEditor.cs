@@ -273,9 +273,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!cpuSimSupported)
             {
                 HDEditorUtils.QualitySettingsHelpBox("Enable 'Script Interactions' in your HDRP Asset if you want to replicate the water simulation on CPU. There is a performance cost of enabling this option.",
-                    MessageType.Info,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering,
-                    HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.waterCPUSimulation");
+                    MessageType.Info, HDRenderPipelineUI.ExpandableGroup.Rendering, HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.waterCPUSimulation");
                 EditorGUILayout.Space();
             }
         }
@@ -322,6 +320,22 @@ namespace UnityEditor.Rendering.HighDefinition
             return wgp.oceanIconL;
         }
 
+        static void MapWithExtent(SerializedProperty maskProp, GUIContent content, SerializedProperty extentProp)
+        {
+            var wasEmpty = maskProp.objectReferenceValue == null;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(maskProp, content);
+            if (EditorGUI.EndChangeCheck() && wasEmpty && maskProp.objectReferenceValue != null)
+            {
+                var waterSurface = maskProp.serializedObject.targetObject as WaterSurface;
+                if (!waterSurface.IsInfinite())
+                {
+                    var scale = waterSurface.transform.lossyScale;
+                    extentProp.vector2Value = new Vector2(scale.x, scale.z);
+                }
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             // We need to do this, because in case of a domain reload, sometimes everything becomes bold.
@@ -334,9 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("Enable the 'Water' system in your HDRP Asset to simulate and render water surfaces in your HDRP project.",
-                    MessageType.Info,
-                    HDRenderPipelineUI.ExpandableGroup.Rendering,
-                    HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWater");
+                    MessageType.Info, HDRenderPipelineUI.ExpandableGroup.Rendering, HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWater");
                 return;
             }
 

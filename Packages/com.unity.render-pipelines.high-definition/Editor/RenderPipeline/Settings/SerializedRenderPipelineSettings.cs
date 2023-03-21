@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty waterSimulationResolution;
         public SerializedProperty supportWaterDeformation;
         public SerializedProperty deformationAtlasSize;
+        public SerializedProperty maximumDeformerCount;
         public SerializedProperty supportWaterFoam;
         public SerializedProperty foamAtlasSize;
         public SerializedProperty supportWaterExclusion;
@@ -57,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSurfaceGradient;
         public SerializedProperty decalNormalBufferHP;
         public SerializedProperty supportHighQualityLineRendering;
+        public SerializedProperty highQualityLineRenderingMemoryBudget;
 
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
@@ -117,6 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
             supportWaterDeformation = root.Find((RenderPipelineSettings s) => s.supportWaterDeformation);
             deformationAtlasSize = root.Find((RenderPipelineSettings s) => s.deformationAtlasSize);
+            maximumDeformerCount = root.Find((RenderPipelineSettings s) => s.maximumDeformerCount);
             supportWaterFoam = root.Find((RenderPipelineSettings s) => s.supportWaterFoam);
             foamAtlasSize = root.Find((RenderPipelineSettings s) => s.foamAtlasSize);
             supportWaterExclusion = root.Find((RenderPipelineSettings s) => s.supportWaterExclusion);
@@ -159,6 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportVFXRayTracing = root.Find((RenderPipelineSettings s) => s.supportVFXRayTracing);
             supportedRayTracingMode = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
             supportHighQualityLineRendering = root.Find((RenderPipelineSettings s) => s.supportHighQualityLineRendering);
+            highQualityLineRenderingMemoryBudget = root.Find((RenderPipelineSettings s) => s.highQualityLineRenderingMemoryBudget);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));
