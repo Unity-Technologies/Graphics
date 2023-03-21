@@ -949,8 +949,10 @@ namespace UnityEngine.VFX.SDF
             for (var i = 0; i < 3; i++)
             {
                 ReleaseRenderTexture(ref m_RenderTextureViews[i]);
+                Object.Destroy(m_Material[i]);
             }
             ReleaseRenderTexture(ref m_SignMap);
+            ReleaseRenderTexture(ref m_SignMapBis);
             ReleaseRenderTexture(ref m_RayMap);
 
             //Release  buffers.
