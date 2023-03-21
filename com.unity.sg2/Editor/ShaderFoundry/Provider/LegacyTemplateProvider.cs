@@ -315,6 +315,8 @@ namespace UnityEditor.ShaderFoundry
                     varBuilder = new BlockVariable.Builder(Container);
                     varBuilder.Type = output.Type;
                     varBuilder.Name = output.Name;
+                    varBuilder.IsInput = false;
+                    varBuilder.IsOutput = false;
                     foreach (var attribute in output.Attributes)
                         varBuilder.AddAttribute(attribute);
                     varMap[output.Name] = varBuilder;
@@ -328,6 +330,8 @@ namespace UnityEditor.ShaderFoundry
                     varBuilder = new BlockVariable.Builder(Container);
                     varBuilder.Type = input.Type;
                     varBuilder.Name = input.Name;
+                    varBuilder.IsInput = false;
+                    varBuilder.IsOutput = false;
                     foreach (var attribute in input.Attributes)
                         varBuilder.AddAttribute(attribute);
                     varMap[input.Name] = varBuilder;
