@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderFoundry
 {
     internal class AttributeParsing
     {
-        public delegate void ParseDelegate<TargetType>(ShaderAttributeParam attributeParam, int parameterIndex, TargetType target);
+        public delegate void ParseDelegate<TargetType>(ShaderAttributeParameter attributeParam, int parameterIndex, TargetType target);
 
         internal class ParameterDescription<TargetType>
         {
@@ -47,26 +47,26 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        public static void ParseString(ShaderAttributeParam attributeParam, int parameterIndex, ref string result)
+        public static void ParseString(ShaderAttributeParameter attributeParam, int parameterIndex, ref string result)
         {
             result = attributeParam.Value;
         }
 
-        public static void ParseBool(ShaderAttributeParam attributeParam, int parameterIndex, ref bool result)
+        public static void ParseBool(ShaderAttributeParameter attributeParam, int parameterIndex, ref bool result)
         {
             if (!bool.TryParse(attributeParam.Value, out bool value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be a boolean.");
             result = value;
         }
 
-        public static void ParseInt(ShaderAttributeParam attributeParam, int parameterIndex, ref int result)
+        public static void ParseInt(ShaderAttributeParameter attributeParam, int parameterIndex, ref int result)
         {
             if (!int.TryParse(attributeParam.Value, out int value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an integer.");
             result = value;
         }
 
-        public static void ParseIntRange(ShaderAttributeParam attributeParam, int parameterIndex, int rangeMin, int rangeMax, ref int result)
+        public static void ParseIntRange(ShaderAttributeParameter attributeParam, int parameterIndex, int rangeMin, int rangeMax, ref int result)
         {
             if (!int.TryParse(attributeParam.Value, out int value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an integer.");
@@ -75,14 +75,14 @@ namespace UnityEditor.ShaderFoundry
             result = value;
         }
 
-        public static void ParseFloat(ShaderAttributeParam attributeParam, int parameterIndex, ref float result)
+        public static void ParseFloat(ShaderAttributeParameter attributeParam, int parameterIndex, ref float result)
         {
             if (!float.TryParse(attributeParam.Value, out float value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at position {parameterIndex} must be an float.");
             result = value;
         }
 
-        public static void ParseEnum<EnumType>(ShaderAttributeParam attributeParam, int parameterIndex, ref EnumType result) where EnumType : struct, Enum
+        public static void ParseEnum<EnumType>(ShaderAttributeParameter attributeParam, int parameterIndex, ref EnumType result) where EnumType : struct, Enum
         {
             if (!Enum.TryParse(attributeParam.Value, out EnumType value))
                 ErrorHandling.ReportError($"Parameter {attributeParam.Name} at index {parameterIndex} with value {attributeParam.Value} must be a valid {typeof(EnumType).Name} enum value.");

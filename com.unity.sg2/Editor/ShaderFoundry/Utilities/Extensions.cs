@@ -74,8 +74,8 @@ namespace UnityEditor.ShaderFoundry
 
         internal static void MergeDescriptors(this Block.Builder builder, Block block)
         {
-            foreach (var item in block.Commands)
-                builder.AddCommand(item);
+            foreach (var item in block.RenderStates)
+                builder.AddRenderState(item);
             foreach (var item in block.Defines)
                 builder.AddDefine(item);
             foreach (var item in block.Includes)
