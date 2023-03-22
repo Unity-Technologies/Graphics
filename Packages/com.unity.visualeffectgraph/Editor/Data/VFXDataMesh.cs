@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
 
         public Material GetOrCreateMaterial()
         {
-            if (m_CachedMaterial == null && shader != null)
+            if (shader != null && (m_CachedMaterial == null || m_CachedMaterial.shader != shader))
             {
                 m_CachedMaterial = new Material(shader);
                 m_CachedMaterial.hideFlags = HideFlags.HideAndDontSave;
