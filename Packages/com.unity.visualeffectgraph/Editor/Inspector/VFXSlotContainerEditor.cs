@@ -15,6 +15,7 @@ using UnityEditor.VFX.UI;
 using UnityObject = UnityEngine.Object;
 using UnityEditorInternal;
 using System.Reflection;
+using UnityEngine.Rendering;
 
 [CustomEditor(typeof(VFXModel), true)]
 [CanEditMultipleObjects]
@@ -71,14 +72,12 @@ class VFXSlotContainerEditor : Editor
             {
                 GUIContent[] enumNames = null;
                 int[] enumValues = null;
-
                 Array enums = Enum.GetValues(fieldInfo.FieldType);
                 List<int> values = new List<int>(enums.Length);
                 for (int i = 0; i < enums.Length; ++i)
                 {
                     values.Add((int)enums.GetValue(i));
                 }
-
                 foreach (var target in targets)
                 {
                     VFXModel targetIte = target as VFXModel;
@@ -98,18 +97,23 @@ class VFXSlotContainerEditor : Editor
 
                 EditorGUILayout.IntPopup(prop.Value, enumNames, enumValues);
             }
+            else if (fieldInfo.FieldType == typeof(uint) && fieldInfo.Name == "decalLayer")
+            {
+                RenderPipelineAsset srpAsset = GraphicsSettings.currentRenderPipeline;
+                bool usingSRP = srpAsset != null;
+                if (!usingSRP || target == null)
+                    continue;
+                var layerNames = srpAsset.prefixedRenderingLayerMaskNames;
+
+                var guiContent = CreateGUIContentWithTooltip(fieldInfo, prop);
+                prop.Value.uintValue = (uint)EditorGUILayout.MaskField(guiContent, (int)prop.Value.uintValue, layerNames);
+            }
             else if (fieldInfo.FieldType == typeof(int)
                         && rangeAttribute != null
                         && fieldInfo.GetCustomAttributes<DelayedAttribute>().Any())
             {
                 //Workaround: Range & Delayed attribute are incompatible, avoid the slider usage to keep the delayed behavior
-                var tooltipAttribute = fieldInfo.GetCustomAttributes<TooltipAttribute>().FirstOrDefault();
-                GUIContent guiContent;
-                if (tooltipAttribute != null)
-                    guiContent = new GUIContent(ObjectNames.NicifyVariableName(prop.Value.name),
-                        tooltipAttribute.tooltip);
-                else
-                    guiContent = new GUIContent(ObjectNames.NicifyVariableName(prop.Value.name));
+                var guiContent = CreateGUIContentWithTooltip(fieldInfo, prop);
 
                 var newValue = EditorGUILayout.DelayedIntField(guiContent, prop.Value.intValue);
                 if (EditorGUI.EndChangeCheck())
@@ -139,6 +143,18 @@ class VFXSlotContainerEditor : Editor
         }
 
         return modifiedSetting;
+    }
+
+    private static GUIContent CreateGUIContentWithTooltip(FieldInfo fieldInfo, KeyValuePair<VFXSetting, SerializedProperty> prop)
+    {
+        var tooltipAttribute = fieldInfo.GetCustomAttributes<TooltipAttribute>().FirstOrDefault();
+        GUIContent guiContent;
+        if (tooltipAttribute != null)
+            guiContent = new GUIContent(ObjectNames.NicifyVariableName(prop.Value.name),
+                tooltipAttribute.tooltip);
+        else
+            guiContent = new GUIContent(ObjectNames.NicifyVariableName(prop.Value.name));
+        return guiContent;
     }
 
     IGizmoController m_CurrentController;

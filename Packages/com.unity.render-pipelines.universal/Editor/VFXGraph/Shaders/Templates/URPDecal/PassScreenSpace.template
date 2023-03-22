@@ -1,0 +1,94 @@
+﻿Pass
+{
+    Name "DecalScreenSpaceProjector"
+    Tags
+    {
+        "LightMode" = "DecalScreenSpaceProjector"
+    }
+
+    // Render State
+    Cull Front
+    Blend SrcAlpha OneMinusSrcAlpha
+    ZTest Greater
+    ZWrite Off
+
+    HLSLPROGRAM
+
+    // Pragmas
+    #pragma target 2.5
+    #pragma multi_compile_fog
+    #pragma editor_sync_compilation
+
+    // Keywords
+    #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+    #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+    #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+    #pragma multi_compile_fragment _ _SHADOWS_SOFT
+    #pragma multi_compile _ _FORWARD_PLUS
+    #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+    #pragma multi_compile_fragment _ DEBUG_DISPLAY
+    #pragma multi_compile _DECAL_NORMAL_BLEND_LOW _DECAL_NORMAL_BLEND_MEDIUM _DECAL_NORMAL_BLEND_HIGH
+    #pragma multi_compile _ _DECAL_LAYERS
+
+    ${VFXIncludeRP("VFXDecalVaryings.template")}
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
+
+    struct ps_input
+    {
+        float4 pos : SV_POSITION;
+        ${VFXURPDecalDeclareVaryings}
+        UNITY_VERTEX_OUTPUT_STEREO
+    };
+
+    ${VFXURPDecalVaryingsMacros}
+
+    ${VFXBegin:VFXVertexAdditionalProcess}
+    ${VFXURPDecalFillVaryings}
+    ${VFXEnd}
+
+    ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
+
+    #define SHADERPASS SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR
+
+    #if ((!defined(AFFECT_NORMAL) && defined(AFFECT_BASE_COLOR)) || (defined(AFFECT_NORMAL)))
+        #define DECAL_RECONSTRUCT_NORMAL
+    #elif defined(DECAL_ANGLE_FADE)
+        #define DECAL_LOAD_NORMAL
+    #endif
+
+    #ifdef DECAL_RECONSTRUCT_NORMAL
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/NormalReconstruction.hlsl"
+    #endif
+
+    #if defined(DECAL_LOAD_NORMAL)
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
+    #endif
+
+    ${VFXIncludeRP("VFXDecal.template")}
+
+    half4 VFXComputePixelOutputScreenSpaceDecal(VFX_VARYING_PS_INPUTS i)
+    {
+        SurfaceData surfaceData;
+        ZERO_INITIALIZE(SurfaceData, surfaceData);
+        InputData inputData;
+        ZERO_INITIALIZE(InputData, inputData);
+        DecalSurfaceData decalSurfaceData;
+        ZERO_INITIALIZE(DecalSurfaceData, decalSurfaceData);
+
+        PrepareSurfaceAndInputData(i, surfaceData, decalSurfaceData, inputData);
+
+        half4 color = UniversalFragmentPBR(inputData, surfaceData);
+
+        color.rgb = MixFog(color.rgb, inputData.fogCoord);
+        return color;
+    }
+
+    #pragma fragment frag
+    void frag(VFX_VARYING_PS_INPUTS i, out half4 outColor : SV_Target0)
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+        outColor = VFXComputePixelOutputScreenSpaceDecal(i);
+    }
+    ENDHLSL
+}
+

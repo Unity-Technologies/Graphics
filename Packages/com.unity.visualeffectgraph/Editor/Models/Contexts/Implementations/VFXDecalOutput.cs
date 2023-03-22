@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         public override bool supportsUV { get { return true; } }
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
         public override bool hasShadowCasting { get { return false; } }
-
+        public override bool supportSoftParticles { get { return false; } }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
