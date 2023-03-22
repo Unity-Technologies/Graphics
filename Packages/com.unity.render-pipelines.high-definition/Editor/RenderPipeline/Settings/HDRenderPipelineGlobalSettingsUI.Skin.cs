@@ -47,6 +47,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent rendererListCulling = EditorGUIUtility.TrTextContent("Dynamic Render Pass Culling", "When enabled, rendering passes are automatically culled based on what is visible on the camera.");
             public static readonly GUIContent specularFade = EditorGUIUtility.TrTextContent("Specular Fade", "When enabled, specular values below 2% will be gradually faded to suppress specular lighting completely. Do note that this behavior is NOT physically correct.");
             public static readonly GUIContent autoRegisterDiffusionProfilesContentLabel = EditorGUIUtility.TrTextContent("Auto Register Diffusion Profiles", "When enabled, diffusion profiles referenced by an imported material will be automatically added to the diffusion profile list in the HDRP Global Settings.");
+
+            public static readonly GUIContent analyticDerivativeEmulationContentLabel = EditorGUIUtility.TrTextContent("Analytic Derivative Emulation (experimental)", "When enabled, imported shaders will use analytic derivatives for their Forward and GBuffer pass. This is a developer-only feature for testing.");
+            public static readonly GUIContent analyticDerivativeDebugOutputContentLabel = EditorGUIUtility.TrTextContent("Analytic Derivative Debug Output (experimental)", "When enabled, output detailed logs of the analytic derivative parser. This is a developer-only feature for testing.");
         }
     }
 }

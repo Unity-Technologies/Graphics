@@ -269,11 +269,14 @@ namespace UnityEditor.ShaderGraph
                 case HlslSourceType.String:
                     registry.ProvideFunction(hlslFunctionName, builder =>
                     {
+                        // add a hint for the analytic derivative code to ignore user functions
+                        builder.AddLine("// unity-custom-func-begin");
                         GetFunctionHeader(builder);
                         using (builder.BlockScope())
                         {
                             builder.AppendLines(functionBody);
                         }
+                        builder.AddLine("// unity-custom-func-end");
                     });
                     break;
                 default:

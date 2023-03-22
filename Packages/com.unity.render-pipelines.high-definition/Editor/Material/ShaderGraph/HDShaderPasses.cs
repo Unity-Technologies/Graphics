@@ -458,6 +458,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, useVFX, useTessellation),
                 includes = GenerateIncludes(),
 
+                analyticDerivativesEnabled = (HDRenderPipelineGlobalSettings.instance is not null) ? HDRenderPipelineGlobalSettings.instance.analyticDerivativeEmulation : false,
+                analyticDerivativesApplyEmulate = true,
+
                 virtualTextureFeedback = true,
                 customInterpolators = CoreCustomInterpolators.Common
             };
@@ -786,6 +789,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
+                analyticDerivativesEnabled = (HDRenderPipelineGlobalSettings.instance is not null) ? HDRenderPipelineGlobalSettings.instance.analyticDerivativeEmulation : false,
+                analyticDerivativesApplyEmulate = true,
                 virtualTextureFeedback = true,
                 customInterpolators = CoreCustomInterpolators.Common,
             };

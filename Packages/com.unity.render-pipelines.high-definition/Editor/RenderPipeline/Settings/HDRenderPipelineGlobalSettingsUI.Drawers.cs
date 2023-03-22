@@ -339,6 +339,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
 #endif
                 EditorGUILayout.PropertyField(serialized.autoRegisterDiffusionProfiles, Styles.autoRegisterDiffusionProfilesContentLabel);
+
+                EditorGUILayout.PropertyField(serialized.analyticDerivativeEmulation, Styles.analyticDerivativeEmulationContentLabel);
+                EditorGUILayout.PropertyField(serialized.analyticDerivativeDebugOutput, Styles.analyticDerivativeDebugOutputContentLabel);
+
             }
             EditorGUIUtility.labelWidth = oldWidth;
         }

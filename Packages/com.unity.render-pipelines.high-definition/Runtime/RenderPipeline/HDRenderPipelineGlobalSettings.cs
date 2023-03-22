@@ -657,6 +657,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool autoRegisterDiffusionProfiles = true;
 
+
+        public bool analyticDerivativeEmulation = false;
+
+        public bool analyticDerivativeDebugOutput = false;
+
         #endregion
 
         #region APV
