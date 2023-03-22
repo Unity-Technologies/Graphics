@@ -282,7 +282,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         builder.UseTexture(dbuffer, IBaseRenderGraphBuilder.AccessFlags.Read);
                 }
 
-                TextureHandle ssaoTexture = renderer.resources.GetTexture(UniversalResource.SSAOTexture);
+                TextureHandle ssaoTexture = frameResources.GetTexture(UniversalResource.SSAOTexture);
                 if (ssaoTexture.IsValid())
                     builder.UseTexture(ssaoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
