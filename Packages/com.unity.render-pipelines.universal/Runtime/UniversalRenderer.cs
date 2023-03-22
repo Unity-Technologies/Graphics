@@ -224,7 +224,7 @@ namespace UnityEngine.Rendering.Universal
             this.m_CopyDepthMode = data.copyDepthMode;
             useRenderPassEnabled = data.useNativeRenderPass;
 
-#if UNITY_ANDROID || UNITY_IOS || UNITY_TVOS
+#if UNITY_ANDROID || UNITY_IOS || UNITY_TVOS || UNITY_EMBEDDED_LINUX
             this.m_DepthPrimingRecommended = false;
 #else
             this.m_DepthPrimingRecommended = true;
@@ -698,7 +698,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
                 createColorTexture |= createDepthTexture;
 #endif
-#if UNITY_ANDROID || UNITY_WEBGL
+#if UNITY_ANDROID || UNITY_WEBGL || UNITY_EMBEDDED_LINUX
             // GLES can not use render texture's depth buffer with the color buffer of the backbuffer
             // in such case we create a color texture for it too.
             if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)

@@ -22,6 +22,7 @@ public class UniversalGraphicsTests
     public IEnumerator Run(GraphicsTestCase testCase)
     {
         GlobalResolutionSetter.SetResolution(RuntimePlatform.Android, width: 1920, height: 1080);
+        GlobalResolutionSetter.SetResolution(RuntimePlatform.EmbeddedLinuxArm64, width: 1920, height: 1080);
 
         SceneManager.LoadScene(testCase.ScenePath);
 
