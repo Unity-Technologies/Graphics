@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.Universal
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             AdaptivePerformance = 1 << 6,
 #endif
+            Volumes = 1 << 7,
         }
 
         enum ExpandableAdditional
@@ -112,7 +113,8 @@ namespace UnityEditor.Rendering.Universal
             CED.FoldoutGroup(Styles.qualitySettingsText, Expandable.Quality, k_ExpandedState, DrawQuality),
             CED.AdditionalPropertiesFoldoutGroup(Styles.lightingSettingsText, Expandable.Lighting, k_ExpandedState, ExpandableAdditional.Lighting, k_AdditionalPropertiesState, DrawLighting, DrawLightingAdditional),
             CED.AdditionalPropertiesFoldoutGroup(Styles.shadowSettingsText, Expandable.Shadows, k_ExpandedState, ExpandableAdditional.Shadows, k_AdditionalPropertiesState, DrawShadows, DrawShadowsAdditional),
-            CED.FoldoutGroup(Styles.postProcessingSettingsText, Expandable.PostProcessing, k_ExpandedState, DrawPostProcessing)
+            CED.FoldoutGroup(Styles.postProcessingSettingsText, Expandable.PostProcessing, k_ExpandedState, DrawPostProcessing),
+            CED.FoldoutGroup(Styles.volumeSettingsText, Expandable.Volumes, k_ExpandedState, DrawVolumes)
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             , CED.FoldoutGroup(Styles.adaptivePerformanceText, Expandable.AdaptivePerformance, k_ExpandedState, CED.Group(DrawAdaptivePerformance))
 #endif
@@ -564,6 +566,15 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
             EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
+        }
+
+        static void DrawVolumes(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.qualityDefaultVolumeProfileProp, Styles.qualityDefaultVolumeProfileLabel);
+            if (EditorGUI.EndChangeCheck())
+                VolumeManager.instance.SetQualityDefaultProfile(serialized.qualityDefaultVolumeProfileProp.objectReferenceValue as VolumeProfile);
+
             CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, serialized.volumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
         }
 

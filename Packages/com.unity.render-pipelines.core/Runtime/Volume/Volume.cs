@@ -119,7 +119,6 @@ namespace UnityEngine.Rendering
         {
             m_PreviousLayer = gameObject.layer;
             VolumeManager.instance.Register(this, m_PreviousLayer);
-
             GetComponents(m_Colliders);
         }
 

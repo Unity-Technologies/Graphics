@@ -281,6 +281,13 @@ namespace UnityEditor.Rendering
             var supportedOn = volumeComponentType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
             m_LegacyPipelineTypes = supportedOn != null ? supportedOn.pipelineTypes : Array.Empty<Type>();
 #pragma warning restore CS0618
+
+            EditorApplication.contextualPropertyMenu += OnPropertyContextMenu;
+        }
+
+        void OnDestroy()
+        {
+            EditorApplication.contextualPropertyMenu -= OnPropertyContextMenu;
         }
 
         internal void DetermineVisibility(Type renderPipelineAssetType, Type renderPipelineType)
@@ -365,7 +372,6 @@ namespace UnityEditor.Rendering
                 })
                 .OrderBy(t => t.order)
                 .ToList();
-
         }
 
         /// <summary>
@@ -375,7 +381,26 @@ namespace UnityEditor.Rendering
         {
         }
 
-        internal void OnInternalInspectorGUI()
+        void OnPropertyContextMenu(GenericMenu menu, SerializedProperty property)
+        {
+            if (property.serializedObject.targetObject != target)
+                return;
+
+            var targetComponent = property.serializedObject.targetObject as VolumeComponent;
+            bool isDefaultVolumeEditor = inspector.target == VolumeManager.instance.globalDefaultProfile;
+            if (!isDefaultVolumeEditor)
+            {
+                menu.AddSeparator(string.Empty);
+                // TODO need to get pipeline-specific path here
+                menu.AddItem(EditorGUIUtility.TrTextContent("Show Default Volume Profile"), false, () => SettingsService.OpenProjectSettings("Project/Graphics"));
+                menu.AddItem(new GUIContent("Copy Parameter to Default Volume Profile"), false, () =>
+                {
+                    VolumeProfileUtils.AssignValuesToDefaultProfile(targetComponent, property);
+                });
+            }
+        }
+
+        internal bool OnInternalInspectorGUI()
         {
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
@@ -385,7 +410,7 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.Space();
             }
 
-            serializedObject.ApplyModifiedProperties();
+            return serializedObject.ApplyModifiedProperties();
         }
 
         /// <summary>

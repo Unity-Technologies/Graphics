@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting", "Settings that affect the lighting in the Scene");
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows", "Settings that configure how shadows look and behave, and can be used to balance between the visual quality and performance of shadows.");
             public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post-processing", "Settings that allow for fine tuning of post-processing effects in the Scene when this Render Pipeline Asset is in use.");
+            public static GUIContent volumeSettingsText = EditorGUIUtility.TrTextContent("Volumes", "Settings related to usage of Volume Components.");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
             public static GUIContent adaptivePerformanceText = EditorGUIUtility.TrTextContent("Adaptive Performance");
 
@@ -109,7 +110,10 @@ namespace UnityEditor.Rendering.Universal
             public static string colorGradingModeWithHDROutput = "With the current configuration, Unity uses the HDR color grading mode when outputting to an HDR display.";
             public static string colorGradingModeSpecInfo = "The high dynamic range color grading mode works best on platforms that support floating point textures.";
             public static string colorGradingLutSizeWarning = "The minimal recommended LUT size for the high dynamic range color grading mode is 32. Using lower values will potentially result in color banding and posterization effects.";
+
+            // Volumes
             public static GUIContent volumeFrameworkUpdateMode = EditorGUIUtility.TrTextContent("Volume Update Mode", "Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.");
+            public static GUIContent qualityDefaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Quality Default Volume Profile", "This volume profile is used to override the default values defined in URP Global Settings.");
 
             // Adaptive performance settings
             public static GUIContent useAdaptivePerformance = EditorGUIUtility.TrTextContent("Use adaptive performance", "Allows Adaptive Performance to adjust rendering quality during runtime");

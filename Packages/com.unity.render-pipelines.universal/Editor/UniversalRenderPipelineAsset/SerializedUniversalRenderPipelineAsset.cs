@@ -72,6 +72,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty enableRenderGraph { get; }
 
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
+        public SerializedProperty qualityDefaultVolumeProfileProp { get; }
 
         public SerializedProperty colorGradingMode { get; }
         public SerializedProperty colorGradingLutSize { get; }
@@ -154,6 +155,7 @@ namespace UnityEditor.Rendering.Universal
             enableRenderGraph = serializedObject.FindProperty("m_EnableRenderGraph");
 
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
+            qualityDefaultVolumeProfileProp = serializedObject.FindProperty("m_VolumeProfile");
 
             storeActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
 

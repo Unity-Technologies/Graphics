@@ -31,8 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
         uint m_SSSTexturingModeFlags;        // 1 bit/profile: 0 = PreAndPostScatter, 1 = PostScatter
         uint m_SSSTransmissionFlags;         // 1 bit/profile: 0 = regular, 1 = thin
 
-        internal DiffusionProfileSettings defaultDiffusionProfile => m_SSSDefaultDiffusionProfile;
-
         void InitializeSubsurfaceScattering()
         {
             // Disney SSS (compute + combine)

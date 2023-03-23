@@ -141,7 +141,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     var skyType = staticLightingSky.staticLightingSkyUniqueID == 0 ? "no Sky" : SkyManager.skyTypesDict[staticLightingSky.staticLightingSkyUniqueID].Name;
                     var cloudType = staticLightingSky.staticLightingCloudsUniqueID == 0 ? "no Clouds" : SkyManager.cloudTypesDict[staticLightingSky.staticLightingCloudsUniqueID].Name;
-                    EditorGUILayout.HelpBox($"Current Static Lighting Sky uses {skyType} and {cloudType} of profile {staticLightingSky.profile?.name ?? "None"}.", MessageType.Info);
+                    var staticLightingSkyProfileName = staticLightingSky.profile != null ? staticLightingSky.profile.name : "None";
+                    EditorGUILayout.HelpBox($"Current Static Lighting Sky uses {skyType} and {cloudType} of profile {staticLightingSkyProfileName}.", MessageType.Info);
                 }
             }
 

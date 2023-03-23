@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.Rendering;
-using ActionTest = System.Action<UnityEngine.AnimationCurve, UnityEngine.AnimationCurve, UnityEngine.AnimationCurve, UnityEngine.Rendering.VolumeStack>;
+using ActionTest = System.Action<UnityEngine.AnimationCurve, UnityEngine.AnimationCurve, UnityEngine.AnimationCurve, UnityEngine.Rendering.VolumeStack, UnityEngine.Rendering.VolumeManager>;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -108,44 +108,44 @@ namespace UnityEngine.Rendering.Tests
             new TestCaseData(null)
                 .SetName("Reloading the stack makes the parameters be the same as TestAnimationCurveVolumeComponent")
                 .Returns((2,2,2)),
-            new TestCaseData((ActionTest)((parameterInterpolated, _, _, stack) =>
+            new TestCaseData((ActionTest)((parameterInterpolated, _, _, stack, volumeManager) =>
                 {
                     // The replace data will call: AnimationCurveParameter.SetValue make sure the C++ reference is not shared
-                    VolumeManager.instance.ReplaceData(stack);
+                    volumeManager.ReplaceData(stack);
 
                     // Check that the value that stores the interpolated data, if is modified both default values are modified
                     parameterInterpolated.RemoveKey(1);
                 }))
                 .SetName("When Replacing the current interpolated values by the ones in the default, applying modifications to the interpolated parameter do not modify the default parameters")
                 .Returns((1,2,2)),
-            new TestCaseData((ActionTest)((_, _, defaultComponentParameterUsedToInitializeStack, _) =>
+            new TestCaseData((ActionTest)((_, _, defaultComponentParameterUsedToInitializeStack, _, _) =>
                 {
                     defaultComponentParameterUsedToInitializeStack.AddKey(0.0f, 1.0f);
                 }))
                 .SetName("When modifying the default component used to initialize the stack, the parameters on the stack remain the same, as they should be cloned")
                 .Returns((2,2,3)),
-            new TestCaseData((ActionTest)((_, defaultParameterForFastAccess, _, _) =>
+            new TestCaseData((ActionTest)((_, defaultParameterForFastAccess, _, _, _) =>
                 {
                     defaultParameterForFastAccess.AddKey(0.0f, 1.0f);
                     defaultParameterForFastAccess.AddKey(0.6f, 2.0f);
                 }))
                 .SetName("Check that the default parameter on the stack do not modifies the interpolated value or either the default used to initialize the stack")
                 .Returns((2,4,2)),
-            new TestCaseData((ActionTest)((_, defaultParameterForFastAccess, _, stack) =>
+            new TestCaseData((ActionTest)((_, defaultParameterForFastAccess, _, stack, volumeManager) =>
                 {
                     defaultParameterForFastAccess.AddKey(0.0f, 1.0f);
                     defaultParameterForFastAccess.AddKey(0.6f, 2.0f);
 
-                    VolumeManager.instance.ReplaceData(stack);
+                    volumeManager.ReplaceData(stack);
                 }))
                 .SetName("Check that ReplaceData should have modified the interpolated value with the default value stored in the stack and not the one used from the default")
                 .Returns((4,4,2)),
-            new TestCaseData((ActionTest)((_, _, _, stack) =>
+            new TestCaseData((ActionTest)((_, _, _, stack, _) =>
                 {
                     stack.Clear();
                 }))
-                .SetName("Check that clearing the stack should modify and release memory from the parameters and volume components that have locally in the stack, but not the default volume used to initialize the stack")
-                .Returns((-1,-1,2)),
+                .SetName("Check that clearing the stack should modify and release memory from the volume components that are locally in the stack, but not the default volume used to initialize the stack or the parameterDefaultState stored in VolumeManager")
+                .Returns((-1,2,2)),
         };
 
         private TestAnimationCurveVolumeComponent m_DefaultComponent;
@@ -165,21 +165,26 @@ namespace UnityEngine.Rendering.Tests
         [Test, Description("UUM-20458, UUM-20456"), TestCaseSource(nameof(s_AnimationCurveKeysNotSharedTestDatas))]
         public (int, int, int) AnimationCurveParameterKeysAreNotShared(ActionTest actionToPerform)
         {
-            using var stack = new VolumeStack();
+            var vm = new VolumeManager();
+            vm.baseComponentTypeArray = new[] {typeof(TestAnimationCurveVolumeComponent)};
+            vm.EvaluateVolumeDefaultState();
 
             // Initialize the stack
-            stack.Reload(new List<VolumeComponent>() { m_DefaultComponent });
+            var stack = vm.CreateStack();
 
             actionToPerform?.Invoke(
-                stack.defaultParameters[0].parameter.GetValue<AnimationCurve>(),    // parameterInterpolated
-                stack.defaultParameters[0].defaultValue.GetValue<AnimationCurve>(), // defaultParameterForFastAccess
-                m_DefaultComponent.testParameter.GetValue<AnimationCurve>(),        // defaultComponentParameterUsedToInitializeStack
-                stack);
-            
+                stack.parameters[0].GetValue<AnimationCurve>(),                 // parameterInterpolated
+                vm.m_ParametersDefaultState[0].GetValue<AnimationCurve>(),      // defaultParameterForFastAccess
+                m_DefaultComponent.testParameter.GetValue<AnimationCurve>(),    // defaultComponentParameterUsedToInitializeStack
+                stack,
+                vm);
+
             return (
-                stack.defaultParameters == null ? -1 : stack.defaultParameters[0].parameter.GetValue<AnimationCurve>().length,      // parameterInterpolated
-                stack.defaultParameters == null ? -1 : stack.defaultParameters[0].defaultValue.GetValue<AnimationCurve>().length,   // defaultParameterForFastAccess
-                m_DefaultComponent.testParameter.GetValue<AnimationCurve>().length                                                  // defaultComponentParameterUsedToInitializeStack
+                stack.parameters == null ?
+                    -1 : stack.parameters[0].GetValue<AnimationCurve>().length,                 // parameterInterpolated
+                vm.m_ParametersDefaultState == null ?
+                    -1 : vm.m_ParametersDefaultState[0].GetValue<AnimationCurve>().length,      // defaultParameterForFastAccess
+                m_DefaultComponent.testParameter.GetValue<AnimationCurve>().length              // defaultComponentParameterUsedToInitializeStack
                 );
         }
     }
@@ -354,20 +359,27 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void TestSupportedOnAvoidedIfHideInInspector()
         {
-            Type[] types = new[]
+            Type[] componentTypesWithHideInInspectorAttribute =
             {
                 typeof(VolumeComponentNoAdditionalAttributes),
                 typeof(VolumeComponentAllAdditionalAttributes),
                 typeof(VolumeComponentMixedAdditionalAttributes)
             };
 
-            Type volumeComponentProvider = ReflectionUtils.FindTypeByName("UnityEngine.Rendering.VolumeManager");
-            var volumeComponents = volumeComponentProvider.InvokeStatic("FilterVolumeComponentTypes",
-                types, typeof(RenderPipeline), typeof(RenderPipelineAsset)) as List<(string, Type)>;
+            var volumeManager = new VolumeManager();
+            volumeManager.Initialize();
 
+            var types = volumeManager.baseComponentTypeArray;
+            Assert.NotNull(types);
+            foreach (var t in componentTypesWithHideInInspectorAttribute)
+                Assert.True(types.Contains(t));
 
-            Assert.NotNull(volumeComponents);
-            Assert.False(volumeComponents.Any());
+            var typesForDisplay = volumeManager.GetVolumeComponentsForDisplay(typeof(RenderPipelineAsset));
+            Assert.NotNull(typesForDisplay);
+            foreach (var t in componentTypesWithHideInInspectorAttribute)
+                Assert.False(typesForDisplay.Any(p => p.Item2 == t));
+
+            volumeManager.Deinitialize();
         }
     }
 }

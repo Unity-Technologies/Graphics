@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
     {
         #region Version system
 
-        private const int k_LastVersion = 4;
+        private const int k_LastVersion = 5;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -89,10 +89,16 @@ namespace UnityEngine.Rendering.Universal
                 asset.m_URPShaderStrippingSetting.stripUnusedVariants = asset.m_StripUnusedVariants;
 #pragma warning restore 618
             }
+            
+            if (asset.m_AssetVersion < 5)
+            {
+                asset.GetOrCreateDefaultVolumeProfile();
+                asset.m_AssetVersion = 5;
+            }
 
             // If the asset version has changed, means that a migration step has been executed
             if (assetVersionBeforeUpgrade != asset.m_AssetVersion)
-            EditorUtility.SetDirty(asset);
+                EditorUtility.SetDirty(asset);
         }
 
 #endif
@@ -122,9 +128,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public override void Initialize(RenderPipelineGlobalSettings source = null)
-            {
+        {
             if (source is UniversalRenderPipelineGlobalSettings globalSettingsSource)
                 Array.Copy(globalSettingsSource.m_RenderingLayerNames, m_RenderingLayerNames, globalSettingsSource.m_RenderingLayerNames.Length);
+
+            GetOrCreateDefaultVolumeProfile();
         }
 
 #endif
@@ -132,6 +140,41 @@ namespace UnityEngine.Rendering.Universal
         void Reset()
         {
             UpdateRenderingLayerNames();
+        }
+
+        internal VolumeProfile GetOrCreateDefaultVolumeProfile()
+        {
+#if UNITY_EDITOR
+            if (volumeProfile == null || volumeProfile.Equals(null))
+            {
+                const string k_DefaultVolumeProfileName = "DefaultVolumeProfile";
+                const string k_DefaultVolumeProfilePath = "Assets/" + k_DefaultVolumeProfileName + ".asset";
+
+                VolumeProfile assetCreated = CreateInstance<VolumeProfile>();
+                Debug.Assert(assetCreated);
+
+                assetCreated.name = k_DefaultVolumeProfileName;
+                AssetDatabase.CreateAsset(assetCreated, k_DefaultVolumeProfilePath);
+
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
+                volumeProfile = assetCreated;
+
+                if (VolumeManager.instance.isInitialized)
+                    VolumeManager.instance.SetGlobalDefaultProfile(volumeProfile);
+            }
+#endif
+            return volumeProfile;
+        }
+
+        [SerializeField]
+        private VolumeProfile m_DefaultVolumeProfile;
+
+        internal VolumeProfile volumeProfile
+        {
+            get => m_DefaultVolumeProfile;
+            set => m_DefaultVolumeProfile = value;
         }
 
         [SerializeField]

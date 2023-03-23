@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
@@ -11,7 +12,11 @@ namespace UnityEditor.Rendering
         void OnEnable()
         {
             m_ComponentList = new VolumeComponentListEditor(this);
-            m_ComponentList.Init(target as VolumeProfile, serializedObject);
+            var volumeProfile = target as VolumeProfile;
+            m_ComponentList.Init(volumeProfile, serializedObject);
+
+            if (volumeProfile == VolumeManager.instance.globalDefaultProfile)
+                VolumeProfileUtils.EnsureOverridesForAllComponents(volumeProfile);
         }
 
         void OnDisable()

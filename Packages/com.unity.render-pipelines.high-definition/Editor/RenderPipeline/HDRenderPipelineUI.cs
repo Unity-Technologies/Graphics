@@ -24,7 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition
             PostProcess = 1 << 8,
             PostProcessQuality = 1 << 9,
             XR = 1 << 10,
-            VirtualTexturing = 1 << 11
+            VirtualTexturing = 1 << 11,
+            Volumes = 1 << 12
         }
 
         internal enum ExpandableRendering
@@ -179,6 +180,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     QualityDrawer(Styles.bloomQualitySettings, ExpandablePostProcessQuality.BloomQuality, k_ExpandablePostProcessQualityState, DrawBloomQualitySetting),
                     QualityDrawer(Styles.chromaticAberrationQualitySettings, ExpandablePostProcessQuality.ChromaticAberrationQuality, k_ExpandablePostProcessQualityState, DrawChromaticAberrationQualitySetting)
                     ),
+                SubInspectors[ExpandableGroup.Volumes] = CED.FoldoutGroup(Styles.volumesSectionTitle, ExpandableGroup.Volumes, k_ExpandedGroupState, Drawer_SectionVolumes),
                 SubInspectors[ExpandableGroup.XR] = CED.FoldoutGroup(Styles.xrTitle, ExpandableGroup.XR, k_ExpandedGroupState, Drawer_SectionXRSettings),
                 SubInspectors[ExpandableGroup.VirtualTexturing] = CED.FoldoutGroup(Styles.virtualTexturingTitle, ExpandableGroup.VirtualTexturing, k_ExpandedGroupState, Drawer_SectionVTSettings)
             );
@@ -843,6 +845,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.lutFormat, Styles.lutFormat);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.bufferFormat, Styles.bufferFormat);
+        }
+
+        static void Drawer_SectionVolumes(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.qualityDefaultVolumeProfile, Styles.qualityDefaultVolumeProfileLabel);
+            if (EditorGUI.EndChangeCheck())
+                VolumeManager.instance.SetQualityDefaultProfile(serialized.qualityDefaultVolumeProfile.objectReferenceValue as VolumeProfile);
         }
 
         static void Drawer_SectionXRSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

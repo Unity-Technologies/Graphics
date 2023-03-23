@@ -340,5 +340,11 @@ namespace UnityEngine.Rendering
                 if (components[i] == null)
                     components.RemoveAt(i);
         }
+
+        void OnValidate()
+        {
+            if (VolumeManager.instance.isInitialized)
+                VolumeManager.instance.OnVolumeProfileChanged(this);
+        }
     }
 }

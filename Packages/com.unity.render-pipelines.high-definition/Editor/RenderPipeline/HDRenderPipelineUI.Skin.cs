@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lightingSectionTitle = EditorGUIUtility.TrTextContent("Lighting");
             public static readonly GUIContent materialSectionTitle = EditorGUIUtility.TrTextContent("Material");
             public static readonly GUIContent postProcessSectionTitle = EditorGUIUtility.TrTextContent("Post-processing");
+            public static readonly GUIContent volumesSectionTitle = EditorGUIUtility.TrTextContent("Volumes");
             public static readonly GUIContent xrTitle = EditorGUIUtility.TrTextContent("XR");
             public static readonly GUIContent virtualTexturingTitle = EditorGUIUtility.TrTextContent("Virtual Texturing", "Virtual Texturing Settings. These are only available when Virtual Texturing is enabled in the Player Settings.");
             public static readonly GUIContent lightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
@@ -317,6 +318,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");
             public static readonly GUIContent lutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");
             public static readonly GUIContent bufferFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Specifies the encoding format of the color buffers that are used during post processing. Lower precision formats are faster and use less memory at the expense of color precision.");
+
+            public static readonly GUIContent qualityDefaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Quality Default Volume Profile", "This volume profile is used to override the default values defined in HDRP Global Settings.");
 
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };

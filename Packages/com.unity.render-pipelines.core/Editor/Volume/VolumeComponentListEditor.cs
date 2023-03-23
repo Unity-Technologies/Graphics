@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Obtains if all the volume components are visible
         /// </summary>
-        internal bool hasHiddenVolumeComponents => m_Editors.Count != asset.components.Count;
+        internal bool hasHiddenVolumeComponents => m_Editors.Count(e => e.visible) != asset.components.Count;
 
         Editor m_BaseEditor;
 
@@ -195,6 +195,7 @@ namespace UnityEditor.Rendering
             if (asset.isDirty || asset.GetComponentListHashCode() != m_CurrentHashCode)
             {
                 RefreshEditors();
+                VolumeManager.instance.OnVolumeProfileChanged(asset);
                 asset.isDirty = false;
             }
 
@@ -205,6 +206,7 @@ namespace UnityEditor.Rendering
 
             using (new EditorGUI.DisabledScope(!isEditable))
             {
+                bool profileDataChanged = false;
                 for (int i = 0; i < m_Editors.Count; i++)
                 {
                     var editor = m_Editors[i];
@@ -215,6 +217,8 @@ namespace UnityEditor.Rendering
                     int id = i; // Needed for closure capture below
 
                     CoreEditorUtils.DrawSplitter();
+
+                    bool wasActive = editor.activeProperty.boolValue;
                     bool displayContent = CoreEditorUtils.DrawHeaderToggleFoldout(
                         title,
                         editor.expanded,
@@ -225,13 +229,18 @@ namespace UnityEditor.Rendering
                         Help.GetHelpURLForObject(editor.volumeComponent)
                     );
 
+                    profileDataChanged |= wasActive != editor.activeProperty.boolValue;
+
                     if (displayContent ^ editor.expanded)
                         editor.expanded = displayContent;
 
                     if (editor.expanded)
                     {
                         using (new EditorGUI.DisabledScope(!editor.activeProperty.boolValue))
-                            editor.OnInternalInspectorGUI();
+                        {
+                            bool changed = editor.OnInternalInspectorGUI();
+                            profileDataChanged |= changed;
+                        }
                     }
                 }
 
@@ -251,6 +260,10 @@ namespace UnityEditor.Rendering
                         FilterWindow.Show(pos, new VolumeComponentProvider(asset, this));
                     }
                 }
+
+                if (profileDataChanged)
+                    VolumeManager.instance.OnVolumeProfileChanged(asset);
+
             }
         }
 
@@ -276,6 +289,12 @@ namespace UnityEditor.Rendering
             else
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
             menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
+
+            menu.AddSeparator(string.Empty);
+            // TODO need to get pipeline-specific path here
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show Default Volume Profile"), false, () => SettingsService.OpenProjectSettings("Project/Graphics"));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Copy to Default Volume Profile"), false,
+                () => VolumeProfileUtils.AssignValuesToProfile(targetComponent, VolumeManager.instance.globalDefaultProfile));
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));

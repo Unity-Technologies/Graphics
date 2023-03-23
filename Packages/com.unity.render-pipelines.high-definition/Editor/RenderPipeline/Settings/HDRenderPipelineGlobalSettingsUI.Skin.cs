@@ -8,8 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public const int labelWidth = 220;
 
-            public static readonly GUIContent defaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Default Volume Profile Asset");
-            public static readonly GUIContent lookDevVolumeProfileLabel = EditorGUIUtility.TrTextContent("LookDev Volume Profile Asset");
+            public static readonly GUIContent defaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Render Pipeline Default Volume Profile");
+            public static readonly GUIContent lookDevVolumeProfileLabel = EditorGUIUtility.TrTextContent("LookDev Volume Profile");
 
             public static readonly GUIContent frameSettingsLabel = EditorGUIUtility.TrTextContent("Frame Settings (Default Values)");
             public static readonly GUIContent frameSettingsLabel_Camera = EditorGUIUtility.TrTextContent("Camera");

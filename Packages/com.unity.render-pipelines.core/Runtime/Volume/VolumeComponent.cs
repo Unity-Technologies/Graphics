@@ -230,11 +230,12 @@ namespace UnityEngine.Rendering
         ///         var stateParam = state.parameters[i];
         ///         var toParam = parameters[i];
         ///
-        ///         // Keep track of the override state for debugging purpose
-        ///         stateParam.overrideState = toParam.overrideState;
-        ///
         ///         if (toParam.overrideState)
+        ///         {
+        ///             // Keep track of the override state to ensure that state will be reset on next frame (and for debugging purpose)
+        ///             stateParam.overrideState = toParam.overrideState;
         ///             stateParam.Interp(stateParam, toParam, interpFactor);
+        ///         }
         ///     }
         /// }
         /// </code>
@@ -250,7 +251,7 @@ namespace UnityEngine.Rendering
 
                 if (toParam.overrideState)
                 {
-                    // Keep track of the override state for debugging purpose
+                    // Keep track of the override state to ensure that state will be reset on next frame (and for debugging purpose)
                     stateParam.overrideState = toParam.overrideState;
                     stateParam.Interp(stateParam, toParam, interpFactor);
                 }

@@ -140,6 +140,19 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Use HDRP Global Settings' diffusionProfileSettingsList instead")]
         internal DiffusionProfileSettings diffusionProfileSettings;
 
+        [SerializeField]
+        private VolumeProfile m_VolumeProfile;
+
+        /// <summary>
+        /// A volume profile that can be used to override global default volume profile values. This provides a way e.g.
+        /// to have different volume default values per quality level without having to place global volumes in scenes.
+        /// </summary>
+        public VolumeProfile volumeProfile
+        {
+            get => m_VolumeProfile;
+            set => m_VolumeProfile = value;
+        }
+
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames
             => globalSettings.renderingLayerNames;

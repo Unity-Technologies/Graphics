@@ -120,8 +120,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public FrameSettings frameSettings { get; private set; }
         /// <summary>RTHandle properties for the camera history buffers.</summary>
         public RTHandleProperties historyRTHandleProperties { get { return m_HistoryRTSystem.rtHandleProperties; } }
+
+        private VolumeStack m_VolumeStack;
         /// <summary>Volume stack used for this camera.</summary>
-        public VolumeStack volumeStack { get; private set; }
+        public VolumeStack volumeStack
+        {
+            get => m_VolumeStack ??= VolumeManager.instance.CreateStack();
+            private set => m_VolumeStack = value;
+        }
         /// <summary>Current time for this camera.</summary>
         public float time; // Take the 'animateMaterials' setting into account.
 
@@ -882,8 +888,6 @@ namespace UnityEngine.Rendering.HighDefinition
             frustum.corners = new Vector3[8];
 
             frustumPlaneEquations = new Vector4[6];
-
-            volumeStack = VolumeManager.instance.CreateStack();
 
             m_DepthBufferMipChainInfo.Allocate();
 

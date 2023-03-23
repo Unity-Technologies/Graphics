@@ -10,6 +10,9 @@ namespace UnityEditor.Rendering.Universal
         public SerializedObject serializedObject;
 
         private List<UniversalRenderPipelineGlobalSettings> serializedSettings = new List<UniversalRenderPipelineGlobalSettings>();
+
+        public SerializedProperty defaultVolumeProfile;
+
         public SerializedProperty renderingLayerNames;
         public ReorderableList renderingLayerNameList;
 
@@ -25,6 +28,8 @@ namespace UnityEditor.Rendering.Universal
                 else
                     throw new System.Exception($"Target object has an invalid object, objects must be of type {typeof(UniversalRenderPipelineGlobalSettings)}");
             }
+
+            defaultVolumeProfile = serializedObject.FindProperty("m_DefaultVolumeProfile");
 
             renderingLayerNames = serializedObject.FindProperty("m_RenderingLayerNames");
 

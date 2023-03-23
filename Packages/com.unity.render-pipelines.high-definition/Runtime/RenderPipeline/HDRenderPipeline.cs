@@ -462,6 +462,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
 
+            VolumeManager.instance.Initialize(m_GlobalSettings.volumeProfile, m_Asset.volumeProfile);
+
             InitializeDebug();
 
             Blitter.Initialize(defaultResources.shaders.blitPS, defaultResources.shaders.blitColorAndDepthPS);
@@ -908,6 +910,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BlueNoise.Cleanup();
 
             HDCamera.ClearAll();
+            VolumeManager.instance.Deinitialize();
 
             m_MipGenerator.Release();
 
@@ -1869,7 +1872,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 #endif
-            m_GlobalSettings.GetOrCreateDefaultVolume();
 
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
             {

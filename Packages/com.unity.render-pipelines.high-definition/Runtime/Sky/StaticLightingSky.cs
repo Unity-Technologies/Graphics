@@ -211,10 +211,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var newParameters = component.parameters;
             var profileParameters = componentFromProfile.parameters;
 
-            var defaultVolume = HDRenderPipelineGlobalSettings.instance.GetOrCreateDefaultVolume();
-            T defaultComponent = null;
-            if (defaultVolume.sharedProfile != null)     // This can happen with old projects.
-                defaultVolume.sharedProfile.TryGet(type, out defaultComponent);
+            // Get component in default state (= default-constructed component + global profile + SRP asset profile)
+            var defaultComponent = VolumeManager.instance.GetVolumeComponentDefaultState(type);
             var defaultParameters = defaultComponent != null ? defaultComponent.parameters : null;     // Can be null if the profile does not contain the component.
 
             // Seems to inexplicably happen sometimes on domain reload.
@@ -318,9 +316,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            UpdateCurrentStaticLightingSky();
-            UpdateCurrentStaticLightingClouds();
-            UpdateCurrentStaticLightingVolumetricClouds();
+            if (VolumeManager.instance.isInitialized)
+            {
+                UpdateCurrentStaticLightingSky();
+                UpdateCurrentStaticLightingClouds();
+                UpdateCurrentStaticLightingVolumetricClouds();
+            }
+            else
+            {
+                m_NeedUpdateStaticLightingSky = true;
+            }
+
             if (m_Profile != null)
                 SkyManager.RegisterStaticLightingSky(this);
         }
@@ -337,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Update()
         {
-            if (m_NeedUpdateStaticLightingSky)
+            if (m_NeedUpdateStaticLightingSky && VolumeManager.instance.isInitialized)
             {
                 UpdateCurrentStaticLightingSky();
                 UpdateCurrentStaticLightingClouds();
