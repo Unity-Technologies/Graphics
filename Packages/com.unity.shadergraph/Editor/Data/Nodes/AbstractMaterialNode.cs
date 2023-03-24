@@ -77,6 +77,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_OnModified != null)
                 m_OnModified(this, scope);
+            NodeValidation.HandleValidationExtensions(this);                
         }
 
         public string name
