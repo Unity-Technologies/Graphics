@@ -427,11 +427,21 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (GetOrRefreshShaderGraphObject() != null &&
-                    GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
-                    return GetMaterialBlendMode() == BlendMode.Opaque;
+                var sg = GetOrRefreshShaderGraphObject(false);
+                return sg != null && sg.generatesWithShaderGraph
+                    ? GetMaterialBlendMode() == BlendMode.Opaque
+                    : base.isBlendModeOpaque;
+            }
+        }
 
-                return base.isBlendModeOpaque;
+        protected override bool hasExposure
+        {
+            get
+            {
+                var sg = GetOrRefreshShaderGraphObject(false);
+                return sg != null && sg.generatesWithShaderGraph
+                    ? false
+                    : base.hasExposure;
             }
         }
 
