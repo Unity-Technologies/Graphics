@@ -4,17 +4,57 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [16.0.0] - 2023-01-18
-
-This version is compatible with Unity 2023.2.0a1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.0] - 2023-03-22
+
+This version is compatible with Unity 2023.2.0a9.
+
+### Changed
+- Disabled the ability for decals to enqueue passes when running on unsupported APIs, such as OpenGL or GLES3, instead of displaying the magenta error.
+- Added sampling clamping functions to prevent out of viewport sampling in URP.
+
+### Fixed
+- Fixed an issue where scenes were not marked dirty after changing the volume update setting on cameras.
+- Corrected the render scale value when rendering scene view.
+- Fixed SMAA so it now works properly on mobile when **Use defaults for sampler precision** is selected as the **Shader precision model** in Project Settings.
+- Fixed an issue causing Dynamic Resolution to be disabled during URP rendering.
+- Fixed the 2D Sprite Light & Freeform Light fast normal map quality setting to correctly use the normal map.
+- Fixed an issue where some sprites were causing null exception errors.
+- Fixed a missing keyword in ParticlesSimpleLit for Lightmap shadow mixing.
+- Fixed the debug rendering overlay not being rendered when FinalBlit pass is in use.
+- Fixed light batching with Rendergraph2D passes.
+- Fixed NullReferenceException being thrown when opening Light Explorer with 2D Lights.
+- Fixed camera stacking causing a blackscreen and RG null pointer exception error.
+- Fixed the warnings that appear in `GlobalIllumination.hlsl` regarding gradient instruction used in a loop.
+- Fixed an issue where keywords used in Post Processing were also stripped in other shaders.
+- Fixed various errors that appeared when Strict Variant Matching is enabled.
+- Fixed an issue so that deferred rendering now works correctly in builds with Accurate GBuffer Normals enabled.
+- Fixed an issue where the main light shadows were incorrect if the scene and game windows were open.
+- Fixed an issue where instantiating and destroying cameras, with Volume Update Mode set to ViaScripting, would allocate each time.
+- Fixed the HDR output so it is no longer overly saturated because of a Color Grading variant not included in builds.
+- Fixed the additional light shadows and soft shadows missing on transparent lit objects when using the deferred renderer.
+- Fixed an issue where the Depth Priming check was accidentally removed, which caused CI failures.
+- Fixed an issue where **Write Rendering Layers** was sometimes incorrectly enabled in Deferred Rendering.
+- Fixed the missing LOD-CrossFade and Alpha-Clip support in URP's motion vector pass.
+- Fixed the offscreen depth pass in the RenderGraph path.
+- Changed the ScreenSpace Decals sorting criteria to the same criteria used by DBuffer Decals.
+- Fixed an issue where alpha clipping was not working with Unlit shader's DepthNormal pass.
+- Disabled negative color and NaN write to TAA history.
+- Fixed gbuffer resource leak in URP deferred.
+- Fixed LOD crossfade when rendering with BatchRendererGroup.
+- Added vertex SH option to URP rendering and fixed HL2 forward light perf regression.
+- Fixed releasing releasing unnecessary Render Targets when using multiple cameras with different Renderer Assets.
+- Fixed a null exception when adding a sorting layer.
+- Fixed color and depth mismatch when scaling is on.
+- 2D - Fix uninitialized SpriteProps in CanvasRenderer
+
 ## [15.0.3] - 2022-12-02
 
-This version is compatible with Unity 2023.1.0a23.
+This version is compatible with Unity 2023.2.0a1.
 
 ### Changed
 - Improved shadow atlas building performance when there are a lot of lights.
@@ -45,7 +85,7 @@ This version is compatible with Unity 2023.1.0a23.
 
 ## [15.0.2] - 2022-11-04
 
-This version is compatible with Unity 2023.1.0a19.
+This version is compatible with Unity 2023.1.0a23.
 
 ### Added
 - Added Clearing of Multi Render Targets in RenderingCommandBuffer.
@@ -94,7 +134,7 @@ This version is compatible with Unity 2023.1.0a19.
 
 ## [15.0.1] - 2022-08-04
 
-This version is compatible with Unity 2023.1.0a6.
+This version is compatible with Unity 2023.1.0a19.
 
 ### Added
 - UniversalRenderPipeline.SingleCameraRequest. Use this as the RequestData parameter in SubmitRenderRequest to render a single camera.
@@ -127,7 +167,7 @@ Graphics: Camera.SubmitRenderRequests is now obsolete. Please use RenderPipeline
 
 ## [15.0.0] - 2022-06-13
 
-This version is compatible with Unity 2023.1.0a1.
+This version is compatible with Unity 2023.1.0a6.
 
 ### Added
 - All pre-built URP shaders and URP Shader Graph shaders now support the Mesh LOD cross-fade. Use the UniversalRenderPipelineAsset.lodCrossFadeDitheringType property to select the type of the cross-fade.

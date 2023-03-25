@@ -4,18 +4,69 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [16.0.0] - 2023-01-18
-
-This version is compatible with Unity 2023.2.0a1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.0] - 2023-03-22
+
+This version is compatible with Unity 2023.2.0a9.
+
+### Changed
+- Added various optimizations of C# code.
+- Improved the sample import system on SRP packages to import dependencies for each sample.
+- Updated some shaders to support DOTS instancing.
+- Decreased the number of Diffusion Profile imported in the HDGlobalSettings Diffusion Profile List when importing the Material Samples.
+- Changed the default light probe system to APV.
+- Enabled Extend Shadow Culling in Raytracing by default.
+- Changed references of Diffusion Profile in the HDRP Wizard check by the ones in the HDRP Package.
+- Modified Dynamic Resolution System to use Fixed Scaling Steps.
+- Added Henyey Greenstein evaluation and sampling to fog volume scattering.
+- Added new scenes using Water System in the HDRP Samples.
+- Added an option to disable tessellation on water surfaces.
+- Improved HDRP Water sample with minor fixes.
+
+### Fixed
+- Fixed the usage of `FindObjectsByType` so it now uses `FindObjectsSortMode.None`.
+- Fixed the angle attenuation of spot lights. Previously, the angle attentuation did not take the light radius hack into account, which caused issues when objects are close to a light.
+- Fixed an error with water and dynamic pass culling.
+- Fixed an issue with ray tracing initialization when switching between render pipeline assets.
+- Fixed missing pragma only_renderers in HDRP compute shaders which caused multiple shader errors in the console window.
+- Fixed the label and improved the documentation for After Post Process depth test flag to provide more detail about Depth Test being automatically disabled in some cases.
+- Fixed the low resolution transparents using Shader Graph.
+- Fixed the albedo and specular color override so it is now considered as sRGB.
+- Fixed the exposure for SSR debug rendering.
+- Fixed the raytraced reflections for box lights so they are no longer cut off if the range is too small.
+- Improved the reflection probe debug.
+- Fixed an issue with Mac and HDR so it now shows correct results when HDR is enabled.
+- Fixed a glitch in one frame in the Editor when using path tracing.
+- Fixed HDSceneDepth triggering errors for uninitialized values.
+- Fixed jittering when rendering objects after post process with TAA and Dynamic resolution enabled.
+- Enabled path tracing to now produce correct results when dynamic resolution is enabled.
+- Fixed the unsupported high quality line rendering targets for the Shader Graph inspector.
+- Fixed the local volumetric fog so it is now culled correctly.
+- Preserved ShaderGraph custom keywords on material validation.
+- Fixed the initial mask extent value for water surfaces.
+- Fixed the foam generator so it is now relative to GameObject scale.
+- Fixed the time determinism for water surfaces.
+- Fixed the world position offset in water CPU simulation.
+- Added a missing node to detect underwater pixels.
+- Fixed OSX Support for High Quality Lines.
+- Fixed an issue that placed an upper limit on the total number of segments drawn by the High Quality Line Renderer.
+- Fixed several issues for High Quality Line Rendering that were discovered on the "Enemies" production.
+- Fixed an issue where High Quality Line instances were not being drawn in back to front order.
+- Fixed an issue with specifying how much memory gets allocated for High Quality Line Rendering.
+- Fixed water caustics tiling factor causes issue when moving the camera.
+- Fixed Refraction happening on very small distance for ocean when there's only ripples.
+- Fixed error when having more than 64 deformers.
+- Added API to sync simulation time.
+- Fixed Water System Resolution property names.
+- Fixed an exception on the first frame when using water scripting interactions.
 
 ## [15.0.3] - 2022-12-02
 
-This version is compatible with Unity 2023.1.0a23.
+This version is compatible with Unity 2023.2.0a1.
 
 ### Changed
 - Updated the platform support message for consoles.
@@ -85,7 +136,7 @@ This version is compatible with Unity 2023.1.0a23.
 
 ## [15.0.2] - 2022-11-04
 
-This version is compatible with Unity 2023.1.0a19.
+This version is compatible with Unity 2023.1.0a23.
 
 ### Changed
 - Allowed non square reflection probe atlas sizes.
@@ -182,7 +233,7 @@ This version is compatible with Unity 2023.1.0a19.
 
 ## [15.0.1] - 2022-08-04
 
-This version is compatible with Unity 2023.1.0a6.
+This version is compatible with Unity 2023.1.0a19.
 
 ### Changed
 - Tooltips improvement.
@@ -230,7 +281,7 @@ This version is compatible with Unity 2023.1.0a6.
 
 ## [15.0.0] - 2022-06-13
 
-This version is compatible with Unity 2023.1.0a1.
+This version is compatible with Unity 2023.1.0a6.
 
 ### Changed
 - New iteration on the water system.
@@ -342,8 +393,6 @@ This version is compatible with Unity 2023.1.0a1.
 
 ## [14.0.3] - 2021-05-09
 
-This version is compatible with Unity 2022.2.0a14.
-
 ### Added
 - Denoising for the path tracer.
 - An initial version of under water rendering for the water system.
@@ -429,8 +478,6 @@ This version is compatible with Unity 2022.2.0a14.
 - Updated DLSS test images for a driver update.
 
 ## [14.0.2] - 2021-02-04
-
-This version is compatible with Unity 2022.2.0a8.
 
 ### Changed
 - Moved custom Sensor Lidar path tracing code to the SensorSDK package.

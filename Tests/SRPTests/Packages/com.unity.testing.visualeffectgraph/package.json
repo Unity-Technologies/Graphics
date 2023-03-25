@@ -1,15 +1,12 @@
 {
   "name": "com.unity.testing.visualeffectgraph",
   "displayName": "Visual Effect Graphic Tests",
-  "version": "16.0.0",
-  "unity": "2023.2",
-  "unityRelease": "0a7",
+  "version": "1.0.0",
+  "unity": "2019.3",
+  "unityRelease": "0b4",
   "description": "This package contains common graphics tests from several scriptable renderpipeline",
   "dependencies": {
-    "com.unity.visualeffectgraph": "16.0.0",
     "com.unity.testing.graphics-performance": "8.0.0",
-    "local.gtf.references": "file:../GraphicsTestFrameworkPackages",
-    "local.utf.references": "file:../UnityTestFrameworkPackages",
     "nuget.moq": "2.0.0-exp.2"
   }
 }
