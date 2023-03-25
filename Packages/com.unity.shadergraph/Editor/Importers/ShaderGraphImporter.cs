@@ -108,6 +108,8 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
+        internal static bool subtargetNotFoundError = false;
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
@@ -129,6 +131,11 @@ Shader ""Hidden/GraphErrorShader2""
                 assetGuid = AssetDatabase.AssetPathToGUID(path)
             };
             MultiJson.Deserialize(graph, textGraph);
+            if (subtargetNotFoundError)
+            {
+                Debug.LogError($"{ctx.assetPath}: Import Error: Expected active subtarget not found, defaulting to first available.");
+                subtargetNotFoundError = false;
+            }
             graph.OnEnable();
             graph.ValidateGraph();
 
