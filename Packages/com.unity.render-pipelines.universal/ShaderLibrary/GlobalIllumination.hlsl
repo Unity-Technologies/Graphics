@@ -80,7 +80,14 @@ half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, 
     half3 bakedGI;
     // The screen space position is used for noise, which is irrelevant when doing vertex sampling
     float2 positionSS = float2(0, 0);
-    EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+    if (_EnableProbeVolumes)
+    {
+        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+    }
+    else
+    {
+        bakedGI = SampleSH(normalWS);
+    }
     return bakedGI;
 #else
     return half3(0, 0, 0);
@@ -93,7 +100,14 @@ half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS,
     return vertexValue;
 #elif defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     half3 bakedGI;
-    EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+    if (_EnableProbeVolumes)
+    {
+        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+    }
+    else
+    {
+        bakedGI = SampleSH(normalWS);
+    }
 #ifdef UNITY_COLORSPACE_GAMMA
     bakedGI = LinearToSRGB(bakedGI);
 #endif

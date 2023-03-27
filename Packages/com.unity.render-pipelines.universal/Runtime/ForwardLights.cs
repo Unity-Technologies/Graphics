@@ -493,6 +493,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     renderingData.cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0,
                     cmd);
 
+                cmd.SetGlobalInt("_EnableProbeVolumes", enableProbeVolumes ? 1 : 0);
+
                 bool lightLayers = renderingData.lightData.supportsLightLayers;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
 
