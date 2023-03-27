@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderFoundry
             void TryAdd(ref ShaderAttribute.Builder builder, string name, string value)
             {
                 if (!string.IsNullOrEmpty(value))
-                    builder.Param(name, value);
+                    builder.Parameter(name, value);
             }
 
             var attributeBuilder = new ShaderAttribute.Builder(container, AttributeName);

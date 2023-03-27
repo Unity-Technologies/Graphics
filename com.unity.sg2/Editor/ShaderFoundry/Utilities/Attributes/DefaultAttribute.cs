@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderFoundry
     internal class DefaultAttribute
     {
         const string AttributeName = "Default";
-        internal List<ShaderAttributeParam> Parameters;
+        internal List<ShaderAttributeParameter> Parameters;
         internal static DefaultAttribute Find(IEnumerable<ShaderAttribute> attributes)
         {
             var attribute = attributes.FindFirst(AttributeName);

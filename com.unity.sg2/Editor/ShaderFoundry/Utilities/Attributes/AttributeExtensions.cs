@@ -32,22 +32,22 @@ namespace UnityEditor.ShaderFoundry
             return ShaderAttribute.Invalid;
         }
 
-        internal static ShaderAttributeParam GetAttributeParam(this IEnumerable<ShaderAttributeParam> parameters, int index)
+        internal static ShaderAttributeParameter GetAttributeParam(this IEnumerable<ShaderAttributeParameter> parameters, int index)
         {
             var parameterList = parameters.ToList();
             if (index < parameterList.Count)
                 return parameterList[index];
-            return ShaderAttributeParam.Invalid;
+            return ShaderAttributeParameter.Invalid;
         }
 
-        internal static ShaderAttributeParam FindAttributeParam(this IEnumerable<ShaderAttributeParam> parameters, string name)
+        internal static ShaderAttributeParameter FindAttributeParam(this IEnumerable<ShaderAttributeParameter> parameters, string name)
         {
             foreach (var parameter in parameters)
             {
                 if (parameter.Name == name)
                     return parameter;
             }
-            return ShaderAttributeParam.Invalid;
+            return ShaderAttributeParameter.Invalid;
         }
 
         internal static string FindFirstAttributeParamValue(this IEnumerable<ShaderAttribute> attributes, string attributeName, int index)

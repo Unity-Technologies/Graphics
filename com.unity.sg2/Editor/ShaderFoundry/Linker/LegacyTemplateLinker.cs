@@ -437,7 +437,7 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void WriteCommands(IEnumerable<UnityEditor.ShaderFoundry.CommandDescriptor> descriptors, ShaderStringBuilder builder)
+        void WriteCommands(IEnumerable<UnityEditor.ShaderFoundry.RenderStateDescriptor> descriptors, ShaderStringBuilder builder)
         {
             foreach (var commandDesc in descriptors)
             {
@@ -542,7 +542,7 @@ namespace UnityEditor.ShaderFoundry
             string vertexCode = "// GraphVertex: <None>";
             string fragmentCode = "// GraphPixel: <None>";
             var sharedFunctions = "// GraphFunctions: <None>";
-            var shaderCommands = new List<CommandDescriptor>();
+            var shaderRenderStateDescriptors = new List<RenderStateDescriptor>();
             var shaderDefines = new List<DefineDescriptor>();
             var shaderIncludes = new List<IncludeDescriptor>();
             var shaderKeywords = new List<KeywordDescriptor>();
@@ -561,7 +561,7 @@ namespace UnityEditor.ShaderFoundry
                     code = blockBuilder.ToString();
 
                     var block = blockSequenceElement.Block;
-                    shaderCommands.AddRange(block.Commands);
+                    shaderRenderStateDescriptors.AddRange(block.RenderStates);
                     shaderDefines.AddRange(block.Defines);
                     shaderIncludes.AddRange(block.Includes);
 
@@ -713,10 +713,10 @@ namespace UnityEditor.ShaderFoundry
                         }
                     }
                 }
-                WriteCommands(shaderCommands, renderStateBuilder);
+                WriteCommands(shaderRenderStateDescriptors, renderStateBuilder);
 
-                string command = GenerationUtils.GetSpliceCommand(renderStateBuilder.ToCodeBlock(), "RenderState");
-                spliceCommands.Add("RenderState", command);
+                string renderStatesStr = GenerationUtils.GetSpliceCommand(renderStateBuilder.ToCodeBlock(), "RenderState");
+                spliceCommands.Add("RenderState", renderStatesStr);
             }
 
             // Pragmas
