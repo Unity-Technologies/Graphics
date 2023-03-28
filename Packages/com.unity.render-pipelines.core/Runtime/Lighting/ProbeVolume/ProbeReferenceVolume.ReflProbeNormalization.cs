@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
         }
 
         const float kInvalidSH = 1f;
-        const float kValidSH = 0f;
+        const float kValidSHThresh = 0.33f;
 
         private static Dictionary<int, SphericalHarmonicsL2> m_SHCoefficients = new Dictionary<int, SphericalHarmonicsL2>();
         private static Dictionary<int, float> m_SHValidity = new Dictionary<int, float>();
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering
             {
                 sh = m_SHCoefficients[probeInstanceID];
                 pos = m_RequestPositions[probeInstanceID];
-                return m_SHValidity[probeInstanceID] == kValidSH;
+                return m_SHValidity[probeInstanceID] < kValidSHThresh;
             }
 
             sh = new SphericalHarmonicsL2();
@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering
                 var v = validity[i];
                 var s = sh[i];
 
-                if (v == kValidSH)
+                if (v < kValidSHThresh)
                 {
                     var hasNonZeroValue = false;
                     for (var r = 0; r < 3; ++r)
