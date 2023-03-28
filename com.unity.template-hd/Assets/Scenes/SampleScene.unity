@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 1627.2043, g: 1808.6643, b: 2258.8127, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -220,8 +220,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 1
@@ -1375,9 +1376,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -1724,8 +1733,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 1.4
@@ -2301,7 +2311,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
 --- !u!95 &254956837
 Animator:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -2320,6 +2330,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!136 &254956838
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2689,6 +2700,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 36
@@ -2732,6 +2747,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -2949,9 +2968,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -5074,6 +5101,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 23
@@ -5117,6 +5148,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -5266,6 +5301,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 19
@@ -5309,6 +5348,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -6018,6 +6061,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 21
@@ -6061,6 +6108,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -6423,8 +6474,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -6575,12 +6627,20 @@ PrefabInstance:
       value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_ShadowFadeDistance
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_ShadowResolution.m_Level
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -6737,8 +6797,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -6906,6 +6967,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 22
@@ -6949,6 +7014,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -7079,8 +7148,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -7726,6 +7796,10 @@ PrefabInstance:
       propertyPath: m_AreaSize.y
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -7733,6 +7807,10 @@ PrefabInstance:
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -8023,8 +8101,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -8556,9 +8635,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -8961,6 +9048,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 17
@@ -9004,6 +9095,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -9458,8 +9553,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 1.4
@@ -9850,8 +9946,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -10018,6 +10115,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 28
@@ -10061,6 +10162,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -10651,9 +10756,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -10968,9 +11081,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -11242,8 +11363,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 100
     ShutterSpeed: 60
     Aperture: 1.2
@@ -11556,6 +11678,10 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 100
       objectReference: {fileID: 0}
+    - target: {fileID: 716253025548992661, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 722160609750540142, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_Intensity
       value: 869.4223
@@ -11588,6 +11714,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.x
       value: -0.232
       objectReference: {fileID: 0}
+    - target: {fileID: 1334175845013016139, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1516239377138560853, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -11599,6 +11729,10 @@ PrefabInstance:
     - target: {fileID: 1668170987586388800, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1872679065882891277, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_Intensity
@@ -11620,6 +11754,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2328263960973699969, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 2686613255837376233, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -11632,13 +11770,25 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4679011540025688418, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 5037367501685257226, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5445369100035791652, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 5510680008036482444, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_Name
       value: Spotlight_01a
+      objectReference: {fileID: 0}
+    - target: {fileID: 5828365798057989626, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5917687470492573258, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_IsActive
@@ -11719,6 +11869,10 @@ PrefabInstance:
     - target: {fileID: 8573849657798170747, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_Intensity
       value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8745287031078502126, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 9087182980478874692, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -12314,8 +12468,20 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2650234582257683266, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
+      propertyPath: m_Aperture
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 2650234582257683266, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
+      propertyPath: m_BladeCount
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2650234582257683266, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: field of view
       value: 50.0181
+      objectReference: {fileID: 0}
+    - target: {fileID: 2650234582257683266, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
+      propertyPath: m_Anamorphism
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2650234582257683266, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_FOVAxisMode
@@ -12340,6 +12506,10 @@ PrefabInstance:
     - target: {fileID: 2650234582257683266, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: m_SensorSize.y
       value: 18.66
+      objectReference: {fileID: 0}
+    - target: {fileID: 2650234582257683266, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
+      propertyPath: m_FocusDistance
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 2650234582257683266, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: near clip plane
@@ -12696,6 +12866,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 20
@@ -12739,6 +12913,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -14045,6 +14223,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 24
@@ -14088,6 +14270,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -14278,7 +14464,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &1086288952
 Animator:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -14297,6 +14483,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!320 &1086288953
 PlayableDirector:
   m_ObjectHideFlags: 0
@@ -14964,9 +15151,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -16369,8 +16564,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 1.4
@@ -16813,9 +17009,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -16976,9 +17180,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -17221,8 +17433,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 1.4
@@ -17508,6 +17721,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 29
@@ -17551,6 +17768,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -17851,8 +18072,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -18008,8 +18230,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -18220,8 +18443,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 1.4
@@ -18314,12 +18538,20 @@ PrefabInstance:
       value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_ShadowFadeDistance
       value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_ShadowResolution.m_Level
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -18462,8 +18694,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -18868,9 +19101,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -19023,8 +19264,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 1.4
@@ -19076,6 +19318,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 32
@@ -19119,6 +19365,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -19586,8 +19836,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 1
@@ -19682,11 +19933,11 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -0, z: -0}
+    textureOffset: {x: -0, y: -0.8879402, z: -0}
     falloffMode: 0
     maskMode: 0
     materialMask: {fileID: 0}
-  m_Version: 2
+  m_Version: 3
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19706,6 +19957,10 @@ PrefabInstance:
     - target: {fileID: 3178823191204061509, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
@@ -19750,6 +20005,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -19880,8 +20139,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -20158,6 +20418,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 27
@@ -20201,6 +20465,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -21040,7 +21308,7 @@ SphereCollider:
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!95 &1594496561
 Animator:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -21059,6 +21327,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &1594496562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21313,8 +21582,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 100
     ShutterSpeed: 60
     Aperture: 1.2
@@ -21593,6 +21863,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 37
@@ -21636,6 +21910,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -22667,6 +22945,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 25
@@ -22710,6 +22992,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -23488,6 +23774,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 31
@@ -23531,6 +23821,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -24193,8 +24487,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -24350,6 +24645,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 248024621}
     m_Modifications:
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 30
@@ -24393,6 +24692,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_Intensity
@@ -24595,8 +24898,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -24843,12 +25147,20 @@ PrefabInstance:
       value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_ShadowFadeDistance
       value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_ShadowResolution.m_Level
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -24947,8 +25259,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -25585,9 +25898,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -26538,9 +26859,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -26596,6 +26925,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 26
@@ -26639,6 +26972,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -26904,7 +27241,7 @@ CapsuleCollider:
   m_Center: {x: 0, y: 0.65647864, z: -0}
 --- !u!95 &1866426471
 Animator:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -26923,6 +27260,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1001 &1869016134
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27051,9 +27389,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -27227,6 +27573,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 34
@@ -27270,6 +27620,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -28710,7 +29064,7 @@ SphereCollider:
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!95 &1922889290
 Animator:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -28729,6 +29083,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &1922889291
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29036,8 +29391,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -29130,12 +29486,20 @@ PrefabInstance:
       value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_ShadowFadeDistance
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_ShadowResolution.m_Level
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -29191,6 +29555,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 33
@@ -29234,6 +29602,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -29463,6 +29835,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 716253025548992661, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 722160609750540142, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_Intensity
       value: 869.4223
@@ -29507,6 +29883,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 1334175845013016139, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1358189005812830966, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
@@ -29547,6 +29927,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 1872679065882891277, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_Intensity
       value: 869.4223
@@ -29583,6 +29967,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 2328263960973699969, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 2572048008372123087, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
@@ -29606,6 +29994,10 @@ PrefabInstance:
     - target: {fileID: 4531832025666991573, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 4679011540025688418, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4684312169931040896, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -29631,6 +30023,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 5445369100035791652, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 5510680008036482444, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_Name
       value: Spotlight_01a (1)
@@ -29642,6 +30038,10 @@ PrefabInstance:
     - target: {fileID: 5691688460821351815, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 65
+      objectReference: {fileID: 0}
+    - target: {fileID: 5828365798057989626, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6349285678772901458, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -29806,6 +30206,10 @@ PrefabInstance:
     - target: {fileID: 8720514835797358192, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8745287031078502126, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 9087182980478874692, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -30859,9 +31263,17 @@ PrefabInstance:
       propertyPath: m_Intensity
       value: 32
       objectReference: {fileID: 0}
+    - target: {fileID: 6937157241029699058, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 7970848922256749247, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 8205052249104798193, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_Intensity
@@ -31040,9 +31452,8 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2035111233}
   m_Enabled: 1
-  serializedVersion: 10
+  serializedVersion: 11
   m_Type: 1
-  m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 100000
   m_Range: 10
@@ -31121,6 +31532,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_PointlightHDType: 0
+  m_SpotLightShape: 0
+  m_AreaLightShape: 0
   m_Intensity: 100000
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
@@ -31223,14 +31637,11 @@ MonoBehaviour:
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
-  m_Version: 11
+  m_Version: 12
   m_ObsoleteShadowResolutionTier: 2
   m_ObsoleteUseShadowQualitySettings: 1
   m_ObsoleteCustomShadowResolution: 1024
   m_ObsoleteContactShadows: 1
-  m_PointlightHDType: 0
-  m_SpotLightShape: 0
-  m_AreaLightShape: 0
 --- !u!114 &2035111238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31574,8 +31985,9 @@ MonoBehaviour:
     Dutch: 0
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
-    GateFit: 2
-    m_SensorSize: {x: 1, y: 1}
+    GateFit: 1
+    FocusDistance: 10
+    m_SensorSize: {x: 24.89, y: 18.66}
     Iso: 200
     ShutterSpeed: 0.005
     Aperture: 2
@@ -31713,6 +32125,14 @@ PrefabInstance:
       propertyPath: m_BoundingSphereOverride.z
       value: 5.4e-43
       objectReference: {fileID: 0}
+    - target: {fileID: 3664002973147630065, guid: 76336da601705b24888cb14d8af76073, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 4533175117981471253, guid: 76336da601705b24888cb14d8af76073, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4869889032728308073, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_Intensity
       value: 381.97183
@@ -31729,13 +32149,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: CeilingLamp_01
       objectReference: {fileID: 0}
+    - target: {fileID: 5113636025284734156, guid: 76336da601705b24888cb14d8af76073, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 5307934791213723907, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5606222321729084256, guid: 76336da601705b24888cb14d8af76073, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6039300106277135417, guid: 76336da601705b24888cb14d8af76073, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 6979920822567912429, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_Intensity
       value: 32
+      objectReference: {fileID: 0}
+    - target: {fileID: 7143034300556120889, guid: 76336da601705b24888cb14d8af76073, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 7888398759032545584, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_Intensity
@@ -31836,6 +32272,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 4911889344555096502, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_RootOrder
       value: 18
@@ -31879,6 +32319,10 @@ PrefabInstance:
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999309265813508624, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_Version
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
