@@ -23,12 +23,27 @@ MonoBehaviour:
       m_Values: 140000002800000050000000
       m_SchemaId:
         m_Id: With3Levels
+    sssDownsampleSteps:
+      m_Values: 000000000000000000000000
+      m_SchemaId:
+        m_Id: With3Levels
     supportVolumetrics: 1
     supportVolumetricClouds: 1
     supportLightLayers: 1
+    renderingLayerMaskBuffer: 0
     supportWater: 0
     waterSimulationResolution: 128
+    supportWaterExclusion: 0
+    supportWaterDeformation: 0
+    deformationAtlasSize: 512
+    supportWaterFoam: 0
+    foamAtlasSize: 512
     waterCPUSimulation: 0
+    supportComputeThickness: 0
+    computeThicknessResolution: 1
+    computeThicknessLayerMask:
+      serializedVersion: 2
+      m_Bits: 0
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -49,17 +64,24 @@ MonoBehaviour:
     supportDecalLayers: 1
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
+    supportHighQualityLineRendering: 0
+    highQualityLineRenderingMemoryBudget: 128
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
-    lightProbeSystem: 0
+    lightProbeSystem: 1
+    oldLightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
-    probeVolumeBlendingMemoryBudget: 128
-    supportProbeVolumeStreaming: 0
+    supportProbeVolumeGPUStreaming: 0
+    supportProbeVolumeDiskStreaming: 0
     probeVolumeSHBands: 1
+    supportProbeVolumeScenarios: 0
+    supportProbeVolumeScenarioBlending: 1
+    probeVolumeBlendingMemoryBudget: 128
     supportRayTracing: 0
+    supportVFXRayTracing: 0
     supportedRayTracingMode: 3
     lightLoopSettings:
       cookieAtlasSize: 512
@@ -297,7 +319,7 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 22
+  m_Version: 23
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -448,6 +470,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 0
     materialQuality: 0
   m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings:
@@ -463,6 +486,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 0
     materialQuality: 0
   m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings:
@@ -478,6 +502,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
     msaaMode: 0
     materialQuality: 0
   m_ObsoleteRenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7, type: 2}
@@ -489,7 +514,7 @@ MonoBehaviour:
   m_ObsoleteShaderVariantLogLevel: 0
   m_ObsoleteLensAttenuation: 0
   m_ObsoleteDiffusionProfileSettingsList:
-  - {fileID: 11400000, guid: 26bdddf49760c61438938733f07fa2a2, type: 2}
-  - {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
   - {fileID: 11400000, guid: 5a9a2dc462c7bde4f86d0615a19c2c72, type: 2}
