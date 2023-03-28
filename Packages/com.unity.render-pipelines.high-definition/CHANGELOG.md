@@ -4,18 +4,30 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [14.0.6] - 2023-01-18
-
-This version is compatible with Unity 2022.2.4f1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.6] - 2023-03-24
+
+This version is compatible with Unity 2022.2.13f1.
+
+### Added
+- DecalShaderGraphGUI.SetupDecalKeywordsAndPass - Adding back a public API used to validate shadergraph materials by user scripts.
+
+### Fixed
+- Fixed diffusion profile list upgrade.
+- Fixed usage of HDMaterial.ValidateMaterial for materials created from ShaderGraphs.
+- Fixed LightList keywords showing errors in the log when strict variant matching is enabled.
+- Fixed a serialization issue affecting other objects.
+- Fixed time determinism for water surfaces
+- Fixed world position offset in water CPU simulation
+- Fix error with water and dynamic pass culling
 
 ## [14.0.5] - 2022-12-12
 
-This version is compatible with Unity 2022.2.2f1.
+This version is compatible with Unity 2022.2.4f1.
 
 ### Fixed
 - Fixed shadergraph using derivatives and Raytracing Quality keyword.
@@ -53,7 +65,7 @@ This version is compatible with Unity 2022.2.2f1.
 
 ## [14.0.4] - 2022-11-04
 
-This version is compatible with Unity 2022.2.0b15.
+This version is compatible with Unity 2022.2.2f1.
 
 ### Changed
 - Further improved the consistency of non-physical depth of field at varying native rendering resolutions and resolution scales.
@@ -213,7 +225,7 @@ This version is compatible with Unity 2022.2.0b15.
 
 ## [14.0.3] - 2021-05-09
 
-This version is compatible with Unity 2022.2.0a14.
+This version is compatible with Unity 2022.2.0b15.
 
 ### Changed
 - Added a new/clone button to lens flare data picker.
@@ -269,7 +281,7 @@ This version is compatible with Unity 2022.2.0a14.
 
 ## [14.0.2] - 2021-02-04
 
-This version is compatible with Unity 2022.2.0a9.
+This version is compatible with Unity 2022.2.0a14.
 
 ### Added
 - Added denoising for the path tracer.

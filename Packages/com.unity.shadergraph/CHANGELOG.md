@@ -4,18 +4,27 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [14.0.6] - 2023-01-18
-
-This version is compatible with Unity 2022.2.4f1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.6] - 2023-03-24
+
+This version is compatible with Unity 2022.2.13f1.
+
+### Changed
+- Sped up rename operations on properties/keywords/dropdowns in large graph.
+- Sped up setting blackboard values in large graphs.
+- The asset postprocessor for shader graph now only performs the majority of its work when a shader-related asset has been changed.
+
+### Fixed
+- Fixed SRP Batcher compatibility issue with instanced properties.
+- Fixed NullReferenceException when entering Play Mode with an unfocused Shader Graph window/on closing the Shader Graph Window.
 
 ## [14.0.5] - 2022-12-12
 
-This version is compatible with Unity 2022.2.2f1.
+This version is compatible with Unity 2022.2.4f1.
 
 ### Fixed
 - Fixed unity_StereoEyeIndex error when building XR project with URP Fullscreen master node containing Shader.
@@ -23,7 +32,7 @@ This version is compatible with Unity 2022.2.2f1.
 
 ## [14.0.4] - 2022-11-04
 
-This version is compatible with Unity 2022.2.0b15.
+This version is compatible with Unity 2022.2.2f1.
 
 ### Changed
 - Reduced time taken by code generation when a shader graph asset is imported.
@@ -34,7 +43,7 @@ This version is compatible with Unity 2022.2.0b15.
 
 ## [14.0.3] - 2021-05-09
 
-This version is compatible with Unity 2022.2.0a14.
+This version is compatible with Unity 2022.2.0b15.
 
 ### Fixed
 - Fixed the sample buffer nodes in ShaderGraph.
@@ -42,7 +51,7 @@ This version is compatible with Unity 2022.2.0a14.
 
 ## [14.0.2] - 2021-02-04
 
-This version is compatible with Unity 2022.2.0a9.
+This version is compatible with Unity 2022.2.0a14.
 
 ### Fixed
  - Fixed ShaderGraph pixel and screen coordinates to work correctly with render scale [1387468]

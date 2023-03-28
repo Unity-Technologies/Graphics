@@ -4,18 +4,39 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [14.0.6] - 2023-01-18
-
-This version is compatible with Unity 2022.2.4f1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.6] - 2023-03-24
+
+This version is compatible with Unity 2022.2.13f1.
+
+### Fixed
+- Fixed ComplexLit mixed lighting by matching ComplexLit shader keywords with the Lit shader.
+- Fixed an issue causing materials using Shader Graphs with material override to disappear when using the Deferred rendering path if alpha clipping is enabled in the material.
+- Fixed y-flipped shading on gizmos in game view.
+- Fixed a light cookie out of bounds.
+- Fixed an issue causing Dynamic Resolution to be disabled during URP rendering.
+- Fixed a missing keyword in ParticlesSimpleLit for Lightmap shadow mixing.
+- Fixed Reflection Probe baking throwing errors with Render Scale set not to 1
+- Fixed issue where disabling/enabling ShadowCaster2Ds can create duplicate shadows.
+- Fixed an issue so that deferred rendering now works correctly in builds with Accurate GBuffer Normals enabled.
+- Fixed the 2D Sprite Light & Freeform Light fast normal map quality setting to correctly use the normal map.
+- Fixed a bug with the shadow mesh bounds of ShadowCaster2D so that shadows no longer disappear.
+- Fixed GC.Allocs with sorting layers in Light2D.
+- Prevent negative color and NaN write to TAA history.
+- Fixed an issue where scenes were not marked dirty after changing the volume update setting on cameras.
+- Fixed resource leak in URP deferred.
+- Added vertex SH option to URP rendering and fixed HL2 forward light perf regression.
+- Fixed an issue where instantiating and destroying cameras, with Volume Update Mode set to ViaScripting, would allocate each time
+- 2d - Fix null exception when adding a sorting layer
+- Fixed an issue where main light shadows were incorrect if scene and game windows were open.
 
 ## [14.0.5] - 2022-12-12
 
-This version is compatible with Unity 2022.2.2f1.
+This version is compatible with Unity 2022.2.4f1.
 
 ### Changed
 - Shader parameters used by additional lights are now removed when additional lights are disabled in URP Assets.
@@ -34,7 +55,7 @@ This version is compatible with Unity 2022.2.2f1.
 
 ## [14.0.4] - 2022-11-04
 
-This version is compatible with Unity 2022.2.0b15.
+This version is compatible with Unity 2022.2.2f1.
 
 ### Added
 - UniversalRenderPipeline.SingleCameraRequest. Use this as the RequestData parameter in SubmitRenderRequest to render a single camera.
@@ -107,7 +128,7 @@ This version is compatible with Unity 2022.2.0b15.
 
 ## [14.0.3] - 2021-05-09
 
-This version is compatible with Unity 2022.2.0a14.
+This version is compatible with Unity 2022.2.0b15.
 
 ### Changed
 - Added new UI/UX for the converter framework.
@@ -129,7 +150,7 @@ This version is compatible with Unity 2022.2.0a14.
 
 ## [14.0.2] - 2021-02-04
 
-This version is compatible with Unity 2022.2.0a9.
+This version is compatible with Unity 2022.2.0a14.
 
 ### Added
 - Added Soft Shadows filtering quality as per light option. Low, PCF 3x3 pixel area with fixed offsets which is recommended for mobile. Medium, Tent 5x5 pixel area as the default. High, Tent 7x7 pixel area.
