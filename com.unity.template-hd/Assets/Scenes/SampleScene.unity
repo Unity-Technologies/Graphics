@@ -95,7 +95,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 112000000, guid: 94a0d1575efbaea4d803b40a29f7b4ab, type: 2}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: ee2d11691bfc5384b89d821ffe96a394, type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 99a1b6b1cc6496a4cbb85d98c3ab8ef9, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -19004,6 +19004,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: TR_Pillar_01
       objectReference: {fileID: 0}
+    - target: {fileID: 5641470503781817477, guid: 92e859c764174cf4385acf2f713357cc, type: 3}
+      propertyPath: m_ReceiveGI
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 8936771215430862609, guid: 92e859c764174cf4385acf2f713357cc, type: 3}
       propertyPath: m_RootOrder
       value: 3
@@ -20197,7 +20201,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -85.67994, z: -0}
+    textureOffset: {x: -0, y: -6.8091736, z: -0}
     falloffMode: 0
     maskMode: 0
     materialMask: {fileID: 0}
