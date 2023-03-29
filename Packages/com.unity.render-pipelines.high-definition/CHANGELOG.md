@@ -4,18 +4,47 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [15.0.4] - 2023-01-18
-
-This version is compatible with Unity 2023.1.0b2.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 
+## [15.0.4] - 2023-03-23
+
+This version is compatible with Unity 2023.1.0b10.
+
+### Changed
+- Added new scenes using Water System in the HDRP Samples
+
+### Fixed
+- Fixed removal of DecalShaderGraphGUI.SetupDecalKeywordsAndPass.
+- Fixed diffusion profile list upgrade.
+- Fixed the usage of HDMaterial.ValidateMaterial for materials created from ShaderGraphs.
+- Removed unneeded log.
+- Fixed shader graph inspector for unsupported high quality line rendering targets.
+- Fixed a serialization issue affecting other objects.
+- Preserve ShaderGraph custom keywords on material validation.
+- Added missing node to detect underwater pixels.
+- Fixed lens flare wobbling caused by using jittered matrix, more visible with DLSS
+- Fix error with water and dynamic pass culling
+- Fixed initial mask extent value for water surfaces
+- Fixed foam generator not relative to GameObject scale
+- Fixed time determinism for water surfaces
+- Fixed world position offset in water CPU simulation
+- Fixed OSX Support for High Quality Lines.
+- Fixed an issue that placed an upper limit on the total number of segments drawn by the High Quality Line Renderer.
+- Fixed several issues for High Quality Line Rendering that were discovered on the "Enemies" production.
+- Fixed and issue where High Quality Line instances were not being drawn in back to front order.
+- Fixed an issue where a user couldn't specify how much memory gets allocated for High Quality Line Rendering.
+- Fixed water caustics tiling factor causes issue when moving the camera
+- Fixed Refraction happening on very small distance for ocean when there's only ripples
+- Fixed error when having more than 64 deformers
+
+
 ## [15.0.3] - 2022-12-02
 
-This version is compatible with Unity 2023.1.0a23.
+This version is compatible with Unity 2023.1.0b2.
 
 ### Changed
 - Updated the platform support message for consoles.
@@ -85,7 +114,7 @@ This version is compatible with Unity 2023.1.0a23.
 
 ## [15.0.2] - 2022-11-04
 
-This version is compatible with Unity 2023.1.0a19.
+This version is compatible with Unity 2023.1.0a23.
 
 ### Changed
 - Allowed non square reflection probe atlas sizes.
@@ -182,7 +211,7 @@ This version is compatible with Unity 2023.1.0a19.
 
 ## [15.0.1] - 2022-08-04
 
-This version is compatible with Unity 2023.1.0a6.
+This version is compatible with Unity 2023.1.0a19.
 
 ### Changed
 - Tooltips improvement.
@@ -230,7 +259,7 @@ This version is compatible with Unity 2023.1.0a6.
 
 ## [15.0.0] - 2022-06-13
 
-This version is compatible with Unity 2023.1.0a1.
+This version is compatible with Unity 2023.1.0a6.
 
 ### Changed
 - New iteration on the water system.
@@ -342,8 +371,6 @@ This version is compatible with Unity 2023.1.0a1.
 
 ## [14.0.3] - 2021-05-09
 
-This version is compatible with Unity 2022.2.0a14.
-
 ### Added
 - Denoising for the path tracer.
 - An initial version of under water rendering for the water system.
@@ -429,8 +456,6 @@ This version is compatible with Unity 2022.2.0a14.
 - Updated DLSS test images for a driver update.
 
 ## [14.0.2] - 2021-02-04
-
-This version is compatible with Unity 2022.2.0a8.
 
 ### Changed
 - Moved custom Sensor Lidar path tracing code to the SensorSDK package.
