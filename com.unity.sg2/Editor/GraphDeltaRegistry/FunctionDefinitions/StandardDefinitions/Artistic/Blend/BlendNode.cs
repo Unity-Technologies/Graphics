@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
+            mainFunction: "Overlay",
             functions: new FunctionDescriptor[] {
                 new(
                     "Burn",
