@@ -509,26 +509,21 @@ namespace UnityEditor.VFX
 
         public static IEnumerable<Type> FindConcreteSubclasses(Type objectType = null, Type attributeType = null)
         {
-            List<Type> types = new List<Type>();
-            foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                Type[] assemblyTypes = null;
-                try
-                {
-                    assemblyTypes = domainAssembly.GetTypes();
+            TypeCache.TypeCollection unfilteredTypes;
+            if (objectType != null)
+                unfilteredTypes = TypeCache.GetTypesDerivedFrom(objectType);
+            else if (attributeType != null)
+                unfilteredTypes = TypeCache.GetTypesWithAttribute(attributeType);
+            else
+                throw new ArgumentException("objectType and attributeType cannot both be null");
+            foreach (var type in unfilteredTypes) {
+                // We still need to check for the attribute here, even if we are already only operating on types with that attribute:
+                //  - we want to ensure there is only a single attribute
+                //  - we want to only get types that have this attribute themselves, and the type cache also returns those that have it on a base class
+                if (!type.IsAbstract && (attributeType == null || type.GetCustomAttributes(attributeType, false).Length == 1)) {
+                    yield return type;
                 }
-                catch (Exception)
-                {
-                    if (VFXViewPreference.advancedLogs)
-                        Debug.Log("Cannot access assembly: " + domainAssembly);
-                    assemblyTypes = null;
-                }
-                if (assemblyTypes != null)
-                    foreach (var assemblyType in assemblyTypes)
-                        if ((objectType == null || assemblyType.IsSubclassOf(objectType)) && !assemblyType.IsAbstract)
-                            types.Add(assemblyType);
             }
-            return types.Where(type => attributeType == null || type.GetCustomAttributes(attributeType, false).Length == 1);
         }
 
         [NonSerialized]
