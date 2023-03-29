@@ -67,7 +67,6 @@
     #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMSArray<type, 1> textureName
 
     #define RW_TEXTURE2D_X(type, textureName)                                RW_TEXTURE2D_ARRAY(type, textureName)
-    #define TYPED_TEXTURE2D_X(type, textureName)                             TYPED_TEXTURE2D_ARRAY(type, textureName)
     #define LOAD_TEXTURE2D_X(textureName, unCoord2)                          LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, SLICE_ARRAY_INDEX)
     #define LOAD_TEXTURE2D_X_MSAA(textureName, unCoord2, sampleIndex)        LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, SLICE_ARRAY_INDEX, sampleIndex)
     #define LOAD_TEXTURE2D_X_LOD(textureName, unCoord2, lod)                 LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, SLICE_ARRAY_INDEX, lod)
@@ -96,7 +95,6 @@
     #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMS<type, 1> textureName
 
     #define RW_TEXTURE2D_X                                                   RW_TEXTURE2D
-    #define TYPED_TEXTURE2D_X                                                TYPED_TEXTURE2D
     #define LOAD_TEXTURE2D_X                                                 LOAD_TEXTURE2D
     #define LOAD_TEXTURE2D_X_MSAA                                            LOAD_TEXTURE2D_MSAA
     #define LOAD_TEXTURE2D_X_LOD                                             LOAD_TEXTURE2D_LOD

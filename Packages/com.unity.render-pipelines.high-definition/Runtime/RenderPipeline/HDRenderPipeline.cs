@@ -2038,12 +2038,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             dynResHandler.ForceSoftwareFallback();
                         }
-
-                        // STP does not currently support XR, so we automatically fall back to TAAU when STP is enabled in an XR configuration.
-                        if (drsSettings.upsampleFilter == DynamicResUpscaleFilter.STP && xrPass.enabled)
-                        {
-                            drsSettings.upsampleFilter = DynamicResUpscaleFilter.TAAU;
-                        }
                     }
 
                     // Notify the hanlder if this camera requests DRS.

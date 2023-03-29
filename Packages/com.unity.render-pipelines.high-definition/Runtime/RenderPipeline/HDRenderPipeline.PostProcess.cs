@@ -467,15 +467,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetPostprocessOutputHandle(renderGraph, name, false, GetPostprocessTextureFormat(camera), false);
         }
 
-        bool GrabSizedPostProcessHistoryTextures(
-            HDCamera camera, HDCameraFrameHistoryType historyType, String name, GraphicsFormat format, Vector2Int size, out RTHandle previous, out RTHandle next, bool useMips = false)
+        bool GrabPostProcessHistoryTextures(
+            HDCamera camera, HDCameraFrameHistoryType historyType, String name, GraphicsFormat format, out RTHandle previous, out RTHandle next, bool useMips = false)
         {
             bool validHistory = true;
             next = camera.GetCurrentFrameRT((int)historyType);
-            if (next == null || (useMips == true && next.rt.mipmapCount == 1) || next.rt.width != size.x || next.rt.height != size.y)
+            if (next == null || (useMips == true && next.rt.mipmapCount == 1) || next.rt.width != camera.postProcessRTHistoryMaxReference.x || next.rt.height != camera.postProcessRTHistoryMaxReference.y)
             {
                 validHistory = false;
-                var textureAllocator = new PostProcessHistoryTextureAllocator(name, size, format, useMips);
+                var viewportSize = new Vector2Int(camera.postProcessRTHistoryMaxReference.x, camera.postProcessRTHistoryMaxReference.y);
+                var textureAllocator = new PostProcessHistoryTextureAllocator(name, viewportSize, format, useMips);
 
                 if (next != null)
                     camera.ReleaseHistoryFrameRT((int)historyType);
@@ -483,12 +484,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             previous = camera.GetPreviousFrameRT((int)historyType);
             return validHistory;
-        }
-
-        bool GrabPostProcessHistoryTextures(
-            HDCamera camera, HDCameraFrameHistoryType historyType, String name, GraphicsFormat format, out RTHandle previous, out RTHandle next, bool useMips = false)
-        {
-            return GrabSizedPostProcessHistoryTextures(camera, historyType, name, format, camera.postProcessRTHistoryMaxReference, out previous, out next, useMips);
         }
 
         TextureHandle RenderPostProcess(RenderGraph renderGraph,
@@ -547,14 +542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
                     {
-                        if (hdCamera.IsSTPEnabled())
-                        {
-                            source = DoStpPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, prepassOutput.stencilBuffer, m_BlueNoise);
-                        }
-                        else
-                        {
-                            source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, prepassOutput.stencilBuffer, postDoF: false, "TAA Destination");
-                        }
+                        source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, prepassOutput.stencilBuffer, postDoF: false, "TAA Destination");
                         if (hdCamera.IsTAAUEnabled())
                         {
                             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);

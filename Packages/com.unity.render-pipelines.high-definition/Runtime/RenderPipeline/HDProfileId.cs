@@ -284,8 +284,5 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackDownsample,
 #endif
-        StpPrepass,
-        StpTaa,
-        StpCleaner,
     }
 }
