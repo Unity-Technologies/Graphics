@@ -55,7 +55,7 @@ public class BuiltInGraphicsTests
         }
 #endif
 
-        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
+        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
 
         // Does it allocate memory when it renders what's on the main camera?
         bool allocatesMemory = false;

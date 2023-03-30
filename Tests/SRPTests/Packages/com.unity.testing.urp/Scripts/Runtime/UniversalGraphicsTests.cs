@@ -73,7 +73,7 @@ public class UniversalGraphicsTests
 
         // Log the frame we are comparing to catch/debug waitFrame differences.
         Debug.Log($"ImageAssert.AreEqual called on Frame #{Time.frameCount}");
-        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
+        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
 
         // Does it allocate memory when it renders what's on the main camera?
         bool allocatesMemory = false;
