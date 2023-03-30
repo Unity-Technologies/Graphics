@@ -63,7 +63,7 @@ MonoBehaviour:
     msaaMode: 1
     materialQuality: 0
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7, type: 2}
-  m_RenderPipelineRayTracingResources: {fileID: 0}
+  m_RenderPipelineRayTracingResources: {fileID: 11400000, guid: ba6e7f30e5cffc249a8bf7ee5756c196, type: 2}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
   afterPostProcessBlursCustomPostProcesses: []
@@ -119,15 +119,22 @@ MonoBehaviour:
   apvScenesData:
     m_ObsoleteSerializedBakingSets: []
     sceneToBakingSet:
-      m_Keys: []
-      m_Values: []
-    bakingSets: []
+      m_Keys:
+      - 3db1837cc97a95e4c98610966fac2b0b
+      m_Values:
+      - {fileID: 11400000, guid: 04396ac9b160f7f45966b59cbc85511b, type: 2}
+    bakingSets:
+    - {fileID: 11400000, guid: 04396ac9b160f7f45966b59cbc85511b, type: 2}
     sceneBounds:
-      m_Keys: []
-      m_Values: []
+      m_Keys:
+      - 3db1837cc97a95e4c98610966fac2b0b
+      m_Values:
+      - m_Center: {x: 24.3, y: 0, z: 0}
+        m_Extent: {x: 56.7, y: 16.2, z: 32.4}
     hasProbeVolumes:
-      m_Keys: []
-      m_Values: 
+      m_Keys:
+      - 3db1837cc97a95e4c98610966fac2b0b
+      m_Values: 01
   m_Version: 8
   m_ShaderVariantLogLevel: 0
   m_SupportRuntimeDebugDisplay: 0
