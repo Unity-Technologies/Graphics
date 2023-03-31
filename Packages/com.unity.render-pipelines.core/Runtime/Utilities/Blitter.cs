@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering
         static Mesh s_TriangleMesh;
         static Mesh s_QuadMesh;
 
+        static LocalKeyword s_DecodeHdrKeyword;
+
         static class BlitShaderIDs
         {
             public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
@@ -33,6 +35,7 @@ namespace UnityEngine.Rendering
             public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
             public static readonly int _BlitTextureSize = Shader.PropertyToID("_BlitTextureSize");
             public static readonly int _BlitPaddingSize = Shader.PropertyToID("_BlitPaddingSize");
+            public static readonly int _BlitDecodeInstructions = Shader.PropertyToID("_BlitDecodeInstructions");
             public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
         }
 
@@ -45,6 +48,8 @@ namespace UnityEngine.Rendering
         {
             s_Blit = CoreUtils.CreateEngineMaterial(blitPS);
             s_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(blitColorAndDepthPS);
+
+            s_DecodeHdrKeyword = new LocalKeyword(blitPS, "BLIT_DECODE_HDR");
 
             // With texture array enabled, we still need the normal blit version for other systems like atlas
             if (TextureXR.useTexArray)
@@ -580,15 +585,25 @@ namespace UnityEngine.Rendering
         /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
         /// <param name="bilinear">Enable bilinear filtering.</param>
         /// <param name="paddingInPixels">Padding in pixels.</param>
-        public static void BlitCubeToOctahedral2DQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        public static void BlitCubeToOctahedral2DQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels, Vector4? decodeInstructions = null)
         {
+            var material = GetBlitMaterial(source.dimension);
+
             s_PropertyBlock.SetTexture(BlitShaderIDs._BlitCubeTexture, source);
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
-            DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 22 : 21);
+
+            cmd.SetKeyword(material, s_DecodeHdrKeyword, decodeInstructions.HasValue);
+            if (decodeInstructions.HasValue)
+            {
+                s_PropertyBlock.SetVector(BlitShaderIDs._BlitDecodeInstructions, decodeInstructions.Value);
+            }
+
+            DrawQuad(cmd, material, bilinear ? 22 : 21);
+            cmd.SetKeyword(material, s_DecodeHdrKeyword, false);
         }
 
         /// <summary>
