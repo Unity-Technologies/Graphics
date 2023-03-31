@@ -12,6 +12,8 @@ The version number for this package has increased due to a version update of a r
 
 ## Fixed
 - Fixed ColorLookup VolumeComponent interpolation with the implicit default volume.
+- Fixed artifacts on mobile targets by changing some halfs to floats in Normals logic.
+- Fixed ComplexLit mixed lighting by matching ComplexLit shader keywords with the Lit shader. 
 
 ## [10.10.1] - 2022-08-29
 
