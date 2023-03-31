@@ -10,18 +10,10 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"
-    Out.x = X;
-    Out.y = Y;
-    Out.z = Z;
-    Out.w = W;
-",
+            "    Out = X;",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("X", TYPE.Float, Usage.In),
-                new ParameterDescriptor("Y", TYPE.Float, Usage.In),
-                new ParameterDescriptor("Z", TYPE.Float, Usage.In),
-                new ParameterDescriptor("W", TYPE.Float, Usage.In),
+                new ParameterDescriptor("X", TYPE.Vec4, Usage.Static),
                 new ParameterDescriptor("Out", TYPE.Vec4, Usage.Out)
             }
         );
@@ -34,22 +26,11 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Basic",
             synonyms: new string[4] { "4", "v4", "vec4", "float4" },
             description: "pkg://Documentation~/previews/Vector4.md",
-            parameters: new ParameterUIDescriptor[5] {
+            parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "X",
-                    tooltip: "the first component"
-                ),
-                new ParameterUIDescriptor(
-                    name: "Y",
-                    tooltip: "the second component"
-                ),
-                new ParameterUIDescriptor(
-                    name: "Z",
-                    tooltip: "the third component"
-                ),
-                new ParameterUIDescriptor(
-                    name: "W",
-                    tooltip: "the forth component"
+                    displayName: string.Empty,
+                    tooltip: "a user-defined value with 4 channels"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
