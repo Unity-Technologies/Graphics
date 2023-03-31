@@ -99,6 +99,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Both = 0        // = CullMode.Off -- render both faces
     }
 
+    internal enum AdditionalMotionVectorMode
+    {
+        None,
+        TimeBased,
+        Custom
+    }
+
     sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget
 #if HAS_VFX_GRAPH
         , IMaySupportVFX, IRequireVFXContext
@@ -111,6 +118,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
+        public const string kAlwaysRenderMotionVectorsTag = "\"AlwaysRenderMotionVectors\" = \"true\"";
         public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]
         {
             "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates"
@@ -166,6 +174,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         bool m_ReceiveShadows = true;
+
+        [SerializeField]
+        AdditionalMotionVectorMode m_AdditionalMotionVectorMode = AdditionalMotionVectorMode.None;
+
+        [SerializeField]
+        bool m_AlembicMotionVectors = false;
 
         [SerializeField]
         bool m_SupportsLODCrossFade = false;
@@ -285,6 +299,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_ReceiveShadows;
             set => m_ReceiveShadows = value;
+        }
+
+        public AdditionalMotionVectorMode additionalMotionVectorMode
+        {
+            get => m_AdditionalMotionVectorMode;
+            set => m_AdditionalMotionVectorMode = value;
+        }
+
+        public bool alembicMotionVectors
+        {
+            get => m_AlembicMotionVectors;
+            set => m_AlembicMotionVectors = value;
+        }
+
+        public bool alwaysRenderMotionVectors
+        {
+            get => additionalMotionVectorMode != AdditionalMotionVectorMode.None || alembicMotionVectors;
         }
 
         public bool supportsLodCrossFade
@@ -585,6 +616,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 registerUndo("Change Supports LOD Cross Fade");
                 supportsLodCrossFade = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Additional Motion Vectors", "Specifies how motion vectors for local Shader Graph position modifications are handled (on top of camera, transform, skeletal and Alembic motion vectors).", 0, new EnumField(AdditionalMotionVectorMode.None) { value = additionalMotionVectorMode }, (evt) =>
+            {
+                if (Equals(additionalMotionVectorMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Additional Motion Vectors");
+                additionalMotionVectorMode = (AdditionalMotionVectorMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty(EditorUtils.Styles.alembicMotionVectors.text, EditorUtils.Styles.alembicMotionVectors.tooltip, 0, new Toggle() {value = alembicMotionVectors}, (evt) =>
+            {
+                if (Equals(alembicMotionVectors, evt.newValue))
+                    return;
+
+                registerUndo("Change Alembic Motion Vectors");
+                alembicMotionVectors = evt.newValue;
                 onChange();
             });
         }
@@ -1072,7 +1123,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.MotionVectorVertex,
+                validVertexBlocks = target.additionalMotionVectorMode == AdditionalMotionVectorMode.Custom ? CoreBlockMasks.CustomMotionVectorVertex : CoreBlockMasks.MotionVectorVertex,
                 validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
                 // Fields
@@ -1090,6 +1141,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
             };
+
+            if (target.additionalMotionVectorMode == AdditionalMotionVectorMode.TimeBased)
+                result.defines.Add(CoreKeywordDescriptors.AutomaticTimeBasedMotionVectors, 1);
+
+            if (target.alembicMotionVectors)
+                result.defines.Add(CoreKeywordDescriptors.AddPrecomputedVelocity, 1);
 
             AddAlphaClipControlToPass(ref result, target);
             AddLODCrossFadeControlToPass(ref result, target);
@@ -1257,6 +1314,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly BlockFieldDescriptor[] MotionVectorVertex = new BlockFieldDescriptor[]
         {
             BlockFields.VertexDescription.Position,
+        };
+
+        public static readonly BlockFieldDescriptor[] CustomMotionVectorVertex = new BlockFieldDescriptor[]
+        {
+            BlockFields.VertexDescription.Position,
+            UniversalBlockFields.VertexDescription.MotionVector,
         };
 
         public static readonly BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
@@ -1855,6 +1918,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Vertex,
+        };
+
+        public static readonly KeywordDescriptor AutomaticTimeBasedMotionVectors = new KeywordDescriptor()
+        {
+            displayName = "Automatic Time-Based Motion Vectors",
+            referenceName = "AUTOMATIC_TIME_BASED_MOTION_VECTORS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Vertex,
+        };
+
+        public static readonly KeywordDescriptor AddPrecomputedVelocity = new KeywordDescriptor()
+        {
+            displayName = "Add Precomputed Velocity",
+            referenceName = ShaderKeywordStrings._ADD_PRECOMPUTED_VELOCITY,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Local,
             stages = KeywordShaderStage.Vertex,
         };
 

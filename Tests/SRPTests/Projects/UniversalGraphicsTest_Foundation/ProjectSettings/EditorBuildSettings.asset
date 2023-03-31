@@ -324,6 +324,15 @@ EditorBuildSettings:
     path: Assets/Scenes/213_Motion_Vectors_All_Shader_Types_LOD_CrossFade.unity
     guid: 577b7f10e868a3a4ca2ffc9d46622e41
   - enabled: 1
+    path: Assets/Scenes/214_Motion_Vectors_SG_Shader_Types_Vertex_Animation.unity
+    guid: f7cdec6567a2ca34580a5d222405f0bd
+  - enabled: 1
+    path: Assets/Scenes/215_Motion_Vectors_SG_Shader_Types_Custom_Velocity.unity
+    guid: 9393d7ec15067b544b982320d21a114a
+  - enabled: 1
+    path: Assets/Scenes/216_Motion_Vectors_All_Shader_Types_Alembic_Animation.unity
+    guid: 828958c3149de6e41b3aa7de89b12419
+  - enabled: 1
     path: Assets/Scenes/220_ScreenSpaceShadows.unity
     guid: 0ed880bcaac387e4eaef5f365a545090
   - enabled: 1

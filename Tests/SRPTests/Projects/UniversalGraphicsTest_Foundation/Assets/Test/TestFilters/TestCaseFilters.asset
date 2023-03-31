@@ -388,3 +388,111 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Unstable
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 20
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 21
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 33
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 37
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 42
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 43
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 46
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only

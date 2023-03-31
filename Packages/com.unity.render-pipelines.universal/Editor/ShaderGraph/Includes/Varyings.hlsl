@@ -35,7 +35,24 @@ VertexDescription BuildVertexDescription(Attributes input)
 #endif
 #endif
 
-Varyings BuildVaryings(Attributes input)
+#if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+// We want to gather some internal data from the BuildVaryings call to
+// avoid rereading and recalculating these values again in the ShaderGraph motion vector pass
+struct MotionVectorPassOutput
+{
+    float3 positionOS;
+    float3 positionWS;
+#if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT)
+    float3 motionVector;
+#endif
+};
+#endif
+
+Varyings BuildVaryings(Attributes input
+#if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+    , inout MotionVectorPassOutput motionVectorOutput
+#endif
+)
 {
     Varyings output = (Varyings)0;
 
@@ -58,12 +75,11 @@ Varyings BuildVaryings(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if defined(FEATURES_GRAPH_VERTEX)
-
-#if defined(HAVE_VFX_MODIFICATION)
-    VertexDescription vertexDescription = BuildVertexDescription(input, element);
-#else
-    VertexDescription vertexDescription = BuildVertexDescription(input);
-#endif
+    #if defined(HAVE_VFX_MODIFICATION)
+        VertexDescription vertexDescription = BuildVertexDescription(input, element);
+    #else
+        VertexDescription vertexDescription = BuildVertexDescription(input);
+    #endif
 
     #if defined(CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC)
         CustomInterpolatorPassThroughFunc(output, vertexDescription);
@@ -84,6 +100,14 @@ Varyings BuildVaryings(Attributes input)
 
     // Returns the camera relative position (if enabled)
     float3 positionWS = TransformObjectToWorld(input.positionOS);
+
+#if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+    motionVectorOutput.positionOS = input.positionOS;
+    motionVectorOutput.positionWS = positionWS;
+    #if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT)
+        motionVectorOutput.motionVector = vertexDescription.MotionVector;
+    #endif
+#endif
 
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);

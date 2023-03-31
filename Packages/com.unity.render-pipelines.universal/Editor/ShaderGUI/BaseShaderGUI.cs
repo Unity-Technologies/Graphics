@@ -371,6 +371,10 @@ namespace UnityEditor
         /// </summary>
         protected MaterialProperty receiveShadowsProp { get; set; }
 
+        /// <summary>
+        /// The MaterialProperty for pre-computed motion vectors (for Alembic).
+        /// </summary>
+        protected MaterialProperty addPrecomputedVelocityProp { get; set; }
 
         // Common Surface Input properties
 
@@ -449,6 +453,7 @@ namespace UnityEditor
             zwriteProp = FindProperty(Property.ZWriteControl, properties, false);
             ztestProp = FindProperty(Property.ZTest, properties, false);
             alphaClipProp = FindProperty(Property.AlphaClip, properties, false);
+            addPrecomputedVelocityProp = FindProperty(Property.AddPrecomputedVelocity, properties, false);
 
             // ShaderGraph Lit and Unlit Subtargets only
             castShadowsProp = FindProperty(Property.CastShadows, properties, false);
@@ -610,6 +615,7 @@ namespace UnityEditor
             if (autoQueueControl)
                 DrawQueueOffsetField();
             materialEditor.EnableInstancingField();
+            DrawMotionVectorOptions(material);
         }
 
         /// <summary>
@@ -619,6 +625,12 @@ namespace UnityEditor
         {
             if (queueOffsetProp != null)
                 materialEditor.IntSliderShaderProperty(queueOffsetProp, -queueOffsetRange, queueOffsetRange, Styles.queueSlider);
+        }
+
+        private void DrawMotionVectorOptions(Material material)
+        {
+            if(material.HasProperty(Property.AddPrecomputedVelocity))
+                DrawFloatToggleProperty(EditorUtils.Styles.alembicMotionVectors, addPrecomputedVelocityProp);
         }
 
         /// <summary>
@@ -770,10 +782,31 @@ namespace UnityEditor
 
         internal static void UpdateMotionVectorKeywordsAndPass(Material material)
         {
-            bool passShouldBeEnabled = !HasMotionVectorLightModeTag(GetShaderID(material.shader));
+            // For shaders which don't have an MV pass we don't want to disable it to avoid needlessly dirtying their
+            // materials (e.g. for our particle shaders)
+            bool motionVectorPassEnabled = true;
+
+            if (HasMotionVectorLightModeTag(GetShaderID(material.shader)))
+            {
+                if(material.HasProperty(Property.AddPrecomputedVelocity))
+                {
+                    // The URP text shaders are the only ones that have this property
+                    motionVectorPassEnabled = material.GetFloat(Property.AddPrecomputedVelocity) != 0.0f;
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings._ADD_PRECOMPUTED_VELOCITY, motionVectorPassEnabled);
+                }
+                else if (material.GetTag("AlwaysRenderMotionVectors", false, "false") != "true")
+                {
+                    // This branch will execute for all ShaderGraphs which DO NOT have any of the following:
+                    // *Automatic time based motion vectors
+                    // *Custom motion vector output
+                    // *Alembic motion vectors
+                    motionVectorPassEnabled = false;
+                }
+            }
+
             // Calling this always as we might be in a situation where the material's shader was just changed to one
             // which doesn't have a pass with the { "LightMode" = "MotionVectors" } tag so we want to stop disabling
-            material.SetShaderPassEnabled(MotionVectorRenderPass.k_MotionVectorsLightModeTag, passShouldBeEnabled);
+            material.SetShaderPassEnabled(MotionVectorRenderPass.k_MotionVectorsLightModeTag, motionVectorPassEnabled);
         }
 
         // this function is shared between ShaderGraph and hand-written GUIs

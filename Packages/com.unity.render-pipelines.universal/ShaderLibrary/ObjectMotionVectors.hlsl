@@ -38,6 +38,9 @@ struct Attributes
     float2 uv                   : TEXCOORD0;
 #endif
     float3 positionOld          : TEXCOORD4;
+#if _ADD_PRECOMPUTED_VELOCITY
+    float3 alembicMotionVector  : TEXCOORD5;
+#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -74,6 +77,10 @@ Varyings vert(Attributes input)
     output.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, mul(UNITY_MATRIX_M, input.position));
 
     float4 prevPos = (unity_MotionVectorsParams.x == 1) ? float4(input.positionOld, 1) : input.position;
+
+#if _ADD_PRECOMPUTED_VELOCITY
+    prevPos = prevPos - float4(input.alembicMotionVector, 0);
+#endif
 
     output.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, prevPos));
 
