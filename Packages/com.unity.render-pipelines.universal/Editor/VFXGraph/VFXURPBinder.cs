@@ -249,7 +249,6 @@ namespace UnityEditor.VFX.URP
 
                     //Irrelevant general multicompile instancing (VFX will append them when needed)
                     ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
-                    ( Pragma.DOTSInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
                     ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),
                     ( Pragma.InstancingOptions(InstancingOptions.NoLightProbe), ShaderGraphBinder.kPragmaDescriptorNone ),
                     ( Pragma.InstancingOptions(InstancingOptions.NoLodFade), ShaderGraphBinder.kPragmaDescriptorNone ),

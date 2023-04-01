@@ -40,7 +40,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
             }
             // Process SubShaders
-            context.AddSubShader(PostProcessSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue, target.disableBatching)));
             context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue, target.disableBatching)));
         }
 
@@ -87,7 +86,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (target.allowMaterialOverride)
             {
                 collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
-
                 collector.AddFloatProperty(Property.SurfaceType, (float)target.surfaceType);
                 collector.AddFloatProperty(Property.BlendMode, (float)target.alphaMode);
                 collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
@@ -174,48 +172,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.passes.Add(UnlitPasses.Forward(target, UnlitKeywords.Forward));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(CorePasses.DepthOnly(target));
+                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.Instanced));
 
-                result.passes.Add(CorePasses.DepthNormalOnly(target));
+                result.passes.Add(PassVariant(UnlitPasses.DepthNormalOnly(target), CorePragmas.Instanced));
 
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(CorePasses.ShadowCaster(target));
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.Instanced));
 
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(CorePasses.SceneSelection(target));
-                result.passes.Add(CorePasses.ScenePicking(target));
-
-                return result;
-            }
-
-            public static SubShaderDescriptor UnlitDOTS(UniversalTarget target, string renderType, string renderQueue, string disableBatchingTag)
-            {
-                var result = new SubShaderDescriptor()
-                {
-                    pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = UniversalTarget.kUnlitMaterialTypeTag,
-                    renderType = renderType,
-                    renderQueue = renderQueue,
-                    disableBatchingTag = disableBatchingTag,
-                    generatesPreview = true,
-                    passes = new PassCollection()
-                };
-
-                result.passes.Add(PassVariant(UnlitPasses.Forward(target, UnlitKeywords.DOTSForward), CorePragmas.ForwardSM45));
-
-                if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.InstancedSM45));
-
-                result.passes.Add(PassVariant(UnlitPasses.DepthNormalOnly(target), CorePragmas.InstancedSM45));
-
-                if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.InstancedSM45));
-
-                // Currently neither of these passes (selection/picking) can be last for the game view for
-                // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DefaultSM45));
-                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DefaultSM45));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.Default));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.Default));
 
                 return result;
             }
@@ -292,7 +259,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Forward,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { CoreKeywords.DOTSDepthNormal, CoreKeywordDescriptors.GBufferNormalsOct },
+                    keywords = new KeywordCollection { CoreKeywordDescriptors.GBufferNormalsOct },
                     includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
@@ -350,12 +317,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.DebugDisplay,
                 CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion,
             };
-
-            public static readonly KeywordCollection DOTSForward = new KeywordCollection
-            {
-                { Forward },
-                { CoreKeywordDescriptors.WriteRenderingLayers },
-            };
         }
         #endregion
 
@@ -367,6 +328,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static IncludeCollection Unlit = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },

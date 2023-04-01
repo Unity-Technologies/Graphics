@@ -90,8 +90,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(PostProcessSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, target.disableBatching, complexLit, blendModePreserveSpecular)));
-            context.AddSubShader(PostProcessSubShader(SubShaders.LitGLESSubShader(target, workflowMode, target.renderType, target.renderQueue, target.disableBatching, complexLit, blendModePreserveSpecular)));
+            context.AddSubShader(PostProcessSubShader(SubShaders.LitSubShader(target, workflowMode, target.renderType, target.renderQueue, target.disableBatching, complexLit, blendModePreserveSpecular)));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -327,57 +326,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            // SM 4.5, compute with dots instancing
-            public static SubShaderDescriptor LitComputeDotsSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, string disableBatchingTag, bool complexLit, bool blendModePreserveSpecular)
+            public static SubShaderDescriptor LitSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, string disableBatchingTag, bool complexLit, bool blendModePreserveSpecular)
             {
-                SubShaderDescriptor result = new SubShaderDescriptor()
-                {
-                    pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = UniversalTarget.kLitMaterialTypeTag,
-                    renderType = renderType,
-                    renderQueue = renderQueue,
-                    disableBatchingTag = disableBatchingTag,
-                    generatesPreview = true,
-                    passes = new PassCollection()
-                };
-
-                if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.ForwardSM45, LitKeywords.DOTSForward));
-                else
-                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.ForwardSM45, LitKeywords.DOTSForward));
-
-                if (!complexLit)
-                    result.passes.Add(LitPasses.GBuffer(target, workflowMode, blendModePreserveSpecular));
-
-                // cull the shadowcaster pass if we know it will never be used
-                if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.InstancedSM45));
-
-                if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.InstancedSM45));
-
-                if (complexLit)
-                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.InstancedSM45));
-                else
-                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.InstancedSM45));
-                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.DefaultSM45));
-                // Currently neither of these passes (selection/picking) can be last for the game view for
-                // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DefaultSM45));
-                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DefaultSM45));
-
-                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DefaultSM45));
-
-                return result;
-            }
-
-            public static SubShaderDescriptor LitGLESSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, string disableBatchingTag, bool complexLit, bool blendModePreserveSpecular)
-            {
-                // SM 2.0, GLES
-
-                // ForwardOnly pass is used as complex Lit SM 2.0 fallback for GLES.
-                // Drops advanced features and renders materials as Lit.
-
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
                     pipelineTag = UniversalTarget.kPipelineTag,
@@ -394,24 +344,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 else
                     result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.Forward, LitKeywords.Forward));
 
+                if (!complexLit)
+                    result.passes.Add(LitPasses.GBuffer(target, workflowMode, blendModePreserveSpecular));
+
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(CorePasses.ShadowCaster(target));
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.Instanced));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(CorePasses.DepthOnly(target));
+                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.Instanced));
 
                 if (complexLit)
-                    result.passes.Add(CorePasses.DepthNormalOnly(target));
+                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.Instanced));
                 else
-                    result.passes.Add(CorePasses.DepthNormal(target));
-                result.passes.Add(LitPasses.Meta(target));
+                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.Instanced));
+
+                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.Default));
+
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(CorePasses.SceneSelection(target));
-                result.passes.Add(CorePasses.ScenePicking(target));
-
-                result.passes.Add(LitPasses._2D(target));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.Default));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.Default));
+                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.Default));
 
                 return result;
             }
@@ -565,9 +519,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
-                    pragmas = CorePragmas.GBufferSM45,
-                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { LitKeywords.GBuffer },
+                    pragmas = CorePragmas.GBuffer,
+                    defines = new DefineCollection { CoreDefines.UseFragmentFog },
+                    keywords = new KeywordCollection { LitKeywords.GBuffer },
                     includes = new IncludeCollection { LitIncludes.GBuffer },
 
                     // Custom Interpolator Support
@@ -683,7 +637,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection { CoreKeywords.DOTSDepthNormal },
+                    keywords = new KeywordCollection(),
                     includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
@@ -723,7 +677,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { CoreKeywords.DOTSDepthNormal },
+                    keywords = new KeywordCollection(),
                     includes = new IncludeCollection { CoreIncludes.DepthNormalsOnly },
 
                     // Custom Interpolator Support
@@ -888,12 +842,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ForwardPlus },
             };
 
-            public static readonly KeywordCollection DOTSForward = new KeywordCollection
-            {
-                { Forward },
-                { CoreKeywordDescriptors.WriteRenderingLayers },
-            };
-
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
                 { CoreKeywordDescriptors.StaticLightmap },
@@ -908,7 +856,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
-                { CoreKeywordDescriptors.WriteRenderingLayers },
                 { CoreKeywordDescriptors.RenderPassEnabled },
                 { CoreKeywordDescriptors.DebugDisplay },
             };
@@ -929,6 +876,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly IncludeCollection Forward = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
@@ -942,6 +891,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly IncludeCollection GBuffer = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },

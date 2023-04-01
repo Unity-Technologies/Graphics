@@ -133,8 +133,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
+            #pragma target 4.5
 
-            #pragma exclude_renderers gles
+            // Deferred Rendering Path does not support the OpenGL-based graphics API:
+            // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
+            #pragma exclude_renderers gles3 glcore
+
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
@@ -145,8 +149,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-            #pragma multi_compile_fragment _ _WRITE_RENDERING_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50

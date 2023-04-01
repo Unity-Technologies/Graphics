@@ -28,8 +28,6 @@ namespace Tests
                 .Returns("HDRenderPipeline"),
             new TestCaseData("RenderPipeline", 2)
                 .Returns("UniversalPipeline"),
-            new TestCaseData("RenderPipeline", 3)
-                .Returns("UniversalPipeline"),
         };
 
         [Test, TestCaseSource(nameof(s_TestCaseDatasSerializedSubshaderTags))]
