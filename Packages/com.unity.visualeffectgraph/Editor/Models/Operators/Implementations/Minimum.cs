@@ -1,8 +1,6 @@
-using System;
-using UnityEditor.VFX;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Minimum")]
     [VFXInfo(category = "Math/Clamp")]
     class Minimum : VFXOperatorNumericCascadedUnified
     {

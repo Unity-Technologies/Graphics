@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-TriggerEventAlways")]
     [VFXInfo(category = "GPUEvent", experimental = true)]
     class GPUEventAlways : VFXBlock
     {

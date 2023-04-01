@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -15,6 +16,7 @@ namespace UnityEditor.VFX
         };
     }
 
+    [VFXHelpURL("Context-Initialize")]
     [VFXInfo(variantProvider = typeof(InitializeVariantProvider))]
     class VFXBasicInitialize : VFXContext
     {

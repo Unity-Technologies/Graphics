@@ -14,6 +14,7 @@ namespace UnityEditor.VFX.Block
         };
     }
 
+    [VFXHelpURL("Block-Orient")]
     [VFXInfo(category = "Attribute/orientation", variantProvider = typeof(OrientationModeProvider))]
     class Orient : VFXBlock
     {

@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Acos")]
     [VFXInfo(category = "Math/Trigonometry")]
     class Acos : VFXOperatorNumericUniform
     {

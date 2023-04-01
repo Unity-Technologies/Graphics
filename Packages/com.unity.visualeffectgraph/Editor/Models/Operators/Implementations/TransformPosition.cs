@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Transform(Position)")]
     [VFXInfo(category = "Math/Geometry")]
     class TransformPosition : VFXOperator
     {

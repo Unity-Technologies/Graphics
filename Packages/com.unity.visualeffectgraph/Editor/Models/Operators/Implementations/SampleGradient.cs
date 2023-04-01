@@ -1,11 +1,8 @@
-using System;
-using System.Linq;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SampleGradient")]
     [VFXInfo(category = "Sampling")]
     class SampleGradient : VFXOperator
     {
