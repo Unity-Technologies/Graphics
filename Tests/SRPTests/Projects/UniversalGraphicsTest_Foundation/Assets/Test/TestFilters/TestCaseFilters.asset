@@ -357,3 +357,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Unstable
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: UUM-15388

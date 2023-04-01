@@ -1,33 +1,27 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 
 public class ControlRenderScale : MonoBehaviour
 {
+    public UniversalRenderPipelineAsset urpAsset;
     public float playRenderScale = 0.25f;
     float originalScale = 1.0f;
 
     private void OnEnable()
     {
-        var curAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-        if (curAsset != null)
+        if (urpAsset != null)
         {
-            originalScale = curAsset.renderScale;
-            curAsset.renderScale = playRenderScale;
-            GraphicsSettings.renderPipelineAsset = curAsset;
+            originalScale = urpAsset.renderScale;
+            urpAsset.renderScale = playRenderScale;
         }
     }
 
     private void OnDisable()
     {
-        var curAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-        if (curAsset != null)
+        if (urpAsset != null)
         {
-            curAsset.renderScale = originalScale;
-            GraphicsSettings.renderPipelineAsset = curAsset;
+            urpAsset.renderScale = originalScale;
         }
     }
 }

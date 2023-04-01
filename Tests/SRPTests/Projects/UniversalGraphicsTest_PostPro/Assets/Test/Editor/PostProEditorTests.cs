@@ -38,10 +38,4 @@ class FoundationEditorTests
     {
         UniversalProjectAssert.AllMaterialShadersAreNotBuiltin(kProjectName, shaderPathID);
     }
-
-    [Test]
-    public void EnsureSingleQualityOption()
-    {
-        Assert.IsTrue(UnityEngine.QualitySettings.names?.Length == 1, $"{kProjectName} project MUST have ONLY single quality setting to ensure test consistency!!!");
-    }
 }
