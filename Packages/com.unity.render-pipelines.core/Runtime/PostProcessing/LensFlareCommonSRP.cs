@@ -534,6 +534,29 @@ namespace UnityEngine.Rendering
             }
         }
 
+#if UNITY_EDITOR
+        static bool IsPrefabStageEnabled()
+        {
+            return UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage() != null;
+        }
+
+        static LensFlareComponentSRP[] GetLensFlareComponents(GameObject go)
+        {
+            return go.GetComponentsInChildren<LensFlareComponentSRP>(false);
+        }
+
+        static bool IsCurrentPrefabLensFlareComponent(GameObject go, LensFlareComponentSRP[] components, LensFlareComponentSRP comp)
+        {
+            foreach (LensFlareComponentSRP x in components)
+            {
+                if (x == comp)
+                    return true;
+            }
+
+            return false;
+        }
+#endif
+
         /// <summary>
         /// Effective Job of drawing the set of Lens Flare registered
         /// </summary>
@@ -574,6 +597,24 @@ namespace UnityEngine.Rendering
         {
             if (!IsOcclusionRTCompatible())
                 return;
+
+#if UNITY_EDITOR
+            bool inPrefabStage = IsPrefabStageEnabled();
+            UnityEditor.SceneManagement.PrefabStage prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+            GameObject prefabGameObject = null;
+            LensFlareComponentSRP[] prefabStageLensFlares = null;
+            if (prefabStage != null)
+            {
+                prefabGameObject = prefabStage.prefabContentsRoot;
+                if (prefabGameObject == null)
+                    return;
+                prefabStageLensFlares = GetLensFlareComponents(prefabGameObject);
+                if (prefabStageLensFlares.Length == 0)
+                {
+                    return;
+                }
+            }
+#endif
 
             Vector2 vScreenRatio;
 
@@ -630,6 +671,13 @@ namespace UnityEngine.Rendering
                     !comp.useOcclusion ||
                     (comp.useOcclusion && comp.sampleCount == 0))
                     continue;
+
+#if UNITY_EDITOR
+                if (inPrefabStage && !IsCurrentPrefabLensFlareComponent(prefabGameObject, prefabStageLensFlares, comp))
+                {
+                    continue;
+                }
+#endif
 
                 Light light = comp.GetComponent<Light>();
 
@@ -786,6 +834,24 @@ namespace UnityEngine.Rendering
             int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
             bool debugView)
         {
+#if UNITY_EDITOR
+            bool inPrefabStage = IsPrefabStageEnabled();
+            UnityEditor.SceneManagement.PrefabStage prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+            GameObject prefabGameObject = null;
+            LensFlareComponentSRP[] prefabStageLensFlares = null;
+            if (prefabStage != null)
+            {
+                prefabGameObject = prefabStage.prefabContentsRoot;
+                if (prefabGameObject == null)
+                    return;
+                prefabStageLensFlares = GetLensFlareComponents(prefabGameObject);
+                if (prefabStageLensFlares.Length == 0)
+                {
+                    return;
+                }
+            }
+#endif
+
             Vector2 vScreenRatio;
 
             if (Instance.IsEmpty())
@@ -834,6 +900,13 @@ namespace UnityEngine.Rendering
                     data.elements.Length == 0 ||
                     comp.intensity <= 0.0f)
                     continue;
+
+#if UNITY_EDITOR
+                if (inPrefabStage && !IsCurrentPrefabLensFlareComponent(prefabGameObject, prefabStageLensFlares, comp))
+                {
+                    continue;
+                }
+#endif
 
                 Light light = comp.GetComponent<Light>();
 

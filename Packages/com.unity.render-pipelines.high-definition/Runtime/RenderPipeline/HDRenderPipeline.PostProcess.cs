@@ -1863,23 +1863,22 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetRandomWriteTarget(2, nextMVLenTexture);
                         }
 
-                        Rect rect;
+                        Rect rect = data.finalViewport;
+                        rect.x = 0;
+                        rect.y = 0;
                         if (data.runsTAAU || data.runsAfterUpscale)
                         {
-                            rect = data.finalViewport;
-
                             // If this is the case it means we are using MSAA. With MSAA TAA is not really supported, so we just bind a black stencil.
                             if (data.msaaIsEnabled)
                                 mpb.SetTexture(HDShaderIDs._StencilTexture, ctx.defaultResources.blackTextureXR);
                             else
                                 mpb.SetTexture(HDShaderIDs._StencilTexture, data.stencilBuffer, RenderTextureSubElement.Stencil);
 
-
                             HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, mpb, taauPass);
                         }
                         else
                         {
-                            ctx.cmd.SetViewport(data.finalViewport);
+                            ctx.cmd.SetViewport(rect);
                             ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, taaPass, MeshTopology.Triangles, 3, 1, mpb);
                             ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, excludeTaaPass, MeshTopology.Triangles, 3, 1, mpb);
                         }
