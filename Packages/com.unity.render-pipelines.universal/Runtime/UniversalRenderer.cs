@@ -46,6 +46,9 @@ namespace UnityEngine.Rendering.Universal
         const int k_DepthBufferBits = 32;
         #endif
 
+        const int k_FinalBlitPassQueueOffset = 1;
+        const int k_AfterFinalBlitPassQueueOffset = k_FinalBlitPassQueueOffset + 1;
+
         static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
 
         private static class Profiling
@@ -113,6 +116,8 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         CopyDepthPass m_FinalDepthCopyPass;
 #endif
+        DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
+        DrawScreenSpaceUIPass m_DrawOverlayUIPass;
 
         internal RenderTargetBufferSystem m_ColorBufferSystem;
 
@@ -140,6 +145,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
+        Material m_BlitHDRMaterial = null;
         Material m_CopyDepthMaterial = null;
         Material m_SamplingMaterial = null;
         Material m_StencilDeferredMaterial = null;
@@ -166,6 +172,7 @@ namespace UnityEngine.Rendering.Universal
             Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, data.xrSystemData.shaders.xrOcclusionMeshPS, data.xrSystemData.shaders.xrMirrorViewPS);
 #endif
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.coreBlitPS);
+            m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitHDROverlay);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
@@ -228,8 +235,8 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
-            // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
-            m_XRCopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 2, m_CopyDepthMaterial);
+            // Schedule XR copydepth right after m_FinalBlitPass
+            m_XRCopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, m_CopyDepthMaterial);
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
@@ -293,6 +300,9 @@ namespace UnityEngine.Rendering.Universal
             }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
 
+            m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing, true);
+            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
+
             {
                 var postProcessParams = PostProcessParams.Create();
                 postProcessParams.blitMaterial = m_BlitMaterial;
@@ -305,7 +315,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
 
 #if UNITY_EDITOR
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
@@ -343,12 +353,16 @@ namespace UnityEngine.Rendering.Universal
             m_GBufferPass?.Dispose();
             m_PostProcessPasses.Dispose();
             m_FinalBlitPass?.Dispose();
+            m_DrawOffscreenUIPass?.Dispose();
+            m_DrawOverlayUIPass?.Dispose();
 
             m_XRTargetHandleAlias?.Release();
 
             ReleaseRenderTargets();
 
+            DebugHandler?.Dispose();
             CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
@@ -1087,6 +1101,14 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_RenderTransparentForwardPass);
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
+            
+            bool shouldRenderUI = cameraData.rendersOverlayUI;
+            bool outputToHDR = cameraData.isHDROutputActive;
+            if (shouldRenderUI && outputToHDR)
+            {
+                m_DrawOffscreenUIPass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment);
+                EnqueuePass(m_DrawOffscreenUIPass);
+            }
 
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
 
@@ -1104,6 +1126,7 @@ namespace UnityEngine.Rendering.Universal
             // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
             // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConversion etc)
             bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
+            bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(ref cameraData);
 
             if (applyPostProcessing)
             {
@@ -1119,8 +1142,8 @@ namespace UnityEngine.Rendering.Universal
                 if (applyPostProcessing)
                 {
                     // if resolving to screen we need to be able to perform sRGBConversion in post-processing if necessary
-                    bool doSRGBConversion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, m_MotionVectorColor, applyFinalPostProcessing, doSRGBConversion);
+                    bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, m_MotionVectorColor, applyFinalPostProcessing, doSRGBEncoding);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -1129,7 +1152,7 @@ namespace UnityEngine.Rendering.Universal
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
                 {
-                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, true);
+                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, true, needsColorEncoding);
                     EnqueuePass(finalPostProcessPass);
                 }
 
@@ -1153,6 +1176,11 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
+                }
+
+                if (shouldRenderUI && !outputToHDR)
+                {
+                    EnqueuePass(m_DrawOverlayUIPass);
                 }
 
 #if ENABLE_VR && ENABLE_XR_MODULE

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -1085,15 +1086,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.xyBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, true, true)
                     { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "HDR_xyMapping" }));
 
-                int gamut = 1;
+                ColorPrimaries colorPrimaries = ColorPrimaries.Rec709;
                 if (HDROutputActiveForCameraType(hdCamera.camera.cameraType))
                 {
-                    if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
-                        gamut = 1;
-                    else if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 || HDROutputSettings.main.displayColorGamut == ColorGamut.HDR10)
-                        gamut = 2;
+                    colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
                 }
-                passData.debugParameters = new Vector4(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, 0, gamut);
+                passData.debugParameters = new Vector4(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, 0, (int)colorPrimaries);
 
                 builder.SetRenderFunc(
                     (GenerateHDRDebugData data, RenderGraphContext ctx) =>

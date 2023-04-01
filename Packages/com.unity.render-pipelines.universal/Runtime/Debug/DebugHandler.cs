@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         static readonly int k_DebugTextureNoStereoPropertyId = Shader.PropertyToID("_DebugTextureNoStereo");
         static readonly int k_DebugTextureDisplayRect = Shader.PropertyToID("_DebugTextureDisplayRect");
         static readonly int k_DebugRenderTargetSupportsStereo = Shader.PropertyToID("_DebugRenderTargetSupportsStereo");
+        static readonly int k_DebugScreenTexturePropertyId = Shader.PropertyToID("_DebugScreenTexture");
 
         // Material settings...
         static readonly int k_DebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
@@ -51,6 +52,10 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         readonly Material m_ReplacementMaterial;
+        readonly Material m_HDRDebugViewMaterial;
+
+        HDRDebugViewPass m_HDRDebugViewPass;
+        RTHandle m_DebugScreenTextureHandle;
 
         bool m_HasDebugRenderTarget;
         bool m_DebugRenderTargetSupportsStereo;
@@ -87,6 +92,18 @@ namespace UnityEngine.Rendering.Universal
 
         internal Material ReplacementMaterial => m_ReplacementMaterial;
         internal UniversalRenderPipelineDebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
+        internal RTHandle DebugScreenTextureHandle => m_DebugScreenTextureHandle;
+
+        internal bool HDRDebugViewIsActive(ref CameraData cameraData)
+        {
+            // HDR debug views should only apply to the last camera in the stack
+            return DebugDisplaySettings.lightingSettings.hdrDebugMode != HDRDebugMode.None && cameraData.resolveFinalTarget;
+        }
+
+        internal bool WriteToDebugScreenTexture(ref CameraData cameraData)
+        {
+            return HDRDebugViewIsActive(ref cameraData);
+        }
 
         internal bool IsScreenClearNeeded
         {
@@ -109,10 +126,22 @@ namespace UnityEngine.Rendering.Universal
         internal DebugHandler(ScriptableRendererData scriptableRendererData)
         {
             Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
+            Shader hdrDebugViewShader = scriptableRendererData.debugShaders.hdrDebugViewPS;
 
             m_DebugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
 
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
+            m_HDRDebugViewMaterial = (hdrDebugViewShader == null) ? null : CoreUtils.CreateEngineMaterial(hdrDebugViewShader);
+
+            m_HDRDebugViewPass = new HDRDebugViewPass(m_HDRDebugViewMaterial);
+        }
+
+        public void Dispose()
+        {
+            m_HDRDebugViewPass.Dispose();
+            m_DebugScreenTextureHandle?.Release();
+            CoreUtils.Destroy(m_HDRDebugViewMaterial);
+            CoreUtils.Destroy(m_ReplacementMaterial);
         }
 
         internal bool IsActiveForCamera(ref CameraData cameraData)
@@ -130,6 +159,15 @@ namespace UnityEngine.Rendering.Universal
             debugFullScreenMode = RenderingSettings.fullScreenDebugMode;
             textureHeightPercent = RenderingSettings.fullScreenDebugModeOutputSizeScreenPercent;
             return debugFullScreenMode != DebugFullScreenMode.None;
+        }
+
+        internal void BlitTextureToDebugScreenTexture(CommandBuffer cmd, RTHandle sourceTexture, Material material, int passId)
+        {
+            cmd.SetGlobalTexture(k_DebugScreenTexturePropertyId, m_DebugScreenTextureHandle);
+            Vector2 viewportScale = sourceTexture.useScaling ? new Vector2(sourceTexture.rtHandleProperties.rtHandleScale.x, sourceTexture.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+
+            CoreUtils.SetRenderTarget(cmd, m_DebugScreenTextureHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+            Blitter.BlitTexture(cmd, sourceTexture, viewportScale, material, passId);
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
@@ -259,6 +297,15 @@ namespace UnityEngine.Rendering.Universal
 
             if (IsActiveForCamera(ref cameraData))
             {
+                if (HDRDebugViewIsActive(ref cameraData))
+                {
+                    HDRDebugViewPass.ConfigureDescriptor(ref cameraData.cameraTargetDescriptor);
+                    RenderingUtils.ReAllocateIfNeeded(ref m_DebugScreenTextureHandle, cameraData.cameraTargetDescriptor, name: "_DebugScreenTexture");
+
+                    var renderer = ScriptableRenderer.current;
+                    m_HDRDebugViewPass.Setup(cameraData.cameraTargetDescriptor, LightingSettings.hdrDebugMode);
+                    renderer.EnqueuePass(m_HDRDebugViewPass);
+                }
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
 
                 // Material settings...

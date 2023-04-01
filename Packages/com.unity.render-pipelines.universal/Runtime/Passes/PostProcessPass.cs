@@ -94,7 +94,8 @@ namespace UnityEngine.Rendering.Universal
 
         // Some Android devices do not support sRGB backbuffer
         // We need to do the conversion manually on those
-        bool m_EnableSRGBConversionIfNeeded;
+        // Also if HDR output is active
+        bool m_EnableColorEncodingIfNeeded;
 
         // Use Fast conversions between SRGB and Linear
         bool m_UseFastSRGBLinearConversion;
@@ -221,9 +222,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="depth"></param>
         /// <param name="internalLut"></param>
         /// <param name="hasFinalPass"></param>
-        /// <param name="enableSRGBConversion"></param>
-        /// <param name="hasExternalPostPasses"></param>
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, in RTHandle motionVectors, bool hasFinalPass, bool enableSRGBConversion)
+        /// <param name="enableColorEncoding"></param>
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, in RTHandle motionVectors, bool hasFinalPass, bool enableColorEncoding)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
             m_MotionVectors = motionVectors;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
-            m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
+            m_EnableColorEncodingIfNeeded = enableColorEncoding;
             m_ResolveToScreen = resolveToScreen;
             m_Destination = k_CameraTarget;
             m_UseSwapBuffer = true;
@@ -249,9 +249,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="depth"></param>
         /// <param name="internalLut"></param>
         /// <param name="hasFinalPass"></param>
-        /// <param name="enableSRGBConversion"></param>
-        /// <param name="hasExternalPostPasses"></param>
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        /// <param name="enableColorEncoding"></param>
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableColorEncoding)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
@@ -262,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
             m_InternalLut = internalLut;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
-            m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
+            m_EnableColorEncodingIfNeeded = enableColorEncoding;
             m_UseSwapBuffer = false;
         }
 
@@ -271,14 +270,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="source"></param>
         /// <param name="useSwapBuffer"></param>
-        /// <param name="hasExternalPostPasses"></param>
-        public void SetupFinalPass(in RTHandle source, bool useSwapBuffer = false)
+        /// <param name="enableColorEncoding"></param>
+        public void SetupFinalPass(in RTHandle source, bool useSwapBuffer = false, bool enableColorEncoding = true)
         {
             m_Source = source;
             m_Destination = k_CameraTarget;
             m_IsFinalPass = true;
             m_HasFinalPass = false;
-            m_EnableSRGBConversionIfNeeded = true;
+            m_EnableColorEncodingIfNeeded = enableColorEncoding;
             m_UseSwapBuffer = useSwapBuffer;
         }
 
@@ -355,7 +354,14 @@ namespace UnityEngine.Rendering.Universal
 
         bool RequireSRGBConversionBlitToBackBuffer(ref CameraData cameraData)
         {
-            return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
+            return cameraData.requireSrgbConversion && m_EnableColorEncodingIfNeeded;
+        }
+
+        bool RequireHDROutput(ref CameraData cameraData)
+        {
+            // If capturing, don't convert to HDR.
+            // If not last in the stack, don't convert to HDR.
+            return cameraData.isHDROutputActive && cameraData.captureActions == null;
         }
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
@@ -558,12 +564,23 @@ namespace UnityEngine.Rendering.Universal
                 if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
+                bool requireHDROutput = RequireHDROutput(ref cameraData);
+                if (requireHDROutput)
+                {
+                    // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
+                    // Otherwise encoding will happen in the final post process pass or the final blit pass
+                    HDROutputUtils.Operation hdrOperation = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                    SetupHDROutput(m_Materials.uber, hdrOperation);
+                }
+
                 if (m_UseFastSRGBLinearConversion)
                 {
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
-                GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass);
+                DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
+                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
                 // Done with Uber, blit it
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
@@ -600,15 +617,22 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else if (m_ResolveToScreen)
                 {
-                    // Create RTHandle alias to use RTHandle apis
-                    RenderTargetIdentifier cameraTarget = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
-                    if (m_CameraTargetHandle != cameraTarget)
+                    if (resolveToDebugScreen)
                     {
-                        m_CameraTargetHandle?.Release();
-                        m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                        debugHandler.BlitTextureToDebugScreenTexture(cmd, GetSource(), m_Materials.uber, 0);
                     }
-                    RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
-                    renderer.ConfigureCameraColorTarget(m_CameraTargetHandle);
+                    else
+                    {
+                        // Create RTHandle alias to use RTHandle apis
+                        RenderTargetIdentifier cameraTarget = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
+                        if (m_CameraTargetHandle != cameraTarget)
+                        {
+                            m_CameraTargetHandle?.Release();
+                            m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                        }
+                        RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                        renderer.ConfigureCameraColorTarget(m_CameraTargetHandle);
+                    }
                 }
             }
         }
@@ -1293,7 +1317,8 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupGrain(ref CameraData cameraData, Material material)
         {
-            if (!m_HasFinalPass && m_FilmGrain.IsActive())
+            // TODO: Investigate how to make grain work with HDR output.
+            if (!m_HasFinalPass && m_FilmGrain.IsActive() && !cameraData.isHDROutputActive)
             {
                 material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
                 PostProcessUtils.ConfigureFilmGrain(
@@ -1311,7 +1336,8 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupDithering(ref CameraData cameraData, Material material)
         {
-            if (!m_HasFinalPass && cameraData.isDitheringEnabled)
+            // TODO: Investigate how to make dithering work with HDR output.
+            if (!m_HasFinalPass && cameraData.isDitheringEnabled && !cameraData.isHDROutputActive)
             {
                 material.EnableKeyword(ShaderKeywordStrings.Dithering);
                 m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
@@ -1323,6 +1349,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        #endregion
+
+#region HDR Output
+        void SetupHDROutput(Material material, HDROutputUtils.Operation hdrOperations)
+        {
+            Vector4 hdrOutputLuminanceParams;
+            UniversalRenderPipeline.GetHDROutputLuminanceParameters(m_Tonemapping, out hdrOutputLuminanceParams);
+            material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
+
+            HDROutputUtils.ConfigureHDROutput(material, HDROutputSettings.main.displayColorGamut, hdrOperations);
+        }
 #endregion
 
 #region Final pass
@@ -1340,8 +1377,22 @@ namespace UnityEngine.Rendering.Universal
 
             if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+            
+            bool requireHDROutput = RequireHDROutput(ref cameraData);
+            if (requireHDROutput)
+            {
+                // If there is a final post process pass, it's always the final pass so do color encoding
+                HDROutputUtils.Operation hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                // If the color space conversion wasn't applied by the uber pass, do it here
+                if (!cameraData.postProcessEnabled)
+                    hdrOperations |= HDROutputUtils.Operation.ColorConversion;
 
-            GetActiveDebugHandler(ref renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
+                SetupHDROutput(material, hdrOperations);
+            }
+            
+            DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
+            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass && !resolveToDebugScreen);
 
             if (m_UseSwapBuffer)
                 m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
@@ -1349,8 +1400,9 @@ namespace UnityEngine.Rendering.Universal
             RTHandle sourceTex = m_Source;
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
-
-            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
+            
+            // TODO: Investigate how to make FXAA work with HDR output.
+            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) && !cameraData.isHDROutputActive;
 
             // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
             bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
@@ -1487,22 +1539,23 @@ namespace UnityEngine.Rendering.Universal
                 material.EnableKeyword(ShaderKeywordStrings.Rcas);
                 FSRUtils.SetRcasConstantsLinear(cmd, cameraData.taaSettings.contrastAdaptiveSharpening);
             }
+            
+            var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
 
-            // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
-            // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-                cameraTarget = cameraData.xr.renderTarget;
-#endif
-
-            // Create RTHandle alias to use RTHandle apis
-            if (m_CameraTargetHandle != cameraTarget)
+            if (resolveToDebugScreen)
             {
-                m_CameraTargetHandle?.Release();
-                m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                debugHandler.BlitTextureToDebugScreenTexture(cmd, sourceTex, material, 0);
             }
-            RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+            else
+            {
+                // Create RTHandle alias to use RTHandle apis
+                if (m_CameraTargetHandle != cameraTarget)
+                {
+                    m_CameraTargetHandle?.Release();
+                    m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                }
+                RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+            }
         }
 
 #endregion

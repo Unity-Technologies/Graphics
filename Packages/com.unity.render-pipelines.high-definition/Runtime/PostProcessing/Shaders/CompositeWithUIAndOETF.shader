@@ -5,7 +5,6 @@ Shader "Hidden/HDRP/CompositeUI"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma editor_sync_compilation
-        #pragma multi_compile_local _ HDR_OUTPUT_REC2020 HDR_OUTPUT_SCRGB
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

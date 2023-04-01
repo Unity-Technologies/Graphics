@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent upscalingFilterText = EditorGUIUtility.TrTextContent("Upscaling Filter", "Controls the type of filter used for upscaling when render scale is lower than 1.0.");
             public static GUIContent fsrOverrideSharpness = EditorGUIUtility.TrTextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for the render pipeline asset.");
             public static GUIContent fsrSharpnessText = EditorGUIUtility.TrTextContent("FSR Sharpness", "Controls the intensity of the sharpening filter used by FidelityFX Super Resolution.");
+            public static string unsupportedFsrWithHDROutputWarning = "Unity does not support FSR with HDR display output.";
             public static GUIContent enableLODCrossFadeText = EditorGUIUtility.TrTextContent("LOD Cross Fade", "Controls whether LOD Cross Fade enabled or disabled.");
             public static GUIContent lodCrossFadeDitheringTypeText = EditorGUIUtility.TrTextContent("LOD Cross Fade Dithering Type", "Controls the LOD Cross Fade Dithering Type that will be used to draw Renderer LOD when LODGroup has CrossFade Fade Mode selected.");
             public static GUIContent shEvalModeText = EditorGUIUtility.TrTextContent("SH Evaluation Mode", "Defines the Spherical Harmonic (SH) lighting evaluation type (per vertex, per pixel, or mixed).");
@@ -98,6 +99,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
             public static GUIContent useFastSRGBLinearConversion = EditorGUIUtility.TrTextContent("Fast sRGB/Linear conversions", "Use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.");
             public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
+            public static string colorGradingModeWithHDROutput = "With the current configuration, Unity uses the HDR color grading mode when outputting to an HDR display.";
             public static string colorGradingModeSpecInfo = "The high dynamic range color grading mode works best on platforms that support floating point textures.";
             public static string colorGradingLutSizeWarning = "The minimal recommended LUT size for the high dynamic range color grading mode is 32. Using lower values will potentially result in color banding and posterization effects.";
             public static GUIContent volumeFrameworkUpdateMode = EditorGUIUtility.TrTextContent("Volume Update Mode", "Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.");

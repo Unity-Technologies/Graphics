@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
             m_CopyToViewportPasses[1] = new CopyToViewportRenderPass(m_CopyToViewportMaterial);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial, null);
         }
 
         /// <inheritdoc />

@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.Universal
 #else
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
 #endif
-            SetSupportedRenderingFeatures();
+            SetSupportedRenderingFeatures(pipelineAsset);
 
             // Initial state of the RTHandle system.
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
@@ -304,6 +304,12 @@ namespace UnityEngine.Rendering.Universal
 #else
             useRenderGraph = false;
 #endif
+
+            SetHDRState(cameras);
+
+            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            // for performance reasons otherwise we render UI overlay after all camera
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
@@ -988,7 +994,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        static void SetSupportedRenderingFeatures()
+        static void SetSupportedRenderingFeatures(UniversalRenderPipelineAsset pipelineAsset)
         {
 #if UNITY_EDITOR
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
@@ -1008,6 +1014,8 @@ namespace UnityEngine.Rendering.Universal
             };
             SceneViewDrawMode.SetupDrawMode();
 #endif
+            
+            SupportedRenderingFeatures.active.supportsHDR = pipelineAsset.supportsHDR;
         }
 
         static void InitializeCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, out CameraData cameraData)
@@ -1400,6 +1408,9 @@ namespace UnityEngine.Rendering.Universal
                 ? settings.colorGradingMode
                 : ColorGradingMode.LowDynamicRange;
 
+            if (HDROutputIsActive())
+                postProcessingData.gradingMode = ColorGradingMode.HighDynamicRange;
+
             postProcessingData.lutSize = settings.colorGradingLutSize;
             postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
         }
@@ -1651,7 +1662,8 @@ namespace UnityEngine.Rendering.Universal
             ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
 
             // Fall back to the automatic filter if FSR was selected, but isn't supported on the current platform
-            if ((selection == UpscalingFilterSelection.FSR) && !FSRUtils.IsSupported())
+            // TODO: Investigate how to make FSR work with HDR output.
+            if ((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported() || HDROutputIsActive()))
             {
                 selection = UpscalingFilterSelection.Auto;
             }
@@ -1706,6 +1718,114 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return filter;
+        }
+
+        /// <summary>
+        /// Checks if the hardware (main display and platform) and the render pipeline support HDR.
+        /// </summary>
+        /// <returns>True if the main display and platform support HDR and HDR output is enabled on the platform.</returns>
+        internal static bool HDROutputIsActive()
+        {
+            bool hdrOutputSupported = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && asset.supportsHDR;
+            bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
+            // TODO: Until we can test it, disable for mobile
+            return !Application.isMobilePlatform && hdrOutputSupported && hdrOutputActive;
+        }
+
+        /// <summary>
+        /// Configures the render pipeline to render to HDR output or disables HDR output.
+        /// </summary>
+#if UNITY_2021_1_OR_NEWER
+        static void SetHDRState(List<Camera> cameras)
+#else
+        static void SetHDRState(Camera[] cameras)
+#endif
+        {
+            bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
+
+            // If the pipeline doesn't support HDR rendering, output to SDR.
+            bool supportsSwitchingHDR = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
+            bool switchHDRToSDR = supportsSwitchingHDR && !asset.supportsHDR && hdrOutputActive;
+            if (switchHDRToSDR)
+            {
+                HDROutputSettings.main.RequestHDRModeChange(false);
+            }
+
+#if UNITY_EDITOR
+            bool requestedHDRModeChange = false;
+
+            // Automatically switch to HDR in the editor if it's available
+            if (supportsSwitchingHDR && asset.supportsHDR && PlayerSettings.useHDRDisplay && HDROutputSettings.main.available)
+            {
+#if UNITY_2021_1_OR_NEWER
+                int cameraCount = cameras.Count;
+#else
+                int cameraCount = cameras.Length;
+#endif
+                if (cameraCount > 0 && cameras[0].cameraType != CameraType.Game)
+                {
+                    requestedHDRModeChange = hdrOutputActive;
+                    HDROutputSettings.main.RequestHDRModeChange(false);
+                }
+                else
+                {
+                    requestedHDRModeChange = !hdrOutputActive;
+                    HDROutputSettings.main.RequestHDRModeChange(true);
+                }
+            }
+
+            if (requestedHDRModeChange || switchHDRToSDR)
+            {
+                // Repaint scene views and game views so the HDR mode request is applied
+                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+            }
+#endif
+
+            // Make sure HDR auto tonemap is off if the URP is handling it
+            if (hdrOutputActive)
+            {
+                HDROutputSettings.main.automaticHDRTonemapping = false;
+            }
+        }
+
+        internal static void GetHDROutputLuminanceParameters(Tonemapping tonemapping, out Vector4 hdrOutputParameters)
+        {
+            float minNits = HDROutputSettings.main.minToneMapLuminance;
+            float maxNits = HDROutputSettings.main.maxToneMapLuminance;
+            float paperWhite = HDROutputSettings.main.paperWhiteNits;
+            ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
+
+            if (!tonemapping.detectPaperWhite.value)
+            {
+                paperWhite = tonemapping.paperWhite.value;
+            }
+            if (!tonemapping.detectBrightnessLimits.value)
+            {
+                minNits = tonemapping.minNits.value;
+                maxNits = tonemapping.maxNits.value;
+            }
+
+            hdrOutputParameters = new Vector4(minNits, maxNits, paperWhite, (int)colorPrimaries);
+        }
+
+        internal static void GetHDROutputGradingParameters(Tonemapping tonemapping, out Vector4 hdrOutputParameters)
+        {
+            int eetfMode = 0;
+            float hueShift = 0.0f;
+
+            switch (tonemapping.mode.value)
+            {
+                case TonemappingMode.Neutral:
+                    eetfMode = (int)tonemapping.neutralHDRRangeReductionMode.value;
+                    hueShift = tonemapping.hueShiftAmount.value;
+                    break;
+
+                case TonemappingMode.ACES:
+                    eetfMode = (int)tonemapping.acesPreset.value;
+                    break;
+            }
+
+            hdrOutputParameters = new Vector4(eetfMode, hueShift, 0.0f, 0.0f);
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER

@@ -758,6 +758,10 @@ namespace UnityEditor.Rendering.Universal
             if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
+            // HDR Output
+            if (!HDROutputUtils.IsShaderVariantValid(compilerData.shaderKeywordSet, PlayerSettings.useHDRDisplay))
+                return true;
+
             return false;
         }
 
@@ -1135,7 +1139,9 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.supportsSoftShadows && anyShadows)
                 shaderFeatures |= ShaderFeatures.SoftShadows;
 
-            if (pipelineAsset.colorGradingMode == ColorGradingMode.HighDynamicRange)
+            // HDR Output will force High Dynamic Range Color Grading
+            bool hasHDROutput = PlayerSettings.useHDRDisplay && pipelineAsset.supportsHDR;
+            if (pipelineAsset.colorGradingMode == ColorGradingMode.HighDynamicRange || hasHDROutput)
                 shaderFeatures |= ShaderFeatures.HdrGrading;
 
             if (pipelineAsset.shEvalMode == ShEvalMode.Auto)

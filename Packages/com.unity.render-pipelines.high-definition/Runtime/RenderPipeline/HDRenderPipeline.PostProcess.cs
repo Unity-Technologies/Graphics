@@ -411,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                    * 23
                    + m_GlobalSettings.colorGradingSpace.GetHashCode() * 23 +
-                   + UnityEditor.PlayerSettings.D3DHDRBitDepth.GetHashCode()
+                   + UnityEditor.PlayerSettings.hdrBitDepth.GetHashCode()
 
 #endif
                    ;
@@ -4178,15 +4178,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (HDROutputActiveForCameraType(m_CurrCameraType) && m_TonemappingFS)
             {
-                if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
-                {
-                    passData.builderCS.EnableKeyword("HDR_OUTPUT_SCRGB");
-                }
-                else
-                {
-                    passData.builderCS.EnableKeyword("HDR_OUTPUT_REC2020");
-                }
-
+                HDROutputUtils.ConfigureHDROutput(passData.builderCS, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorConversion);
                 GetHDROutputParameters(m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
             }
 
@@ -4263,6 +4255,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void GetHDROutputParameters(Tonemapping tonemappingComponent, out Vector4 hdrOutputParameters1, out Vector4 hdrOutputParameters2)
         {
+            ColorGamut gamut = HDROutputSettings.main.displayColorGamut;
             var minNits = HDROutputSettings.main.minToneMapLuminance;
             var maxNits = HDROutputSettings.main.maxToneMapLuminance;
             var paperWhite = HDROutputSettings.main.paperWhiteNits;
@@ -4314,7 +4307,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maxNits = (int)tonemappingComponent.maxNits.value;
             }
 
-            hdrOutputParameters1 = new Vector4(minNits, maxNits, paperWhite, HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 1 : 2);
+            hdrOutputParameters1 = new Vector4(minNits, maxNits, paperWhite, (int)ColorGamutUtility.GetColorPrimaries(gamut));
             hdrOutputParameters2 = new Vector4(eetfMode, hueShift, paperWhite, 0);
         }
 
@@ -4753,14 +4746,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (HDROutputActiveForCameraType(m_CurrCameraType))
                 {
-                    if (HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709)
-                    {
-                        passData.uberPostCS.EnableKeyword("HDR_OUTPUT_SCRGB");
-                    }
-                    else
-                    {
-                        passData.uberPostCS.EnableKeyword("HDR_OUTPUT_REC2020");
-                    }
+                    HDROutputUtils.ConfigureHDROutput(passData.uberPostCS, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorConversion);
                 }
 
                 passData.outputColorLog = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
@@ -5055,7 +5041,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Vector4 hdroutParameters;
             public Vector4 hdroutParameters2;
-            public int outputColorSpace;
 
             public TextureHandle inputTest;
 
@@ -5110,15 +5095,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cubemapFace = cubemapFace;
                 passData.postProcessIsFinalPass = postProcessIsFinalPass;
 
-                passData.outputColorSpace = 0;
                 if (passData.hdrOutputIsActive)
                 {
-                    // This looks dumb now that we only have two options, but we'll have more at some point.
-                    passData.outputColorSpace = HDROutputSettings.main.displayColorGamut == ColorGamut.Rec709 ? 0 :
-                                                HDROutputSettings.main.displayColorGamut == ColorGamut.Rec2020 ? 1 : 0;
                     GetHDROutputParameters(m_Tonemapping, out passData.hdroutParameters, out passData.hdroutParameters2);
                 }
-
 
                 builder.SetRenderFunc(
                     (FinalPassData data, RenderGraphContext ctx) =>
@@ -5235,10 +5215,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         bool outputsToHDRBuffer = hdrOutputActive && data.postProcessIsFinalPass;
                         if (outputsToHDRBuffer)
                         {
-                            if (data.hdroutParameters.w == 1)
-                                data.finalPassMaterial.EnableKeyword("HDR_OUTPUT_SCRGB");
-                            else
-                                data.finalPassMaterial.EnableKeyword("HDR_OUTPUT_REC2020");
+                            HDROutputUtils.ConfigureHDROutput(data.finalPassMaterial, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorEncoding);
 
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams, data.hdroutParameters);
                             finalPassMaterial.SetVector(HDShaderIDs._HDROutputParams2, data.hdroutParameters2);

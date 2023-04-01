@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
             // postFx
             internal TextureHandle internalColorLut;
+            internal TextureHandle overlayUITexture;
         };
         internal RenderGraphFrameResources frameResources = new RenderGraphFrameResources();
 
@@ -390,7 +391,7 @@ namespace UnityEngine.Rendering.Universal
                 DrawRenderGraphGizmos(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, GizmoSubset.PostImageEffects, ref renderingData);
 
             if (!m_TargetIsBackbuffer && renderingData.cameraData.resolveFinalTarget)
-                m_FinalBlitPass.Render(renderGraph, ref renderingData, frameResources.cameraColor, frameResources.backBufferColor);
+                m_FinalBlitPass.Render(renderGraph, ref renderingData, frameResources.cameraColor, frameResources.backBufferColor, frameResources.overlayUITexture);
         }
 
     }

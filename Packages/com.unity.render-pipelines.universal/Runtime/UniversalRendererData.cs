@@ -111,6 +111,12 @@ namespace UnityEngine.Rendering.Universal
             internal Shader coreBlitColorAndDepthPS;
 
             /// <summary>
+            /// Blit shader that blits UI Overlay and performs HDR encoding.
+            /// </summary>
+            [Reload("Shaders/Utils/BlitHDROverlay.shader"), SerializeField]
+            internal Shader blitHDROverlay;
+
+            /// <summary>
             /// Camera Motion Vectors shader.
             /// </summary>
             [Reload("Shaders/CameraMotionVectors.shader")]

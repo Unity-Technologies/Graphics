@@ -33,4 +33,36 @@ namespace UnityEngine.Rendering
         /// </summary>
         ACES4000Nits
     }
+    
+    /// <summary>
+    /// The available options for colorspace when outputting to an HDR device.
+    /// </summary>
+    [GenerateHLSL]
+    public enum HDRColorspace
+    {
+        /// <summary>
+        /// Rec709 color primaries with D65 white point.
+        /// </summary>
+        Rec709,
+        /// <summary>
+        /// Rec2020 color primaries with D65 white point.
+        /// </summary>
+        Rec2020
+    }
+    
+    /// <summary>
+    /// The available options for color encoding when outputting to an HDR device.
+    /// </summary>
+    [GenerateHLSL]
+    public enum HDREncoding
+    {
+        /// <summary>
+        /// Linear OETF.
+        /// </summary>
+        Linear = TransferFunction.Linear,
+        /// <summary>
+        /// ST 2084 PQ OETF
+        /// </summary>
+        PQ = TransferFunction.PQ
+    }
 }
