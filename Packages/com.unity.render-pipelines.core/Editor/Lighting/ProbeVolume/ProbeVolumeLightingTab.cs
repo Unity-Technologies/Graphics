@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            if (ButtonWithDropdownList(Styles.generateLighting, Styles.bakeOptionsText, BakeButtonCallback, GUILayout.Width(Styles.lightingButtonWidth)))
+            if (EditorGUI.LargeSplitButtonWithDropdownList(Styles.generateLighting, Styles.bakeOptionsText, BakeButtonCallback))
             {
                 // Make sure APV is enabled
                 var sceneData = ProbeReferenceVolume.instance.sceneData;
