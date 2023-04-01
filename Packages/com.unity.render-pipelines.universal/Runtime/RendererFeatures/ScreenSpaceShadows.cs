@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {
 #if UNITY_EDITOR
+        [UnityEditor.ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES2)]
         [UnityEditor.ShaderKeywordFilter.SelectIf(true, keywordNames: ShaderKeywordStrings.MainLightShadowScreen)]
         private const bool k_RequiresScreenSpaceShadowsKeyword = true;
 #endif

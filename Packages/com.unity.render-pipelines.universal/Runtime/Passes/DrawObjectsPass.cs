@@ -227,6 +227,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Render objects that did not match any shader pass with error shader
                     RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
                 }
+
+                // Clean up
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
             }
         }
 

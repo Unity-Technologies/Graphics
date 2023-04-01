@@ -11,10 +11,6 @@ namespace UnityEngine.Rendering.Universal
         // Parameters
         [SerializeField] internal AOMethodOptions AOMethod = AOMethodOptions.BlueNoise;
         [SerializeField] internal bool Downsample = false;
-#if UNITY_EDITOR
-        // AfterOpaque requires also the "off variant" to be included
-        [ShaderKeywordFilter.SelectIf(true, overridePriority: true, keywordNames: new string[] {"", ShaderKeywordStrings.ScreenSpaceOcclusion})]
-#endif
         [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
         [SerializeField] internal NormalQuality NormalSamples = NormalQuality.Medium;
@@ -68,11 +64,6 @@ namespace UnityEngine.Rendering.Universal
     [URPHelpURL("post-processing-ssao")]
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
-#if UNITY_EDITOR
-        [ShaderKeywordFilter.SelectIf(true, overridePriority: true, keywordNames: ShaderKeywordStrings.ScreenSpaceOcclusion)]
-        private const bool k_RequiresScreenSpaceOcclusion = true;
-#endif
-
         // Serialized Fields
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
 
@@ -88,19 +79,18 @@ namespace UnityEngine.Rendering.Universal
         private Material m_Material;
         private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
-        // Constants
-        private const string k_AOInterleavedGradientKeyword = "_INTERLEAVED_GRADIENT";
-        private const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
-        private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
-        private const string k_SourceDepthLowKeyword = "_SOURCE_DEPTH_LOW";
-        private const string k_SourceDepthMediumKeyword = "_SOURCE_DEPTH_MEDIUM";
-        private const string k_SourceDepthHighKeyword = "_SOURCE_DEPTH_HIGH";
-        private const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
-        private const string k_SampleCountLowKeyword = "_SAMPLE_COUNT_LOW";
-        private const string k_SampleCountMediumKeyword = "_SAMPLE_COUNT_MEDIUM";
-        private const string k_SampleCountHighKeyword = "_SAMPLE_COUNT_HIGH";
-
-        internal bool afterOpaque => m_Settings.AfterOpaque;
+        // Internal / Constants
+        internal ref ScreenSpaceAmbientOcclusionSettings settings => ref m_Settings;
+        internal const string k_AOInterleavedGradientKeyword = "_INTERLEAVED_GRADIENT";
+        internal const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
+        internal const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
+        internal const string k_SourceDepthLowKeyword = "_SOURCE_DEPTH_LOW";
+        internal const string k_SourceDepthMediumKeyword = "_SOURCE_DEPTH_MEDIUM";
+        internal const string k_SourceDepthHighKeyword = "_SOURCE_DEPTH_HIGH";
+        internal const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
+        internal const string k_SampleCountLowKeyword = "_SAMPLE_COUNT_LOW";
+        internal const string k_SampleCountMediumKeyword = "_SAMPLE_COUNT_MEDIUM";
+        internal const string k_SampleCountHighKeyword = "_SAMPLE_COUNT_HIGH";
 
         /// <inheritdoc/>
         public override void Create()

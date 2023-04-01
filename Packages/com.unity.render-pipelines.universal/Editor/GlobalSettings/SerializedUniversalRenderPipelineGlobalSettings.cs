@@ -14,15 +14,11 @@ namespace UnityEditor.Rendering.Universal
         #endregion
 
         private List<UniversalRenderPipelineGlobalSettings> serializedSettings = new List<UniversalRenderPipelineGlobalSettings>();
-
         public SerializedProperty renderingLayerNames;
-
         public SerializedProperty stripDebugVariants;
         public SerializedProperty stripUnusedPostProcessingVariants;
         public SerializedProperty stripUnusedVariants;
-        public SerializedProperty stripUnusedLODCrossFadeVariants;
         public SerializedProperty stripScreenCoordOverrideVariants;
-
         public ReorderableList renderingLayerNameList;
 
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
@@ -43,7 +39,6 @@ namespace UnityEditor.Rendering.Universal
             stripDebugVariants = serializedObject.FindProperty("m_StripDebugVariants");
             stripUnusedPostProcessingVariants = serializedObject.FindProperty("m_StripUnusedPostProcessingVariants");
             stripUnusedVariants = serializedObject.FindProperty("m_StripUnusedVariants");
-            stripUnusedLODCrossFadeVariants = serializedObject.FindProperty("m_StripUnusedLODCrossFadeVariants");
             shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             exportShaderVariants = serializedObject.FindProperty("m_ExportShaderVariants");
             stripScreenCoordOverrideVariants = serializedObject.FindProperty("m_StripScreenCoordOverrideVariants");

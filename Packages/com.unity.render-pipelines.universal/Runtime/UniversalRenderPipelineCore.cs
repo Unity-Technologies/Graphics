@@ -1175,6 +1175,15 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for editor visualization. </summary>
         public const string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
 
+        /// <summary> Keyword used for disabling Texture 2D Arrays. </summary>
+        public const string DisableTexture2DXArray = "DISABLE_TEXTURE2D_X_ARRAY";
+
+        /// <summary> Keyword used for Single Slice Blits. </summary>
+        public const string BlitSingleSlice = "BLIT_SINGLE_SLICE";
+
+        /// <summary> Keyword used for rendering a combined mesh for XR. </summary>
+        public const string XROcclusionMeshCombined = "XR_OCCLUSION_MESH_COMBINED";
+
         /// <summary> Keyword used for applying scale and bias. </summary>
         public const string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
 
@@ -1198,6 +1207,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for vertex Spherical Harmonic (SH) evaluation in URP Lit shaders.</summary>
         public const string EVALUATE_SH_VERTEX = "EVALUATE_SH_VERTEX";
+
+        /// <summary> Keyword used for Drawing procedurally.</summary>
+        public const string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
     }
 
     public sealed partial class UniversalRenderPipeline
