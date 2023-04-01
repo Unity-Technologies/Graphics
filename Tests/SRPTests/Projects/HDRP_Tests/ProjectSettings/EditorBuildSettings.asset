@@ -476,12 +476,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3005_VertexDensity.unity
     guid: cec032192a9db8541b2c7d395ba6fd9f
-  - enabled: 1
+  - enabled: 1  
     path: Assets/GraphicTests/Scenes/3x_DebugView/3006_TileCluster_Cluster.unity
     guid: 2b613394fffde014b985766d7ac86297
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3007_TileCluster_Tile.unity
     guid: 0acf4cd0f0aaa4b42b69cb92491da8bd
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3008_ShadowDebugMode.unity
+    guid: 8c93fca0ef1024d9b9164ffe0ffd909e
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a

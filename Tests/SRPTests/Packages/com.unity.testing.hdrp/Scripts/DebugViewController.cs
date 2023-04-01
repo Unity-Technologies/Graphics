@@ -28,6 +28,8 @@ public class DebugViewController : MonoBehaviour
     [SerializeField] int lightingClusterDebugMode = 0;
     [SerializeField] int lightingClusterDistance = 0;
 
+    [SerializeField] int lightingShadowDebugMode = 0;
+
     [ContextMenu("Set Debug View")]
     public void SetDebugView()
     {
@@ -41,6 +43,7 @@ public class DebugViewController : MonoBehaviour
             case SettingType.Lighting:
                 hdPipeline.debugDisplaySettings.SetDebugLightLayersMode(lightlayers);
                 hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (RenderingLayerMask)0b10111101;
+                hdPipeline.debugDisplaySettings.SetShadowDebugMode((ShadowMapDebugMode) lightingShadowDebugMode);
                 hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode)lightingFullScreenDebugMode);
                 if ((FullScreenDebugMode)lightingFullScreenDebugMode == FullScreenDebugMode.RayTracingAccelerationStructure)
                 {
