@@ -811,18 +811,6 @@ namespace UnityEngine.Rendering.Universal
                 // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
                 baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
 
-                if (!isStackedRendering)
-                {
-                    for (int i = 0; i < rendererCount; ++i)
-                    {
-                        var currRenderer = asset.GetRenderer(i);
-                        if (baseCameraData.renderer != null && !currRenderer.hasReleasedRTs && baseCameraData.renderer != currRenderer)
-                        {
-                            currRenderer.ReleaseRenderTargets();
-                        }
-                    }
-                }
-
                 RenderSingleCamera(context, ref baseCameraData, anyPostProcessingEnabled);
                 using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
                 {

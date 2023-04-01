@@ -801,6 +801,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public void OnDestroy()
         {
+            scriptableRenderer?.ReleaseRenderTargets();
             m_Camera.DestroyVolumeStack(this);
         }
     }
