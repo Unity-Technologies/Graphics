@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Color Adjustments")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("Post-Processing-Color-Adjustments")]
     public sealed class ColorAdjustments : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

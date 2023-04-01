@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Chromatic Aberration")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("post-processing-chromatic-aberration")]
     public sealed class ChromaticAberration : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
