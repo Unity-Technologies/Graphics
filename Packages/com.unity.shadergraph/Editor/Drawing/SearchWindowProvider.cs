@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string slotName;
     }
 
-    class SearchWindowProvider : ScriptableObject
+    class SearchWindowProvider : IDisposable
     {
         internal EditorWindow m_EditorWindow;
         internal GraphData m_Graph;
@@ -50,11 +50,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Icon.Apply();
         }
 
-        void OnDestroy()
+        public void Dispose()
         {
             if (m_Icon != null)
             {
-                DestroyImmediate(m_Icon);
+                UnityEngine.Object.DestroyImmediate(m_Icon);
                 m_Icon = null;
             }
 
