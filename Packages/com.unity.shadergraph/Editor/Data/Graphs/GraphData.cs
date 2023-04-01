@@ -1094,6 +1094,17 @@ namespace UnityEditor.ShaderGraph
             m_AddedEdges.Remove(edge);
         }
 
+        public void RemoveEdges(IEdge[] edges)
+        {
+            if (edges.Length == 0)
+                return;
+            foreach (var edge in edges)
+            {
+                RemoveEdgeNoValidate(edge);
+            }
+            ValidateGraph();
+        }
+
         public void RemoveEdge(IEdge e)
         {
             RemoveEdgeNoValidate(e);
@@ -1262,14 +1273,27 @@ namespace UnityEditor.ShaderGraph
             return m_NodeDictionary.TryGetValue(node.objectId, out var foundNode) && node == foundNode;
         }
 
+        public void GetEdges(MaterialSlot slot, List<IEdge> foundEdges)
+        {
+            List<IEdge> candidateEdges;
+            if (!m_NodeEdges.TryGetValue(slot.owner.objectId, out candidateEdges))
+                return;
+
+            foreach (var edge in candidateEdges)
+            {
+                var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
+                if (cs.node == slot.owner && cs.slotId == slot.id)
+                    foundEdges.Add(edge);
+            }
+        }
+
         public void GetEdges(SlotReference s, List<IEdge> foundEdges)
         {
-            MaterialSlot slot = s.slot;
-
             List<IEdge> candidateEdges;
             if (!m_NodeEdges.TryGetValue(s.node.objectId, out candidateEdges))
                 return;
 
+            MaterialSlot slot = s.slot;
             foreach (var edge in candidateEdges)
             {
                 var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;

@@ -199,10 +199,12 @@ namespace UnityEditor.Graphing
         private static List<AbstractMaterialNode> GetChildNodes(AbstractMaterialNode node)
         {
             List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
-            var ids = node.GetOutputSlots<MaterialSlot>().Select(x => x.id);
-            foreach (var slot in ids)
+            var slots = node.GetOutputSlots<MaterialSlot>();
+            var edges = new List<IEdge>();
+            foreach (var slot in slots)
             {
-                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                node.owner.GetEdges(slot, edges);
+                foreach (var edge in edges)
                 {
                     var inputNode = ((Edge)edge).inputSlot.node;
                     if (inputNode != null)
@@ -210,6 +212,7 @@ namespace UnityEditor.Graphing
                         nodeList.Add(inputNode);
                     }
                 }
+                edges.Clear();
             }
             return nodeList;
         }
@@ -426,51 +429,66 @@ namespace UnityEditor.Graphing
             return ShaderStage.Fragment;
         }
 
-        public static ShaderStageCapability GetEffectiveShaderStageCapability(MaterialSlot initialSlot, bool goingBackwards)
-        {
-            var graph = initialSlot.owner.owner;
-            s_SlotStack.Clear();
-            s_SlotStack.Push(initialSlot);
-            ShaderStageCapability capabilities = ShaderStageCapability.All;
-            while (s_SlotStack.Any())
-            {
-                var slot = s_SlotStack.Pop();
-
-                // Clear any stages from the total capabilities that this slot doesn't support (e.g. if this is vertex, clear pixel)
-                capabilities &= slot.stageCapability;
-                // Can early out if we know nothing is compatible, otherwise we have to keep checking everything we can reach.
-                if (capabilities == ShaderStageCapability.None)
-                    return capabilities;
-
-                if (goingBackwards && slot.isInputSlot)
-                {
-                    foreach (var edge in graph.GetEdges(slot.slotReference))
-                    {
-                        var node = edge.outputSlot.node;
-                        s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
-                    }
-                }
-                else if (!goingBackwards && slot.isOutputSlot)
-                {
-                    foreach (var edge in graph.GetEdges(slot.slotReference))
-                    {
-                        var node = edge.inputSlot.node;
-                        s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
-                    }
-                }
-                else
-                {
-                    var ownerSlots = Enumerable.Empty<MaterialSlot>();
-                    if (goingBackwards && slot.isOutputSlot)
-                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>(slot);
-                    else if (!goingBackwards && slot.isInputSlot)
-                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>(slot);
-                    foreach (var ownerSlot in ownerSlots)
-                        s_SlotStack.Push(ownerSlot);
-                }
+        private static ShaderStageCapability GetEffectiveShaderStageCapabilityRecursive(SlotReference slotRef, bool goingBackwards, Dictionary<SlotReference, ShaderStageCapability> lookUp) {
+            var slot = slotRef.slot;
+            ShaderStageCapability capabilities = slot.stageCapability;
+            // Can early out if we know nothing is compatible, otherwise we have to keep checking everything we can reach.
+            if (capabilities == ShaderStageCapability.None) {
+                lookUp[slotRef] = capabilities;
+                return capabilities;
             }
 
+            var graph = slot.owner.owner;
+            if (goingBackwards && slot.isInputSlot)
+            {
+                foreach (var edge in graph.GetEdges(slot.slotReference))
+                {
+                    if (!lookUp.TryGetValue(edge.outputSlot, out var childCapabilities)) {
+                        childCapabilities = GetEffectiveShaderStageCapabilityRecursive(edge.outputSlot, goingBackwards, lookUp);
+                    }
+                    capabilities &= childCapabilities;
+                    if (capabilities == ShaderStageCapability.None)
+                        break;
+                }
+            }
+            else if (!goingBackwards && slot.isOutputSlot)
+            {
+                foreach (var edge in graph.GetEdges(slot.slotReference))
+                {
+                    if (!lookUp.TryGetValue(edge.inputSlot, out var childCapabilities)) {
+                        childCapabilities = GetEffectiveShaderStageCapabilityRecursive(edge.inputSlot, goingBackwards, lookUp);
+                    }
+                    capabilities &= childCapabilities;
+                    if (capabilities == ShaderStageCapability.None)
+                        break;
+                }
+            }
+            else
+            {
+                var ownerSlots = Enumerable.Empty<MaterialSlot>();
+                if (goingBackwards && slot.isOutputSlot)
+                    ownerSlots = slot.owner.GetInputSlots<MaterialSlot>(slot);
+                else if (!goingBackwards && slot.isInputSlot)
+                    ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>(slot);
+                foreach (var ownerSlot in ownerSlots) {
+                    var childSlotRef = new SlotReference(ownerSlot.owner, ownerSlot.id);
+                    if (!lookUp.TryGetValue(childSlotRef, out var childCapabilities)) {
+                        childCapabilities = GetEffectiveShaderStageCapabilityRecursive(childSlotRef, goingBackwards, lookUp);
+                    }
+                    capabilities &= childCapabilities;
+                    if (capabilities == ShaderStageCapability.None)
+                        break;
+                }
+            }
+            lookUp[slotRef] = capabilities;
             return capabilities;
+        }
+
+        public static ShaderStageCapability GetEffectiveShaderStageCapability(MaterialSlot initialSlot, bool goingBackwards, Dictionary<SlotReference, ShaderStageCapability> lookUp = null)
+        {
+            if (lookUp == null)
+                lookUp = new Dictionary<SlotReference, ShaderStageCapability>();
+            return GetEffectiveShaderStageCapabilityRecursive(new SlotReference(initialSlot.owner, initialSlot.id), goingBackwards, lookUp);
         }
 
         public static string GetSlotDimension(ConcreteSlotValueType slotValue)

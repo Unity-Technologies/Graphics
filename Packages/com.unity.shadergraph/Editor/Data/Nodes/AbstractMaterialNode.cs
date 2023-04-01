@@ -869,9 +869,7 @@ namespace UnityEditor.ShaderGraph
             if (owner != null)
             {
                 var edges = owner.GetEdges(GetSlotReference(slotId));
-
-                foreach (var edge in edges.ToArray())
-                    owner.RemoveEdge(edge);
+                owner.RemoveEdges(edges.ToArray());
             }
 
             //remove slots
