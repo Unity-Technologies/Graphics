@@ -11,6 +11,8 @@
     "com.unity.testing.visualeffectgraph": "file:../../../Packages/com.unity.testing.visualeffectgraph",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "1.0.0",
+    "local.utf.references": "file:../../../Packages/UnityTestFrameworkPackages",
+    "local.gtf.references": "file:../../../Packages/GraphicsTestFrameworkPackages",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "com.unity.xr.legacyinputhelpers": "2.1.2",
     "com.unity.modules.ai": "1.0.0",
@@ -43,9 +45,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0",
-    "com.unity.test-framework.build": "0.0.1-preview.14",
-    "com.unity.test-framework.utp-reporter": "1.1.0-preview"
+    "com.unity.modules.xr": "1.0.0"
   },
   "testables": [
     "com.unity.testing.visualeffectgraph",
