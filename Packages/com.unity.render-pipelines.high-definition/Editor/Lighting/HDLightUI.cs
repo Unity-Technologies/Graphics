@@ -428,13 +428,53 @@ namespace UnityEditor.Rendering.HighDefinition
                     else if (lightType == LightType.Spot)
                     {
                         // Cone spot projector
+                        int indent = EditorGUI.indentLevel;
+
+                        float textFieldWidth = EditorGUIUtility.pixelsPerPoint * 25f;
+                        float spacing = EditorGUIUtility.pixelsPerPoint * 2f;
+
+                        float max = serialized.settings.spotAngle.floatValue ;
+                        float min = (serialized.spotInnerPercent.floatValue / 100f) * max;
+
+                        Rect position = EditorGUILayout.GetControlRect();
+
+                        EditorGUI.indentLevel--;
+                        Rect rect = EditorGUI.PrefixLabel(position, s_Styles.innerOuterSpotAngle);
+                        EditorGUI.indentLevel = 0;
+
+                        Rect sliderRect = rect;
+                        sliderRect.x += textFieldWidth + spacing;
+                        sliderRect.width -= (textFieldWidth + spacing) * 2f;
+
+                        Rect minRect = rect;
+                        minRect.width = textFieldWidth;
+
+                        Rect maxRect = position;
+                        maxRect.x += maxRect.width - textFieldWidth;
+                        maxRect.width = textFieldWidth;
+
                         EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.Slider(serialized.settings.spotAngle, HDAdditionalLightData.k_MinSpotAngle, HDAdditionalLightData.k_MaxSpotAngle, s_Styles.outerAngle);
+                        min = EditorGUI.DelayedFloatField(minRect, min);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            serialized.customSpotLightShadowCone.floatValue = Math.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
+                            min = Mathf.Clamp(min, HDAdditionalLightData.k_MinSpotAngle, max);
+                            serialized.spotInnerPercent.floatValue = min / max * 100f;
                         }
-                        EditorGUILayout.PropertyField(serialized.spotInnerPercent, s_Styles.spotInnerPercent);
+
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUI.MinMaxSlider(sliderRect, ref min, ref max, HDAdditionalLightData.k_MinSpotAngle,HDAdditionalLightData.k_MaxSpotAngle );
+
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            min = Mathf.Clamp(min, HDAdditionalLightData.k_MinSpotAngle, max);
+                            serialized.spotInnerPercent.floatValue = min / max * 100f;
+                            serialized.settings.spotAngle.floatValue = max;
+                            serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
+                        }
+
+                        EditorGUI.DelayedFloatField(maxRect, serialized.settings.spotAngle,GUIContent.none);
+
+                        EditorGUI.indentLevel = indent - 1;
                         EditorGUI.BeginChangeCheck();
                         EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
                         if (EditorGUI.EndChangeCheck())
@@ -442,6 +482,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             //Also affect baked shadows
                             serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
                         }
+
+                        EditorGUI.indentLevel = indent;
                     }
                     else if (lightType == LightType.Pyramid)
                     {
