@@ -73,29 +73,107 @@ namespace UnityEditor.VFX
             return mat;
         }
 
-        static Mesh s_CubeMesh;
-        static Mesh cubeMesh
-        {
-            get
-            {
-                if (s_CubeMesh == null)
-                    s_CubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-                return s_CubeMesh;
-            }
-        }
-
         protected static void CustomCubeHandleCap(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
+            if (!IsValidTRSMatrix(Handles.matrix))
+                return;
+
             switch (eventType)
             {
                 case EventType.Layout:
                 case EventType.MouseMove:
                     HandleUtility.AddControl(controlID, HandleUtility.DistanceToCube(position, rotation, size));
                     break;
-                case (EventType.Repaint):
-                    Graphics.DrawMeshNow(cubeMesh, StartCapDrawRevertingScale(position, rotation, size));
+                case EventType.Repaint:
+                    Graphics.DrawMeshNow(Handles.cubeMesh, StartCapDrawRevertingScale(position, rotation, size));
                     break;
             }
+        }
+
+        protected static void CustomConeHandleCap(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        {
+            if (!IsValidTRSMatrix(Handles.matrix))
+                return;
+
+            switch (eventType)
+            {
+                case EventType.Layout:
+                case EventType.MouseMove:
+                    HandleUtility.AddControl(controlID, HandleUtility.DistanceToCone(position, rotation, size));
+                    break;
+                case EventType.Repaint:
+                    Graphics.DrawMeshNow(Handles.coneMesh, StartCapDrawRevertingScale(position, rotation, size));
+                    break;
+            }
+        }
+
+        protected static void CustomAngleHandleCap(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        {
+            if (!IsValidTRSMatrix(Handles.matrix))
+                return;
+
+            switch (eventType)
+            {
+                case EventType.Layout:
+                case EventType.MouseMove:
+                    HandleUtility.AddControl(controlID, HandleUtility.DistanceToCube(position, rotation, size * arcHandleSizeMultiplier));
+                    break;
+                case (EventType.Repaint):
+                {
+                    var worldPosition = Handles.matrix.MultiplyPoint3x4(position);
+                    var normal = worldPosition - Handles.matrix.GetPosition();
+                    var tangent = Handles.matrix.MultiplyVector(Quaternion.AngleAxis(90f, Vector3.up) * position);
+
+                    var crossLength = Vector3.Cross(normal, tangent).sqrMagnitude;
+                    if (!float.IsFinite(crossLength) || crossLength < 1e-5f)
+                        break;
+
+                    rotation = Quaternion.LookRotation(tangent, normal);
+                    var matrix = Matrix4x4.TRS(worldPosition, rotation, (Vector3.one + Vector3.forward * arcHandleSizeMultiplier));
+
+                    using (new Handles.DrawingScope(matrix))
+                    {
+                        Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
+                    }
+                }
+                break;
+            }
+        }
+
+        private static bool IsValidSlider(Vector3 position, Vector3 direction, float size)
+        {
+            if (!float.IsFinite(position.sqrMagnitude))
+                return false;
+            if (!float.IsFinite(direction.sqrMagnitude))
+                return false;
+            if (!float.IsFinite(size))
+                return false;
+            return true;
+        }
+
+        protected static Vector3 CustomSlider(int controlID, Vector3 position, Vector3 direction, float size)
+        {
+            return IsValidSlider(position, direction, size)
+                ? Handles.Slider(controlID, position, direction, size, CustomCubeHandleCap, 0)
+                : position;
+        }
+
+        protected static Vector3 CustomSlider(Vector3 position, Vector3 direction, float size)
+        {
+            var controlID = GUIUtility.GetControlID(Handles.s_SliderHash, FocusType.Passive);
+            return CustomSlider(controlID, position, direction, size);
+        }
+
+        private static bool IsValidTRSMatrix(Matrix4x4 matrix)
+        {
+            if (!matrix.ValidTRS())
+                return false;
+
+            for (int i = 0; i < 16; ++i)
+                if (!float.IsFinite(matrix[i]))
+                    return false;
+
+            return true;
         }
 
         private Quaternion GetHandleRotation(Quaternion localRotation)
@@ -105,85 +183,159 @@ namespace UnityEditor.VFX
             return Handles.matrix.inverse.rotation;
         }
 
-        public bool PositionGizmo(ref Vector3 position, Vector3 rotation, bool always)
+        [Flags]
+        enum ForceTransformGizmo
+        {
+            None,
+            Position,
+            Orientation,
+            Scale
+        }
+
+        public bool RotationOnlyGizmo(Vector3 center, Vector3 angles, IProperty<Vector3> anglesProperty)
+        {
+            return TransformGizmo(center, angles, Vector3.one, null, anglesProperty, null, ForceTransformGizmo.Position);
+        }
+
+        public bool PositionOnlyGizmo(Vector3 center, IProperty<Vector3> centerProperty)
+        {
+            return TransformGizmo(center, Vector3.zero, Vector3.one, new PropertyWrapperSimple(centerProperty), null, null, ForceTransformGizmo.Position);
+        }
+
+        public bool PositionOnlyGizmo(Position center, IProperty<Position> centerProperty)
+        {
+            return TransformGizmo(center, Vector3.zero, Vector3.one, new PropertyWrapperPosition(centerProperty), null, null, ForceTransformGizmo.Position);
+        }
+
+        public bool TransformGizmo(Vector3 center, Vector3 angles, Vector3 scale, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty)
+        {
+            return TransformGizmo(center, angles, scale, new PropertyWrapperSimple(centerProperty), anglesProperty, scaleProperty, ForceTransformGizmo.None);
+        }
+
+        interface PropertyWrapperVector3
+        {
+            bool isEditable { get; }
+            void SetValue(Vector3 value);
+        }
+
+        readonly struct PropertyWrapperSimple : PropertyWrapperVector3
+        {
+            private readonly IProperty<Vector3> m_Property;
+
+            public PropertyWrapperSimple(IProperty<Vector3> property)
+            {
+                m_Property = property;
+            }
+
+            public bool isEditable => m_Property.isEditable;
+
+            public void SetValue(Vector3 value)
+            {
+                m_Property.SetValue(value);
+            }
+        }
+
+        readonly struct PropertyWrapperPosition : PropertyWrapperVector3
+        {
+            private readonly IProperty<Position> m_Property;
+
+            public PropertyWrapperPosition(IProperty<Position> property)
+            {
+                m_Property = property;
+            }
+
+            public bool isEditable => m_Property.isEditable;
+
+            public void SetValue(Vector3 value)
+            {
+                m_Property.SetValue(value);
+            }
+        }
+
+
+        private bool TransformGizmo(Vector3 center, Vector3 angles, Vector3 scale, PropertyWrapperVector3 centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, ForceTransformGizmo forceTransformGizmo)
+        {
+            if (!float.IsFinite(center.sqrMagnitude)
+                || !float.IsFinite(scale.sqrMagnitude)
+                || !float.IsFinite(angles.sqrMagnitude))
+                return false;
+
+            var parentTransform = Handles.matrix;
+
+            var rotation = Quaternion.Euler(angles);
+            var currentTransform = Matrix4x4.TRS(center, rotation, scale);
+            var worldTransform = parentTransform * currentTransform;
+
+            center = worldTransform.GetPosition();
+            rotation = worldTransform.rotation;
+
+            using (new Handles.DrawingScope(Matrix4x4.identity))
+            {
+                if (centerProperty is { isEditable: true } && PositionGizmo(ref center, rotation, forceTransformGizmo.HasFlag(ForceTransformGizmo.Position)))
+                {
+                    var inverse = parentTransform.inverse;
+                    center = inverse.MultiplyPoint(center);
+                    centerProperty.SetValue(center);
+                    return true;
+                }
+
+                if (anglesProperty is { isEditable: true } && RotationGizmo(center, ref rotation, forceTransformGizmo.HasFlag(ForceTransformGizmo.Orientation)))
+                {
+                    var inverse = parentTransform.inverse;
+                    rotation = inverse.rotation * rotation;
+                    angles = rotation.eulerAngles;
+                    anglesProperty.SetValue(angles);
+                    return true;
+                }
+
+                if (scaleProperty is { isEditable: true } && ScaleGizmo(center, rotation, ref scale, forceTransformGizmo.HasFlag(ForceTransformGizmo.Scale)))
+                {
+                    scaleProperty.SetValue(scale);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        Vector3 m_InitialNormal;
+        public bool NormalGizmo(Vector3 position, ref Vector3 normal, bool always)
+        {
+            if (Event.current.type == EventType.MouseDown)
+            {
+                m_InitialNormal = normal;
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            var parentTransform = Handles.matrix;
+            var currentTransform = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
+            var worldTransform = parentTransform * currentTransform;
+
+            using (new Handles.DrawingScope(Matrix4x4.identity))
+            {
+                var delta = worldTransform.rotation;
+                RotationGizmo(worldTransform.GetPosition(), ref delta, always);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    var inverse = parentTransform.inverse;
+                    delta = inverse.rotation * delta;
+                    normal = delta * m_InitialNormal;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool PositionGizmo(ref Vector3 position, Quaternion rotation, bool always)
         {
             if (always || Tools.current == Tool.Move || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                position = Handles.PositionHandle(position, GetHandleRotation(Quaternion.Euler(rotation)));
+                position = Handles.PositionHandle(position, GetHandleRotation(rotation));
                 return EditorGUI.EndChangeCheck();
             }
             return false;
-        }
-
-        public bool ScaleGizmo(Vector3 position, ref Vector3 scale, Quaternion rotation, bool always)
-        {
-            if (always || Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.None)
-            {
-                EditorGUI.BeginChangeCheck();
-                scale = Handles.ScaleHandle(scale, position, GetHandleRotation(rotation), Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
-                return EditorGUI.EndChangeCheck();
-            }
-            return false;
-        }
-
-        public bool ScaleGizmo(Vector3 position, Vector3 scale, Quaternion rotation, IProperty<Vector3> scaleProperty, bool always)
-        {
-            if (scaleProperty != null && scaleProperty.isEditable && ScaleGizmo(position, ref scale, rotation, always))
-            {
-                scaleProperty.SetValue(scale);
-                return true;
-            }
-            return false;
-        }
-
-        public bool PositionGizmo(Vector3 position, Vector3 rotation, IProperty<Vector3> positionProperty, bool always)
-        {
-            if (positionProperty != null && positionProperty.isEditable && PositionGizmo(ref position, rotation, always))
-            {
-                positionProperty.SetValue(position);
-                return true;
-            }
-            return false;
-        }
-
-        public bool RotationGizmo(Vector3 position, Vector3 rotation, IProperty<Vector3> anglesProperty, bool always)
-        {
-            if (anglesProperty != null && anglesProperty.isEditable && RotationGizmo(position, ref rotation, always))
-            {
-                anglesProperty.SetValue(rotation);
-                return true;
-            }
-            return false;
-        }
-
-        bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
-        {
-            Quaternion quaternion = Quaternion.Euler(rotation);
-
-            bool result = RotationGizmo(position, ref quaternion, always);
-            if (result)
-            {
-                rotation = quaternion.eulerAngles;
-                return true;
-            }
-            return false;
-        }
-
-        public bool ScaleGizmo(Vector3 position, Vector3 rotation, Vector3 scale, IProperty<Vector3> scaleProperty, bool always)
-        {
-            if (scaleProperty != null && scaleProperty.isEditable && ScaleGizmo(position, rotation, ref scale, always))
-            {
-                scaleProperty.SetValue(scale);
-                return true;
-            }
-            return false;
-        }
-
-        bool ScaleGizmo(Vector3 position, Vector3 rotation, ref Vector3 scale, bool always)
-        {
-            var quaternion = Quaternion.Euler(rotation);
-            return ScaleGizmo(position, quaternion, ref scale, always);
         }
 
         static Color ToActiveColorSpace(Color color)
@@ -236,7 +388,7 @@ namespace UnityEditor.VFX
         Quaternion m_StartRotation = Quaternion.identity;
         int m_HotControlRotation = -1;
 
-        public bool RotationGizmo(Vector3 position, ref Quaternion rotation, bool always)
+        private bool RotationGizmo(Vector3 position, ref Quaternion rotation, bool always)
         {
             if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
@@ -277,14 +429,12 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public bool ScaleGizmo(Vector3 position, Quaternion rotation, ref Vector3 scale, bool always)
+        private bool ScaleGizmo(Vector3 position, Quaternion rotation, ref Vector3 scale, bool always)
         {
             if (always || Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                var bckpColor = Handles.color;
                 scale = Handles.ScaleHandle(scale, position, rotation);
-                Handles.color = bckpColor; //Scale Handle modifies color without restoring it
                 return EditorGUI.EndChangeCheck();
             }
 
@@ -302,16 +452,20 @@ namespace UnityEditor.VFX
                 {
                     EditorGUI.BeginChangeCheck();
                     Vector3 arcHandlePosition = Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
-                    arcHandlePosition = Handles.Slider2D(
-                        GetCombinedHashCode(s_ArcGizmoName),
-                        arcHandlePosition,
-                        Vector3.up,
-                        Vector3.forward,
-                        Vector3.right,
-                        handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
-                        DefaultAngleHandleDrawFunction,
-                        Vector2.zero
-                    );
+
+                    if (Mathf.Abs(radius) > 1e-5f && float.IsFinite(arcHandlePosition.sqrMagnitude))
+                    {
+                        arcHandlePosition = Handles.Slider2D(
+                            GetCombinedHashCode(s_ArcGizmoName),
+                            arcHandlePosition,
+                            Vector3.up,
+                            Vector3.forward,
+                            Vector3.right,
+                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
+                            CustomAngleHandleCap,
+                            Vector2.zero
+                        );
+                    }
 
                     if (EditorGUI.EndChangeCheck())
                     {
@@ -322,43 +476,6 @@ namespace UnityEditor.VFX
                     }
                 }
             }
-        }
-
-        static Vector3 m_InitialNormal;
-
-        public bool NormalGizmo(Vector3 position, ref Vector3 normal, bool always)
-        {
-            if (Event.current.type == EventType.MouseDown)
-            {
-                m_InitialNormal = normal;
-            }
-
-            EditorGUI.BeginChangeCheck();
-            Quaternion delta = Quaternion.identity;
-
-            RotationGizmo(position, ref delta, always);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                normal = delta * m_InitialNormal;
-
-                return true;
-            }
-            return false;
-        }
-
-        public void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
-        {
-            Handles.DrawLine(Vector3.zero, position);
-
-            // draw a cylindrical "hammer head" to indicate the direction the handle will move
-            Vector3 worldPosition = Handles.matrix.MultiplyPoint3x4(position);
-            Vector3 normal = worldPosition - Handles.matrix.MultiplyPoint3x4(Vector3.zero);
-            Vector3 tangent = Handles.matrix.MultiplyVector(Quaternion.AngleAxis(90f, Vector3.up) * position);
-            rotation = Quaternion.LookRotation(tangent, normal);
-            Matrix4x4 matrix = Matrix4x4.TRS(worldPosition, rotation, (Vector3.one + Vector3.forward * arcHandleSizeMultiplier));
-            using (new Handles.DrawingScope(matrix))
-                Handles.CylinderHandleCap(GetCombinedHashCode(controlID), Vector3.zero, Quaternion.identity, size, eventType);
         }
 
         public virtual GizmoError error => GizmoError.None;

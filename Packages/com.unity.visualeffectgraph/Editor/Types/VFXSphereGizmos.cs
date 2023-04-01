@@ -27,9 +27,13 @@ namespace UnityEditor.VFX
 
         public static void DrawSphere(VFXGizmo gizmo, TSphere sphere, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> radiusProperty)
         {
-            gizmo.PositionGizmo(sphere.transform.position, sphere.transform.angles, centerProperty, false);
-            gizmo.RotationGizmo(sphere.transform.position, sphere.transform.angles, anglesProperty, false);
-            gizmo.ScaleGizmo(sphere.transform.position, sphere.transform.angles, sphere.transform.scale, scaleProperty, false);
+            gizmo.TransformGizmo(
+                sphere.transform.position,
+                sphere.transform.angles,
+                sphere.transform.scale,
+                centerProperty,
+                anglesProperty,
+                scaleProperty);
 
             // Radius controls
             if (radiusProperty.isEditable)
@@ -41,7 +45,7 @@ namespace UnityEditor.VFX
                         EditorGUI.BeginChangeCheck();
                         var dir = s_RadiusDirections[i];
                         var sliderPos = dir * sphere.radius;
-                        var result = Handles.Slider(gizmo.GetCombinedHashCode(s_RadiusName[i]), sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), CustomCubeHandleCap, 0);
+                        var result = CustomSlider(gizmo.GetCombinedHashCode(s_RadiusName[i]), sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos));
 
                         if (EditorGUI.EndChangeCheck())
                         {

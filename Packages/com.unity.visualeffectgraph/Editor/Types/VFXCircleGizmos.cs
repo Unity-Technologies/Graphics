@@ -35,9 +35,13 @@ namespace UnityEditor.VFX
         {
             var radius = circle.radius;
 
-            gizmo.PositionGizmo(circle.transform.position, circle.transform.angles, centerProperty, false);
-            gizmo.RotationGizmo(circle.transform.position, circle.transform.angles, anglesProperty, false);
-            gizmo.ScaleGizmo(circle.transform.position, circle.transform.angles, circle.transform.scale, scaleProperty, false);
+            gizmo.TransformGizmo(
+                circle.transform.position,
+                circle.transform.angles,
+                circle.transform.scale,
+                centerProperty,
+                anglesProperty,
+                scaleProperty);
 
             if (radiusProperty.isEditable)
             {
@@ -48,7 +52,7 @@ namespace UnityEditor.VFX
                         EditorGUI.BeginChangeCheck();
                         var dir = s_RadiusDirections[i];
                         var sliderPos = dir * radius;
-                        var result = Handles.Slider(gizmo.GetCombinedHashCode(s_RadiusDirectionsName[i]), sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos), CustomCubeHandleCap, 0.0f);
+                        var result = CustomSlider(gizmo.GetCombinedHashCode(s_RadiusDirectionsName[i]), sliderPos, dir, handleSize * HandleUtility.GetHandleSize(sliderPos));
                         if (EditorGUI.EndChangeCheck())
                         {
                             radius = result.magnitude;
