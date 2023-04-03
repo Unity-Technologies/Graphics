@@ -395,7 +395,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
             {
                 var camera = cameras[i];
-                camera.allowDynamicResolution = false;
                 if (IsGameCamera(camera))
                 {
                     RenderCameraStack(renderContext, camera);
@@ -781,15 +780,6 @@ namespace UnityEngine.Rendering.Universal
                     {
                         currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
 
-                        for (int j = 0; j < rendererCount; ++j)
-                        {
-                            var currRenderer = asset.GetRenderer(j);
-                            if (!currRenderer.hasReleasedRTs && currRenderer != renderer && currRenderer != data.scriptableRenderer)
-                            {
-                                currRenderer.ReleaseRenderTargets();
-                            }
-                        }
-
                         // Checking if the base and the overlay camera is of the same renderer type.
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
                         if (currCameraRendererType != baseCameraRendererType)
@@ -882,18 +872,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
                 baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
-
-                if (!isStackedRendering)
-                {
-                    for (int i = 0; i < rendererCount; ++i)
-                    {
-                        var currRenderer = asset.GetRenderer(i);
-                        if (baseCameraData.renderer != null && !currRenderer.hasReleasedRTs && baseCameraData.renderer != currRenderer)
-                        {
-                            currRenderer.ReleaseRenderTargets();
-                        }
-                    }
-                }
 
                 RenderSingleCamera(context, ref baseCameraData, anyPostProcessingEnabled);
                 using (new ProfilingScope(Profiling.Pipeline.endCameraRendering))

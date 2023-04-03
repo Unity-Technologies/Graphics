@@ -319,7 +319,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.waterRenderingCB._WaterAmbientProbe = m_WaterAmbientProbe;
 
                 // Fill the water CB
-                passData.waterCB._CausticsRegionSize = waterSurface.simulation.spectrum.patchSizes[waterSurface.causticsBand];
+                int causticsBandIndex = HDRenderPipeline.SanitizeCausticsBand(waterSurface.causticsBand, waterSurface.simulation.numActiveBands);
+                passData.waterCB._CausticsRegionSize = waterSurface.simulation.spectrum.patchSizes[causticsBandIndex];
                 passData.waterCB._WaterUpDirection = new float4(waterSurface.UpVector(), 0.0f);
 
                 // Request the output textures

@@ -80,6 +80,14 @@ public struct DrawInstance
 public struct DrawRenderer
 {
     public AABB bounds;
+    public DrawRendererFlags flags;
+}
+
+[Flags]
+public enum DrawRendererFlags
+{
+    None = 0,
+    AffectsLightmaps = 1 << 0,    // is lightmapped or influence-only
 }
 
 public unsafe class RenderBRG : MonoBehaviour
@@ -131,6 +139,8 @@ public unsafe class RenderBRG : MonoBehaviour
     [BurstCompile]
     private struct CullingJob : IJobParallelFor
     {
+        public bool cullLightmapShadowCasters;
+
         [DeallocateOnJobCompletion]
         [ReadOnly]
         public NativeArray<FrustumPlanes.PlanePacket4> planes;
@@ -154,7 +164,12 @@ public unsafe class RenderBRG : MonoBehaviour
             ulong visibleBits = 0;
             for (int i = start; i < end; i++)
             {
-                ulong splitMask = FrustumPlanes.Intersect2NoPartialMulti(planes, splitCounts, renderers[i].bounds);
+                var renderer = renderers[i];
+
+                if (cullLightmapShadowCasters && (renderer.flags & DrawRendererFlags.AffectsLightmaps) != 0)
+                    continue;
+
+                ulong splitMask = FrustumPlanes.Intersect2NoPartialMulti(planes, splitCounts, renderer.bounds);
                 visibleBits |= splitMask << (8 * (i - start));
             }
 
@@ -450,6 +465,8 @@ public unsafe class RenderBRG : MonoBehaviour
         bool needInstanceIDs = cullingContext.viewType == BatchCullingViewType.Picking ||
                                cullingContext.viewType == BatchCullingViewType.SelectionOutline;
 
+        bool cullLightmapShadowCasters = (cullingContext.cullingFlags & BatchCullingFlags.CullLightmappedShadowCasters) != 0;
+
         var splitCounts = new NativeArray<int>(cullingContext.cullingSplits.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
         for (int i = 0; i < splitCounts.Length; ++i)
         {
@@ -490,6 +507,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
         var cullingJob = new CullingJob
         {
+            cullLightmapShadowCasters = cullLightmapShadowCasters,
             planes = planes,
             splitCounts = splitCounts,
             renderers = m_renderers,
@@ -1002,13 +1020,21 @@ public unsafe class RenderBRG : MonoBehaviour
         for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
         {
             var renderer = renderers[rendererIndex];
+            var flags = DrawRendererFlags.None;
 
             m_renderers[rendererIndex] = new DrawRenderer
-                { bounds = new AABB { Center = new float3(0, 0, 0), Extents = new float3(0, 0, 0) } };
+                { bounds = new AABB { Center = new float3(0, 0, 0), Extents = new float3(0, 0, 0) }, flags = flags };
 
             var meshFilter = renderer.gameObject.GetComponent<MeshFilter>();
             if (!renderer || !meshFilter || !meshFilter.sharedMesh || renderer.enabled == false)
                 continue;
+
+            const int kLightmapIndexMask = 0xffff;
+            const int kLightmapIndexNotLightmapped = 0xffff;
+            //const int kLightmapIndexInfluenceOnly = 0xfffe;
+            var lightmapIndexMasked = renderer.lightmapIndex & kLightmapIndexMask;
+            if (lightmapIndexMasked != kLightmapIndexNotLightmapped)
+                flags |= DrawRendererFlags.AffectsLightmaps;
 
             // Disable the existing Unity MeshRenderer to avoid double rendering!
             renderer.enabled = false;
@@ -1016,7 +1042,7 @@ public unsafe class RenderBRG : MonoBehaviour
             // Renderer bounds
             var transformedBounds = AABB.Transform(renderer.transform.localToWorldMatrix,
                 meshFilter.sharedMesh.bounds.ToAABB());
-            m_renderers[rendererIndex] = new DrawRenderer { bounds = transformedBounds };
+            m_renderers[rendererIndex] = new DrawRenderer { bounds = transformedBounds, flags = flags };
 
             var mesh = m_BatchRendererGroup.RegisterMesh(meshFilter.sharedMesh);
 

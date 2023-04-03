@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering
             WaterSurfacePresets.ApplyWaterOceanPreset(waterSurface);
         }
 
-        [MenuItem("GameObject/Water/Surface/River", priority = 13)]
+        [MenuItem("GameObject/Water/Surface/River", priority = 15)]
         static void CreateRiver(MenuCommand menuCommand)
         {
             // Create the holding game object
@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering
             WaterSurfacePresets.ApplyWaterRiverPreset(waterSurface);
         }
 
-        [MenuItem("GameObject/Water/Surface/Pool", priority = 13)]
+        [MenuItem("GameObject/Water/Surface/Pool", priority = 14)]
         static void CreatePool(MenuCommand menuCommand)
         {
             // Create the holding game object
@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering
             waterExclusion.SetExclusionMesh(targetMesh);
         }
 
-        [MenuItem("GameObject/Water/Deformer/Sphere", priority = 14)]
+        [MenuItem("GameObject/Water/Deformer/Sphere", priority = 17)]
         static void CreateWaterSphereDeformer(MenuCommand menuCommand)
         {
             // Create the holding game object
@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering
             WaterDeformerPresets.ApplyWaterBoxDeformerPreset(waterDeformer);
         }
 
-        [MenuItem("GameObject/Water/Deformer/Shore Wave", priority = 14)]
+        [MenuItem("GameObject/Water/Deformer/Shore Wave", priority = 16)]
         static void CreateWaterWaveDeformer(MenuCommand menuCommand)
         {
             // Create the holding game object
@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering
             WaterDeformerPresets.ApplyWaterShoreWaveDeformerPreset(waterDeformer);
         }
 
-        [MenuItem("GameObject/Water/Deformer/Bow Wave", priority = 14)]
+        [MenuItem("GameObject/Water/Deformer/Bow Wave", priority = 15)]
         static void CreateBowWaveDeformer(MenuCommand menuCommand)
         {
             // Create the holding game object
@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering
             WaterDeformerPresets.ApplyWaterBowWaveDeformerPreset(waterDeformer);
         }
 
-        [MenuItem("GameObject/Water/Deformer/Texture", priority = 14)]
+        [MenuItem("GameObject/Water/Deformer/Texture", priority = 18)]
         static void CreateTextureDeformer(MenuCommand menuCommand)
         {
             // Create the holding game object

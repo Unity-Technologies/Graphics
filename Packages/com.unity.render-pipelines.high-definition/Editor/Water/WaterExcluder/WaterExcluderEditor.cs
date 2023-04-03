@@ -54,5 +54,17 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawGizmosSelected(WaterExcluder waterSurface, GizmoType gizmoType)
         {
         }
+
+        void OnSceneGUI()
+        {
+            WaterExcluder deformer = target as WaterExcluder;
+            var mesh = deformer.m_InternalMesh;
+            var tr = deformer.transform;
+
+            if (mesh != null)
+            {
+                Handles.DrawOutline(new GameObject[] { deformer.m_ExclusionRenderer }, Color.white);
+            }
+        }
     }
 }

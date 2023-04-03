@@ -4,18 +4,27 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [15.0.4] - 2023-01-18
-
-This version is compatible with Unity 2023.1.0b2.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 
+## [15.0.4] - 2023-03-23
+
+This version is compatible with Unity 2023.1.0b10.
+
+### Changed
+- Speeds up rename operations on properties/keywords/dropdowns in large graph.
+- Speeds up setting blackboard values in large graphs.
+
+### Fixed
+- Fixed NullReferenceException when entering Play Mode with an unfocused Shader Graph window/on closing the Shader Graph Window.
+- Fixed SRP Batcher compatibility issue with instanced properties.
+
 ## [15.0.3] - 2022-12-02
 
-This version is compatible with Unity 2023.1.0a23.
+This version is compatible with Unity 2023.1.0b2.
 
 ### Fixed
 - Fixed multiple memory leaks in ShaderGraph so that windows and view elements now dispose of resources properly.
@@ -23,7 +32,7 @@ This version is compatible with Unity 2023.1.0a23.
 
 ## [15.0.2] - 2022-11-04
 
-This version is compatible with Unity 2023.1.0a19.
+This version is compatible with Unity 2023.1.0a23.
 
 ### Changed
 - Modified the AssetPostprocessor for Shader Graph so it now performs the majority of its work when a shader-related asset has been changed.
@@ -36,7 +45,7 @@ This version is compatible with Unity 2023.1.0a19.
 
 ## [15.0.1] - 2022-08-04
 
-This version is compatible with Unity 2023.1.0a6.
+This version is compatible with Unity 2023.1.0a19.
 
 ### Changed
 - Reduced time taken by code generation when a shader graph asset is imported.
@@ -47,7 +56,7 @@ This version is compatible with Unity 2023.1.0a6.
 
 ## [15.0.0] - 2022-06-13
 
-This version is compatible with Unity 2023.1.0a1.
+This version is compatible with Unity 2023.1.0a6.
 
 ### Fixed
 - Fixed shader graph incorrectly stripping variants for BiRP shaders that weren't built with shader graph.
@@ -55,15 +64,12 @@ This version is compatible with Unity 2023.1.0a1.
 
 ## [14.0.3] - 2021-05-09
 
-This version is compatible with Unity 2022.2.0a14.
-
 ### Fixed
 - Fixed the sample buffer nodes in ShaderGraph.
 - Set the default value of Normalize Output toggle in Transform Node to **true** to make different node versions consistent.
 
 ## [14.0.2] - 2021-02-04
 
-This version is compatible with Unity 2022.2.0a8.
 ### Fixed
  - Fixed ShaderGraph pixel and screen coordinates to work correctly with render scale [1387468]
 

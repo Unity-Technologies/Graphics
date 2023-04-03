@@ -283,8 +283,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WaterMaskScale.Set(1.0f / currentWater.waterMaskExtent.x, 1.0f / currentWater.waterMaskExtent.y);
 
             // Caustics
-            cb._CausticsRegionSize = cb._PatchSize[currentWater.causticsBand];
-            cb._CausticsBandIndex = currentWater.causticsBand;
+            cb._CausticsBandIndex = SanitizeCausticsBand(currentWater.causticsBand, currentWater.simulation.numActiveBands);
+            cb._CausticsRegionSize = cb._PatchSize[cb._CausticsBandIndex];
 
             // Values that guarantee the simulation coherence independently of the resolution
             cb._WaterRefSimRes = (int)WaterSimulationResolution.High256;

@@ -28,18 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InternalMesh = targetMesh;
             if (m_ExclusionRenderer != null)
             {
-                MeshFilter filter = null;
-                m_ExclusionRenderer.TryGetComponent<MeshFilter>(out filter);
-                if (filter != null)
+                if (m_ExclusionRenderer.TryGetComponent<MeshFilter>(out var filter))
                     filter.sharedMesh = targetMesh;
-            }
-        }
-
-        void OnDrawGizmos()
-        {
-            if (m_InternalMesh != null)
-            {
-                Gizmos.DrawWireMesh(m_InternalMesh, 0, transform.position, transform.rotation, transform.lossyScale);
             }
         }
 

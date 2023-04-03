@@ -245,7 +245,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
+            m_SearchWindowProvider = new SearcherProvider();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = NodeCreationRequest;
             //regenerate entries when graph view is refocused, to propogate subgraph changes
@@ -1402,7 +1402,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (m_SearchWindowProvider != null)
             {
-                Object.DestroyImmediate(m_SearchWindowProvider);
+                m_SearchWindowProvider.Dispose();
                 m_SearchWindowProvider = null;
             }
         }

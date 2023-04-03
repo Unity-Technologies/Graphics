@@ -278,14 +278,17 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>
             /// The water caustics are rendered at 256x256
             /// </summary>
+            [InspectorName("Low 256")]
             Caustics256 = 256,
             /// <summary>
             /// The water caustics are rendered at 512x512
             /// </summary>
+            [InspectorName("Medium 512")]
             Caustics512 = 512,
             /// <summary>
             /// The water caustics are rendered at 1024x1024
             /// </summary>
+            [InspectorName("High 1024")]
             Caustics1024 = 1024,
         }
 
@@ -399,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int colorPyramidOffset = 1;
 
         /// <summary>
-        /// Sets the contribution of the ambient probe to the underwater scattering color.
+        /// Sets the contribution of the ambient probe luminance when multiplied by the underwater scattering color.
         /// </summary>
         public float underWaterAmbientProbeContribution = 1.0f;
 
@@ -460,10 +463,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>A boolean that defines if the function was able to fill the search data.</returns>
         public bool FillWaterSearchData(ref WaterSimSearchData wsd)
         {
+            var hdrp = HDRenderPipeline.currentPipeline;
+            if (hdrp == null|| !hdrp.m_ActiveWaterSimulationCPU)
+                return false;
+
             if (simulation != null
                 && simulation.cpuBuffers != null
-                && HDRenderPipeline.currentPipeline != null
-                && HDRenderPipeline.currentPipeline.m_ActiveWaterSimulationCPU)
+                && simulation.ValidResources((int)hdrp.m_WaterBandResolution, numActiveBands))
             {
                 // General
                 wsd.simulationTime = simulation.simulationTime;
@@ -642,7 +648,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (caustics && simulation?.gpuBuffers?.causticsBuffer != null)
             {
-                regionSize = simulation.spectrum.patchSizes[causticsBand];
+                int causticsBandIndex = HDRenderPipeline.SanitizeCausticsBand(causticsBand, simulation.numActiveBands);
+                regionSize = simulation.spectrum.patchSizes[causticsBandIndex];
                 return simulation.gpuBuffers.causticsBuffer;
             }
             regionSize = 0.0f;

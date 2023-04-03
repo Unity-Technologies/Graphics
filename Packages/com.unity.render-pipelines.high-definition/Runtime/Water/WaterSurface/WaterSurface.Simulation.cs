@@ -137,21 +137,25 @@ namespace UnityEngine.Rendering.HighDefinition
         public float ripplesFadeDistance = 200.0f;
         #endregion
 
-        internal int numActiveBands
+        /// <summary>Used to sync different water surfaces simulation time, for example across network.</summary>
+        public DateTime simulationStart
         {
             get
             {
-                switch (surfaceType)
-                {
-                    case WaterSurfaceType.OceanSeaLake:
-                        return ripples ? 3 : 2;
-                    case WaterSurfaceType.River:
-                        return ripples ? 2 : 1;
-                    default:
-                        return 1;
-                }
+                float timeScale = Time.timeScale * timeMultiplier;
+                if (timeScale == 0.0f) timeScale = 1.0f;
+
+                return DateTime.Now - TimeSpan.FromSeconds(simulation != null ? simulation.simulationTime / timeScale : 0.0f);
+            }
+            set
+            {
+                TimeSpan elapsed = DateTime.Now - value;
+                if (simulation != null)
+                    simulation.simulationTime = (float)elapsed.TotalSeconds * Time.timeScale * timeMultiplier;
             }
         }
+
+        internal int numActiveBands => HDRenderPipeline.EvaluateBandCount(surfaceType, ripples);
 
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
