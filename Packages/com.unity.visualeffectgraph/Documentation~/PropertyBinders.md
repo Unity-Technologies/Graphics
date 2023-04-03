@@ -92,5 +92,5 @@ public class DistanceBinder : VFXBinderBase
     {
         component.SetFloat(distanceProperty, Vector3.Distance(transform.position, target.position));
     }
-}```
+}
 ```
