@@ -118,16 +118,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, passData.enableRenderingLayers);
+                // Enable Rendering Layers
+                if (passData.enableRenderingLayers)
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                }
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
+                // Draw
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = RenderingUtils.CreateDrawingSettings(shaderTagIds, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
-
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
+
+                // Clean up
+                if (passData.enableRenderingLayers)
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                }
             }
         }
 

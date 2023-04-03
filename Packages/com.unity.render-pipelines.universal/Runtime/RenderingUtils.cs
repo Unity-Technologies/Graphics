@@ -545,6 +545,36 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Returns the RenderTargetIdentifier of the current camera target.
+        /// </summary>
+        /// <param name="renderingData"></param>
+        /// <returns></returns>
+        internal static RenderTargetIdentifier GetCameraTargetIdentifier(ref RenderingData renderingData)
+        {
+            // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
+            // Overlay cameras need to output to the target described in the base camera while doing camera stack.
+            ref CameraData cameraData = ref renderingData.cameraData;
+
+            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                if (cameraData.xr.singlePassEnabled)
+                {
+                    cameraTarget = cameraData.xr.renderTarget;
+                }
+                else
+                {
+                    int depthSlice = cameraData.xr.GetTextureArraySlice();
+                    cameraTarget = new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
+                }
+            }
+#endif
+
+            return cameraTarget;
+        }
+
+        /// <summary>
         /// Re-allocate fixed-size RTHandle if it is not allocated or doesn't match the descriptor
         /// </summary>
         /// <param name="handle">RTHandle to check (can be null)</param>

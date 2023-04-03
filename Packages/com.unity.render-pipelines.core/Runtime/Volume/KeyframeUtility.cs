@@ -51,11 +51,7 @@ namespace UnityEngine.Rendering
         /// <param name="curve">The curve to reset.</param>
         static public void ResetAnimationCurve(AnimationCurve curve)
         {
-            int numPoints = curve.length;
-            for (int i = numPoints - 1; i >= 0; i--)
-            {
-                curve.RemoveKey(i);
-            }
+            curve.ClearKeys();
         }
 
         static private Keyframe LerpSingleKeyframe(Keyframe lhs, Keyframe rhs, float t)
@@ -201,20 +197,13 @@ namespace UnityEngine.Rendering
             }
             else if (t >= 1.0f || lhsAndResultCurve.length == 0)
             {
-                // In this case the obvous solution would be to return the rhsCurve. BUT (!) the lhsCurve and rhsCurve are different. This function is
+                // In this case the obvious solution would be to return the rhsCurve. BUT (!) the lhsCurve and rhsCurve are different. This function is
                 // called by:
                 //      stateParam.Interp(stateParam, toParam, interpFactor);
                 //
                 // stateParam (lhsCurve) is a temporary in/out parameter, but toParam (rhsCurve) might point to the original component, so it's unsafe to
                 // change that data. Thus, we need to copy the keys from the rhsCurve to the lhsCurve instead of returning rhsCurve.
-                KeyframeUtility.ResetAnimationCurve(lhsAndResultCurve);
-
-                for (int i = 0; i < rhsCurve.length; i++)
-                {
-                    lhsAndResultCurve.AddKey(rhsCurve[i]);
-                }
-                lhsAndResultCurve.postWrapMode = rhsCurve.postWrapMode;
-                lhsAndResultCurve.preWrapMode = rhsCurve.preWrapMode;
+                lhsAndResultCurve.CopyFrom(rhsCurve);
             }
             else
             {

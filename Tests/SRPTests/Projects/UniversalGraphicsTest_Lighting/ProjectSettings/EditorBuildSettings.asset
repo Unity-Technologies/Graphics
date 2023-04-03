@@ -39,6 +39,9 @@ EditorBuildSettings:
     path: Assets/Scenes/041_Lighting_BasicArea.unity
     guid: cd37c7e9d54e74dd7add9b40a2698ada
   - enabled: 1
+    path: Assets/Scenes/042_Lighting_Scene_VertexLighting.unity
+    guid: 700788280c77e4c63a4d1919a8bf97e3
+  - enabled: 1
     path: Assets/Scenes/043_Lighting_Mixed_ShadowMask.unity
     guid: a27d5eebd041b42dab7ad89ce8249e81
   - enabled: 1
@@ -50,6 +53,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/049_Lighting_Mixed_Subtractive_deferred.unity
     guid: 637e9541c01cb864b859cec63d622ef9
+  - enabled: 1
+    path: Assets/Scenes/051_Lighting_Scene_NoLighting.unity
+    guid: ad2db338b63034856a2718d37e4bdd7a
   - enabled: 1
     path: Assets/Scenes/055_Lighting_Attenuation_Spot_Point.unity
     guid: 362b9a0c21a9b4e798504044c7604e80
@@ -66,6 +72,9 @@ EditorBuildSettings:
     path: Assets/Scenes/134_Lighting_Mixed_ShadowMask_Distance.unity
     guid: 7ec898d33586cf84ca02ac537472e20d
   - enabled: 1
+    path: Assets/Scenes/135_Lighting_Directional1Cascades.unity
+    guid: f1454a5402867f14e8df402c507e29db
+  - enabled: 1
     path: Assets/Scenes/136_Lighting_Directional2Cascades.unity
     guid: d99ff34133a649145adf85fcdfc11ddb
   - enabled: 1
@@ -78,20 +87,11 @@ EditorBuildSettings:
     path: Assets/Scenes/145_ManyAdditionalLightShadowTypes.unity
     guid: 625fae218da02c440b56ea72ea59d986
   - enabled: 1
-    path: Assets/Scenes/146_Unlit_Custom_Shadows.unity
+    path: Assets/Scenes/146_LitCustomShadows.unity
     guid: f928decd68efd04459541f49d86f0fbf
   - enabled: 1
     path: Assets/Scenes/146_AdditionalLightShadowCustomResolution.unity
     guid: 5cb07294042344649a35ad91c91b539a
-  - enabled: 1
-    path: Assets/Scenes/042_Lighting_Scene_VertexLighting.unity
-    guid: 700788280c77e4c63a4d1919a8bf97e3
-  - enabled: 1
-    path: Assets/Scenes/051_Lighting_Scene_NoLighting.unity
-    guid: ad2db338b63034856a2718d37e4bdd7a
-  - enabled: 1
-    path: Assets/Scenes/135_Lighting_Directional1Cascades.unity
-    guid: f1454a5402867f14e8df402c507e29db
   - enabled: 1
     path: Assets/Scenes/148_Lighting_LightLayers.unity
     guid: 04e9a5e9f9bee5742b25a8f229a49428
@@ -141,3 +141,4 @@ EditorBuildSettings:
     path: Assets/Scenes/221_ShadowMask_ShaderGraph.unity
     guid: c53e60919f143ad40b950bea9827efc5
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

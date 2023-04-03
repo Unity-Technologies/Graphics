@@ -4,9 +4,13 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/HDROutputDefines.cs.hlsl"
 
-#if defined(HDR_OUTPUT_REC2020) || defined(HDR_OUTPUT_SCRGB)
-#define HDR_OUTPUT
+#if defined(HDR_COLORSPACE_CONVERSION_AND_ENCODING)
+#define HDR_COLORSPACE_CONVERSION
+#define HDR_ENCODING
 #endif
+
+int _HDRColorspace;
+int _HDREncoding;
 
 // A bit of nomenclature that will be used in the file:
 // Gamut: It is the subset of colors that is possible to reproduce by using three specific primary colors.
@@ -21,7 +25,7 @@
 // EOTF (Eelectro Optical  Transfer Function): The inverse of the OETF, used by the TV/Monitor.
 // EETF (Eelectro-Electro Transfer Function): This is generally just a remapping function, we use the BT2390 EETF to perform range reduction based on the actual display.
 // PQ (Perceptual Quantizer): the EOTF used for HDR10 TVs. It works in the range [0, 10000] nits. Important to keep in mind that this represents an absolute intensity and not relative as for SDR. Sometimes this can be referenced as ST2084. As OETF we'll use the inverse of the PQ curve.
-// scRGB: a wide color gamut that uses same color space and white point as sRGB, but with much wider coordinates. Used on windows when 16 bit depth is selected. Most of the color space is imaginary colors. Works differently than with PQ.
+// scRGB: a wide color gamut that uses same color space and white point as sRGB, but with much wider coordinates. Used on windows when 16 bit depth is selected. Most of the color space is imaginary colors. Works differently than with PQ (encoding is linear).
 
 // --------------------------------
 //  Perceptual Quantizer (PQ) / ST 2084
@@ -126,20 +130,26 @@ float3 RotateRec2020ToRec709(float3 Rec2020Input)
 
 float3 RotateRec709ToOutputSpace(float3 Rec709Input)
 {
-#ifdef HDR_OUTPUT_SCRGB
-    return Rec709Input;
-#else
-    return RotateRec709ToRec2020(Rec709Input);
-#endif
+    if (_HDRColorspace == HDRCOLORSPACE_REC2020)
+    {
+        return RotateRec709ToRec2020(Rec709Input);
+    }
+    else // HDRCOLORSPACE_REC709
+    {
+        return Rec709Input;
+    }
 }
 
 float3 RotateRec2020ToOutputSpace(float3 Rec2020Input)
 {
-#ifdef HDR_OUTPUT_SCRGB
-    return RotateRec2020ToRec709(Rec2020Input);
-#else
-    return Rec2020Input;
-#endif
+    if (_HDRColorspace == HDRCOLORSPACE_REC2020)
+    {
+        return Rec2020Input;
+    }
+    else // HDRCOLORSPACE_REC709
+    {
+        return RotateRec2020ToRec709(Rec2020Input);
+    }
 }
 
 float3 RotateRec2020ToLMS(float3 Rec2020Input)
@@ -195,9 +205,11 @@ float3 RotateRec2020ToICtCp(float3 Rec2020)
 float3 RotateOutputSpaceToICtCp(float3 inputColor)
 {
     // TODO: Do the conversion directly from Rec709 (bake matrix Rec709 -> XYZ -> LMS)
-#ifdef HDR_OUTPUT_SCRGB
-    inputColor = RotateRec709ToRec2020(inputColor);
-#endif
+    if (_HDRColorspace == HDRCOLORSPACE_REC709)
+    {
+        inputColor = RotateRec709ToRec2020(inputColor);
+    }
+
     return RotateRec2020ToICtCp(inputColor);
 }
 
@@ -278,14 +290,14 @@ float3 RotateICtCpToRec709(float3 ICtCp)
 
 float3 RotateICtCpToOutputSpace(float3 ICtCp)
 {
-#ifdef HDR_OUTPUT_SCRGB
-    return RotateICtCpToRec709(ICtCp);
-#elif defined(HDR_OUTPUT_REC2020)
-    return RotateICtCpToRec2020(ICtCp);
-#else
-    return RotateICtCpToRec2020(ICtCp);
-#endif
-
+    if (_HDRColorspace == HDRCOLORSPACE_REC2020)
+    {
+        return RotateICtCpToRec2020(ICtCp);
+    }
+    else // HDRCOLORSPACE_REC709
+    {
+        return RotateICtCpToRec709(ICtCp);
+    }
 }
 
 // --------------------------------------------------------------------------------------------
@@ -301,6 +313,13 @@ float3 RotateICtCpToOutputSpace(float3 ICtCp)
 #define GTS_APPROX_PQ 2
 
 #define OETF_CHOICE GTS_APPROX_PQ
+
+// What the platforms expects as SDR max brightness (different from paper white brightness) in linear encoding
+#if defined(SHADER_API_METAL)
+    #define SDR_REF_WHITE 100
+#else
+    #define SDR_REF_WHITE 80
+#endif
 
 // Ref: [Patry 2017] HDR Display Support in Infamous Second Son and Infamous First Light
 // Fastest option, but also the least accurate. Behaves well for values up to 1400 nits but then starts diverging.
@@ -324,20 +343,26 @@ float3 GTSApproxLinToPQ(float3 inputCol)
 // IMPORTANT! This wants the input in [0...10000] range, if the method requires scaling, it is done inside this function.
 float3 OETF(float3 inputCol)
 {
-#ifdef HDR_OUTPUT_SCRGB
-    // IMPORTANT! This assumes that the maximum nits is always higher or same as 80.0f. Seems like a sensible choice, but revisit if we find weird use cases (just min with the the max nits).
-    // We need to map the value 1 to 80 nits.
-    return inputCol / 80.0f;
-#else
-    #if OETF_CHOICE == PRECISE_PQ
-    return LinearToPQ(inputCol);
-    #elif OETF_CHOICE == ISS_APPROX_PQ
-    return PatryApproxLinToPQ(inputCol * 0.01f);
-    #elif OETF_CHOICE == GTS_APPROX_PQ
-    return GTSApproxLinToPQ(inputCol * 0.01f);
-    #endif
-#endif
-
+    if (_HDREncoding == HDRENCODING_LINEAR)
+    {
+        // IMPORTANT! This assumes that the maximum nits is always higher or same as the reference white. Seems like a sensible choice, but revisit if we find weird use cases (just min with the the max nits).
+        // We need to map the value 1 to [reference white] nits.
+        return inputCol / SDR_REF_WHITE;
+    }
+    else if (_HDREncoding == HDRENCODING_PQ)
+    {
+        #if OETF_CHOICE == PRECISE_PQ
+        return LinearToPQ(inputCol);
+        #elif OETF_CHOICE == ISS_APPROX_PQ
+        return PatryApproxLinToPQ(inputCol * 0.01f);
+        #elif OETF_CHOICE == GTS_APPROX_PQ
+        return GTSApproxLinToPQ(inputCol * 0.01f);
+        #endif
+    }
+    else
+    {
+        return inputCol;
+    }
 }
 
 #define LIN_TO_PQ_FOR_LUT GTS_APPROX_PQ // GTS is close enough https://www.desmos.com/calculator/up4wwozghk
@@ -526,7 +551,6 @@ float3 FryHuePreserving(float3 input, float minNits, float maxNits, float hueShi
     col = RotateICtCpToOutputSpace(ictcpMapped);
 
     return col;
-
 }
 
 float3 PerformRangeReduction(float3 input, float minNits, float maxNits, int mode, float hueShift)
@@ -615,13 +639,17 @@ float3 HDRMappingACES(float3 aces, float hdrBoost, int reductionMode, bool skipO
     }
 
     float3 linearODT = 0;
-#if defined(HDR_OUTPUT_SCRGB)
-    const float3x3 AP1_2_Rec709 = mul(XYZ_2_REC709_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
-    linearODT = mul(AP1_2_Rec709, AP1ODT);
-#else
-    const float3x3 AP1_2_Rec2020 = mul(XYZ_2_REC2020_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
-    linearODT = mul(AP1_2_Rec2020, AP1ODT);
-#endif
+    if (_HDRColorspace == HDRCOLORSPACE_REC2020)
+    {
+        const float3x3 AP1_2_Rec2020 = mul(XYZ_2_REC2020_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
+        linearODT = mul(AP1_2_Rec2020, AP1ODT);
+    }
+    else // HDRCOLORSPACE_REC709
+    {
+        const float3x3 AP1_2_Rec709 = mul(XYZ_2_REC709_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
+        linearODT = mul(AP1_2_Rec709, AP1ODT);
+    }
+
     if (skipOETF) return linearODT;
 
     return OETF(linearODT);
@@ -635,12 +663,9 @@ float3 HDRMappingACES(float3 aces, float hdrBoost, int reductionMode, bool skipO
 
 float3 ProcessUIForHDR(float3 uiSample, float paperWhite, float maxNits)
 {
-#ifdef HDR_OUTPUT_SCRGB
-    uiSample.rgb = (uiSample.rgb * paperWhite);
-#else
-    uiSample.rgb = RotateRec709ToRec2020(uiSample.rgb);
+    uiSample.rgb = RotateRec709ToOutputSpace(uiSample.rgb);
     uiSample.rgb *= paperWhite;
-#endif
+    
     return uiSample.rgb;
 }
 

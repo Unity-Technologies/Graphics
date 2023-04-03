@@ -12,9 +12,5 @@
     "tests",
     "graphics",
     "HDRP"
-  ],
-  "dependencies": {
-    "com.unity.testframework.graphics": "7.11.1-exp.1",
-    "com.unity.render-pipelines.high-definition": "file:./com.unity.render-pipelines.high-definition"
-  }
+  ]
 }

@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (needsAllocation)
-                    gpuBuffers.causticsBuffer = RTHandles.Alloc(causticsResolution, causticsResolution, 1, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
+                    gpuBuffers.causticsBuffer = RTHandles.Alloc(causticsResolution, causticsResolution, 1, dimension: TextureDimension.Tex2D, filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
             }
             else
             {
@@ -260,15 +260,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Function that computes the delta time for the frame
         public void Update(float timeMultiplier)
         {
-            float delta = Time.deltaTime;
+            float totalTime = Time.realtimeSinceStartup;
+            float delta = totalTime - m_Time;
+            m_Time = totalTime;
+
             #if UNITY_EDITOR
             if (EditorApplication.isPaused)
                 delta = 0.0f;
-            else if (!Application.isPlaying)
-            {
-                delta = Time.realtimeSinceStartup - m_Time;
-                m_Time = Time.realtimeSinceStartup;
-            }
             #endif
 
             deltaTime = delta * timeMultiplier;

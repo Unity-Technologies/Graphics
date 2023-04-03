@@ -4,18 +4,46 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [14.0.6] - 2023-01-18
-
-This version is compatible with Unity 2022.2.4f1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.6] - 2023-03-24
+
+This version is compatible with Unity 2022.2.13f1.
+
+### Fixed
+- Unexpected sorting on some VFX output while using the new SG integration.
+- Fixed an exception while using Unlit ShaderGraph with VFX.
+- Fixed an issue were Alpha Clipping have unexpected behavior in editor when used in MaterialOverride with SG integration, .
+- Fixed an issue to avoid file access as much as possible when new assets are imported.
+- Fixed compilation error when targeting .NET Standard runtime.
+- Fixed wrong particle count if read before first readback.
+- Fixed an issue where VFXs were not culled properly, causing flickering shadows.
+- Fixed a serialization issue causing a potential crash due to bounds computation.
+- Fixed bounds padding so they are no longer ignored.
+- Fixed unroll related shader compilation issue on DXC.
+- Added extra memory to allow external threads to steal VFX update jobs.
+- Safer GPUEvent when trying to append more event than destination capacity.
+- Added missing DepthNormal pass for Unlit & Unify SSAO integration with Unlit for URP.
+- Enabled renamed blackboard categories that have been duplicated to stay on screen.
+- Removed blackboard category with only spaces in the name.
+- Fixed the play / pause button in the VFX Graph control panel so it now switches the icon depending on the current state.
+- Fixed an error raised in the console when undoing shader assignment in the Mesh output node.
+- Fix VFX instance leak due to asset editor not properly destroyed
+- Unsafe deletion of VFXParticleSystem which can lead to a crash while deleting VisualEffect
+- Correctly generates interpolator modifiers for packed structure in HDRP Shader Graph
+- Minimizes generated interpolator count with VFX Shader Graph to avoid reaching limit and improve performance
+- Fixed a crash when drag & dropping a vfx on another vfx with a circular dependency
+- Add support for multiple subgraphs drag&drop
+- The VFX Graph documentation link was always pointing to the latest LTS version instead of current package version
+- Fixed VFX compute shader could not compile when a custom attribute had a space in its name
+- Fixes Dispose() method of MeshToSDFBaker leading to memory leaks
 
 ## [14.0.5] - 2022-12-12
 
-This version is compatible with Unity 2022.2.2f1.
+This version is compatible with Unity 2022.2.4f1.
 
 ### Changed
 - Fixed lightmap range limitations.
@@ -31,7 +59,7 @@ This version is compatible with Unity 2022.2.2f1.
 
 ## [14.0.4] - 2022-11-04
 
-This version is compatible with Unity 2022.2.0b15.
+This version is compatible with Unity 2022.2.2f1.
 
 ### Changed
 - Sticky notes are no longer lost when you convert to block subgraph.
@@ -68,7 +96,7 @@ This version is compatible with Unity 2022.2.0b15.
 
 ## [14.0.3] - 2021-05-09
 
-This version is compatible with Unity 2022.2.0a14.
+This version is compatible with Unity 2022.2.0b15.
 
 ### Changed
 - Fixed the OutputParticle context inspector content so it doesn't shift vertically when you resize the inspector panel.
@@ -88,7 +116,7 @@ This version is compatible with Unity 2022.2.0a14.
 
 ## [14.0.2] - 2021-02-04
 
-This version is compatible with Unity 2022.2.0a9.
+This version is compatible with Unity 2022.2.0a14.
 
 ### Added
 - New Timeline Integration which supports scrubbing

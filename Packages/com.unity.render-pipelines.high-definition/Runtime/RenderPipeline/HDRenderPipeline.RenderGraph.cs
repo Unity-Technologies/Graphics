@@ -467,11 +467,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             propertyBlock.SetVector(HDShaderIDs._HDROutputParams, data.hdrOutputParmeters);
 
                             data.blitMaterial.shaderKeywords = null;
-
-                            if (data.hdrOutputParmeters.w == 1)
-                                data.blitMaterial.EnableKeyword("HDR_OUTPUT_SCRGB");
-                            else
-                                data.blitMaterial.EnableKeyword("HDR_OUTPUT_REC2020");
+                            
+                            HDROutputUtils.ConfigureHDROutput(data.blitMaterial, HDROutputSettings.main.displayColorGamut, HDROutputUtils.Operation.ColorEncoding);
 
                             if (data.applyAfterPP)
                             {

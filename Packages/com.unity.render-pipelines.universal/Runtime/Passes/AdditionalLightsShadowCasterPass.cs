@@ -823,6 +823,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!renderingData.cameraData.renderer.stripShadowsOffVariants)
                 return false;
 
+            renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled = true;
             ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapHandle, 1, 1, k_ShadowmapBufferBits, name: "_AdditionalLightsShadowmapTexture");
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
@@ -901,7 +902,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var cullResults = renderingData.cullResults;
             var lightData = renderingData.lightData;
-            var shadowData = renderingData.shadowData;
 
             NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
@@ -931,7 +931,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers;
                     settings.splitData = shadowSliceData.splitData;
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex,
-                        ref shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
+                        ref renderingData.shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.CastingPunctualLightShadow, true);
                     ShadowUtils.RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings);
@@ -943,18 +943,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // So we check here if pipeline supports soft shadows and either main light or any additional light has soft shadows
                 // to enable the keyword.
                 // TODO: In PC and Consoles we can upload shadow data per light and branch on shader. That will be more likely way faster.
-                bool mainLightHasSoftShadows = shadowData.supportsMainLightShadows &&
-                    lightData.mainLightIndex != -1 &&
-                    visibleLights[lightData.mainLightIndex].light.shadows ==
-                    LightShadows.Soft;
+                bool mainLightHasSoftShadows = renderingData.shadowData.supportsMainLightShadows &&
+                                               lightData.mainLightIndex != -1 &&
+                                               visibleLights[lightData.mainLightIndex].light.shadows == LightShadows.Soft;
 
-                bool softShadows = shadowData.supportsSoftShadows &&
-                    (mainLightHasSoftShadows || additionalLightHasSoftShadows);
+                // If the OFF variant has been stripped, the additional light shadows keyword must always be enabled
+                bool hasOffVariant = !renderingData.cameraData.renderer.stripShadowsOffVariants;
+                renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled = !hasOffVariant || anyShadowSliceRenderer;
 
-                shadowData.isKeywordAdditionalLightShadowsEnabled = anyShadowSliceRenderer;
-                shadowData.isKeywordSoftShadowsEnabled = softShadows;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shadowData.isKeywordAdditionalLightShadowsEnabled);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
+                bool softShadows = renderingData.shadowData.supportsSoftShadows && (mainLightHasSoftShadows || additionalLightHasSoftShadows);
+                renderingData.shadowData.isKeywordSoftShadowsEnabled = softShadows;
+
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, renderingData.shadowData.isKeywordSoftShadowsEnabled);
 
                 if (anyShadowSliceRenderer)
                     SetupAdditionalLightsShadowReceiverConstants(cmd, softShadows);

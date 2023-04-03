@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        string _maskInput = "xyzw";
+        string _maskInput = "xxxx";
 
         [TextControl("Mask:")]
         public string maskInput
@@ -97,6 +97,8 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            if (_maskInput == null)
+                _maskInput = "xxxx";            
             AddSlot(new DynamicVectorMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector4.zero));
             switch (_maskInput.Length)
             {
@@ -128,6 +130,12 @@ namespace UnityEditor.ShaderGraph
             {
                 sb.AppendLine(string.Format("{0} {1} = 0;", outputSlotType, outputName));
             }
+            else if(!FindInputSlot<MaterialSlot>(InputSlotId).isConnected)
+            {
+                // cannot swizzle off of a float literal, so if there is no upstream connection, it means we have defaulted to a float,
+                // and the node's initial base case will generate invalid code.
+                sb.AppendLine("{0} {1} = $precision({2}).{3};", outputSlotType, outputName, inputValue, convertedMask);
+            }            
             else
             {
                 sb.AppendLine("{0} {1} = {2}.{3};", outputSlotType, outputName, inputValue, convertedMask);

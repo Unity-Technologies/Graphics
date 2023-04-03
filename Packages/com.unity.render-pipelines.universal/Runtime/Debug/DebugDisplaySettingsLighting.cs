@@ -19,10 +19,16 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public DebugLightingFeatureFlags lightingFeatureFlags { get; set; }
 
+		/// <summary>
+		/// Current HDR debug mode.
+		/// </summary>
+        public HDRDebugMode hdrDebugMode { get; set; }
+
         static internal class Strings
         {
             public static readonly NameAndTooltip LightingDebugMode = new() { name = "Lighting Debug Mode", tooltip = "Use the drop-down to select which lighting and shadow debug information to overlay on the screen." };
             public static readonly NameAndTooltip LightingFeatures = new() { name = "Lighting Features", tooltip = "Filter and debug selected lighting features in the system." };
+            public static readonly NameAndTooltip HDRDebugMode = new() { name = "HDR Debug Mode", tooltip = "Select which HDR brightness debug information to overlay on the screen." };
         }
 
         internal static class WidgetFactory
@@ -44,6 +50,16 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => panel.data.lightingFeatureFlags = (DebugLightingFeatureFlags)value,
                 enumType = typeof(DebugLightingFeatureFlags),
             };
+
+            internal static DebugUI.Widget CreateHDRDebugMode(SettingsPanel panel) => new DebugUI.EnumField
+            {
+                nameAndTooltip = Strings.HDRDebugMode,
+                autoEnum = typeof(HDRDebugMode),
+                getter = () => (int)panel.data.hdrDebugMode,
+                setter = (value) => panel.data.hdrDebugMode = (HDRDebugMode)value,
+                getIndex = () => (int)panel.data.hdrDebugMode,
+                setIndex = (value) => panel.data.hdrDebugMode = (HDRDebugMode)value
+            };
         }
 
         [DisplayInfo(name = "Lighting", order = 3)]
@@ -63,6 +79,7 @@ namespace UnityEngine.Rendering.Universal
                     children =
                     {
                         WidgetFactory.CreateLightingDebugMode(this),
+                        WidgetFactory.CreateHDRDebugMode(this),
                         WidgetFactory.CreateLightingFeatures(this)
                     }
                 });
@@ -72,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
         #region IDebugDisplaySettingsData
 
         /// <inheritdoc/>
-        public bool AreAnySettingsActive => (lightingDebugMode != DebugLightingMode.None) || (lightingFeatureFlags != DebugLightingFeatureFlags.None);
+        public bool AreAnySettingsActive => (lightingDebugMode != DebugLightingMode.None) || (lightingFeatureFlags != DebugLightingFeatureFlags.None) || (hdrDebugMode != HDRDebugMode.None);
 
         /// <inheritdoc/>
         public bool IsPostProcessingAllowed => (lightingDebugMode != DebugLightingMode.Reflections && lightingDebugMode != DebugLightingMode.ReflectionsWithSmoothness);

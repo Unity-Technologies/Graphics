@@ -1,14 +1,16 @@
 Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
 {
     HLSLINCLUDE
-
-        #pragma exclude_renderers gles
         #pragma multi_compile_local _ _TONEMAP_ACES _TONEMAP_NEUTRAL
+        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION
 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#if defined(HDR_COLORSPACE_CONVERSION)
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
+#endif
 
         float4 _Lut_Params;         // x: lut_height, y: 0.5 / lut_width, z: 0.5 / lut_height, w: lut_height / lut_height - 1
         float4 _ColorBalance;       // xyz: LMS coeffs, w: unused
@@ -26,6 +28,8 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
         float4 _ShaHiLimits;        // xy: shadows min/max, zw: highlight min/max
         float4 _SplitShadows;       // xyz: color, w: balance
         float4 _SplitHighlights;    // xyz: color, w: unused
+        float4 _HDROutputLuminanceParams; // xy: brightness min/max, z: paper white brightness, w: color primaries
+        float4 _HDROutputGradingParams; // x: eetf/range reduction mode, y: hue shift, zw: unused
 
         TEXTURE2D(_CurveMaster);
         TEXTURE2D(_CurveRed);
@@ -37,10 +41,30 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
         TEXTURE2D(_CurveSatVsSat);
         TEXTURE2D(_CurveLumVsSat);
 
+        #define MinNits                 _HDROutputLuminanceParams.x
+        #define MaxNits                 _HDROutputLuminanceParams.y
+        #define PaperWhite              _HDROutputLuminanceParams.z
+        #define RangeReductionMode      (int)_HDROutputGradingParams.x
+        #define HueShift                _HDROutputGradingParams.y
+
         float EvaluateCurve(TEXTURE2D(curve), float t)
         {
             float x = SAMPLE_TEXTURE2D(curve, sampler_LinearClamp, float2(t, 0.0)).x;
             return saturate(x);
+        }
+
+        float3 RotateToColorGradeOutputSpace(float3 gradedColor)
+        {
+            #ifdef _TONEMAP_ACES
+                // In ACES workflow we return graded color in ACEScg, we move to ACES (AP0) later on
+                return gradedColor;
+            #elif defined(HDR_COLORSPACE_CONVERSION) // HDR but not ACES workflow
+                // If we are doing HDR we expect grading to finish at Rec2020. Any supplemental rotation is done inside the various options.
+                return RotateRec709ToRec2020(gradedColor);
+            #else // Nor ACES or HDR
+                // We already graded in sRGB
+                return gradedColor;
+            #endif
         }
 
         // Note: when the ACES tonemapper is selected the grading steps will be done using ACES spaces
@@ -159,7 +183,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             colorLinear = FastTonemapInvert(colorLinear);
 
             colorLinear = max(0.0, colorLinear);
-            return colorLinear;
+            return RotateToColorGradeOutputSpace(colorLinear);
         }
 
         float3 Tonemap(float3 colorLinear)
@@ -179,6 +203,23 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             return colorLinear;
         }
 
+        float3 ProcessColorForHDR(float3 colorLinear)
+        {
+            #ifdef HDR_COLORSPACE_CONVERSION
+                #ifdef _TONEMAP_ACES
+                float3 aces = ACEScg_to_ACES(colorLinear);
+                return HDRMappingACES(aces.rgb, PaperWhite, RangeReductionMode, true);
+                #elif _TONEMAP_NEUTRAL
+                return HDRMappingFromRec2020(colorLinear.rgb, PaperWhite, MinNits, MaxNits, RangeReductionMode, HueShift, true);
+                #else
+                // Grading finished in Rec2020, converting to the expected color space and [0, 10k] nits range
+                return RotateRec2020ToOutputSpace(colorLinear) * PaperWhite;
+                #endif
+            #endif
+
+            return colorLinear;
+        }
+
         float4 FragLutBuilderHdr(Varyings input) : SV_Target
         {
             // Lut space
@@ -189,7 +230,12 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
 
             // Color grade & tonemap
             float3 gradedColor = ColorGrade(colorLutSpace);
+
+            #ifdef HDR_COLORSPACE_CONVERSION
+            gradedColor = ProcessColorForHDR(gradedColor);
+            #else
             gradedColor = Tonemap(gradedColor);
+            #endif
 
             return float4(gradedColor, 1.0);
         }

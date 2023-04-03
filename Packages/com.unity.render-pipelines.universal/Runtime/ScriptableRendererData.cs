@@ -29,6 +29,12 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             [Reload("Shaders/Debug/DebugReplacement.shader")]
             public Shader debugReplacementPS;
+
+            /// <summary>
+            /// Debug shader used to output HDR Chromacity mapping.
+            /// </summary>
+            [Reload("Shaders/Debug/HDRDebugView.shader")]
+            public Shader hdrDebugViewPS;
         }
 
         /// <summary>
@@ -44,9 +50,6 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
-#if UNITY_EDITOR
-        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.RenderPassEnabled)]
-#endif
         [SerializeField] bool m_UseNativeRenderPass = false;
 
         /// <summary>

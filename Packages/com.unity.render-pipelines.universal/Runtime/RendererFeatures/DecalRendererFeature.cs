@@ -39,12 +39,6 @@ namespace UnityEngine.Rendering.Universal
     [System.Serializable]
     internal class DBufferSettings
     {
-#if UNITY_EDITOR
-        // TODO: Either add a disabled item in DecalNormalBlend or make m_DBufferSettings nullable for correct filtering
-        //[ShaderKeywordFilter.SelectIf(DecalSurfaceData.Albedo, overridePriority: true, keywordNames: ShaderKeywordStrings.DBufferMRT1)]
-        //[ShaderKeywordFilter.SelectIf(DecalSurfaceData.AlbedoNormal, overridePriority: true, keywordNames: ShaderKeywordStrings.DBufferMRT2)]
-        //[ShaderKeywordFilter.SelectIf(DecalSurfaceData.AlbedoNormalMAOS, overridePriority: true, keywordNames: ShaderKeywordStrings.DBufferMRT3)]
-#endif
         public DecalSurfaceData surfaceData = DecalSurfaceData.AlbedoNormalMAOS;
     }
 
@@ -61,12 +55,6 @@ namespace UnityEngine.Rendering.Universal
     [System.Serializable]
     internal class DecalScreenSpaceSettings
     {
-#if UNITY_EDITOR
-        // TODO: Either add a disabled item in DecalNormalBlend or make m_ScreenSpaceSettings nullable for correct filtering
-        //[ShaderKeywordFilter.SelectIf(DecalNormalBlend.Low, overridePriority: true, keywordNames: ShaderKeywordStrings.DecalNormalBlendLow)]
-        //[ShaderKeywordFilter.SelectIf(DecalNormalBlend.Medium, overridePriority: true, keywordNames: ShaderKeywordStrings.DecalNormalBlendMedium)]
-        //[ShaderKeywordFilter.SelectIf(DecalNormalBlend.High, overridePriority: true, keywordNames: ShaderKeywordStrings.DecalNormalBlendHigh)]
-#endif
         public DecalNormalBlend normalBlend = DecalNormalBlend.Low;
     }
 
@@ -228,8 +216,13 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawGBufferSystem m_DrawGBufferSystem;
         private DeferredLights m_DeferredLights;
 
+        // Internal / Constants
+        internal ref DecalSettings settings => ref m_Settings;
         internal bool intermediateRendering => m_Technique == DecalTechnique.DBuffer;
         internal bool requiresDecalLayers => m_Settings.decalLayers;
+        internal static bool isGLDevice =>    SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
+                                           || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3
+                                           || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
 
         public override void Create()
         {
@@ -242,7 +235,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal override bool RequireRenderingLayers(bool isDeferred, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
         {
-            var technique = GetTechnique(isDeferred);
+            // In some cases the desired technique is wanted, even if not supported.
+            // For example when building the player, so the variant can be included
+            bool checkForInvalidTechniques = Application.isPlaying;
+
+            var technique = GetTechnique(isDeferred, checkForInvalidTechniques);
             atEvent = technique == DecalTechnique.DBuffer ? RenderingLayerUtils.Event.DepthNormalPrePass : RenderingLayerUtils.Event.Opaque;
             maskSize = RenderingLayerUtils.MaskSize.Bits8;
             return requiresDecalLayers;
@@ -301,14 +298,8 @@ namespace UnityEngine.Rendering.Universal
             return GetTechnique(isDeferred);
         }
 
-        private DecalTechnique GetTechnique(bool isDeferred)
+        internal DecalTechnique GetTechnique(bool isDeferred, bool checkForInvalidTechniques = true)
         {
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2)
-            {
-                Debug.LogError("Decals are not supported with OpenGLES2.");
-                return DecalTechnique.Invalid;
-            }
-
             DecalTechnique technique = DecalTechnique.Invalid;
             switch (m_Settings.technique)
             {
@@ -329,29 +320,44 @@ namespace UnityEngine.Rendering.Universal
                     break;
             }
 
-            // Skip error in tests to avoid failure
-#if !UNITY_INCLUDE_TESTS
-            if (technique == DecalTechnique.DBuffer &&
-                (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3))
+            // In some cases the desired technique is wanted, even if not supported.
+            // For example when building the player, so the variant can be included
+            if (!checkForInvalidTechniques)
+                return technique;
+
+            // Check if the technique is valid
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2)
             {
+                #if !UNITY_INCLUDE_TESTS
+                Debug.LogError("Decals are not supported with OpenGLES2.");
+                #endif
+                return DecalTechnique.Invalid;
+            }
+
+            if (technique == DecalTechnique.DBuffer && isGLDevice)
+            {
+                #if !UNITY_INCLUDE_TESTS
                 Debug.LogError("Decal DBuffer technique is not supported with OpenGL.");
+                #endif
                 return DecalTechnique.Invalid;
             }
 
             bool mrt4 = SystemInfo.supportedRenderTargetCount >= 4;
             if (technique == DecalTechnique.DBuffer && !mrt4)
             {
+                #if !UNITY_INCLUDE_TESTS
                 Debug.LogError("Decal DBuffer technique requires MRT4 support.");
+                #endif
                 return DecalTechnique.Invalid;
             }
 
             if (technique == DecalTechnique.GBuffer && !mrt4)
             {
+                #if !UNITY_INCLUDE_TESTS
                 Debug.LogError("Decal useGBuffer option requires MRT4 support.");
+                #endif
                 return DecalTechnique.Invalid;
             }
-#endif
 
             return technique;
         }
@@ -369,12 +375,15 @@ namespace UnityEngine.Rendering.Universal
             return !GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
         }
 
-        private void RecreateSystemsIfNeeded(ScriptableRenderer renderer, in CameraData cameraData)
+        private bool RecreateSystemsIfNeeded(ScriptableRenderer renderer, in CameraData cameraData)
         {
             if (!m_RecreateSystems)
-                return;
+                return true;
 
             m_Technique = GetTechnique(renderer);
+            if (m_Technique == DecalTechnique.Invalid)
+                return false;
+
             m_DBufferSettings = GetDBufferSettings();
             m_ScreenSpaceSettings = GetScreenSpaceSettings();
 
@@ -435,6 +444,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_RecreateSystems = false;
+            return true;
         }
 
         public override void OnCameraPreCull(ScriptableRenderer renderer, in CameraData cameraData)
@@ -442,7 +452,9 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.cameraType == CameraType.Preview)
                 return;
 
-            RecreateSystemsIfNeeded(renderer, cameraData);
+            bool isValid = RecreateSystemsIfNeeded(renderer, cameraData);
+            if (!isValid)
+                return;
 
             ChangeAdaptivePerformanceDrawDistances();
 
@@ -481,7 +493,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            RecreateSystemsIfNeeded(renderer, renderingData.cameraData);
+            bool isValid = RecreateSystemsIfNeeded(renderer, renderingData.cameraData);
+            if (!isValid)
+                return;
 
             ChangeAdaptivePerformanceDrawDistances();
 

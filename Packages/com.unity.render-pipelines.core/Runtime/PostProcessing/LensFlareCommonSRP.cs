@@ -68,8 +68,12 @@ namespace UnityEngine.Rendering
 
         static bool IsOcclusionRTCompatible()
         {
+#if UNITY_SERVER
+            return false;
+#else
             return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore;
+#endif
         }
 
         /// <summary>

@@ -32,7 +32,7 @@ namespace UnityEditor.VFX
 
             VFXAABoxGizmo.DrawBoxSizeDataAnchorGizmo(new AABox() { center = box.center, size = box.size }, component, this, m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, fullTranform);
 
-            RotationGizmo(box.center, box.angles, m_AnglesProperty, true);
+            RotationOnlyGizmo(box.center, box.angles, m_AnglesProperty);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(OrientedBox value)
@@ -78,7 +78,9 @@ namespace UnityEditor.VFX
         static bool SizeHandle(Vector3 otherMiddle, Vector3 middle, Vector3 center, IProperty<float> sizeProperty, IProperty<Vector3> centerProperty)
         {
             EditorGUI.BeginChangeCheck();
-            Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
+
+
+            Vector3 middleResult = CustomSlider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle));
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -155,8 +157,7 @@ namespace UnityEditor.VFX
             Vector3 minusZFaceMiddle = (points[4] + points[5] + points[6] + points[7]) * 0.25f;
             changed = TwoSidedSizeHandle(Color.blue, zFaceMiddle, minusZFaceMiddle, center, sizeZProperty, centerProperty) || changed;
 
-
-            changed = gizmo.PositionGizmo(box.center, Vector3.zero, centerProperty, true) || changed;
+            changed = gizmo.PositionOnlyGizmo(box.center, centerProperty) || changed;
 
             return changed;
         }

@@ -326,7 +326,7 @@ namespace UnityEngine.Rendering
         }
 
         // Faster version of OverrideData to force replace values in the global state
-        void ReplaceData(VolumeStack stack)
+        internal void ReplaceData(VolumeStack stack)
         {
             var resetParameters = stack.defaultParameters;
             var resetParametersCount = resetParameters.Length;

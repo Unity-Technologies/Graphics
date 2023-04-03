@@ -86,7 +86,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles
+            #pragma target 4.5
+
+            // Deferred Rendering Path does not support the OpenGL-based graphics API:
+            // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
+            #pragma exclude_renderers gles3 glcore
+
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 

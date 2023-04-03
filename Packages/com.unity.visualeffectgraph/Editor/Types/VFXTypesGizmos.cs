@@ -18,10 +18,7 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Position position)
         {
-            if (m_Property.isEditable && PositionGizmo(ref position.position, Vector3.zero, true))
-            {
-                m_Property.SetValue(position);
-            }
+            PositionOnlyGizmo(position, m_Property);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Position value)
@@ -46,34 +43,23 @@ namespace UnityEditor.VFX
                 direction.direction = Vector3.up;
             }
 
-            Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, direction.direction);
+            var normalQuat = Quaternion.FromToRotation(Vector3.forward, direction.direction);
 
-            Ray ray = HandleUtility.GUIPointToWorldRay(Vector2.one * 200);
+            var ray = HandleUtility.GUIPointToWorldRay(Vector2.one * 200);
             var position = ray.origin + ray.direction * 2;
 
-            var mat = Handles.matrix;
-
-            mat.SetColumn(3, new Vector4(position.x, position.y, position.z, 1));
-
-            Handles.matrix = mat;
-
-            Handles.ArrowHandleCap(currentHashCode, Vector3.zero, normalQuat, HandleUtility.GetHandleSize(Vector3.zero) * 1, Event.current.type);
-
-            if (m_Property.isEditable && NormalGizmo(Vector3.zero, ref direction.direction, true))
+            using (new Handles.DrawingScope(Matrix4x4.TRS(position, Handles.matrix.rotation, Vector3.one)))
             {
-                direction.direction.Normalize();
-                m_Property.SetValue(direction);
+                Handles.ArrowHandleCap(currentHashCode, Vector3.zero, normalQuat, HandleUtility.GetHandleSize(Vector3.zero), Event.current.type);
+                if (m_Property.isEditable && NormalGizmo(Vector3.zero, ref direction.direction, true))
+                {
+                    direction.direction.Normalize();
+                    m_Property.SetValue(direction);
+                }
             }
         }
 
         Quaternion m_PrevQuaternion;
-
-
-        public static void AngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
-        {
-            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, size * 10);
-            Handles.DrawLine(Vector3.zero, position);
-        }
 
         public override Bounds OnGetSpacedGizmoBounds(DirectionType value)
         {
@@ -110,14 +96,17 @@ namespace UnityEditor.VFX
                 HandleUtility.nearestControl = -1;
             }
 
-            EditorGUI.BeginChangeCheck();
-            var result = Handles.Slider(vector.vector, vector.vector, handleSize * 2 * HandleUtility.GetHandleSize(vector.vector), Handles.ConeHandleCap, 0);
-            var changed = EditorGUI.EndChangeCheck();
-
-            if (changed && m_Property.isEditable)
+            if (float.IsFinite(vector.vector.sqrMagnitude))
             {
-                vector.vector = vector.vector.normalized * result.magnitude;
-                m_Property.SetValue(vector);
+                EditorGUI.BeginChangeCheck();
+                var result = Handles.Slider(vector.vector, vector.vector, handleSize * 2 * HandleUtility.GetHandleSize(vector.vector), CustomConeHandleCap, 0);
+                var changed = EditorGUI.EndChangeCheck();
+
+                if (changed && m_Property.isEditable)
+                {
+                    vector.vector = result;
+                    m_Property.SetValue(vector);
+                }
             }
 
             if (!m_Property.isEditable)

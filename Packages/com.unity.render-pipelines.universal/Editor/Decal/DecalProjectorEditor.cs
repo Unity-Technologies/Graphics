@@ -507,7 +507,15 @@ namespace UnityEditor.Rendering.Universal
 
             // update each target
             foreach (DecalProjector decalProjector in targets)
+            {
                 UpdateSizeOfOneTarget(decalProjector);
+
+                // Fix for UUM-29105 (Changes made to Decal Project Prefab in the Inspector are not saved)
+                // This editor doesn't use serializedObject to modify the target objects, explicitly mark the prefab
+                // asset dirty to ensure the new data is saved.
+                if (PrefabUtility.IsPartOfPrefabAsset(decalProjector))
+                    EditorUtility.SetDirty(decalProjector);
+            }
 
             // update again serialize object to register change in targets
             serializedObject.Update();

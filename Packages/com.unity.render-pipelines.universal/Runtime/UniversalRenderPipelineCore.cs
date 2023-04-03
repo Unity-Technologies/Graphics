@@ -413,6 +413,18 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
 
+        internal bool resolveToScreen => targetTexture == null && resolveFinalTarget && (cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
+
+        /// <summary>
+        /// True if the Camera should output to an HDR display.
+        /// </summary>
+        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && isHdrEnabled && resolveToScreen;
+
+        /// <summary>
+        /// True if the Camera should render overlay UI.
+        /// </summary>
+        public bool rendersOverlayUI => SupportedRenderingFeatures.active.rendersUIOverlay && resolveToScreen;
+
         /// <summary>
         /// True is the handle has its content flipped on the y axis.
         /// This happens only with certain rendering APIs.
@@ -887,6 +899,10 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly int renderingLayerMaxInt = Shader.PropertyToID("_RenderingLayerMaxInt");
         public static readonly int renderingLayerRcpMaxInt = Shader.PropertyToID("_RenderingLayerRcpMaxInt");
+
+        public static readonly int overlayUITexture = Shader.PropertyToID("_OverlayUITexture");
+        public static readonly int hdrOutputLuminanceParams = Shader.PropertyToID("_HDROutputLuminanceParams");
+        public static readonly int hdrOutputGradingParams = Shader.PropertyToID("_HDROutputGradingParams");
     }
 
     /// <summary>
@@ -1159,6 +1175,15 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for editor visualization. </summary>
         public const string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
 
+        /// <summary> Keyword used for disabling Texture 2D Arrays. </summary>
+        public const string DisableTexture2DXArray = "DISABLE_TEXTURE2D_X_ARRAY";
+
+        /// <summary> Keyword used for Single Slice Blits. </summary>
+        public const string BlitSingleSlice = "BLIT_SINGLE_SLICE";
+
+        /// <summary> Keyword used for rendering a combined mesh for XR. </summary>
+        public const string XROcclusionMeshCombined = "XR_OCCLUSION_MESH_COMBINED";
+
         /// <summary> Keyword used for applying scale and bias. </summary>
         public const string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
 
@@ -1182,6 +1207,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for vertex Spherical Harmonic (SH) evaluation in URP Lit shaders.</summary>
         public const string EVALUATE_SH_VERTEX = "EVALUATE_SH_VERTEX";
+
+        /// <summary> Keyword used for Drawing procedurally.</summary>
+        public const string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
     }
 
     public sealed partial class UniversalRenderPipeline
@@ -1633,6 +1661,7 @@ namespace UnityEngine.Rendering.Universal
         // DrawObjectsPass
         DrawOpaqueObjects,
         DrawTransparentObjects,
+        DrawScreenSpaceUI,
 
         // RenderObjectsPass
         //RenderObjects,

@@ -140,7 +140,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static void ExecutePass(ScriptableRenderContext context, PassData data, ref RenderingData renderingData, bool useRenderGraph = false)
         {
-            CoreUtils.SetKeyword(renderingData.commandBuffer, ShaderKeywordStrings.WriteRenderingLayers, data.deferredLights.UseRenderingLayers);
+            bool usesRenderingLayers = data.deferredLights.UseRenderingLayers && !data.deferredLights.HasNormalPrepass;
+            if (usesRenderingLayers)
+                CoreUtils.SetKeyword(renderingData.commandBuffer, ShaderKeywordStrings.WriteRenderingLayers, true);
 
             context.ExecuteCommandBuffer(renderingData.commandBuffer);
             renderingData.commandBuffer.Clear();
@@ -167,6 +169,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Input attachments will only be used when this is not needed so safe to skip in that case
             if (!data.deferredLights.UseRenderPass)
                 renderingData.commandBuffer.SetGlobalTexture(s_CameraNormalsTextureID, data.deferredLights.GbufferAttachments[data.deferredLights.GBufferNormalSmoothnessIndex]);
+
+            // Clean up
+            if (usesRenderingLayers)
+            {
+                CoreUtils.SetKeyword(renderingData.commandBuffer, ShaderKeywordStrings.WriteRenderingLayers, false);
+                context.ExecuteCommandBuffer(renderingData.commandBuffer);
+                renderingData.commandBuffer.Clear();
+            }
         }
 
         private class PassData

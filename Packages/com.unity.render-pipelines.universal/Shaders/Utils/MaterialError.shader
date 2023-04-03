@@ -11,12 +11,23 @@ Shader "Hidden/Universal Render Pipeline/MaterialError"
             // problematic because FallbackError needs to support SM2.0 and seems to use
             // built-in shader headers, whereas Hybrid support needs SM4.5 and SRP shader headers.
             HLSLPROGRAM
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Shader Stages
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 4.5
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+
+            //--------------------------------------
+            // GPU Instancing
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+
+            // -------------------------------------
+            // Includes
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 

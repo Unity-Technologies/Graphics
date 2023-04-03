@@ -98,7 +98,7 @@ namespace UnityEditor.VFX
 
         protected virtual bool needsExposureWeight { get { return true; } }
 
-        private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
+        protected virtual bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
 
         public virtual void SetupMaterial(Material material) { }
 

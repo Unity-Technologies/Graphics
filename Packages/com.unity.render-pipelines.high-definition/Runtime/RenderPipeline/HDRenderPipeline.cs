@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool HDROutputIsActive()
         {
             // TODO: Until we can test it, disable on Mac.
-            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && HDROutputSettings.main.active;
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && HDROutputSettings.main.active;
         }
 
         void SetHDRState(HDCamera camera)
@@ -658,7 +658,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 enlightenLightmapper = false
                 #pragma warning restore 618
                 ,
-                rendersUIOverlay = true
+                rendersUIOverlay = true,
+                supportsHDR = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);

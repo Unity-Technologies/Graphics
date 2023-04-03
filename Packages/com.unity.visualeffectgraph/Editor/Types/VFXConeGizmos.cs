@@ -130,10 +130,14 @@ namespace UnityEditor.VFX
             var topRadius = cone.topRadius;
             var height = cone.height;
 
-            gizmo.PositionGizmo(center, angles, centerProperty, false);
-            gizmo.RotationGizmo(center, angles, anglesProperty, false);
-            gizmo.ScaleGizmo(center, angles, scale, scaleProperty, false);
-
+            gizmo.TransformGizmo(
+                center,
+                angles,
+                scale,
+                centerProperty,
+                anglesProperty,
+                scaleProperty);
+            
             using (new Handles.DrawingScope(Handles.matrix * cone.transform))
             {
                 if (baseRadiusScreen > 2 && baseRadiusProperty.isEditable)
@@ -142,7 +146,9 @@ namespace UnityEditor.VFX
                     {
                         EditorGUI.BeginChangeCheck();
                         var pos = extremities.extremities[i];
-                        var result = Handles.Slider(gizmo.GetCombinedHashCode(s_ExtremitiesNames[i]), pos, pos - extremities.bottomCap, handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
+
+                        var direction = pos - extremities.bottomCap;
+                        var result = CustomSlider(gizmo.GetCombinedHashCode(s_ExtremitiesNames[i]), pos, direction, handleSize * HandleUtility.GetHandleSize(pos));
                         if (EditorGUI.EndChangeCheck())
                         {
                             baseRadiusProperty.SetValue(result.magnitude);
@@ -158,7 +164,7 @@ namespace UnityEditor.VFX
 
                         var pos = extremities.extremities[i];
                         var dir = pos - extremities.topCap;
-                        var result = Handles.Slider(gizmo.GetCombinedHashCode(s_ExtremitiesNames[i]), pos, dir, handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
+                        var result = CustomSlider(gizmo.GetCombinedHashCode(s_ExtremitiesNames[i]), pos, dir, handleSize * HandleUtility.GetHandleSize(pos));
                         if (EditorGUI.EndChangeCheck())
                             topRadiusProperty.SetValue((result - extremities.topCap).magnitude);
                         GUI.changed = false;
@@ -168,7 +174,7 @@ namespace UnityEditor.VFX
                 if (heightProperty.isEditable)
                 {
                     EditorGUI.BeginChangeCheck();
-                    var result = Handles.Slider(gizmo.GetCombinedHashCode(s_HeightCapName), extremities.topCap, Vector3.up, handleSize * HandleUtility.GetHandleSize(extremities.topCap), CustomCubeHandleCap, 0);
+                    var result = CustomSlider(gizmo.GetCombinedHashCode(s_HeightCapName), extremities.topCap, Vector3.up, handleSize * HandleUtility.GetHandleSize(extremities.topCap));
                     if (EditorGUI.EndChangeCheck())
                         heightProperty.SetValue(result.magnitude);
                 }

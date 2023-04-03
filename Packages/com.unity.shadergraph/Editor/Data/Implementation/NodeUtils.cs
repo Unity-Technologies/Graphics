@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -896,54 +897,11 @@ namespace UnityEditor.Graphing
             if (originalId == null)
                 originalId = "";
 
-            StringBuilder hlslId = new StringBuilder(originalId.Length);
-            bool lastInvalid = false;
-            for (int i = 0; i < originalId.Length; i++)
-            {
-                char c = originalId[i];
+            var result = Regex.Replace(originalId, @"^[^A-Za-z0-9_]+|[^A-Za-z0-9_]+$", ""); // trim leading/trailing bad characters (excl '_').
+            result = Regex.Replace(result, @"[^A-Za-z0-9]+", "_"); // replace sequences of bad characters with underscores (incl '_').
 
-                bool isLetter = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-                bool isUnderscore = (c == '_');
-                bool isDigit = (c >= '0' && c <= '9');
-
-                bool validChar = isLetter || isUnderscore || isDigit;
-
-                if (!validChar)
-                {
-                    // when we see an invalid character, we just record that we saw it and go to the next character
-                    // this way we combine multiple invalid characters, and trailing ones just get dropped
-                    lastInvalid = true;
-                }
-                else
-                {
-                    // whenever we hit a valid character
-                    // if the last character was invalid, append an underscore
-                    // unless we're at the beginning of the string
-                    if (lastInvalid && (hlslId.Length > 0))
-                        hlslId.Append("_");
-
-                    // HLSL ids can't start with a digit, prepend an underscore to prevent this
-                    if (isDigit && (hlslId.Length == 0))
-                        hlslId.Append("_");
-
-                    hlslId.Append(c);
-
-                    lastInvalid = false;
-                }
-            }
-
-            // empty strings not allowed -- append an underscore if it's empty
-            if (hlslId.Length <= 0)
-                hlslId.Append("_");
-
-            var result = hlslId.ToString();
-
-            while (IsHLSLKeyword(result))
+            if (result.Length == 0 || Char.IsDigit(result[0]) || IsHLSLKeyword(result) || (isDisallowedIdentifier?.Invoke(result) ?? false))
                 result = "_" + result;
-
-            if (isDisallowedIdentifier != null)
-                while (isDisallowedIdentifier(result))
-                    result = "_" + result;
 
             return result;
         }

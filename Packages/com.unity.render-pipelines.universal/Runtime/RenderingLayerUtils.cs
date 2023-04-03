@@ -23,14 +23,25 @@ namespace UnityEngine.Rendering.Universal
             Bits32,
         }
 
+        public static void CombineRendererEvents(bool isDeferred, int msaaSampleCount, Event rendererEvent, ref Event combinedEvent)
+        {
+            // Rendering layers can not use MSAA resolve, because it encodes integer
+            if (msaaSampleCount > 1 && !isDeferred)
+                combinedEvent = Event.DepthNormalPrePass;
+
+            // Otherwise we combine them by selecting the min of the two...
+            else
+                combinedEvent = Combine(combinedEvent, rendererEvent);
+        }
+
         /// <summary>
         /// Returns True if <see cref="UniversalRendererData"/> will require rendering layers texture.
         /// </summary>
         /// <param name="universalRendererData"></param>
+        /// <param name="msaaSampleCount">Number of MSAA Samples</param>
         /// <param name="combinedEvent">Event at which rendering layers texture needs to be created</param>
         /// <param name="combinedMaskSize">The mask size of rendering layers texture</param>
-        public static bool RequireRenderingLayers(UniversalRendererData universalRendererData, int msaaSampleCount,
-            out Event combinedEvent, out MaskSize combinedMaskSize)
+        public static bool RequireRenderingLayers(UniversalRendererData universalRendererData, int msaaSampleCount, out Event combinedEvent, out MaskSize combinedMaskSize)
         {
             combinedEvent = Event.Opaque;
             combinedMaskSize = MaskSize.Bits8;
@@ -47,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Rendering layers can not use MSSA resolve, because it encodes integer
+            // Rendering layers can not use MSAA resolve, because it encodes integer
             if (msaaSampleCount > 1 && combinedEvent == Event.Opaque && !isDeferred)
                 combinedEvent = Event.DepthNormalPrePass;
 
@@ -65,11 +76,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns True if <see cref="UniversalRenderer"/> will require rendering layers texture.
         /// </summary>
-        /// <param name="UniversalRenderer"></param>
+        /// <param name="universalRenderer"></param>
+        /// <param name="rendererFeatures">Event at which rendering layers texture needs to be created</param>
+        /// <param name="msaaSampleCount">Number of MSAA Samples</param>
         /// <param name="combinedEvent">Event at which rendering layers texture needs to be created</param>
         /// <param name="combinedMaskSize">The mask size of rendering layers texture</param>
-        public static bool RequireRenderingLayers(UniversalRenderer universalRenderer, List<ScriptableRendererFeature> rendererFeatures, int msaaSampleCount,
-            out Event combinedEvent, out MaskSize combinedMaskSize)
+        public static bool RequireRenderingLayers(UniversalRenderer universalRenderer, List<ScriptableRendererFeature> rendererFeatures, int msaaSampleCount, out Event combinedEvent, out MaskSize combinedMaskSize)
         {
             combinedEvent = Event.Opaque;
             combinedMaskSize = MaskSize.Bits8;
@@ -86,7 +98,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Rendering layers can not use MSSA resolve, because it encodes integer
+            // Rendering layers can not use MSAA resolve, because it encodes integer
             if (msaaSampleCount > 1 && combinedEvent == Event.Opaque)
                 combinedEvent = Event.DepthNormalPrePass;
 

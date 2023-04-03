@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, m_Settings.normalBlend == DecalNormalBlend.Medium);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, m_Settings.normalBlend == DecalNormalBlend.High);
 
-                if (!IsGLDevice())
+                if (!DecalRendererFeature.isGLDevice)
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, m_DecalLayers);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -82,14 +82,6 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, false);
 
-        }
-
-        bool IsGLDevice()
-        {
-            return
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
         }
     }
 }
