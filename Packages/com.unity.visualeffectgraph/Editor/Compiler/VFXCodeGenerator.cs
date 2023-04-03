@@ -38,28 +38,43 @@ namespace UnityEditor.VFX
 
             string[] delim = { System.Environment.NewLine, "\n" };
             var valueLines = value.ToString().Split(delim, System.StringSplitOptions.None);
+            // For some reasons, just calling Replace(...) without any index data is orders of magnitude
+            // slower than searching a copy of the string to get the index first. So both codepaths do
+            // exactly that.
             if (valueLines.Length <= 1)
             {
-                target.Replace(targetQuery, value.ToString());
-            }
-            else
-            {
+                var replacement = value.ToString();
+                int startIndex = 0;
                 while (true)
                 {
                     var targetCopy = target.ToString();
-                    var index = targetCopy.IndexOf(targetQuery, StringComparison.Ordinal);
+                    var index = targetCopy.IndexOf(targetQuery, startIndex, StringComparison.Ordinal);
                     if (index == -1)
-                    {
                         break;
-                    }
-
+                    target.Replace(targetQuery, replacement, index, targetQuery.Length);
+                    startIndex = index;
+                }
+            }
+            else
+            {
+                int startIndex = 0;
+                while (true)
+                {
+                    var targetCopy = target.ToString();
+                    var index = targetCopy.IndexOf(targetQuery, startIndex, StringComparison.Ordinal);
+                    if (index == -1)
+                        break;
                     var indent = GetIndent(targetCopy, index);
                     var currentValue = new StringBuilder();
                     foreach (var line in valueLines)
                     {
                         currentValue.Append(indent + line + '\n');
                     }
-                    target.Replace(indent + targetQuery, currentValue.ToString());
+                    var currentValueString = currentValue.ToString();
+                    var toReplace = indent + targetQuery;
+                    index -= indent.Length;
+                    target.Replace(toReplace, currentValueString, index, toReplace.Length);
+                    startIndex = index;
                 }
             }
 

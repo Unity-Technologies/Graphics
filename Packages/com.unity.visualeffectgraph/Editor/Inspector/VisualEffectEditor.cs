@@ -963,7 +963,6 @@ namespace UnityEditor.VFX
 
                                 //< Actual display
                                 GUIContent nameContent = GetGUIContent(parameter.name, parameter.tooltip);
-                                EditorGUI.BeginChangeCheck();
 
                                 bool wasOverriden = actualDisplayedPropertyOverridden.boolValue;
 

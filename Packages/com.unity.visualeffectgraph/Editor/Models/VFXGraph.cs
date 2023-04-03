@@ -262,22 +262,35 @@ namespace UnityEditor.VFX
         static string[] OnWillSaveAssets(string[] paths)
         {
             Profiler.BeginSample("VisualEffectAssetModicationProcessor.OnWillSaveAssets");
-            foreach (string path in paths.Where(t => HasVFXExtension(t)))
-            {
-                var vfxResource = VisualEffectResource.GetResourceAtPath(path);
-                if (vfxResource != null)
+            bool started = false;
+            try {
+                foreach (string path in paths.Where(t => HasVFXExtension(t)))
                 {
-                    vfxResource.GetOrCreateGraph().UpdateSubAssets();
-                    try
+                    if (!started)
                     {
-                        VFXGraph.compilingInEditMode = vfxResource.GetOrCreateGraph().GetCompilationMode() == VFXCompilationMode.Edition;
-                        vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
+                        started = true;
+                        AssetDatabase.StartAssetEditing();
                     }
-                    finally
+                    var vfxResource = VisualEffectResource.GetResourceAtPath(path);
+                    if (vfxResource != null)
                     {
-                        VFXGraph.compilingInEditMode = false;
+                        vfxResource.GetOrCreateGraph().UpdateSubAssets();
+                        try
+                        {
+                            VFXGraph.compilingInEditMode = vfxResource.GetOrCreateGraph().GetCompilationMode() == VFXCompilationMode.Edition;
+                            vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
+                        }
+                        finally
+                        {
+                            VFXGraph.compilingInEditMode = false;
+                        }
                     }
                 }
+            }
+            finally
+            {
+                if (started)
+                    AssetDatabase.StopAssetEditing();
             }
             Profiler.EndSample();
             return paths;
