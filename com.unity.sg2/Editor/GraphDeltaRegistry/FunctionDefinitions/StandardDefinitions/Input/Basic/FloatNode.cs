@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a user-defined value with 1 channel.",
             category: "Input/Basic",
             synonyms: new string[3] { "1", "v1", "vec1" },
+            description: "pkg://Documentation~/previews/Float.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "X",

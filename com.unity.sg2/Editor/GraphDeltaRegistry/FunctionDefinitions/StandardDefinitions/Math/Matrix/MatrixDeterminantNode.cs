@@ -25,13 +25,16 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Math/Matrix",
             synonyms: new string[1] { "Determinant" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/MatrixDeterminant.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input matrix"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the determinant of the input matrix"
                 )
             }

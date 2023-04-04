@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Geometry",
             synonyms: new string[1] { "surface direction" },
             displayName: "Normal Vector",
+            description: "pkg://Documentation~/previews/NormalVector.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "NormalVector",
@@ -31,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "Mesh's normal vector in selected space."
                 )
             }

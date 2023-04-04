@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
@@ -21,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public IReadOnlyCollection<string> Synonyms { get; }
         public string Category { get; }
         public string FunctionSelectorLabel { get; }
+        public bool HasModes { get; }
         public string Description { get; }
 
         public NodeUIDescriptor(
@@ -32,6 +36,7 @@ namespace UnityEditor.ShaderGraph.Defs
             string displayName = null,
             bool hasPreview = true, // By default we assume all nodes should have previews,
             Dictionary<string, string> selectableFunctions = null,
+            bool hasModes = false,
             ParameterUIDescriptor[] parameters = null,
             string functionSelectorLabel = "",
             string description = null
@@ -48,7 +53,21 @@ namespace UnityEditor.ShaderGraph.Defs
             SelectableFunctions = new ReadOnlyDictionary<string, string>(functionDictionary);
             var parametersList = parameters ?? new ParameterUIDescriptor[0];
             Parameters = parametersList.ToList().AsReadOnly();
+            HasModes = hasModes;
             FunctionSelectorLabel = functionSelectorLabel;
+            // Description can either be a string or a string that represents a path
+            if (description != null && description.StartsWith("pkg://"))
+            {
+                try
+                {
+                    description = File.ReadAllText("Packages/com.unity.sg2/" + description[6..]);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Could not read node description at {description}");
+                    description = null;
+                }
+            }
             Description = description;
         }
 
@@ -63,6 +82,5 @@ namespace UnityEditor.ShaderGraph.Defs
 
 			return new ParameterUIDescriptor();
         }
-
     }
 }

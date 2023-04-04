@@ -57,6 +57,8 @@ namespace UnityEditor.VFX
 
     internal class VFXContext : VFXSlotContainerModel<VFXGraph, VFXBlock>, IVFXDataGetter
     {
+        public const int kMaxFlowCount = 10;
+
         protected static string RenderPipeTemplate(string fileName)
         {
             return VFXLibrary.currentSRPBinder.templatePath + "/Templates/" + fileName;
@@ -140,6 +142,25 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
         public virtual IEnumerable<string> fragmentParameters { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<string> vertexParameters { get { return Enumerable.Empty<string>(); } }
+
+        public virtual VFXContextCompiledData PrepareCompiledData()
+        {
+            var compiledData = new VFXContextCompiledData
+            {
+                tasks = new()
+                {
+                    new VFXTask
+                    {
+                        templatePath = codeGeneratorTemplate,
+                        type = taskType,
+                        shaderType = codeGeneratorCompute ? VFXTaskShaderType.ComputeShader : VFXTaskShaderType.Shader,
+                    }
+                },
+                buffers = new()
+            };
+
+            return compiledData;
+        }
 
         public virtual bool CanBeCompiled()
         {

@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Controls the maximum number of foam generators that are supported in one frame
         const int k_MaxNumWaterFoamGenerators = 64;
+        const float k_FoamIntensityThreshold = 0.015f;
 
         // Flag that allows us to track if the system currently supports foam.
         bool m_ActiveWaterFoam = false;
@@ -30,6 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ReprojectFoamKernel;
         int m_PostProcessFoamKernel;
 
+        // Keeps track of maximum possible foam intensity in to estimate when there is no more foam
+        float m_MaxInjectedFoamIntensity = 0.0f;
 
         // Atlas used to hold the custom foam generators' textures.
         PowerOfTwoTextureAtlas m_FoamTextureAtlas;
@@ -167,7 +170,14 @@ namespace UnityEngine.Rendering.HighDefinition
             bool foamGenerators = m_ActiveWaterFoamGenerators > 0;
             bool waterDeformers = WaterHasDeformation(currentWater);
             if (!foamGenerators && !waterDeformers)
-                return;
+            {
+                if (m_MaxInjectedFoamIntensity <= k_FoamIntensityThreshold)
+                    return;
+                // Attenuation formula must be in sync with WaterFoam.shader
+                m_MaxInjectedFoamIntensity *= Mathf.Exp(-m_ShaderVariablesWater._DeltaTime * m_ShaderVariablesWater._FoamPersistenceMultiplier * 0.5f);
+            }
+            else
+                m_MaxInjectedFoamIntensity = 1.0f;
 
             // Grab the foam buffers
             RTHandle currentFoamBuffer = currentWater.foamBuffers[0];

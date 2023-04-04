@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static void QuickSort<T>(T[] data, Func<T, T, int> compare)
         {
-            using var scope = new ProfilingScope(null, s_QuickSortSampler);
+            using var scope = new ProfilingScope(s_QuickSortSampler);
             QuickSort<T>(data, 0, data.Length - 1, compare);
         }
 
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.Universal
 
         static public void InsertionSort<T>(T[] data, Func<T, T, int> compare)
         {
-            using var scope = new ProfilingScope(null, s_InsertionSortSampler);
+            using var scope = new ProfilingScope(s_InsertionSortSampler);
             InsertionSort<T>(data, 0, data.Length - 1, compare);
         }
 

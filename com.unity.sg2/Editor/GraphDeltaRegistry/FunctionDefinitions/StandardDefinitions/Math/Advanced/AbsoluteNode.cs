@@ -23,13 +23,16 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "returns the positive version of the input",
             category: "Math/Advanced",
             synonyms: new string[1] { "positive" },
+            description: "pkg://Documentation~/previews/Absolute.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the positive version of the input"
                 )
             }

@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -33,8 +34,9 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Converts input UVs to polar coordinates.",
             category: "UV",
-            synonyms: new string[0] {  },
+            synonyms: Array.Empty<string>(),
             displayName: "Polar Coordinates",
+            description: "pkg://Documentation~/previews/PolarCoordinates.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "UV",
@@ -57,8 +59,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "UVs converted to polar coordinates"
-                )            }
+                )
+            }
         );
     }
 }

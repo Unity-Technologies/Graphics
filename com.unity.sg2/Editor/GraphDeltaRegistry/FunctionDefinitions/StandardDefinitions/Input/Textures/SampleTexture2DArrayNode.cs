@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -125,7 +126,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[3] { "stack", "pile", "tex2darray" },
             displayName: "Sample Texture 2D Array",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SampleTexture2DArray.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Standard", "Standard" },
                 { "LODfunction", "LOD" },
@@ -133,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Biasfunction", "Bias" }
             },
             functionSelectorLabel: "Mip Sampling Mode",
-            parameters: new ParameterUIDescriptor[14] {
+            parameters: new ParameterUIDescriptor[15] {
                 new ParameterUIDescriptor(
                     name: "TextureArray",
                     displayName: "Texture Array",
@@ -147,6 +149,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Sampler",
                     tooltip: "the texture sampler to use for sampling the texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Type",
+                    tooltip: "standard, tangent normal, or object normal"
                 ),
                 new ParameterUIDescriptor(
                     name: "Index",

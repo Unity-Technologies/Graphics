@@ -25,9 +25,11 @@ namespace UnityEditor.ShaderGraph.Defs
             synonyms: new string[1] { "volume" },
             displayName: "Texture 3D Asset",
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Texture3DAsset.md",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "A Texture 3D asset."
                 )
             }

@@ -622,7 +622,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!supportDecals)
             {
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Decals.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Decal, "m_RenderPipelineSettings.supportDecals");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering,
+                    HDRenderPipelineUI.ExpandableRendering.Decal, "m_RenderPipelineSettings.supportDecals");
                 EditorGUILayout.Space();
             }
 
@@ -710,7 +711,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!decalLayerEnabled)
                 {
                     HDEditorUtils.QualitySettingsHelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade. There is a performance cost of enabling this option.",
-                        MessageType.Info, HDRenderPipelineUI.Expandable.Decal, "m_RenderPipelineSettings.supportDecalLayers");
+                        MessageType.Info,
+                        HDRenderPipelineUI.ExpandableGroup.Rendering,
+                        HDRenderPipelineUI.ExpandableRendering.Decal, "m_RenderPipelineSettings.supportDecalLayers");
                     EditorGUILayout.Space();
                 }
 

@@ -273,7 +273,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!cpuSimSupported)
             {
                 HDEditorUtils.QualitySettingsHelpBox("Enable 'Script Interactions' in your HDRP Asset if you want to replicate the water simulation on CPU. There is a performance cost of enabling this option.",
-                    MessageType.Info, HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.waterCPUSimulation");
+                    MessageType.Info,
+                    HDRenderPipelineUI.ExpandableGroup.Rendering,
+                    HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.waterCPUSimulation");
                 EditorGUILayout.Space();
             }
         }
@@ -332,7 +334,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("Enable the 'Water' system in your HDRP Asset to simulate and render water surfaces in your HDRP project.",
-                    MessageType.Info, HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.supportWater");
+                    MessageType.Info,
+                    HDRenderPipelineUI.ExpandableGroup.Rendering,
+                    HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWater");
                 return;
             }
 
@@ -426,6 +430,8 @@ namespace UnityEditor.Rendering.HighDefinition
             Assert.IsNotNull(go);
 
             WaterSurface waterSurface = go.GetComponent<WaterSurface>();
+            Undo.RecordObject(waterSurface, "Reset Water Surface");
+
             switch (waterSurface.surfaceType)
             {
                 case WaterSurfaceType.OceanSeaLake:

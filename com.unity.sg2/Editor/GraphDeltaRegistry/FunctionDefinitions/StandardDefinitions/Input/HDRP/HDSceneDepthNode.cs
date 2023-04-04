@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -76,7 +77,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gets the camera's depth buffer.",
             category: "Input/HDRP",
             synonyms: new string[2] { "z", "buffer" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/HDSceneDepth.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Linear01", "Linear01" },
                 { "Raw", "Raw" },
@@ -96,6 +98,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the sample of the scene depth buffer"
                 )
             }

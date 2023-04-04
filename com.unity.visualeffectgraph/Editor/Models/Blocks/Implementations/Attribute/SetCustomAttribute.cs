@@ -1,14 +1,17 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text.RegularExpressions;
+
 using UnityEngine;
 using UnityEngine.VFX;
-using System.Globalization;
 
 namespace UnityEditor.VFX.Block
 {
-    class CustomAttributeUtility
+    static class CustomAttributeUtility
     {
+        private static readonly Regex s_NameValidationRegex = new Regex("^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
+
         public enum Signature
         {
             Float,
@@ -33,6 +36,11 @@ namespace UnityEditor.VFX.Block
                 case Signature.Uint: return VFXValueType.Uint32;
                 case Signature.Bool: return VFXValueType.Boolean;
             }
+        }
+
+        internal static bool IsShaderCompilableName(string name)
+        {
+            return s_NameValidationRegex.IsMatch(name);
         }
     }
 
@@ -71,14 +79,7 @@ namespace UnityEditor.VFX.Block
 
         public override string libraryName => $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute)}";
 
-        public override string name
-        {
-            get
-            {
-                string attributeName = attribute;
-                return VFXBlockUtility.GetNameString(Composition) + " " + attributeName + " " + VFXBlockUtility.GetNameString(Random) + " (" + AttributeType.ToString() + ")";
-            }
-        }
+        public override string name => VFXBlockUtility.GetNameString(Composition) + " '" + attribute + "' " + VFXBlockUtility.GetNameString(Random) + " (" + AttributeType + ")";
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
@@ -96,7 +97,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        static private string GenerateLocalAttributeName(string name)
+        private static string GenerateLocalAttributeName(string name)
         {
             return "_" + name[0].ToString().ToUpper(CultureInfo.InvariantCulture) + name.Substring(1);
         }
@@ -147,12 +148,17 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        private VFXAttribute currentAttribute
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
-            get
+            base.GenerateErrors(manager);
+
+            var attributeName = currentAttribute.name;
+            if (!CustomAttributeUtility.IsShaderCompilableName(attributeName))
             {
-                return new VFXAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType));
+                manager.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attributeName}' is not valid.\n -The name must not contain spaces or any special character\n -The name must not start with a digit character");
             }
         }
+
+        private VFXAttribute currentAttribute => new VFXAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType));
     }
 }

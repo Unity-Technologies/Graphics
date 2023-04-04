@@ -1,0 +1,124 @@
+coverage_meta:
+  history_repo: git@github.com:Unity-Technologies/sg2-codecoverage-history.git
+  coverage_history_path: history\win
+  # Fail if code coverage % falls below min_pct or drops more than max_decrease_pct
+  min_pct: 55
+  max_decrease_pct: 1
+  assemblies: # Prepend "+" to the assembly name to include it in the code coverage, prepend "-" to exclude assembly. Globbing can be used in the name.
+    - +ContextLayeredDataStorage
+    - +Unity.ShaderGraph.GraphDeltaRegistry
+    - +Unity.ShaderGraph.GraphUI
+    - +Unity.ShaderGraph.StandardDefinitions
+---
+ShaderGraph2_pr_trigger:
+  name: ShaderGraph2 - PR Tests Trigger
+  triggers:
+    expression: pull_request.source match "(?:^|.+\/)sg2\/.+" AND NOT pull_request.draft # this triggers the job on pull request exclusively on sg2/ branches
+    cancel_old_ci: true
+  dependencies:
+    - .yamato/sg2-tests.yml#ShaderGraph2_Mac
+    - .yamato/sg2-tests.yml#ShaderGraph2_Win
+    - .yamato/sg2-tests.yml#ShaderGraph2_Win_CodeCoverage_Verification
+
+ShaderGraph2_Win:
+  name: ShaderGraph2 Tests - Win
+  agent:
+    type: Unity::VM
+    image: sdet/gamecode_win10:stable
+    flavor: b1.large
+  variables:
+    EDITOR_BRANCH: sg2/staging
+  commands:
+    -  command: NetSh Advfirewall set allprofiles state off
+    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+       retries: 2
+    -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+       retries: 2
+    -  command: unity-downloader-cli -u %EDITOR_BRANCH% -c editor --fast --wait
+       retries: 2
+    -  command: git clone {{coverage_meta.history_repo}} History
+    -  command: utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground --enable-code-coverage --coverage-results-path=%CD%/CodeCoverageResults --coverage-history-path=%CD%/History/{{coverage_meta.coverage_history_path}} --coverage-options="generateAdditionalMetrics;assemblyFilters:{% for assembly in coverage_meta.assemblies %}{{ assembly }}{%if assembly != coverage_meta.assemblies.last %},{% endif %}{% endfor %};verbosity:warning;generateHtmlReport;generateHtmlReportHistory;generateAdditionalReports;"
+  artifacts:
+    logs:
+      paths:
+        -  "**/test-results/**"
+        -  "ShaderGraphPlayground/Logs/*.log"
+    CodeCoverageResults:
+      paths:
+        - CodeCoverageResults/**
+        - History/**
+
+ShaderGraph2_Mac:
+  name: ShaderGraph2 Tests - Mac
+  agent:
+    type: Unity::VM::osx
+    image: slough-ops/macos-11-xcode:v0.0.1-973582
+    flavor: m1.mac
+  variables:
+    EDITOR_BRANCH: sg2/staging
+  commands:
+    -  command: brew install lz4
+    -  command: brew tap --force-auto-update Unity-Technologies/homebrew-unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+    -  command: brew install Unity-Technologies/homebrew-unity/unity-downloader-cli
+    -  command: unity-downloader-cli -u $EDITOR_BRANCH -c editor --fast --wait
+    -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+       retries: 2
+    -  command: chmod +x utr
+    -  command: ./utr --editor-location=.Editor --platform=editmode --scripting-backend=Mono2x --suite=editor --testproject=./ShaderGraphPlayground
+       retries: 2
+  artifacts:
+    logs:
+      paths:
+        -  "**/test-results/**"
+        -  "ShaderGraphPlayground/Logs/*.log"
+
+ShaderGraph2_Win_CodeCoverage_Verification:
+  name: ShaderGraph2 Win CodeCoverage Verification
+  agent:
+    type: Unity::VM
+    image: sdet/gamecode_win10:v2.0.0-1044219
+    flavor: b1.large
+  dependencies:
+    - .yamato/sg2-tests.yml#ShaderGraph2_Win
+  commands:
+    - |
+      if defined YAMATO_PR_ID ( :: Run code coverage diff if this is triggered from a PR
+        pip install diff_cover
+        diff-cover CodeCoverageResults\Report\Cobertura.xml --compare-branch=origin/%YAMATO_PR_TARGET_BRANCH% --html-report CodeCoverageResults\coverage-diff-report.html
+      )
+    -  command: python History\ci-scripts\verify_coverage.py History\{{coverage_meta.coverage_history_path}} {{coverage_meta.min_pct}} {{coverage_meta.max_decrease_pct}}
+  artifacts:
+    CodeCoverageResults:
+      paths:
+        - CodeCoverageResults/coverage-diff-report.html
+
+ShaderGraph2_nightly_trigger:
+  name: ShaderGraph2 - Nightly Trigger
+  triggers:
+    recurring:
+      - branch: sg2/main
+        frequency: daily
+        rerun: on_new_revision
+  dependencies:
+      - .yamato/sg2-tests.yml#ShaderGraph2-win_Update_CodeCoverage_History
+
+ShaderGraph2-win_Update_CodeCoverage_History:
+  name : ShaderGraph2 Win Update Code Coverage History
+  agent:
+    type: Unity::VM
+    image: sdet/gamecode_win10:stable
+    flavor: b1.large
+  dependencies:
+    - .yamato/sg2-tests.yml#ShaderGraph2_Win
+  commands:
+    - | 
+        cd History
+        git config user.email "yamato@unity3d.com"
+        git config user.name "Yamato"
+        git add {{ coverage_meta.coverage_history_path }}\.
+        git commit -m "Adding Code Coverage History %GIT_REVISION:~0,12%"
+        git push --set-upstream origin main
+  artifacts:
+    coverage:
+      paths:
+        - History/history/**

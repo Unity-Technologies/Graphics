@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -162,9 +164,10 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Gives a specified metal reflectance value.",
             category: "Input/PBR",
-            synonyms: new string[0] {  },
+            synonyms: Array.Empty<string>(),
             displayName: "Metal Reflectance",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/MetalReflectance.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Iron", "Iron" },
                 { "Silver", "Silver" },
@@ -187,6 +190,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the reflectance value of the metal selected with the dropdown"
                 )
             }

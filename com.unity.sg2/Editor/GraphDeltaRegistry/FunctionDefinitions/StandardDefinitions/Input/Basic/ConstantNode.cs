@@ -64,6 +64,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Returns the selected constant value (pi, tau, phi, e, or sqrt2).",
             category: "Input/Basic",
             synonyms: new string[3] { "PI", "TAU", "PHI" },
+            description: "pkg://Documentation~/previews/Constant.md",
             hasPreview: false,
             selectableFunctions: new()
             {
@@ -77,6 +78,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the constant value selected with the dropdown"
                 ),
                 new ParameterUIDescriptor(

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -77,15 +79,16 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Emission",
             tooltip: "allows you to apply emission in your shader",
             category: "Utility/HDRP",
-            synonyms: new string[0] {  },
-            selectableFunctions: new()
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Emission.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Nits", "Nits" },
                 { "EV100", "EV100" }
             },
             functionSelectorLabel: "Intensity Unit",
             hasPreview: false,
-            parameters: new ParameterUIDescriptor[4] {
+            parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Color",
                     tooltip: "Sets the low dynamic range (LDR) color of the emission",
@@ -101,7 +104,13 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "Controls how much the exposure affects the emission."
                 ),
                 new ParameterUIDescriptor(
+                    name: "NormalizeColor",
+                    displayName: "Normalize Color",
+                    tooltip: "Ensures the channels of the color are between zero and one."
+                ),
+                new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the high dynamic range (HDR) color that this Node produces."
                 )
             }

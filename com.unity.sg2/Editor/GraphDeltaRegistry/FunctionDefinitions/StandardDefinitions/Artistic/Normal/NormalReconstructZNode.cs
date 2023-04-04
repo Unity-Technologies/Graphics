@@ -29,13 +29,16 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a normal from X and Y components.",
             category: "Artistic/Normal",
             synonyms: new string[1] { "derive z" },
+            description: "pkg://Documentation~/previews/NormalReconstructZ.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "return normal from just the X and Y components"
                 )
             }

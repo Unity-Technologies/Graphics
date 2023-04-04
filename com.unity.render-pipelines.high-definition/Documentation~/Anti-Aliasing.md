@@ -48,6 +48,10 @@ When using the same Camera GameObject for multiple Game Views TAA may not work a
 ### Limitations
 In the Editor, if multiple Game views use the same Camera, TAA may not work as expected due to limitations of the history buffer system. However, if you use multiple Game views, where each Game view uses a unique Camera, TAA works as expected.
 
+The following features cannot be used with TAA:
+
+- Multisample anti-aliasing (MSAA)
+- [Dynamic Resolution](Dynamic-Resolution.md)
 
 <a name="SMAA"></a>
 

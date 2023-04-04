@@ -23,12 +23,15 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gets a preview of the shader at a specific point in the graph.",
             category: "Utility",
             synonyms: new string[1] { "triangle wave" },
+            description: "pkg://Documentation~/previews/Preview.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
-                    name: "In"
+                    name: "In",
+                    displayName: string.Empty
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the exact same value as the input"
                 )
             }

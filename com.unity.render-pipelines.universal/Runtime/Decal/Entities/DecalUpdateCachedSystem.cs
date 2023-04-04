@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Execute()
         {
-            using (new ProfilingScope(null, m_Sampler))
+            using (new ProfilingScope(m_Sampler))
             {
                 for (int i = 0; i < m_EntityManager.chunkCount; ++i)
                     Execute(m_EntityManager.entityChunks[i], m_EntityManager.cachedChunks[i], m_EntityManager.entityChunks[i].count);
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
                 cachedChunk.isCreated = true;
             }
 
-            using (new ProfilingScope(null, m_SamplerJob))
+            using (new ProfilingScope(m_SamplerJob))
             {
                 UpdateTransformsJob updateTransformJob = new UpdateTransformsJob()
                 {

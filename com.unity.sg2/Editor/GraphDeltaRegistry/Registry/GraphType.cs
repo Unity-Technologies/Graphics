@@ -321,7 +321,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             switch(o)
             {
-                case Vector4 v4: SetAsVec3(f, v4); break;
+                case Vector4 v4: SetAsVec4(f, v4); break;
                 case Vector3 v3: SetAsVec3(f, v3); break;
                 case Vector2 v2: SetAsVec2(f, v2); break;
                 case float: case bool: case int:

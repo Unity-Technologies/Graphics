@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -63,7 +64,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "rotates UVs around a pivot point ",
             category: "UV",
-            synonyms: new string[0] {  },
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Rotate.md",
             selectableFunctions: new()
             {
                 { "Radians", "Radians" },
@@ -86,6 +88,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "rotated UVs"
                 )
             }

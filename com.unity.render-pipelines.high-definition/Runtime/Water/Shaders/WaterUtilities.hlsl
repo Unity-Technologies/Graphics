@@ -303,14 +303,18 @@ float UnpackLowFrequencyHeight(float normalizedDisplacement)
     return normalizedDisplacement * 2.0 - 1.0;
 }
 
-float2 AttenuateSignal2(float2 data, float distanceToCamera, int band)
+// Attenuation is: lerp(data, 0, saturate((distance - fadeStart) / fadeDistance))
+// = data * saturate(1 - distance / fadeDistance + fadeStart / fadeDistance)
+// => FadeA = -1 / fadeDistance     FadeB = 1 + fadeStart / fadeDistance
+float DistanceFade(float distanceToCamera, int band)
 {
-    return lerp(data, data * _PatchFadeValue[band], saturate((distanceToCamera - _PatchFadeStart[band]) / _PatchFadeDistance[band]));
-}
-
-float3 AttenuateSignal3(float3 data, float distanceToCamera, int band)
-{
-    return lerp(data, data * _PatchFadeValue[band], saturate((distanceToCamera - _PatchFadeStart[band]) / _PatchFadeDistance[band]));
+#ifndef IGNORE_WATER_FADE
+    float fade = saturate(distanceToCamera * _PatchFadeA[band] + _PatchFadeB[band]);
+    // perform a remap from [0, 1] to [0, 1] on the fade value to make it smoother
+    return Smoothstep01(fade * fade);
+#else
+    return 1.0f;
+#endif
 }
 
 float3 SampleDisplacement_VS(float2 uv, float bandIdx)
@@ -338,7 +342,7 @@ void SampleSimulation_VS(WaterSimCoord waterCoord, float3 waterMask, float dista
         rawDisplacement *= _PatchAmplitudeMultiplier[bandIdx] * waterMask[bandIdx] * currentData.blend;
 
         // Apply the camera distance attenuation
-        rawDisplacement = AttenuateSignal3(rawDisplacement, distanceToCamera, bandIdx);
+        rawDisplacement *= DistanceFade(distanceToCamera, bandIdx);
 
         // Swizzle the displacement and add it
         totalDisplacement += float3(rawDisplacement.x, dot(rawDisplacement.yz, currentData.swizzle.xy), dot(rawDisplacement.yz, currentData.swizzle.zw));
@@ -350,14 +354,10 @@ void SampleSimulation_VS(WaterSimCoord waterCoord, float3 waterMask, float dista
 
 void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData displacementData)
 {
-    #if !defined(IGNORE_WATER_FADE)
     // Evaluate the pre-displaced absolute position
     float3 positionAWS = mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz;
     // Evaluate the distance to the camera
     float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
-    #else
-    float distanceToCamera = FLT_MAX;
-    #endif
 
     // Attenuate using the water mask
     float2 maskUV = EvaluateWaterMaskUV(positionOS.xz);
@@ -514,8 +514,10 @@ void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float dist
         jcbSurface += additionalData.z;
         jcbDeep += additionalData.w;
 
-        // Attenuate base on the camera distance
-        additionalData.xy = AttenuateSignal2(additionalData.xy, distanceToCamera, bandIdx);
+        // Apply the camera distance attenuation
+        additionalData.xy *= DistanceFade(distanceToCamera, bandIdx);
+
+        // Swizzle the displacement
         additionalData.xy = float2(dot(additionalData.xy, currentData.swizzle.xy), dot(additionalData.xy, currentData.swizzle.zw));
 
         // Evaluate the surface gradient
@@ -528,14 +530,10 @@ void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float dist
 
 void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, float3 meshNormalOS, out WaterAdditionalData waterAdditionalData)
 {
-    #if !defined(IGNORE_WATER_FADE)
     // Evaluate the pre-displaced absolute position
     float3 positionAWS = mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz;
     // Evaluate the distance to the camera
     float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
-    #else
-    float distanceToCamera = FLT_MAX;
-    #endif
 
     // Compute the texture size param for the filtering
     float4 texSize = 0.0;
@@ -690,8 +688,13 @@ void EvaluateFoamData(float surfaceFoam, float customFoam, float3 positionAWS, o
 
 #define WATER_BACKGROUND_ABSORPTION_DISTANCE 1000.f
 
-float EvaluateHeightBasedScattering(float lowFrequencyHeight)
+float EvaluateHeightBasedScattering(float lowFrequencyHeight, float distanceToCamera)
 {
+    // Lerp towards middle height of 0.5 as distance increases
+    // height is already faded because it's computed form vertex displacement which is faded.
+    // But add additional fading using twice the distance to reduce visual repetition
+    lowFrequencyHeight = lerp(0.5, lowFrequencyHeight, DistanceFade(distanceToCamera * 2, 0));
+
     float heightScatteringValue = lerp(0.0, HEIGHT_SCATTERING_INTENSITY, lowFrequencyHeight);
     return lerp(0.0, heightScatteringValue, _HeightBasedScattering);
 }
@@ -899,10 +902,14 @@ float3 EvaluateRefractionColor(float3 absorptionTint, float3 caustics)
     return absorptionTint * caustics * absorptionTint;
 }
 
-float3 EvaluateScatteringColor(float lowFrequencyHeight, float horizontalDisplacement, float3 absorptionTint, float deepFoam)
+float3 EvaluateScatteringColor(float3 positionOS, float lowFrequencyHeight, float horizontalDisplacement, float3 absorptionTint, float deepFoam)
 {
+    // Evaluate the pre-displaced absolute position
+    float3 positionAWS = mul(_WaterSurfaceTransform, float4(positionOS, 1.0)).xyz;
+    float distanceToCamera = length(GetCameraRelativePositionWS(positionAWS));
+
     // Evaluate the scattering terms (where the refraction doesn't happen)
-    float heightBasedScattering = EvaluateHeightBasedScattering(lowFrequencyHeight);
+    float heightBasedScattering = EvaluateHeightBasedScattering(lowFrequencyHeight, distanceToCamera);
     float displacementScattering = EvaluateDisplacementScattering(horizontalDisplacement);
     float ambientScattering = AMBIENT_SCATTERING_INTENSITY * _AmbientScattering;
 

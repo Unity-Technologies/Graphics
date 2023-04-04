@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -21,11 +22,13 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Gets the color of the current point.",//vertec or point?
             category: "Input/Geometry",
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
             displayName: "Vertex Color",
+            description: "pkg://Documentation~/previews/VertexColor.md",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "The color of the current point."
                 )
             }

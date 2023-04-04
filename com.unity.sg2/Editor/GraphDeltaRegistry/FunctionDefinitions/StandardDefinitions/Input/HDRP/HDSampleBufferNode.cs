@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -106,7 +107,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gets data from the selected buffer.",
             category: "Input/HDRP",
             synonyms: new string[2] { "screen", "buffer" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/HDSampleBuffer.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "NormalWorldSpace", "Normal World Space" },
                 { "Smoothness", "Smoothness" },
@@ -123,6 +125,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the sample of the selected buffer"
                 )
             }

@@ -24,13 +24,16 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "divides 1 by the square root of the input",
             category: "Math/Advanced",
             synonyms: new string[2] { "rsqrt", "inversesqrt" },
+            description: "pkg://Documentation~/previews/ReciprocalSquareRoot.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "1 divided by the square root of the input"
                 )
             }

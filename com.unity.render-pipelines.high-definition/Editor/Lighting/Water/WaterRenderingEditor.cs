@@ -54,7 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.Space();
                 HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
-                    HDRenderPipelineUI.Expandable.Water, "m_RenderPipelineSettings.supportWater");
+                    HDRenderPipelineUI.ExpandableGroup.Rendering,
+                    HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWater");
                 return;
             }
 

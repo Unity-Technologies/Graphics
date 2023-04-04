@@ -83,6 +83,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public struct RenderingData
     {
+        internal NativeArray<URPLightShadowCullingInfos> visibleLightsShadowCullingInfos;
+        internal AdditionalLightsShadowAtlasLayout shadowAtlasLayout;
         internal CommandBuffer commandBuffer;
 
         /// <summary>
@@ -220,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Helper function to populate builtin stereo matricies as well as URP stereo matricies
-        internal void PushBuiltinShaderConstantsXR(CommandBuffer cmd, bool renderIntoTexture)
+        internal void PushBuiltinShaderConstantsXR(RasterCommandBuffer cmd, bool renderIntoTexture)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
@@ -413,6 +415,18 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
 
+        internal bool resolveToScreen => targetTexture == null && resolveFinalTarget && (cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
+
+        /// <summary>
+        /// True if the Camera should output to an HDR display.
+        /// </summary>
+        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && isHdrEnabled && resolveToScreen;
+
+        /// <summary>
+        /// True if the Camera should render overlay UI.
+        /// </summary>
+        public bool rendersOverlayUI => SupportedRenderingFeatures.active.rendersUIOverlay && resolveToScreen;
+
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
@@ -495,13 +509,6 @@ namespace UnityEngine.Rendering.Universal
         public XRPass xr { get; internal set; }
 
         internal XRPassUniversal xrUniversal => xr as XRPassUniversal;
-
-        /// <summary>
-        /// Is XR enabled or not.
-        /// This is obsolete, please use xr.enabled instead.
-        /// </summary>
-        [Obsolete("Please use xr.enabled instead.", true)]
-        public bool isStereoEnabled;
 
         /// <summary>
         /// Maximum shadow distance visible to the camera. When set to zero shadows will be disable for that camera.
@@ -611,13 +618,6 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMainLightShadows;
 
         /// <summary>
-        /// True if screen space shadows are required.
-        /// Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature
-        /// </summary>
-        [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
-        public bool requiresScreenSpaceShadowResolve;
-
-        /// <summary>
         /// The width of the main light shadow map.
         /// </summary>
         public int mainLightShadowmapWidth;
@@ -681,6 +681,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
+        internal int mainLightShadowResolution;
+        internal int mainLightRenderTargetWidth;
+        internal int mainLightRenderTargetHeight;
     }
 
     /// <summary>
@@ -847,6 +850,10 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly int renderingLayerMaxInt = Shader.PropertyToID("_RenderingLayerMaxInt");
         public static readonly int renderingLayerRcpMaxInt = Shader.PropertyToID("_RenderingLayerRcpMaxInt");
+
+        public static readonly int overlayUITexture = Shader.PropertyToID("_OverlayUITexture");
+        public static readonly int hdrOutputLuminanceParams = Shader.PropertyToID("_HDROutputLuminanceParams");
+        public static readonly int hdrOutputGradingParams = Shader.PropertyToID("_HDROutputGradingParams");
     }
 
     /// <summary>
@@ -1122,6 +1129,15 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for foveated rendering. </summary>
         public const string FoveatedRenderingNonUniformRaster = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER";
 
+        /// <summary> Keyword used for disabling Texture 2D Arrays. </summary>
+        public const string DisableTexture2DXArray = "DISABLE_TEXTURE2D_X_ARRAY";
+
+        /// <summary> Keyword used for Single Slice Blits. </summary>
+        public const string BlitSingleSlice = "BLIT_SINGLE_SLICE";
+
+        /// <summary> Keyword used for rendering a combined mesh for XR. </summary>
+        public const string XROcclusionMeshCombined = "XR_OCCLUSION_MESH_COMBINED";
+
         /// <summary> Keyword used for applying scale and bias. </summary>
         public const string SCREEN_COORD_OVERRIDE = "SCREEN_COORD_OVERRIDE";
 
@@ -1165,20 +1181,6 @@ namespace UnityEngine.Rendering.Universal
                 throw new ArgumentNullException("camera");
 
             return camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR;
-        }
-
-        /// <summary>
-        /// Checks if a camera is rendering in stereo mode.
-        /// </summary>
-        /// <param name="camera">Camera to check state from.</param>
-        /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
-        [Obsolete("Please use CameraData.xr.enabled instead.", true)]
-        public static bool IsStereoEnabled(Camera camera)
-        {
-            if (camera == null)
-                throw new ArgumentNullException("camera");
-
-            return IsGameCamera(camera) && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         /// <summary>
@@ -1590,6 +1592,7 @@ namespace UnityEngine.Rendering.Universal
         // DrawObjectsPass
         DrawOpaqueObjects,
         DrawTransparentObjects,
+        DrawScreenSpaceUI,
 
         // RenderObjectsPass
         //RenderObjects,

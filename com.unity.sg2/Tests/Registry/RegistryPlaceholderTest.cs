@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using UnityEngine.TestTools.Utils;
 using UnityEngine;
@@ -65,12 +66,18 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
         //        Assert.AreEqual(2, (int)len);
         //    }
 
+        private Registry CreateRegistryForTesting()
+        {
+            var registry = new Registry();
+            registry.Register<GraphType>();
+            return registry;
+        }
+
         [Test]
         public void RegisterFunctionDescriptorTest()
         {
             // create the registry
-            var registry = new Registry();
-            registry.Register<GraphType>();
+            var registry = CreateRegistryForTesting();
 
             // create the graph
             var graph = new GraphHandler();
@@ -87,6 +94,59 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 
             // add a single node to the graph
             string nodeName = $"{fd.Name}-01";
+            graph.AddNode(registryKey, nodeName, registry);
+
+            // check that the node was added
+            var nodeReader = graph.GetNodeReader(nodeName);
+            bool didRead = nodeReader.TryGetField("In.TypeField.Length", out GraphType.Length len);
+            Assert.IsTrue(didRead);
+
+            // EXPECT that both In and Out are concretized into length = 1 (default)
+            Assert.AreEqual(GraphType.Length.One, len);
+            didRead = nodeReader.TryGetField("Out.TypeField.Length", out len);
+            Assert.IsTrue(didRead);
+            Assert.AreEqual(GraphType.Length.One, len);
+        }
+
+        [Test]
+        public void RegisterNodeDescriptorTest()
+        {
+            // create a registry
+            var registry = CreateRegistryForTesting();
+
+            // create a graph
+            var graph = new GraphHandler();
+
+            // Create a descriptor and register it
+            var name = "UnitTestNode";
+            NodeDescriptor nodeDescriptor = new (
+                1,
+                name,
+                mainFunction: name,
+                new FunctionDescriptor[] {
+                    new(
+                        name,
+                        "Out = In;",
+                        new ParameterDescriptor[]
+                        {
+                            new ParameterDescriptor(
+                                name: "In",
+                                type: TYPE.Float,
+                                usage: GraphType.Usage.Static
+                            ),
+                            new ParameterDescriptor(
+                                name: "Out",
+                                type: TYPE.Float,
+                                usage: GraphType.Usage.Out
+                            )
+                        }
+                    )
+                }
+            );
+            var registryKey = registry.Register(nodeDescriptor);
+
+            // add a node to the graph
+            string nodeName = $"{nodeDescriptor.Name}-01";
             graph.AddNode(registryKey, nodeName, registry);
 
             // check that the node was added

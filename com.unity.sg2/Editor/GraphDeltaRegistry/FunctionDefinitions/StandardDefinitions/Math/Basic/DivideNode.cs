@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Divides input A by input B.",
             category: "Math/Basic",
             synonyms: new string[3] { "division", "/", "divided by" },
+            description: "pkg://Documentation~/previews/Divide.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",
@@ -35,6 +36,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "A divided by B"
                 )
             }

@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering
     public class BaseCommandBuffer
     {
         internal protected CommandBuffer m_WrappedCommandBuffer;
-        private RenderGraphPass m_ExecutingPass;
+        internal RenderGraphPass m_ExecutingPass;
 
         // Users cannot directly create command buffers. The rendergraph creates them and passes them to callbacks.
         internal BaseCommandBuffer(CommandBuffer wrapped, RenderGraphPass executingPass, bool isAsync)
@@ -44,6 +44,8 @@ namespace UnityEngine.Experimental.Rendering
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (m_ExecutingPass == null) return;
+
+            if (h.IsBuiltin()) return;
 
             if (!m_ExecutingPass.IsRead(h.handle) && !m_ExecutingPass.IsWritten(h.handle))
             {
@@ -87,6 +89,5 @@ namespace UnityEngine.Experimental.Rendering
             }
 #endif
         }
-
     }
 }

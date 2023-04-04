@@ -77,16 +77,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphSearcherFilterProvider();
         }
 
-        internal ShaderGraphRegistry GetRegistry()
-        {
-            return ShaderGraphRegistry.Instance;
-        }
-
-        internal NodeUIDescriptor GetUIHints(RegistryKey nodeKey, NodeHandler node = null)
-        {
-            return ShaderGraphRegistry.Instance.GetNodeUIDescriptor(nodeKey, node);
-        }
-
         protected override void CreateGraphProcessors()
         {
             GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());

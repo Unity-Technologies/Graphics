@@ -93,6 +93,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         RenderGraphResourcesData[] m_RenderGraphResources = new RenderGraphResourcesData[(int)RenderGraphResourceType.Count];
         DynamicArray<RendererListResource> m_RendererListResources = new DynamicArray<RendererListResource>();
+        DynamicArray<RendererListLegacyResource> m_RendererListLegacyResources = new DynamicArray<RendererListLegacyResource>();
+
         RenderGraphDebugParams m_RenderGraphDebug;
         RenderGraphLogger m_ResourceLogger = new RenderGraphLogger();
         RenderGraphLogger m_FrameInformationLogger; // Comes from the RenderGraph instance.
@@ -112,13 +114,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             var texResource = GetTextureResource(handle.handle);
             var resource = texResource.graphicsResource;
-            if (resource == null)
-            {
-                if (handle.fallBackResource != TextureHandle.nullHandle.handle)
-                    return GetTextureResource(handle.fallBackResource).graphicsResource;
-                else if (!texResource.imported)
-                    throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
-            }
+            if (resource == null && !texResource.imported)
+                throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
 
             return resource;
         }
@@ -133,10 +130,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal CoreRendererList GetRendererList(in RendererListHandle handle)
         {
-            if (!handle.IsValid() || handle >= m_RendererListResources.size)
+            if (!handle.IsValid())
                 return CoreRendererList.nullRendererList;
 
-            return m_RendererListResources[handle].rendererList;
+            switch (handle.type)
+            {
+                case RendererListHandleType.Renderers:
+                    {
+                        if (handle >= m_RendererListResources.size)
+                            return CoreRendererList.nullRendererList;
+                        return m_RendererListResources[handle].rendererList;
+                    }
+                case RendererListHandleType.Legacy:
+                    {
+                        if (handle >= m_RendererListLegacyResources.size)
+                            return CoreRendererList.nullRendererList;
+                        if (!m_RendererListLegacyResources[handle].isActive)
+                            return CoreRendererList.nullRendererList;
+                        return m_RendererListLegacyResources[handle].rendererList;
+                    }
+            }
+
+            return CoreRendererList.nullRendererList;
         }
 
         internal GraphicsBuffer GetBuffer(in BufferHandle handle)
@@ -278,7 +293,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal bool IsRendererListCreated(in RendererListHandle res)
         {
-            return m_RendererListResources[res].rendererList.isValid;
+            switch (res.type)
+            {
+                case RendererListHandleType.Renderers:
+                    return m_RendererListResources[res].rendererList.isValid;
+                case RendererListHandleType.Legacy:
+                    return m_RendererListLegacyResources[res].isActive && m_RendererListLegacyResources[res].rendererList.isValid;
+            }
+            return false;
         }
 
         internal bool IsRenderGraphResourceImported(RenderGraphResourceType type, int index)
@@ -294,13 +316,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal TextureHandle ImportTexture(RTHandle rt)
+        internal TextureHandle ImportTexture(RTHandle rt, bool isBuiltin = false)
         {
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
             texResource.graphicsResource = rt;
             texResource.imported = true;
-
-            return new TextureHandle(newHandle);
+            TextureHandle handle = new TextureHandle(newHandle, false, isBuiltin);
+            return handle;
         }
 
         internal TextureHandle CreateSharedTexture(in TextureDesc desc, bool explicitRelease)
@@ -402,7 +424,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return GetResourceCount(RenderGraphResourceType.Texture);
         }
 
-        TextureResource GetTextureResource(in ResourceHandle handle)
+        internal TextureResource GetTextureResource(in ResourceHandle handle)
         {
             return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle] as TextureResource;
         }
@@ -410,12 +432,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle)
         {
             return (m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle] as TextureResource).desc;
-        }
-
-        internal void ForceTextureClear(in ResourceHandle handle, Color clearColor)
-        {
-            GetTextureResource(handle).desc.clearBuffer = true;
-            GetTextureResource(handle).desc.clearColor = clearColor;
         }
 
         internal RendererListHandle CreateRendererList(in CoreRendererListDesc desc)
@@ -430,6 +446,38 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             int newHandle = m_RendererListResources.Add(new RendererListResource(desc));
             return new RendererListHandle(newHandle);
+        }
+
+        internal RendererListHandle CreateShadowRendererList(ScriptableRenderContext context, ref ShadowDrawingSettings shadowDrawinSettings)
+        {
+            RendererListLegacyResource resource = new RendererListLegacyResource();
+            resource.rendererList = context.CreateShadowRendererList(ref shadowDrawinSettings);
+            int newHandle = m_RendererListLegacyResources.Add(resource);
+            return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
+        }
+
+        internal RendererListHandle CreateGizmoRendererList(ScriptableRenderContext context, in Camera camera, in GizmoSubset gizmoSubset)
+        {
+            RendererListLegacyResource resource = new RendererListLegacyResource();
+            resource.rendererList = context.CreateGizmoRendererList(camera, gizmoSubset);
+            int newHandle = m_RendererListLegacyResources.Add(resource);
+            return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
+        }
+
+        internal RendererListHandle CreateUIOverlayRendererList(ScriptableRenderContext context, in Camera camera)
+        {
+            RendererListLegacyResource resource = new RendererListLegacyResource();
+            resource.rendererList = context.CreateUIOverlayRendererList(camera);
+            int newHandle = m_RendererListLegacyResources.Add(resource);
+            return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
+        }
+
+        internal RendererListHandle CreateWireOverlayRendererList(ScriptableRenderContext context, in Camera camera)
+        {
+            RendererListLegacyResource resource = new RendererListLegacyResource();
+            resource.rendererList = context.CreateWireOverlayRendererList(camera);
+            int newHandle = m_RendererListLegacyResources.Add(resource);
+            return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
         }
 
         internal BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer, bool forceRelease = false)
@@ -641,10 +689,29 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             foreach (var rendererList in rendererLists)
             {
-                ref var rendererListResource = ref m_RendererListResources[rendererList];
-                ref var desc = ref rendererListResource.desc;
-                rendererListResource.rendererList = context.CreateRendererList(ref desc);
-                m_ActiveRendererLists.Add(rendererListResource.rendererList);
+                switch(rendererList.type)
+                {
+                    case RendererListHandleType.Renderers:
+                    {
+                        ref var rendererListResource = ref m_RendererListResources[rendererList];
+                        ref var desc = ref rendererListResource.desc;
+                        rendererListResource.rendererList = context.CreateRendererList(ref desc);
+                        m_ActiveRendererLists.Add(rendererListResource.rendererList);
+                        break;
+                    }
+                    case RendererListHandleType.Legacy:
+                    {
+                        // Legacy rendererLists are created upfront in recording phase. Simply activate them.
+                        ref var rendererListResource = ref m_RendererListLegacyResources[rendererList];
+                        rendererListResource.isActive = true;
+                        break;
+                    }
+                    default:
+                    {
+                        throw new ArgumentException("Invalid RendererListHandle: RendererListHandleType is not recognized.");
+                    }
+                }
+                
             }
 
             if (manualDispatch)
@@ -658,6 +725,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 m_RenderGraphResources[i].Clear(onException, m_CurrentFrameIndex);
             m_RendererListResources.Clear();
+            m_RendererListLegacyResources.Clear();
             m_ActiveRendererLists.Clear();
         }
 

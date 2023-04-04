@@ -2424,7 +2424,7 @@
     "m_Group": {
         "m_Id": "d9eddfd6f7884b03ace769483bab90b7"
     },
-    "m_Name": "BrightnessContrast",
+    "m_Name": "Brightness Contrast",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2927,7 +2927,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "AlphaMerge",
+    "m_Name": "Alpha Merge",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -3369,7 +3369,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "AlphaMerge",
+    "m_Name": "Alpha Merge",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {

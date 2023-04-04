@@ -1,0 +1,29 @@
+.sg-node-view .ge-node__cache-label
+{
+    position: relative;
+    flex-grow: 1;
+}
+
+.ge-node__cache #previewContainer
+{
+    display: none;
+}
+
+.ge-node--preview .ge-node__cache #previewContainer
+{
+    display: flex;
+}
+
+.ge-graph-view--very-small .ge-node__cache #previewContainer
+{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 32px; /* 4px / 0.125 ( very small zoom )  room to see the node custom color if any*/
+}
+
+.ge-graph-view--very-small .ge-node__cache #previewImage
+{
+    flex: 1;
+}

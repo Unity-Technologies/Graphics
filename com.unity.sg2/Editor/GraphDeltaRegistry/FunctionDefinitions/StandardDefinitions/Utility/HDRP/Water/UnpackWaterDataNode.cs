@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -9,17 +10,13 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"LowFrequencyHeight = UV.x;
-CustomFoam =UV.y;
-SSSMask = UV.z;
-HorizontalDisplacement = UV.w;",
+@"LowFrequencyHeight = saturate(UV.x);
+HorizontalDisplacement = UV.y;",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("UV", TYPE.Vec4, Usage.Local, REF.UV1),
                 new ParameterDescriptor("LowFrequencyHeight", TYPE.Float, Usage.Out),
-                new ParameterDescriptor("HorizontalDisplacement", TYPE.Float, Usage.Out),
-                new ParameterDescriptor("SSSMask", TYPE.Float, Usage.Out),
-                new ParameterDescriptor("CustomFoam", TYPE.Float, Usage.Out)
+                new ParameterDescriptor("HorizontalDisplacement", TYPE.Float, Usage.Out)
             }
         );
 
@@ -29,8 +26,9 @@ HorizontalDisplacement = UV.w;",
             displayName: "Unpack Water Data",
             tooltip: "",
             category: "Utility/HDRP/Water",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
+            description: "pkg://Documentation~/previews/UnpackWaterData.md",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "LowFrequencyHeight",

@@ -149,7 +149,7 @@ namespace UnityEditor.VFX
         public bool HasCustomSortingCriterion() { return HasSorting() && sortMode == VFXSortingUtility.SortCriteria.Custom; }
         public bool HasComputeCulling() { return computeCulling && !HasStrips(true); }
         public bool HasFrustumCulling() { return frustumCulling && !HasStrips(true); }
-        public bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
+        public virtual bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
 
         public uint GetRaytracingDecimationFactor() { return decimationFactor; }
 
@@ -176,8 +176,6 @@ namespace UnityEditor.VFX
         }
 
         public bool needsOwnAabbBuffer = false;
-
-
 
         public virtual VFXOutputUpdate.Features outputUpdateFeatures
         {
@@ -836,6 +834,18 @@ namespace UnityEditor.VFX
 
             }
 
+        }
+
+        public override VFXContextCompiledData PrepareCompiledData()
+        {
+            var compiledData = base.PrepareCompiledData();
+
+            int index = compiledData.tasks.Count - 1;
+            var task = compiledData.tasks[index];
+            if (HasIndirectDraw())
+                task.bufferMappings.Add(VFXDataParticle.k_IndirectBufferName);
+
+            return compiledData;
         }
     }
 }

@@ -69,8 +69,8 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Screen Space Shadows shader.
             /// </summary>
-            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
-            public Shader screenSpaceShadowPS;
+            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature", true)]
+            public Shader screenSpaceShadowPS = null;
 
             /// <summary>
             /// Sampling shader.
@@ -99,9 +99,8 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Material Error shader.
             /// </summary>
-            [Obsolete("Use fallbackErrorPS instead")]
-            [Reload("Shaders/Utils/MaterialError.shader")]
-            public Shader materialErrorPS;
+            [Obsolete("Use fallbackErrorPS instead", true)]
+            public Shader materialErrorPS = null;
 
             // Core blitter shaders, adapted from HDRP
             // TODO: move to core and share with HDRP
@@ -110,6 +109,12 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
             internal Shader coreBlitColorAndDepthPS;
+
+            /// <summary>
+            /// Blit shader that blits UI Overlay and performs HDR encoding.
+            /// </summary>
+            [Reload("Shaders/Utils/BlitHDROverlay.shader"), SerializeField]
+            internal Shader blitHDROverlay;
 
             /// <summary>
             /// Camera Motion Vectors shader.

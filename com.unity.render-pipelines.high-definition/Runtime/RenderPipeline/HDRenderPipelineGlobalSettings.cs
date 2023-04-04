@@ -363,15 +363,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                 true);
                         }
                     }
-                    catch (System.Exception e)
+                    catch (InvalidImportException)
                     {
                         // This can be called at a time where AssetDatabase is not available for loading.
                         // When this happens, the GUID can be get but the resource loaded will be null.
                         // Using the ResourceReloader mechanism in CoreRP, it checks this and add InvalidImport data when this occurs.
-                        if (!(e.Data.Contains("InvalidImport") && e.Data["InvalidImport"] is int dii && dii == 1))
-                            Debug.LogException(e);
-                        else
-                            DelayedNullReload<T>(resourcePath);
+                        DelayedNullReload<T>(resourcePath);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
                     }
                 }
             }

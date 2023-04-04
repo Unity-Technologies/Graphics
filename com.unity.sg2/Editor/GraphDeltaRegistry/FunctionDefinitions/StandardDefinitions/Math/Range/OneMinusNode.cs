@@ -24,13 +24,16 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "subtracts the input from one",
             category: "Math/Range",
             synonyms: new string[3] { "complement", "invert", "opposite" },
+            description: "pkg://Documentation~/previews/OneMinus.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the input subtracted from one"
                 )
             }

@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Utility/Logic",
             synonyms: new string[1] { "||" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Or.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",
@@ -36,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "true if either A or B are true"
                 )
             }

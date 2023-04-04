@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -148,7 +149,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Samples a texture three times and projects in front/back, top/bottom, and left/right.",
             category: "Input/Texture",
             synonyms: new string[3] { "project", "box mapping", "round cube mapping" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SampleTriplanar.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Default", "Default" },
                 { "NormalMap", "Normal Map" },
@@ -166,11 +168,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Position",
-                    tooltip: "position is used for projecting the texture onto the mesh"
+                    tooltip: "position is used for projecting the texture onto the mesh",
+                    options: REF.OptionList.Positions
                 ),
                 new ParameterUIDescriptor(
                     name: "Normal",
-                    tooltip: "the normal is used to mask and blend between the projections"
+                    tooltip: "the normal is used to mask and blend between the projections",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "Tile",

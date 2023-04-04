@@ -26,15 +26,18 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Lighting",
             hasPreview: false,
             synonyms: new string[3] { "light probe", "cube map", "environment" },
+            description: "pkg://Documentation~/previews/ReflectionProbe.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "ViewDir",
                     displayName: "View Dir",
-                    tooltip: "The mesh's view direction."
+                    tooltip: "The mesh's view direction.",
+                    options: REF.OptionList.ViewDirections
                 ),
                 new ParameterUIDescriptor(
                     name: "Normal",
-                    tooltip: "The mesh's normal vector."
+                    tooltip: "The mesh's normal vector.",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "LOD",
@@ -42,6 +45,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "The output color value."
                 )
             }

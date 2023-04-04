@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -23,15 +24,18 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Is Infinite",
             tooltip: "Checks if the input In is an infinite value.",
             category: "Utility/Logic",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/IsInfinite.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "Returns true if the input is an infinite value."
                 )
             }

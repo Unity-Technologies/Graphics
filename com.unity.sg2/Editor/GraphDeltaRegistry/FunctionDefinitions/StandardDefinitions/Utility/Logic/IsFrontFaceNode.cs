@@ -24,9 +24,11 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             displayName: "Is Front Face",
             synonyms: new string[2] { "face", "side" },
+            description: "pkg://Documentation~/previews/IsFrontFace.md",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "Returns true if the current face is facing the camera, and returns false otherwise."
 
                 )

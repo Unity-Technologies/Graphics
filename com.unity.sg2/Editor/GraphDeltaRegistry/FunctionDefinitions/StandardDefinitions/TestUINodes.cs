@@ -98,6 +98,56 @@ namespace UnityEditor.ShaderGraph.Defs
         );
     }
 
+    internal class TestUIDescriptionNode : IStandardNode
+    {
+        public static string Name => "TestUIDescriptionNode";
+        public static int Version => 1;
+        public static NodeDescriptor NodeDescriptor => new(
+            Version,
+            Name,
+            mainFunction: Name,
+            new FunctionDescriptor[] {
+                new(
+                    Name,
+                    "Out = In;",
+                    new ParameterDescriptor[]
+                    {
+                        new ParameterDescriptor(
+                            name: "In",
+                            type: TYPE.Float,
+                            usage: GraphType.Usage.Static
+                        ),
+                        new ParameterDescriptor(
+                            name: "Out",
+                            type: TYPE.Vec2,
+                            usage: GraphType.Usage.Out
+                        )
+                    }
+                )
+            }
+        );
+
+        public static NodeUIDescriptor NodeUIDescriptor => new(
+            Version,
+            Name,
+            tooltip: String.Empty,
+            category: "Test",
+            synonyms: Array.Empty<string>(),
+            displayName: "Test Descriptor Node",
+            description: "pkg://Documentation~/previews/Test.md",
+            hasPreview: false,
+            parameters: new ParameterUIDescriptor[]
+            {
+                new (
+                    name: "In"
+                ),
+                new (
+                    name: "Out"
+                )
+            }
+        );
+    }
+
     internal class TestNodeWithDependentFunction : IStandardNode
     {
         static string Name => "TestDepsNode";

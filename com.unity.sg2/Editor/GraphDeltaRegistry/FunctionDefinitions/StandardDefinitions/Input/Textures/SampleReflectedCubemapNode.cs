@@ -90,7 +90,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[1] { "texcube" },
             displayName: "Sample Reflected Cubemap",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SampleReflectedCubemap.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "LODfunction", "LOD" },
                 { "Standard", "Standard" },
@@ -104,11 +105,13 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "ViewDir",
-                    tooltip: "the vector that points toward the camera"
+                    tooltip: "the vector that points toward the camera",
+                    options: REF.OptionList.ViewDirections
                 ),
                 new ParameterUIDescriptor(
                     name: "Normal",
-                    tooltip: "the surface normal of the model"
+                    tooltip: "the surface normal of the model",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

@@ -47,6 +47,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the partial derivative of the input in relation to the screen-space x-coordinate.",
             category: "Math/Derivative",
             synonyms: new string[2] { "derivative", "slope" },
+            description: "pkg://Documentation~/previews/DDX.md",
             selectableFunctions: new()
             {
                 { "Standard", "Standard" },
@@ -57,10 +58,12 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the difference between the value of the current pixel and the horizontal neighboring pixel"
                 )
             }

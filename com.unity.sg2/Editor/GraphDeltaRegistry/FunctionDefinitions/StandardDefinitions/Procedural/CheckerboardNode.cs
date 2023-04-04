@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -50,7 +51,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Creates a pattern of alternating colored squares.",
             category: "Procedural",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Checkerboard.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "UV",
@@ -75,6 +77,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a pattern of alternating colored squares"
                 )
             }

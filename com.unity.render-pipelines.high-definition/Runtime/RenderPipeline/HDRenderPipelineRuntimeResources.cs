@@ -547,7 +547,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture3D perlinNoise32RGB;
 
             // Water textures
-            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamMask.tga")]
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamMask.png")]
             public Texture2D foamMask;
 
             // Post-processing

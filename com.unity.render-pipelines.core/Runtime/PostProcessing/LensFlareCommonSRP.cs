@@ -1202,22 +1202,28 @@ namespace UnityEngine.Rendering
         /// <param name="cam">Camera</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="tintColor">tintColor to multiply all the flare by</param>
         /// <param name="bloomTexture">bloom texture used as data for the effect</param>
         /// <param name="spectralLut">spectralLut used for chromatic aberration effect</param>
         /// <param name="streakTextureTmp">Texture used for the multiple pass streaks effect</param>
         /// <param name="streakTextureTmp2">Texture used for the multiple pass streaks effect</param>
-        /// <param name="parameters1">user parameter1 for the effect</param>
-        /// <param name="parameters2">user parameter2 for the effect</param>
-        /// <param name="parameters3">user parameter3 for the effect</param>
-        /// <param name="parameters3">user parameter4 for the effect</param>
+        /// <param name="parameters1">globalIntensity, regularIntensity, reverseIntensity, warpedIntensity</param>
+        /// <param name="parameters2">vignetteEffect, startingPosition, scale, freeSlot</param>
+        /// <param name="parameters3">samples, sampleDimmer, chromaticAbberationIntensity, chromaticAbberationSamples</param>
+        /// <param name="parameters4">streaksIntensity, streaksLength, streaksOrientation, streaksThreshold</param>
+        /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
         /// <param name="cmd">Command Buffer</param>
+        /// <param name="colorBuffer">Command Buffer</param>
         /// <param name="_BloomTexture">ShaderID for the BloomTexture</param>
         /// <param name="_LensFlareScreenSpaceSpectralLut">ShaderID for the LensFlareScreenSpaceSpectralLut texture</param>
-        /// <param name="_LensFlareScreenSpaceStreakTex">ShaderID for the LensFlareScreenSpaceFlares streak temp texture</param>
+        /// <param name="_LensFlareScreenSpaceStreakTex">ShaderID for the LensFlareScreenSpaceStreakTex streak temp texture</param>
+        /// <param name="_LensFlareScreenSpaceMipLevel">ShaderID for the LensFlareScreenSpaceMipLevel parameter</param>
+        /// <param name="_LensFlareScreenSpaceTintColor">ShaderID for the LensFlareScreenSpaceTintColor color</param>
         /// <param name="_LensFlareScreenSpaceParams1">ShaderID for the LensFlareScreenSpaceParams1</param>
         /// <param name="_LensFlareScreenSpaceParams2">ShaderID for the LensFlareScreenSpaceParams2</param>
         /// <param name="_LensFlareScreenSpaceParams3">ShaderID for the LensFlareScreenSpaceParams3</param>
         /// <param name="_LensFlareScreenSpaceParams4">ShaderID for the LensFlareScreenSpaceParams4</param>
+        /// <param name="_LensFlareScreenSpaceParams5">ShaderID for the LensFlareScreenSpaceParams5</param>
         /// <param name="debugView">Information if we are in debug mode or not</param>
         static public void DoLensFlareScreenSpaceCommon(
             Material lensFlareShader,
@@ -1273,10 +1279,16 @@ namespace UnityEngine.Rendering
 #endif
 
             // Multiple scaleX by aspect ratio so that default 1:1 scale for warped flare stays circular (as in data driven lens flare)
-            parameters5.y *= actualWidth / actualHeight;
-            // This is to make sure the streak length is the same in all resolutions
-            parameters4.y *= actualWidth * 0.0005f;
+            float warpedScaleX = parameters5.y;
+            warpedScaleX *= actualWidth / actualHeight;
+            parameters5.y = warpedScaleX;
 
+            // This is to make sure the streak length is the same in all resolutions
+            float streaksLength = parameters4.y;
+            streaksLength *= actualWidth * 0.0005f;
+            parameters4.y = streaksLength;
+
+            // List of the passes in LensFlareScreenSpace.shader
             int prefilterPass = 0;
             int downSamplePass = 1;
             int upSamplePass = 2;
@@ -1302,7 +1314,7 @@ namespace UnityEngine.Rendering
                 UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, prefilterPass);
 
                 int maxLevel = Mathf.FloorToInt(Mathf.Log(Mathf.Max(actualHeight, actualWidth), 2.0f));
-                int maxLevelDownsample = maxLevel;
+                int maxLevelDownsample = Mathf.Max(1, maxLevel);
                 int maxLevelUpsample = 2;
                 int startIndex = 0;
                 bool even = false;

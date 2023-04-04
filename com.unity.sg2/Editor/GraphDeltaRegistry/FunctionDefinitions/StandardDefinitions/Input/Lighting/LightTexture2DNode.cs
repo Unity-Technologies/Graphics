@@ -53,6 +53,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "A 2D Light texture asset.",
             category: "Utility/Input/Lighting",
             synonyms: new string[0],
+            description: "pkg://Documentation~/previews/LightTexture2D.md",
             hasPreview: false,
             selectableFunctions: new()
             {
@@ -60,12 +61,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "LightTex1", "LightTex1" },
                 { "LightTex2", "LightTex2" },
                 { "LightTex3", "LightTex3" }
-        },
+            },
             functionSelectorLabel: "Blend Style",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "Out",
-                    displayName: "Out",
+                    displayName: string.Empty,
                     tooltip: "selected 2D light texture"
                 )
             }

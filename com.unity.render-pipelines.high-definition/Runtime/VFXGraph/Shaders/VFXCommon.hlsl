@@ -209,6 +209,12 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
     return color;
 }
 
+//HDRP never applies AO on Unlit
+float4 VFXApplyAO(float4 color, float4 posCS)
+{
+    return color;
+}
+
 #ifdef VFX_VARYING_PS_INPUTS
 float4 VFXApplyPreExposure(float4 color, float exposureWeight)
 {

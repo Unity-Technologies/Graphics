@@ -1,0 +1,55 @@
+{
+	SubShader
+	{
+	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
+		Cull Off
+
+		${VFXInclude("Shaders/VFXParticleHeader.template")}
+
+        Pass
+        {
+            Tags { "LightMode"="SceneSelectionPass" }
+
+            ZWrite On
+            Blend Off
+
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment FragmentSceneSelection
+
+            #define VFX_PASSDEPTH VFX_PASSDEPTH_SELECTION
+            ${VFXIncludeRP("Templates/Volumetric/PassVolumetricFog.template")}
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Tags { "LightMode"="VolumetricFogVFX" }
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ${VFXIncludeRP("Templates/Volumetric/PassVolumetricFog.template")}
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Tags { "LightMode"="VolumetricFogVFXOverdrawDebug" }
+
+            Blend One One
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment FragmentOverdrawDebug
+
+            #define HDRP_OVERDRAW_DEBUG
+
+            ${VFXIncludeRP("Templates/Volumetric/PassVolumetricFog.template")}
+            ENDHLSL
+        }
+	}
+}

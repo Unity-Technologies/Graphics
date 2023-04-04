@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>Renderer2DData</c> contains resources for a <c>Renderer2D</c>.
     /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    [MovedFrom(false, "UnityEngine.Experimental.Rendering.Universal", "com.unity.render-pipelines.universal")]
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal", "Unity.RenderPipelines.Universal.Runtime")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData_overview.html")]
     public partial class Renderer2DData : ScriptableRendererData
     {
@@ -58,20 +58,14 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         uint m_MaxShadowRenderTextureCount = 1;
 
-        [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
-        Shader m_ShapeLightShader = null;
-
-        [SerializeField, Reload("Shaders/2D/Light2D-Shape-Volumetric.shader")]
-        Shader m_ShapeLightVolumeShader = null;
-
-        [SerializeField, Reload("Shaders/2D/Light2D-Point.shader")]
-        Shader m_PointLightShader = null;
-
-        [SerializeField, Reload("Shaders/2D/Light2D-Point-Volumetric.shader")]
-        Shader m_PointLightVolumeShader = null;
+        [SerializeField, Reload("Shaders/2D/Light2D.shader")]
+        Shader m_LightShader = null;
 
         [SerializeField, Reload("Shaders/Utils/CoreBlit.shader")]
         Shader m_CoreBlitShader = null;
+
+        [SerializeField, Reload("Shaders/Utils/BlitHDROverlay.shader")]
+        Shader m_BlitHDROverlay;
 
         [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
         Shader m_SamplingShader = null;
@@ -113,11 +107,9 @@ namespace UnityEngine.Rendering.Universal
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
         internal Texture2D fallOffLookup => m_FallOffLookup;
-        internal Shader shapeLightShader => m_ShapeLightShader;
-        internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
-        internal Shader pointLightShader => m_PointLightShader;
-        internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
+        internal Shader lightShader => m_LightShader;
         internal Shader blitShader => m_CoreBlitShader;
+        internal Shader blitHDROverlay => m_BlitHDROverlay;
         internal Shader samplingShader => m_SamplingShader;
         internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
         internal Shader spriteShadowShader => m_SpriteShadowShader;

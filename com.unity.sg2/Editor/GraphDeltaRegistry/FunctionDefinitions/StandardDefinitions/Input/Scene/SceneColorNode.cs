@@ -24,9 +24,11 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[1] { "screen buffer" },
+            description: "pkg://Documentation~/previews/SceneColor.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "The output color value."
                 ),
                 new ParameterUIDescriptor(

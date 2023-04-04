@@ -426,7 +426,7 @@ namespace UnityEditor
         /// This function has been deprecated and has been renamed to ValidateMaterial.
         /// </summary>
         /// <param name="material">The material that has been changed.</param>
-        [Obsolete("MaterialChanged has been renamed ValidateMaterial", false)]
+        [Obsolete("MaterialChanged has been renamed ValidateMaterial", true)]
         public virtual void MaterialChanged(Material material)
         {
             ValidateMaterial(material);

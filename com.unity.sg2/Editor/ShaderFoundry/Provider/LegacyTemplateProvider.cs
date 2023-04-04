@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 
 using UnityEditor.ShaderFoundry;
+using UnityEngine;
 using PassIdentifier = UnityEngine.Rendering.PassIdentifier;
 using BlockInput = UnityEditor.ShaderFoundry.BlockVariable;
 using BlockOutput = UnityEditor.ShaderFoundry.BlockVariable;
@@ -305,10 +306,43 @@ namespace UnityEditor.ShaderFoundry
 
         CustomizationPoint BuildCustomizationPoint(CustomizationPoint.Builder builder, Block preBlock, Block postBlock, List<BlockSequenceElement> defaultBlockSequenceElements)
         {
+            var varMap = new Dictionary<string, BlockVariable.Builder>();
+            // Merge input and outputs together
             foreach (var output in preBlock.Outputs)
-                builder.AddInput(CloneVariable(output));
+            {
+                if(!varMap.TryGetValue(output.Name, out var varBuilder))
+                {
+                    varBuilder = new BlockVariable.Builder(Container);
+                    varBuilder.Type = output.Type;
+                    varBuilder.Name = output.Name;
+                    varBuilder.IsInput = false;
+                    varBuilder.IsOutput = false;
+                    foreach (var attribute in output.Attributes)
+                        varBuilder.AddAttribute(attribute);
+                    varMap[output.Name] = varBuilder;
+                }
+                varBuilder.IsInput = true;
+            }
             foreach (var input in postBlock.Inputs)
-                builder.AddOutput(CloneVariable(input));
+            {
+                if(!varMap.TryGetValue(input.Name, out var varBuilder))
+                {
+                    varBuilder = new BlockVariable.Builder(Container);
+                    varBuilder.Type = input.Type;
+                    varBuilder.Name = input.Name;
+                    varBuilder.IsInput = false;
+                    varBuilder.IsOutput = false;
+                    foreach (var attribute in input.Attributes)
+                        varBuilder.AddAttribute(attribute);
+                    varMap[input.Name] = varBuilder;
+                }
+                varBuilder.IsOutput = true;
+            }
+            foreach(var varBuilder in varMap.Values)
+            {
+                builder.AddInterfaceField(varBuilder.Build());
+            }
+
             foreach (var blockSequenceElement in defaultBlockSequenceElements)
                 builder.AddDefaultBlockSequenceElement(blockSequenceElement);
             return builder.Build();
@@ -322,6 +356,7 @@ namespace UnityEditor.ShaderFoundry
 
         Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<NameOverride> nameMappings, Dictionary<string, string> defaultVariableValues, List<FieldDescriptor> fieldDescriptors)
         {
+            blockName = $"Default{blockName}";
             var mainBlockBuilder = new Block.Builder(Container, blockName);
 
             // Collect some values for quick lookups by name

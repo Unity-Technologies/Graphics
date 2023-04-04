@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         internal override MaterialResetter setupMaterialKeywordsAndPassFunc => ShaderGraphAPI.ValidateDecalMaterial;
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false, false));
+        protected override string disableBatchingTag => decalData.supportLodCrossFade ? $"{UnityEditor.ShaderGraph.DisableBatching.LODFading}" : $"{UnityEditor.ShaderGraph.DisableBatching.False}";
         protected override ShaderID shaderID => ShaderID.SG_Decal;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Decal Subshader", "");
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl";

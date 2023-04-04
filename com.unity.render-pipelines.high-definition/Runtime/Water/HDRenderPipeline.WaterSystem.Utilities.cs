@@ -275,11 +275,38 @@ namespace UnityEngine.Rendering.HighDefinition
             center = float2(signX * (offsets[absX] * centerGridSize + size.x * 0.5f), signY * (offsets[absY] * centerGridSize + size.y * 0.5f));
         }
 
+        static bool ClampPatchToRegion(ref float2 center, ref float2 size, float2 regionCenter, float2 regionExtent)
+        {
+            // AABB of the region
+            float2 regionMin = regionCenter - regionExtent * 0.5f;
+            float2 regionMax = regionCenter + regionExtent * 0.5f;
+
+            // AABB of the patch
+            float2 patchMin = center - size * 0.5f;
+            float2 patchMax = center + size * 0.5f;
+
+            float2 intersectionMin = max(regionMin, patchMin);
+            float2 intersectionMax = min(regionMax, patchMax);
+
+            // Evaluate the new dimensions
+            center = (intersectionMax + intersectionMin) * 0.5f;
+            size = (intersectionMax - intersectionMin);
+
+            // Validate the patch
+            return all(intersectionMin < intersectionMax);
+        }
+
         static void DrawInstancedQuadsCPU(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex)
         {
             int radius = (int)parameters.waterRenderingCB._WaterLODCount - 1;
             float gridSize = parameters.waterRenderingCB._GridSize.x;
+            float maxWaveHeight = parameters.waterCB._MaxWaveHeight;
+            uint numWaterPatches = parameters.waterRenderingCB._NumWaterPatches;
+            float maxWaveDisplacement = parameters.waterCB._MaxWaveDisplacement;
             Vector4 patchOffset = parameters.waterRenderingCB._PatchOffset;
+            float2 regionCenter = parameters.waterRenderingCB._RegionCenter;
+            float2 regionExtent = parameters.waterRenderingCB._RegionExtent;
+
             for (int y = -radius; y <= radius; ++y)
             {
                 for (int x = -radius; x <= radius; ++x)
@@ -289,9 +316,34 @@ namespace UnityEngine.Rendering.HighDefinition
                     float2 size;
                     ComputeGridBounds(x, y, gridSize, out center, out size);
 
+                    // Frustum cull the patch while accounting for it's maximal deformation
+                    OrientedBBox obb;
+                    obb.right = new float3(1, 0, 0);
+                    obb.up = new float3(0, 1, 0);
+                    obb.extentX = size.x * 0.5f + maxWaveDisplacement;
+                    obb.extentY = maxWaveHeight;
+                    obb.extentZ = size.y * 0.5f + maxWaveDisplacement;
+                    obb.center = float3(patchOffset.x + center.x, patchOffset.y, patchOffset.z + center.y);
+
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        obb.center -= parameters.cameraPosition;
+
+                    int currentPatch = (x + radius) + (y + radius) * (1 + radius * 2);
+                    bool patchIsVisible = currentPatch < numWaterPatches ? GeometryUtils.Overlap(obb, parameters.cameraFrustum, 6, 8) : false;
+
+                    if (!parameters.infinite)
+                    {
+                        float2 centerWS = new float2(center.x + patchOffset.x, center.y + patchOffset.z);
+                        patchIsVisible = patchIsVisible && ClampPatchToRegion(ref centerWS, ref size, regionCenter, regionExtent);
+                        center = new float2(centerWS.x - patchOffset.x, centerWS.y - patchOffset.z);
+                    }
+
+                    if (!patchIsVisible)
+                        continue;
+
                     // Propagate the data to the constant buffer
                     parameters.waterRenderingCB._GridSize.Set(size.x, size.y);
-                    parameters.waterRenderingCB._PatchOffset.Set(patchOffset.x + center.x, patchOffset.y, patchOffset.z + center.y, 0.0f);
+                    parameters.waterRenderingCB._PatchOffset.Set(patchOffset.x + center.x, 0.0f, patchOffset.z + center.y, 0.0f);
                     ConstantBuffer.Push(cmd, parameters.waterRenderingCB, parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
 
                     // Draw the target patch

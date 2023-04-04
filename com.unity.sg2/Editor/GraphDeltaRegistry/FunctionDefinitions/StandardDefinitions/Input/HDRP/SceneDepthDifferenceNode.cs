@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -78,7 +79,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gets the distance from the current pixel to the closest pixel behind it.",
             category: "Input/HDRP",
             synonyms: new string[3] { "distance", "zbuffer", "zdepth" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SceneDepthDifference.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Linear01", "Linear01" },
                 { "Raw", "Raw" },
@@ -95,10 +97,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "PositionWS",
                     displayName: "Position WS",
-                    tooltip: "The position of the pixel in world space"
+                    tooltip: "The position of the pixel in world space",
+                    options: REF.OptionList.Positions
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the distance between the current pixel and the closest pixel behind it."
                 )
             }

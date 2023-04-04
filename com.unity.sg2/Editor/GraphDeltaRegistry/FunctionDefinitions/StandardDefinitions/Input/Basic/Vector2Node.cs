@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a user-defined value with 2 channels.",
             category: "Input/Basic",
             synonyms: new string[4] { "2", "v2", "vec2", "float2" },
+            description: "pkg://Documentation~/previews/Vector2.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "X",
@@ -40,6 +41,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a user-defined value with 2 channels"
                 )
             }

@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -22,13 +23,16 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Calculates an integer, or whole number, from the input.",
             category: "Math/Round",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Truncate.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
-                    name: "In"
+                    name: "In",
+                    displayName: string.Empty
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the whole number of the input without the decimal portion"
                 )
             }

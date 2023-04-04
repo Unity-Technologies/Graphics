@@ -849,7 +849,7 @@ namespace UnityEditor.ShaderGraph.Defs
                         new ParameterDescriptor("sRGBOutput", TYPE.Bool, Usage.Static),
                         new ParameterDescriptor("randRotMat", TYPE.Mat3, Usage.Local, new float[]
                         {
-                            0.5703109f, -0.6308292f, 0.5261179f, 
+                            0.5703109f, -0.6308292f, 0.5261179f,
                             0.8214105f, 0.4336779f, -0.3704164f,
                             0.0055037f, 0.6434113f,  0.7655009f
                         }),//rotates the octaves by x37, y19, z53 degrees
@@ -872,7 +872,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Procedural/Noise",
             displayName: "Noise 3D",
             synonyms: new string[5] { "perlin", "gradient", "value", "octave", "worley" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/Noise3D.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "ValueTexFBM", "Value Texture Fractal Brownian Motion" },
                 { "ValueTexTurbulence", "Value Texture Turbulence" },
@@ -906,7 +907,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "controls the size of the noise."
                 ),
                 new ParameterUIDescriptor(
-                    name: "Ocataves",
+                    name: "Octaves",
                     tooltip: "the number of times to repeat the noise algorithm. More octaves creates more detail and more expensive noise."
                 ),
                 new ParameterUIDescriptor(
@@ -919,7 +920,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Offset",
-                    tooltip: "controls the brightess or height of the multifractal ridges"
+                    tooltip: "controls the brightness or height of the multifractal ridges"
                 ),
                 new ParameterUIDescriptor(
                     name: "GradientVolume",
@@ -943,6 +944,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a smooth, non-tiling noise pattern using the selected options"
                 )
             }

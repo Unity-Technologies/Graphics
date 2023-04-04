@@ -1119,7 +1119,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         //create inputs to our block based on the upstream context's outputs
                         foreach (var port in node.GetPorts())
                         {
-                            if (port.IsHorizontal && port.IsInput)
+                            if (port.IsHorizontal && port.IsInput && !port.HasMetadata("_IgnoreInterpretation"))
                             {
                                 var name = port.ID.LocalPath;
                                 var type = registry.GetTypeBuilder(port.GetTypeField().GetRegistryKey()).GetShaderType(port.GetTypeField(), container, registry);

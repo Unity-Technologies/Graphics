@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
+    [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Ray-Tracing-Path-Tracing")]
     public sealed class PathTracing : VolumeComponent
@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public PathTracing()
         {
-            displayName = "Path Tracing (Preview)";
+            displayName = "Path Tracing";
         }
     }
 

@@ -144,7 +144,6 @@ void PerformBoundsReduction(uint id, uint tid, uint instanceIndex, uint nbMax)
         sMaxPositionsZ[tid] = 0u;
     }
     GroupMemoryBarrierWithGroupSync();
-    [unroll((int)(log2(NB_THREADS_PER_GROUP) + 0.5f))]
     for (uint s = NB_THREADS_PER_GROUP / 2; s > 0; s >>= 1) {
         if (tid < s)
         {

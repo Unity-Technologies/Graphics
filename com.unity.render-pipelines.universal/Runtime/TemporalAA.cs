@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
             const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
             if(Time.frameCount % warningThrottleFrames == 0)
                 Debug.LogWarning(warning);
-            
+
             return warning;
         }
 
@@ -377,13 +377,13 @@ namespace UnityEngine.Rendering.Universal
             // either this frame (again) or the next frame correctly, but it would cost more memory.
             TextureHandle activeMotionVectors = isNewFrame ? srcMotionVectors : renderGraph.defaultResources.blackTexture;
 
-            using (var builder = renderGraph.AddRenderPass<TaaPassData>("Temporal Anti-aliasing", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAA)))
+            using (var builder = renderGraph.AddRasterRenderPass<TaaPassData>("Temporal Anti-aliasing", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAA)))
             {
-                passData.dstTex = builder.UseColorBuffer(dstColor, 0);
-                passData.srcColorTex = builder.ReadTexture(srcColor);
-                passData.srcDepthTex = builder.ReadTexture(srcDepth);
-                passData.srcMotionVectorTex = builder.ReadTexture(activeMotionVectors);
-                passData.srcTaaAccumTex = builder.ReadTexture(srcAccumulation);
+                passData.dstTex = builder.UseTextureFragment(dstColor, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.srcColorTex = builder.UseTexture(srcColor, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.srcDepthTex = builder.UseTexture(srcDepth, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.srcMotionVectorTex = builder.UseTexture(activeMotionVectors, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.srcTaaAccumTex = builder.UseTexture(srcAccumulation, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 passData.material = taaMaterial;
                 passData.passIndex = (int)taa.quality;
@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                     passData.taaFilterWeights = null;
 
-                builder.SetRenderFunc((TaaPassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((TaaPassData data, RasterGraphContext context) =>
                 {
                     data.material.SetFloat(ShaderConstants._TaaFrameInfluence, data.taaFrameInfluence);
                     data.material.SetFloat(ShaderConstants._TaaVarianceClampScale, data.taaVarianceClampScale);
@@ -414,15 +414,15 @@ namespace UnityEngine.Rendering.Universal
             if (isNewFrame)
             {
                 int kHistoryCopyPass = taaMaterial.shader.passCount - 1;
-                using (var builder = renderGraph.AddRenderPass<TaaPassData>("Temporal Anti-aliasing Copy History", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAACopyHistory)))
+                using (var builder = renderGraph.AddRasterRenderPass<TaaPassData>("Temporal Anti-aliasing Copy History", out var passData, ProfilingSampler.Get(URPProfileId.RG_TAACopyHistory)))
                 {
-                    passData.dstTex = builder.UseColorBuffer(srcAccumulation, 0);
-                    passData.srcColorTex = builder.ReadTexture(dstColor);   // Resolved color is the new history
+                    passData.dstTex = builder.UseTextureFragment(srcAccumulation, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.srcColorTex = builder.UseTexture(dstColor, IBaseRenderGraphBuilder.AccessFlags.Read);   // Resolved color is the new history
 
                     passData.material = taaMaterial;
                     passData.passIndex = kHistoryCopyPass;
 
-                    builder.SetRenderFunc((TaaPassData data, RenderGraphContext context) => { Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex); });
+                    builder.SetRenderFunc((TaaPassData data, RasterGraphContext context) => { Blitter.BlitTexture(context.cmd, data.srcColorTex, Vector2.one, data.material, data.passIndex); });
                 }
 
                 cameraData.taaPersistentData.SetLastAccumFrameIndex(multipassId, Time.frameCount);

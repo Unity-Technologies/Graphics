@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -24,10 +25,12 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Calculates a new value for In. Uses the Out Min Max as a range and lerps between the In Min Max values.",
             category: "Math/Range",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Remap.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: "In",
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
@@ -42,6 +45,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the input value with it's range remapped to the Out Min Max values"
                 )
             }

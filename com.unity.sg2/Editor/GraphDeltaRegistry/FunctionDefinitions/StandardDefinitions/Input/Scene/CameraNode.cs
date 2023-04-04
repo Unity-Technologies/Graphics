@@ -37,6 +37,7 @@ Height = unity_OrthoParams.y;",
             category: "Input/Scene",
             synonyms: new string[7] { "Position", "Direction", "Orthographic", "NearPlane", "FarPlane", "Width", "Height" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Camera.md",
             parameters: new ParameterUIDescriptor[8] {
                 new ParameterUIDescriptor(
                     name: "Position",

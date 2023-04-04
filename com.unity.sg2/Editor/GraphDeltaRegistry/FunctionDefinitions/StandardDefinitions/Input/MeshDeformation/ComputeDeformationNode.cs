@@ -56,6 +56,7 @@ void Unity_ComputeDeformedVertex(uint vertexID, out float3 positionOut, out floa
             category: "Input/Mesh Deformation",
             hasPreview: false,
             synonyms: new string[0] { },
+            description: "pkg://Documentation~/previews/ComputeDeformation.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "DeformedPosition",

@@ -1164,7 +1164,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         {
             topIor = lerp(1.0, CLEAR_COAT_IOR, bsdfData.coatMask);
             // HACK: Use the reflected direction to specify the Fresnel coefficient for pre-convolved envmaps
-            viewAngle = sqrt(1.0 + Sq(1.0 / topIor) * (Sq(dot(bsdfData.normalWS, V)) - 1.0));
+            if (bsdfData.coatMask != 0.0f) // We must make sure that effect is neutral when coatMask == 0
+                viewAngle = sqrt(1.0 + Sq(1.0 / topIor) * (Sq(dot(bsdfData.normalWS, V)) - 1.0));
         }
 
         if (bsdfData.iridescenceMask > 0.0)

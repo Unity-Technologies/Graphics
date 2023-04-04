@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a user-defined value with 3 channels.",
             category: "Input/Basic",
             synonyms: new string[4] { "3", "v3", "vec3", "float3" },
+            description: "pkg://Documentation~/previews/Vector3.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "X",
@@ -46,6 +47,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a user-defined value with 3 channels"
                 )
             }

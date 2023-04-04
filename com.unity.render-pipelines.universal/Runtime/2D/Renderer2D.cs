@@ -14,11 +14,16 @@ namespace UnityEngine.Rendering.Universal
         internal const int k_DepthBufferBits = 32;
         #endif
 
+        const int k_FinalBlitPassQueueOffset = 1;
+        const int k_AfterFinalBlitPassQueueOffset = k_FinalBlitPassQueueOffset + 1;
+
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         UpscalePass m_UpscalePass;
         CopyCameraSortingLayerPass m_CopyCameraSortingLayerPass;
         FinalBlitPass m_FinalBlitPass;
+        DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
+        DrawScreenSpaceUIPass m_DrawOverlayUIPass;
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
 
@@ -32,6 +37,7 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle m_DepthTextureHandle;
 
         Material m_BlitMaterial;
+        Material m_BlitHDRMaterial;
         Material m_SamplingMaterial;
 
         Renderer2DData m_Renderer2DData;
@@ -55,6 +61,7 @@ namespace UnityEngine.Rendering.Universal
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
+            m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(data.blitHDROverlay);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
 
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
@@ -62,7 +69,10 @@ namespace UnityEngine.Rendering.Universal
             m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
             m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing, m_BlitMaterial);
             m_CopyCameraSortingLayerPass = new CopyCameraSortingLayerPass(m_BlitMaterial);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
+
+            m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing, true);
+            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
 
             var ppParams = PostProcessParams.Create();
             ppParams.blitMaterial = m_BlitMaterial;
@@ -86,8 +96,11 @@ namespace UnityEngine.Rendering.Universal
             m_DepthTextureHandle?.Release();
             m_UpscalePass.Dispose();
             m_FinalBlitPass?.Dispose();
+            m_DrawOffscreenUIPass?.Dispose();
+            m_DrawOverlayUIPass?.Dispose();
 
             CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
 
             CleanupRenderGraphResources();
@@ -111,6 +124,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base)
             {
                 m_CreateColorTexture = forceCreateColorTexture
+                    || (DebugHandler != null && DebugHandler.WriteToDebugScreenTexture(ref cameraData))
                     || cameraData.postProcessEnabled
                     || cameraData.isHdrEnabled
                     || cameraData.isSceneViewCamera
@@ -165,15 +179,13 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
             bool stackHasPostProcess = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
+            bool hasPostProcess = renderingData.cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool lastCameraInStack = cameraData.resolveFinalTarget;
             var colorTextureFilterMode = FilterMode.Bilinear;
 
             PixelPerfectCamera ppc = null;
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
-
-            bool savedIsOrthographic = renderingData.cameraData.camera.orthographic;
-            float savedOrthographicSize = renderingData.cameraData.camera.orthographicSize;
 
             if (DebugHandler != null)
             {
@@ -183,8 +195,9 @@ namespace UnityEngine.Rendering.Universal
                 if (DebugHandler.AreAnySettingsActive)
                 {
                     stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
+                    hasPostProcess = hasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
-                DebugHandler.Setup(context, ref renderingData);
+                DebugHandler.Setup(ref renderingData);
             }
 
 #if UNITY_EDITOR
@@ -211,9 +224,6 @@ namespace UnityEngine.Rendering.Universal
                         cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
                     }
 
-                    renderingData.cameraData.camera.orthographic = true;
-                    renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
-
                     colorTextureFilterMode = FilterMode.Point;
                     ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture || ppc.requiresUpscalePass;
                 }
@@ -233,8 +243,7 @@ namespace UnityEngine.Rendering.Universal
 
             ConfigureCameraTarget(colorTargetHandle, depthTargetHandle);
 
-            // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
-            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base)
+            if (hasPostProcess)
             {
                 colorGradingLutPass.ConfigureDescriptor(in renderingData.postProcessingData, out var desc, out var filterMode);
                 RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, filterMode, TextureWrapMode.Clamp, name: "_InternalGradingLut");
@@ -247,15 +256,27 @@ namespace UnityEngine.Rendering.Universal
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle, depthTargetHandle);
             EnqueuePass(m_Render2DLightingPass);
 
+            bool shouldRenderUI = cameraData.rendersOverlayUI;
+            bool outputToHDR = cameraData.isHDROutputActive;
+            if (shouldRenderUI && outputToHDR)
+            {
+                m_DrawOffscreenUIPass.Setup(cameraTargetDescriptor, depthTargetHandle);
+                EnqueuePass(m_DrawOffscreenUIPass);
+            }
+
+            // TODO: Investigate how to make FXAA work with HDR output.
+            bool isFXAAEnabled = cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !outputToHDR;
+
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
             // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
             bool requireFinalPostProcessPass =
-                lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
+                lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && isFXAAEnabled;
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
+            bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(ref cameraData);
 
-            if (stackHasPostProcess)
+            if (hasPostProcess)
             {
                 var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
                 RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
@@ -267,7 +288,7 @@ namespace UnityEngine.Rendering.Universal
                     depthTargetHandle,
                     colorGradingLutHandle,
                     requireFinalPostProcessPass,
-                    afterPostProcessColorHandle.nameID == k_CameraTarget.nameID);
+                    afterPostProcessColorHandle.nameID == k_CameraTarget.nameID && needsColorEncoding);
 
                 EnqueuePass(postProcessPass);
                 colorTargetHandle = afterPostProcessColorHandle;
@@ -277,7 +298,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None)
             {
-                m_PixelPerfectBackgroundPass.Setup(savedIsOrthographic, savedOrthographicSize);
                 EnqueuePass(m_PixelPerfectBackgroundPass);
 
                 // Queue PixelPerfect UpscalePass. Only used when using the Stretch Fill option
@@ -293,13 +313,18 @@ namespace UnityEngine.Rendering.Universal
 
             if (requireFinalPostProcessPass)
             {
-                finalPostProcessPass.SetupFinalPass(finalTargetHandle, hasPassesAfterPostProcessing);
+                finalPostProcessPass.SetupFinalPass(finalTargetHandle, hasPassesAfterPostProcessing, needsColorEncoding);
                 EnqueuePass(finalPostProcessPass);
             }
             else if (lastCameraInStack && finalTargetHandle != k_CameraTarget)
             {
                 m_FinalBlitPass.Setup(cameraTargetDescriptor, finalTargetHandle);
                 EnqueuePass(m_FinalBlitPass);
+            }
+
+            if (shouldRenderUI && !outputToHDR)
+            {
+                EnqueuePass(m_DrawOverlayUIPass);
             }
         }
 

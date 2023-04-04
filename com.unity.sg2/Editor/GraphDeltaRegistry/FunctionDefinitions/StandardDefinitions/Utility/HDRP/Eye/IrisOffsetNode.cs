@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -24,8 +25,9 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Iris Offset",
             tooltip: "Applies an offset to the center of the Iris to mimic real-life eye structure.",
             category: "Utility/HDRP/Eye",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
+            description: "pkg://Documentation~/previews/IrisOffset.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "IrisUV",

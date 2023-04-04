@@ -19,7 +19,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public IReadOnlyCollection<string> Synonyms { get; }
         public string Category { get; }
         public string FunctionSelectorLabel { get; }
-        public string SelectedFunctionID { get; }
 
         public IEnumerable<SGPortViewModel> StaticPortUIData
         {
@@ -42,8 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             bool hasPreview = true, // By default we assume all nodes should have previews,
             Dictionary<string, string> selectableFunctions = null,
             SGPortViewModel[] parameters = null,
-            string functionSelectorLabel = "",
-            string selectedFunctionID = ""
+            string functionSelectorLabel = ""
         )
         {
             Version = version;
@@ -58,7 +56,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var parametersList = parameters ?? new SGPortViewModel[0];
             PortUIData = parametersList.ToList().AsReadOnly();
             FunctionSelectorLabel = functionSelectorLabel;
-            SelectedFunctionID = selectedFunctionID;
         }
 
         public SGPortViewModel GetParameterInfo(string parameterName)

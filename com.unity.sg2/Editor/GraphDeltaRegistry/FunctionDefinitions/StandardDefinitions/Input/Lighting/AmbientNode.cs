@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -28,11 +29,12 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Accesses the scene's ambient color values.",
             category: "Input/Lighting",
             hasPreview: false,
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Ambient.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "Color_Sky",
-                    displayName:"Color/Sky",
+                    displayName:"Color / Sky",
                     tooltip: "Color (Color) or Sky (Gradient) color value."
                 ),
                 new ParameterUIDescriptor(

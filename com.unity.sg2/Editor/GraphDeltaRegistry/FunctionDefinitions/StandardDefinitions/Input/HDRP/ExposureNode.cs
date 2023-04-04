@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -54,7 +55,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Gets the camera's exposure value from the current or previous frame.",
             category: "Input/HDRP",
             synonyms: new string[1] { "fstop" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/Exposure.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "CurrentMultiplier", "Current Multiplier" },
                 { "InverseCurrentMultiplier", "Inverse Current Multiplier" },
@@ -66,6 +68,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the camera's exposure value"
                 )
             }

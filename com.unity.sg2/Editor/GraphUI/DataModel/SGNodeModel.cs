@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolsFoundation.Editor;
 using UnityEditor.ShaderGraph.Defs;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
-using UnityEngine.Assertions;
 using Unity.GraphToolsFoundation;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -16,16 +17,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
     /// It can be used for a node on the graph (with an assigned graph data name)
     /// or a searcher preview (with only an assigned registry key).
     /// </summary>
-    class SGNodeModel : NodeModel, IGraphDataOwner, IPreviewUpdateListener
+    [Serializable]
+    class SGNodeModel : NodeModel, IGraphDataOwner<SGNodeModel>, IPreviewUpdateListener
     {
+        [SerializeField]
+        RegistryKey m_RegistryKey;
+
         [SerializeField]
         string m_GraphDataName;
 
         /// <summary>
-        /// Graph data name associated with this node.
-        /// If null, this node is a searcher preview with type determined by the
-        /// registryKey property.
+        /// The <see cref="IGraphDataOwner{T}"/> interface for this object.
         /// </summary>
+        public IGraphDataOwner<SGNodeModel> graphDataOwner => this;
+
+        /// <summary>
+        /// The identifier/unique name used to represent this entity and retrieve info. regarding it from CLDS.
+        /// </summary>
+        /// <remarks>If null, the node is a preview node (show in the searcher)  with type determined by the
+        /// <see cref="registryKey"/> property.</remarks>
         public string graphDataName
         {
             get => m_GraphDataName;
@@ -43,66 +53,35 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        RegistryKey m_PreviewRegistryKey;
-
         /// <summary>
-        /// This node's registry key. If graphDataName is set, this is read from the graph. Otherwise, it is set
-        /// manually using SetPreviewRegistryKey.
+        /// The <see cref="RegistryKey"/> that represents the concrete type within the Registry, of this object.
         /// </summary>
         public RegistryKey registryKey
         {
             get
             {
-                if (!existsInGraphData)
-                    return m_PreviewRegistryKey;
+                if (!m_RegistryKey.Valid())
+                {
+                    m_RegistryKey = this.GetRegistryKeyFromNodeHandler();
+                }
 
-                Assert.IsTrue(TryGetNodeHandler(out var reader));
-                // Store the registry key to use for node duplication
-                duplicationRegistryKey = reader.GetRegistryKey();
-                return reader.GetRegistryKey();
+                return m_RegistryKey;
             }
+            private set => m_RegistryKey = value;
         }
 
-        /// <summary>
-        /// GTF handles copy/pasting of graph elements by serializing the original graph element models to JSON
-        /// and deserializing that JSON to get an instance that can be cloned to create our new node model
-        /// We need a field that can copy the registry key in order to use for creating the duplicated node
-        /// See ShaderGraphModel.DuplicateNode() and ViewSelection.DuplicateSelection
-        /// </summary>
-        [field: SerializeField]
-        public RegistryKey duplicationRegistryKey { get; private set; }
-
-        /// <summary>
-        /// Determines whether or not this node has a valid backing representation at the data layer. If false, this
-        /// node should be treated as a searcher preview.
-        /// </summary>
-        public bool existsInGraphData =>
-            m_GraphDataName != null && TryGetNodeHandler(out _);
-
-        protected GraphHandler graphHandler =>
-            ((SGGraphModel)GraphModel).GraphHandler;
-
-        ShaderGraphRegistry registry =>
-            ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
-
-        public bool TryGetNodeHandler(out NodeHandler reader)
+        internal void SyncRegistryKeyFromNodeHandler()
         {
-            try
-            {
-                if (graphDataName == null)
-                {
-                    reader = registry.GetDefaultTopology(m_PreviewRegistryKey);
-                    return true;
-                }
-                reader = graphHandler.GetNode(graphDataName);
-                return reader != null;
-            }
-            catch (Exception exception)
-            {
-                AssertHelpers.Fail("Failed to retrieve node due to exception:" + exception);
-                reader = null;
-                return false;
-            }
+            m_RegistryKey = this.GetRegistryKeyFromNodeHandler();
+        }
+
+        public NodeHandler GetNodeHandler()
+        {
+            // Use the default topology handler for preview nodes.
+            var isPreview = graphDataName == null;
+            return isPreview ?
+                graphDataOwner.registry.GetDefaultTopology(registryKey) :
+                graphDataOwner.graphHandler.GetNode(graphDataName);
         }
 
         public virtual bool HasPreview { get; private set; }
@@ -113,7 +92,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         // By default every node's preview uses the inherit mode
         [SerializeField]
-        [ModelSetting]
+        [NodeOption(true)]
+        [Tooltip("Controls the way the preview output is rendered for this node")]
         PreviewRenderMode m_NodePreviewMode;
         public PreviewRenderMode NodePreviewMode
         {
@@ -138,6 +118,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             set => m_DismissedUpgradeVersion = value;
         }
 
+        List<string> m_Modes = new();
+        public override List<string> Modes => m_Modes;
+
         internal SGGraphModel graphModel => GraphModel as SGGraphModel;
 
         internal int currentVersion => registryKey.Version;
@@ -148,7 +131,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             {
                 var latest = 0;
 
-                foreach (var key in graphHandler.registry.BrowseRegistryKeys())
+                foreach (var key in graphDataOwner.graphHandler.registry.BrowseRegistryKeys())
                 {
                     if (key.Name != registryKey.Name)
                     {
@@ -165,9 +148,29 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
+        [NonSerialized]
+        SGNodeViewModel m_NodeViewModel;
+
+        /// </summary>
+        /// <param name="key">The CLDS registry key to use for this node.</param>
+        /// <param name="spawnFlags">The node spawn flags.</param>
+        public void Initialize(RegistryKey key, SpawnFlags spawnFlags)
+        {
+            registryKey = key;
+
+            if (!spawnFlags.IsOrphan())
+            {
+                graphDataName = Guid.ToString();
+                graphDataOwner.graphHandler.AddNode(registryKey, graphDataName);
+            }
+        }
+
         public void UpgradeToLatestVersion()
         {
-            var nodeHandler = graphHandler.GetNode(graphDataName);
+            if (!graphDataOwner.existsInGraphData)
+            {
+                return;
+            }
 
             if (latestAvailableVersion < currentVersion)
             {
@@ -180,11 +183,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            var newKey = new RegistryKey {Name = registryKey.Name, Version = latestAvailableVersion};
-            nodeHandler.SetMetadata(GraphDelta.GraphDelta.kRegistryKeyName, newKey);
+            registryKey = new RegistryKey {Name = registryKey.Name, Version = latestAvailableVersion};
+            var nodeHandler = GetNodeHandler();
+            nodeHandler.SetMetadata(GraphDelta.GraphDelta.kRegistryKeyName, registryKey);
             try
             {
-                graphHandler.ReconcretizeNode(graphDataName);
+                graphDataOwner.graphHandler.ReconcretizeNode(graphDataName);
             }
             catch (Exception e)
             {
@@ -196,24 +200,20 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public SGNodeViewModel GetViewModel()
         {
-            graphModel.GetNodeViewModel(registryKey, out var nodeViewModel);
-            return nodeViewModel;
+            return m_NodeViewModel;
         }
 
-        /// <summary>
-        /// Sets the registry key used when previewing this node. Has no effect if graphDataName has been set.
-        /// </summary>
-        /// <param name="key">Registry key used to preview this node.</param>
-        public void SetSearcherPreviewRegistryKey(RegistryKey key)
+        internal void ChangeNodeFunction(string newFunctionName)
         {
-            m_PreviewRegistryKey = key;
-        }
+            if (!graphDataOwner.existsInGraphData)
+            {
+                return;
+            }
 
-        public void ChangeNodeFunction(string newFunctionName)
-        {
-            NodeHandler nodeHandler = graphHandler.GetNode(graphDataName);
-            string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-            FieldHandler selectedFunctionField = nodeHandler.GetField<string>(fieldName);
+            var nodeHandler = GetNodeHandler();
+            var fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
+            var selectedFunctionField = nodeHandler.GetField<string>(fieldName);
+
             if (selectedFunctionField == null)
             {
                 Debug.LogError("Unable to update selected function. Node has no selected function field.");
@@ -225,7 +225,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             // See: NodeDescriptorNodeBuilder.BuildNode
             try
             {
-                graphHandler.ReconcretizeNode(graphDataName);
+                graphDataOwner.graphHandler.ReconcretizeNode(graphDataName);
             }
             catch (Exception e)
             {
@@ -235,6 +235,17 @@ namespace UnityEditor.ShaderGraph.GraphUI
             DefineNode();
         }
 
+        public override void ChangeMode(int newModeIndex)
+        {
+            if (newModeIndex < 0 || newModeIndex >= Modes.Count)
+            {
+                Debug.LogError("Unable to update selected function. Index is out of bounds.");
+                return;
+            }
+            ChangeNodeFunction(Modes[newModeIndex]);
+            base.ChangeMode(newModeIndex);
+        }
+
         /// <summary>
         /// Sets a port's value from its parameter descriptor's Options list.
         /// </summary>
@@ -242,7 +253,13 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <param name="optionIndex">Index of the Option in the port's parameter descriptor to use.</param>
         public void SetPortOption(string portName, int optionIndex)
         {
-            if (!TryGetNodeHandler(out var handler)) return;
+            // If not backed by real data (i.e., we are a searcher preview), changing options doesn't make sense.
+            if (!graphDataOwner.existsInGraphData)
+            {
+                return;
+            }
+
+            var nodeHandler = GetNodeHandler();
             var parameterInfo = GetViewModel().GetParameterInfo(portName);
             var (_, optionValue) = parameterInfo.Options[optionIndex];
 
@@ -252,19 +269,19 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 return;
             }
 
-            var port = handler.GetPort(portName);
+            var port = nodeHandler.GetPort(portName);
             var existing = GetCurrentPortOption(portName);
             if (existing != -1)
             {
                 var (_, existingValue) = parameterInfo.Options[existing];
                 if (existingValue is ReferenceValueDescriptor existingDesc)
                 {
-                    graphHandler.graphDelta.RemoveDefaultConnection(existingDesc.ContextName, port.ID, registry.Registry);
+                    graphDataOwner.graphHandler.graphDelta.RemoveDefaultConnection(existingDesc.ContextName, port.ID, graphDataOwner.registry.Registry);
                 }
             }
 
-            graphHandler.graphDelta.AddDefaultConnection(desc.ContextName, port.ID, registry.Registry);
-            graphHandler.ReconcretizeNode(graphDataName);
+            graphDataOwner.graphHandler.graphDelta.AddDefaultConnection(desc.ContextName, port.ID, graphDataOwner.registry.Registry);
+            graphDataOwner.graphHandler.ReconcretizeNode(graphDataName);
         }
 
         /// <summary>
@@ -274,13 +291,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
         /// <returns>Index into the Options list for the given port, or -1 if there are no options or no option is selected.</returns>
         public int GetCurrentPortOption(string portName)
         {
-            var paramInfo = GetViewModel().GetParameterInfo(portName);
-            if (!existsInGraphData) return 0;  // default to first option
+            if (!graphDataOwner.TryGetNodeHandler(out var handler)) return -1;
+            if (string.IsNullOrEmpty(m_GraphDataName)) return 0;  // default to first option
 
-            if (!TryGetNodeHandler(out var handler)) return -1;
+            var paramInfo = GetViewModel().GetParameterInfo(portName);
+            if (paramInfo.Options == null || paramInfo.Options.Count < 1) return -1;
+
             var port = handler.GetPort(portName);
 
-            var connection = graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID);
+            var connection = graphDataOwner.graphHandler.graphDelta.GetDefaultConnectionToPort(port.ID);
             if (connection == null) return -1;
 
             for (var i = 0; i < paramInfo.Options.Count; i++)
@@ -299,27 +318,148 @@ namespace UnityEditor.ShaderGraph.GraphUI
             PreviewShaderIsCompiling = false;
         }
 
-        public void OnPreviewShaderCompiling()
+        SGNodeViewModel CreateNodeViewModel(NodeUIDescriptor nodeUIInfo, NodeHandler node)
         {
-            PreviewShaderIsCompiling = true;
+            var portViewModels = new List<SGPortViewModel>();
+
+            // By default we assume all types need preview output, unless they opt out
+            var showPreviewForType = true;
+
+            foreach (var parameter in nodeUIInfo.Parameters)
+            {
+                var portHandler = node.GetPort(parameter.Name);
+
+                // Current topology might not display all parameters.
+                if (portHandler == null)
+                {
+                    continue;
+                }
+
+                if (CreatePortViewModel(portHandler, parameter, out var portViewModel, out showPreviewForType))
+                {
+                    portViewModels.Add(portViewModel);
+                }
+            }
+
+            var shouldShowPreview = nodeUIInfo.HasPreview && showPreviewForType;
+            var functionDictionary = new Dictionary<string, string>(nodeUIInfo.SelectableFunctions);
+
+            return new SGNodeViewModel(
+                nodeUIInfo.Version,
+                nodeUIInfo.Name,
+                nodeUIInfo.Tooltip,
+                nodeUIInfo.Category,
+                nodeUIInfo.Synonyms.ToArray(),
+                nodeUIInfo.DisplayName,
+                shouldShowPreview,
+                functionDictionary,
+                portViewModels.ToArray(),
+                nodeUIInfo.FunctionSelectorLabel);
         }
 
-        protected override void OnDefineNode()
+        /// <summary>
+        /// Returns true if we should create a view model for this port, false if it can be skipped
+        /// </summary>
+        /// <param name="portInfo"> Library port handler for the port</param>
+        /// <param name="parameter"> Library-side data struct containing UI info. of the port </param>
+        /// <param name="portViewModel"> Tool-side data struct that will contain all UI info of port </param>
+        /// <param name="showPreviewForType"> Flag that controls if this port opts into preview output</param>
+        bool CreatePortViewModel(PortHandler portInfo, ParameterUIDescriptor parameter, out SGPortViewModel portViewModel, out bool showPreviewForType)
         {
-            if (!TryGetNodeHandler(out var nodeReader))
+            showPreviewForType = true;
+            portViewModel = new SGPortViewModel();
+
+            if (portInfo == null || !portInfo.IsHorizontal)
+            {
+                return false;
+            }
+
+            var staticField = portInfo.GetTypeField().GetSubField<bool>("IsStatic");
+            var typeField = portInfo.GetTypeField();
+            var typeKey = typeField.GetRegistryKey();
+
+            var isStatic = staticField?.GetData() ?? false;
+
+            var sgRegistry = ((SGGraphModel)GraphModel).RegistryInstance;
+            var isGradientType = typeKey.Name == sgRegistry.ResolveKey<GradientType>().Name;
+            var isGraphType = typeKey.Name == sgRegistry.ResolveKey<GraphType>().Name;
+
+            if (typeField == null)
+            {
+                return false;
+            }
+
+            var componentLength = (ComponentLength)GraphTypeHelpers.GetLength(typeField);
+            var numericType = (NumericType)GraphTypeHelpers.GetPrimitive(typeField);
+
+            var isMatrixType = GraphTypeHelpers.GetHeight(portInfo.GetTypeField()) > GraphType.Height.One;
+            var matrixHeight = (int)GraphTypeHelpers.GetHeight(portInfo.GetTypeField());
+
+            if (!isGraphType || portInfo.IsInput)
+            {
+                showPreviewForType = false;
+            }
+
+            portViewModel = new SGPortViewModel(
+                parameter.Name,
+                parameter.DisplayName,
+                parameter.Tooltip,
+                parameter.UseColor,
+                parameter.IsHdr,
+                isStatic,
+                isGradientType,
+                componentLength,
+                numericType,
+                isMatrixType,
+                matrixHeight,
+                parameter.UseSlider,
+                parameter.InspectorOnly,
+                parameter.Options);
+
+            return true;
+        }
+
+        protected override void DefineNodeOptions()
+        {
+            if (!graphDataOwner.TryGetNodeHandler(out var nodeHandler))
             {
                 Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
                 return;
             }
 
-            NodeUIDescriptor nodeUIDescriptor = new();
-            if(GraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
-                nodeUIDescriptor = shaderGraphStencil.GetUIHints(registryKey, nodeReader);
+            var nodeUIDescriptor = graphDataOwner.registry.GetNodeUIDescriptor(registryKey, nodeHandler);
 
-            bool nodeHasPreview = nodeUIDescriptor.HasPreview && existsInGraphData;
+            // If the node has selectable functions but does not have modes, the functions are part of a node option.
+            if (!nodeUIDescriptor.HasModes && nodeUIDescriptor.SelectableFunctions.Count > 0)
+            {
+                var selectedFunctionField = nodeHandler.GetField<string>(NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME);
+                AddNodeOption(
+                    nodeUIDescriptor.FunctionSelectorLabel,
+                    TypeHandle.String,
+                    c => ChangeNodeFunction(c.ObjectValue.ToString()),
+                    initializationCallback: c => c.ObjectValue = selectedFunctionField.GetData(),
+                    attributes: new Attribute[] { new EnumAttribute(nodeUIDescriptor.SelectableFunctions.Keys.ToArray()) });
+            }
+        }
+
+        protected override void OnDefineNode()
+        {
+            if (!graphDataOwner.TryGetNodeHandler(out var nodeHandler))
+            {
+                Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
+                return;
+            }
+
+            var nodeUIDescriptor = graphDataOwner.registry.GetNodeUIDescriptor(registryKey, nodeHandler);
+
+            if (nodeUIDescriptor.HasModes && m_Modes.Count == 0 && nodeUIDescriptor.SelectableFunctions.Count > 0)
+                m_Modes = nodeUIDescriptor.SelectableFunctions.Select(s => s.Key).ToList();
+
+            var nodeHasPreview = nodeUIDescriptor.HasPreview && graphDataOwner.existsInGraphData;
+            m_NodeViewModel = CreateNodeViewModel(nodeUIDescriptor, nodeHandler);
 
             // TODO: Convert this to a NodePortsPart maybe?
-            foreach (var portReader in nodeReader.GetPorts().Where(e => !e.LocalID.Contains("out_")))
+            foreach (var portReader in nodeHandler.GetPorts().Where(e => !e.LocalID.Contains("out_")))
             {
                 if (!portReader.IsHorizontal)
                     continue;
@@ -333,7 +473,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
                 // var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
                 var type = ShaderGraphExampleTypes.GetGraphType(portReader);
-                var nodeId = nodeReader.ID;
+                var nodeId = nodeHandler.ID;
                 void initCallback(Constant e)
                 {
                     var constant = e as BaseShaderGraphConstant;
@@ -355,26 +495,48 @@ namespace UnityEditor.ShaderGraph.GraphUI
                     constant.Initialize(shaderGraphModel, nodeId.LocalPath, portReader.LocalID);
                 }
 
+                var portDisplayName = nodeUIDescriptor.GetParameterInfo(portReader.LocalID).DisplayName ?? portReader.LocalID;
                 if (isInput)
                 {
-                    var newPortModel = this.AddDataInputPort(portReader.LocalID, type, orientation: orientation, initializationCallback: initCallback);
+                    var newPortModel = this.AddDataInputPort(portDisplayName, type, portReader.LocalID, orientation, initializationCallback: initCallback);
                     // If we were deserialized, the InitCallback doesn't get triggered.
                     if (newPortModel != null)
-                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeReader.ID.LocalPath, portReader.LocalID);
+                        ((BaseShaderGraphConstant)newPortModel.EmbeddedValue).Initialize(((SGGraphModel)GraphModel), nodeHandler.ID.LocalPath, portReader.LocalID);
                 }
                 else
-                    this.AddDataOutputPort(portReader.LocalID, type, orientation: orientation);
-
+                    this.AddDataOutputPort(portDisplayName, type, portReader.LocalID, orientation);
             }
 
             HasPreview = nodeHasPreview;
         }
 
+        /// <inheritdoc />
+        public override void OnDuplicateNode(AbstractNodeModel sourceNode)
+        {
+            if (sourceNode is SGNodeModel sourceGraphDataNode)
+            {
+                graphDataName = Guid.ToString();
+
+                var sourceNodeHandler = graphModel.GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
+
+                if (sourceNodeHandler == null) // If no node handler found, it is a new node for this graph
+                {
+                    graphModel.GraphHandler.AddNode(sourceGraphDataNode.registryKey, graphDataName);
+                }
+                else
+                {
+                    graphModel.GraphHandler.DuplicateNode(sourceNodeHandler, false, graphDataName);
+                }
+            }
+
+            base.OnDuplicateNode(sourceNode);
+        }
+
         protected override PortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
             PortType portType,
-            TypeHandle dataType, string portId, PortModelOptions options)
+            TypeHandle dataType, string portId, PortModelOptions options, Attribute[] attributes)
         {
-            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options);
+            return new SGPortModel(this, direction, orientation, portName ?? "", portType, dataType, portId, options, attributes);
         }
 
         public void HandlePreviewTextureUpdated(Texture newPreviewTexture)
@@ -392,5 +554,16 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public int CurrentVersion { get; private set; }
 
         public string ListenerID => m_GraphDataName;
+
+        /// <inheritdoc />
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+
+            if (graphDataOwner.TryGetNodeHandler(out var reader))
+            {
+                m_RegistryKey = reader.GetRegistryKey();
+            }
+        }
     }
 }

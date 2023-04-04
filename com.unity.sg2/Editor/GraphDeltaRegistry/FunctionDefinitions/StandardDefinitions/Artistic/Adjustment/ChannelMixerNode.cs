@@ -33,13 +33,16 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Adjusts the input RGB value with weighted values.",
             category: "Artistic/Adjustment",
             synonyms: new string[] { },
+            description: "pkg://Documentation~/previews/ChannelMixer.md",
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "Input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "Output value"
                 ),
                 // UI for Red/Green/Blue vectors are intentionally left out because a custom editor is used.

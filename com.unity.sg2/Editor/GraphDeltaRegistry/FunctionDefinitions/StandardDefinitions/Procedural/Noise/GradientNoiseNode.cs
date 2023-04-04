@@ -126,7 +126,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Procedural/Noise",
             displayName: "Gradient Noise",
             synonyms: new string[1] { "perlin noise" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/GradientNoise.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Deterministic", "Deterministic" },
                 { "LegacyMod", "Legacy Mod" }
@@ -144,6 +145,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a smooth, non-tiling noise pattern using a gradient lattice"
                 )
             }

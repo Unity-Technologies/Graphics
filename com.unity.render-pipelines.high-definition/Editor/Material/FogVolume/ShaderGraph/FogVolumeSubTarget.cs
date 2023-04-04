@@ -1,14 +1,11 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.Fullscreen.ShaderGraph;
-
+using UnityEngine;
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
 using static UnityEngine.Rendering.HighDefinition.FogVolumeAPI;
 
@@ -124,14 +121,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection GetRenderState(LocalVolumetricFogBlendingMode mode)
         {
-            FogVolumeAPI.ComputeBlendParameters(mode, out var srcColorBlend, out var srcAlphaBlend, out var dstColorBlend, out var dstAlphaBlend, out var colorBlendOp, out var alphaBlendOp);
-
             return new RenderStateCollection{
                 { RenderState.Cull(Cull.Off) },
                 { RenderState.ZTest("Off") },
                 { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.Blend(BlendModeToBlend(srcColorBlend), BlendModeToBlend(dstColorBlend), BlendModeToBlend(srcAlphaBlend), BlendModeToBlend(dstAlphaBlend)) },
-                { RenderState.BlendOp(BlendOpToBlendOp(colorBlendOp), BlendOpToBlendOp(alphaBlendOp)) }
+                { RenderState.Blend(k_SrcColorBlend, k_DstColorBlend, k_SrcAlphaBlend, k_DstAlphaBlend) },
+                { RenderState.BlendOp(k_ColorBlendOp, k_AlphaBlendOp) }
             };
         }
 
@@ -160,10 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Unfortunately we need to generate one pass per blend mode because we can't override the render state for one draw call :(
             var blendModePasses = new PassCollection();
 
-            foreach (var mode in Enum.GetValues(typeof(LocalVolumetricFogBlendingMode)).Cast<LocalVolumetricFogBlendingMode>())
-                blendModePasses.Add(GetPassDescriptorForBlendMode(mode));
-
-            PassDescriptor GetPassDescriptorForBlendMode(LocalVolumetricFogBlendingMode mode) => new PassDescriptor
+            blendModePasses.Add(new PassDescriptor
             {
                 // Definition
                 displayName = HDShaderPassNames.s_FogVolumeVoxelizeStr,
@@ -172,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port mask
-                validVertexBlocks = new BlockFieldDescriptor[0],
+                validVertexBlocks = Array.Empty<BlockFieldDescriptor>(),
                 validPixelBlocks = FogVolumeBlocks.FragmentDefault,
 
                 structs = HDShaderPasses.GenerateStructs(new StructCollection
@@ -180,11 +172,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { GetAttributes() },
                     { Varyings },
                 }, TargetsVFX(), false),
-                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false),
-                defines = HDShaderPasses.GenerateDefines(GetBlendModeDefine(mode), TargetsVFX(), false),
-                renderStates = GetRenderState(mode),
+                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, true),
+                defines = HDShaderPasses.GenerateDefines(GetBlendModeDefine(fogVolumeData.blendMode), TargetsVFX(), false),
+                renderStates = GetRenderState(fogVolumeData.blendMode),
                 includes = FogVolumeIncludes.Voxelize,
-            };
+            });
 
             return blendModePasses;
         }
@@ -245,11 +237,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return pass;
         }
 
-        protected override void CollectPassKeywords(ref PassDescriptor pass)
-        {
-            base.CollectPassKeywords(ref pass);
-        }
-
         public override void GetFields(ref TargetFieldContext context)
         {
             context.AddField(Fields.GraphVertex);
@@ -262,44 +249,39 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            // Hide this for now as we already have the option in the local volumetric fog volume.
-            // We'll enable it for the VFX graph integration
-#if FOG_VOLUME_VFX
-            context.AddProperty("Blend Mode", new UnityEngine.UIElements.EnumField(fogVolumeData.blendMode) { value = fogVolumeData.blendMode }, (evt) =>
-            {
-                if (Equals(fogVolumeData.blendMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Blend Mode");
-                fogVolumeData.blendMode = (LocalVolumetricFogBlendingMode)evt.newValue;
-                onChange();
-            });
-#endif
+            blockList.AddPropertyBlock(new FogVolumePropertyBlock(fogVolumeData));
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
 
-#if FOG_VOLUME_VFX
-            FogVolumeAPI.ComputeBlendParameters(fogVolumeData.blendMode, out var srcColorBlend, out var srcAlphaBlend, out var dstColorBlend, out var dstAlphaBlend, out var colorBlendOp, out var alphaBlendOp);
+            ComputeBlendParameters(fogVolumeData.blendMode, out var srcColorBlend, out var srcAlphaBlend, out var dstColorBlend, out var dstAlphaBlend, out var colorBlendOp, out var alphaBlendOp);
 
-            collector.AddEnumProperty(k_BlendModeProperty, fogVolumeData.blendMode);
+            collector.AddEnumProperty(k_BlendModeProperty, fogVolumeData.blendMode, HLSLDeclaration.UnityPerMaterial);
             collector.AddEnumProperty(k_DstColorBlendProperty, dstColorBlend);
             collector.AddEnumProperty(k_SrcColorBlendProperty, srcColorBlend);
             collector.AddEnumProperty(k_DstAlphaBlendProperty, dstAlphaBlend);
             collector.AddEnumProperty(k_SrcAlphaBlendProperty, srcAlphaBlend);
             collector.AddEnumProperty(k_ColorBlendOpProperty, colorBlendOp);
             collector.AddEnumProperty(k_AlphaBlendOpProperty, alphaBlendOp);
-#endif
+
+            collector.AddShaderProperty(new ColorShaderProperty
+            {
+                hidden = true,
+                value = Color.white,
+                overrideReferenceName = k_SingleScatteringAlbedoProperty,
+                generatePropertyBlock = true,
+            });
+            collector.AddFloatProperty(k_FogDistanceProperty, 10, HLSLDeclaration.UnityPerMaterial);
         }
 
         #region BlockMasks
         static class FogVolumeBlocks
         {
-            public static BlockFieldDescriptor[] FragmentDefault = new BlockFieldDescriptor[]
+            public static BlockFieldDescriptor[] FragmentDefault =
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Alpha,

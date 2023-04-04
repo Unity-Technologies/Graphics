@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -34,7 +35,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Applies a spherical warping effect to the input UVs, similar to a fisheye camera lens.",
             category: "UV",
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Spherize.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "UV",
@@ -55,6 +57,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "spherically warped UV coordinates"
                 )
             }

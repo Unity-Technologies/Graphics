@@ -39,7 +39,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/HDRP",
             synonyms: new string[2] { "screen", "buffer" },
             hasPreview: false,
-            parameters: new ParameterUIDescriptor[3] {
+            description: "pkg://Documentation~/previews/HDSceneColor.md",
+            parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
                     tooltip: "The screen coordinates to use for the sample",
@@ -50,7 +51,12 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "The mip level to sample"
                 ),
                 new ParameterUIDescriptor(
+                    name: "Exposure",
+                    tooltip: "applies exposure to the color data"
+                ),
+                new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the sample of the scene color buffer"
                 )
             }

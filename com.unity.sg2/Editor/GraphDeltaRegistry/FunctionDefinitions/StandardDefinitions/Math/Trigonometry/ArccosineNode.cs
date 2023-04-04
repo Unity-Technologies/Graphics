@@ -43,6 +43,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the arccosine of each component of the input.",
             category: "Math/Trigonometry",
             synonyms: new string[1] { "acos" },
+            description: "pkg://Documentation~/previews/Arccosine.md",
             selectableFunctions: new()
             {
                 { "Default", "Default" },
@@ -52,10 +53,12 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the arccosine of each component of the input"
                 )
             }

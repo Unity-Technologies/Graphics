@@ -13,5 +13,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_BlendMode;
             set => m_BlendMode = value;
         }
+
+        [SerializeField]
+        Color m_SingleScatteringAlbedo = Color.white;
+        public Color singleScatteringAlbedo
+        {
+            get => m_SingleScatteringAlbedo;
+            set => m_SingleScatteringAlbedo = value;
+        }
+
+        [SerializeField]
+        float m_FogDistance = 10;
+        public float fogDistance
+        {
+            get => m_FogDistance;
+            set => m_FogDistance = value;
+        }
+
     }
 }

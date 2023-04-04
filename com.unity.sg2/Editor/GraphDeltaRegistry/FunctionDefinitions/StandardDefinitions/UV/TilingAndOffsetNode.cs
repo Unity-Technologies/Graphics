@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Tiles and offsets the input UVs.",
             category: "UV",
             synonyms: new string[2] { "pan", "scale" },
+            description: "pkg://Documentation~/previews/TilingAndOffset.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "UV",
@@ -43,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "output UV value"
                 )
             }

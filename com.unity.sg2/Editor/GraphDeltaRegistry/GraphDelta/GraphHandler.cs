@@ -255,6 +255,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                                 foreach(var o in cpio.outputs)
                                 {
                                     AddEntry(context, o, false);
+                                    context.GetPort(o.name).SetMetadata("_IgnoreInterpretation", true);
                                 }
                             }
                             context.AddField("_CustomizationPointName", cpName);

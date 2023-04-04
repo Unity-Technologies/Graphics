@@ -196,7 +196,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
             if (srpFilter != null)
                 allowed = false;
 
-            return allowed;
+            return allowed && nodeType != typeof(MainLightDirectionNode);
         }
     }
 

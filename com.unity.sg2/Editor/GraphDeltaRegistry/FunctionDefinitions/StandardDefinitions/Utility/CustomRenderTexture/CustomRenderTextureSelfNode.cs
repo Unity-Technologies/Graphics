@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -29,7 +30,8 @@ SelfTexture3D = SelfTexture3DRef;
             Name,
             tooltip: "Return a custom render texture.",
             category: "Utility/Custom Render Texture",
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/CustomRenderTextureSelf.md",
             displayName: "Custom Render Texture Self",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[] {

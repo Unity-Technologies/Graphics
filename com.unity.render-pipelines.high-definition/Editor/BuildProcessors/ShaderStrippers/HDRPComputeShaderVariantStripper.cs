@@ -66,6 +66,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 (!hdAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
+            // HDR Output
+            if (!HDROutputUtils.IsShaderVariantValid(inputData.shaderKeywordSet, PlayerSettings.useHDRDisplay))
+                return true;
+
             return false;
         }
 

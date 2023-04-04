@@ -4,19 +4,6 @@ using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
-    /// <summary>
-    /// This is a mock ShaderGraphModel, intended to be used in unit testing.
-    /// </summary>
-    internal class SGGraphModelMock : SGGraphModel
-    {
-        internal new ShaderGraphRegistry RegistryInstance;
-
-        internal SGGraphModelMock(ShaderGraphRegistry registry)
-        {
-            RegistryInstance = registry;
-        }
-    }
-
     [TestFixture]
     class ShaderGraphSearcherDatabaseProviderTest
     {

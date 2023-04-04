@@ -28,6 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a sine wave with noise added to the amplitude for randomness.",
             category: "Math/Wave",
             synonyms: new string[3] { "wave", "noise", "sine" },
+            description: "pkg://Documentation~/previews/NoiseSineWave.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "In",
@@ -43,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a sine wave with noise added to the amplitude for randomness"
                 )
             }

@@ -20,11 +20,17 @@ namespace UnityEditor.ShaderGraph.Defs
     Scale.x = length(temp1);
     Scale.y = length(temp2);
     Scale.z = length(temp3);
-    Position = SHADERGRAPH_OBJECT_POSITION;",
+    Position = SHADERGRAPH_OBJECT_POSITION;
+    WorldBoundsMin = SHADERGRAPH_RENDERER_BOUNDS_MIN;
+    WorldBoundsMax = SHADERGRAPH_RENDERER_BOUNDS_MAX;
+    BoundsSize = (SHADERGRAPH_RENDERER_BOUNDS_MAX - SHADERGRAPH_RENDERER_BOUNDS_MIN);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Position", TYPE.Vec3, GraphType.Usage.Out),
                 new ParameterDescriptor("Scale", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("WorldBoundsMin", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("WorldBoundsMax", TYPE.Vec3, GraphType.Usage.Out),
+                new ParameterDescriptor("BoundsSize", TYPE.Vec3, GraphType.Usage.Out),
                 new ParameterDescriptor("temp1", TYPE.Vec3, GraphType.Usage.Local),
                 new ParameterDescriptor("temp2", TYPE.Vec3, GraphType.Usage.Local),
                 new ParameterDescriptor("temp3", TYPE.Vec3, GraphType.Usage.Local)
@@ -38,7 +44,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Scene",
             hasPreview: false,
             synonyms: new string[2] { "position", "scale" },
-            parameters: new ParameterUIDescriptor[2] {
+            description: "pkg://Documentation~/previews/Object.md",
+            parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "Position",
                     tooltip: "The object position in world space."
@@ -46,6 +53,21 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Scale",
                     tooltip: "The object scale in world space."
+                ),
+                new ParameterUIDescriptor(
+                    name: "WorldBoundsMin",
+                    displayName: "World Bounds Min",
+                    tooltip: "Minimum value of the renderer bounds in world space"
+                ),
+                new ParameterUIDescriptor(
+                    name: "WorldBoundsMax",
+                    displayName: "World Bounds Max",
+                    tooltip: "Maximum value of the renderer bounds in world space"
+                ),
+                new ParameterUIDescriptor(
+                    name: "BoundsSize",
+                    displayName: "Bounds Size",
+                    tooltip: "Size of the renderer bounds"
                 )
             }
         );

@@ -50,14 +50,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
             switch (owner)
             {
-                case SGPortModel graphDataPort:
+                case SGPortModel { NodeModel: SGNodeModel sgNodeModel } graphDataPort:
                 {
-                    var sgModel = (SGGraphModel)graphDataPort.GraphModel;
-                    if (!sgModel.GetNodeViewModel(graphDataPort.owner.registryKey, out var nodeViewModel))
-                    {
-                        break;
-                    }
-
+                    var nodeViewModel = sgNodeModel.GetViewModel();
                     var portViewModel = nodeViewModel.GetParameterInfo(graphDataPort.graphDataName);
                     if (portViewModel.UseColor)
                     {

@@ -8,21 +8,29 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
+        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_REC709 HDR_COLORSPACE_REC2020
+        #pragma multi_compile_local_fragment _ HDR_ENCODING_LINEAR HDR_ENCODING_PQ
+        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"
+#if defined(HDR_COLORSPACE_CONVERSION) || defined(HDR_ENCODING_LINEAR) || defined(HDR_ENCODING_PQ)
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
+#endif
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
         TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_BlueNoise_Texture);
+        TEXTURE2D_X(_OverlayUITexture);
 
         float4 _SourceSize;
         float2 _Grain_Params;
         float4 _Grain_TilingParams;
         float4 _Dithering_Params;
+        float4 _HDROutputLuminanceParams;
 
         #if SHADER_TARGET >= 45
             #define FSR_INPUT_TEXTURE _BlitTexture
@@ -38,6 +46,10 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
         #define DitheringScale          _Dithering_Params.xy
         #define DitheringOffset         _Dithering_Params.zw
+
+        #define MinNits                 _HDROutputLuminanceParams.x
+        #define MaxNits                 _HDROutputLuminanceParams.y
+        #define PaperWhite              _HDROutputLuminanceParams.z
 
         half4 FragFinalPost(Varyings input) : SV_Target
         {
@@ -81,6 +93,20 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             #if _DITHERING
             {
                 color = ApplyDithering(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
+            }
+            #endif
+
+            #ifdef HDR_COLORSPACE_CONVERSION
+            {
+                color.rgb = RotateRec709ToOutputSpace(color.rgb) * PaperWhite;
+            }
+            #endif
+
+            #ifdef HDR_ENCODING
+            {
+                float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
+                color.rgb = SceneUIComposition(uiSample, color.rgb, PaperWhite, MaxNits);
+                color.rgb = OETF(color.rgb);
             }
             #endif
 

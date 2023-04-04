@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         List<GraphElement> m_GraphElements = new();
 
         // Needed by GTF
-        public TestGraphView(
+        protected TestGraphView(
             GraphViewEditorWindow window,
             BaseGraphTool graphTool,
             string graphViewName,
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 
         }
 
-        public TestGraphView(
+        protected TestGraphView(
             GraphViewEditorWindow window,
             BaseGraphTool graphTool,
             string graphViewName,
@@ -28,6 +28,19 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             : base(window, graphTool, graphViewName, previewUpdateDispatcher, displayMode)
         {
 
+        }
+
+        public new static TestGraphView Create(
+            GraphViewEditorWindow window,
+            BaseGraphTool graphTool,
+            string graphViewName,
+            PreviewUpdateDispatcher previewUpdateDispatcher,
+            GraphViewDisplayMode displayMode = GraphViewDisplayMode.Interactive)
+        {
+            var graphView = new TestGraphView(window, graphTool, graphViewName, previewUpdateDispatcher, displayMode);
+            graphView.Initialize();
+
+            return graphView;
         }
 
         public GraphElement GetGraphElement(GraphElementModel elementModel)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -89,7 +90,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Geometry",
             synonyms: new string[2] { "eye vector", "camera vector" },
             displayName: "View Vector",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/ViewVector.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Object", "Object" },
                 { "View", "View" },
@@ -103,6 +105,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a vector from the current point to the camera position (not normalized)"
                 )
             }

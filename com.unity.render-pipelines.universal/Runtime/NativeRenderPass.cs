@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Go through all the passes and mark the final one as last pass
 
-            using (new ProfilingScope(null, Profiling.setupFrameData))
+            using (new ProfilingScope(Profiling.setupFrameData))
             {
                 int lastPassIndex = m_ActiveRenderPassQueue.Count - 1;
 
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void SetNativeRenderPassMRTAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, bool needCustomCameraColorClear, ClearFlag cameraClearFlag)
         {
-            using (new ProfilingScope(null, Profiling.setMRTAttachmentsList))
+            using (new ProfilingScope(Profiling.setMRTAttachmentsList))
             {
                 int currentPassIndex = renderPass.renderPassQueueIndex;
                 Hash128 currentPassHash = m_PassIndexToPassHash[currentPassIndex];
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void SetNativeRenderPassAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, RTHandle passColorAttachment, RTHandle passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor)
         {
-            using (new ProfilingScope(null, Profiling.setAttachmentList))
+            using (new ProfilingScope(Profiling.setAttachmentList))
             {
                 int currentPassIndex = renderPass.renderPassQueueIndex;
                 Hash128 currentPassHash = m_PassIndexToPassHash[currentPassIndex];
@@ -383,7 +383,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void ExecuteNativeRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref CameraData cameraData, ref RenderingData renderingData)
         {
-            using (new ProfilingScope(null, Profiling.execute))
+            using (new ProfilingScope(Profiling.execute))
             {
                 int currentPassIndex = renderPass.renderPassQueueIndex;
                 Hash128 currentPassHash = m_PassIndexToPassHash[currentPassIndex];

@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Express the operations the rendergraph pass will do on a resource.
         /// </summary>
         [Flags]
-        enum AccessFlags
+        public enum AccessFlags
         {
             ///<summary>The pass does not access the resource at all. Calling Use* functions with none has no effect.</summary>
             None = 0,
@@ -50,19 +50,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Declare that this pass uses the input texture.
         /// </summary>
         /// <param name="input">The texture resource to use during the pass.</param>
-        /// <param name="flags">A combination of flags indicating how the resource will be used during the pass.</param>
+        /// <param name="flags">A combination of flags indicating how the resource will be used during the pass. Default value is set to AccessFlag.Read </param>
         /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
-        public TextureHandle UseTexture(in TextureHandle input, AccessFlags flags);
+        public TextureHandle UseTexture(in TextureHandle input, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
         /// Declare that this pass uses the input compute buffer.
         /// </summary>
         /// <param name="input">The compute buffer resource to use during the pass.</param>
-        /// <param name="flags">A combination of flags indicating how the resource will be used during the pass.</param>
+        /// <param name="flags">A combination of flags indicating how the resource will be used during the pass. Default value is set to AccessFlag.Read </param>
         /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
-        public BufferHandle UseBuffer(in BufferHandle input, AccessFlags flags);
+        public BufferHandle UseBuffer(in BufferHandle input, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
         /// Create a new Render Graph Texture resource.
@@ -81,19 +81,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle CreateTransientTexture(in TextureHandle texture);
 
         /// <summary>
-        /// Create a new Render Graph Compute Buffer resource.
-        /// This Compute Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
+        /// Create a new Render Graph Graphics Buffer resource.
+        /// This Graphics Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
         /// </summary>
         /// <param name="desc">Compute Buffer descriptor.</param>
-        /// <returns>A new transient ComputeBufferHandle.</returns>
+        /// <returns>A new transient BufferHandle.</returns>
         public BufferHandle CreateTransientBuffer(in BufferDesc desc);
 
         /// <summary>
-        /// Create a new Render Graph Compute Buffer resource using the descriptor from another Compute Buffer.
-        /// This Compute Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
+        /// Create a new Render Graph Graphics Buffer resource using the descriptor from another Graphics Buffer.
+        /// This Graphics Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
         /// </summary>
-        /// <param name="computebuffer">Compute Buffer from which the descriptor should be used.</param>
-        /// <returns>A new transient ComputeBufferHandle.</returns>
+        /// <param name="computebuffer">Graphics Buffer from which the descriptor should be used.</param>
+        /// <returns>A new transient BufferHandle.</returns>
         public BufferHandle CreateTransientBuffer(in BufferHandle computebuffer);
 
         /// <summary>
@@ -144,6 +144,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
+    /// A builder for a low-level render pass.
+    /// <see cref="RenderGraph.AddLowLevelPass"/>
+    /// </summary>
+    public interface ILowLevelRenderGraphBuilder : IBaseRenderGraphBuilder
+    {
+
+        /// <summary>
+        /// Specify the render function to use for this pass.
+        /// A call to this is mandatory for the pass to be valid.
+        /// </summary>
+        /// <typeparam name="PassData">The Type of the class that provides data to the Render Pass.</typeparam>
+        /// <param name="renderFunc">Render function for the pass.</param>
+        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, LowLevelGraphContext> renderFunc)
+            where PassData : class, new();
+    }
+
+    /// <summary>
     /// A builder for a raster render pass
     /// <see cref="RenderGraph.AddRasterRenderPass"/>
     /// </summary>
@@ -167,10 +184,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture.</param>
-        /// <param name="flags">How this pass will acess the texture.</param>
+        /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.Write </param>
         /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
-        TextureHandle UseTextureFragment(TextureHandle tex, int index, AccessFlags flags);
+        TextureHandle UseTextureFragment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Write);
 
         /// <summary>
         /// Use the texture as a depth buffer for the Z-Buffer hardware.  Note you can only test-against and write-to a single depth texture in a pass.
@@ -183,10 +200,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Indicate a texture will be used as an input for the depth testing unit.
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="flags">How this pass will acess the texture.</param>
+        /// <param name="flags">How this pass will acess the texture. Default value is set to AccessFlag.Write </param>
         /// <returns>A explicitly versioned handle representing the latest version of the pased in texture.
         /// Note that except for special cases where you want to refer to a specific version return value is generally discarded.</returns>
-        TextureHandle UseTextureFragmentDepth(TextureHandle tex, AccessFlags flags);
+        TextureHandle UseTextureFragmentDepth(TextureHandle tex, AccessFlags flags = AccessFlags.Write);
 
         /// <summary>
         /// Specify the render function to use for this pass.

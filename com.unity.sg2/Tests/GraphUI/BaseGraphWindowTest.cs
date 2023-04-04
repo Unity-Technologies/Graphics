@@ -10,26 +10,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     class BaseGraphWindowTest
     {
-        protected static readonly Rect k_WindowRect = new Rect(Vector2.zero, new Vector2( /*SelectionDragger.panAreaWidth*/ 100 * 8, /*SelectionDragger.panAreaWidth*/ 100 * 6));
-        protected TestEditorWindow m_MainWindow;
-        protected TestGraphView m_GraphView;
-        protected List<TestEditorWindow> m_ExtraWindows = new();
-        protected List<string> m_ExtraGraphAssets = new();
-        protected SGGraphModel GraphModel => m_GraphView.GraphModel as SGGraphModel;
-
-        // Used to send events to the highest shader graph editor window
-        protected TestEventHelpers m_TestEventHelper;
-
-        // Used to simulate interactions within the shader graph editor window
-        protected TestInteractionHelpers m_TestInteractionHelper;
-
-        protected virtual string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
-        protected virtual bool hideOverlayWindows => true;
-
-        // Need to match the values specified by the BlackboardOverlay and ModelInspectorOverlay in GTFO
-        protected const string k_BlackboardOverlayId = SGBlackboardOverlay.k_OverlayID;
-        protected const string k_InspectorOverlayId = SGInspectorOverlay.k_OverlayID;
-
         internal enum GraphInstantiation
         {
             None,
@@ -39,6 +19,21 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Disk,
             DiskSubGraph
         }
+
+        private List<TestEditorWindow> _extraWindows = new();
+        private List<string> _extraGraphAssets = new();
+        protected const string k_BlackboardOverlayId = BlackboardOverlay_Internal.idValue;
+        protected const string k_InspectorOverlayId = ModelInspectorOverlay_Internal.idValue;
+        protected TestEditorWindow m_MainWindow;
+        protected TestGraphView m_GraphView;
+        protected TestEventHelpers m_TestEventHelper; // Used to send events to the highest shader graph editor window
+        protected TestInteractionHelpers m_TestInteractionHelper; // Used to simulate interactions within the shader graph editor window
+
+        protected virtual string testAssetPath => $"Assets\\{ShaderGraphStencil.DefaultGraphAssetName}.{ShaderGraphStencil.GraphExtension}";
+
+        protected virtual bool hideOverlayWindows => true;
+
+        protected SGGraphModel GraphModel => m_GraphView.GraphModel as SGGraphModel;
 
         protected virtual GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
 
@@ -112,9 +107,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             AssetDatabase.DeleteAsset(testAssetPath);
 
             // Close any extra windows and delete extra assets
-            foreach (var extraWindow in m_ExtraWindows)
+            foreach (var extraWindow in _extraWindows)
                 extraWindow.Close();
-            foreach (var extraGraphAsset in m_ExtraGraphAssets)
+            foreach (var extraGraphAsset in _extraGraphAssets)
                 AssetDatabase.DeleteAsset(extraGraphAsset);
 
         }

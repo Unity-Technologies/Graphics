@@ -131,10 +131,6 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if !VFX_USE_SPAWNER_FROM_GPU
         int sourceIndex = 0;
 
-        #if (!VFX_USE_DYNAMIC_SOURCE_COUNT && !VFX_USE_INSTANCING)
-            uint nbEvents = VFX_STATIC_SOURCE_COUNT;
-        #endif
-
         startEventIndex = 0u;
         [branch]
         if (instanceActiveIndex > 0u)

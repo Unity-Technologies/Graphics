@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -26,7 +27,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Iris UV Location",
             tooltip: "Converts the object position of the cornea/iris to UVs.",
             category: "Utility/HDRP/Eye",
-            synonyms: new string[0],
+            description: "pkg://Documentation~/previews/IrisUVLocation.md",
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(

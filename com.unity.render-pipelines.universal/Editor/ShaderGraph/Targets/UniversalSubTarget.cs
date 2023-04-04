@@ -25,13 +25,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #if HAS_VFX_GRAPH
         // VFX Properties
         VFXContext m_ContextVFX = null;
-        VFXContextCompiledData m_ContextDataVFX;
+        VFXTaskCompiledData m_TaskDataVFX;
         protected bool TargetsVFX() => m_ContextVFX != null;
 
-        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        public void ConfigureContextData(VFXContext context, VFXTaskCompiledData data)
         {
             m_ContextVFX = context;
-            m_ContextDataVFX = data;
+            m_TaskDataVFX = data;
         }
 
 #endif
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
 #if HAS_VFX_GRAPH
             if (TargetsVFX())
-                return VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
+                return VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_TaskDataVFX);
 #endif
             return subShaderDescriptor;
         }

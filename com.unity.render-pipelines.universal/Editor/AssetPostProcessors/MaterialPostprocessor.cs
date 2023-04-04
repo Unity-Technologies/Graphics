@@ -13,9 +13,11 @@ namespace UnityEditor.Rendering.Universal
 {
     class MaterialModificationProcessor : AssetModificationProcessor
     {
+        const string k_MaterialExtension = ".mat";
+
         static void OnWillCreateAsset(string asset)
         {
-            if (!asset.ToLowerInvariant().EndsWith(".mat"))
+            if (!asset.HasExtension(k_MaterialExtension))
             {
                 return;
             }

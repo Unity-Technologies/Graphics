@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -47,7 +48,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Calculates the sum of both partial derivatives of the input.",
             category: "Math/Derivative",
             synonyms: new string[2] { "derivative", "slope" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/DDXY.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Standard", "Standard" },
                 { "Coarse", "Coarse" },
@@ -57,10 +59,12 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the sum of both partial derivatives of the input"
                 )
             }

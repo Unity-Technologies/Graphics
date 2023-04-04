@@ -24,13 +24,16 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Utility/Logic",
             synonyms: new string[1] { "!" },
             hasPreview: false,
+            description: "pkg://Documentation~/previews/Not.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the opposite of the input"
                 )
             }

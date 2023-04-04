@@ -30,9 +30,11 @@ namespace UnityEditor.ShaderGraph.Defs
             hasPreview: false,
             displayName: "Eye Index",
             synonyms: new string[2] { "stereo", "3d" },
+            description: "pkg://Documentation~/previews/EyeIndex.md",
             parameters: new ParameterUIDescriptor[1] {
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "The eye index for the camera of a stereo draw."
                 )
             }

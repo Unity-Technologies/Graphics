@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Compares input A to input B to find the greater value.",
             category: "Math/Range",
             synonyms: new string[4] { "biggest", "greatest", "largest", "most" },
+            description: "pkg://Documentation~/previews/Maximum.md",
             parameters: new ParameterUIDescriptor[3] {
                 new ParameterUIDescriptor(
                     name: "A",
@@ -35,6 +36,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the greater of the two input values"
                 )
             }

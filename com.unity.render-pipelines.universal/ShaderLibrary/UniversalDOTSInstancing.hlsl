@@ -42,6 +42,7 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
 
 #define UNITY_SETUP_DOTS_SH_COEFFS  SetupDOTSSHCoeffs(UNITY_DOTS_INSTANCED_METADATA_NAME(SH, unity_SHCoefficients))
+#define UNITY_SETUP_DOTS_RENDER_BOUNDS  SetupDOTSRendererBounds(UNITY_DOTS_MATRIX_M)
 
 // Not supported by BatchRendererGroup. Just define them as constants.
 // ------------------------------------------------------------------------------
@@ -67,6 +68,7 @@ int unity_SubmeshIndex;
 #else
 
 #define unity_SelectionID _SelectionID
+#define UNITY_SETUP_DOTS_RENDER_BOUNDS
 
 #endif
 

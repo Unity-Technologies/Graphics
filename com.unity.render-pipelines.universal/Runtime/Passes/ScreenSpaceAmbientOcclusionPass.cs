@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void ExecuteSetupPass(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
-            using (RenderGraphBuilder builder = renderGraph.AddRenderPass<SetupPassData>("SSAO_Setup", out var passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<SetupPassData>("SSAO_Setup", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
                 InitSetupPassData(ref passData);
@@ -397,10 +397,15 @@ namespace UnityEngine.Rendering.Universal
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
                 passData.cameraColor = frameResources.GetTexture(UniversalResource.CameraColor);
 
+                // Shader keyword changes are considered as global state modifications
+                builder.AllowGlobalStateModification(true);
+
                 // Set up the builder
-                builder.SetRenderFunc((SetupPassData data, RenderGraphContext rgContext) =>
+                builder.SetRenderFunc((SetupPassData data, RasterGraphContext rgContext) =>
                 {
-                    PostProcessUtils.SetSourceSize(rgContext.cmd, data.cameraColor);
+                    if (data.cameraColor.IsValid())
+                        PostProcessUtils.SetSourceSize(rgContext.cmd, data.cameraColor);
+                    
                     SetupKeywordsAndParameters(ref data, ref data.renderingData);
 
                     // We only want URP shaders to sample SSAO if After Opaque is disabled...
@@ -435,7 +440,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void ExecuteOcclusionPass(RenderGraph renderGraph, FrameResources frameResources, in TextureHandle aoTexture)
         {
-            using (RenderGraphBuilder builder = renderGraph.AddRenderPass<PassData>("SSAO_Occlusion", out PassData passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Occlusion", out PassData passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
                 passData.source = aoTexture;
@@ -443,17 +448,17 @@ namespace UnityEngine.Rendering.Universal
                 passData.shaderPassID = (int)ShaderPasses.AmbientOcclusion;
 
                 // Set up the builder
-                builder.UseColorBuffer(aoTexture, 0);
+                builder.UseTextureFragment(aoTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
 
                 TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
                 TextureHandle cameraNormalsTexture = frameResources.GetTexture(UniversalResource.CameraNormalsTexture);
 
                 if (cameraDepthTexture.IsValid())
-                    builder.ReadTexture(cameraDepthTexture);
+                    builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals)
                     if (cameraNormalsTexture.IsValid())
-                        builder.ReadTexture(cameraNormalsTexture);
+                        builder.UseTexture(cameraNormalsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
@@ -461,11 +466,11 @@ namespace UnityEngine.Rendering.Universal
 
         private void ExecuteBilateralBlurPasses(RenderGraph renderGraph, in TextureHandle aoTexture, in TextureHandle blurTexture, in TextureHandle finalTexture)
         {
-            using (RenderGraphBuilder builder = renderGraph.AddRenderPass<PassData>("SSAO_Bilateral_HorizontalBlur", out var passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Bilateral_HorizontalBlur", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
-                passData.source = builder.ReadTexture(aoTexture);
-                passData.destination = builder.UseColorBuffer(blurTexture, 0);
+                passData.source = builder.UseTexture(aoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destination = builder.UseTextureFragment(blurTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.material = m_Material;
                 passData.shaderPassID = (int) ShaderPasses.BilateralBlurHorizontal;
 
@@ -473,11 +478,11 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
 
-            using (RenderGraphBuilder builder = renderGraph.AddRenderPass<PassData>("SSAO_Bilateral_VerticalBlur", out var passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Bilateral_VerticalBlur", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
-                passData.source = builder.ReadTexture(blurTexture);
-                passData.destination = builder.UseColorBuffer(aoTexture, 0);
+                passData.source = builder.UseTexture(blurTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destination = builder.UseTextureFragment(aoTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.material = m_Material;
                 passData.shaderPassID = (int) ShaderPasses.BilateralBlurVertical;
 
@@ -485,11 +490,11 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
 
-            using (RenderGraphBuilder builder = renderGraph.AddRenderPass<PassData>("SSAO_Bilateral_FinalBlur", out var passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Bilateral_FinalBlur", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
-                passData.source = builder.ReadTexture(aoTexture);
-                passData.destination = builder.UseColorBuffer(finalTexture, 0);
+                passData.source = builder.UseTexture(aoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destination = builder.UseTextureFragment(finalTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.material = m_Material;
                 passData.afterOpaque = m_CurrentSettings.AfterOpaque;
                 passData.shaderPassID = (int) (passData.afterOpaque ? ShaderPasses.BilateralAfterOpaque : ShaderPasses.BilateralBlurFinal);
@@ -501,11 +506,11 @@ namespace UnityEngine.Rendering.Universal
 
         private void ExecuteGaussianBlurPasses(RenderGraph renderGraph, in TextureHandle aoTexture, in TextureHandle blurTexture, in TextureHandle finalTexture)
         {
-            using (RenderGraphBuilder builder = renderGraph.AddRenderPass<PassData>("SSAO_Gaussian_HorizontalBlur", out var passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Gaussian_HorizontalBlur", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
-                passData.source = builder.ReadTexture(aoTexture);
-                passData.destination = builder.UseColorBuffer(blurTexture, 0);
+                passData.source = builder.UseTexture(aoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destination = builder.UseTextureFragment(blurTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.material = m_Material;
                 passData.shaderPassID = (int) ShaderPasses.GaussianBlurHorizontal;
 
@@ -513,11 +518,11 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
 
-            using (RenderGraphBuilder builder = renderGraph.AddRenderPass<PassData>("SSAO_Gaussian_VerticalBlur", out var passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Gaussian_VerticalBlur", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
-                passData.source = builder.ReadTexture(blurTexture);
-                passData.destination = builder.UseColorBuffer(finalTexture, 0);
+                passData.source = builder.UseTexture(blurTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destination = builder.UseTextureFragment(finalTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.material = m_Material;
                 passData.afterOpaque = m_CurrentSettings.AfterOpaque;
                 passData.shaderPassID = (int) (passData.afterOpaque ? ShaderPasses.GaussianAfterOpaque : ShaderPasses.GaussianBlurVertical);
@@ -529,11 +534,11 @@ namespace UnityEngine.Rendering.Universal
 
         private void ExecuteKawaseBlurPasses(RenderGraph renderGraph, in TextureHandle aoTexture, in TextureHandle finalTexture)
         {
-            using (RenderGraphBuilder builder = renderGraph.AddRenderPass<PassData>("SSAO_Kawase", out var passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Kawase", out var passData, m_ProfilingSampler))
             {
                 // Initialize the pass data
-                passData.source = builder.ReadTexture(aoTexture);
-                passData.destination = builder.UseColorBuffer(finalTexture, 0);
+                passData.source = builder.UseTexture(aoTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                passData.destination = builder.UseTextureFragment(finalTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.material = m_Material;
                 passData.afterOpaque = m_CurrentSettings.AfterOpaque;
                 passData.shaderPassID = (int) (passData.afterOpaque ? ShaderPasses.KawaseAfterOpaque : ShaderPasses.KawaseBlur);
@@ -543,7 +548,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private static void RenderGraphRenderFunc(PassData data, RenderGraphContext context)
+        private static void RenderGraphRenderFunc(PassData data, RasterGraphContext context)
         {
             Blitter.BlitTexture(context.cmd, data.source, Vector2.one, data.material, data.shaderPassID);
         }

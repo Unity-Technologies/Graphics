@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.Defs
 {
     /// <summary>
     /// ShaderGraphContext manages and exposes the Context stored in the
-    /// ShaderGraphRegisrty.
+    /// ShaderGraphRegistry.
     /// </summary>
     public class ShaderGraphContext : IContextDescriptor
     {

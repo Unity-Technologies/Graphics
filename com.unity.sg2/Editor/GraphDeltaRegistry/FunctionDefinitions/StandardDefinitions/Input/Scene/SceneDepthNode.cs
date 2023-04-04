@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -55,7 +56,8 @@ Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
             category: "Input/Scene",
             synonyms: new string[2] { "zbuffer", "zdepth" },
             displayName: "Scene Depth",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SceneDepth.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Linear01", "Linear01" },
                 { "Raw", "Raw" },
@@ -71,6 +73,7 @@ Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "Output value"
                 )
             }

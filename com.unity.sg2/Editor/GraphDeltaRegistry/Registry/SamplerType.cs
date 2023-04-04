@@ -142,14 +142,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var fieldbuilder = new StructField.Builder(container, name, registry.GetShaderType(field, container));
             var attributeBuilder = new ShaderAttribute.Builder(container, SamplerStateAttribute.AttributeName);
 
-            attributeBuilder.Param(SamplerStateAttribute.FilterModeParamName, GetFilter(field).ToString());
-            attributeBuilder.Param(SamplerStateAttribute.WrapModeParamName, GetWrap(field).ToString());
+            attributeBuilder.Parameter(SamplerStateAttribute.FilterModeParamName, GetFilter(field).ToString());
+            attributeBuilder.Parameter(SamplerStateAttribute.WrapModeParamName, GetWrap(field).ToString());
 
             if (GetAniso(field) != Aniso.None)
-                attributeBuilder.Param(SamplerStateAttribute.AnisotropicLevelParamName, ((int)GetAniso(field)).ToString());
+                attributeBuilder.Parameter(SamplerStateAttribute.AnisotropicLevelParamName, ((int)GetAniso(field)).ToString());
 
             if (GetDepthComparison(field))
-                attributeBuilder.Param(SamplerStateAttribute.DepthCompareParamName, GetDepthComparison(field).ToString());
+                attributeBuilder.Parameter(SamplerStateAttribute.DepthCompareParamName, GetDepthComparison(field).ToString());
 
             fieldbuilder.AddAttribute(attributeBuilder.Build());
 

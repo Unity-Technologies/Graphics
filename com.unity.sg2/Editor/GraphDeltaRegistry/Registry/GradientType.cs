@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 displayName: "Sample Gradient",
                 category: "Input/Gradient",
                 tooltip: "Sample a gradient by the provided time.",
+                description: "pkg://Documentation~/previews/SampleGradient.md",
                 synonyms: new string[] {"Gradient"});
 
         public RegistryKey GetRegistryKey() => new() {Name = "SampleGradient", Version = 1};

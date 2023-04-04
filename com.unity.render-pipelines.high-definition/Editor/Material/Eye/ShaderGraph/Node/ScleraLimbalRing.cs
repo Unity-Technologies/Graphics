@@ -5,12 +5,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.ShaderGraph
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "ScleraLimbalRing (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "ScleraLimbalRing")]
     class ScleraLimbalRing : CodeFunctionNode
     {
         public ScleraLimbalRing()
         {
-            name = "Sclera Limbal Ring (Preview)";
+            name = "Sclera Limbal Ring";
         }
 
         public override bool hasPreview

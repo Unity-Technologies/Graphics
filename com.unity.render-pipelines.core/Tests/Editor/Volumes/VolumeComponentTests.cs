@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Tests
 {
     public class VolumeComponentEditorTests
     {
+#pragma warning disable CS0618
         [HideInInspector]
         [VolumeComponentMenuForRenderPipeline("Tests/No Additional", typeof(RenderPipeline))]
         class VolumeComponentNoAdditionalAttributes : VolumeComponent
@@ -42,6 +43,7 @@ namespace UnityEngine.Rendering.Tests
             [AdditionalProperty]
             public FloatParameter parameter4 = new MinFloatParameter(0f, 0f);
         }
+#pragma warning restore CS0618
 
 
         private (VolumeComponent, VolumeComponentEditor) CreateEditorAndComponent(Type volumeComponentType)

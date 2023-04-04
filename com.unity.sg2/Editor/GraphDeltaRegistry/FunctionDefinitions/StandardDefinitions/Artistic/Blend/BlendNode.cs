@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeDescriptor NodeDescriptor => new(
             Version,
             Name,
+            mainFunction: "Overlay",
             functions: new FunctionDescriptor[] {
                 new(
                     "Burn",
@@ -319,6 +320,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "mixes a base and blend color with the selected mode",
             category: "Artistic/Blend",
             synonyms: new string[20] { "burn", "darken", "difference", "dodge", "divide", "exclusion", "hard light", "hard mix", "linear burn", "linear dodge", "linear light", "multiply", "negate", "overlay", "pin light", "screen", "soft light", "subtract", "vivid light", "overwrite" },
+            description: "pkg://Documentation~/previews/Blend.md",
             selectableFunctions: new()
             {
                 { "Burn", "Burn" },
@@ -365,6 +367,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "base and blend values blended using the selected blend mode"
                 )
             }

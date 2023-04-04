@@ -528,12 +528,6 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
 // There is no UnityPerDraw cbuffer with BatchRendererGroup. Those matrices don't exist, so don't try to access them
 #ifndef DOTS_INSTANCING_ON
 
-void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
-{
-    minBounds = unity_RendererBounds_Min.xyz;
-    maxBounds = unity_RendererBounds_Max.xyz;
-}
-
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
@@ -547,33 +541,7 @@ float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
 #define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(GetRawUnityPrevObjectToWorld())
 #define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(GetRawUnityPrevWorldToObject())
 
-#else
-
-// Not yet supported by BRG
-void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
-{
-    minBounds = 0;
-    maxBounds = 0;
-}
-
 #endif
-
-void GetRendererBounds(out float3 minBounds, out float3 maxBounds)
-{
-    GetAbsoluteWorldRendererBounds(minBounds, maxBounds);
-
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    minBounds -= _WorldSpaceCameraPos.xyz;
-    maxBounds -= _WorldSpaceCameraPos.xyz;
-#endif
-}
-
-float3 GetRendererExtents()
-{
-    float3 minBounds, maxBounds;
-    GetRendererBounds(minBounds, maxBounds);
-    return (maxBounds - minBounds) * 0.5;
-}
 
 // This utility function is currently used to support an alpha blending friendly format
 // for virtual texturing + transparency support.
@@ -669,6 +637,8 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
 #define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams()
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
+#define unity_RendererBounds_Min    LoadDOTSInstancedData_RendererBounds_Min()
+#define unity_RendererBounds_Max    LoadDOTSInstancedData_RendererBounds_Max()
 
 // Not supported by BatchRendererGroup or Hybrid Renderer. Just define them as constants.
 // ------------------------------------------------------------------------------
@@ -681,13 +651,38 @@ static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
 int unity_SubmeshIndex;
 #define unity_SelectionID UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex, _SelectionID)
 #define UNITY_SETUP_DOTS_SH_COEFFS  SetupDOTSSHCoeffs(UNITY_DOTS_INSTANCED_METADATA_NAME(SH, unity_SHCoefficients))
+#define UNITY_SETUP_DOTS_RENDER_BOUNDS  SetupDOTSRendererBounds(UNITY_DOTS_MATRIX_M)
 
 #else
 
 #define unity_SelectionID _SelectionID
 #define UNITY_SETUP_DOTS_SH_COEFFS
+#define UNITY_SETUP_DOTS_RENDER_BOUNDS
 
 #endif
+
+void GetAbsoluteWorldRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    minBounds = unity_RendererBounds_Min.xyz;
+    maxBounds = unity_RendererBounds_Max.xyz;
+}
+
+void GetRendererBounds(out float3 minBounds, out float3 maxBounds)
+{
+    GetAbsoluteWorldRendererBounds(minBounds, maxBounds);
+
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    minBounds -= _WorldSpaceCameraPos.xyz;
+    maxBounds -= _WorldSpaceCameraPos.xyz;
+#endif
+}
+
+float3 GetRendererExtents()
+{
+    float3 minBounds, maxBounds;
+    GetRendererBounds(minBounds, maxBounds);
+    return (maxBounds - minBounds) * 0.5;
+}
 
 // Define View/Projection matrix macro
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"

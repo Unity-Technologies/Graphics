@@ -22,16 +22,17 @@ namespace UnityEditor.VFX
             CameraSort = 1 << 6 | Sort,
             FrustumCulling = 1 << 7 | IndirectDraw,
             FillRaytracingAABB = 1 << 8,
+            VolumetricFog = 1 << 9 | IndirectDraw,
         }
 
         public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) { }
         public override string name => "OutputUpdate";
 
-        private VFXAbstractParticleOutput m_Output;
+        protected VFXAbstractParticleOutput m_Output;
         public VFXAbstractParticleOutput output => m_Output;
         public override VFXDataType ownedType => output != null ? output.ownedType : base.ownedType;
 
-        public void SetOutput(VFXAbstractParticleOutput output)
+        public virtual void SetOutput(VFXAbstractParticleOutput output)
         {
             if (m_Output != null)
                 throw new InvalidOperationException("Unexpected SetOutput called twice, supposed to be call only once after construction");
@@ -45,7 +46,7 @@ namespace UnityEditor.VFX
             m_Output = output;
         }
 
-        private Features features = Features.None;
+        protected Features features = Features.None;
 
         private SortCriteria sortCriterion = SortCriteria.DistanceToCamera;
 
@@ -59,7 +60,8 @@ namespace UnityEditor.VFX
             return HasFeature(flags, Features.MotionVector)
                 || HasFeature(flags, Features.LOD)
                 || HasFeature(flags, Features.CameraSort)
-                || HasFeature(flags, Features.FrustumCulling);
+                || HasFeature(flags, Features.FrustumCulling)
+                || HasFeature(flags, Features.VolumetricFog);
         }
 
         public bool HasFeature(Features feature)
@@ -67,12 +69,9 @@ namespace UnityEditor.VFX
             return HasFeature(this.features, feature);
         }
 
-        public bool isPerCamera => IsPerCamera(features);
+        public virtual bool isPerCamera => IsPerCamera(features);
 
-        // Set by compiler
-        public int bufferIndex = -1;
-        public int sortedBufferIndex = -1;
-        public uint bufferCount
+        public virtual uint bufferCount
         {
             get
             {
@@ -328,6 +327,40 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+        }
+
+        public override VFXContextCompiledData PrepareCompiledData()
+        {
+            var compiledData = base.PrepareCompiledData();
+            var outputUpdateTask = compiledData.tasks.Last();
+
+            if (HasFeature(Features.IndirectDraw))
+            {
+                string bufferName = VFXDataParticle.k_IndirectBufferName;
+                outputUpdateTask.bufferMappings.Add(new VFXTask.BufferMapping(bufferName, "outputBuffer") { useBufferCountIndexInName = true });
+                compiledData.AllocateIndirectBuffer(IsPerCamera(features), HasFeature(Features.Sort) ? 8u : 4u, bufferName, bufferCount);
+            }
+
+            if (HasFeature(Features.Sort))
+            {
+                // We don't need to bind the sorting buffer here because the VFX sort is done after in a separate pass
+                // but because this pass doesn't use the task system, we need to declare it in the output update just before the sort.
+                outputUpdateTask.bufferMappings.Add(VFXDataParticle.k_SortedIndirectBufferName);
+
+                compiledData.buffers.Add(new VFXContextBufferDescriptor
+                {
+                    bufferSizeMode = VFXContextBufferSizeMode.FixedSizePlusScaleWithCapacity,
+                    capacityScaleMultiplier = 1,
+                    size = 1,
+                    baseName = VFXDataParticle.k_SortedIndirectBufferName,
+                    isPerCamera = IsPerCamera(features),
+                    stride = 4u,
+                    bufferType = ComputeBufferType.Structured,
+                    bufferCount = 1
+                });
+            }
+
+            return compiledData;
         }
     }
 }

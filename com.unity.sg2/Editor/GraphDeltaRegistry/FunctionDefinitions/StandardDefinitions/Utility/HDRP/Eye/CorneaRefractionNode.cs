@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -37,7 +38,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Cornea Refraction",
             tooltip: "Calculates the refraction of the view ray in object space to return the object space position.",
             category: "Utility/HDRP/Eye",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/CorneaRefraction.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(

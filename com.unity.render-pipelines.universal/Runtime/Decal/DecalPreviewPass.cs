@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
@@ -27,57 +28,49 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            InitPassData(ref m_PassData);
-            ExecutePass(context, m_PassData, ref renderingData, renderingData.commandBuffer);
+            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
+            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+            var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+            var rendererList = context.CreateRendererList(ref param);
+            using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
+            {
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, ref renderingData);
+            }
         }
 
-        private static void ExecutePass(ScriptableRenderContext context, PassData passData, ref RenderingData renderingData, CommandBuffer cmd)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
         {
-            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
-            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(passData.shaderTagIdList, ref renderingData, sortingCriteria);
-            var param = new RendererListParams(renderingData.cullResults, drawingSettings, passData.filteringSettings);
-            var rl = context.CreateRendererList(ref param);
-
-            using (new ProfilingScope(cmd, passData.profilingSampler))
             {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                cmd.DrawRendererList(rl);
+                cmd.DrawRendererList(rendererList);
             }
         }
 
         private class PassData
         {
-            internal FilteringSettings filteringSettings;
-            internal List<ShaderTagId> shaderTagIdList;
-            internal ProfilingSampler profilingSampler;
-
             internal RenderingData renderingData;
-        }
-
-        void InitPassData(ref PassData passData)
-        {
-            passData.filteringSettings = m_FilteringSettings;
-            passData.shaderTagIdList = m_ShaderTagIdList;
-            passData.profilingSampler = m_ProfilingSampler;
+            internal RendererListHandle rendererList;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Decal Preview Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal Preview Pass", out var passData, m_ProfilingSampler))
             {
-                InitPassData(ref passData);
                 passData.renderingData = renderingData;
 
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
 
-                builder.UseColorBuffer(renderer.activeColorTexture, 0);
-                builder.UseDepthBuffer(renderer.activeDepthTexture, DepthAccess.Read);
+                builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
+                DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+                var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+                passData.rendererList = renderGraph.CreateRendererList(param);
+                builder.UseRendererList(passData.rendererList);
+
+                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
-                    ExecutePass(rgContext.renderContext, data, ref data.renderingData, rgContext.cmd);
+                    ExecutePass(rgContext.cmd, data, data.rendererList, ref data.renderingData);
                 });
             }
         }

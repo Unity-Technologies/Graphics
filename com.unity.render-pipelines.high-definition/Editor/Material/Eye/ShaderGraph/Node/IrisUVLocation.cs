@@ -5,12 +5,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.ShaderGraph
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisUVLocation (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisUVLocation")]
     class IrisUVLocation : CodeFunctionNode
     {
         public IrisUVLocation()
         {
-            name = "Iris UV Location (Preview)";
+            name = "Iris UV Location";
         }
 
         public override bool hasPreview

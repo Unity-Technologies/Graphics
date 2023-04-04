@@ -28,6 +28,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a mask where the input values match the selected color.",
             category: "Artistic/Mask",
             synonyms: new string[1] { "intensity" },
+            description: "pkg://Documentation~/previews/ColorMask.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "In",
@@ -49,6 +50,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "mask produced from color matches in the input"
                 ),
             }

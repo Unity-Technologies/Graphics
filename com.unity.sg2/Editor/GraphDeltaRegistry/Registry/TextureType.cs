@@ -168,8 +168,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var name = ITypeDefinitionBuilder.GetUniqueUniformName(field);
             var fieldbuilder = new StructField.Builder(container, name, registry.GetShaderType(field, container));
             var attrBuilder = new ShaderAttribute.Builder(container, CommonShaderAttributes.Property);
-            attrBuilder.Param("displayName", GetUniquePropertyName(field));
-            attrBuilder.Param("defaultValue", "\"white\" {}");
+            attrBuilder.Parameter("displayName", GetUniquePropertyName(field));
+            attrBuilder.Parameter("defaultValue", "\"white\" {}");
             fieldbuilder.AddAttribute(attrBuilder.Build());
 
             return fieldbuilder.Build();

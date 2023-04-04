@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -23,15 +24,18 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Is NaN",
             tooltip: "Checks if the input is not a number (NaN).",
             category: "Utility/Logic",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/IsNan.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "In",
+                    displayName: string.Empty,
                     tooltip: "input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "true if the input is not a number (NaN)"
                 )
             }

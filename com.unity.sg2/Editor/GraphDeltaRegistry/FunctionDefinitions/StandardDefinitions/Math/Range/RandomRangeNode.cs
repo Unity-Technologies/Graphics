@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -26,7 +27,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Random Range",
             tooltip: "Calculates a pseudo-random value between the given Min and Max.",
             category: "Math/Range",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/RandomRange.md",
             parameters: new ParameterUIDescriptor[4] {
                 new ParameterUIDescriptor(
                     name: "Seed",
@@ -42,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a psuedo-random value between min and max"
                 )
             }

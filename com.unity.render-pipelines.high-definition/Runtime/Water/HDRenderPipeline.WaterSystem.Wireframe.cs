@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderWaterSurface(cmd,
                     gpuBuffers.displacementBuffer, gpuBuffers.additionalDataBuffer, TextureXR.GetBlackTexture(), TextureXR.GetBlackTexture(),
                     Texture2D.blackTexture, Texture2D.blackTexture,
-                    TextureXR.GetBlackTexture(),
+                    TextureXR.GetBlackTexture(), TextureXR.GetBlackTexture(),
                     null, null,
                     m_WaterCameraHeightBuffer, m_WaterPatchDataBuffer, m_WaterIndirectDispatchBuffer, m_WaterCameraFrustrumBuffer, parameters);
             }

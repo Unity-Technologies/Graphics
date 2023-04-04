@@ -76,7 +76,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Artistic/Normal",
             synonyms: new string[5] { "RNM", "whiteout", "blend", "mix", "combine" },
             displayName: "Normal Blend",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/NormalBlend.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Default", "Whiteout" },
                 { "Reoriented", "Reoriented" },
@@ -95,6 +96,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a combination of both normals"
                 )
             }

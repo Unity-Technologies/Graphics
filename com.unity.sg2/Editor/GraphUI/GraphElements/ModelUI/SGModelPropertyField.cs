@@ -47,8 +47,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public VisualElement PropertyField
         {
-            get => m_Field;
-            set => m_Field = value;
+            get => Field;
+            set => Field = value;
         }
     }
 }

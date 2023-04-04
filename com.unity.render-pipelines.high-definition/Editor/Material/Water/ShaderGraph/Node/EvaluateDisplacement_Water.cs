@@ -10,12 +10,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
-    [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateDisplacement_Water (Preview)")]
+    [Title("Utility", "High Definition Render Pipeline", "Water", "EvaluateDisplacement_Water")]
     class EvaluateDisplacement_Water : AbstractMaterialNode, IGeneratesBodyCode
     {
         public EvaluateDisplacement_Water()
         {
-            name = "Evaluate Water  Displacement (Preview)";
+            name = "Evaluate Water  Displacement";
             UpdateNodeAfterDeserialization();
         }
 

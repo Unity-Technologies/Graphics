@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -21,9 +22,10 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Gets a transformation matrix from one of model, view, projection, or view space.",
             category: "Input/Matrix",
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
             hasPreview: false,
             displayName: "Transformation Matrix",
+            description: "pkg://Documentation~/previews/TransformationMatrix.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Matrix",
@@ -31,6 +33,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "the selected transform matrix"
                 )
             }

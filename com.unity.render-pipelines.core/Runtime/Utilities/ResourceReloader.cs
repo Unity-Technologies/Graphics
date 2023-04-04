@@ -34,11 +34,13 @@ namespace UnityEngine.Rendering
             {
                 return (ReloadAllNullIn(container, basePath), false);
             }
+            catch (InvalidImportException)
+            {
+                return (false, true);
+            }
             catch (Exception e)
             {
-                if (!(e.Data.Contains("InvalidImport") && e.Data["InvalidImport"] is int && (int)e.Data["InvalidImport"] == 1))
-                    throw e;
-                return (false, true);
+                throw e;
             }
         }
 
@@ -217,9 +219,7 @@ If {nameof(ResourceReloader)} create an instance of it, it will be not saved as 
 
             if (IsNull(result))
             {
-                var e = new Exception($"Cannot load. Path {path} is correct but AssetDatabase cannot load now.");
-                e.Data["InvalidImport"] = 1;
-                throw e;
+                throw new InvalidImportException($"Cannot load. Path {path} is correct but AssetDatabase cannot load now.");
             }
             return result;
         }

@@ -8,15 +8,25 @@ using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDes
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    internal enum RendererListHandleType
+    {
+        // RendererList and async RendererList
+        Renderers,
+        // Other builtin rendererLists representing Gfx works scheduled by Unity core. Such as shadow/skybox/gizmo/etc
+        Legacy
+    }
+
     /// <summary>
     /// Renderer List resource handle.
     /// </summary>
     [DebuggerDisplay("RendererList ({handle})")]
     public struct RendererListHandle
     {
+        internal RendererListHandleType type;
         bool m_IsValid;
         internal int handle { get; private set; }
-        internal RendererListHandle(int handle) { this.handle = handle; m_IsValid = true; }
+        internal RendererListHandle(int handle, RendererListHandleType type = RendererListHandleType.Renderers) { this.handle = handle; m_IsValid = true; this.type = type; }
+
         /// <summary>
         /// Conversion to int.
         /// </summary>
@@ -47,6 +57,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             this.desc = desc;
             this.rendererList = new CoreRendererList(); // Invalid by default
+        }
+    }
+
+    internal struct RendererListLegacyResource
+    {
+        public CoreRendererList rendererList;
+        public bool isActive;
+        internal RendererListLegacyResource(in bool active = false)
+        {
+            this.rendererList = new CoreRendererList(); // Invalid by default
+            this.isActive = active;
         }
     }
 }

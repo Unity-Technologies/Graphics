@@ -23,10 +23,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 tooltip: "Calculates the value of input A multiplied by input B.",
                 category: "Math/Basic",
                 synonyms: new string[] { "multiplication", "*", "times", "x", "product" },
+                description: "pkg://Documentation~/previews/Multiply.md",
                 parameters: new ParameterUIDescriptor[] {
                     new(name: MultiplyNode.kInputA, tooltip: "Input A"),
                     new(name: MultiplyNode.kInputB, tooltip: "Input B"),
-                    new(name: MultiplyNode.kOutput,
+                    new(name: MultiplyNode.kOutput, displayName: string.Empty,
                     tooltip: isMatrixMultiplication ? "mul(A, B)" : "A * B")
                 }
             );

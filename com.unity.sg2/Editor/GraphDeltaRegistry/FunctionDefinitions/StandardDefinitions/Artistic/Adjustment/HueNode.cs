@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -101,7 +101,8 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             tooltip: "Changes the hue of a color.",
             category: "Artistic/Adjustment",
-            synonyms: new string[0] {  },
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Hue.md",
             selectableFunctions: new()
             {
                 { "Degrees", "Degrees" },
@@ -119,6 +120,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "color with adjusted hue"
                 )
             }

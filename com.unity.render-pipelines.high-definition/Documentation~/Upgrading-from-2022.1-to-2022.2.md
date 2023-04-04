@@ -4,7 +4,7 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 
 ## Directional Light Surface Texture
 
-When you use a Physically Based Sky, you can assign a surface texture to Directional lights in the **Celestial Body** section. 
+When you use a Physically Based Sky, you can assign a surface texture to Directional lights in the **Celestial Body** section.
 
 HDRP 14 flips the UVs on the X axis to correct this texture's orientation.
 
@@ -34,7 +34,7 @@ HDRP 14.x introduces the following Refraction behavior:
 
 ## Cloud Layer
 
-HDRP 14.x changes the raymarching algorithm to improve scattering, and to provide more consistent results when you change the number of steps. 
+HDRP 14.x changes the raymarching algorithm to improve scattering, and to provide more consistent results when you change the number of steps.
 
 Depending on your lighting conditions, you might have to tweak the **Density** and **Exposure** sliders to get the same results as earlier HDRP versions.
 
@@ -44,7 +44,7 @@ HDRP 14.x improves the precision of the Decal Projector's **Angle Fade** propert
 
 ## Reflection Probe Atlas
 
-HDRP 14.x combines the planar and cube reflection probe textures into the same 2D texture atlas. This texture atlas previously contained only planar reflection probe textures. 
+HDRP 14.x combines the planar and cube reflection probe textures into the same 2D texture atlas. This texture atlas previously contained only planar reflection probe textures.
 
 When HDRP automatically upgrades a project, it adjusts the atlas memory allocation so that the planar and cube reflection probes fit.
 

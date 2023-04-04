@@ -1,139 +1,166 @@
-# Upgrading to version 2022.1 of the Universal Render Pipeline
+# Upgrading to URP 13 (Unity 2022.1)
 
-This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to version 2022.1.
+This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to URP 13 (Unity 2022.1).
 
-## Upgrading from URP 2021.2
+For information on converting assets made for a Built-in Render Pipeline project to assets compatible with URP, see the page [Render Pipeline Converter](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@14.0/manual/features/rp-converter.html).
 
-* An error will be issued when instances of `ScriptableRendererFeature` attempt to access render targets before they are allocated by the renderer.
+## Upgrading from URP 12 (Unity 2021.2)
 
-   The `ScriptableRendererFeature` has a new virtual function called `SetupRenderPasses` which is called when render targets are allocated and ready to be used.
+### Changes to ScriptableRenderer API behavior
 
-  If your code uses `renderer.cameraColorTarget` or `renderer.cameraDepthTarget` inside of the `AddRenderPasses` override, then that use needs to be moved to `SetupRenderPasses`.
-  Note that calls to `renderer.EnqueuePass` should still happen in `AddRenderPasses`.
+Unity now issues an error when instances of `ScriptableRendererFeature` attempt to access render targets before they are allocated by the `ScriptableRenderer` class.
 
-  For example the following use:
-  ```c#
-  public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
-  {
-      m_CustomPass.Setup(renderer.cameraColorTarget);  // use of target before allocation
-      renderer.EnqueuePass(m_ScriptablePass); // letting the renderer know which passes will be used before allocation
-  }
-  ```
+The `ScriptableRendererFeature` class has a new virtual function `SetupRenderPasses` which is called when render targets are allocated and ready to be used.
 
-  should become:
+If your code uses the `ScriptableRenderer.cameraColorTarget` or the `ScriptableRenderer.cameraDepthTarget` property inside of the `AddRenderPasses` method override, you should move that implementation to the `ScriptableRendererFeature.SetupRenderPasses` method.
 
-  ```c#
-  public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
-  {
-      renderer.EnqueuePass(m_ScriptablePass); // letting the renderer know which passes will be used before allocation
-  }
+The calls to the `ScriptableRenderer.EnqueuePass` method should still happen in the `AddRenderPasses` method.
 
-  public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
-  {
-      m_CustomPass.Setup(renderer.cameraColorTarget);  // use of target after allocation
-  }
-  ```
+The following example shows how to change the code to use the new API.
 
-* The Universal Renderer is now using [`RTHandles`](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@13.1/manual/rthandle-system.html) for its internal targets and in its internal passes.
+Code with the old API:
 
-  All uses of `RenderTargetHandle` have been set as Obsolete and the class will be removed in the future.
+```c#
+public override void AddRenderPasses(ScriptableRenderer renderer,
+                                    ref RenderingData renderingData)
+{
+    // The target is used before allocation
+    m_CustomPass.Setup(renderer.cameraColorTarget);
+     // Letting the renderer know which passes are used before allocation
+    renderer.EnqueuePass(m_ScriptablePass);
+}
+```
 
-  The public interfaces `renderer.cameraColorTarget` and `renderer.cameraDepthTarget` have also been marked as obsolete and their uses should be replaced with  `renderer.cameraColorTargetHandle` and `renderer.cameraDepthTargetHandle` respectively.
+Code with the new API:
 
-  `RTHandle` targets do not use `GetTemporaryRT` and are longer-lived than the `RenderTargetIdentifiers` from there. They also cannot be allocated with a `GraphicsFormat` and `DepthBufferBits` set to anything but 0. Depth targets must be separate from Color Targets.
+```c#
+public override void AddRenderPasses(ScriptableRenderer renderer,
+                                        ref RenderingData renderingData)
+{
+    // Letting the renderer know which passes are used before allocation
+    renderer.EnqueuePass(m_ScriptablePass);
+}
 
-  The following helper functions have been added in order to create and use `RTHandle` targets in the same way as with `GetTemporaryRT`:
-     * `RenderingUtils.ReAllocateIfNeeded`
-     * `ShadowUtils.ShadowRTReAllocateIfNeeded`
+public override void SetupRenderPasses(ScriptableRenderer renderer,
+                                          in RenderingData renderingData)
+{
+    // The target is used after allocation
+    m_CustomPass.Setup(renderer.cameraColorTarget);
+}
+```
 
-  If the target is known to not change within the lifetime of the application, then simply a `RTHandles.Alloc` would suffice and it will be more efficient due to not doing a check on each frame.
+### The Universal Renderer is now using the RTHandle system
 
-  If the target is a fullscreen texture, meaning that its resolution matches the resolution or a fraction of it, the use of a scaling factor such as `Vector2D.one` is recommended to support dynamic scaling.
+The Universal Renderer is now using [the RTHandle system](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@14.0/manual/rthandle-system.html) for its internal targets and in its internal passes.
 
-  For example, the following `RenderTargetHandle` use:
+All usages of the `RenderTargetHandle` struct are set as obsolete and the struct will be removed in the future.
 
-  ```c#
-  public class CustomPass : ScriptableRenderPass
-  {
-      RenderTargetHandle m_Handle;
-      RenderTargetIdentifier m_Destination; // RenderTargetIdentifier sometimes combines color and depth
+The public interfaces `ScriptableRenderer.cameraColorTarget` and `ScriptableRenderer.cameraDepthTarget` are marked as obsolete. Replace them with `ScriptableRenderer.cameraColorTargetHandle` and `ScriptableRenderer.cameraDepthTargetHandle` respectively.
 
-      public CustomPass()
-      {
-          m_Handle.Init("_CustomPassHandle");
-      }
+`RTHandle` targets do not use the `CommandBuffer.GetTemporaryRT` method and persist for more frames than the `RenderTargetIdentifier` structs. You cannot allocate `RTHandle` targets with the properties `GraphicsFormat` and `DepthBufferBits` set to any value except for 0. The `cameraDepthTarget` properties  must be separate from the `cameraColorTarget` properties.
 
-      public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-      {
-          var desc = renderingData.cameraData.cameraTargetDescriptor;
-          cmd.GetTemporaryRT(m_Handle.id, desc, FilterMode.Point);
-      }
+The following helper functions let you create and use temporary render target with the `RTHandle` system in a similar way as with the `GetTemporaryRT` method previously:
 
-      public override void OnCameraCleanup(CommandBuffer cmd)
-      {
-          cmd.ReleaseTemporaryRT(m_Handle.id);
-      }
+* `RenderingUtils.ReAllocateIfNeeded`
 
-      public void Setup(RenderTargetIdentifier destination)
-      {
-          m_Destination = destination;
-      }
+* `ShadowUtils.ShadowRTReAllocateIfNeeded`
 
-      public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-      {
-          CommandBuffer cmd = CommandBufferPool.Get();
-          ScriptableRenderer.SetRenderTarget(cmd, m_Destination, m_Destination, clearFlag, clearColor); // set same target for color and depth
-          // ...
-          context.ExecuteCommandBuffer(cmd);
-          CommandBufferPool.Release(cmd);
-      }
-  }
-  ```
+If the render target does not change within the lifetime of the application, use the `RTHandles.Alloc` method to allocate an `RTHandle` target. This method is efficient since the code does not have to check if a render target should be allocated on each frame.
 
-  should become:
+If the render target is a full screen texture, which means that its resolution matches or is a fraction of the resolution of the screen, use a scaling factor such as `Vector2D.one` to support dynamic scaling.
 
-  ```c#
-  public class CustomPass : ScriptableRenderPass
-  {
-      RTHandle m_Handle;
-      // RTHandles don't combine color and dpeth
-      RTHandle m_DestinationColor;
-      RTHandle m_DestinationDepth;
+The following example shows how to change the code using the `RenderTargetHandle` API to use the new API.
 
-      void Dispose()
-      {
-          m_Handle?.Release();
-      }
+Code with the old API:
 
-      public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-      {
-          var desc = renderingData.cameraData.cameraTargetDescriptor;
-          desc.depthBufferBits = 0; // Color and depth cannot be combined in RTHandles
-          RenderingUtils.ReAllocateIfNeeded(ref m_Handle, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_CustomPassHandle");
-      }
+```c#
+public class CustomPass : ScriptableRenderPass
+{
+    RenderTargetHandle m_Handle;
+    // With the old API, RenderTargetIdentifier might combine color and depth
+    RenderTargetIdentifier m_Destination;
 
-      public override void OnCameraCleanup(CommandBuffer cmd)
-      {
-          m_DestinationColor = null;
-          m_DestinationDepth = null;
-      }
+    public CustomPass()
+    {
+        m_Handle.Init("_CustomPassHandle");
+    }
 
-      public void Setup(RTHandle destinationColor, RTHandle destinationDepth)
-      {
-          m_DestinationColor = destinationColor;
-          m_DestinationDepth = destinationDepth;
-      }
+    public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+    {
+        var desc = renderingData.cameraData.cameraTargetDescriptor;
+        cmd.GetTemporaryRT(m_Handle.id, desc, FilterMode.Point);
+    }
 
-      public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-      {
-          CommandBuffer cmd = CommandBufferPool.Get();
-          ScriptableRenderer.SetRenderTarget(cmd, m_DestinationColor, m_DestinationDepth, clearFlag, clearColor);
-          // ...
-          context.ExecuteCommandBuffer(cmd);
-          CommandBufferPool.Release(cmd);
-      }
-  }
-  ```
+    public override void OnCameraCleanup(CommandBuffer cmd)
+    {
+        cmd.ReleaseTemporaryRT(m_Handle.id);
+    }
+
+    public void Setup(RenderTargetIdentifier destination)
+    {
+        m_Destination = destination;
+    }
+
+    public override void Execute(ScriptableRenderContext context,
+                                    ref RenderingData renderingData)
+    {
+        CommandBuffer cmd = CommandBufferPool.Get();
+        // Set the same target for color and depth
+        ScriptableRenderer.SetRenderTarget(cmd, m_Destination, m_Destination, clearFlag,
+                                              clearColor);
+        context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
+    }
+}
+```
+
+Code with the new API:
+
+```c#
+public class CustomPass : ScriptableRenderPass
+{
+    RTHandle m_Handle;
+    // Then using RTHandles, the color and the depth properties must be separate
+    RTHandle m_DestinationColor;
+    RTHandle m_DestinationDepth;
+
+    void Dispose()
+    {
+        m_Handle?.Release();
+    }
+
+    public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+    {
+        var desc = renderingData.cameraData.cameraTargetDescriptor;
+        // Then using RTHandles, the color and the depth properties must be separate
+        desc.depthBufferBits = 0;
+        RenderingUtils.ReAllocateIfNeeded(ref m_Handle, desc, FilterMode.Point,
+                                         TextureWrapMode.Clamp, name: "_CustomPassHandle");
+    }
+
+    public override void OnCameraCleanup(CommandBuffer cmd)
+    {
+        m_DestinationColor = null;
+        m_DestinationDepth = null;
+    }
+
+    public void Setup(RTHandle destinationColor, RTHandle destinationDepth)
+    {
+        m_DestinationColor = destinationColor;
+        m_DestinationDepth = destinationDepth;
+    }
+
+    public override void Execute(ScriptableRenderContext context,
+                                    ref RenderingData renderingData)
+    {
+        CommandBuffer cmd = CommandBufferPool.Get();
+        CoreUtils.SetRenderTarget(cmd, m_DestinationColor, m_DestinationDepth,
+                                              clearFlag, clearColor);
+        context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
+    }
+}
+```
 
 ## Upgrading from URP 11.x.x
 
@@ -141,7 +168,9 @@ This page describes how to upgrade from an older version of the Universal Render
 
 * The Universal Renderer asset contains the property **Rendering Path** that lets you select the Forward or the Deferred Rendering Path.
 
-* The method `ClearFlag.Depth` does not implicitely clear the Stencil buffer anymore. Use the new method `ClearFlag.Stencil`.
+* The method `ClearFlag.Depth` does not implicitly clear the Stencil buffer anymore. Use the new method `ClearFlag.Stencil`.
+
+* URP 12 and later implements the [Render Pipeline Converter](features/rp-converter.md) feature. This feature replaces the asset upgrade functions that were previously available at **Edit > Render Pipeline > Universal Render Pipeline > Upgrade...**
 
 ## Upgrading from URP 10.0.x–10.2.x
 

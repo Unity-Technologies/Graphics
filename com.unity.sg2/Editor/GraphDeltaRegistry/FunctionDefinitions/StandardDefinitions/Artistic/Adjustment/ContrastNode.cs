@@ -54,6 +54,7 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName : "Contrast",
             tooltip: "Make the darks darker and the brights brighter.",
             category: "Artistic/Adjustment",
+            description: "pkg://Documentation~/previews/Contrast.md",
             synonyms: new string[1] { "intensity" },
             selectableFunctions: new()
             {
@@ -61,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 { "Quality", "Quality" }
             },
             functionSelectorLabel: "Mode",
-            parameters: new ParameterUIDescriptor[3] {
+            parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "In",
                     tooltip: "input value"
@@ -72,6 +73,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "color with adjusted contrast"
                 )
             }

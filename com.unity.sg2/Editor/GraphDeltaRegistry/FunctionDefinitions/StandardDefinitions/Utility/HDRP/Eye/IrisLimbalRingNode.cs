@@ -1,3 +1,4 @@
+using System;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -39,7 +40,8 @@ namespace UnityEditor.ShaderGraph.Defs
             displayName: "Iris Limbal Ring",
             tooltip: "calculates the intensity of the Limbal ring, a darkening feature of eyes.",
             category: "Utility/HDRP/Eye",
-            synonyms: new string[0],
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/IrisLimbalRing.md",
             hasPreview: false,
             parameters: new ParameterUIDescriptor[6] {
                 new ParameterUIDescriptor(

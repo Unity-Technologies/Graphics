@@ -87,7 +87,8 @@ namespace UnityEditor.ShaderGraph.Defs
             category: "Input/Texture",
             synonyms: new string[1] { "texcube" },
             displayName: "Sample Cubemap",
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/SampleCubemap.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "LODfunction", "LOD" },
                 { "Standard", "Standard" },
@@ -101,7 +102,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Dir",
-                    tooltip: "the direction vector used to sample the cubemap"
+                    tooltip: "the direction vector used to sample the cubemap",
+                    options: REF.OptionList.Normals
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",

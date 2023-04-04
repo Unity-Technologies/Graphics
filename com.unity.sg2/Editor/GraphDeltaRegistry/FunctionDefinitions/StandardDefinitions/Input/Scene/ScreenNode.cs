@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.ShaderGraph.GraphDelta;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -24,7 +25,8 @@ Height = ScreenParams.y;",
             tooltip: "Provides access to the screen's width and height parameters.",
             category: "Input/Scene",
             hasPreview: false,
-            synonyms: new string[0] { },
+            synonyms: Array.Empty<string>(),
+            description: "pkg://Documentation~/previews/Screen.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "Width",

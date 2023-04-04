@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
         protected override void UpdatePartFromModel()
         {
             // Don't need to do this for node previews in Searcher
-            if (!m_SGNodeModel.existsInGraphData)
+            if (!m_SGNodeModel.graphDataOwner.existsInGraphData)
                 return;
 
             HandlePreviewExpansionStateChanged(m_SGNodeModel.IsPreviewExpanded);

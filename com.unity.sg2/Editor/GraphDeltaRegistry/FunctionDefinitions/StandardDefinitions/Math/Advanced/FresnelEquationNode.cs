@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
@@ -66,7 +67,8 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "adds equations that affect Material interactions to the Fresnel Component",
             category: "Math/Advanced",
             synonyms: new string[6] { "schlick", "metal", "dielectric", "tir", "reflection", "critical" },
-            selectableFunctions: new()
+            description: "pkg://Documentation~/previews/FresnelEquation.md",
+            selectableFunctions: new Dictionary<string, string>
             {
                 { "Schlick", "Schlick" },
                 { "Dielectric", "Dielectric" },

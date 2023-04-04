@@ -453,6 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.Shadowmask,
                 (uint)FrameSettingsField.ScreenSpaceShadows,
                 (uint)FrameSettingsField.SSR,
+                (uint)FrameSettingsField.TransparentSSR,
                 (uint)FrameSettingsField.SSAO,
                 (uint)FrameSettingsField.SSGI,
                 (uint)FrameSettingsField.SubsurfaceScattering,

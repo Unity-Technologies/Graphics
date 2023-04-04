@@ -11,43 +11,36 @@ using Unity.GraphToolsFoundation;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
+    [Serializable]
     class SGGraphModel : GraphModel
     {
+        [HideInInspector]
         [SerializeField]
         private SerializableGraphHandler graphHandlerBox = new();
+        [HideInInspector]
         [SerializeField]
         private SerializableTargetSettings targetSettingsBox = new();
+        [HideInInspector]
         [SerializeField]
         private SGMainPreviewModel mainPreviewModel;
+        [HideInInspector]
         [SerializeField]
         private bool isSubGraph = false;
 
+        string m_BlackboardContextName;
+        string m_DefaultContextName;
+
         internal GraphHandler GraphHandler => graphHandlerBox.Graph;
-        internal ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
+        internal virtual ShaderGraphRegistry RegistryInstance => ShaderGraphRegistry.Instance;
         internal List<JsonData<Target>> Targets => targetSettingsBox.Targets; // TODO: Store the active editing target in the box?
         internal Target ActiveTarget => Targets.FirstOrDefault();
         internal SGMainPreviewModel MainPreviewData => mainPreviewModel;
         internal bool IsSubGraph => CanBeSubgraph();
-        internal string BlackboardContextName => Registry.ResolveKey<PropertyContext>().Name;
-        internal string DefaultContextName => Registry.ResolveKey<ShaderGraphContext>().Name;
-
-        [NonSerialized]
-        Dictionary<RegistryKey, SGNodeViewModel> m_NodeUIData;
+        internal string BlackboardContextName => m_BlackboardContextName ??= Registry.ResolveKey<PropertyContext>().Name;
+        internal string DefaultContextName => m_DefaultContextName ??= Registry.ResolveKey<ShaderGraphContext>().Name;
 
         [NonSerialized]
         SGContextNodeModel m_DefaultContextNode;
-
-        [NonSerialized]
-        public GraphModelStateComponent graphModelStateComponent;
-
-        #region CopyPasteData
-        /// <summary>
-        /// ShaderGraphViewSelection and SGBlackboardViewSelection sets this to true
-        /// prior to a cut operation as we need to handle it a little differently
-        /// </summary>
-        [NonSerialized]
-        public bool isCutOperation;
-        #endregion CopyPasteData
 
         // TODO: This should be customizable through the UI: https://jira.unity3d.com/browse/GSG-777
         // TODO: Default should be changed back to "Shader Graphs" before release: https://jira.unity3d.com/browse/GSG-1431
@@ -56,7 +49,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         internal void Init(GraphHandler graph, bool isSubGraph, Target target)
         {
-            graphHandlerBox.Init(graph);
+            graphHandlerBox.Init(graph, RegistryInstance.Registry);
             this.isSubGraph = isSubGraph;
             if (!isSubGraph && target != null)
             {
@@ -77,7 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override void OnEnable()
         {
-            graphHandlerBox.OnEnable(false);
+            graphHandlerBox.OnEnable(RegistryInstance.Registry, false);
 
             targetSettingsBox.OnEnable();
             foreach (var target in Targets)
@@ -89,134 +82,6 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.OnEnable();
             mainPreviewModel = new(Guid.ToString());
             m_DefaultContextNode = GetMainContextNode();
-        }
-
-        /// <summary>
-        /// Used to retrieve the UI data associated with a node & ports on that node, via that node's registry key
-        /// </summary>
-        /// <param name="registryKey"></param>
-        /// <param name="nodeViewModel"></param>
-        /// <returns></returns>
-        public bool GetNodeViewModel(RegistryKey registryKey, out SGNodeViewModel nodeViewModel)
-        {
-            return m_NodeUIData.TryGetValue(registryKey, out nodeViewModel);
-        }
-
-        /// <summary>
-        /// Called after the graph model is loaded
-        /// Creates the application side UI data by extracting it from the UI Descriptors
-        /// </summary>
-        public void CreateUIData()
-        {
-            if (Stencil is ShaderGraphStencil stencil && m_NodeUIData == null)
-            {
-                m_NodeUIData = new();
-                foreach (var registryKey in RegistryInstance.Registry.BrowseRegistryKeys())
-                {
-                    var nodeUIInfo = stencil.GetUIHints(registryKey);
-
-                    var portViewModels = new List<SGPortViewModel>();
-                    var nodeTopology = RegistryInstance.GetDefaultTopology(registryKey);
-                    if(nodeTopology == null)
-                        continue;
-
-                    // By default we assume all types need preview output, unless they opt out
-                    var showPreviewForType = true;
-
-                    var portTopologies = nodeTopology.GetPorts();
-                    foreach (var parameter in nodeUIInfo.Parameters)
-                    {
-                        var portInfo = portTopologies.FirstOrDefault(port => port.ID.LocalPath == parameter.Name);
-                        if(CreatePortViewModel(portInfo, parameter, out var portViewModel, out showPreviewForType))
-                            portViewModels.Add(portViewModel);
-                    }
-
-                    var selectedFunctionID = String.Empty;
-                    // If the node has multiple possible topologies, show the selector.
-                    if (nodeUIInfo.SelectableFunctions.Count > 0)
-                    {
-                        string fieldName = NodeDescriptorNodeBuilder.SELECTED_FUNCTION_FIELD_NAME;
-                        FieldHandler selectedFunctionField = nodeTopology.GetField<string>(fieldName);
-                        selectedFunctionID = selectedFunctionField.GetData<string>();
-                    }
-
-                    var shouldShowPreview = nodeUIInfo.HasPreview && showPreviewForType;
-
-                    var functionDictionary = nodeUIInfo.SelectableFunctions.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                    var nodeUIData = new SGNodeViewModel(
-                                            nodeUIInfo.Version,
-                                            nodeUIInfo.Name,
-                                            nodeUIInfo.Tooltip,
-                                            nodeUIInfo.Category,
-                                            nodeUIInfo.Synonyms.ToArray(),
-                                            nodeUIInfo.DisplayName,
-                                            shouldShowPreview,
-                                            functionDictionary,
-                                            portViewModels.ToArray(),
-                                            nodeUIInfo.FunctionSelectorLabel,
-                                            selectedFunctionID);
-                    if(!m_NodeUIData.TryAdd(registryKey, nodeUIData))
-                        Debug.LogWarning("Tried to add duplicate to Node UI Data with value: " + registryKey);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns true if we should create a view model for this port, false if it can be skipped
-        /// </summary>
-        /// <param name="portInfo"> Library port handler for the port</param>
-        /// <param name="parameter"> Library-side data struct containing UI info. of the port </param>
-        /// <param name="portViewModel"> Tool-side data struct that will contain all UI info of port </param>
-        /// <param name="showPreviewForType"> Flag that controls if this port opts into preview output</param>
-        bool CreatePortViewModel(PortHandler portInfo, ParameterUIDescriptor parameter, out SGPortViewModel portViewModel, out bool showPreviewForType)
-        {
-            SGPortViewModel outViewModel = new SGPortViewModel();
-            showPreviewForType = true;
-            portViewModel = outViewModel;
-
-            if (portInfo == null || !portInfo.IsHorizontal)
-                return false;
-
-            var staticField = portInfo.GetTypeField().GetSubField<bool>("IsStatic");
-            var typeField = portInfo.GetTypeField();
-            var typeKey = typeField.GetRegistryKey();
-
-            bool isStatic = staticField?.GetData() ?? false;
-            bool isGradientType = typeKey.Name == RegistryInstance.ResolveKey<GradientType>().Name;
-
-            bool isGraphType = typeKey.Name == RegistryInstance.ResolveKey<GraphType>().Name;
-            if (typeField == null)
-                return false;
-
-            ComponentLength componentLength = (ComponentLength)GraphTypeHelpers.GetLength(typeField);
-            NumericType numericType = (NumericType)GraphTypeHelpers.GetPrimitive(typeField);
-
-            bool isMatrixType = GraphTypeHelpers.GetHeight(portInfo.GetTypeField()) > GraphType.Height.One;
-            int matrixHeight = (int)GraphTypeHelpers.GetHeight(portInfo.GetTypeField());
-
-            if (isGradientType && !portInfo.IsInput)
-                showPreviewForType = false;
-
-            // Skip non-graph types as well
-            if (!isGraphType)
-                return showPreviewForType;
-
-            portViewModel = new SGPortViewModel(
-                parameter.Name,
-                parameter.DisplayName,
-                parameter.Tooltip,
-                parameter.UseColor,
-                parameter.IsHdr,
-                isStatic,
-                isGradientType,
-                componentLength,
-                numericType,
-                isMatrixType,
-                matrixHeight,
-                parameter.UseSlider,
-                parameter.InspectorOnly,
-                parameter.Options);
-            return showPreviewForType;
         }
 
         internal void InitializeContextFromTarget(Target target)
@@ -244,31 +109,25 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override bool CanBeSubgraph() => isSubGraph;
         protected override Type GetWireType(PortModel toPort, PortModel fromPort)
         {
-            return typeof(SGEdgeModel);
-        }
-        public override Type GetSectionModelType()
-        {
-            return typeof(SectionModel);
+            return typeof(SGWireModel);
         }
 
         public override WireModel CreateWire(PortModel toPort, PortModel fromPort, SerializableGUID guid = default)
         {
-            PortModel resolvedEdgeSource;
-            List<PortModel> resolvedEdgeDestinations;
-            resolvedEdgeSource = HandleRedirectNodesCreation(toPort, fromPort, out resolvedEdgeDestinations);
+            var resolvedWireSource = HandleRedirectNodesCreation(toPort, fromPort, out var resolvedWireDestinations);
 
-            var edgeModel = base.CreateWire(toPort, fromPort, guid);
-            if (resolvedEdgeSource is not SGPortModel fromDataPort)
-                return edgeModel;
+            var wireModel = base.CreateWire(toPort, fromPort, guid);
+            if (resolvedWireSource is not SGPortModel fromDataPort)
+                return wireModel;
 
             // Make the corresponding connections in CLDS data model
-            foreach (var toDataPort in resolvedEdgeDestinations.OfType<SGPortModel>())
+            foreach (var toDataPort in resolvedWireDestinations.OfType<SGPortModel>())
             {
               // Validation should have already happened in GraphModel.IsCompatiblePort.
               Assert.IsTrue(TryConnect(fromDataPort, toDataPort));
             }
 
-            return edgeModel;
+            return wireModel;
         }
 
         public override void DeleteWires(IReadOnlyCollection<WireModel> edgeModels)
@@ -449,69 +308,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
             AbstractNodeModel sourceNodeModel,
             Vector2 delta)
         {
-            var pastedNodeModel = sourceNodeModel.Clone();
-            // Set GraphModel BEFORE OnDefineNode as it is commonly used during it
-            pastedNodeModel.GraphModel = this;
-            pastedNodeModel.AssignNewGuid();
+            // We don't want to be able to duplicate context nodes,
+            if (sourceNodeModel is SGContextNodeModel)
+                return null;
 
-            switch (pastedNodeModel)
-            {
-                // We don't want to be able to duplicate context nodes,
-                // also they subclass from GraphDataNodeModel so need to handle first
-                case SGContextNodeModel:
-                    return null;
-                case SGNodeModel newCopiedNode when sourceNodeModel is SGNodeModel sourceGraphDataNode:
-                {
-                    newCopiedNode.graphDataName = newCopiedNode.Guid.ToString();
-
-                    var sourceNodeHandler = GraphHandler.GetNode(sourceGraphDataNode.graphDataName);
-                    if (isCutOperation // In a cut operation the original node handlers have since been deleted, so we need to add from scratch
-                        || sourceNodeHandler == null) // If no node handler found, we're copying from a different graph so also add from scratch
-                    {
-                        GraphHandler.AddNode(sourceGraphDataNode.duplicationRegistryKey, newCopiedNode.graphDataName);
-                    }
-                    else
-                    {
-                        GraphHandler.DuplicateNode(sourceNodeHandler, false, newCopiedNode.graphDataName);
-                    }
-
-                    break;
-                }
-                case SGVariableNodeModel { DeclarationModel: SGVariableDeclarationModel declarationModel } newCopiedVariableNode:
-                {
-                    // if the blackboard property/keyword this variable node is referencing
-                    // doesn't exist in the graph, it has probably been copied from another graph
-                    if (!VariableDeclarations.Contains(declarationModel))
-                    {
-                        // Search for the equivalent property/keyword that GTF code
-                        // will have created to replace the missing reference
-                        newCopiedVariableNode.DeclarationModel = VariableDeclarations.FirstOrDefault(model => model.Guid == declarationModel.Guid);
-                        // Restore the Guid from its graph data name (as currently we need to align the Guids and graph data names)
-                        newCopiedVariableNode.graphDataName = new SerializableGUID(newCopiedVariableNode.graphDataName.Replace("_", String.Empty)).ToString();
-                        // Make sure this reference is up to date
-                        declarationModel = (SGVariableDeclarationModel)newCopiedVariableNode.DeclarationModel;
-                    }
-                    else
-                        newCopiedVariableNode.graphDataName = newCopiedVariableNode.Guid.ToString();
-
-                    // Every time a variable node is duplicated, add a reference node pointing back
-                    // to the property/keyword that is wrapped by the VariableDeclarationModel, on the CLDS level
-                    GraphHandler.AddReferenceNode(newCopiedVariableNode.graphDataName, declarationModel.contextNodeName, declarationModel.graphDataName);
-                    break;
-                }
-            }
-
-            pastedNodeModel.Position += delta;
-            AddNode(pastedNodeModel);
-            pastedNodeModel.OnDuplicateNode(sourceNodeModel);
-
-            if (pastedNodeModel is IGraphElementContainer container)
-            {
-                foreach (var element in container.GraphElementModels)
-                    RegisterElement(element);
-            }
-
-            return pastedNodeModel;
+            return base.DuplicateNode(sourceNodeModel, delta);
         }
 
         public static PortModel FindInputPortByName(AbstractNodeModel nodeModel, string portID)

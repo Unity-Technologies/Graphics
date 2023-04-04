@@ -193,10 +193,9 @@ namespace UnityEditor.ShaderGraph
         GraphHandler m_graph;
 
         // Provide a previously initialized graphHandler-- round-trip it for ownership.
-        public void Init(GraphHandler value)
+        public void Init(GraphHandler value, Registry reg)
         {
             json = value.ToSerializedFormat();
-            var reg = ShaderGraphRegistry.Instance.Registry; // TODO: Singleton?
             m_graph = GraphHandler.FromSerializedFormat(json, reg);
             m_graph.ReconcretizeAll();
         }
@@ -214,9 +213,8 @@ namespace UnityEditor.ShaderGraph
 
         public void OnAfterDeserialize() { }
 
-        public void OnEnable(bool reconcretize = true)
+        public void OnEnable(Registry reg, bool reconcretize = true)
         {
-            var reg = ShaderGraphRegistry.Instance.Registry;
             m_graph = GraphHandler.FromSerializedFormat(json, reg);
             if (reconcretize)
             {

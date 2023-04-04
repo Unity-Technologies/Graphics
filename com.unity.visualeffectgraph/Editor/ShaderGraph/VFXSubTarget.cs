@@ -114,7 +114,7 @@ namespace UnityEditor.VFX
             };
         }
 
-        static void GenerateVFXAdditionalCommands(VFXContext context, VFXSRPBinder srp, VFXSRPBinder.ShaderGraphBinder shaderGraphBinder, VFXContextCompiledData contextData,
+        static void GenerateVFXAdditionalCommands(VFXContext context, VFXSRPBinder srp, VFXSRPBinder.ShaderGraphBinder shaderGraphBinder, VFXTaskCompiledData taskData,
             out AdditionalCommandDescriptor srpCommonInclude,
             out AdditionalCommandDescriptor loadAttributeDescriptor,
             out AdditionalCommandDescriptor blockFunctionDescriptor,
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
             var particleData = context.GetData() as VFXDataParticle;
             var systemUniformMapper = particleData.systemUniformMapper;
             var graphValuesLayout = particleData.graphValuesLayout;
-            contextData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
+            taskData.uniformMapper.OverrideNamesWithOther(systemUniformMapper);
 
             // SRP Common Include
             srpCommonInclude = new AdditionalCommandDescriptor("VFXSRPCommonInclude", string.Format("#include \"{0}\"", srp.runtimePath + "/VFXCommon.hlsl"));
@@ -151,34 +151,34 @@ namespace UnityEditor.VFX
             loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString());
 
             // Graph Blocks
-            VFXCodeGenerator.BuildContextBlocks(context, contextData, out var blockFunction, out var blockCallFunction);
+            VFXCodeGenerator.BuildContextBlocks(context, taskData, out var blockFunction, out var blockCallFunction);
 
             blockFunctionDescriptor = new AdditionalCommandDescriptor("VFXGeneratedBlockFunction", blockFunction);
             blockCallFunctionDescriptor = new AdditionalCommandDescriptor("VFXProcessBlocks", blockCallFunction);
 
             // Vertex Input
-            VFXCodeGenerator.BuildVertexProperties(context, contextData, out var vertexPropertiesGeneration);
+            VFXCodeGenerator.BuildVertexProperties(context, taskData, out var vertexPropertiesGeneration);
             vertexPropertiesGenerationDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesGeneration", vertexPropertiesGeneration);
 
-            VFXCodeGenerator.BuildVertexPropertiesAssign(context, contextData, out var vertexPropertiesAssign);
+            VFXCodeGenerator.BuildVertexPropertiesAssign(context, taskData, out var vertexPropertiesAssign);
             vertexPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesAssign", vertexPropertiesAssign);
 
             // Interpolator
-            VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, false, out var interpolatorsGeneration);
+            VFXCodeGenerator.BuildInterpolatorBlocks(context, taskData, false, out var interpolatorsGeneration);
             interpolantsGenerationDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGeneration", interpolatorsGeneration);
 
             // Interpolator for ray traxcing
-            VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, true, out var interpolatorsGenerationRT);
+            VFXCodeGenerator.BuildInterpolatorBlocks(context, taskData, true, out var interpolatorsGenerationRT);
             interpolantsGenerationRTDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGenerationRT", interpolatorsGenerationRT);
 
             // Frag Inputs - Only VFX will know if frag inputs come from interpolator or the CBuffer.
-            VFXCodeGenerator.BuildFragInputsGeneration(context, contextData, shaderGraphBinder.useFragInputs, out var buildFragInputsGeneration);
+            VFXCodeGenerator.BuildFragInputsGeneration(context, taskData, shaderGraphBinder.useFragInputs, out var buildFragInputsGeneration);
             buildVFXFragInputsDescriptor = new AdditionalCommandDescriptor("VFXSetFragInputs", buildFragInputsGeneration);
 
-            VFXCodeGenerator.BuildPixelPropertiesAssign(context, contextData, shaderGraphBinder.useFragInputs, out var pixelPropertiesAssign);
+            VFXCodeGenerator.BuildPixelPropertiesAssign(context, taskData, shaderGraphBinder.useFragInputs, out var pixelPropertiesAssign);
             pixelPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXPixelPropertiesAssign", pixelPropertiesAssign);
 
-            VFXCodeGenerator.BuildFillGraphValues(contextData, graphValuesLayout, systemUniformMapper, out var fillGraphValues);
+            VFXCodeGenerator.BuildFillGraphValues(taskData, graphValuesLayout, systemUniformMapper, out var fillGraphValues);
             fillGraphValuesDescriptor = new AdditionalCommandDescriptor("VFXLoadGraphValues", fillGraphValues);
 
             // Define coordinate space
@@ -212,7 +212,7 @@ namespace UnityEditor.VFX
             var filteredTextureInSG = texureUsedInternallyInSG.Concat(textureExposedFromSG).ToArray();
 
             // GraphValues + Buffers + Textures
-            VFXCodeGenerator.BuildParameterBuffer(contextData, filteredTextureInSG, out var parameterBuffer, out var needsGraphValueStruct);
+            VFXCodeGenerator.BuildParameterBuffer(taskData, filteredTextureInSG, out var parameterBuffer, out var needsGraphValueStruct);
             parameterBufferDescriptor = new AdditionalCommandDescriptor("VFXParameterBuffer", parameterBuffer);
 
             // Defines & Headers - Not all are necessary, however some important ones are mixed in like indirect draw, strips, flipbook, particle strip info...
@@ -235,7 +235,7 @@ namespace UnityEditor.VFX
                 additionalDefines.AppendLine(define.Contains(' ') ? $"#define {define}" : $"#define {define} 1");
             if(needsGraphValueStruct)
                 additionalDefines.AppendLine($"#define VFX_USE_GRAPH_VALUES 1");
-            foreach (string s in VFXCodeGenerator.GetInstancingAdditionalDefines(context, particleData))
+            foreach (string s in VFXCodeGenerator.GetInstancingAdditionalDefines(context, null, particleData))
                 additionalDefines.AppendLine(s);
 
             additionalDefinesDescriptor = new AdditionalCommandDescriptor("VFXDefines", additionalDefines.ToString());
@@ -244,9 +244,9 @@ namespace UnityEditor.VFX
             loadPositionAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadPositionAttribute", VFXCodeGenerator.GenerateLoadAttribute("position", context).ToString().ToString());
 
             // Load Crop Factor Attribute
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
             loadCropFactorAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadCropFactorParameter", VFXCodeGenerator.GenerateLoadParameter("cropFactor", mainParameters, expressionToName).ToString().ToString());
             loadTexcoordAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadTexcoordParameter", VFXCodeGenerator.GenerateLoadParameter("texCoord", mainParameters, expressionToName).ToString().ToString());
             loadCurrentFrameIndexParameterDescriptor = new AdditionalCommandDescriptor("VFXLoadCurrentFrameIndexParameter", VFXCodeGenerator.GenerateLoadParameter("currentFrameIndex", mainParameters, expressionToName).ToString().ToString());
@@ -257,15 +257,15 @@ namespace UnityEditor.VFX
 
         }
 
-        static AdditionalCommandDescriptor GenerateFragInputs(VFXContext context, VFXContextCompiledData contextData)
+        static AdditionalCommandDescriptor GenerateFragInputs(VFXContext context, VFXTaskCompiledData taskData)
         {
             var builder = new ShaderStringBuilder();
 
             // VFX Material Properties
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
 
             foreach (string fragmentParameter in context.fragmentParameters)
             {
@@ -316,7 +316,7 @@ namespace UnityEditor.VFX
             return pragmas;
         }
 
-        internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData data)
+        internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXTaskCompiledData data)
         {
             var srp = VFXLibrary.currentSRPBinder;
             if (srp == null)

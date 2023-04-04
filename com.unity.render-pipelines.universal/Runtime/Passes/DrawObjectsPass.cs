@@ -102,63 +102,88 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            InitPassData(ref m_PassData);
+            InitPassData(ref renderingData, ref m_PassData);
+            InitRendererLists(ref renderingData, ref m_PassData, context, default(RenderGraph), false);
 
-            CameraSetup(renderingData.commandBuffer, m_PassData, ref renderingData);
-            ExecutePass(context, m_PassData, ref renderingData, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
-        }
-
-        private static void CameraSetup(CommandBuffer cmd, PassData data, ref RenderingData renderingData)
-        {
-            if (renderingData.cameraData.renderer.useDepthPriming && data.m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+            using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
             {
-                data.m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
-                data.m_RenderStateBlock.mask |= RenderStateMask.Depth;
-            }
-            else if (data.m_RenderStateBlock.depthState.compareFunction == CompareFunction.Equal)
-            {
-                data.m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.LessEqual);
-                data.m_RenderStateBlock.mask |= RenderStateMask.Depth;
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_PassData.rendererList, m_PassData.objectsWithErrorRendererList, ref renderingData, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
             }
         }
 
-        private static void ExecutePass(ScriptableRenderContext context, PassData data, ref RenderingData renderingData, bool yFlip)
+        internal static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList objectsWithErrorRendererList, ref RenderingData renderingData, bool yFlip)
         {
-            var cmd = renderingData.commandBuffer;
-            using (new ProfilingScope(cmd, data.m_ProfilingSampler))
+            // Global render pass data containing various settings.
+            // x,y,z are currently unused
+            // w is used for knowing whether the object is opaque(1) or alpha blended(0)
+            Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (data.isOpaque) ? 1.0f : 0.0f);
+            cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
+
+            // scaleBias.x = flipSign
+            // scaleBias.y = scale
+            // scaleBias.z = bias
+            // scaleBias.w = unused
+            float flipSign = yFlip ? -1.0f : 1.0f;
+            Vector4 scaleBias = (flipSign < 0.0f)
+                ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
+
+            // Set a value that can be used by shaders to identify when AlphaToMask functionality may be active
+            // The material shader alpha clipping logic requires this value in order to function correctly in all cases.
+            float alphaToMaskAvailable = ((renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1) && data.isOpaque) ? 1.0f : 0.0f;
+            cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, alphaToMaskAvailable);
+
+            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            if (activeDebugHandler != null)
             {
-                // Global render pass data containing various settings.
-                // x,y,z are currently unused
-                // w is used for knowing whether the object is opaque(1) or alpha blended(0)
-                Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (data.m_IsOpaque) ? 1.0f : 0.0f);
-                cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
+                activeDebugHandler.DrawWithRendererList(cmd);
+            }
+            else
+            {
+                cmd.DrawRendererList(rendererList);
+                // Render objects that did not match any shader pass with error shader
+                RenderingUtils.DrawRendererListObjectsWithError(cmd, ref objectsWithErrorRendererList);
+            }
+        }
 
-                // scaleBias.x = flipSign
-                // scaleBias.y = scale
-                // scaleBias.z = bias
-                // scaleBias.w = unused
-                float flipSign = yFlip ? -1.0f : 1.0f;
-                Vector4 scaleBias = (flipSign < 0.0f)
-                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
+        /// <summary>
+        /// Shared pass data
+        /// </summary>
+        internal class PassData
+        {
+            internal TextureHandle albedoHdl;
+            internal TextureHandle depthHdl;
 
-                // Set a value that can be used by shaders to identify when AlphaToMask functionality may be active
-                // The material shader alpha clipping logic requires this value in order to function correctly in all cases.
-                float alphaToMaskAvailable = ((renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1) && data.m_IsOpaque) ? 1.0f : 0.0f;
-                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, alphaToMaskAvailable);
+            internal RenderingData renderingData;
+            internal bool isOpaque;
+            internal bool shouldTransparentsReceiveShadows;
+            internal RendererListHandle rendererListHdl;
+            internal RendererListHandle objectsWithErrorRendererListHdl;
 
-                // TODO RENDERGRAPH: once RenderLists land we should be able to remove these 2 lines
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+            // Required for code sharing purpose between RG and non-RG.
+            internal RendererList rendererList;
+            internal RendererList objectsWithErrorRendererList;
+        }
 
-                Camera camera = renderingData.cameraData.camera;
-                var sortFlags = (data.m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
-                if (renderingData.cameraData.renderer.useDepthPriming && data.m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
-                    sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
+        /// <summary>
+        /// Initialize the shared pass data.
+        /// </summary>
+        /// <param name="passData"></param>
+        internal void InitPassData(ref RenderingData renderingData, ref PassData passData)
+        {
+            passData.isOpaque = m_IsOpaque;
+            passData.shouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
+        }
 
-                var filterSettings = data.m_FilteringSettings;
+        private void InitRendererLists(ref RenderingData renderingData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
+        {
+            ref Camera camera = ref renderingData.cameraData.camera;
+            var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
+            if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+                sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
 
+            var filterSettings = m_FilteringSettings;
 #if UNITY_EDITOR
                 // When rendering the preview camera, we want the layer mask to be forced to Everything
                 if (renderingData.cameraData.isPreviewCamera)
@@ -166,113 +191,82 @@ namespace UnityEngine.Rendering.Universal.Internal
                     filterSettings.layerMask = -1;
                 }
 #endif
+            DrawingSettings drawSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+            if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+            {
+                m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
+                m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
+            else if (m_RenderStateBlock.depthState.compareFunction == CompareFunction.Equal)
+            {
+                m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.LessEqual);
+                m_RenderStateBlock.mask |= RenderStateMask.Depth;
+            }
 
-                DrawingSettings drawSettings = RenderingUtils.CreateDrawingSettings(data.m_ShaderTagIdList, ref renderingData, sortFlags);
-
-                var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            var activeDebugHandler = GetActiveDebugHandler(ref renderingData);
+            if (useRenderGraph)
+            {
                 if (activeDebugHandler != null)
                 {
-                    activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref data.m_RenderStateBlock,
-                        (ScriptableRenderContext ctx, CommandBuffer cmd, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
-                        {
-                            RenderingUtils.DrawRendererListWithRenderStateBlock(ctx, cmd, data, ds, fs, rsb);
-                        });
+                    activeDebugHandler.CreateRendererListWithDebugRenderState(renderGraph, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
                 }
                 else
                 {
-                    RenderingUtils.DrawRendererListWithRenderStateBlock(context, cmd, renderingData, drawSettings, filterSettings, data.m_RenderStateBlock);
-
-                    // Render objects that did not match any shader pass with error shader
-                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None, cmd);
+                    RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, drawSettings, filterSettings, m_RenderStateBlock, ref passData.rendererListHdl);
+                    RenderingUtils.CreateRendererListObjectsWithError(renderGraph, ref renderingData.cullResults, camera, filterSettings, sortFlags, ref passData.objectsWithErrorRendererListHdl);
                 }
-
-
             }
-        }
-
-        /// <summary>
-        /// Shared pass data
-        /// </summary>
-        protected class PassData
-        {
-            internal TextureHandle m_Albedo;
-            internal TextureHandle m_Depth;
-
-            internal RenderingData m_RenderingData;
-
-            internal bool m_IsOpaque;
-            internal RenderStateBlock m_RenderStateBlock;
-            internal FilteringSettings m_FilteringSettings;
-            internal List<ShaderTagId> m_ShaderTagIdList;
-            internal ProfilingSampler m_ProfilingSampler;
-
-            internal bool m_ShouldTransparentsReceiveShadows;
+            else
+            {
+                if (activeDebugHandler != null)
+                {
+                    activeDebugHandler.CreateRendererListWithDebugRenderState(context, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                }
+                else
+                {
+                    RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, drawSettings, filterSettings, m_RenderStateBlock, ref passData.rendererList);
+                    RenderingUtils.CreateRendererListObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, sortFlags, ref passData.objectsWithErrorRendererList);
+                }
+            }
         }
 
         internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<PassData>("Draw Objects Pass", out var passData,
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Objects Pass", out var passData,
                 m_ProfilingSampler))
             {
-                passData.m_Albedo = builder.UseColorBuffer(colorTarget, 0);
-                passData.m_Depth = builder.UseDepthBuffer(depthTarget, DepthAccess.Write);
+                InitPassData(ref renderingData, ref passData);
+                passData.renderingData = renderingData;
 
+                passData.albedoHdl = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.depthHdl = builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
                 if (mainShadowsTexture.IsValid())
-                    builder.ReadTexture(mainShadowsTexture);
+                    builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 if (additionalShadowsTexture.IsValid())
-                    builder.ReadTexture(additionalShadowsTexture);
+                    builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                passData.m_RenderingData = renderingData;
+                InitRendererLists(ref renderingData, ref passData, default(ScriptableRenderContext), renderGraph, true);
+                builder.UseRendererList(passData.rendererListHdl);
+                builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
 
                 builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
-                InitPassData(ref passData);
-
-                passData.m_ShouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
-
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    RenderGraphRenderFunc(data, context, false);
+                    ref var renderingData = ref data.renderingData;
+
+                    // Currently we only need to call this additional pass when the user
+                    // doesn't want transparent objects to receive shadows
+                    if (!data.isOpaque && !data.shouldTransparentsReceiveShadows)
+                        TransparentSettingsPass.ExecutePass(context.cmd, data.shouldTransparentsReceiveShadows);
+
+                    bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.albedoHdl, data.depthHdl);
+
+                    ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, ref renderingData, yFlip);
                 });
 
             }
-        }
-
-        /// <summary>
-        /// Initialize the shared pass data.
-        /// </summary>
-        /// <param name="passData"></param>
-        protected void InitPassData(ref PassData passData)
-        {
-            passData.m_IsOpaque = m_IsOpaque;
-            passData.m_RenderStateBlock = m_RenderStateBlock;
-            passData.m_FilteringSettings = m_FilteringSettings;
-            passData.m_ShaderTagIdList = m_ShaderTagIdList;
-            passData.m_ProfilingSampler = m_ProfilingSampler;
-        }
-
-        /// <summary>
-        /// Shared DrawObject RenderGraph render function
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="context"></param>
-        /// <param name="isRenderingLayersPass"></param>
-        protected static void RenderGraphRenderFunc(PassData data, RenderGraphContext context, bool isRenderingLayersPass)
-        {
-            ref var renderingData = ref data.m_RenderingData;
-
-            // Currently we only need to call this additional pass when the user
-            // doesn't want transparent objects to receive shadows
-            if (!data.m_IsOpaque && !data.m_ShouldTransparentsReceiveShadows)
-                TransparentSettingsPass.ExecutePass(context.cmd, data.m_ShouldTransparentsReceiveShadows);
-
-            bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.m_Albedo, data.m_Depth);
-            CameraSetup(context.cmd, data, ref renderingData);
-
-            if (isRenderingLayersPass)
-                CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
-
-            ExecutePass(context.renderContext, data, ref renderingData, yFlip);
         }
     }
 
@@ -350,36 +344,43 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle renderingLayersTexture, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, ref RenderingData renderingData)
         {
-            using (var builder = renderGraph.AddRenderPass<RenderingLayersPassData>("Draw Objects With Rendering Layers Pass", out var passData,
+            using (var builder = renderGraph.AddRasterRenderPass<RenderingLayersPassData>("Draw Objects With Rendering Layers Pass", out var passData,
                 m_ProfilingSampler))
             {
-                passData.basePassData.m_Albedo = builder.UseColorBuffer(colorTarget, 0);
-                builder.UseColorBuffer(renderingLayersTexture, 1);
-                passData.basePassData.m_Depth = builder.UseDepthBuffer(depthTarget, DepthAccess.Write);
-
-                if (mainShadowsTexture.IsValid())
-                    builder.ReadTexture(mainShadowsTexture);
-                if (additionalShadowsTexture.IsValid())
-                    builder.ReadTexture(additionalShadowsTexture);
-
-                passData.basePassData.m_RenderingData = renderingData;
-
-                builder.AllowPassCulling(false);
-
-                InitPassData(ref passData.basePassData);
-
-                passData.basePassData.m_ShouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
+                InitPassData(ref renderingData, ref passData.basePassData);
+                passData.basePassData.renderingData = renderingData;
                 passData.maskSize = maskSize;
 
-                builder.SetRenderFunc((RenderingLayersPassData data, RenderGraphContext context) =>
+                passData.basePassData.albedoHdl = builder.UseTextureFragment(colorTarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTextureFragment(renderingLayersTexture, 1, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.basePassData.depthHdl = builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                if (mainShadowsTexture.IsValid())
+                    builder.UseTexture(mainShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                if (additionalShadowsTexture.IsValid())
+                    builder.UseTexture(additionalShadowsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+
+                builder.AllowPassCulling(false);
+                // Required here because of RenderingLayerUtils.SetupProperties
+                builder.AllowGlobalStateModification(true);
+
+                builder.SetRenderFunc((RenderingLayersPassData data, RasterGraphContext context) =>
                 {
                     CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
 
                     RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
 
-                    RenderGraphRenderFunc(data.basePassData, context, false);
-                });
+                    ref var renderingData = ref data.basePassData.renderingData;
 
+                    // Currently we only need to call this additional pass when the user
+                    // doesn't want transparent objects to receive shadows
+                    if (!data.basePassData.isOpaque && !data.basePassData.shouldTransparentsReceiveShadows)
+                        TransparentSettingsPass.ExecutePass(context.cmd, data.basePassData.shouldTransparentsReceiveShadows);
+
+                    bool yFlip = renderingData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.basePassData.albedoHdl, data.basePassData.depthHdl);
+
+                    CoreUtils.SetKeyword(context.cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+                    ExecutePass(context.cmd, data.basePassData, data.basePassData.rendererListHdl, data.basePassData.objectsWithErrorRendererListHdl, ref renderingData, yFlip);
+                });
             }
         }
     }

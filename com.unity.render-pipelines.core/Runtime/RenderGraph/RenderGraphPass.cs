@@ -33,8 +33,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public List<RendererListHandle> usedRendererListList = new List<RendererListHandle>();
 
-        public List<RendererListHandle> dependsOnRendererListList = new List<RendererListHandle>();
-
         public RenderGraphPass()
         {
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
@@ -58,7 +56,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             usedRendererListList.Clear();
-            dependsOnRendererListList.Clear();
             enableAsyncCompute = false;
             allowPassCulling = true;
             allowRendererListCulling = true;
@@ -160,11 +157,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             usedRendererListList.Add(rendererList);
         }
 
-        public void DependsOnRendererList(RendererListHandle rendererList)
-        {
-            dependsOnRendererListList.Add(rendererList);
-        }
-
         public void EnableAsyncCompute(bool value)
         {
             enableAsyncCompute = value;
@@ -261,10 +253,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         where PassData : class, new()
     {
         internal BaseRenderFunc<PassData, RenderGraphContext> renderFunc;
-
+        internal static RenderGraphContext c = new RenderGraphContext();
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
-            var c = new RenderGraphContext(); //This new prevents context from being a generic argument, it confuses IL2CPP when generic, it doesn't know it will be a struct and always box the object. Mono seems to not have this problem.
             c.FromInternalContext(renderGraphContext);
             renderFunc(data, c);
         }
@@ -291,10 +282,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     where PassData : class, new()
     {
         internal BaseRenderFunc<PassData, ComputeGraphContext> renderFunc;
-
+        internal static ComputeGraphContext c = new ComputeGraphContext(); 
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
-            var c = new ComputeGraphContext(); //This new prevents context from being a generic argument, it confuses IL2CPP when generic, it doesn't know it will be a struct and always box the object. Mono seems to not have this problem.
             c.FromInternalContext(renderGraphContext);
             renderFunc(data, c);
         }
@@ -321,12 +311,41 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     where PassData : class, new()
     {
         internal BaseRenderFunc<PassData, RasterGraphContext> renderFunc;
+        internal static RasterGraphContext c = new RasterGraphContext();
+        public override void Execute(InternalRenderGraphContext renderGraphContext)
+        {
+            c.FromInternalContext(renderGraphContext);
+           renderFunc(data, c);
+        }
+
+        public override void Release(RenderGraphObjectPool pool)
+        {
+            Clear();
+            pool.Release(data);
+            data = null;
+            renderFunc = null;
+
+            // We need to do the release from here because we need the final type.
+            pool.Release(this);
+        }
+
+        public override bool HasRenderFunc()
+        {
+            return renderFunc != null;
+        }
+    }
+
+    [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
+    internal sealed class LowLevelRenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
+    where PassData : class, new()
+    {
+        internal BaseRenderFunc<PassData, LowLevelGraphContext> renderFunc;
+        internal static LowLevelGraphContext c = new LowLevelGraphContext();
 
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
-            var c = new RasterGraphContext(); //This new prevents context from being a generic argument, it confuses IL2CPP when generic, it doesn't know it will be a struct and always box the object. Mono seems to not have this problem.
             c.FromInternalContext(renderGraphContext);
-           renderFunc(data, c);
+            renderFunc(data, c);
         }
 
         public override void Release(RenderGraphObjectPool pool)

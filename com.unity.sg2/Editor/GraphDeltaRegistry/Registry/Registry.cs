@@ -31,8 +31,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         //TODO(Liz) - This _was_ Name.Version but that obviously was an issue with the defaultTopo structure
         //thinking this was a path...discussion and investigation into longterm ramifications needed
         public override string ToString() => $"{Name}_{Version}";
-        public override int GetHashCode() => ToString().GetHashCode();
-        public override bool Equals(object obj) => obj is RegistryKey rk && rk.ToString().Equals(this.ToString());
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Version);
+        }
+
+        public bool Equals(RegistryKey other)
+        {
+            return Name == other.Name && Version == other.Version;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is RegistryKey other && Equals(other);
+        }
 
         public RegistryKey(SerializationInfo info, StreamingContext context)
         {
@@ -44,6 +58,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             info.AddValue("Name", Name);
             info.AddValue("Version", Version);
+        }
+
+        public bool Valid()
+        {
+            return Name != default;
         }
     }
 
@@ -61,21 +80,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public IEnumerable<ContextEntry> GetEntries()
             => new List<ContextEntry>()
             {
-                new ContextEntry {
+                new ContextEntry
+                {
                     fieldName = "ObjectSpacePosition",
                     precision = GraphType.Precision.Single,
                     primitive = GraphType.Primitive.Float,
                     length = GraphType.Length.Three,
                     height = GraphType.Height.One
                 },
-                new ContextEntry {
+                new ContextEntry
+                {
                     fieldName = "ObjectSpaceNormal",
                     precision = GraphType.Precision.Single,
                     primitive = GraphType.Primitive.Float,
                     length = GraphType.Length.Three,
                     height = GraphType.Height.One
                 },
-                new ContextEntry {
+                new ContextEntry
+                {
                     fieldName = "ObjectSpaceTangent",
                     precision = GraphType.Precision.Single,
                     primitive = GraphType.Primitive.Float,
@@ -84,7 +106,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
             };
 
-public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
         public RegistryKey GetRegistryKey() => new RegistryKey() { Name = "MaterialPropertyContext", Version = 1 };
     }
 

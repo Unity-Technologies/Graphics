@@ -24,12 +24,15 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "a constant, single-channel, whole number value",
             category: "Input/Basic",
             synonyms: new string[1] { "whole number" },
+            description: "pkg://Documentation~/previews/Integer.md",
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
-                    name: "IntConst"
+                    name: "IntConst",
+                    displayName: string.Empty
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a single channel value without a decimal"
                 )
             }

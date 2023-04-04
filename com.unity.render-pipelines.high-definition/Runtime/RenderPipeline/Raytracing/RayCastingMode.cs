@@ -15,12 +15,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// When selected, ray tracing is used to evaluate ray intersections.
         /// </summary>
-        [InspectorName("Ray Tracing (Preview)")]
+        [InspectorName("Ray Tracing")]
         RayTracing = 1 << 1,
         /// <summary>
         /// When selected, both ray marching and ray tracing are used to evaluate ray intersections.
         /// </summary>
-        [InspectorName("Mixed (Preview)")]
+        [InspectorName("Mixed")]
         Mixed = 1 << 2,
     }
 

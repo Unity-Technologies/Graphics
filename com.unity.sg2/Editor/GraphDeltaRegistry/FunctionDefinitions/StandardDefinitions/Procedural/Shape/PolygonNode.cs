@@ -47,6 +47,7 @@ namespace UnityEditor.ShaderGraph.Defs
             tooltip: "Creates a polygon of the specified size and shape.",
             category: "Procedural/Shape",
             synonyms: new string[1] { "Shape" },
+            description: "pkg://Documentation~/previews/Polygon.md",
             parameters: new ParameterUIDescriptor[5] {
                 new ParameterUIDescriptor(
                     name: "UV",
@@ -67,6 +68,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a polygon shape with the given dimensions"
                 )
             }

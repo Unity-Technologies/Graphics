@@ -258,6 +258,7 @@ Shader "Hidden/HDRP/WaterFoam"
             }
             float4 Frag(Varyings input) : SV_Target
             {
+                // Attenuation formula must be in sync with UpdateWaterFoamSimulation in C#
                 return float4(SAMPLE_TEXTURE2D_LOD(_WaterFoamBuffer, s_linear_clamp_sampler, input.texcoord, 0).xy, 0.0, exp(-_DeltaTime * _FoamPersistenceMultiplier * 0.5));
             }
             ENDHLSL
