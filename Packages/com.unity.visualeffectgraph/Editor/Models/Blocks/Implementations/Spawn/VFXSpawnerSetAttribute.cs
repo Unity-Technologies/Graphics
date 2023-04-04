@@ -34,10 +34,18 @@ namespace UnityEditor.VFX.Block
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProviderSpawner))]
-        public string attribute = VFXAttribute.AllReadWritable.First();
+        public string attribute;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public RandomMode randomMode = RandomMode.Off;
+
+        private bool attributeIsValid
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(attribute);
+            }
+        }
 
         private VFXAttribute currentAttribute
         {
@@ -51,20 +59,23 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var attrib = currentAttribute;
-
-                VFXPropertyAttributes attr = new VFXPropertyAttributes();
-                if (attrib.Equals(VFXAttribute.Color))
-                    attr = new VFXPropertyAttributes(new ShowAsColorAttribute());
-
-                Type slotType = VFXExpression.TypeToType(attrib.type);
-
-                if (randomMode == RandomMode.Off)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, currentAttribute.name, attr), currentAttribute.value.GetContent());
-                else
+                if (attributeIsValid)
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min", attr), currentAttribute.value.GetContent());
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max", attr), currentAttribute.value.GetContent());
+                    var attrib = currentAttribute;
+
+                    VFXPropertyAttributes attr = new VFXPropertyAttributes();
+                    if (attrib.Equals(VFXAttribute.Color))
+                        attr = new VFXPropertyAttributes(new ShowAsColorAttribute());
+
+                    Type slotType = VFXExpression.TypeToType(attrib.type);
+
+                    if (randomMode == RandomMode.Off)
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, currentAttribute.name, attr), currentAttribute.value.GetContent());
+                    else
+                    {
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min", attr), currentAttribute.value.GetContent());
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max", attr), currentAttribute.value.GetContent());
+                    }
                 }
             }
         }
@@ -73,6 +84,9 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                if (!attributeIsValid)
+                    return Enumerable.Empty<VFXNamedExpression>();
+
                 int size = VFXExpression.TypeToSize(currentAttribute.type);
 
                 if (randomMode == RandomMode.Off)
@@ -106,7 +120,15 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override string name { get { return string.Format("Set SpawnEvent {0} {1}", ObjectNames.NicifyVariableName(attribute), VFXBlockUtility.GetNameString(randomMode)); } }
+        public override string name
+        {
+            get
+            {
+                if (!attributeIsValid)
+                    return string.Empty;
+                return $"Set SpawnEvent {ObjectNames.NicifyVariableName(attribute)} {VFXBlockUtility.GetNameString(randomMode)}";
+            }
+        }
         public override VFXTaskType spawnerType { get { return VFXTaskType.SetAttributeSpawner; } }
     }
 }
