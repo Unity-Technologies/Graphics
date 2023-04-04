@@ -39,7 +39,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         //Counters / singleton lights for shadows etc
         public int currentShadowSortedSunLightIndex => m_CurrentShadowSortedSunLightIndex;
-        public HDAdditionalLightData currentSunLightAdditionalLightData => m_CurrentSunLightAdditionalLightData;
         public HDProcessedVisibleLightsBuilder.ShadowMapFlags currentSunShadowMapFlags => m_CurrentSunShadowMapFlags;
         public DirectionalLightData currentSunLightDirectionalLightData => m_CurrentSunLightDirectionalLightData;
         public int contactShadowIndex => m_ContactShadowIndex;
@@ -188,7 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private HashSet<HDAdditionalLightData> m_ScreenSpaceShadowsUnion = new HashSet<HDAdditionalLightData>();
 
         private int m_CurrentShadowSortedSunLightIndex = -1;
-        private HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         private HDProcessedVisibleLightsBuilder.ShadowMapFlags m_CurrentSunShadowMapFlags = HDProcessedVisibleLightsBuilder.ShadowMapFlags.None;
         private DirectionalLightData m_CurrentSunLightDirectionalLightData;
 

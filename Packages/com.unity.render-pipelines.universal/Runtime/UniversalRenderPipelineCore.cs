@@ -822,6 +822,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int cosTime = Shader.PropertyToID("_CosTime");
         public static readonly int deltaTime = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int timeParameters = Shader.PropertyToID("_TimeParameters");
+        public static readonly int lastTimeParameters = Shader.PropertyToID("_LastTimeParameters");
 
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
@@ -1151,6 +1152,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Normal maps. </summary>
         public const string _NORMALMAP = "_NORMALMAP";
+
+        /// <summary> Keyword used for Alembic precomputed velocity. </summary>
+        public const string _ADD_PRECOMPUTED_VELOCITY = "_ADD_PRECOMPUTED_VELOCITY";
 
         /// <summary> Keyword used for editor visualization. </summary>
         public const string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";

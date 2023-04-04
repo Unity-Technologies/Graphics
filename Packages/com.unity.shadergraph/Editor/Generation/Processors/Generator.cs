@@ -662,7 +662,7 @@ namespace UnityEditor.ShaderGraph
             // Get active fields from upstream Node requirements
             Profiler.BeginSample("GetActiveFieldsFromUpstreamNodes");
             ShaderGraphRequirementsPerKeyword graphRequirements;
-            GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes,
+            GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes, new bool[4] { false, false, false, false },
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
             Profiler.EndSample();
 
@@ -808,6 +808,12 @@ namespace UnityEditor.ShaderGraph
                 spliceCommands.Add("PassKeywords", command);
             }
             Profiler.EndSample();
+
+            List<StructDescriptor> originalPassStructs = new List<StructDescriptor>(passStructs);
+
+            // Note: The code below is copy/pasted into GeneratePassStructsAndInterpolators() in GeneratorDerivativeUtils.cs. If any changes are made to this code,
+            // then a corresponding change needs to be made in that function.
+
             // -----------------------------
             // Generated structs and Packing code
             Profiler.BeginSample("StructsAndPacking");
@@ -892,6 +898,8 @@ namespace UnityEditor.ShaderGraph
                 passStructBuilder.AppendLine("//Pass Structs: <None>");
             spliceCommands.Add("PassStructs", passStructBuilder.ToCodeBlock());
             Profiler.EndSample();
+            // Note: End of code copy/pasted into GeneratePassStructsAndInterpolators() in GeneratorDerivativeUtils.cs.
+
 
             // --------------------------------------------------
             // Graph Vertex
@@ -1147,6 +1155,24 @@ namespace UnityEditor.ShaderGraph
                 string command = GenerationUtils.GetSpliceCommand(postGraphIncludeBuilder.ToCodeBlock(), "PostGraphIncludes");
                 spliceCommands.Add("PostGraphIncludes", command);
             }
+
+            GeneratorDerivativeUtils.ApplyAnalyticDerivatives(
+                m_Targets[targetIndex],
+                spliceCommands,
+                pass,
+                activeFields,
+                subShaderProperties,
+                propertyCollector,
+                keywordCollector,
+                vertexNodes,
+                pixelNodes,
+                vertexNodePermutations,
+                pixelNodePermutations,
+                originalPassStructs,
+                pass.analyticDerivativesApplyEmulate,
+                m_HumanReadable,
+                m_PrimaryShaderFullName,
+                m_GraphData.graphDefaultConcretePrecision);
 
             // --------------------------------------------------
             // Debug

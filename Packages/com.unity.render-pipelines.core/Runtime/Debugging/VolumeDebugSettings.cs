@@ -113,7 +113,8 @@ namespace UnityEngine.Rendering
         static List<(string, Type)> s_ComponentPathAndType;
 
         /// <summary>List of Volume component types.</summary>
-        public List<(string, Type)> volumeComponentsPathAndType => s_ComponentPathAndType ??= VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline, GraphicsSettings.currentRenderPipelineAssetType);
+        public List<(string, Type)> volumeComponentsPathAndType =>
+            s_ComponentPathAndType ??= VolumeManager.instance.GetVolumeComponentsForDisplay(targetRenderPipeline);
 
         /// <summary>
         /// Specifies the render pipeline for this volume settings

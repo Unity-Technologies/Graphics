@@ -321,12 +321,6 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle destination;
         }
 
-        private class OcclusionPassData
-        {
-            internal SetupPassData setupPassData;
-            internal PassData occlusionData;
-        }
-
         private void InitSetupPassData(ref SetupPassData data)
         {
             // Fill in the Pass data...
@@ -356,8 +350,11 @@ namespace UnityEngine.Rendering.Universal
                                        out TextureHandle blurTexture,
                                        out TextureHandle finalTexture);
 
-            // Setup up keywords and parameters + Ambient Occlusion Pass...
-            ExecuteOcclusionPass(renderGraph, frameResources, in aoTexture, ref renderingData);
+            // Setup up keywords and parameters...
+            ExecuteSetupPass(renderGraph, frameResources, ref renderingData);
+
+            // Ambient Occlusion Pass...
+            ExecuteOcclusionPass(renderGraph, frameResources, in aoTexture);
 
             // Blur & Upsample Passes...
             switch (m_BlurType)
@@ -378,6 +375,35 @@ namespace UnityEngine.Rendering.Universal
             // The global SSAO texture only needs to be set if After Opaque is disabled...
             if (!m_CurrentSettings.AfterOpaque)
                 RenderGraphUtils.SetGlobalTexture(renderGraph,k_SSAOTextureName, finalTexture, "Set SSAO Texture");
+        }
+
+        private void ExecuteSetupPass(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        {
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<SetupPassData>("SSAO_Setup", out var passData, m_ProfilingSampler))
+            {
+                // Initialize the pass data
+                InitSetupPassData(ref passData);
+                passData.renderingData = renderingData;
+                UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+                passData.cameraColor = frameResources.GetTexture(UniversalResource.CameraColor);
+
+                // Shader keyword changes are considered as global state modifications
+                builder.AllowGlobalStateModification(true);
+                builder.AllowPassCulling(false);
+
+                // Set up the builder
+                builder.SetRenderFunc((SetupPassData data, RasterGraphContext rgContext) =>
+                {
+                    if (data.cameraColor.IsValid())
+                        PostProcessUtils.SetSourceSize(rgContext.cmd, data.cameraColor);
+
+                    SetupKeywordsAndParameters(ref data, ref data.renderingData);
+
+                    // We only want URP shaders to sample SSAO if After Opaque is disabled...
+                    if (!data.settings.AfterOpaque)
+                        CoreUtils.SetKeyword(rgContext.cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
+                });
+            }
         }
 
         private void CreateRenderTextureHandles(RenderGraph renderGraph, ref UniversalRenderer renderer, ref RenderingData renderingData, out TextureHandle aoTexture, out TextureHandle blurTexture, out TextureHandle finalTexture)
@@ -406,23 +432,14 @@ namespace UnityEngine.Rendering.Universal
                 renderer.resources.SetTexture(UniversalResource.SSAOTexture, finalTexture);
         }
 
-        private void ExecuteOcclusionPass(RenderGraph renderGraph, FrameResources frameResources, in TextureHandle aoTexture, ref RenderingData renderingData)
+        private void ExecuteOcclusionPass(RenderGraph renderGraph, FrameResources frameResources, in TextureHandle aoTexture)
         {
-            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<OcclusionPassData>("SSAO_Occlusion", out var passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("SSAO_Occlusion", out PassData passData, m_ProfilingSampler))
             {
-                passData.occlusionData = new PassData();
-                passData.setupPassData = new SetupPassData();
-
                 // Initialize the pass data
-                passData.occlusionData.source = aoTexture;
-                passData.occlusionData.material = m_Material;
-                passData.occlusionData.shaderPassID = (int)ShaderPasses.AmbientOcclusion;
-
-                // Initialize the setup pass data
-                InitSetupPassData(ref passData.setupPassData);
-                passData.setupPassData.renderingData = renderingData;
-                UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                passData.setupPassData.cameraColor = frameResources.GetTexture(UniversalResource.CameraColor);
+                passData.source = aoTexture;
+                passData.material = m_Material;
+                passData.shaderPassID = (int)ShaderPasses.AmbientOcclusion;
 
                 // Set up the builder
                 builder.UseTextureFragment(aoTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
@@ -437,22 +454,7 @@ namespace UnityEngine.Rendering.Universal
                     if (cameraNormalsTexture.IsValid())
                         builder.UseTexture(cameraNormalsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
 
-                builder.AllowGlobalStateModification(true);
-
-                builder.SetRenderFunc((OcclusionPassData data, RasterGraphContext rgContext) =>
-                {
-                    ref SetupPassData setupPassData = ref data.setupPassData;
-                    if (setupPassData.cameraColor.IsValid())
-                       PostProcessUtils.SetSourceSize(rgContext.cmd, setupPassData.cameraColor);
-
-                   SetupKeywordsAndParameters(ref setupPassData, ref setupPassData.renderingData);
-
-                   // We only want URP shaders to sample SSAO if After Opaque is disabled...
-                   if (!setupPassData.settings.AfterOpaque)
-                       CoreUtils.SetKeyword(rgContext.cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
-
-                    RenderGraphRenderFunc(data.occlusionData, rgContext);
-                });
+                builder.SetRenderFunc<PassData>((data, context) => RenderGraphRenderFunc(data, context));
             }
         }
 

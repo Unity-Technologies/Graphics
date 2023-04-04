@@ -66,7 +66,7 @@ public class BaseGraphicsTests
 
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings.ImageComparisonSettings);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
             }
             catch (Exception e)
             {

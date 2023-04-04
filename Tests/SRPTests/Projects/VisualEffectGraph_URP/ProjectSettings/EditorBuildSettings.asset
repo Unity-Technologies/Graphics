@@ -125,4 +125,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicsTests/Instancing/InstancingBatch.unity
     guid: 6226140a2b65b294fbe0a07b323ab6c0
+  - enabled: 1
+    path: Assets/GraphicsTests/106_URPDecals/106_URPDecals.unity
+    guid: 7e1dad271e7c87e43beed7912ced2d03
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

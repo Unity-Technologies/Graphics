@@ -605,7 +605,7 @@ namespace UnityEditor.VFX
                     yield return "sortMode";
                     yield return "revertSorting";
                 }
-                if (!VFXViewPreference.displayExperimentalOperator)
+                if (!VFXViewPreference.displayExperimentalOperator || !VFXLibrary.currentSRPBinder.GetSupportsRayTracing())
                     yield return "enableRayTracing";
                 if (!isRayTraced)
                 {

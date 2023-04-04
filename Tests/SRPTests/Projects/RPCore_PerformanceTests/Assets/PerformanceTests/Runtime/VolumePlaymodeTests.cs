@@ -22,6 +22,8 @@ namespace PerformanceTests.Runtime
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
+            VolumeManager.instance.Initialize();
+
             m_VolumeProfile = ScriptableObject.CreateInstance<VolumeProfile>();
 
             const int numCustomVolumeTypes = 50;
@@ -37,6 +39,7 @@ namespace PerformanceTests.Runtime
         public void OneTimeTearDown()
         {
             CoreUtils.Destroy(m_VolumeProfile);
+            VolumeManager.instance.Deinitialize();
         }
 
         protected void CreateVolumes(bool isGlobal, int numVolumes)
@@ -219,10 +222,32 @@ namespace PerformanceTests.Runtime
 
     public class VolumeInitTests
     {
-        [Test, Description("Call VolumeManager constructor"), Performance]
-        public void VolumeManagerConstructor()
+        [Test, Performance]
+        public void VolumeManagerInitialize()
         {
-            Measure.Method(() => { new VolumeManager(); })
+            Measure.Method(() => { new VolumeManager().Initialize(); })
+                .WarmupCount(5)
+                .MeasurementCount(50)
+                .Run();
+        }
+
+        [Test, Performance]
+        public void VolumeManagerSetDefaultProfiles()
+        {
+            var vm = new VolumeManager();
+            vm.Initialize();
+
+            var defaultVolumeProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+
+            const int numCustomVolumeTypes = 50;
+            for (int i = 0; i < numCustomVolumeTypes; i++)
+            {
+                Type t = Type.GetType($"CustomVolume{i+1}");
+                Debug.Assert(t != null);
+                defaultVolumeProfile.Add(t, overrides: true);
+            }
+
+            Measure.Method(() => { vm.SetGlobalDefaultProfile(defaultVolumeProfile); })
                 .WarmupCount(5)
                 .MeasurementCount(50)
                 .Run();

@@ -15,6 +15,21 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 26e7c5c73aa4db043b3fa9560cde2ea1, type: 3}
+    - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
+    - {fileID: 102900000, guid: 50a55af44edbd47579041b1556ed9a58, type: 3}
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 102900000, guid: 9d25fa9f3eb332f4dad8f36653f93a14, type: 3}
+    - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 45
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/PIA-882
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 5ea759cdcf4f74574bc818dbb61b1945, type: 3}
     - {fileID: 102900000, guid: d27c51a5aecee4e0e9c29141a0819c8b, type: 3}
     - {fileID: 102900000, guid: 2236d967c83ebec47b8616c71fb0be17, type: 3}
@@ -61,6 +76,17 @@ MonoBehaviour:
     - {fileID: 102900000, guid: e277e63daf9584a9291edc2c56bcd258, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: Needs MSAA fixing on OpenGLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 94af32c68b09744d9a23b25ef0d62332, type: 3}
+    - {fileID: 102900000, guid: 0bcaa565757b243bba6bd2c007b0977c, type: 3}
+    - {fileID: 102900000, guid: e277e63daf9584a9291edc2c56bcd258, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 45
     GraphicsDevice: 11
     XrSdk: 
     StereoModes: 0
@@ -270,6 +296,16 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
+    - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: UUM-27248
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
     - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
     - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
@@ -300,28 +336,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
-    - {fileID: 102900000, guid: d84ff56928dab4734b69906d7e13638d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-12033
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
-    - {fileID: 102900000, guid: 273840277f52540639fbb7d0903d4c7b, type: 3}
-    - {fileID: 102900000, guid: a0968f13c5aeb489799df4c8d6d0a41a, type: 3}
-    - {fileID: 102900000, guid: d84ff56928dab4734b69906d7e13638d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 38
-    GraphicsDevice: 22
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-12033
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
@@ -376,11 +390,109 @@ MonoBehaviour:
     Reason: Unstable
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
-    - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
     ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 21
+    BuildPlatform: 9
+    GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: UUM-27248
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 20
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 21
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 33
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 37
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 42
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 43
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 46
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only

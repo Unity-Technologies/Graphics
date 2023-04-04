@@ -1,0 +1,244 @@
+#include "Packages/com.unity.render-pipelines.universal/Runtime/VFXGraph/Shaders/VFXLit.hlsl"
+#if !defined(SHADERPASS)
+#error SHADERPASS_is_not_define
+#endif
+
+#ifdef _DECAL_LAYERS
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareRenderingLayerTexture.hlsl"
+#endif
+
+#if defined(DECAL_LOAD_NORMAL)
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
+#endif
+
+#if defined(DECAL_PROJECTOR) || defined(DECAL_RECONSTRUCT_NORMAL)
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+#endif
+
+void GetSurfaceDataFromSurfaceDecalData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
+{
+    surfaceData.albedo = decalSurfaceData.baseColor.rgb;
+    surfaceData.metallic = saturate(decalSurfaceData.metallic);
+    surfaceData.specular = 0;
+    surfaceData.smoothness = saturate(decalSurfaceData.smoothness);
+    surfaceData.occlusion = decalSurfaceData.occlusion;
+    surfaceData.emission = decalSurfaceData.emissive;
+    surfaceData.alpha = saturate(decalSurfaceData.baseColor.w);
+    surfaceData.clearCoatMask = 0;
+    surfaceData.clearCoatSmoothness = 1;
+}
+
+void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, out PositionInputs posInputs, out half3 receiverNormalWS, VFX_VARYING_PS_INPUTS i)
+{
+	ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
+	VFXTransformPSInputs(i);
+
+    float2 positionCS = i.pos.xy;
+    // Only screen space needs flip logic, other passes do not setup needed properties so we skip here
+#if SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR
+    TransformScreenUV(positionCS, _ScreenSize.y);
+#endif
+
+//Check Rendering layer
+#ifdef _DECAL_LAYERS
+    #ifdef _RENDER_PASS_ENABLED
+        uint surfaceRenderingLayer = DecodeMeshRenderingLayer(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, positionCS.xy).r);
+    #else
+        uint surfaceRenderingLayer = LoadSceneRenderingLayer(positionCS.xy);
+    #endif
+    ${VFXLoadParameter:{decalLayerMask}}
+    clip((surfaceRenderingLayer & decalLayerMask) - 0.1);
+#endif
+
+
+#if _RENDER_PASS_ENABLED
+    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy);
+#else
+    float depth = LoadSceneDepth(positionCS.xy);
+#endif
+#if !UNITY_REVERSED_Z
+    depth = lerp(UNITY_NEAR_CLIP_VALUE, 1.0f, depth);
+#endif
+
+    float2 positionSS = i.pos.xy * _ScreenSize.zw;
+	float3 positionWS = ComputeWorldSpacePosition(positionSS, depth, UNITY_MATRIX_I_VP);
+
+    posInputs = GetPositionInput(positionSS, _ScreenSize.zw, positionWS);
+
+	float4x4 worldToElement;
+    worldToElement[0] = i.worldToDecal[0];
+    worldToElement[1] = i.worldToDecal[1];
+    worldToElement[2] = -i.worldToDecal[2];
+	worldToElement[3] = float4(0,0,0,1);
+
+    float3 positionDS = mul(worldToElement, float4(positionWS,1.0f)).xyz;
+
+	clip(0.5f - abs(positionDS));
+
+    worldToElement[2].xyz = VFXSafeNormalize(worldToElement[2].xyz);
+
+	float2 uv = positionDS.xy + float2(0.5, 0.5);
+	VFXUVData uvData = GetUVData(i,uv);
+    float angleFadeFactor = 1.0f;
+
+    receiverNormalWS = half3(0,1,0);
+#if defined(DECAL_RECONSTRUCT_NORMAL)
+    #if defined(_DECAL_NORMAL_BLEND_HIGH)
+        receiverNormalWS = half3(ReconstructNormalTap9(i.pos.xy));
+    #elif defined(_DECAL_NORMAL_BLEND_MEDIUM)
+        receiverNormalWS = half3(ReconstructNormalTap5(i.pos.xy));
+    #else
+        receiverNormalWS = half3(ReconstructNormalDerivative(i.pos.xy));
+    #endif
+#elif defined(DECAL_LOAD_NORMAL)
+        receiverNormalWS = half3(LoadSceneNormals(i.pos.xy));
+#endif
+
+	#ifdef DECAL_ANGLE_FADE
+	if (i.VFX_VARYING_ANGLEFADE.y < 0.0f) // if angle fade is enabled
+	{
+		float3 decalNormal = worldToElement[2].xyz;
+		float dotAngle = dot(receiverNormalWS, decalNormal);
+        float2 angleFade = i.VFX_VARYING_ANGLEFADE;
+		angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
+	}
+	#endif
+
+	float fadeFactor = i.VFX_VARYING_FADEFACTOR;
+	fadeFactor *= angleFadeFactor;
+
+//Compute color even for emissive, to have the correct opacity
+    float4 color = float4(1,1,1,1);
+    #if URP_USE_BASE_COLOR
+        color *= VFXGetParticleColor(i);
+    #elif URP_USE_ADDITIONAL_BASE_COLOR
+        #if defined(VFX_VARYING_COLOR)
+        color.xyz *= i.VFX_VARYING_COLOR;
+        #endif
+        #if defined(VFX_VARYING_ALPHA)
+        color.a *= i.VFX_VARYING_ALPHA;
+        #endif
+    #endif
+    #if URP_USE_BASE_COLOR_MAP
+        float4 colorMap = SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
+        #if URP_USE_BASE_COLOR_MAP_COLOR
+        color.xyz *= colorMap.xyz;
+        #endif
+        #if URP_USE_BASE_COLOR_MAP_ALPHA
+        color.a *= colorMap.a;
+        #endif
+    #endif
+	color.a *= fadeFactor;
+    VFXClipFragmentColor(color.a,i);
+
+    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
+
+        surfaceData.baseColor.rgb = saturate(color.rgb);
+	    surfaceData.baseColor.a = color.a;
+
+	    float albedoMapBlend = surfaceData.baseColor.a;
+	    float maskMapBlend = fadeFactor;
+
+        surfaceData.metallic = 0.0f;
+        surfaceData.occlusion = 1.0f;
+
+        #ifdef VFX_VARYING_METALLIC
+            surfaceData.metallic = i.VFX_VARYING_METALLIC;
+        #endif
+        #ifdef VFX_VARYING_AMBIENT_OCCLUSION
+            surfaceData.occlusion *= i.VFX_VARYING_AMBIENT_OCCLUSION;
+        #endif
+
+        surfaceData.smoothness = 0.5f;
+        #ifdef VFX_VARYING_SMOOTHNESS
+            surfaceData.smoothness = i.VFX_VARYING_SMOOTHNESS;
+        #endif
+
+        float4 metallicMapSample = (float4)1.0f;
+        float4 specularMapSample = (float4)1.0f;
+        #if URP_USE_METALLIC_MAP
+            metallicMapSample = SampleTexture(VFX_SAMPLER(metallicMap), uvData);
+            surfaceData.metallic *= metallicMapSample.r;
+        #endif
+
+        #if URP_USE_OCCLUSION_MAP
+            float4 mask = SampleTexture(VFX_SAMPLER(occlusionMap),uvData);
+            surfaceData.occlusion *= mask.g;
+        #endif
+
+        #if URP_USE_SMOOTHNESS_IN_ALBEDO
+            surfaceData.smoothness *= albedoMapBlend;
+        #elif URP_USE_SMOOTHNESS_IN_METALLIC
+            surfaceData.smoothness *= metallicMapSample.a;
+        #elif URP_USE_SMOOTHNESS_IN_SPECULAR
+            surfaceData.smoothness *= albedoMapBlend;//TODO: Not implemented yet;
+        #endif
+
+        #if  VFX_MAOS_BLEND_BASE_COLOR_ALPHA
+	        surfaceData.MAOSAlpha = albedoMapBlend;
+        #elif VFX_MAOS_BLEND_METALLIC_BLUE
+	        surfaceData.MAOSAlpha = maskMapBlend;
+        #endif
+
+        float normalAlpha = 1.0f;
+
+    //No Decal Surface Gradient found in URP implementation of Decals, to verify with Lukas
+        #if USE_NORMAL_MAP
+            float3 normalTS = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+        #else //USE_NORMAL_MAP
+	        float3 normalTS = float3(0.0f,0.0f,1.0f);
+	    #endif //USE_NORMAL_MAP
+        float3 normalWS =  mul(normalTS, (float3x3)worldToElement);
+	    normalWS = normalize(normalWS);
+
+	    surfaceData.normalWS.xyz = normalWS;
+        #ifdef VFX_VARYING_NORMALALPHA
+            surfaceData.normalWS.w = i.VFX_VARYING_NORMALALPHA;
+        #else
+            surfaceData.normalWS.w = 0.0f;
+        #endif
+
+	    #if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA
+	        surfaceData.normalWS.w *= albedoMapBlend;
+	    #elif VFX_NORMAL_BLEND_METALLIC_BLUE
+	        surfaceData.normalWS.w *= maskMapBlend;
+	    #endif
+    #endif
+
+	#if (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)  || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
+        surfaceData.baseColor.a = color.a;
+        surfaceData.emissive = float3(1,1,1) * fadeFactor;
+        #if defined(VFX_VARYING_EMISSIVE) && (URP_USE_EMISSIVE_COLOR || URP_USE_ADDITIONAL_EMISSIVE_COLOR)
+		    surfaceData.emissive *= i.VFX_VARYING_EMISSIVE;
+		#else
+            surfaceData.emissive = float3(0,0,0);
+        #endif
+		#ifdef URP_USE_EMISSIVE_MAP
+		    float emissiveScale = 1.0f;
+		    #ifdef VFX_VARYING_EMISSIVESCALE
+		        emissiveScale = i.VFX_VARYING_EMISSIVESCALE;
+		    #endif
+		    surfaceData.emissive *= SampleTexture(VFX_SAMPLER(emissiveMap), uvData).rgb * emissiveScale;
+		#endif
+	#endif
+}
+
+void PrepareSurfaceAndInputData(VFX_VARYING_PS_INPUTS i, inout SurfaceData surfaceData, inout DecalSurfaceData decalSurfaceData, inout InputData inputData)
+{
+    PositionInputs posInput;
+    ZERO_INITIALIZE(PositionInputs, posInput);
+    half3 receiverNormalWS;
+    VFXGetSurfaceDecalData(decalSurfaceData, posInput, receiverNormalWS, i);
+
+    GetSurfaceDataFromSurfaceDecalData(decalSurfaceData, surfaceData);
+
+#if (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR)
+    decalSurfaceData.normalWS.xyz = normalize(lerp(receiverNormalWS.xyz, decalSurfaceData.normalWS.xyz, decalSurfaceData.normalWS.w));
+#endif
+
+    inputData = VFXGetInputData(i, posInput, surfaceData, decalSurfaceData.normalWS.xyz);
+}
+
+
+
+

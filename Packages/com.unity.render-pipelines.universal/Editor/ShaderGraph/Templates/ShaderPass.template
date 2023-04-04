@@ -39,8 +39,10 @@ $Attributes.uv2: #define ATTRIBUTES_NEED_TEXCOORD2
 $Attributes.uv3: #define ATTRIBUTES_NEED_TEXCOORD3
 $Attributes.color: #define ATTRIBUTES_NEED_COLOR
 $Attributes.vertexID: #define ATTRIBUTES_NEED_VERTEXID
+$VertexDescriptionInputs.TimeParameters: #define GRAPH_VERTEX_USES_TIME_PARAMETERS_INPUT
 $VertexDescription.Normal: #define FEATURES_GRAPH_VERTEX_NORMAL_OUTPUT
 $VertexDescription.Tangent: #define FEATURES_GRAPH_VERTEX_TANGENT_OUTPUT
+$VertexDescription.MotionVector: #define FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT
 $Varyings.positionWS: #define VARYINGS_NEED_POSITION_WS
 $Varyings.normalWS: #define VARYINGS_NEED_NORMAL_WS
 $Varyings.tangentWS: #define VARYINGS_NEED_TANGENT_WS

@@ -57,7 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ScreenSpaceShadowsUnion.Clear();
 
             m_CurrentShadowSortedSunLightIndex = -1;
-            m_CurrentSunLightAdditionalLightData = null;
             m_CurrentSunShadowMapFlags = HDProcessedVisibleLightsBuilder.ShadowMapFlags.None;
 
             m_DebugSelectedLightShadowIndex = -1;
@@ -279,7 +278,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }
-                m_CurrentSunLightAdditionalLightData = additionalLightData;
                 m_CurrentSunLightDirectionalLightData = lightData;
                 m_CurrentShadowSortedSunLightIndex = lightDataIndex;
                 m_CurrentSunShadowMapFlags = shadowFlags;

@@ -22,6 +22,7 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
+    [VFXHelpURL("Operator-SampleMesh")]
     [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider))]
     class SampleMesh : VFXOperator
     {

@@ -9,7 +9,7 @@ float4 _CameraOpaqueTexture_TexelSize;
 
 float3 SampleSceneColor(float2 uv)
 {
-    uv = ClampAndScaleUV(UnityStereoTransformScreenSpaceTex(uv), _CameraOpaqueTexture_TexelSize.xy, _RTHandleScale.xy);
+    uv = ClampAndScaleUVForBilinear(UnityStereoTransformScreenSpaceTex(uv), _CameraOpaqueTexture_TexelSize.xy);
     return SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, uv).rgb;
 }
 

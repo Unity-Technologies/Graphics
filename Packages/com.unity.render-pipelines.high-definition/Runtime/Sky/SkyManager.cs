@@ -502,6 +502,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DefaultPreviewSky);
             UnityEditor.Lightmapping.bakeStarted -= OnBakeStarted;
 #endif
+
+            VolumeManager.instance.DestroyStack(lightingOverrideVolumeStack);
         }
 
         public bool IsLightingSkyValid(HDCamera hdCamera)

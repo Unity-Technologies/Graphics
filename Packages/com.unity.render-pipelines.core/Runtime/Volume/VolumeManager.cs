@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -12,8 +13,6 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering
 {
-    using UnityObject = UnityEngine.Object;
-
     /// <summary>
     /// A global manager that tracks all the Volumes in the currently loaded Scenes and does all the
     /// interpolation work.
@@ -22,6 +21,7 @@ namespace UnityEngine.Rendering
     {
         static readonly ProfilerMarker k_ProfilerMarkerUpdate = new ("VolumeManager.Update");
         static readonly ProfilerMarker k_ProfilerMarkerReplaceData = new ("VolumeManager.ReplaceData");
+        static readonly ProfilerMarker k_ProfilerMarkerEvaluateVolumeDefaultState = new ("VolumeManager.EvaluateVolumeDefaultState");
 
         static readonly Lazy<VolumeManager> s_Instance = new Lazy<VolumeManager>(() => new VolumeManager());
 
@@ -40,41 +40,33 @@ namespace UnityEngine.Rendering
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
         [Obsolete("Please use baseComponentTypeArray instead.")]
-        public IEnumerable<Type> baseComponentTypes
-        {
-            get => baseComponentTypeArray;
-            private set => baseComponentTypeArray = value.ToArray();
-        }
+        public IEnumerable<Type> baseComponentTypes => baseComponentTypeArray;
 
         static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
 
-        internal static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType, Type currentRenderPipelineAsset)
+        internal List<(string, Type)> GetVolumeComponentsForDisplay(Type currentPipelineType)
         {
             if (currentPipelineType != null && s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
                 out var supportedVolumeComponents))
                 return supportedVolumeComponents;
 
-            supportedVolumeComponents = FilterVolumeComponentTypes(instance.baseComponentTypeArray, currentPipelineType, currentRenderPipelineAsset);
+            supportedVolumeComponents = BuildVolumeComponentDisplayList(baseComponentTypeArray, currentPipelineType);
             if (currentPipelineType != null)
                 s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
 
             return supportedVolumeComponents;
         }
 
-        static List<(string, Type)> FilterVolumeComponentTypes(Type[] types, Type currentPipelineType, Type currentPipelineAsset)
+        List<(string, Type)> BuildVolumeComponentDisplayList(Type[] types, Type currentPipelineType)
         {
             var volumes = new List<(string, Type)>();
             foreach (var t in types)
             {
                 string path = string.Empty;
-
-                var supportedOnRenderPipelines = t.GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
-
-                var attrs = t.GetCustomAttributes(false);
-
                 bool skipComponent = false;
 
                 // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
+                var attrs = t.GetCustomAttributes(false);
                 foreach (var attr in attrs)
                 {
                     switch (attr)
@@ -82,16 +74,14 @@ namespace UnityEngine.Rendering
                         case VolumeComponentMenu attrMenu:
                         {
                             path = attrMenu.menu;
-                            if(supportedOnRenderPipelines != null && supportedOnRenderPipelines.GetSupportedMode(currentPipelineAsset) == SupportedOnRenderPipelineAttribute.SupportedMode.Unsupported)
-                                skipComponent = true;
 #pragma warning disable CS0618
-                            else if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
-                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
+                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
+                                skipComponent = !supportedOn.pipelineTypes.Contains(currentPipelineType);
 #pragma warning restore CS0618
                             break;
                         }
-                        case HideInInspector attrHide:
-                        case ObsoleteAttribute attrDeprecated:
+                        case HideInInspector:
+                        case ObsoleteAttribute:
                             skipComponent = true;
                             break;
                     }
@@ -123,27 +113,70 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
-        public Type[] baseComponentTypeArray { get; private set; }
+        public Type[] baseComponentTypeArray { get; internal set; } // internal only for tests
+
+        /// <summary>
+        /// Global default profile that provides default values for volume components. VolumeManager applies
+        /// this profile to its internal component default state first, before <see cref="qualityDefaultProfile"/>
+        /// and <see cref="customDefaultProfiles"/>.
+        /// </summary>
+        public VolumeProfile globalDefaultProfile { get; private set; }
+
+        /// <summary>
+        /// Quality level specific volume profile that is applied to the default state after
+        /// <see cref="globalDefaultProfile"/> and before <see cref="customDefaultProfiles"/>.
+        /// </summary>
+        public VolumeProfile qualityDefaultProfile { get; private set; }
+
+        /// <summary>
+        /// Collection of additional default profiles that can be used to override default values for volume components
+        /// in a way that doesn't cause any overhead at runtime. Unity applies these Volume Profiles to its internal
+        /// component default state after <see cref="globalDefaultProfile"/> and <see cref="qualityDefaultProfile"/>.
+        /// The custom profiles are applied in the order that they appear in the collection.
+        /// </summary>
+        public ReadOnlyCollection<VolumeProfile> customDefaultProfiles { get; private set; }
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
 
         // Cached lists of all volumes (sorted by priority) by layer mask
-        readonly Dictionary<int, List<Volume>> m_SortedVolumes;
+        readonly Dictionary<int, List<Volume>> m_SortedVolumes = new();
 
         // Holds all the registered volumes
-        readonly List<Volume> m_Volumes;
+        readonly List<Volume> m_Volumes = new();
 
         // Keep track of sorting states for layer masks
-        readonly Dictionary<int, bool> m_SortNeeded;
+        readonly Dictionary<int, bool> m_SortNeeded = new();
 
         // Internal list of default state for each component type - this is used to reset component
         // states on update instead of having to implement a Reset method on all components (which
         // would be error-prone)
-        readonly List<VolumeComponent> m_ComponentsDefaultState;
+        // The "Default State" is evaluated as follows:
+        //   Default-constructed VolumeComponents (VolumeParameter values coming from code)
+        // + Values from globalDefaultProfile in SRP Global Settings (if present)
+        // + Values from qualityDefaultProfile in SRP Asset (if present)
+        // + Values from customDefaultProfiles added via scripting API (if present)
+        // = Default State.
+        VolumeComponent[] m_ComponentsDefaultState;
 
-        internal VolumeComponent GetDefaultVolumeComponent(Type volumeComponentType)
+        // Flat list of every volume parameter in default state for faster per-frame stack reset.
+        internal VolumeParameter[] m_ParametersDefaultState;
+
+        /// <summary>
+        /// Retrieve the default state for a given VolumeComponent type. Default state is defined as
+        /// "default-constructed VolumeComponent + Default Profiles evaluated in order".
+        /// </summary>
+        /// <remarks>
+        /// If you want just the VolumeComponent with default-constructed values without overrides from
+        /// Default Profiles, use <see cref="ScriptableObject.CreateInstance(Type)"/>.
+        /// </remarks>
+        /// <param name="volumeComponentType">Type of VolumeComponent</param>
+        /// <returns>VolumeComponent in default state, or null if the type is not found</returns>
+        public VolumeComponent GetVolumeComponentDefaultState(Type volumeComponentType)
         {
+            if (!typeof(VolumeComponent).IsAssignableFrom(volumeComponentType))
+                return null;
+
             foreach (VolumeComponent component in m_ComponentsDefaultState)
             {
                 if (component.GetType() == volumeComponentType)
@@ -154,26 +187,130 @@ namespace UnityEngine.Rendering
         }
 
         // Recycled list used for volume traversal
-        readonly List<Collider> m_TempColliders;
+        readonly List<Collider> m_TempColliders = new(8);
 
         // The default stack the volume manager uses.
         // We cache this as users able to change the stack through code and
         // we want to be able to switch to the default one through the ResetMainStack() function.
-        VolumeStack m_DefaultStack = null;
+        VolumeStack m_DefaultStack;
+
+        // List of stacks created through VolumeManager.
+        readonly List<VolumeStack> m_CreatedVolumeStacks = new();
 
  		// Internal for tests
         internal VolumeManager()
         {
-            m_SortedVolumes = new Dictionary<int, List<Volume>>();
-            m_Volumes = new List<Volume>();
-            m_SortNeeded = new Dictionary<int, bool>();
-            m_TempColliders = new List<Collider>(8);
-            m_ComponentsDefaultState = new List<VolumeComponent>();
+        }
 
-            ReloadBaseTypes();
+        // Note: The "isInitialized" state and explicit Initialize/Deinitialize are only required because VolumeManger
+        // is a singleton whose lifetime exceeds that of RenderPipelines. Thus it must be initialized & deinitialized
+        // explicitly by the RP to handle pipeline switch gracefully. It would be better to get rid of singletons and
+        // have the RP own the class instance instead.
+        /// <summary>
+        /// Returns whether <see cref="VolumeManager.Initialize(VolumeProfile,VolumeProfile)"/> has been called, and the
+        /// class is in valid state. It is not valid to use VolumeManager before this returns true.
+        /// </summary>
+        public bool isInitialized => baseComponentTypeArray != null;
+
+        /// <summary>
+        /// Initialize VolumeManager with specified global and quality default volume profiles that are used to evaluate
+        /// the default state of all VolumeComponents. Should be called from <see cref="RenderPipeline"/> constructor.
+        /// </summary>
+        /// <param name="globalDefaultVolumeProfile">Global default volume profile.</param>
+        /// <param name="qualityDefaultVolumeProfile">Quality default volume profile.</param>
+        public void Initialize(VolumeProfile globalDefaultVolumeProfile = null, VolumeProfile qualityDefaultVolumeProfile = null)
+        {
+            Debug.Assert(!isInitialized);
+            Debug.Assert(m_CreatedVolumeStacks.Count == 0);
+
+            LoadBaseTypes(GraphicsSettings.currentRenderPipelineAssetType);
+
+            globalDefaultProfile = globalDefaultVolumeProfile;
+            qualityDefaultProfile = qualityDefaultVolumeProfile;
+            EvaluateVolumeDefaultState();
 
             m_DefaultStack = CreateStack();
             stack = m_DefaultStack;
+        }
+
+        /// <summary>
+        /// Deinitialize VolumeManager. Should be called from <see cref="RenderPipeline.Dispose()"/>.
+        /// </summary>
+        public void Deinitialize()
+        {
+            Debug.Assert(isInitialized);
+            DestroyStack(m_DefaultStack);
+            m_DefaultStack = null;
+            foreach (var s in m_CreatedVolumeStacks)
+                stack.Dispose();
+            m_CreatedVolumeStacks.Clear();
+            baseComponentTypeArray = null;
+            globalDefaultProfile = null;
+            qualityDefaultProfile = null;
+            customDefaultProfiles = null;
+        }
+
+        /// <summary>
+        /// Assign the given VolumeProfile as the global default profile and update the default component state.
+        /// </summary>
+        /// <param name="profile">The VolumeProfile to use as the global default profile.</param>
+        public void SetGlobalDefaultProfile(VolumeProfile profile)
+        {
+            globalDefaultProfile = profile;
+            EvaluateVolumeDefaultState();
+        }
+
+        /// <summary>
+        /// Assign the given VolumeProfile as the quality default profile and update the default component state.
+        /// </summary>
+        /// <param name="profile">The VolumeProfile to use as the quality level default profile.</param>
+        public void SetQualityDefaultProfile(VolumeProfile profile)
+        {
+            qualityDefaultProfile = profile;
+            EvaluateVolumeDefaultState();
+        }
+
+        /// <summary>
+        /// Assign the given VolumeProfiles as custom default profiles and update the default component state.
+        /// </summary>
+        /// <param name="profiles">List of VolumeProfiles to set as default profiles, or null to clear them.</param>
+        public void SetCustomDefaultProfiles(List<VolumeProfile> profiles)
+        {
+            var validProfiles = profiles ?? new List<VolumeProfile>();
+            validProfiles.RemoveAll(x => x == null);
+            customDefaultProfiles = new ReadOnlyCollection<VolumeProfile>(validProfiles);
+            EvaluateVolumeDefaultState();
+        }
+
+        /// <summary>
+        /// Call when a VolumeProfile is modified to trigger default state update if necessary.
+        /// </summary>
+        /// <param name="profile">VolumeProfile that has changed.</param>
+        public void OnVolumeProfileChanged(VolumeProfile profile)
+        {
+            if (globalDefaultProfile == profile ||
+                qualityDefaultProfile == profile ||
+                (customDefaultProfiles != null && customDefaultProfiles.Contains(profile)))
+                EvaluateVolumeDefaultState();
+        }
+
+        /// <summary>
+        /// Call when a VolumeComponent is modified to trigger default state update if necessary.
+        /// </summary>
+        /// <param name="component">VolumeComponent that has changed.</param>
+        public void OnVolumeComponentChanged(VolumeComponent component)
+        {
+            var defaultProfiles = customDefaultProfiles.ToList()
+                .Prepend(qualityDefaultProfile)
+                .Prepend(globalDefaultProfile);
+            foreach (var defaultProfile in defaultProfiles)
+            {
+                if (defaultProfile.components.Contains(component))
+                {
+                    EvaluateVolumeDefaultState();
+                    return;
+                }
+            }
         }
 
         /// <summary>
@@ -186,7 +323,8 @@ namespace UnityEngine.Rendering
         public VolumeStack CreateStack()
         {
             var stack = new VolumeStack();
-            stack.Reload(m_ComponentsDefaultState);
+            stack.Reload(baseComponentTypeArray);
+            m_CreatedVolumeStacks.Add(stack);
             return stack;
         }
 
@@ -205,27 +343,94 @@ namespace UnityEngine.Rendering
         /// <param name="stack">Volume Stack that needs to be destroyed.</param>
         public void DestroyStack(VolumeStack stack)
         {
+            m_CreatedVolumeStacks.Remove(stack);
             stack.Dispose();
         }
 
-        // This will be called only once at runtime and everytime script reload kicks-in in the
-        // editor as we need to keep track of any compatible component in the project
-        void ReloadBaseTypes()
+        // This will be called only once at runtime and on domain reload / pipeline switch in the editor
+        // as we need to keep track of any compatible component in the project
+        internal void LoadBaseTypes(Type pipelineAssetType)
         {
-            m_ComponentsDefaultState.Clear();
-
-            // Grab all the component types we can find
+            // Grab all the component types we can find that are compatible with current pipeline
             baseComponentTypeArray = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
-                .Where(t => !t.IsAbstract).ToArray();
+                .Where(t =>
+                {
+                    var supportedOnAttribute = t.GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
+                    bool isSupported = supportedOnAttribute == null ||
+                                       supportedOnAttribute.GetSupportedMode(pipelineAssetType) !=
+                                       SupportedOnRenderPipelineAttribute.SupportedMode.Unsupported;
+                    return !t.IsAbstract && isSupported;
+                })
+                .ToArray();
 
-            var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
-            // Keep an instance of each type to be used in a virtual lowest priority global volume
-            // so that we have a default state to fallback to when exiting volumes
+            // Call custom static Init method if present
+            var flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
             foreach (var type in baseComponentTypeArray)
             {
                 type.GetMethod("Init", flags)?.Invoke(null, null);
-                var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
-                m_ComponentsDefaultState.Add(inst);
+            }
+        }
+
+        // Evaluate static default values for VolumeComponents, which is the baseline to reset the values to at the start of Update.
+        internal void EvaluateVolumeDefaultState()
+        {
+            using var profilerScope = k_ProfilerMarkerEvaluateVolumeDefaultState.Auto();
+
+            // TODO consider if the "component default values" array should be kept in memory separately. Creating the
+            // instances is likely the slowest operation here, so doing that would mean it can only be done once in
+            // Initialize() and the default state can be updated a lot quicker.
+
+            // First, default-construct all VolumeComponents
+            List<VolumeComponent> componentsDefaultStateList = new();
+            foreach (var type in baseComponentTypeArray)
+            {
+                componentsDefaultStateList.Add((VolumeComponent) ScriptableObject.CreateInstance(type));
+            }
+
+            void ApplyDefaultProfile(VolumeProfile profile)
+            {
+                if (profile == null)
+                    return;
+
+                for (int i = 0; i < profile.components.Count; i++)
+                {
+                    var profileComponent = profile.components[i];
+                    var defaultStateComponent = componentsDefaultStateList.FirstOrDefault(
+                        x => x.GetType() == profileComponent.GetType());
+
+                    if (defaultStateComponent != null && profileComponent.active)
+                    {
+                        // Ideally we would just call SetValue here. However, there are custom non-trivial
+                        // implementations of VolumeParameter.Interp() (such as DiffusionProfileList) that make it
+                        // necessary for us to call the it. This ensures the new DefaultProfile behavior works
+                        // consistently with the old HDRP implementation where the Default Profile was implemented as
+                        // a regular global volume inside the scene.
+                        profileComponent.Override(defaultStateComponent, 1.0f);
+                    }
+                }
+            }
+
+            ApplyDefaultProfile(globalDefaultProfile);          // Apply global default profile first
+            ApplyDefaultProfile(qualityDefaultProfile);         // Apply quality default profile second
+            if (customDefaultProfiles != null)                  // Finally, apply custom default profiles in order
+                foreach (var profile in customDefaultProfiles)
+                    ApplyDefaultProfile(profile);
+
+            // Build the flat parametersDefaultState list for fast per-frame resets
+            var parametersDefaultStateList = new List<VolumeParameter>();
+            foreach (var component in componentsDefaultStateList)
+            {
+                parametersDefaultStateList.AddRange(component.parameters);
+            }
+
+            m_ComponentsDefaultState = componentsDefaultStateList.ToArray();
+            m_ParametersDefaultState = parametersDefaultStateList.ToArray();
+
+            // All properties in stacks must be reset because the default state has changed
+            foreach (var s in m_CreatedVolumeStacks)
+            {
+                s.requiresReset = true;
+                s.requiresResetForAllProperties = true;
             }
         }
 
@@ -335,61 +540,70 @@ namespace UnityEngine.Rendering
                     continue;
 
                 var state = stack.GetComponent(component.GetType());
-                component.Override(state, interpFactor);
+                if (state != null)
+                {
+                    component.Override(state, interpFactor);
+                }
             }
         }
 
-        // Faster version of OverrideData to force replace values in the global state
+        // Faster version of OverrideData to force replace values in the global state.
+        // NOTE: As an optimization, only the VolumeParameters with overrideState=true are reset. All other parameters
+        // are assumed to be in their correct default state so no reset is necessary.
         internal void ReplaceData(VolumeStack stack)
         {
             using var profilerScope = k_ProfilerMarkerReplaceData.Auto();
 
-            var resetParameters = stack.defaultParameters;
-            var resetParametersCount = resetParameters.Length;
-            for (int i = 0; i < resetParametersCount; i++)
+            var stackParams = stack.parameters;
+            bool resetAllParameters = stack.requiresResetForAllProperties;
+            int count = stackParams.Length;
+            Debug.Assert(count == m_ParametersDefaultState.Length);
+
+            for (int i = 0; i < count; i++)
             {
-                var resetParam = resetParameters[i];
-                var targetParam = resetParam.parameter;
-                targetParam.overrideState = false;
-                targetParam.SetValue(resetParam.defaultValue);
+                var stackParam = stackParams[i];
+                if (stackParam.overrideState || resetAllParameters) // Only reset the parameters that have been overriden by a scene volume
+                {
+                    stackParam.overrideState = false;
+                    stackParam.SetValue(m_ParametersDefaultState[i]);
+                }
+            }
+
+            stack.requiresResetForAllProperties = false;
+        }
+
+        /// <summary>
+        /// Checks component default state. This is only used in the editor to handle entering and exiting play mode
+        /// because the instances created during playmode are automatically destroyed.
+        /// </summary>
+        [Conditional("UNITY_EDITOR")]
+        public void CheckDefaultVolumeState()
+        {
+            if (m_ComponentsDefaultState == null || (m_ComponentsDefaultState.Length > 0 && m_ComponentsDefaultState[0] == null))
+            {
+                EvaluateVolumeDefaultState();
             }
         }
 
         /// <summary>
-        /// Checks the state of the base type library. This is only used in the editor to handle
-        /// entering and exiting of play mode and domain reload.
-        /// </summary>
-        [Conditional("UNITY_EDITOR")]
-        public void CheckBaseTypes()
-        {
-            // Editor specific hack to work around serialization doing funky things when exiting
-            if (m_ComponentsDefaultState == null || (m_ComponentsDefaultState.Count > 0 && m_ComponentsDefaultState[0] == null))
-                ReloadBaseTypes();
-        }
-
-        /// <summary>
-        /// Checks the state of a given stack. This is only used in the editor to handle entering
-        /// and exiting of play mode and domain reload.
+        /// Checks the state of a given stack. This is only used in the editor to handle entering and exiting play mode
+        /// because the instances created during playmode are automatically destroyed.
         /// </summary>
         /// <param name="stack">The stack to check.</param>
         [Conditional("UNITY_EDITOR")]
         public void CheckStack(VolumeStack stack)
         {
-            // The editor doesn't reload the domain when exiting play mode but still kills every
-            // object created while in play mode, like stacks' component states
-            var components = stack.components;
-
-            if (components == null)
+            if (stack.components == null)
             {
-                stack.Reload(m_ComponentsDefaultState);
+                stack.Reload(baseComponentTypeArray);
                 return;
             }
 
-            foreach (var kvp in components)
+            foreach (var kvp in stack.components)
             {
                 if (kvp.Key == null || kvp.Value == null)
                 {
-                    stack.Reload(m_ComponentsDefaultState);
+                    stack.Reload(baseComponentTypeArray);
                     return;
                 }
             }
@@ -442,15 +656,18 @@ namespace UnityEngine.Rendering
         {
             using var profilerScope = k_ProfilerMarkerUpdate.Auto();
 
+            if (!isInitialized)
+                return;
+
             Assert.IsNotNull(stack);
 
-            CheckBaseTypes();
+            CheckDefaultVolumeState();
             CheckStack(stack);
 
             if (!CheckUpdateRequired(stack))
                 return;
 
-            // Start by resetting the global state to default values
+            // Start by resetting the global state to default values.
             ReplaceData(stack);
 
             bool onlyGlobal = trigger == null;

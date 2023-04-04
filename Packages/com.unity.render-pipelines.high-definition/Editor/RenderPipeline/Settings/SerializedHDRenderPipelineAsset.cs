@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedObject serializedObject;
 
         public SerializedProperty defaultMaterialQualityLevel;
+        public SerializedProperty qualityDefaultVolumeProfile;
         public SerializedProperty availableMaterialQualityLevels;
         public SerializedProperty allowShaderVariantStripping;
         public SerializedProperty enableSRPBatcher;
@@ -20,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             this.serializedObject = serializedObject;
 
             defaultMaterialQualityLevel = serializedObject.FindProperty("m_DefaultMaterialQualityLevel");
+            qualityDefaultVolumeProfile = serializedObject.FindProperty("m_VolumeProfile");
             availableMaterialQualityLevels = serializedObject.Find((HDRenderPipelineAsset s) => s.availableMaterialQualityLevels);
             allowShaderVariantStripping = serializedObject.Find((HDRenderPipelineAsset s) => s.allowShaderVariantStripping);
             enableSRPBatcher = serializedObject.Find((HDRenderPipelineAsset s) => s.enableSRPBatcher);

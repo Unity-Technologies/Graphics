@@ -31,6 +31,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty specularFade;
         public SerializedProperty autoRegisterDiffusionProfiles;
 
+        public SerializedProperty analyticDerivativeEmulation;
+        public SerializedProperty analyticDerivativeDebugOutput;
+
         public SerializedProperty rendererListCulling;
 
         public SerializedProperty DLSSProjectId;
@@ -128,6 +131,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             specularFade               = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.specularFade);
             autoRegisterDiffusionProfiles = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.autoRegisterDiffusionProfiles);
+
+            analyticDerivativeEmulation = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.analyticDerivativeEmulation);
+            analyticDerivativeDebugOutput = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.analyticDerivativeDebugOutput);
+
 
             DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
             useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);

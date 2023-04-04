@@ -50,9 +50,8 @@ namespace UnityEditor.Rendering.Analytics
                 foreach (var volumeComponent in volumeProfile.components)
                 {
                     var volumeComponentType = volumeComponent.GetType();
-                    var overrideParameters =
-                        volumeComponent.ToNestedColumnWithDefault(VolumeManager.instance.GetDefaultVolumeComponent(volumeComponentType),
-                            true);
+                    var defaultVolumeComponent = (VolumeComponent) ScriptableObject.CreateInstance(volumeComponentType);
+                    var overrideParameters = volumeComponent.ToNestedColumnWithDefault(defaultVolumeComponent, true);
                     if (overrideParameters.Length == 0)
                         continue;
                     datas.Add(new Data()

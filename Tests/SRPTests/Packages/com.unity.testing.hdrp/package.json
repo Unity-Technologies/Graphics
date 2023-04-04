@@ -12,9 +12,5 @@
     "tests",
     "graphics",
     "HDRP"
-  ],
-  "dependencies": {
-    "local.gtf.references": "file:../GraphicsTestFrameworkPackages",
-    "com.unity.render-pipelines.high-definition": "file:./com.unity.render-pipelines.high-definition"
-  }
+  ]
 }

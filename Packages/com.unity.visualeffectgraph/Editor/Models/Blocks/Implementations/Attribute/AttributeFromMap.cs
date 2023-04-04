@@ -36,6 +36,7 @@ namespace UnityEditor.VFX.Block
         }
     }
 
+    [VFXHelpURL("Block-SetAttributeFromMap")]
     [VFXInfo(category = "Attribute/{0}/Map/{1}", variantProvider = typeof(AttributeFromMapProvider))]
     class AttributeFromMap : VFXBlock
     {

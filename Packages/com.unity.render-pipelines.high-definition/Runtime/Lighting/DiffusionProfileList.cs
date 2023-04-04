@@ -57,6 +57,19 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Sets the value of this parameter to the value in <paramref name="parameter"/>.
+        /// Implemented explicitly for DiffusionProfileList because we have internal state to copy.
+        /// </summary>
+        /// <param name="parameter">The <see cref="VolumeParameter"/> to copy the value from.</param>
+        public override void SetValue(VolumeParameter parameter)
+        {
+            base.SetValue(parameter);
+
+            var param = parameter as DiffusionProfileSettingsParameter;
+            accumulatedCount = param.accumulatedCount;
+        }
+
+        /// <summary>
         /// Interpolates two values using a factor <paramref name="t"/>.
         /// </summary>
         /// <remarks>
@@ -72,7 +85,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Value = s_ArrayPool.Rent(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT);
 
             accumulatedCount = 0;
-            m_Value[accumulatedCount++] = HDRenderPipeline.currentPipeline?.defaultDiffusionProfile;
+
+            var defaultDiffusionProfile = HDRenderPipelineGlobalSettings.instance != null ?
+                HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.defaultDiffusionProfile : null;
+            m_Value[accumulatedCount++] = defaultDiffusionProfile;
 
             if (to != null)
             {

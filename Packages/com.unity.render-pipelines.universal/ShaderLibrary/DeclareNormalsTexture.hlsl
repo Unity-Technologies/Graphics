@@ -9,7 +9,7 @@ float4 _CameraNormalsTexture_TexelSize;
 
 float3 SampleSceneNormals(float2 uv)
 {
-    uv = ClampAndScaleUV(UnityStereoTransformScreenSpaceTex(uv), _CameraNormalsTexture_TexelSize.xy, _RTHandleScale.xy);
+    uv = ClampAndScaleUVForBilinear(UnityStereoTransformScreenSpaceTex(uv), _CameraNormalsTexture_TexelSize.xy);
     float3 normal = SAMPLE_TEXTURE2D_X(_CameraNormalsTexture, sampler_CameraNormalsTexture, uv).xyz;
 
     #if defined(_GBUFFER_NORMALS_OCT)

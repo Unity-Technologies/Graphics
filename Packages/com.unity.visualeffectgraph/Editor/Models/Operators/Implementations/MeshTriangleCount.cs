@@ -6,6 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    //[VFXHelpURL("Operator-MeshTriangleCount")]
     [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider))]
     class MeshTriangleCount : VFXOperator
     {

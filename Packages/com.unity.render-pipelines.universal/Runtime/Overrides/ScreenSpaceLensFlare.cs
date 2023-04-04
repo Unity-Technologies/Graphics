@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Screen Space Lens Flare")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("shared/lens-flare/lens-flare-component")]
     public class ScreenSpaceLensFlare : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

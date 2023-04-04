@@ -579,6 +579,8 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
+        [SerializeField] VolumeProfile m_VolumeProfile;
+
         [SerializeField] TextureResources m_Textures;
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
@@ -1494,6 +1496,16 @@ namespace UnityEngine.Rendering.Universal
         /// Returns the selected update mode for volumes.
         /// </summary>
         public VolumeFrameworkUpdateMode volumeFrameworkUpdateMode => m_VolumeFrameworkUpdateMode;
+
+        /// <summary>
+        /// A volume profile that can be used to override global default volume profile values. This provides a way e.g.
+        /// to have different volume default values per quality level without having to place global volumes in scenes.
+        /// </summary>
+        public VolumeProfile volumeProfile
+        {
+            get => m_VolumeProfile;
+            set => m_VolumeProfile = value;
+        }
 
         /// <summary>
         /// Previously returned the debug level for this Render Pipeline Asset but is now deprecated. Replaced to use the profiler and is no longer used.

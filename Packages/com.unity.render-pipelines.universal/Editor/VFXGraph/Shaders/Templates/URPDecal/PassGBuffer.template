@@ -1,0 +1,138 @@
+﻿Pass
+{
+    Name "DecalGBufferProjector"
+    Tags
+    {
+        "LightMode" = "DecalGBufferProjector"
+    }
+
+    // Render State
+    Cull Front
+    Blend 0 SrcAlpha OneMinusSrcAlpha
+    Blend 1 SrcAlpha OneMinusSrcAlpha
+    Blend 2 SrcAlpha OneMinusSrcAlpha
+    Blend 3 SrcAlpha OneMinusSrcAlpha
+    ZTest Greater
+    ZWrite Off
+
+    //TODO: Generate mask in VFXDecalURPOutput.cs
+    ColorMask ${VFXGBufferDecalColorMask0}
+    ColorMask ${VFXGBufferDecalColorMask1} 1
+    ColorMask ${VFXGBufferDecalColorMask2} 2
+    ColorMask ${VFXGBufferDecalColorMask3} 3
+
+        HLSLPROGRAM
+
+        // Pragmas
+    #pragma target 4.5
+    #pragma exclude_renderers gles3 glcore
+    #pragma multi_compile_fog //Is this multi_compile really needed ? TODO: Ask Lukas.
+    #pragma editor_sync_compilation
+
+        // Keywords
+    #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+    #pragma multi_compile_fragment _ _SHADOWS_SOFT
+    #pragma multi_compile _DECAL_NORMAL_BLEND_LOW _DECAL_NORMAL_BLEND_MEDIUM _DECAL_NORMAL_BLEND_HIGH
+    #pragma multi_compile _ _DECAL_LAYERS
+    #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+    #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+
+    ${VFXIncludeRP("VFXDecalVaryings.template")}
+    #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
+
+    struct ps_input
+    {
+        float4 pos : SV_POSITION;
+        ${VFXURPDecalDeclareVaryings}
+        UNITY_VERTEX_OUTPUT_STEREO
+    };
+
+    ${VFXURPDecalVaryingsMacros}
+
+    ${VFXBegin:VFXVertexAdditionalProcess}
+    ${VFXURPDecalFillVaryings}
+    ${VFXEnd}
+
+    ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
+
+    #define SHADERPASS SHADERPASS_DECAL_GBUFFER_PROJECTOR
+
+    #if ((!defined(AFFECT_NORMAL) && defined(AFFECT_BASE_COLOR)) || (defined(AFFECT_NORMAL)))
+        #define DECAL_RECONSTRUCT_NORMAL
+    #elif defined(DECAL_ANGLE_FADE)
+        #define DECAL_LOAD_NORMAL
+    #endif
+
+    #ifdef DECAL_RECONSTRUCT_NORMAL
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/NormalReconstruction.hlsl"
+    #endif
+
+    #if defined(DECAL_LOAD_NORMAL)
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
+    #endif
+
+    ${VFXIncludeRP("VFXDecal.template")}
+
+    void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, out FragmentOutput fragmentOutput)
+    {
+        SurfaceData surfaceData;
+        ZERO_INITIALIZE(SurfaceData, surfaceData);
+        InputData inputData;
+        ZERO_INITIALIZE(InputData, inputData);
+        DecalSurfaceData decalSurfaceData;
+        ZERO_INITIALIZE(DecalSurfaceData, decalSurfaceData);
+
+        PrepareSurfaceAndInputData(i, surfaceData, decalSurfaceData, inputData);
+        BRDFData brdfData;
+        InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+#if defined(AFFECT_BASE_COLOR)
+    #ifdef DECAL_RECONSTRUCT_NORMAL
+        #if defined(_DECAL_NORMAL_BLEND_HIGH)
+            half3 geomNormalWS = half3(ReconstructNormalTap9(i.pos.xy));
+        #elif defined(_DECAL_NORMAL_BLEND_MEDIUM)
+            half3 geomNormalWS = half3(ReconstructNormalTap5(i.pos.xy));
+        #else
+            half3 geomNormalWS = half3(ReconstructNormalDerivative(i.pos.xy));
+        #endif
+    #elif defined(DECAL_LOAD_NORMAL)
+            half3 geomNormalWS = half3(LoadSceneNormals(i.pos.xy));
+    #endif
+    half3 normalGI = normalize(lerp(geomNormalWS.xyz, decalSurfaceData.normalWS.xyz, decalSurfaceData.normalWS.w));
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, normalGI, inputData.bakedGI, inputData.shadowMask);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.positionWS, normalGI, inputData.viewDirectionWS);
+    // GI needs blended normal
+#else
+        half3 color = 0;
+#endif
+
+        // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
+        half3 packedNormalWS = PackNormal(decalSurfaceData.normalWS.xyz);
+        fragmentOutput.GBuffer0 = half4(decalSurfaceData.baseColor.rgb, decalSurfaceData.baseColor.a);
+        fragmentOutput.GBuffer1 = 0;
+        fragmentOutput.GBuffer2 = half4(packedNormalWS, decalSurfaceData.normalWS.a);
+#if defined(AFFECT_BASE_COLOR) || defined(AFFECT_EMISSIVE)
+        fragmentOutput.GBuffer3 = half4(decalSurfaceData.emissive + color, decalSurfaceData.baseColor.a);
+#else
+        fragmentOutput.GBuffer3 = 0;
+#endif
+
+    #if OUTPUT_SHADOWMASK
+        fragmentOutput.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    #endif
+    }
+
+    #pragma fragment frag
+    void frag(VFX_VARYING_PS_INPUTS i, out FragmentOutput fragmentOutput)
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i)
+        VFXComputePixelOutputToGBuffer(i, fragmentOutput);
+    }
+    ENDHLSL
+}
+
+
+
+

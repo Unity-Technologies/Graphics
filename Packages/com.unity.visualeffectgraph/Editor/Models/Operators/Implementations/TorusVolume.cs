@@ -1,9 +1,8 @@
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Volume(Torus)")]
     [VFXInfo(category = "Math/Geometry")]
     class TorusVolume : VFXOperator
     {

@@ -462,6 +462,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
 
+            VolumeManager.instance.Initialize(m_GlobalSettings.volumeProfile, m_Asset.volumeProfile);
+
             InitializeDebug();
 
             Blitter.Initialize(defaultResources.shaders.blitPS, defaultResources.shaders.blitColorAndDepthPS);
@@ -908,6 +910,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BlueNoise.Cleanup();
 
             HDCamera.ClearAll();
+            VolumeManager.instance.Deinitialize();
 
             m_MipGenerator.Release();
 
@@ -1581,7 +1584,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Make sure that the volumetric cloud animation data is in sync with the parent camera.
-                    hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
                     useFetchedGpuExposure = true;
                 }
                 else
@@ -1869,7 +1871,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 #endif
-            m_GlobalSettings.GetOrCreateDefaultVolume();
 
             if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
             {
@@ -2035,12 +2036,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (drsSettings.dynResType == DynamicResolutionType.Hardware && cameraRequestedDynamicRes && !camera.allowDynamicResolution)
                         {
                             dynResHandler.ForceSoftwareFallback();
-                        }
-
-                        // STP does not currently support XR, so we automatically fall back to TAAU when STP is enabled in an XR configuration.
-                        if (drsSettings.upsampleFilter == DynamicResUpscaleFilter.STP && xrPass.enabled)
-                        {
-                            drsSettings.upsampleFilter = DynamicResUpscaleFilter.TAAU;
                         }
                     }
 

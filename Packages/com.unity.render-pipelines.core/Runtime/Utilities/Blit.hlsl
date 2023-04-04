@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DynamicScaling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
 #ifdef USE_FULL_PRECISION_BLIT_TEXTURE
 TEXTURE2D_X_FLOAT(_BlitTexture);
@@ -23,6 +24,7 @@ uniform float _BlitMipLevel;
 uniform float2 _BlitTextureSize;
 uniform uint _BlitPaddingSize;
 uniform int _BlitTexArraySlice;
+uniform float4 _BlitDecodeInstructions;
 
 struct Attributes
 {
@@ -141,7 +143,11 @@ float4 FragOctahedralProjectNearestRepeat(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = RepeatOctahedralUV(input.texcoord.x, input.texcoord.y);
     float3 dir = UnpackNormalOctQuadEncode(2.0f * uv - 1.0f);
+#ifdef BLIT_DECODE_HDR
+    return float4(DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_PointRepeat, dir, _BlitMipLevel), _BlitDecodeInstructions), 1);
+#else
     return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_PointRepeat, dir, _BlitMipLevel).rgb, 1);
+#endif
 }
 
 float4 FragOctahedralProjectBilinearRepeat(Varyings input) : SV_Target
@@ -149,7 +155,11 @@ float4 FragOctahedralProjectBilinearRepeat(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = RepeatOctahedralUV(input.texcoord.x, input.texcoord.y);
     float3 dir = UnpackNormalOctQuadEncode(2.0f * uv - 1.0f);
+#ifdef BLIT_DECODE_HDR
+    return float4(DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel), _BlitDecodeInstructions), 1);
+#else
     return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rgb, 1);
+#endif
 }
 
 // 8-bit single channel sampling/format conversions

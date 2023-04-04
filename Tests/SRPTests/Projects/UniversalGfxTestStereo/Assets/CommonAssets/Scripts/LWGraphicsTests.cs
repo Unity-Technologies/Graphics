@@ -34,6 +34,7 @@ public class LWGraphicsTests
         Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo tests do not run on MacOSX.");
 
         var referenceImage = testCase.ReferenceImage;
+        var referenceImagePathLog = testCase.ReferenceImagePath;
         // make sure we're rendering in the same size as the reference image, otherwise this is not really comparable.
         Screen.SetResolution(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight, FullScreenMode.Windowed);
 
@@ -101,7 +102,7 @@ public class LWGraphicsTests
         // File.WriteAllBytes("reference.png", referenceImage.EncodeToPNG());
         // File.WriteAllBytes("actual.png", actualImage.EncodeToPNG());
 
-        ImageAssert.AreEqual(referenceImage, actualImage, settings.ImageComparisonSettings);
+        ImageAssert.AreEqual(referenceImage, actualImage, settings.ImageComparisonSettings, referenceImagePathLog);
     }
 
     static bool FileAvailable(string path)

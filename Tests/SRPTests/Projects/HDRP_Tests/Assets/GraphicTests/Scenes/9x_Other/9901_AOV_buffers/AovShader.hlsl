@@ -29,3 +29,16 @@ float4 Fragment(
 
     return float4(c0);
 }
+
+// Fragment shader for depth
+float4 FragmentDepth(
+    float4 positionCS : SV_POSITION,
+    float2 texcoord : TEXCOORD0
+) : SV_Target
+{
+    uint2 p0 = texcoord * _ScreenSize.xy;
+
+    float4 c0 = LOAD_TEXTURE2D(_ColorTexture, p0);
+
+    return float4(c0.r, 0, 0, 1);
+}

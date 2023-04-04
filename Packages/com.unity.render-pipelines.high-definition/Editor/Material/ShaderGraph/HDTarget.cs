@@ -438,7 +438,101 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             vfxSubtarget.ConfigureContextData(context, data);
         }
+
+        public override bool DerivativeModificationCallback(
+                out string dstGraphFunctions,
+                out string dstGraphPixel,
+                out bool[] adjustedUvDerivs,
+                string primaryShaderName,
+                string passName,
+                string propStr,
+                string surfaceDescStr,
+                string graphFuncStr,
+                string graphPixelStr,
+                List<string> customFuncs,
+                bool applyEmulatedDerivatives)
+        {
+            //List<string> ignoredFuncs = new List<string>();
+            //ignoredFuncs.Add("Unity_Checkerboard_float");
+            //ignoredFuncs.Add("Unity_Checkerboard_half");
+
+            bool success = false;
+
+            dstGraphFunctions = "";
+            dstGraphPixel = "";
+            adjustedUvDerivs = new bool[4];
+
+            HlslProcessor hlslProc = new HlslProcessor(4);
+
+            try
+            {
+                hlslProc.ProcessFunctions(propStr, surfaceDescStr, graphFuncStr, graphPixelStr, applyEmulatedDerivatives, customFuncs, primaryShaderName);
+
+                if (hlslProc.isValid)
+                {
+                    dstGraphFunctions = hlslProc.dstGraphFunctions;
+                    dstGraphPixel = hlslProc.dstGraphPixel;
+
+                    System.Array.Copy(hlslProc.adjustedUvDerivs, adjustedUvDerivs, adjustedUvDerivs.Length);
+
+                    success = true;
+                }
+                else
+                {
+                    string warnText = "derivative parsing failed: " + primaryShaderName;
+                    Debug.LogWarning(warnText);
+                    hlslProc.debugLog += warnText + "\n";
+                }
+            }
+            catch (Exception e)
+            {
+                string warnText = e.Message + " (derivative exception caught: " + primaryShaderName + ")";
+                Debug.LogWarning(warnText);
+                hlslProc.debugLog += warnText + "\n";
+                hlslProc.debugLog += e.StackTrace;
+
+                // also, add the generated node stack if we have one
+                hlslProc.debugLog += "\n";
+                hlslProc.debugLog += "NodeStack: " + hlslProc.debugNodeStack.Count.ToString() + "\n";
+                for (int i = 0; i < hlslProc.debugNodeStack.Count; i++)
+                {
+                    int nodeId = hlslProc.debugNodeStack[i];
+                    hlslProc.debugLog += "    " + nodeId.ToString() + "\n";
+                }
+
+                success = false;
+            }
+
+            if (HDRenderPipelineGlobalSettings.instance.analyticDerivativeDebugOutput)
+            {
+                string cleanName = primaryShaderName.Replace("/", "_").Replace("\\", "_"); ;
+                string dstDebugBasePath = "Temp/ShaderDerivative_" + cleanName + "__" + passName + "__";
+
+                string origName = dstDebugBasePath + "00_original.txt";
+                string tokenizedName = dstDebugBasePath + "01_tokenized.txt";
+                string parsedName = dstDebugBasePath + "02_parsed.txt";
+                string reconstructName = dstDebugBasePath + "03_reconstruct.txt";
+                string nodeName = dstDebugBasePath + "04_node.txt";
+                string genName = dstDebugBasePath + "05_generated.txt";
+                string logName = dstDebugBasePath + "06_log.txt";
+
+                System.IO.File.WriteAllText(origName, hlslProc.debugTextInput);
+                System.IO.File.WriteAllText(tokenizedName, hlslProc.debugTokenizerInfo);
+                System.IO.File.WriteAllText(parsedName, hlslProc.debugParserTree);
+                System.IO.File.WriteAllText(reconstructName, hlslProc.debugDirectReconstruction);
+                System.IO.File.WriteAllText(nodeName, hlslProc.debugNodeInfo);
+                System.IO.File.WriteAllText(genName, hlslProc.debugTextOutput);
+                System.IO.File.WriteAllText(logName, hlslProc.debugLog);
+            }
+
+            return success;
+        }
+
     }
+
+
+
+
 
     #region BlockMasks
     static class CoreBlockMasks
@@ -1691,4 +1785,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     }
 
     #endregion
+
+
+
 }

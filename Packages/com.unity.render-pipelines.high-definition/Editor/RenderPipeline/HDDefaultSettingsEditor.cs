@@ -48,6 +48,8 @@ namespace UnityEditor.Rendering.HighDefinition
         void OnEnable()
         {
             m_SerializedHDRenderPipelineGlobalSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
+
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
 
         private void OnDisable()
@@ -57,6 +59,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (s_CachedLookDevVolumeProfileEditor != null)
                 UnityEngine.Object.DestroyImmediate(s_CachedLookDevVolumeProfileEditor);
+
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+        }
+
+        void OnUndoRedoPerformed()
+        {
+            if (target is HDRenderPipelineGlobalSettings settings &&
+                settings.volumeProfile != VolumeManager.instance.globalDefaultProfile)
+            {
+                var globalSettings = HDRenderPipelineGlobalSettings.instance;
+                var defaultValuesAsset = globalSettings != null ? globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile : null;
+                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(settings.volumeProfile, defaultValuesAsset);
+            }
         }
 
         public override void OnInspectorGUI()

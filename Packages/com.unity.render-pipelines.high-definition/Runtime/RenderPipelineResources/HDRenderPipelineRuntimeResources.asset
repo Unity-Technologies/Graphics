@@ -323,9 +323,6 @@ MonoBehaviour:
       type: 3}
     temporalFilterCS: {fileID: 7200000, guid: 741979ff70f7bd6489fbcb464280ecff, type: 3}
     diffuseDenoiserCS: {fileID: 7200000, guid: b4ed2382141619f40af1f743a84ccaea, type: 3}
-    stpPrepassCs: {fileID: 7200000, guid: cbf8820917cbc64408b4d52115269b2c, type: 3}
-    stpTaaCs: {fileID: 7200000, guid: 61a23c30eb641324282d29f47db92667, type: 3}
-    stpCleanerCs: {fileID: 7200000, guid: 939bdc3997bcc134d95d300b44443960, type: 3}
     furnaceTestCS: {fileID: 7200000, guid: 9c19385e40e70ea41811a942a46b04a3, type: 3}
   materials:
     waterMaterial: {fileID: -876546973899608171, guid: 3fda5e465882bec4d8e64161b681806c,

@@ -73,20 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Profile from resources is read only in released packages, so we have to copy it to the assets folder
                 if (data.IsVolumeProfileFromResources())
                 {
-                    string path = "Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath + '/' + volumeProfile.name + ".asset";
-                    if (!UnityEditor.AssetDatabase.IsValidFolder("Assets/" + HDProjectSettingsReadOnlyBase.projectSettingsFolderPath))
-                        UnityEditor.AssetDatabase.CreateFolder("Assets", HDProjectSettingsReadOnlyBase.projectSettingsFolderPath);
-
-                    //try load one if one already exist
-                    volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
-                    if (volumeProfile == null || volumeProfile.Equals(null))
-                    {
-                        //else create it
-                        UnityEditor.AssetDatabase.CopyAsset(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile), path);
-                        volumeProfile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
-                    }
-
-                    data.volumeProfile = volumeProfile;
+                    data.volumeProfile = CopyVolumeProfileFromResourcesToAssets(volumeProfile);
                 }
 
                 UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile));

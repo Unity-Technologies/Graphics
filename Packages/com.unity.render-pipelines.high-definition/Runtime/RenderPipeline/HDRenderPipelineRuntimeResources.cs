@@ -470,14 +470,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute")]
             public ComputeShader diffuseDenoiserCS;
 
-            // STP
-            [Reload("Runtime/PostProcessing/Shaders/StpPrepass.compute")]
-            public ComputeShader stpPrepassCs;
-            [Reload("Runtime/PostProcessing/Shaders/StpTaa.compute")]
-            public ComputeShader stpTaaCs;
-            [Reload("Runtime/PostProcessing/Shaders/StpCleaner.compute")]
-            public ComputeShader stpCleanerCs;
-
 #if UNITY_EDITOR
             // Furnace Testing (BSDF Energy Conservation)
             [Reload("Tests/Editor/Utilities/FurnaceTests.compute")]

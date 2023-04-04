@@ -15,8 +15,6 @@
   ],
   "dependencies": {
     "nuget.moq": "1.0.0",
-    "local.utf.references": "file:../UnityTestFrameworkPackages",
-    "local.gtf.references": "file:../GraphicsTestFrameworkPackages",
     "com.unity.render-pipelines.universal": "12.0.0",
     "com.unity.timeline": "1.6.0-pre.3"
   }

@@ -25,6 +25,7 @@ namespace UnityEditor.VFX.Operator
         };
     }
 
+    [VFXHelpURL("Operator-CellularCurlNoise")]
     [VFXInfo(category = "Noise", variantProvider = typeof(CurlNoiseVariantProvider))]
     class CurlNoise : NoiseBase
     {

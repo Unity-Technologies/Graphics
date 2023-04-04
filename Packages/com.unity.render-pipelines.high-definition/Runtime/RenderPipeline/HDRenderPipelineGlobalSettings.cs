@@ -90,65 +90,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif // UNITY_EDITOR
 
-        #region Volume
-        private Volume s_DefaultVolume = null;
-
-        internal Volume GetOrCreateDefaultVolume()
-        {
-            if (s_DefaultVolume == null || s_DefaultVolume.Equals(null))
-            {
-                var go = new GameObject("Default Volume") { hideFlags = HideFlags.HideAndDontSave };
-                s_DefaultVolume = go.AddComponent<Volume>();
-                s_DefaultVolume.isGlobal = true;
-                s_DefaultVolume.priority = float.MinValue;
-                s_DefaultVolume.sharedProfile = GetOrCreateDefaultVolumeProfile();
-#if UNITY_EDITOR
-                UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
-                {
-                    DestroyDefaultVolume();
-                };
-#endif
-            }
-
-            if (
-                // In case the asset was deleted or the reference removed
-                s_DefaultVolume.sharedProfile == null || s_DefaultVolume.sharedProfile.Equals(null)
-#if UNITY_EDITOR
-                // In case the serialization recreated an empty volume sharedProfile
-                || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
-#endif
-            )
-            {
-                s_DefaultVolume.sharedProfile = volumeProfile;
-            }
-
-            if (s_DefaultVolume.sharedProfile != volumeProfile)
-            {
-                s_DefaultVolume.sharedProfile = volumeProfile;
-            }
-
-            if (s_DefaultVolume == null)
-            {
-                Debug.LogError("[HDRP] Cannot Create Default Volume.");
-            }
-
-            return s_DefaultVolume;
-        }
-
-#if UNITY_EDITOR
-        private void DestroyDefaultVolume()
-        {
-            if (s_DefaultVolume != null && !s_DefaultVolume.Equals(null))
-            {
-                CoreUtils.Destroy(s_DefaultVolume.gameObject);
-                s_DefaultVolume = null;
-            }
-        }
-
-#endif
-
-        #endregion
-
         #region VolumeProfile
 
         [SerializeField, FormerlySerializedAs("m_VolumeProfileDefault")]
@@ -167,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             if (volumeProfile == null || volumeProfile.Equals(null))
             {
-                volumeProfile = renderPipelineEditorResources.defaultSettingsVolumeProfile;
+                volumeProfile = CopyVolumeProfileFromResourcesToAssets(renderPipelineEditorResources.defaultSettingsVolumeProfile);
             }
 #endif
             return volumeProfile;
@@ -177,6 +118,24 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool IsVolumeProfileFromResources()
         {
             return volumeProfile != null && !volumeProfile.Equals(null) && renderPipelineEditorResources != null && volumeProfile.Equals(renderPipelineEditorResources.defaultSettingsVolumeProfile);
+        }
+
+        static VolumeProfile CopyVolumeProfileFromResourcesToAssets(VolumeProfile profileInResourcesFolder)
+        {
+            string path = $"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}/{profileInResourcesFolder.name}.asset";
+            if (!UnityEditor.AssetDatabase.IsValidFolder($"Assets/{HDProjectSettingsReadOnlyBase.projectSettingsFolderPath}"))
+                UnityEditor.AssetDatabase.CreateFolder("Assets", HDProjectSettingsReadOnlyBase.projectSettingsFolderPath);
+
+            //try load one if one already exist
+            var profile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+            if (profile == null || profile.Equals(null))
+            {
+                //else create it
+                UnityEditor.AssetDatabase.CopyAsset(UnityEditor.AssetDatabase.GetAssetPath(profileInResourcesFolder), path);
+                profile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+            }
+
+            return profile;
         }
 
 #endif
@@ -198,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (lookDevVolumeProfile == null || lookDevVolumeProfile.Equals(null))
             {
-                lookDevVolumeProfile = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+                lookDevVolumeProfile = CopyVolumeProfileFromResourcesToAssets(renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
             }
             return lookDevVolumeProfile;
         }
@@ -656,6 +615,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls whether diffusion profiles referenced by an imported material should be automatically added to the list.
         /// </summary>
         public bool autoRegisterDiffusionProfiles = true;
+
+
+        public bool analyticDerivativeEmulation = false;
+
+        public bool analyticDerivativeDebugOutput = false;
 
         #endregion
 

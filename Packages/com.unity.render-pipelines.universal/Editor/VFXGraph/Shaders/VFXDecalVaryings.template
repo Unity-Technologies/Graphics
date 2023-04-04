@@ -1,0 +1,195 @@
+
+#define URP_NEEDS_UVS (URP_USE_BASE_COLOR_MAP || URP_USE_MASK_MAP || USE_NORMAL_MAP || URP_USE_EMISSIVE_MAP)
+#define URP_USE_EMISSIVE (URP_USE_EMISSIVE_MAP || URP_USE_EMISSIVE_COLOR || URP_USE_ADDITIONAL_EMISSIVE_COLOR)
+
+${VFXBegin:VFXURPDecalVaryingsMacros}
+#if (VFX_NEEDS_COLOR_INTERPOLATOR && URP_USE_BASE_COLOR) || URP_USE_ADDITIONAL_BASE_COLOR
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#endif
+
+
+#if AFFECT_METALLIC
+#define VFX_VARYING_METALLIC materialProperties.x
+#endif
+
+#if AFFECT_AMBIENT_OCCLUSION
+#define VFX_VARYING_AMBIENT_OCCLUSION materialProperties.y
+#endif
+
+#if AFFECT_SMOOTHNESS
+#define VFX_VARYING_SMOOTHNESS materialProperties.z
+#endif
+
+#if URP_USE_EMISSIVE_MAP
+#define VFX_VARYING_EMISSIVESCALE materialProperties.w
+#endif
+
+#if URP_USE_EMISSIVE_COLOR || URP_USE_ADDITIONAL_EMISSIVE_COLOR
+#define VFX_VARYING_EMISSIVE emissiveColor.rgb
+#endif
+
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT emissiveColor.a
+#endif
+
+
+#if USE_FLIPBOOK
+#if USE_FLIPBOOK_ARRAY_LAYOUT
+	#define VFX_VARYING_FLIPBOOKSIZE flipBookSize
+#else
+	#define VFX_VARYING_FLIPBOOKSIZE flipBookSize.xy
+	#define VFX_VARYING_INVFLIPBOOKSIZE flipBookSize.zw
+#endif
+#if USE_FLIPBOOK_MOTIONVECTORS
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants.xy
+#define VFX_VARYING_TEXINDEX builtInInterpolants.z
+#else
+#define VFX_VARYING_TEXINDEX texIndex
+#endif
+#endif
+
+#if USE_UV_SCALE_BIAS
+#define VFX_VARYING_UV_SCALE scaleBias.xy
+#define VFX_VARYING_UV_BIAS scaleBias.zw
+#endif
+
+#if USE_NORMAL_MAP
+#define VFX_VARYING_NORMALALPHA normalAlpha
+#endif
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_POSWS posWS
+#define VFX_VARYING_FADEFACTOR fadeParameters.x
+#if DECAL_ANGLE_FADE
+#define VFX_VARYING_ANGLEFADE fadeParameters.yz
+#endif
+#if USE_ALPHA_TEST
+#define VFX_VARYING_ALPHATHRESHOLD fadeParameters.w
+#endif
+
+${VFXEnd}
+
+${VFXBegin:VFXURPDecalDeclareVaryings}
+
+#if (VFX_NEEDS_COLOR_INTERPOLATOR && URP_USE_BASE_COLOR) || URP_USE_ADDITIONAL_BASE_COLOR
+VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
+#endif
+#if URP_USE_EMISSIVE
+VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR2;
+#endif
+
+// x: metallic
+// y: AO
+// z: smoothness
+// w: emissive scale
+VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
+#if USE_FLIPBOOK
+#if USE_FLIPBOOK_ARRAY_LAYOUT
+	nointerpolation float flipBookSize : TEXCOORD1;
+#else
+	nointerpolation float4 flipBookSize : TEXCOORD1;
+#endif
+#if USE_FLIPBOOK_MOTIONVECTORS
+// x: motion vectors scale X
+// y: motion vectors scale Y
+// z: texIndex
+nointerpolation float3 builtInInterpolants : TEXCOORD2;
+#else
+nointerpolation float texIndex : TEXCOORD2;
+#endif
+#endif
+
+#if USE_UV_SCALE_BIAS
+nointerpolation float4 scaleBias : TEXCOORD1;
+#endif
+
+float3 posWS : TEXCOORD3;
+#if USE_ALPHA_TEST
+// x: fade factor
+// y: angle fade start
+// z: angle fade end
+// w: alpha threshold
+nointerpolation float4 fadeParameters : TEXCOORD4;
+#else
+// x: fade factor
+// y: angle fade start
+// z: angle fade end
+nointerpolation float3 fadeParameters : TEXCOORD4;
+#endif
+
+nointerpolation float4 worldToDecal[3] : TEXCOORD5;
+
+#if USE_NORMAL_MAP
+VFX_OPTIONAL_INTERPOLATION float normalAlpha : TEXCOORD8;
+#endif
+
+VFX_VERTEX_OUTPUT_INSTANCE_INDEX
+${VFXEnd}
+
+${VFXBegin:VFXURPDecalFillVaryings}
+#ifndef VFX_SHADERGRAPH
+
+#ifdef VFX_VARYING_SMOOTHNESS
+${VFXLoadParameter:{smoothness}}
+o.VFX_VARYING_SMOOTHNESS = smoothness;
+#endif
+
+#ifdef VFX_VARYING_METALLIC
+${VFXLoadParameter:{metallic}}
+o.VFX_VARYING_METALLIC = metallic;
+#endif
+
+#ifdef VFX_VARYING_AMBIENT_OCCLUSION
+${VFXLoadParameter:{ambientOcclusion}}
+o.VFX_VARYING_AMBIENT_OCCLUSION = ambientOcclusion;
+#endif
+
+#if URP_USE_EMISSIVE_MAP
+#ifdef VFX_VARYING_EMISSIVESCALE
+${VFXLoadParameter:{emissiveScale}}
+o.VFX_VARYING_EMISSIVESCALE = emissiveScale;
+#endif
+#endif
+
+#ifdef VFX_VARYING_EMISSIVE
+#if URP_USE_EMISSIVE_COLOR
+o.VFX_VARYING_EMISSIVE = attributes.color;
+#elif URP_USE_ADDITIONAL_EMISSIVE_COLOR
+${VFXLoadParameter:{emissiveColor}}
+o.VFX_VARYING_EMISSIVE = emissiveColor.rgb;
+#endif
+#endif
+
+#if URP_USE_ADDITIONAL_BASE_COLOR
+#ifdef VFX_VARYING_COLOR
+${VFXLoadParameter:{baseColor}}
+o.VFX_VARYING_COLOR = baseColor;
+#endif
+#endif
+#endif
+
+float4x4 worldToDecal = GetVFXToElementMatrix(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+		size3,
+		attributes.position);
+
+#if VFX_LOCAL_SPACE
+worldToDecal = mul(worldToDecal, VFXGetWorldToObjectMatrix());
+#endif
+
+for (int k = 0; k < 3; k++)
+{
+    o.worldToDecal[k] = worldToDecal[k];
+}
+
+#ifdef VFX_VARYING_NORMALALPHA
+${VFXLoadParameter:{normalAlpha}}
+o.VFX_VARYING_NORMALALPHA = normalAlpha;
+#endif
+${VFXEnd}

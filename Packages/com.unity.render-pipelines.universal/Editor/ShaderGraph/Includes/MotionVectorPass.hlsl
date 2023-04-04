@@ -6,6 +6,9 @@
 struct MotionVectorPassAttributes
 {
     float3 previousPositionOS  : TEXCOORD4; // Contains previous frame local vertex position (for skinned meshes)
+#if defined (_ADD_PRECOMPUTED_VELOCITY)
+    float3 alembicMotionVectorOS : TEXCOORD5; // Alembic precomputed object space motion vector (offset from last frame's position)
+#endif
 };
 
 // Note: these will have z == 0.0f in the pixel shader to save on bandwidth
@@ -47,7 +50,8 @@ void vert(
 {
     Varyings output = (Varyings)0;
     MotionVectorPassVaryings mvOutput = (MotionVectorPassVaryings)0;
-    output = BuildVaryings(input);
+    MotionVectorPassOutput currentFrameMvData = (MotionVectorPassOutput)0;
+    output = BuildVaryings(input, currentFrameMvData);
     ApplyMotionVectorZBias(output.positionCS);
     packedOutput = PackVaryings(output);
 
@@ -57,7 +61,39 @@ void vert(
         const bool hasDeformation = unity_MotionVectorsParams.x == 1; // Mesh has skinned deformation
         float3 previousPositionOS = hasDeformation ? passInput.previousPositionOS : input.positionOS;
 
-        mvOutput.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, mul(UNITY_MATRIX_M, float4(input.positionOS, 1.0f)));
+#if defined(FEATURES_GRAPH_VERTEX)
+    #if defined(AUTOMATIC_TIME_BASED_MOTION_VECTORS) && defined(GRAPH_VERTEX_USES_TIME_PARAMETERS_INPUT)
+        if(true)
+    #else
+        if(hasDeformation)
+    #endif
+        {
+            Attributes lastFrameInputAttributes = input;
+            lastFrameInputAttributes.positionOS = previousPositionOS;
+
+            VertexDescriptionInputs lastFrameVertexDescriptionInputs = BuildVertexDescriptionInputs(lastFrameInputAttributes);
+    #if defined(AUTOMATIC_TIME_BASED_MOTION_VECTORS) && defined(GRAPH_VERTEX_USES_TIME_PARAMETERS_INPUT)
+            lastFrameVertexDescriptionInputs.TimeParameters = _LastTimeParameters.xyz;
+    #endif
+
+            VertexDescription lastFrameVertexDescription = VertexDescriptionFunction(lastFrameVertexDescriptionInputs);
+            previousPositionOS = lastFrameVertexDescription.Position.xyz;
+        }
+        else
+        {
+            previousPositionOS = currentFrameMvData.positionOS;
+        }
+
+    #if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT)
+        previousPositionOS -= currentFrameMvData.motionVector;
+    #endif
+#endif
+
+#if defined (_ADD_PRECOMPUTED_VELOCITY)
+        previousPositionOS -= passInput.alembicMotionVectorOS;
+#endif
+
+        mvOutput.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, float4(currentFrameMvData.positionWS, 1.0f));
         mvOutput.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPositionOS, 1.0f)));
     }
 

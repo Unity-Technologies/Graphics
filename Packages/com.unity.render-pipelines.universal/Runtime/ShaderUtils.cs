@@ -130,6 +130,33 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
+        private static float s_MostRecentValidDeltaTime = 0.0f;
+#endif
+
+        // A delta time that does not get reset to zero when stepping paused Play Mode or using the FrameDebugger
+        // (unless Time.timeScale is zero)
+        // * Can be zero on the first frame after domain reload (if Time.deltaTime is also zero)
+        // * The value depends on when it was last called
+        // * In in practice it should not get stale as it's called at least once during a URP frame
+        // * Currently only used when calculating '_LastTimeParameters' for shader upload
+        // * Please validate your use case if trying to reuse this somewhere else (as it might not transfer)
+        internal static float PersistentDeltaTime
+        {
+            get
+            {
+#if UNITY_EDITOR
+                float deltaTime = Time.deltaTime;
+                // The only case I'm aware of when a deltaTime of 0 is valid is when Time.timeScale is 0
+                if (deltaTime > 0.0f || Time.timeScale == 0.0f)
+                    s_MostRecentValidDeltaTime = deltaTime;
+                return s_MostRecentValidDeltaTime;
+#else
+                return Time.deltaTime;
+#endif
+            }
+        }
+
+#if UNITY_EDITOR
         static readonly string[] s_ShaderGUIDs =
         {
             "933532a4fcc9baf4fa0491de14d08ed7",

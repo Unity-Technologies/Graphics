@@ -34,7 +34,8 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// The current override state for this parameter. The Volume system considers overriden parameters
-        /// for blending, and ignores non-overriden ones.
+        /// for blending, and ignores non-overriden ones. It is also used in the VolumeStack to determine whether
+        /// a given parameter has been overridden and thus needs to be reset to its default state in the next update.
         /// </summary>
         /// <remarks>
         /// You can override this property to define custom behaviors when the override state

@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lightingSectionTitle = EditorGUIUtility.TrTextContent("Lighting");
             public static readonly GUIContent materialSectionTitle = EditorGUIUtility.TrTextContent("Material");
             public static readonly GUIContent postProcessSectionTitle = EditorGUIUtility.TrTextContent("Post-processing");
+            public static readonly GUIContent volumesSectionTitle = EditorGUIUtility.TrTextContent("Volumes");
             public static readonly GUIContent xrTitle = EditorGUIUtility.TrTextContent("XR");
             public static readonly GUIContent virtualTexturingTitle = EditorGUIUtility.TrTextContent("Virtual Texturing", "Virtual Texturing Settings. These are only available when Virtual Texturing is enabled in the Player Settings.");
             public static readonly GUIContent lightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
@@ -283,14 +284,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string DLSSWinTargetWarning = "HDRP does not support DLSS for the current build target. To enable DLSS, set your build target to Windows x86_64.";
             public const string DLSSSwitchTarget64Button = "Fix";
 
-            public const string STPDynamicResolutionWarningMsg = "STP requires additional memory when multiple dynamic resolutions are supported. The amount of memory scales with the number of dynamic resolutions. This may make it impractical when small step sizes are combined with high resolutions.";
-            public const string STPXRWarningMsg = "STP does not currently support XR. HDRP will automatically fall back to TAAU when STP is enabled in an XR configuration.";
-
             public static readonly GUIContent fsrOverrideSharpness = EditorGUIUtility.TrTextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for the render pipeline asset.");
             public static readonly GUIContent fsrSharpnessText = EditorGUIUtility.TrTextContent("FSR Sharpness", "Controls the intensity of the sharpening filter used by AMD FidelityFX Super Resolution.");
-
-            public static readonly GUIContent stpQuality = EditorGUIUtility.TrTextContent("STP Quality Mode", "Runs STP in a mode that prioritizes quality over performance.");
-            public static readonly GUIContent stpResponsive = EditorGUIUtility.TrTextContent("STP Responsive Feature", "Enables the responsive feature in STP.");
 
             public static readonly GUIContent maxPercentage = EditorGUIUtility.TrTextContent("Maximum Screen Percentage", "Sets the maximum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent minPercentage = EditorGUIUtility.TrTextContent("Minimum Screen Percentage", "Sets the minimum screen percentage that dynamic resolution can reach.");
@@ -303,7 +298,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lowResTransparencyMinimumThreshold = EditorGUIUtility.TrTextContent("Low Res Transparency Min Threshold", "The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.");
             public const string lowResTransparencyThresholdDisabledMsg = "Low res transparency is currently disabled in the quality settings. \"Low Res Transparency Min Threshold\" will be ignored.";
             public static readonly GUIContent rayTracingHalfResThreshold = EditorGUIUtility.TrTextContent("Ray Tracing Half Res Threshold", "The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.");
-            public static readonly GUIContent dynamicResolutionStepSize = EditorGUIUtility.TrTextContent("Dynamic Resolution Step Size", "The size of each step (as a percentage) between unique resolutions supported by dynamic resolution.");
 
             public static readonly GUIContent lowResTransparentEnabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, materials tagged as Low Res Transparent, will be rendered in a quarter res offscreen buffer and then composited to full res.");
             public static readonly GUIContent checkerboardDepthBuffer = EditorGUIUtility.TrTextContent("Checkerboarded depth buffer downsample", "When enabled, the depth buffer used for low res transparency is generated in a min/max checkerboard pattern from original full res buffer.");
@@ -317,6 +311,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");
             public static readonly GUIContent lutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");
             public static readonly GUIContent bufferFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Specifies the encoding format of the color buffers that are used during post processing. Lower precision formats are faster and use less memory at the expense of color precision.");
+
+            public static readonly GUIContent qualityDefaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Quality Default Volume Profile", "This volume profile is used to override the default values defined in HDRP Global Settings.");
 
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };

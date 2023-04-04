@@ -9,7 +9,7 @@ float4 _CameraDepthTexture_TexelSize;
 
 float SampleSceneDepth(float2 uv)
 {
-    uv = ClampAndScaleUV(UnityStereoTransformScreenSpaceTex(uv), _CameraDepthTexture_TexelSize.xy, _RTHandleScale.xy);
+    uv = ClampAndScaleUVForBilinear(UnityStereoTransformScreenSpaceTex(uv), _CameraDepthTexture_TexelSize.xy);
     return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
 }
 

@@ -209,12 +209,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             Debug.Log("Default Volume Profile Asset cannot be null. Rolling back to previous value.");
                             serialized.defaultVolumeProfile.objectReferenceValue = oldAssetValue;
+                            asset = oldAssetValue as VolumeProfile;
                         }
                         else
                         {
                             asset = globalSettings.GetOrCreateDefaultVolumeProfile();
                         }
                     }
+
+                    var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+                    if (asset != oldAssetValue)
+                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(asset, defaultValuesAsset);
 
                     if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
                     {
@@ -224,6 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             VolumeProfileFactory.CreateVolumeProfileWithCallback(path, (volumeProfile) =>
                             {
                                 globalSettings.volumeProfile = volumeProfile;
+                                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(volumeProfile, defaultValuesAsset);
                                 EditorUtility.SetDirty(globalSettings);
                             });
                         }
@@ -339,6 +345,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.DLSSProjectId, Styles.DLSSProjectIdLabel);
 #endif
                 EditorGUILayout.PropertyField(serialized.autoRegisterDiffusionProfiles, Styles.autoRegisterDiffusionProfilesContentLabel);
+
+                EditorGUILayout.PropertyField(serialized.analyticDerivativeEmulation, Styles.analyticDerivativeEmulationContentLabel);
+                EditorGUILayout.PropertyField(serialized.analyticDerivativeDebugOutput, Styles.analyticDerivativeDebugOutputContentLabel);
+
             }
             EditorGUIUtility.labelWidth = oldWidth;
         }

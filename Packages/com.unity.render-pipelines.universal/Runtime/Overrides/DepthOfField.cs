@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("post-processing-depth-of-field")]
     public sealed class DepthOfField : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

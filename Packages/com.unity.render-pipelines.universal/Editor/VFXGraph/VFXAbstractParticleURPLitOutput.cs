@@ -85,7 +85,13 @@ namespace UnityEditor.VFX.URP
 
         protected VFXAbstractParticleURPLitOutput(bool strip = false) : base(strip) {}
 
-        protected virtual bool allowTextures { get { return GetOrRefreshShaderGraphObject() == null; } }
+        protected virtual bool allowTextures => GetOrRefreshShaderGraphObject() == null;
+
+        protected virtual bool useSmoothness => true;
+        protected virtual bool useMetallic => workflowMode == WorkflowMode.Metallic;
+        protected virtual bool useSpecular => workflowMode == WorkflowMode.Specular;
+        protected virtual bool useNormalScale => true;
+
 
         public class URPLitInputProperties
         {
@@ -196,7 +202,8 @@ namespace UnityEditor.VFX.URP
             get
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kNormalMap, new TooltipAttribute("Specifies the Normal map to obtain normals in tangent space for the particle.")));
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), kNormalScale, new TooltipAttribute("Sets the scale of the normals. Larger values increase the impact of the normals.")), 1.0f);
+                if(useNormalScale)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), kNormalScale, new TooltipAttribute("Sets the scale of the normals. Larger values increase the impact of the normals.")), 1.0f);
             }
         }
 
@@ -280,15 +287,18 @@ namespace UnityEditor.VFX.URP
 
             if (GetOrRefreshShaderGraphObject() == null)
             {
-                yield return slotExpressions.First(o => o.name == nameof(URPLitInputProperties.smoothness));
+                if(useSmoothness)
+                    yield return slotExpressions.First(o => o.name == nameof(URPLitInputProperties.smoothness));
 
                 switch (workflowMode)
                 {
                     case WorkflowMode.Metallic:
-                        yield return slotExpressions.First(o => o.name == nameof(StandardProperties.metallic));
+                        if(useMetallic)
+                            yield return slotExpressions.First(o => o.name == nameof(StandardProperties.metallic));
                         break;
                     case WorkflowMode.Specular:
-                        yield return slotExpressions.First(o => o.name == nameof(SpecularColorProperties.specularColor));
+                        if(useSpecular)
+                            yield return slotExpressions.First(o => o.name == nameof(SpecularColorProperties.specularColor));
                         break;
                     default:
                         break;
@@ -307,7 +317,8 @@ namespace UnityEditor.VFX.URP
                     if (useNormalMap)
                     {
                         yield return slotExpressions.First(o => o.name == kNormalMap);
-                        yield return slotExpressions.First(o => o.name == kNormalScale);
+                        if(useNormalScale)
+                            yield return slotExpressions.First(o => o.name == kNormalScale);
                     }
                     if (useEmissiveMap)
                     {
