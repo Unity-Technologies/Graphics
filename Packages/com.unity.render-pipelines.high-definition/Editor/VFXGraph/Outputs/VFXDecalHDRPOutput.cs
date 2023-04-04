@@ -30,6 +30,7 @@ namespace UnityEditor.VFX.HDRP
             base.OnEnable();
             blendMode = BlendMode.Opaque;
             sort = SortActivationMode.Off;
+            cullMode = CullMode.Back;
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -377,6 +378,8 @@ namespace UnityEditor.VFX.HDRP
                     yield return setting;
                 }
                 yield return "blendMode";
+                yield return "sort";
+                yield return "cullMode";
             }
         }
     }

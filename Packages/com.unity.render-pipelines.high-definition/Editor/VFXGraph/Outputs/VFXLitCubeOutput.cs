@@ -65,6 +65,7 @@ namespace UnityEditor.VFX.HDRP
                 {
                     yield return setting;
                 }
+                yield return nameof(blendMode);
                 yield return nameof(shaderGraph);
             }
         }

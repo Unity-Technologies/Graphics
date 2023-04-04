@@ -214,3 +214,9 @@ float3 VFXGetCameraWorldDirection()
 {
     return -_CameraViewMatrix._m20_m21_m22;
 }
+
+
+#define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) \
+{ \
+    outNormalBuffer = 0; \
+}

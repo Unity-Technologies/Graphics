@@ -1,6 +1,10 @@
 {
 	SubShader
 	{
+		HLSLINCLUDE
+			#define mainTexture baseColorMap
+		ENDHLSL
+		
 		${VFXInclude("Shaders/VFXParticleHeader.template")}
 		${VFXInclude("Shaders/ParticleHexahedron/PassSelection.template")}
 		${VFXIncludeRP("Templates/HDRPDecal/PassDBuffer.template")}

@@ -130,7 +130,7 @@ void frag(ps_input i
                 normalWS = mul(n,tbn);
             #endif
         #endif
-        VFXComputePixelOutputToNormalBuffer(normalWS,  outNormalBuffer);
+        VFXComputePixelOutputToNormalBuffer(i, normalWS, GetUVData(i), outNormalBuffer);
     #endif
 
     #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
