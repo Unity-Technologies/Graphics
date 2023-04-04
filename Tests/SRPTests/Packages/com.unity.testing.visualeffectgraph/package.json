@@ -1,7 +1,7 @@
 {
   "name": "com.unity.testing.visualeffectgraph",
   "displayName": "Visual Effect Graphic Tests",
-  "version": "12.1.10",
+  "version": "12.1.11",
   "unity": "2021.3",
   "unityRelease": "0a1",
   "description": "This package contains common graphics tests from several scriptable renderpipeline",

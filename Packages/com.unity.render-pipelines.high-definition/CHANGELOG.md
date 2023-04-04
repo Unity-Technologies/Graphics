@@ -4,18 +4,21 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [12.1.10] - 2023-01-18
-
-This version is compatible with Unity 2021.3.18f1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.10] - 2023-03-24
+
+This version is compatible with Unity 2021.3.22f1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.9] - 2022-12-12
 
-This version is compatible with Unity 2021.3.16f1.
+This version is compatible with Unity 2021.3.18f1.
 
 ### Fixed
 - Re-enabled XR tests for 004-CloudsFlaresDecals and 005-DistortCloudsParallax.
@@ -23,7 +26,7 @@ This version is compatible with Unity 2021.3.16f1.
 
 ## [12.1.8] - 2022-11-04
 
-This version is compatible with Unity 2021.3.14f1.
+This version is compatible with Unity 2021.3.16f1.
 
 ### Changed
 - Further improve the consistency of non-physical depth of field at varying native rendering resolutions and resolution scales.
@@ -149,7 +152,7 @@ This version is compatible with Unity 2021.3.14f1.
 
 ## [12.1.7] - 2022-03-29
 
-This version is compatible with Unity 2021.2.19f1.
+This version is compatible with Unity 2021.3.14f1.
 
 ### Fixed
 - Fixed an issue with shader graph custom velocity and VFX.
@@ -157,7 +160,7 @@ This version is compatible with Unity 2021.2.19f1.
 
 ## [12.1.6] - 2022-02-09
 
-This version is compatible with Unity 2021.2.14f1.
+This version is compatible with Unity 2021.2.19f1.
 
 ### Fixed
 - Fixed issue with detail normals when scale is null (case 1399548).
@@ -166,7 +169,7 @@ This version is compatible with Unity 2021.2.14f1.
 
 ## [12.1.5] - 2022-01-14
 
-This version is compatible with Unity 2021.2.12f1.
+This version is compatible with Unity 2021.2.14f1.
 
 ### Fixed
 - Fixed sky jittering when TAA is enabled.
