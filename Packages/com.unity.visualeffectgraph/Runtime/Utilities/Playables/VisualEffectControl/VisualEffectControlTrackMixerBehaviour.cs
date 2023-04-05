@@ -128,6 +128,7 @@ namespace UnityEngine.VFX
         int m_LastChunk = kErrorIndex;
         int m_LastEvent = kErrorIndex;
         double m_LastPlayableTime = double.MinValue;
+        List<int> m_EventListIndexCache = new ();
 
 #if UNITY_EDITOR
         bool[] m_ClipState;
@@ -302,7 +303,8 @@ namespace UnityEngine.VFX
                     //Sending missed event (in case of VFX ahead)
                     if (m_LastPlayableTime < actualCurrentTime)
                     {
-                        var eventList = GetEventsIndex(chunk, m_LastPlayableTime, actualCurrentTime, m_LastEvent);
+                        var eventList = m_EventListIndexCache;
+                        GetEventsIndex(chunk, m_LastPlayableTime, actualCurrentTime, m_LastEvent, eventList);
                         foreach (var itEvent in eventList)
                             ProcessEvent(itEvent, chunk);
                     }
@@ -310,8 +312,9 @@ namespace UnityEngine.VFX
                     if (actualCurrentTime < expectedCurrentTime)
                     {
                         //Process adjustment if actualCurrentTime < expectedCurrentTime
-                        var eventList = GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime, m_LastEvent);
-                        var eventCount = eventList.Count();
+                        var eventList = m_EventListIndexCache;
+                        GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime, m_LastEvent, eventList);
+                        var eventCount = eventList.Count;
                         var nextEvent = 0;
 
                         var maxScrubTime = VFXManager.maxScrubTime;
@@ -358,7 +361,8 @@ namespace UnityEngine.VFX
                     //Sending incoming event
                     if (actualCurrentTime < playableTime)
                     {
-                        var eventList = GetEventsIndex(chunk, actualCurrentTime, playableTime, m_LastEvent);
+                        var eventList = m_EventListIndexCache;
+                        GetEventsIndex(chunk, actualCurrentTime, playableTime, m_LastEvent, eventList);
                         foreach (var itEvent in eventList)
                             ProcessEvent(itEvent, chunk);
                     }
@@ -380,11 +384,13 @@ namespace UnityEngine.VFX
 #endif
             if (newTime < oldTime) // == playingBackward
             {
-                var eventBehind = GetEventsIndex(chunk, newTime, oldTime, kErrorIndex);
-                if (eventBehind.Any())
+                var eventBehind = m_EventListIndexCache;
+                GetEventsIndex(chunk, newTime, oldTime, kErrorIndex, eventBehind);
+                if (eventBehind.Count > 0)
                 {
-                    foreach (var itEvent in eventBehind.Reverse())
+                    for (int index = eventBehind.Count - 1; index >= 0; index--)
                     {
+                        var itEvent = eventBehind[index];
                         var currentEvent = chunk.events[itEvent];
                         if (currentEvent.clipType == Event.ClipType.Enter)
                         {
@@ -403,7 +409,8 @@ namespace UnityEngine.VFX
             }
             else
             {
-                var eventAhead = GetEventsIndex(chunk, oldTime, newTime, m_LastEvent);
+                var eventAhead = m_EventListIndexCache;
+                GetEventsIndex(chunk, oldTime, newTime, m_LastEvent, eventAhead);
                 foreach (var itEvent in eventAhead)
                     ProcessEvent(itEvent, chunk);
             }
@@ -436,8 +443,10 @@ namespace UnityEngine.VFX
             m_Target.SendEvent(currentEvent.nameId, currentEvent.attribute);
         }
 
-        static IEnumerable<int> GetEventsIndex(Chunk chunk, double minTime, double maxTime, int lastIndex)
+        static void GetEventsIndex(Chunk chunk, double minTime, double maxTime, int lastIndex, List<int> eventListIndex)
         {
+            eventListIndex.Clear();
+
             var startIndex = lastIndex == kErrorIndex ? 0 : lastIndex + 1;
             for (int i = startIndex; i < chunk.events.Length; ++i)
             {
@@ -448,7 +457,7 @@ namespace UnityEngine.VFX
                     break;
 
                 if (minTime <= currentEvent.time)
-                    yield return i;
+                    eventListIndex.Add(i);
             }
         }
 

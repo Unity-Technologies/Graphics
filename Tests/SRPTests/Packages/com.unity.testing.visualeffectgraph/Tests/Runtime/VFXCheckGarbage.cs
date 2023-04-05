@@ -23,7 +23,11 @@ namespace UnityEngine.VFX.Test
     public class VFXCheckGarbage
     {
         public static readonly string[] s_CustomGarbageWrapperTest = new[] { "Reference_Forcing_Garbage_Creation", "Basic_Usage" };
-        public static readonly string[] s_Scenarios = new[] { "021_Check_Garbage_Spawner", "021_Check_Garbage_OutputEvent" };
+        public static readonly string[] s_Scenarios = new[] { "021_Check_Garbage_Spawner", "021_Check_Garbage_OutputEvent"
+#if VFX_HAS_TIMELINE
+            , "023_Check_Garbage_Timeline"
+#endif
+};
         private static readonly int kForceGarbageID = Shader.PropertyToID("forceGarbage");
         private static readonly WaitForEndOfFrame kWaitForEndOfFrame = new WaitForEndOfFrame();
 
@@ -92,16 +96,25 @@ Recorder m_gcAllocRecorder;
             yield return null;
 
             var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
-            Assert.AreEqual(1u, vfxComponents.Length);
-            var currentVFX = vfxComponents[0];
+            Assert.Greater(vfxComponents.Length, 0u);
 
             var forceGarbage = garbageMode == s_CustomGarbageWrapperTest[0];
-            Assert.IsTrue(currentVFX.HasBool(kForceGarbageID));
-            currentVFX.SetBool(kForceGarbageID, forceGarbage);
+            foreach (var currentVFX in vfxComponents)
+            {
+                Assert.IsTrue(currentVFX.HasBool(kForceGarbageID));
+                currentVFX.SetBool(kForceGarbageID, forceGarbage);
+            }
 
             int maxFrame = 8;
-            while (currentVFX.culled && maxFrame-- > 0)
+            while (vfxComponents[^1].culled && maxFrame-- > 0)
                 yield return kWaitForEndOfFrame;
+
+            bool isTimelineTest = scenario.EndsWith("Timeline", StringComparison.InvariantCultureIgnoreCase);
+            if (isTimelineTest)
+            {
+                //Allows first frame to compile & prepare track with timeline test
+                yield return kWaitForEndOfFrame;
+            }
 
 #if UNITY_EDITOR
             UnityEditorInternal.ProfilerDriver.ClearAllFrames();
@@ -141,8 +154,8 @@ Recorder m_gcAllocRecorder;
                 }
 
                 var gcAllocMarkerId = frameData.GetMarkerId("GC.Alloc");
-                var mainVFXMarker = frameData.GetMarkerId("VFX.Update");
-                if (gcAllocMarkerId == FrameDataView.invalidMarkerId || mainVFXMarker == FrameDataView.invalidMarkerId)
+                var mainTrackedMarker = frameData.GetMarkerId(isTimelineTest ? "Update.DirectorUpdate" : "VFX.Update");
+                if (gcAllocMarkerId == FrameDataView.invalidMarkerId || mainTrackedMarker == FrameDataView.invalidMarkerId)
                 {
                     continue;
                 }
@@ -153,7 +166,7 @@ Recorder m_gcAllocRecorder;
 
                 while (cursor < sampleCount)
                 {
-                    if (mainVFXMarker == frameData.GetSampleMarkerId(cursor))
+                    if (mainTrackedMarker == frameData.GetSampleMarkerId(cursor))
                     {
                         var nextSibling = frameData.GetSampleChildrenCountRecursive(cursor) + cursor;
                         int startMaker = cursor;
@@ -195,11 +208,11 @@ Recorder m_gcAllocRecorder;
             else
             {
                 Assert.AreEqual(0u, totalGcAllocSizeFromVFXUpdate, aggregatedAllocation.Any() ? aggregatedAllocation.Aggregate((a, b) => $"{a}\n{b}") : string.Empty);
-
             }
 #else
-            var knownAllocation = 4u; //Previous coroutine call is expecting at most 4 GC.Alloc
+            var knownAllocation = isTimelineTest ? 5u : 4u; //Previous coroutine call is expecting at most 5 or 4 GC.Alloc (one per frame)
             knownAllocation += 3u; //Lazy allocation from GUI.Repaint (standalone are in development mode, OnGUI is called in PlaymodeTestRunner)
+            knownAllocation += 1u; //RemoteTestResultSend.SendDataRoutine (which can occurs randomly)
             if (forceGarbage)
             {
                 Assert.IsTrue(allocationCountFromCustomCallback > knownAllocation);
