@@ -40,7 +40,7 @@ VFXFlowAnchor.port.EdgeConnector #type
     position:Absolute;
     width: 42px;
     top: 1px;
-    left: 58px;
+    padding-left: 30px;
     margin-left:0;
     margin-right:0;
 }

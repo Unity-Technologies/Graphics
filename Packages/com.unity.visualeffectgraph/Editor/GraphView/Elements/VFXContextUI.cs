@@ -187,7 +187,7 @@ namespace UnityEditor.VFX.UI
 
             Profiler.BeginSample("VFXContextUI.CreateInputFlow");
             HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
-            foreach (var inanchorcontroller in controller.flowInputAnchors)
+            foreach (var inanchorcontroller in controller.flowInputAnchors.Take(VFXContext.kMaxFlowCount))
             {
                 var existing = m_FlowInputConnectorContainer.Children().Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorcontroller);
                 if (existing == null)
@@ -211,7 +211,7 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXContextUI.CreateInputFlow");
             HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
 
-            foreach (var outanchorcontroller in controller.flowOutputAnchors)
+            foreach (var outanchorcontroller in controller.flowOutputAnchors.Take(VFXContext.kMaxFlowCount))
             {
                 var existing = m_FlowOutputConnectorContainer.Children().Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == outanchorcontroller);
                 if (existing == null)
