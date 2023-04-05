@@ -1,4 +1,4 @@
-# Matrix Construction Node
+# Create Matrix Node
 
 ## Description
 

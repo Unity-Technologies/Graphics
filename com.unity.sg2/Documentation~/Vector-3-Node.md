@@ -2,15 +2,12 @@
 
 ## Description
 
-Defines a **Vector 3** value in the shader. If [Ports](Port.md) **X**, **Y** and **Z** are not connected with [Edges](Edge.md) this [Node](Node.md) defines a constant **Vector 3**, otherwise this [Node](Node.md) can be used to combine various **Float** values.
+Defines a constant **Vector 3** value in the shader.
 
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| X      | Input | Float    | None | Input x component value |
-| Y      | Input | Float    | None | Input y component value |
-| Z      | Input | Float    | None | Input z component value |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Generated Code Example

@@ -3,9 +3,9 @@ using Usage = UnityEditor.ShaderGraph.GraphDelta.GraphType.Usage;
 
 namespace UnityEditor.ShaderGraph.Defs
 {
-    internal class MatrixConstructionNode : IStandardNode
+    internal class CreateMatrixNode : IStandardNode
     {
-        public static string Name => "MatrixConstruction";
+        public static string Name => "CreateMatrix";
         public static int Version => 1;
 
         public static NodeDescriptor NodeDescriptor => new(
@@ -63,11 +63,11 @@ namespace UnityEditor.ShaderGraph.Defs
         public static NodeUIDescriptor NodeUIDescriptor => new(
             Version,
             Name,
-            displayName: "Matrix Construction",
+            displayName: "Create Matrix",
             tooltip: "Creates square matrices using the input vectors.",
-            category: "Math/Matrix",
+            category: "Math/Constructor",
             synonyms: new string[3] { "create", "build", "construct" },
-            description: "pkg://Documentation~/previews/MatrixConstruction.md",
+            description: "pkg://Documentation~/previews/CreateMatrix.md",
             selectableFunctions: new Dictionary<string, string>
             {
                 { "Row", "Row" },

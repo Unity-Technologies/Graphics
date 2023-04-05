@@ -10,12 +10,10 @@ namespace UnityEditor.ShaderGraph.Defs
 
         public static FunctionDescriptor FunctionDescriptor => new(
             Name,
-@"
-    Out = X;
-",
+            "    Out = X;",
             new ParameterDescriptor[]
             {
-                new ParameterDescriptor("X", TYPE.Float, Usage.In),
+                new ParameterDescriptor("X", TYPE.Float, Usage.Static),
                 new ParameterDescriptor("Out", TYPE.Float, Usage.Out)
             }
         );
@@ -31,10 +29,12 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[2] {
                 new ParameterUIDescriptor(
                     name: "X",
+                    displayName: string.Empty,
                     tooltip: "the input value"
                 ),
                 new ParameterUIDescriptor(
                     name: "Out",
+                    displayName: string.Empty,
                     tooltip: "a user-defined value with 1 channel"
                 )
             }
