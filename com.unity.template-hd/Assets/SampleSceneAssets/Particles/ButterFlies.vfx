@@ -79,7 +79,7 @@ MonoBehaviour:
     x: -1779
     y: -190
     width: 3413
-    height: 3851
+    height: 3852
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -199,7 +199,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 11
+  m_GraphVersion: 12
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -8243,17 +8243,18 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 2
+  zTestMode: 0
   useAlphaClipping: 1
   generateMotionVector: 0
   excludeFromTAA: 1
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614932}
-  cullMode: 0
-  zWriteMode: 2
-  zTestMode: 0
   colorMapping: 0
   uvMode: 1
+  flipbookLayout: 0
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 0
@@ -8264,13 +8265,12 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 1
   useExposureWeight: 0
-  flipbookLayout: 0
   needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
     m_PropertyValues: []
-  useBaseColorMap: 3
+  useBaseColorMap: -1
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -8278,12 +8278,17 @@ MonoBehaviour:
   useEmissive: 0
   materialType: 4
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
+  diffusionProfileAsset: {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
   multiplyThicknessWithAlpha: 0
   doubleSided: 1
   preserveSpecularLighting: 0
   enableSpecular: 1
-  smokeEmissiveMode: 0
+  lightmapRemapMode: 0
+  lightmapRemapRanges: 0
+  useAlphaRemap: 0
+  emissiveMode: 0
+  useEmissiveChannelScale: 0
+  useColorAbsorption: 1
   receiveShadows: 1
   enableCookie: 1
   enableEnvLight: 1
@@ -13798,17 +13803,18 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 2
+  zTestMode: 0
   useAlphaClipping: 1
   generateMotionVector: 0
   excludeFromTAA: 1
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615143}
-  cullMode: 0
-  zWriteMode: 2
-  zTestMode: 0
   colorMapping: 0
   uvMode: 1
+  flipbookLayout: 0
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 0
@@ -13819,13 +13825,12 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 1
   useExposureWeight: 0
-  flipbookLayout: 0
   needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
     m_PropertyValues: []
-  useBaseColorMap: 3
+  useBaseColorMap: -1
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -13833,12 +13838,17 @@ MonoBehaviour:
   useEmissive: 0
   materialType: 4
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
+  diffusionProfileAsset: {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
   multiplyThicknessWithAlpha: 0
   doubleSided: 1
   preserveSpecularLighting: 0
   enableSpecular: 1
-  smokeEmissiveMode: 0
+  lightmapRemapMode: 0
+  lightmapRemapRanges: 0
+  useAlphaRemap: 0
+  emissiveMode: 0
+  useEmissiveChannelScale: 0
+  useColorAbsorption: 1
   receiveShadows: 1
   enableCookie: 1
   enableEnvLight: 1
