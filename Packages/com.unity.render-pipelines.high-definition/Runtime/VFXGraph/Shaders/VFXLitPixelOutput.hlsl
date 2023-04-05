@@ -119,6 +119,9 @@ void VFXSetupBuiltinForGBuffer(const VFX_VARYING_PS_INPUTS i, const SurfaceData 
     ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.VFX_VARYING_POSCS.xy, outGBuffer); \
 }
 
+#ifdef VFXComputePixelOutputToNormalBuffer
+#undef VFXComputePixelOutputToNormalBuffer
+#endif
 #define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) \
 { \
     SurfaceData surfaceData; \
