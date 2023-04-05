@@ -47,7 +47,6 @@ namespace UnityEngine.Rendering
             public static readonly string msgUnloadOther = "Scene(s) not belonging to this Baking Set are currently loaded in the Hierarchy. This might result in incorrect lighting.";
             public static readonly string msgLoadForBake = "Some scene(s) in this Baking Set are not currently loaded in the Hierarchy. This might result in missing or incomplete lighting.";
 
-            public const float bakeLabelWidth = 50;
             public const float statusLabelWidth = 80;
 
             // Summary
@@ -996,12 +995,6 @@ namespace UnityEngine.Rendering
             return (bool)k_Lightmapping_BakeAllReflectionProbesSnapshots.Invoke(null, null);
         }
 
-        static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new[] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);
-        static bool ButtonWithDropdownList(GUIContent content, string[] buttonNames, GenericMenu.MenuFunction2 callback, params GUILayoutOption[] options)
-        {
-            return (bool)k_EditorGUI_ButtonWithDropdownList.Invoke(null, new object[] { content, buttonNames, callback, options });
-        }
-
         static T ObjectFieldWithNew<T>(GUIContent label, T obj, Func<T> onClick) where T : Object
         {
             const int k_NewFieldWidth = 70;
@@ -1018,7 +1011,7 @@ namespace UnityEngine.Rendering
             return EditorGUI.ObjectField(rect, label, obj, typeof(T), false) as T;
         }
 
-        internal static void SplitRectInThree(Rect rect, out Rect left, out Rect middle, out Rect right, float middleWith = Styles.statusLabelWidth, float rightWidth = Styles.bakeLabelWidth)
+        internal static void SplitRectInThree(Rect rect, out Rect left, out Rect middle, out Rect right, float middleWith = Styles.statusLabelWidth, float rightWidth = 50)
         {
             right = rect;
             right.xMin = rect.xMax - rightWidth;

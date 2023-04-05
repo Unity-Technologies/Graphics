@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering
         static BakingBatch m_BakingBatch;
         static ProbeVolumeBakingSet m_BakingSet = null;
 
-        static ProbeVolumeProfileInfo m_ProfileInfo = null;
+        static internal ProbeVolumeProfileInfo m_ProfileInfo = null;
 
         static int m_BakingBatchIndex = 0;
 
@@ -378,10 +378,8 @@ namespace UnityEngine.Rendering
 
             foreach (var sceneData in sceneDataList)
             {
-                if (sceneData.bakingSet == null)
-                {
+                if (sceneData.bakingSet == null || sceneData.bakingSet.GetSceneCellIndexList(sceneData.sceneGUID) == null)
                     return false;
-                }
             }
 
             return true;
@@ -1012,12 +1010,8 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            // If we did not use virtual offset, we did not have occluders spawned.
-            if (!m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset)
-            {
-                using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.AddOccluders))
-                    AddOccluders();
-            }
+            using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.AddOccluders))
+                AddOccluders();
 
             ModifyPhysicsComponentsForBaking();
 
@@ -2037,6 +2031,10 @@ namespace UnityEngine.Rendering
                 }
             }
 
+            s_ExcludedColliders = null;
+            s_ExcludedRigidBodies = null;
+            s_AddedOccluders = null;
+
             // We need to reset that view
             ProbeReferenceVolume.instance.ResetDebugViewToMaxSubdiv();
         }
@@ -2083,7 +2081,7 @@ namespace UnityEngine.Rendering
             ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(prevBrickSize, prevMaxSubdiv);
         }
 
-        public static ProbeSubdivisionContext PrepareProbeSubdivisionContext()
+        public static ProbeSubdivisionContext PrepareProbeSubdivisionContext(bool liveContext = false)
         {
             ProbeSubdivisionContext ctx = new ProbeSubdivisionContext();
 
@@ -2096,8 +2094,12 @@ namespace UnityEngine.Rendering
                 if (perSceneDataList.Count == 0) return ctx;
                 SetBakingContext(perSceneDataList);
             }
-            ctx.Initialize(m_BakingSet, m_ProfileInfo, refVolOrigin);
 
+            var profileInfo = m_ProfileInfo;
+            if (liveContext || m_ProfileInfo == null)
+                profileInfo = GetProfileInfoFromBakingSet(m_BakingSet);
+
+            ctx.Initialize(m_BakingSet, profileInfo, refVolOrigin);
             return ctx;
         }
 

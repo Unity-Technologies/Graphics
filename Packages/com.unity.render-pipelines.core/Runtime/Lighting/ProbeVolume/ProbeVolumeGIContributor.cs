@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
 
         internal enum ContributorFilter { All, Scene, Selection };
 
-        static bool ContributesGI(GameObject go) =>
+        internal static bool ContributesGI(GameObject go) =>
             (GameObjectUtility.GetStaticEditorFlags(go) & StaticEditorFlags.ContributeGI) != 0;
 
         internal static Vector3[] m_Vertices = new Vector3[8];

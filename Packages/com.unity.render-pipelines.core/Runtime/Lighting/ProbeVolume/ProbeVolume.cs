@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering
     /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Light/Probe Volume")]
+    [AddComponentMenu("Rendering/Probe Volume")]
     public partial class ProbeVolume : MonoBehaviour
     {
         /// <summary>Indicates which renderers should be considerer for the Probe Volume bounds when baking</summary>
@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering
         /// If is a global bolume
         /// </summary>
         [Tooltip("When set to Global this Probe Volume considers all renderers with Contribute Global Illumination enabled. Local only considers renderers in the scene.\nThis list updates every time the Scene is saved or the lighting is baked.")]
-        public Mode mode = Mode.Scene;
+        public Mode mode = Mode.Local;
 
         /// <summary>
         /// The size
@@ -116,18 +116,8 @@ namespace UnityEngine.Rendering
 
         internal void UpdateGlobalVolume(GIContributors.ContributorFilter filter)
         {
-            var scene = gameObject.scene;
-
-            // Get minBrickSize from scene profile if available
             float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
-            if (ProbeReferenceVolume.instance.sceneData != null)
-            {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(scene);
-                if (profile != null)
-                    minBrickSize = profile.minBrickSize;
-            }
-
-            var bounds = ComputeBounds(filter, scene);
+            var bounds = ComputeBounds(filter, gameObject.scene);
             transform.position = bounds.center;
             size = Vector3.Max(bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize), Vector3.zero);
         }
@@ -263,17 +253,17 @@ namespace UnityEngine.Rendering
 
             var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
 
-            var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
             float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
+            var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
             if (debugDisplay.realtimeSubdivision)
             {
-                var profile = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(gameObject.scene);
-                if (profile == null)
+                var bakingSet = ProbeReferenceVolume.instance.sceneData.GetBakingSetForScene(gameObject.scene);
+                if (bakingSet == null)
                     return;
 
                 // Overwrite settings with data from profile
-                cellSizeInMeters = profile.cellSizeInMeters;
-                minBrickSize = profile.minBrickSize;
+                minBrickSize = ProbeVolumeBakingSet.GetMinBrickSize(bakingSet.minDistanceBetweenProbes);
+                cellSizeInMeters = ProbeVolumeBakingSet.GetCellSizeInBricks(bakingSet.simplificationLevels) * minBrickSize;
             }
 
             if (debugDisplay.drawBricks)
