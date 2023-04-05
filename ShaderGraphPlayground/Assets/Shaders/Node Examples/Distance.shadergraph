@@ -814,7 +814,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "7a8ae348e8444fb0ad0ae71f9dfbf6af",
     "m_Title": "",
-    "m_Content": "I moving point inside the object. The animated value becomes the point's X coordinate - so the point is moving back and forth.",
+    "m_Content": "Moving point inside the object. The animated value becomes the point's X coordinate - so the point is moving back and forth.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

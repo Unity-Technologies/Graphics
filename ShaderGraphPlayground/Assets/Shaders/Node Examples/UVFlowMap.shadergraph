@@ -899,6 +899,9 @@
             "m_Id": "32d929803f044bdf8d4993a1e58549da"
         },
         {
+            "m_Id": "618cdcf1a486441c9cf1187c6ffbd485"
+        },
+        {
             "m_Id": "760376fc80ab4ee0bc0ca9d40f0f821c"
         },
         {
@@ -921,13 +924,15 @@
         "ca27d64d-aa8e-4ff8-ac37-e945155f64ca",
         "8cf4855a-a638-4c2e-8780-d2a560f350d9",
         "b8b51345-aa81-4cf1-911c-2e81ab7957a0",
-        "00a5a208-fc68-4628-a10a-f6a6e2334109"
+        "00a5a208-fc68-4628-a10a-f6a6e2334109",
+        "9e6a1d4a-da1e-43ed-9656-c2c79eff8315"
     ],
     "m_PropertyIds": [
         173151354,
         -1135062907,
         -717366018,
-        -382048477
+        -382048477,
+        264662620
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -977,6 +982,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "0a1649621aa14cee98152544bed7f50b",
+    "m_Id": 264662620,
+    "m_DisplayName": "Offset",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Offset",
+    "m_StageCapability": 2,
+    "m_Value": 0.5,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.SubGraphNode",
     "m_ObjectId": "0aeadc325c84493b82935950071c1bed",
     "m_Group": {
@@ -1007,6 +1027,9 @@
             "m_Id": "34d576e11d5c46c29953cbf19366e999"
         },
         {
+            "m_Id": "43c7decaa2b242a1af60b8becadc0485"
+        },
+        {
             "m_Id": "bc55e253dc5942eebf01fdca9a57ba58"
         },
         {
@@ -1029,13 +1052,15 @@
         "ca27d64d-aa8e-4ff8-ac37-e945155f64ca",
         "8cf4855a-a638-4c2e-8780-d2a560f350d9",
         "b8b51345-aa81-4cf1-911c-2e81ab7957a0",
-        "00a5a208-fc68-4628-a10a-f6a6e2334109"
+        "00a5a208-fc68-4628-a10a-f6a6e2334109",
+        "9e6a1d4a-da1e-43ed-9656-c2c79eff8315"
     ],
     "m_PropertyIds": [
         173151354,
         -1135062907,
         -717366018,
-        -382048477
+        -382048477,
+        264662620
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -1429,8 +1454,8 @@
     "m_ObjectId": "19e59fd55ca84e38a3b15c5dabc408f0",
     "m_Title": "Improved Flow Mapping",
     "m_Position": {
-        "x": -1154.0003662109375,
-        "y": 41.5
+        "x": -1154.0001220703125,
+        "y": 41.500022888183597
     }
 }
 
@@ -2280,6 +2305,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "43c7decaa2b242a1af60b8becadc0485",
+    "m_Id": 264662620,
+    "m_DisplayName": "Offset",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Offset",
+    "m_StageCapability": 2,
+    "m_Value": 0.5,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.TimeNode",
     "m_ObjectId": "44296c442f31449e858e6a7065e3d116",
     "m_Group": {
@@ -2856,6 +2896,21 @@
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
     "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "618cdcf1a486441c9cf1187c6ffbd485",
+    "m_Id": 264662620,
+    "m_DisplayName": "Offset",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Offset",
+    "m_StageCapability": 2,
+    "m_Value": 0.5,
     "m_DefaultValue": 0.0,
     "m_Labels": []
 }
@@ -4944,6 +4999,9 @@
             "m_Id": "313707ae428d4b219897113c97f174f3"
         },
         {
+            "m_Id": "0a1649621aa14cee98152544bed7f50b"
+        },
+        {
             "m_Id": "3f87501fdfc04238a64c5d8f804fe394"
         },
         {
@@ -4966,13 +5024,15 @@
         "ca27d64d-aa8e-4ff8-ac37-e945155f64ca",
         "8cf4855a-a638-4c2e-8780-d2a560f350d9",
         "b8b51345-aa81-4cf1-911c-2e81ab7957a0",
-        "00a5a208-fc68-4628-a10a-f6a6e2334109"
+        "00a5a208-fc68-4628-a10a-f6a6e2334109",
+        "9e6a1d4a-da1e-43ed-9656-c2c79eff8315"
     ],
     "m_PropertyIds": [
         173151354,
         -1135062907,
         -717366018,
-        -382048477
+        -382048477,
+        264662620
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
