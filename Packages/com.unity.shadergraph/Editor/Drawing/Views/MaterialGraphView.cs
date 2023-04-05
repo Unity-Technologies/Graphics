@@ -34,6 +34,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
 
+            this.viewTransformChanged += OnTransformChanged;
+
             // Get reference to GraphView assembly
             Assembly graphViewAssembly = null;
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -52,6 +54,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 null,
                 new Type[] { },
                 null);
+        }
+
+        // GraphView has a bug where the viewTransform will be reset to default when swapping between two
+        // GraphViewEditor windows of the same type. This is a hack to prevent that from happening w/as little
+        // halo as possible.
+        Vector3 lkgPosition;
+        Vector3 lkgScale;
+        void OnTransformChanged(GraphView graphView)
+        {
+            if (!graphView.viewTransform.position.Equals(Vector3.zero))
+            {
+                lkgPosition = graphView.viewTransform.position;
+                lkgScale = graphView.viewTransform.scale;
+            }
+            else if (!lkgPosition.Equals(Vector3.zero))
+            {
+                graphView.UpdateViewTransform(lkgPosition, lkgScale);
+            }
         }
 
         protected override bool canCutSelection
@@ -417,7 +437,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 group = inputSlot.owner.group;
             }
 
-            RedirectNodeData.Create(graph, outputSlot.valueType, contentViewContainer.WorldToLocal(position), inputSlot.slotReference,
+            RedirectNodeData.Create(graph, outputSlot.concreteValueType, contentViewContainer.WorldToLocal(position), inputSlot.slotReference,
                 outputSlot.slotReference, group);
         }
 
