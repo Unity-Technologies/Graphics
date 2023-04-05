@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     s.AppendLine("Tile = floor(fmod(Tile + $precision(0.00001), Width*Height));");
                     s.AppendLine("$precision2 tileCount = $precision2(1.0, 1.0) / $precision2(Width, Height);");
-                    s.AppendLine("$precision2 base = floor((Tile  + $precision(0.5)) * tileCount.x);");
+                    s.AppendLine("$precision base = floor((Tile + $precision(0.5)) * tileCount.x);");
 
                     AppendInvertSpecificLines(s);
 
@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_InvertX)
             {
-                stringBuilder.AppendLine("$precision tileX = (Invert.x * Width - ((Tile - Width * base + Invert.x * 1));");
+                stringBuilder.AppendLine("$precision tileX = (Invert.x * Width - (Tile - Width * base + Invert.x * 1));");
             }
             else
             {
