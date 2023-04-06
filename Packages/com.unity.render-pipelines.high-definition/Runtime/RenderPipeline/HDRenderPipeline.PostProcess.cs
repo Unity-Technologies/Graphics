@@ -2031,6 +2031,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public DepthOfFieldResolution resolution;
             public DepthOfFieldMode focusMode;
+            public Vector2 adaptiveSamplingWeights;
 
             public Vector2 physicalCameraCurvature;
             public float physicalCameraAperture;
@@ -2231,13 +2232,29 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
-                // Fix the resolution to half. This only affects the out-of-focus regions (and there is no visible benefit at computing those at higher res). Tiles with pixels near the focus plane always run at full res.
-                parameters.resolution = DepthOfFieldResolution.Half;
+                
+                // PBR dof has special resolution requirements. Either half or full.
+                // The max here will constrain it to just quarter or half.
+                parameters.resolution = (DepthOfFieldResolution)Math.Max((int)parameters.resolution, (int)DepthOfFieldResolution.Half);
+
+                if (parameters.resolution != DepthOfFieldResolution.Quarter)
+                {
+                    // Reasons for this flag:
+                    // * At high resolution we can use point sampling and enjoy the benefits of sharp edges / no bleeding of blur. Blocky artifacts in blur are negligible.
+                    // * At quarter resolution we accept bleeding artifacts in exchange of a cheaper filter.
+                    // * At quarter resolution is critical that we use a bilinear sampler otherwise the blur will have blocky artifacts that are too unacceptable.
+                    parameters.pbDoFGatherCS.EnableKeyword("FORCE_POINT_SAMPLING");
+                    parameters.pbDoFCombineCS.EnableKeyword("FORCE_POINT_SAMPLING");
+                }
 
                 if (parameters.highQualityFiltering)
                 {
                     parameters.pbDoFGatherCS.EnableKeyword("HIGH_QUALITY");
                 }
+
+                parameters.adaptiveSamplingWeights = (parameters.highQualityFiltering)
+                  ? DepthOfField.s_HighQualityAdaptiveSamplingWeights
+                  : DepthOfField.s_LowQualityAdaptiveSamplingWeights;
             }
 
             if (hdCamera.msaaEnabled)
@@ -2909,6 +2926,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 3, 1.0f / (float)dofParameters.resolution, (float)dofParameters.resolution));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params3, new Vector4(dofParameters.adaptiveSamplingWeights.x, dofParameters.adaptiveSamplingWeights.y, 0.0f, 0.0f));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, scaledDof);
@@ -2929,6 +2947,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(dofParameters.adaptiveSamplingWeights.x, dofParameters.adaptiveSamplingWeights.y, 0.0f, 0.0f));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputNearTexture, scaledDof);

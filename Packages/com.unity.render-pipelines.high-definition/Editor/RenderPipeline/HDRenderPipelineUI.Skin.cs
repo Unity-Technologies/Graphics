@@ -51,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent nearBlurSubTitle = EditorGUIUtility.TrTextContent("Near Blur");
             public static readonly GUIContent maxRadiusQuality = EditorGUIUtility.TrTextContent("Max Radius");
             public static readonly GUIContent sampleCountQuality = EditorGUIUtility.TrTextContent("Sample Count");
+            public static readonly GUIContent pbrResolutionQualityTitle = EditorGUIUtility.TrTextContent("Enable High Resolution");
             public static readonly GUIContent resolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
             public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Prefiltering");
             public static readonly GUIContent highQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
