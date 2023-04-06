@@ -448,10 +448,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnFieldDragUpdate(DragUpdatedEvent dragUpdatedEvent)
         {
+            // how far is the mouse into the drag boundary.
+            float dragCoeff
+                = m_ScrollToTop ? 1 - dragUpdatedEvent.localMousePosition.y / m_ScrollBoundaryBottom.contentRect.height
+                : m_ScrollToBottom ? dragUpdatedEvent.localMousePosition.y / m_ScrollBoundaryBottom.contentRect.height
+                : 0;
+
+            dragCoeff = Mathf.Clamp(dragCoeff, .15f, .85f);
+
+            // factor in fixed base speed and relative to % of total scrollable height.
+            float dragSpeed = dragCoeff * k_DraggedPropertyScrollSpeed * (scrollableHeight / 100f);
+
+            // Lastly, make sure the drag speed can't ever get too slow.
+            dragSpeed = Mathf.Max(dragSpeed, k_DraggedPropertyScrollSpeed);
+
             if (m_ScrollToTop)
-                m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y - k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
+                m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y - dragSpeed, 0, scrollableHeight));
             else if (m_ScrollToBottom)
-                m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y + k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
+                m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y + dragSpeed, 0, scrollableHeight));
         }
 
         void InitializeAddBlackboardItemMenu()
