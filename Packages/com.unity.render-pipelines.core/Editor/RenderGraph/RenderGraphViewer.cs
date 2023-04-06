@@ -17,6 +17,7 @@ public class RenderGraphViewer : EditorWindow
     }
 
     const float kRenderPassWidth = 20.0f;
+    const float kRenderPassHeight = 20.0f;
     const float kResourceHeight = 15.0f;
 
     class CellElement : VisualElement
@@ -239,6 +240,8 @@ public class RenderGraphViewer : EditorWindow
         cell.style.marginLeft = 0.0f;
         cell.style.marginRight = 0.0f;
         cell.style.marginTop = 0.0f;
+        cell.style.width = kRenderPassWidth;
+        cell.style.height = kRenderPassHeight;
         cell.RegisterCallback<MouseEnterEvent, int>(MouseEnterPassCallback, index);
         cell.RegisterCallback<MouseLeaveEvent, int>(MouseLeavePassCallback, index);
 
@@ -402,6 +405,7 @@ public class RenderGraphViewer : EditorWindow
         var filters = new EnumFlagsField("Filters", m_Filter);
         filters.labelElement.style.minWidth = 0;
         filters.labelElement.style.alignItems = Align.Center;
+        filters.style.minWidth = 180.0f;
         filters.RegisterCallback<ChangeEvent<System.Enum>>((evt) =>
         {
             m_Filter = (Filter)evt.newValue;
