@@ -1033,6 +1033,9 @@
     "m_ActiveTargets": [
         {
             "m_Id": "ce407642c8264ed4bc987444c02c71ee"
+        },
+        {
+            "m_Id": "7916b8c13cff467e831cafd6439372e1"
         }
     ]
 }
@@ -1940,6 +1943,21 @@
     "m_ShaderOutputName": "A",
     "m_StageCapability": 2,
     "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "0a414949f3404d399cb0d998348e1bad",
+    "m_Id": 264662620,
+    "m_DisplayName": "Offset",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Offset",
+    "m_StageCapability": 2,
+    "m_Value": 0.5,
     "m_DefaultValue": 0.0,
     "m_Labels": []
 }
@@ -15203,6 +15221,28 @@
 }
 
 {
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
+    "m_ObjectId": "7916b8c13cff467e831cafd6439372e1",
+    "m_Datas": [],
+    "m_ActiveSubTarget": {
+        "m_Id": "9853847ecbf44b05a40e89f500b6d20e"
+    },
+    "m_AllowMaterialOverride": false,
+    "m_SurfaceType": 0,
+    "m_ZTestMode": 4,
+    "m_ZWriteControl": 0,
+    "m_AlphaMode": 0,
+    "m_RenderFace": 2,
+    "m_AlphaClip": false,
+    "m_CastShadows": true,
+    "m_ReceiveShadows": true,
+    "m_SupportsLODCrossFade": false,
+    "m_CustomEditorGUI": "",
+    "m_SupportVFX": false
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "796467bc96154ff598d4a74e64dd821a",
@@ -18622,6 +18662,16 @@
 }
 
 {
+    "m_SGVersion": 2,
+    "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalLitSubTarget",
+    "m_ObjectId": "9853847ecbf44b05a40e89f500b6d20e",
+    "m_WorkflowMode": 1,
+    "m_NormalDropOffSpace": 0,
+    "m_ClearCoat": false,
+    "m_BlendModePreserveSpecular": true
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "9983f2873f3f44b598e14c277b95fde5",
@@ -19975,6 +20025,9 @@
             "m_Id": "b17d95091533427281d6b47c9a2e2603"
         },
         {
+            "m_Id": "0a414949f3404d399cb0d998348e1bad"
+        },
+        {
             "m_Id": "0d5bf828172647fbad390819595c5103"
         },
         {
@@ -19997,13 +20050,15 @@
         "ca27d64d-aa8e-4ff8-ac37-e945155f64ca",
         "8cf4855a-a638-4c2e-8780-d2a560f350d9",
         "b8b51345-aa81-4cf1-911c-2e81ab7957a0",
-        "00a5a208-fc68-4628-a10a-f6a6e2334109"
+        "00a5a208-fc68-4628-a10a-f6a6e2334109",
+        "9e6a1d4a-da1e-43ed-9656-c2c79eff8315"
     ],
     "m_PropertyIds": [
         173151354,
         -1135062907,
         -717366018,
-        -382048477
+        -382048477,
+        264662620
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []

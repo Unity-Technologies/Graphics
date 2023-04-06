@@ -161,7 +161,6 @@
     "m_DistortionDepthTest": true,
     "m_AddPrecomputedVelocity": false,
     "m_TransparentWritesMotionVec": false,
-    "m_AlphaToMask": false,
     "m_DepthOffset": false,
     "m_ConservativeDepthOffset": false,
     "m_TransparencyFog": true,
@@ -617,7 +616,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "AltitudeMask",
+    "m_Name": "Altitude Mask",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -668,7 +667,7 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.SystemData",
     "m_ObjectId": "9bf22b7307cd433c8ff8dfb1e18c47ac",
-    "m_MaterialNeedsUpdateHash": 529,
+    "m_MaterialNeedsUpdateHash": 531,
     "m_SurfaceType": 0,
     "m_RenderingPass": 1,
     "m_BlendMode": 0,
@@ -692,7 +691,8 @@
     "m_TessellationShapeFactor": 0.75,
     "m_TessellationBackFaceCullEpsilon": -0.25,
     "m_TessellationMaxDisplacement": 0.009999999776482582,
-    "m_Version": 1,
+    "m_DebugSymbols": false,
+    "m_Version": 2,
     "inspectorFoldoutMask": 0
 }
 
@@ -763,6 +763,7 @@
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
     "m_ObjectId": "b95ed22a92ce4dfcaca62bcd2c1dfe30",
+    "m_Datas": [],
     "m_ActiveSubTarget": {
         "m_Id": "c766c6de7409466baecf872060de02d7"
     },
@@ -775,6 +776,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_SupportsLODCrossFade": false,
     "m_CustomEditorGUI": "",
     "m_SupportVFX": false
 }
@@ -825,6 +827,7 @@
     "m_ObjectId": "c452ecdae19545a495a4b3171c0d51aa",
     "m_RayTracing": false,
     "m_MaterialType": 0,
+    "m_MaterialTypeMask": 2,
     "m_RefractionModel": 0,
     "m_SSSTransmission": true,
     "m_EnergyConservingSpecular": true,
@@ -832,7 +835,7 @@
 }
 
 {
-    "m_SGVersion": 1,
+    "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalLitSubTarget",
     "m_ObjectId": "c766c6de7409466baecf872060de02d7",
     "m_WorkflowMode": 1,
@@ -902,7 +905,8 @@
         }
     ],
     "m_CustomEditorGUI": "",
-    "m_SupportVFX": false
+    "m_SupportVFX": false,
+    "m_SupportLineRendering": false
 }
 
 {

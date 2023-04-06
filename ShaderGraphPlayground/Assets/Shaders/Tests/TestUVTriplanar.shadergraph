@@ -604,7 +604,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "UVTriplanar",
+    "m_Name": "UV Triplanar",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -1113,7 +1113,7 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.SystemData",
     "m_ObjectId": "8d528a2c55da49e6ab4e7d8dae37ecd7",
-    "m_MaterialNeedsUpdateHash": 529,
+    "m_MaterialNeedsUpdateHash": 531,
     "m_SurfaceType": 0,
     "m_RenderingPass": 1,
     "m_BlendMode": 0,
@@ -1137,7 +1137,8 @@
     "m_TessellationShapeFactor": 0.75,
     "m_TessellationBackFaceCullEpsilon": -0.25,
     "m_TessellationMaxDisplacement": 0.009999999776482582,
-    "m_Version": 1,
+    "m_DebugSymbols": false,
+    "m_Version": 2,
     "inspectorFoldoutMask": 0
 }
 
@@ -1356,7 +1357,7 @@
 }
 
 {
-    "m_SGVersion": 1,
+    "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalLitSubTarget",
     "m_ObjectId": "a26c7ee184e6457bad4a1293d6c575f5",
     "m_WorkflowMode": 1,
@@ -1436,7 +1437,8 @@
     },
     "m_TextureType": 0,
     "m_NormalMapSpace": 0,
-    "m_EnableGlobalMipBias": true
+    "m_EnableGlobalMipBias": true,
+    "m_MipSamplingMode": 0
 }
 
 {
@@ -1550,7 +1552,8 @@
         }
     ],
     "m_CustomEditorGUI": "",
-    "m_SupportVFX": false
+    "m_SupportVFX": false,
+    "m_SupportLineRendering": false
 }
 
 {
@@ -1572,6 +1575,7 @@
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
     "m_ObjectId": "bd474d1e15334ad2a0bba21b80069468",
+    "m_Datas": [],
     "m_ActiveSubTarget": {
         "m_Id": "a26c7ee184e6457bad4a1293d6c575f5"
     },
@@ -1584,6 +1588,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_SupportsLODCrossFade": false,
     "m_CustomEditorGUI": "",
     "m_SupportVFX": false
 }
@@ -1646,7 +1651,6 @@
     "m_DistortionDepthTest": true,
     "m_AddPrecomputedVelocity": false,
     "m_TransparentWritesMotionVec": false,
-    "m_AlphaToMask": false,
     "m_DepthOffset": false,
     "m_ConservativeDepthOffset": false,
     "m_TransparencyFog": true,
@@ -1844,6 +1848,7 @@
     "m_ObjectId": "e95d3362a7d542dba1440a9d2600ac8c",
     "m_RayTracing": false,
     "m_MaterialType": 0,
+    "m_MaterialTypeMask": 2,
     "m_RefractionModel": 0,
     "m_SSSTransmission": true,
     "m_EnergyConservingSpecular": true,
