@@ -1488,6 +1488,12 @@ real3 SafeNormalize(float3 inVec)
     return inVec * rsqrt(dp3);
 }
 
+real3 SafeNormalize(half3 inVec)
+{
+    half dp3 = max(HALF_MIN, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
 // Checks if a vector is normalized
 bool IsNormalized(float3 inVec)
 {
