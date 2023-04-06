@@ -109,6 +109,8 @@ void Frag(PackedVaryingsToPS packedInput,
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
+    AdjustFragInputsToOffScreenRendering(input, _OffScreenRendering > 0, _OffScreenDownsampleFactor);
+
 #if defined(_ENABLE_SHADOW_MATTE)
     // In case we use the shadow matte, we need to ensure that the tile is loaded properly.
     uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();

@@ -131,8 +131,7 @@ void Frag(PackedVaryingsToPS packedInput
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
-    // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
-    input.positionSS.xy = _OffScreenRendering > 0 ? (uint2)round(input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
+    AdjustFragInputsToOffScreenRendering(input, _OffScreenRendering > 0, _OffScreenDownsampleFactor);
 
     uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
 

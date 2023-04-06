@@ -379,7 +379,13 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     _FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENT_SCREEN_SPACE_REFLECTIONS ||
                     _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTION_SPEED_REJECTION)
                 {
-                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord) * GetCurrentExposureMultiplier();
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+
+                    // Raytrace reflection use the current frame exposure - TODO: currently the buffer don't use pre-exposure.
+                    // See InversePreExposeSsrLighting() in LightEvaluation.hlsl
+                    float exposureMultiplier = _EnableRayTracedReflections ? GetCurrentExposureMultiplier() : 1.0;
+                    color *=  exposureMultiplier;
+
                     return float4(color.rgb, 1.0f);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
