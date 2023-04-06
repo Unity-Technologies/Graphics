@@ -725,6 +725,15 @@ half Eps_half() { return HALF_EPS; }
 half Min_half() { return HALF_MIN; }
 half Max_half() { return HALF_MAX; }
 
+// Compute 
+bool NearlyEqual(float a, float b, float epsilon)
+{
+    return abs(a - b) / (abs(a) + abs(b)) < epsilon;
+}
+
+TEMPLATE_2_REAL(NearlyEqual_Real, a, b, return abs(a - b) / (abs(a) + abs(b)) < real(REAL_EPS))
+TEMPLATE_2_FLT(NearlyEqual_Float, a, b, return abs(a - b) / (abs(a) + abs(b)) < real(FLT_EPS))
+TEMPLATE_2_HALF(NearlyEqual_Half, a, b, return abs(a - b) / (abs(a) + abs(b)) < real(HALF_EPS))
 
 // Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
