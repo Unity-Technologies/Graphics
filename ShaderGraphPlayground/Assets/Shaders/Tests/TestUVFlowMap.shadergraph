@@ -636,6 +636,9 @@
             "m_Id": "371e4e0e364549f980c94fe888c9ffe4"
         },
         {
+            "m_Id": "a45f5b14792f4a9ba592d85300246059"
+        },
+        {
             "m_Id": "04c2ad83cb684d6c984ff9e9ead2264f"
         },
         {
@@ -658,13 +661,15 @@
         "ca27d64d-aa8e-4ff8-ac37-e945155f64ca",
         "8cf4855a-a638-4c2e-8780-d2a560f350d9",
         "b8b51345-aa81-4cf1-911c-2e81ab7957a0",
-        "00a5a208-fc68-4628-a10a-f6a6e2334109"
+        "00a5a208-fc68-4628-a10a-f6a6e2334109",
+        "9e6a1d4a-da1e-43ed-9656-c2c79eff8315"
     ],
     "m_PropertyIds": [
         173151354,
         -1135062907,
         -717366018,
-        -382048477
+        -382048477,
+        264662620
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -1362,6 +1367,21 @@
     "m_StageCapability": 3,
     "m_Value": 10.0,
     "m_DefaultValue": 10.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "a45f5b14792f4a9ba592d85300246059",
+    "m_Id": 264662620,
+    "m_DisplayName": "Offset",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Offset",
+    "m_StageCapability": 2,
+    "m_Value": 0.5,
+    "m_DefaultValue": 0.0,
     "m_Labels": []
 }
 
