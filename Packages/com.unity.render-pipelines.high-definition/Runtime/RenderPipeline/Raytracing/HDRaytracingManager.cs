@@ -564,7 +564,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdRectLightArray);
 
             // Process the lights
-            HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.InstanceID);
+            HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.None);
             for (int reflIdx = 0; reflIdx < reflectionProbeArray.Length; ++reflIdx)
             {
                 HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
