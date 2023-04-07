@@ -125,7 +125,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
                 supportRuntimeAOVAPI = false,
-                supportDitheringCrossFade = true,
                 supportTerrainHole = false,
 
                 supportComputeThickness = false,
@@ -377,12 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
-        /// <summary>Support dithered cross-fade.</summary>
-#if UNITY_EDITOR // multi_compile _ LOD_FADE_CROSSFADE
-        // Remove if dithering cross-fade is not supported
-        // [ShaderKeywordFilter.RemoveIf(true, keywordNames: "LOD_FADE_CROSSFADE")]
-#endif
-        public bool supportDitheringCrossFade;
+
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
         /// <summary>Determines what system to use.</summary>
@@ -507,6 +501,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [FormerlySerializedAs("supportRuntimeDebugDisplay"), Obsolete("Moved to HDGlobal Settings")]
         internal bool m_ObsoleteSupportRuntimeDebugDisplay;
+
+        [SerializeField]
+        [FormerlySerializedAs("supportDitheringCrossFade"), Obsolete("Merged with LOD Quality Setting")]
+        internal bool m_ObsoleteSupportDitheringCrossFade;
 #pragma warning restore 618
     }
 }
