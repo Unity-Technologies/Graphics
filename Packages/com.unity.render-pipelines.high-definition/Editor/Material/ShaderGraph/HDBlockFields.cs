@@ -62,6 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor TransmissionMask = new BlockFieldDescriptor(SurfaceDescription.name, "TransmissionMask", "Transmission Mask", "SURFACEDESCRIPTION_TRANSMISSIONMASK",
                 new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor TransmissionTint = new BlockFieldDescriptor(SurfaceDescription.name, "TransmissionTint", "Transmission Tint", "SURFACEDESCRIPTION_TRANSMISSIONTINT",
+                new ColorControl(Color.white, false), ShaderStage.Fragment);
             public static BlockFieldDescriptor Thickness = new BlockFieldDescriptor(SurfaceDescription.name, "Thickness", "SURFACEDESCRIPTION_THICKNESS",
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static CustomSlotBlockFieldDescriptor DiffusionProfileHash = new CustomSlotBlockFieldDescriptor(SurfaceDescription.name, "DiffusionProfileHash", "Diffusion Profile", "SURFACEDESCRIPTION_DIFFUSIONPROFILEHASH",

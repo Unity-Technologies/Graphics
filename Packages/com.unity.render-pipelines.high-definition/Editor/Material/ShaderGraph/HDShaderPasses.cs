@@ -830,7 +830,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Lit Forward
 
-        public static PassDescriptor GenerateLitForward(bool useVFX, bool useTessellation)
+        public static PassDescriptor GenerateLitForward(bool useVFX, bool useTessellation, bool useDebugSymbols)
         {
             return new PassDescriptor
             {
@@ -845,7 +845,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation, useDebugSymbols),
                 defines = GenerateDefines(CoreDefines.ForwardLit, useVFX, useTessellation),
                 includes = ForwardIncludes,
                 virtualTextureFeedback = true,

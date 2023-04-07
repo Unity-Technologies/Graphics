@@ -52,7 +52,8 @@ namespace UnityEditor.Rendering.HighDefinition
         LitAniso = 2,
         LitIridescence = 3,
         LitSpecular = 4,
-        LitTranslucent = 5
+        LitTranslucent = 5,
+        LitColoredTranslucent = 6,
     };
 
     enum NormalMapSpace

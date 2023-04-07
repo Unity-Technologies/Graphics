@@ -70,7 +70,7 @@ struct SurfaceData
     uint diffusionProfileHash;
     float subsurfaceMask;
     float thickness;
-    float transmissionMask;
+    float3 transmissionMask;
     float3 tangentWS;
     float anisotropy;
 };
@@ -148,7 +148,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.thickness.xxx;
             break;
         case DEBUGVIEW_FABRIC_SURFACEDATA_TRANSMISSION_MASK:
-            result = surfacedata.transmissionMask.xxx;
+            result = surfacedata.transmissionMask;
             break;
         case DEBUGVIEW_FABRIC_SURFACEDATA_TANGENT:
             result = surfacedata.tangentWS * 0.5 + 0.5;

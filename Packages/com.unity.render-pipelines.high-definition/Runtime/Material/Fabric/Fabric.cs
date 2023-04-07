@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
             [SurfaceDataAttributes("Transmission Mask")]
-            public float transmissionMask;
+            public Vector3 transmissionMask;
 
             // Anisotropic
             [SurfaceDataAttributes("Tangent", true)]

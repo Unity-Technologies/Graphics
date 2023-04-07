@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly(TargetsVFX(), systemData.tessellation));
             descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation, systemData.debugSymbols));
-            descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation, systemData.debugSymbols));
             if (!systemData.tessellation) // Raytracing don't support tessellation neither VFX
                 descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
@@ -103,7 +103,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddDistortionFields(ref context);
             var descs = context.blocks.Select(x => x.descriptor);
 
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = systemData.surfaceType == SurfaceType.Transparent && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None;
+            bool hasClearCoat = litData.clearCoat && litData.HasMaterialType(~HDLitData.MaterialTypeMask.ColoredTranslucent); // Colored translucent doesn't support clear coat
 
             // Lit specific properties
             context.AddField(DotsProperties, context.hasDotsProperties);
@@ -113,8 +114,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddField(EnergyConservingSpecular, litData.energyConservingSpecular);
-            context.AddField(CoatMask, descs.Contains(BlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
-            context.AddField(ClearCoat, litData.clearCoat); // Enable clear coat material feature
+            context.AddField(CoatMask, descs.Contains(BlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.CoatMask) && hasClearCoat);
+            context.AddField(ClearCoat, hasClearCoat); // Enable clear coat material feature
             context.AddField(RayTracing, litData.rayTracing);
 
             context.AddField(SpecularAA, lightingData.specularAA &&
@@ -124,14 +125,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            bool hasTransmission = (litData.HasMaterialType(HDLitData.MaterialTypeMask.Translucent)) || (litData.HasMaterialType(HDLitData.MaterialTypeMask.SubsurfaceScattering )&& litData.sssTransmission);
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasTransmissionTint = litData.HasMaterialType(HDLitData.MaterialTypeMask.ColoredTranslucent);
+            bool hasTransmissionMask = litData.HasMaterialType(HDLitData.MaterialTypeMask.Translucent) || (litData.HasMaterialType(HDLitData.MaterialTypeMask.SubsurfaceScattering) && litData.sssTransmission);
+            bool hasRefraction = systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None;
+            bool hasClearCoat = litData.clearCoat && litData.HasMaterialType(~HDLitData.MaterialTypeMask.ColoredTranslucent); // Colored translucent doesn't support clear coat
 
             // Vertex
             base.GetActiveBlocks(ref context);
 
             // Common
-            context.AddBlock(BlockFields.SurfaceDescription.CoatMask, litData.clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask, hasClearCoat);
 
             // Refraction
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex, hasRefraction);
@@ -157,9 +160,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(tangentBlock, litData.HasMaterialType(HDLitData.MaterialTypeMask.Anisotropy));
             context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy, litData.HasMaterialType(HDLitData.MaterialTypeMask.Anisotropy));
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask, litData.HasMaterialType(HDLitData.MaterialTypeMask.SubsurfaceScattering));
-            context.AddBlock(HDBlockFields.SurfaceDescription.TransmissionMask, hasTransmission);
-            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness, hasTransmission || hasRefraction);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, litData.HasMaterialType(HDLitData.MaterialTypeMask.SubsurfaceScattering )|| litData.HasMaterialType(HDLitData.MaterialTypeMask.Translucent));
+            context.AddBlock(HDBlockFields.SurfaceDescription.TransmissionMask, hasTransmissionMask);
+            context.AddBlock(HDBlockFields.SurfaceDescription.TransmissionTint, hasTransmissionTint);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness, hasTransmissionMask || hasRefraction);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, litData.HasMaterialType(HDLitData.MaterialTypeMask.SubsurfaceScattering) || litData.HasMaterialType(HDLitData.MaterialTypeMask.Translucent));
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceMask, litData.HasMaterialType(HDLitData.MaterialTypeMask.Iridescence));
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceThickness, litData.HasMaterialType(HDLitData.MaterialTypeMask.Iridescence));
             context.AddBlock(BlockFields.SurfaceDescription.Specular, litData.HasMaterialType(HDLitData.MaterialTypeMask.SpecularColor));
@@ -233,7 +237,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             "TRANSMISSION",
             "ANISOTROPY",
             "IRIDESCENCE",
-            "SPECULAR_COLOR"
+            "SPECULAR_COLOR",
+            "COLORED_TRANSMISSION",
         };
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
