@@ -61,8 +61,6 @@
 #define MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE 200000.0f
 // Maximal size of a light step
 #define LIGHT_STEP_MAXIMAL_SIZE 1000.0f
-// Threshold at which the clouds are considered inexistant (Found experimentally)
-#define TRANSMITTANCE_DISCARD_THRESHOLD 0.992
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -1141,6 +1139,10 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
                 // We don't have any history for this pixel, but there is at least one neighbor that can be used in the current frame tracing
                 previousSampleCount = 1.0f;
                 previousResult = BilUpColor3x3(currentDepth, upsampleData);
+
+                // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
+                if (EvaluateRegionEmptiness(upsampleData) == 1.0)
+                    previousResult = float4(0, 0, 0, 1);
             }
             #ifdef WITHOUT_LDS
             previousCloudDepth = LOAD_TEXTURE2D_X(_CloudsDepthTexture, traceCoord + IndexToLocalOffsetCoords[closestNeighbor]).x;
@@ -1237,6 +1239,10 @@ void PreUpscaleClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         #else
         cloudCloudDepth = GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]);
         #endif
+
+        // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
+        if (EvaluateRegionEmptiness(upsampleData) == 1.0)
+            cloudLighting = float4(0, 0, 0, 1);
     }
 
     // Make sure this doesn't go outside of the [0, 1] interval
@@ -1363,6 +1369,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     // Fill the sample data
     FillCloudUpscaleNeighborhoodData(groupThreadId.xy, subRegionIndex, upsampleData);
 
+    // This flags allows us to track if at least one of the contributing pixels has some clouds
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     // Flag that tells us which pixel holds valid information
     float rejectedNeighborhood = 0.0;
@@ -1386,7 +1393,8 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.w = saturate(currentClouds.w);
 
     // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
-    currentClouds.w = currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD ? 1.0 : currentClouds.w;
+    if (EvaluateRegionEmptiness(upsampleData) == 1.0)
+        currentClouds = float4(0, 0, 0, 1);
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     float cloudDepth = GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]);
@@ -1465,9 +1473,6 @@ void UPSAMPLE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
-    // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
-    currentClouds.w = currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD ? 1.0 : currentClouds.w;
-
     // Store the upscaled result only, composite in later pass.
     _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 }
@@ -1498,9 +1503,6 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     // De-tonemap the inscattering value
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
-
-    // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
-    currentClouds.w = currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD ? 1.0 : currentClouds.w;
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     float cloudsDepth = LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).z;
@@ -1556,9 +1558,6 @@ void COMBINE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID)
     // De-tonemap the inscattering value
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
-
-    // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
-    currentClouds.w = currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD ? 1.0 : currentClouds.w;
 
     // Store the upscaled result only, composite in later pass.
     _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
