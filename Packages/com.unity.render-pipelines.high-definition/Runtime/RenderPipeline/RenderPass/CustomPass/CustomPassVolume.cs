@@ -393,7 +393,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <typeparam name="T">The type of the CustomPass to create</typeparam>
         /// <returns>The new custom</returns>
-        public CustomPass AddPassOfType<T>() where T : CustomPass => AddPassOfType(typeof(T));
+        public T AddPassOfType<T>() where T : CustomPass => AddPassOfType(typeof(T)) as T;
 
         /// <summary>
         /// Add a pass of type passType in the active pass list
