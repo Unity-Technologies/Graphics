@@ -161,12 +161,6 @@ namespace UnityEngine.Rendering.HighDefinition
             colorPyramidHistoryValidFrames = 0;
             dofHistoryIsValid = false;
 
-            // Reset the volumetric cloud offset animation data
-            volumetricCloudsAnimationData.lastTime = -1.0f;
-            volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
-            volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
-            volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
-
             // Camera was potentially Reset() so we need to reset timers on the renderers.
             if (visualSky != null)
                 visualSky.Reset();
@@ -349,9 +343,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ShadowHistoryUsage[] shadowHistoryUsage = null;
         // This property allows us to track for the various history accumulation based effects, the last registered validity frame ubdex of each effect as well as the resolution at which it was built.
         internal HistoryEffectValidity[] historyEffectUsage = null;
-
-        // This property allows us to track the volumetric cloud animation data
-        internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
 
         // Boolean that allows us to track if the current camera maps to a real time reflection probe.
         internal bool realtimeReflectionProbe = false;
