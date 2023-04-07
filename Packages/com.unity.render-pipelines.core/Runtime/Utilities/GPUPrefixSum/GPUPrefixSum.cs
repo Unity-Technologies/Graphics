@@ -2,11 +2,18 @@ using System;
 
 namespace UnityEngine.Rendering
 {
-    internal partial struct GPUPrefixSum
+    /// <summary>
+    /// Utility class for computing inclusive or exclusive prefix sums, directly or indirectly dispatched on the GPU.
+    /// </summary>
+    public partial struct GPUPrefixSum
     {
         private SystemResources resources;
 
-        internal GPUPrefixSum(SystemResources resources)
+        /// <summary>
+        /// Initializes a re-usable GPU prefix sum instance.
+        /// </summary>
+        /// <param name="resources">The required system resources.</param>
+        public GPUPrefixSum(SystemResources resources)
         {
             this.resources = resources;
             this.resources.LoadKernels();
@@ -66,7 +73,13 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void DispatchDirect(CommandBuffer cmdBuffer, in DirectArgs arguments)
+        /// <summary>
+        /// Prefix sum a list of data from a CPU-defined count.
+        /// </summary>
+        /// <param name="cmdBuffer">Command Buffer for recording the prefix sum commands.</param>
+        /// <param name="arguments">Runtime arguments for the prefix sum.</param>
+        /// <exception cref="Exception">When the input data is invalid.</exception>
+        public void DispatchDirect(CommandBuffer cmdBuffer, in DirectArgs arguments)
         {
             if (arguments.supportResources.prefixBuffer0 == null || arguments.supportResources.prefixBuffer1 == null)
                 throw new Exception("Support resources are not valid.");
@@ -88,7 +101,13 @@ namespace UnityEngine.Rendering
             ExecuteCommonIndirect(cmdBuffer, arguments.input, arguments.supportResources, arguments.exclusive);
         }
 
-        internal void DispatchIndirect(CommandBuffer cmdBuffer, in IndirectDirectArgs arguments)
+        /// <summary>
+        /// Prefix sum a list of data from a GPU-defined count.
+        /// </summary>
+        /// <param name="cmdBuffer">Command Buffer for recording the prefix sum commands.</param>
+        /// <param name="arguments">Runtime arguments for the prefix sum.</param>
+        /// <exception cref="Exception">When the input data is invalid.</exception>
+        public void DispatchIndirect(CommandBuffer cmdBuffer, in IndirectDirectArgs arguments)
         {
             if (arguments.supportResources.prefixBuffer0 == null || arguments.supportResources.prefixBuffer1 == null)
                 throw new Exception("Support resources are not valid.");
