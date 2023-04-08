@@ -363,7 +363,7 @@ namespace UnityEngine.Rendering.Universal
             m_TargetDepthHandle?.Release();
             ReleaseRenderTargets();
 
-            DebugHandler?.Dispose();
+            base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
@@ -375,6 +375,10 @@ namespace UnityEngine.Rendering.Universal
             CleanupRenderGraphResources();
 
             LensFlareCommonSRP.Dispose();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            Experimental.Rendering.XRSystem.Dispose();
+#endif
         }
 
         internal override void ReleaseRenderTargets()

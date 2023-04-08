@@ -22,6 +22,15 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
         }
 
+        /// <inheritdoc />
+        protected override void Dispose(bool disposing)
+        {
+            m_MainLightShadowCasterPass?.Dispose();
+            m_AdditionalLightsShadowCasterPass?.Dispose();
+
+            base.Dispose(disposing);
+        }
+
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
