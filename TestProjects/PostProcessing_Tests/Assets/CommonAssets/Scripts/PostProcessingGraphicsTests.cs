@@ -18,7 +18,7 @@ public class PostProcessingGraphicsTests
         yield return null;
 
         var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        var settings = Object.FindObjectOfType<PostProcessingGraphicsTestSettings>();
+        var settings = Object.FindFirstObjectByType<PostProcessingGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find PostProcessingGraphicsTestSettings");
 
         for (int i = 0; i < settings.WaitFrames; i++)
