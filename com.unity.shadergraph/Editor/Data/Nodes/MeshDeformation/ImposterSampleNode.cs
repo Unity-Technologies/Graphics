@@ -6,26 +6,38 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
+    enum SampleType
+    {
+        OneFrame,
+        ThreeFrame
+    };
+
     [Title("Input", "Mesh Deformation", "ImposterSample")]
     class ImposterSampleNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTransform, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IGeneratesFunction
     {
         private const int RGBAOutputSlotId = 0;
 
         private const int SamplerSlotId = 1;
-        private const int Frame0SlotId = 2;
-        private const int Frame1SlotId = 3;
-        private const int Frame2SlotId = 4;
-        private const int WeightsSlotId = 6;
+        private const int UV0SlotId = 2;
+        private const int UV1SlotId = 3;
+        private const int UV2SlotId = 4;
+        private const int ImposterFramesSlotId = 6;
         private const int TextureSlotId = 5;
+        private const int ParallaxCheckSlotId = 7;
+        private const int ImposterBorderClampSlotId = 8;
+        private const int UVGridSlotId = 9;
 
         public const string kRGBAOutputSlotName = "RGBA";
 
-        public const string kWeightsSlotName = "Weights";
-        public const string kFrame0SlotName = "UV0";
-        public const string kFrame1SlotName = "UV1";
-        public const string kFrame2SlotName = "UV2";
-        public const string kSlotTextureName = "Texture";
         public const string kSlotSamplerName = "Sampler State";
+        public const string kUV0SlotName = "UV0";
+        public const string kUV1SlotName = "UV1";
+        public const string kUV2SlotName = "UV2";
+        public const string kImposterFramesName = "Imposter Frames";
+        public const string kSlotTextureName = "Texture";
+        public const string kParallaxCheckName = "Parallax";
+        public const string kImposterBorderClampName = "Imposter Border Clamp";
+        public const string kUVGridName = "UVGrid";
 
 
         public ImposterSampleNode()
@@ -36,37 +48,72 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+
+        [SerializeField]
+        private SampleType m_SampleType = SampleType.ThreeFrame;
+
+        [EnumControl("Sample Type")]
+        public SampleType sampleType
+        {
+            get { return m_SampleType; }
+            set
+            {
+                if (m_SampleType == value)
+                    return;
+
+                m_SampleType = value;
+                Dirty(ModificationScope.Graph);
+
+                ValidateNode();
+            }
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(RGBAOutputSlotId, kRGBAOutputSlotName, kRGBAOutputSlotName, SlotType.Output, Vector4.zero));
 
             AddSlot(new Texture2DInputMaterialSlot(TextureSlotId, kSlotTextureName, kSlotTextureName));
             AddSlot(new SamplerStateMaterialSlot(SamplerSlotId, kSlotSamplerName, kSlotSamplerName, SlotType.Input));
-            AddSlot(new Vector2MaterialSlot(Frame0SlotId, kFrame0SlotName, kFrame0SlotName, SlotType.Input, Vector4.zero));
-            AddSlot(new Vector2MaterialSlot(Frame1SlotId, kFrame1SlotName, kFrame1SlotName, SlotType.Input, Vector4.zero));
-            AddSlot(new Vector2MaterialSlot(Frame2SlotId, kFrame2SlotName, kFrame2SlotName, SlotType.Input, Vector4.zero));
-            AddSlot(new Vector3MaterialSlot(WeightsSlotId, kWeightsSlotName, kWeightsSlotName, SlotType.Input, Vector3.zero));
+            AddSlot(new Vector4MaterialSlot(UV0SlotId, kUV0SlotName, kUV0SlotName, SlotType.Input, Vector4.zero));
+            AddSlot(new Vector4MaterialSlot(UV1SlotId, kUV1SlotName, kUV1SlotName, SlotType.Input, Vector4.zero));
+            AddSlot(new Vector4MaterialSlot(UV2SlotId, kUV2SlotName, kUV2SlotName, SlotType.Input, Vector4.zero));
+            AddSlot(new Vector4MaterialSlot(UVGridSlotId, kUVGridName, kUVGridName, SlotType.Input, Vector4.zero));
+            AddSlot(new Vector1MaterialSlot(ImposterFramesSlotId, kImposterFramesName, kImposterFramesName, SlotType.Input, 0));
+            AddSlot(new Vector1MaterialSlot(ImposterBorderClampSlotId, kImposterBorderClampName, kImposterBorderClampName, SlotType.Input, 0));
+            AddSlot(new BooleanMaterialSlot(ParallaxCheckSlotId, kParallaxCheckName, kParallaxCheckName, SlotType.Input, false));
 
-            RemoveSlotsNameNotMatching(new[] { RGBAOutputSlotId, TextureSlotId, SamplerSlotId, WeightsSlotId, Frame0SlotId, Frame1SlotId, Frame2SlotId});
+
+            RemoveSlotsNameNotMatching(new[] { ParallaxCheckSlotId, RGBAOutputSlotId, TextureSlotId, SamplerSlotId, UV0SlotId, UV1SlotId, UV2SlotId, ImposterFramesSlotId, ImposterBorderClampSlotId, UVGridSlotId });
         }
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.RequiresIncludePath("Packages/com.unity.shadergraph/ShaderGraphLibrary/Imposter_saperated.hlsl");
+            registry.RequiresIncludePath("Packages/com.unity.shadergraph/ShaderGraphLibrary/Imposter_2Nodes.hlsl");
         }
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var RGBA = GetSlotValue(RGBAOutputSlotId, generationMode);
-            var Weights = GetSlotValue(WeightsSlotId, generationMode);            
-            var Frame0 = GetSlotValue(Frame0SlotId, generationMode);
-            var Frame1 = GetSlotValue(Frame1SlotId, generationMode);
-            var Frame2 = GetSlotValue(Frame2SlotId, generationMode);
+            var RGBA = GetVariableNameForSlot(RGBAOutputSlotId);
+            var ImposterFrames = GetSlotValue(ImposterFramesSlotId, generationMode);            
+            var UV0 = GetSlotValue(UV0SlotId, generationMode);
+            var UV1 = GetSlotValue(UV1SlotId, generationMode);
+            var UV2 = GetSlotValue(UV2SlotId, generationMode);
             var Texture = GetSlotValue(TextureSlotId, generationMode);
             var ss = GetSlotValue(SamplerSlotId, generationMode);
+            var BorderClamp = GetSlotValue(ImposterBorderClampSlotId, generationMode);
+            var UVGrid = GetSlotValue(UVGridSlotId, generationMode);
+            var checkValue = GetSlotValue(ParallaxCheckSlotId, generationMode);
 
-            var result = @$"
-$precision4 ddxy = $precision4(ddx(imp.uv), ddy(imp.uv));
-{RGBA} = ImposterBlendWeights({Texture}.tex, {ss}, {Frame0}, {Frame1}, {Frame2}, {Weights},ddxy);
-";
+            var result = @$"$precision4 {RGBA};";
+            if (m_SampleType == SampleType.ThreeFrame)
+            {
+                result += $@"ImposterSample({checkValue}, {ImposterFrames}, {Texture}.tex, {Texture}.texelSize, {BorderClamp},
+                                    {UVGrid}, {UV0}, {UV1}, {UV2}, {ss}.samplerstate, {RGBA});";
+            }
+            else
+            {
+                result += $@"ImposterSample_oneFrame({checkValue}, {ImposterFrames}, {Texture}.tex, {Texture}.texelSize, {BorderClamp},
+                                    {UVGrid}, {UV0}, {ss}.samplerstate, {RGBA});";
+            }
+
             sb.AppendLine(result);
         }
         public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All) => new[] { NeededTransform.ObjectToWorld };
