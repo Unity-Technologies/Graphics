@@ -1696,7 +1696,7 @@ namespace UnityEditor.ShaderGraph
 
         void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propertyNode, bool deleteNodeIfNoConcreteFormExists = true)
         {
-            var property = properties.FirstOrDefault(x => x == propertyNode.property);
+            var property = properties.FirstOrDefault(x => x == propertyNode.property) ?? propertyNode.property;
             if (property == null)
                 return;
 
