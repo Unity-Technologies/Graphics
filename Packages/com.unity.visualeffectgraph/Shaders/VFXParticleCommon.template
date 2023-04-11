@@ -318,7 +318,11 @@ void frag(ps_input i
     #else
         float alpha = VFXGetFragmentColor(i).a;
 		#if VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH
-			alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;
+			#ifdef VFX_PROCEDURAL_UV
+				alpha *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFX_PROCEDURAL_UV(i)).a;
+			#else
+				alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;
+			#endif
 		#endif
     #endif
 	VFXClipFragmentColor(alpha,i);
@@ -332,10 +336,10 @@ void frag(ps_input i
 
 	#ifdef WRITE_NORMAL_BUFFER
 		#ifdef VFX_VARYING_NORMAL
-			VFXComputePixelOutputToNormalBuffer(normalWS, outNormalBuffer);
+			VFXComputePixelOutputToNormalBuffer(i, normalWS, GetUVData(i), outNormalBuffer);
 		#else
 			//Fallback for point and lines, render normal as if those are face camera plane
-			VFXComputePixelOutputToNormalBuffer(VFXGetWorldToViewRotMatrix()[2], outNormalBuffer);
+			VFXComputePixelOutputToNormalBuffer(i, VFXGetWorldToViewRotMatrix()[2], GetUVData(i), outNormalBuffer);
 		#endif
 	#endif
 
