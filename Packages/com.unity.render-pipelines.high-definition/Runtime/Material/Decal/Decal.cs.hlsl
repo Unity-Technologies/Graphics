@@ -9,6 +9,25 @@
 //
 #define DBUFFERMATERIAL_COUNT (4)
 
+//
+// UnityEngine.Rendering.HighDefinition.Decal+DecalAtlasTextureType:  static fields
+//
+#define DECALATLASTEXTURETYPE_DIFFUSE (0)
+#define DECALATLASTEXTURETYPE_NORMAL (1)
+#define DECALATLASTEXTURETYPE_MASK (2)
+#define DECALATLASTEXTURETYPE_COUNT (3)
+
+// Generated from UnityEngine.Rendering.HighDefinition.Decal+DecalSurfaceData
+// PackingRules = Exact
+struct DecalSurfaceData
+{
+    float4 baseColor;
+    float4 normalWS;
+    float4 mask;
+    float3 emissive;
+    float2 MAOSBlend;
+};
+
 // Generated from UnityEngine.Rendering.HighDefinition.DecalData
 // PackingRules = Exact
 struct DecalData
@@ -20,20 +39,11 @@ struct DecalData
     float4 maskScaleBias;
     float4 baseColor;
     float4 remappingAOS;
-    float4 scalingBAndRemappingM;
+    float2 remappingMetallic;
+    float scalingBlueMaskMap;
+    float sampleNormalAlpha;
     float3 blendParams;
     uint decalLayerMask;
-};
-
-// Generated from UnityEngine.Rendering.HighDefinition.Decal+DecalSurfaceData
-// PackingRules = Exact
-struct DecalSurfaceData
-{
-    float4 baseColor;
-    float4 normalWS;
-    float4 mask;
-    float3 emissive;
-    float2 MAOSBlend;
 };
 
 

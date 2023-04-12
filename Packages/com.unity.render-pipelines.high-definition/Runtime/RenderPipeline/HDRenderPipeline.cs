@@ -610,6 +610,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_GlobalSettings.ClearRayTracingResources();
         }
 
+        public void UpdateDecalSystemShaderGraphs()
+        {
+            DecalSystem.instance.UpdateTransparentShaderGraphs();
+        }
 #endif
 
         /// <summary>

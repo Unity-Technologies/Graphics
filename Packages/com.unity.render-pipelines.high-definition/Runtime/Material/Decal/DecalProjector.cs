@@ -181,6 +181,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        private IntScalableSettingValue m_TransparentTextureResolution = new IntScalableSettingValue
+        {
+            @override = 256,
+            useOverride = true,
+        };
+
+        /// <summary>
+        /// Resolution that is used when the projector affects transparency and a shader graph is being used
+        /// </summary>
+        public IntScalableSettingValue TransparentTextureResolution
+        {
+            get => m_TransparentTextureResolution;
+            set
+            {
+                m_TransparentTextureResolution = value;
+                OnValidate();
+            }
+        }
+
+        [SerializeField]
         RenderingLayerMask m_DecalLayerMask = RenderingLayerMask.DecalLayerDefault;
         /// <summary>
         /// The layer of the decal.
@@ -506,11 +526,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (m_Material != null)
                     {
                         m_Handle = DecalSystem.instance.AddDecal(this);
-
-                        if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
-                        {
-                            m_AffectsTransparency = false;
-                        }
                     }
 
                     // notify the editor that material has changed so it can update the shader foldout
@@ -548,6 +563,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             return true;
+        }
+
+        /// <summary>
+        /// If called it will force an update of the shader graph textures in the transparent decal atlas
+        /// if the DecalProjector has Affects Transparent enabled
+        /// </summary>
+        public void UpdateTransparentShaderGraphTextures()
+        {
+            DecalSystem.instance.UpdateTransparentShaderGraphTextures(m_Handle, this);
         }
     }
 }

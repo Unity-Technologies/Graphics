@@ -38,6 +38,11 @@ namespace UnityEditor.Rendering.HighDefinition
             HighQualityLineRendering = 1 << 5
         }
 
+        internal enum ExpandableDecal
+        {
+            TextureResolution = 1 << 0
+        }
+
         internal enum ExpandableLighting
         {
             Volumetric = 1 << 0,
@@ -85,6 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly ExpandedState<ExpandableGroup, HDRenderPipelineAsset> k_ExpandedGroupState = new(0, "HDRP");
         static readonly ExpandedState<ExpandableRendering, HDRenderPipelineAsset> k_ExpandableRenderingState = new(0, "HDRP");
+        static readonly ExpandedState<ExpandableDecal, HDRenderPipelineAsset> k_ExpandableDecalState = new (0, "HDRP");
         static readonly ExpandedState<ExpandableLighting, HDRenderPipelineAsset> k_ExpandableLightingState = new(0, "HDRP");
         static readonly ExpandedState<ExpandableLightingQuality, HDRenderPipelineAsset> k_ExpandableLightingQualityState = new(0, "HDRP");
         static readonly ExpandedState<ExpandablePostProcessQuality, HDRenderPipelineAsset> k_ExpandablePostProcessQualityState = new(0, "HDRP");
@@ -140,7 +146,10 @@ namespace UnityEditor.Rendering.HighDefinition
             Inspector = CED.Group(
                 SubInspectors[ExpandableGroup.Rendering] = CED.FoldoutGroup(Styles.renderingSectionTitle, ExpandableGroup.Rendering, k_ExpandedGroupState,
                     CED.Group(GroupOption.Indent, Drawer_SectionRenderingUnsorted),
-                    CED.FoldoutGroup(Styles.decalsSubTitle, ExpandableRendering.Decal, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
+                    CED.FoldoutGroup(Styles.decalsSubTitle, ExpandableRendering.Decal, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout,
+                        CED.Group(Drawer_SectionDecalSettings),
+                        CED.FoldoutGroup(Styles.decalResolutionSubTitle, ExpandableDecal.TextureResolution, k_ExpandableDecalState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalTextureResolution)
+                        ),
                     CED.FoldoutGroup(Styles.dynamicResolutionSubTitle, ExpandableRendering.DynamicResolution, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings),
                     CED.FoldoutGroup(Styles.lowResTransparencySubTitle, ExpandableRendering.LowResTransparency, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLowResTransparentSettings),
                     CED.FoldoutGroup(Styles.waterSubTitle, ExpandableRendering.Water, k_ExpandableRenderingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionWaterSettings),
@@ -496,6 +505,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             --EditorGUI.indentLevel;
+        }
+
+        static void Drawer_SectionDecalTextureResolution(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
+                serialized.renderPipelineSettings.decalSettings.transparentTextureResolution.ValueGUI<int>(Styles.decalResolutionTiers);
+            }
         }
 
         static void Drawer_SectionLightLoop(SerializedHDRenderPipelineAsset serialized, Editor o)

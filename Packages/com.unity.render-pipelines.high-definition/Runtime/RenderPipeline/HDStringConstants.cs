@@ -56,6 +56,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DBufferMeshStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh];
         /// <summary>Decal Mesh Forward Emissive pass name.</summary>
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
+        /// <summary>Decal Mesh Forward Emissive pass name.</summary>
+        public static readonly string s_DecalAtlasProjectorStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.AtlasProjector];
         /// <summary>DBuffer VFX Decal pass name</summary>
         public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
         /// <summary>Fog Volume Voxelize pass name.</summary>
@@ -268,6 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalColorMask1 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask1);
         public static readonly int _DecalColorMask2 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask2);
         public static readonly int _DecalColorMask3 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask3);
+        public static readonly int _TransparentDynamicUpdateDecals = Shader.PropertyToID(HDMaterialProperties.kTransparentDynamicUpdateDecals);
 
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
 
@@ -1322,6 +1325,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kDecalColorMask2 = "_DecalColorMask2";
         internal const string kDecalColorMask3 = "_DecalColorMask3";
         internal const string kEnableDecals = "_SupportDecals";
+        internal const string kTransparentDynamicUpdateDecals = "_TransparentDynamicUpdateDecals";
 
         internal const int kMaxLayerCount = 4;
         internal const string kLayerCount = "_LayerCount";

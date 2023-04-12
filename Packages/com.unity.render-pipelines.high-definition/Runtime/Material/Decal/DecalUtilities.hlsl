@@ -41,7 +41,7 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
         }
 
         float albedoMapBlend;
-        float maskMapBlend = fadeFactor * decalData.scalingBAndRemappingM.y; // Multiply by mask map blue scale
+        float maskMapBlend = fadeFactor * decalData.scalingBlueMaskMap;
 
         // Albedo
         // We must always sample diffuse texture due to opacity that can affect everything)
@@ -107,7 +107,7 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleMask, lodMask);
                 maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
-                src.x = lerp(decalData.scalingBAndRemappingM.z, decalData.scalingBAndRemappingM.w, src.x); // Remap Metal
+                src.x = lerp(decalData.remappingMetallic.x, decalData.remappingMetallic.y, src.x); // Remap Metal
                 src.y = lerp(decalData.remappingAOS.x, decalData.remappingAOS.y, src.y); // Remap AO
                 #endif
                 src.z = lerp(decalData.remappingAOS.z, decalData.remappingAOS.w, src.w); // Remap Smoothness
@@ -115,7 +115,7 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
             else
             {
                 #ifdef DECALS_4RT
-                src.x = decalData.scalingBAndRemappingM.z; // Metal
+                src.x = decalData.remappingMetallic.x; // Metal
                 src.y = decalData.remappingAOS.x; // AO
                 #endif
                 src.z = decalData.remappingAOS.z; // Smoothness
@@ -140,7 +140,8 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
         {
             float4 src = float4(0.0, 0.0, 0.0, 0.0);
             float3 normalTS = float3(0.0, 0.0, 1.0);
-
+            float normalAlpha = 0.0f;
+            
             // We use scaleBias value to now if we have init a texture. 0 mean a texture is bound
             bool normalTextureBound = (decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0);
             if (normalTextureBound)
@@ -156,12 +157,15 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 lodNormal += _GlobalMipBias;
                 #endif
 
+                real4 atlasData = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal);
+                normalAlpha = atlasData.b;
+
                 #ifdef DECAL_SURFACE_GRADIENT
                 float3x3 tangentToWorld = transpose((float3x3)decalData.normalToWorld);
-                float2 deriv = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
+                float2 deriv = UnpackDerivativeNormalRGorAG(atlasData);
                 src.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
                 #else
-                normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
+                normalTS = UnpackNormalmapRGorAG(atlasData);
                 #endif
             }
 
@@ -170,7 +174,11 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
             #endif
 
             src.xyz = src.xyz * 0.5 + 0.5; // Mimic what is happening when calling EncodeIntoDBuffer()
-            src.w = (decalData.blendParams.x == 1.0) ? maskMapBlend : albedoMapBlend;
+            bool normalMapAlpha = decalData.sampleNormalAlpha == 1.0f;
+            if (normalMapAlpha)
+                src.w = normalAlpha;
+            else
+                src.w = (decalData.blendParams.x == 1.0) ? maskMapBlend : albedoMapBlend;
 
             // Accumulate in dbuffer (mimic what ROP are doing)
             DBuffer1.xyz = src.xyz * src.w + DBuffer1.xyz * (1.0 - src.w);

@@ -21,7 +21,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             drawDistance = 1000,
             atlasWidth = k_DefaultAtlasSize,
-            atlasHeight = k_DefaultAtlasSize
+            atlasHeight = k_DefaultAtlasSize,
+            transparentTextureResolution = new IntScalableSetting(new[] { 256, 512, 1024 }, ScalableSettingSchemaId.With3Levels)
         };
 
         /// <summary>Maximum draw distance.</summary>
@@ -30,6 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int atlasWidth;
         /// <summary>Decal atlas height in pixels.</summary>
         public int atlasHeight;
+        /// <summary>Resolution of textures in the decal atlas for shader graphs that affect transparent materials</summary>
+        public IntScalableSetting transparentTextureResolution;
         /// <summary>Enables per channel mask.</summary>
 #if UNITY_EDITOR // multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
         // Coarse control of decal variants is based on RenderPipelineSettings.SupportDecals

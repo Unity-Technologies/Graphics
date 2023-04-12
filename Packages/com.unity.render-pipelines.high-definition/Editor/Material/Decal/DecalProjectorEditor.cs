@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -49,6 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_UVScaleProperty;
         SerializedProperty m_UVBiasProperty;
         SerializedProperty m_AffectsTransparencyProperty;
+        SerializedScalableSettingValue m_TransparentTextureResolution;
         SerializedProperty m_ScaleMode;
         SerializedProperty m_Size;
         SerializedProperty[] m_SizeValues;
@@ -74,7 +76,21 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        bool showAffectTransparency => ((target as DecalProjector).material != null) && DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
+        private bool affectTransparency(DecalProjector decalProjector)
+        {
+            Material material = decalProjector.material;
+            if (material == null)
+                return false;
+
+            if (material.IsShaderGraph())
+            {
+                return DecalSystem.IsDecalMaterial(material);
+            }
+            else
+                return DecalSystem.IsHDRenderPipelineDecal(material.shader);
+        }
+
+        bool showAffectTransparency => affectTransparency(target as DecalProjector);
 
         bool showAffectTransparencyHaveMultipleDifferentValue
         {
@@ -83,17 +99,29 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (targets.Length < 2)
                     return false;
                 DecalProjector decalProjector0 = (targets[0] as DecalProjector);
-                bool show = decalProjector0.material != null && DecalSystem.IsHDRenderPipelineDecal(decalProjector0.material.shader);
+                bool show = affectTransparency(decalProjector0);
                 for (int index = 0; index < targets.Length; ++index)
                 {
                     if ((targets[index] as DecalProjector).material != null)
                     {
                         DecalProjector decalProjectori = (targets[index] as DecalProjector);
-                        if (decalProjectori != null && DecalSystem.IsHDRenderPipelineDecal(decalProjectori.material.shader) ^ show)
+                        if (decalProjectori != null && affectTransparency(decalProjectori) ^ show)
                             return true;
                     }
                 }
                 return false;
+            }
+        }
+
+        bool showTransparentTextureResolution
+        {
+            get
+            {
+                DecalProjector projector = target as DecalProjector;
+                if (!affectTransparency(projector))
+                    return false;
+
+                return projector.material.IsShaderGraph() && m_AffectsTransparencyProperty.boolValue;
             }
         }
 
@@ -199,6 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UVScaleProperty = serializedObject.FindProperty("m_UVScale");
             m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
+            m_TransparentTextureResolution = new SerializedScalableSettingValue(serializedObject.Find((DecalProjector p) => p.TransparentTextureResolution));
             m_ScaleMode = serializedObject.FindProperty("m_ScaleMode");
             m_Size = serializedObject.FindProperty("m_Size");
             m_SizeValues = new[]
@@ -740,6 +769,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(m_AffectsTransparencyProperty, k_AffectTransparentContent);
                     if (m_AffectsTransparencyProperty.boolValue && !DecalSystem.instance.IsAtlasAllocatedSuccessfully())
                         EditorGUILayout.HelpBox(DecalSystem.s_AtlasSizeWarningMessage, MessageType.Warning);
+                }
+
+                if (showTransparentTextureResolution)
+                {
+                    var scalableSetting = hdrp.currentPlatformRenderPipelineSettings.decalSettings.transparentTextureResolution;
+                    m_TransparentTextureResolution.LevelAndIntGUILayout(k_TransparentTextureResolutionContent, scalableSetting, hdrp.name);
                 }
             }
             if (EditorGUI.EndChangeCheck())

@@ -227,6 +227,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
+                    DecalSystem.instance.UpdateShaderGraphAtlasTextures(m_RenderGraph);
+
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 

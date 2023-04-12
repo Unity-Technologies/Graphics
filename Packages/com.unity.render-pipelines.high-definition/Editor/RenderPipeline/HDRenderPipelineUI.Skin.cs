@@ -28,6 +28,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
             public static readonly GUIContent decalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
             public static readonly GUIContent decalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
+            public static readonly GUIContent decalResolutionSubTitle = EditorGUIUtility.TrTextContent("Transparent Texture Resolution");
+            public static readonly GUIContent decalResolutionTiers = EditorGUIUtility.TrTextContent("Resolution Tiers");
 
             public static readonly GUIContent shadowSubTitle = EditorGUIUtility.TrTextContent("Shadows");
 
