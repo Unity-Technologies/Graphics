@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         internal SGGraphModelMock(ShaderGraphRegistry registry)
         {
             RegistryInstance = registry;
-            Stencil = new ShaderGraphStencilMock();
+            Stencil = new ShaderGraphStencilMock(null);
 
             var sgAsset = ScriptableObject.CreateInstance<ShaderGraphAssetMock>();
             Asset = sgAsset;

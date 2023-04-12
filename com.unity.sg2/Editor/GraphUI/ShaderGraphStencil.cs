@@ -24,9 +24,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override IEnumerable<string> SectionNames => sections;
 
-        public ShaderGraphStencil()
-        {
-        }
+        public ShaderGraphStencil(GraphModel graphModel)
+            : base(graphModel) { }
 
         public override BlackboardGraphModel CreateBlackboardGraphModel(GraphModel graphModel) =>
             new SGBlackboardGraphModel(graphModel);
@@ -79,7 +78,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         protected override void CreateGraphProcessors()
         {
-            GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor());
+            GetGraphProcessorContainer().AddGraphProcessor(new ShaderGraphProcessor(base.GraphModel));
         }
 
         /// <summary>

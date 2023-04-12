@@ -91,7 +91,7 @@
     },
     "com.unity.render-pipelines.core": {
       "version": "16.0.1",
-      "depth": 1,
+      "depth": 0,
       "source": "builtin",
       "dependencies": {
         "com.unity.mathematics": "1.2.4",

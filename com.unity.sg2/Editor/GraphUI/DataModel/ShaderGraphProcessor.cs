@@ -7,12 +7,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         const string k_RedirectMissingInputMessage = "Node has no input and default value will be 0.";
         const string k_OutOfDateNodeMessage = "There is a newer version of this node available. Inspect node for details.";
+        GraphModel m_GraphModel;
 
-        public override GraphProcessingResult ProcessGraph(GraphModel graphModel, GraphChangeDescription changes)
+        public ShaderGraphProcessor(GraphModel graphModel)
         {
-            var result = new GraphProcessingResult();
+            m_GraphModel = graphModel;
+        }
 
-            foreach (var node in graphModel.NodeModels)
+        public override BaseGraphProcessingResult ProcessGraph(GraphChangeDescription changes)
+        {
+            var result = new ErrorsAndWarningsResult();
+
+            foreach (var node in m_GraphModel.NodeModels)
             {
                 switch (node)
                 {

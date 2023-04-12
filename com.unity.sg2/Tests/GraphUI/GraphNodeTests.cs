@@ -119,6 +119,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context node should not be duplicated by copy/paste");
         }
 
+        private int CountErrors(IReadOnlyList<BaseGraphProcessingResult> graphProcessingResults)
+        {
+            return -1;
+        }
+
         [UnityTest]
         public IEnumerator TestOutdatedNodeGetsUpgradeBadge()
         {
@@ -127,9 +132,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
                 displayName: "V2"
             );
             yield return null;
+            var results = m_GraphView.GraphViewModel.GraphProcessingState.Results;
+            var errorCount = CountErrors(results);
+            Assert.IsTrue(errorCount == 1, "Outdated node should create 1 graph processing error");
 
-            var errors = m_GraphView.GraphTool.GraphProcessingState.Errors;
-            Assert.IsTrue(errors.Count == 1, "Outdated node should create 1 graph processing error");
             Assert.IsTrue(errors[0].ParentModel == node, "Graph processing error should be attached to outdated node");
             Assert.IsTrue(errors[0].ErrorType == LogType.Warning, "Graph processing error should be a warning");
         }
@@ -143,8 +149,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             );
             yield return null;
 
-            var errors = m_GraphView.GraphTool.GraphProcessingState.Errors;
-            Assert.IsTrue(errors.Count == 0, "Up-to-date node should not have any warnings");
+            var errorCount = CountErrors(m_GraphView.GraphViewModel.GraphProcessingState.Results);
+            Assert.IsTrue(errorCount == 0, "Up-to-date node should not have any warnings");
         }
 
         [UnityTest]
@@ -174,8 +180,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_GraphView.Dispatch(new DismissNodeUpgradeCommand(node));
             yield return null;
 
-            var errors = m_GraphView.GraphTool.GraphProcessingState.Errors;
-            Assert.IsTrue(errors.Count == 0, "Dismissing node upgrade should remove warning badges");
+            var errorCount = CountErrors(m_GraphView.GraphViewModel.GraphProcessingState.Results);
+            Assert.IsTrue(errorCount == 0, "Dismissing node upgrade should remove warning badges");
         }
 
         // TODO (Brett) This is commented out to bring tests to a passing status.
