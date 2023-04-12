@@ -415,7 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdLineLightArray);
             m_RayTracingLights.hdLightEntityArray.AddRange(m_RayTracingLights.hdRectLightArray);
 
-            HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalReflectionData>();
+            HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.None);
             for (int reflIdx = 0; reflIdx < reflectionProbeArray.Length; ++reflIdx)
             {
                 HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
@@ -476,7 +476,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int matCount = m_MaterialCRCs.Count;
 
-            LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
+            LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsByType<LODGroup>(FindObjectsSortMode.None);
             for (var i = 0; i < lodGroupArray.Length; i++)
             {
                 // Grab the current LOD group
@@ -539,7 +539,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Grab all the renderers from the scene
-            var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+            var rendererArray = UnityEngine.GameObject.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
             for (var i = 0; i < rendererArray.Length; i++)
             {
                 // Fetch the current renderer

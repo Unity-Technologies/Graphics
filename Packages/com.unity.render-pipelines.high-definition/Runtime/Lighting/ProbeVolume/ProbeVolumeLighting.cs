@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RetrieveExtraDataFromProbeVolumeBake(ProbeReferenceVolume.ExtraDataActionInput input)
         {
-            var hdProbes = GameObject.FindObjectsOfType<HDProbe>();
+            var hdProbes = GameObject.FindObjectsByType<HDProbe>(FindObjectsSortMode.None);
             foreach (var hdProbe in hdProbes)
             {
                 hdProbe.TryUpdateLuminanceSHL2ForNormalization();
