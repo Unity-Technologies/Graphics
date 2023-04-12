@@ -237,7 +237,7 @@ namespace UnityEditor.VFX.URP
                 },
 
                 fieldDependencies = ElementSpaceDependencies,
-                pragmasReplacement = new (PragmaDescriptor, PragmaDescriptor)[]
+                pragmasReplacement = new []
                 {
                     ( Pragma.Vertex("vert"), Pragma.Vertex("VertVFX") ),
 
@@ -246,12 +246,6 @@ namespace UnityEditor.VFX.URP
                     ( Pragma.Target(ShaderModel.Target30), Pragma.Target(ShaderModel.Target45) ),
                     ( Pragma.Target(ShaderModel.Target35), Pragma.Target(ShaderModel.Target45) ),
                     ( Pragma.Target(ShaderModel.Target40), Pragma.Target(ShaderModel.Target45) ),
-
-                    //Irrelevant general multicompile instancing (VFX will append them when needed)
-                    ( Pragma.MultiCompileInstancing, ShaderGraphBinder.kPragmaDescriptorNone),
-                    ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), ShaderGraphBinder.kPragmaDescriptorNone ),
-                    ( Pragma.InstancingOptions(InstancingOptions.NoLightProbe), ShaderGraphBinder.kPragmaDescriptorNone ),
-                    ( Pragma.InstancingOptions(InstancingOptions.NoLodFade), ShaderGraphBinder.kPragmaDescriptorNone ),
                 },
                 useFragInputs = false
             };
