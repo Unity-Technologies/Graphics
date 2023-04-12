@@ -71,6 +71,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (material.HasProperty(kUseSplitLighting))
                 useSplitLighting = material.GetInt(kUseSplitLighting) != 0;
+            if (material.HasProperty(kClearCoatEnabled))
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", material.GetFloat(kClearCoatEnabled) > 0.0);
             BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting);
         }
 

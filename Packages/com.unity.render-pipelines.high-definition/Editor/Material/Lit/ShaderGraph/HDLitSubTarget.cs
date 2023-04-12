@@ -77,8 +77,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return descriptor;
         }
 
-        public static FieldDescriptor ClearCoat = new FieldDescriptor(kMaterial, "ClearCoat", "_MATERIAL_FEATURE_CLEAR_COAT");
-
         // Refraction
         public static FieldDescriptor Refraction = new FieldDescriptor(string.Empty, "Refraction", "");
         public static KeywordDescriptor RefractionKeyword = new KeywordDescriptor()
@@ -115,7 +113,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Misc
             context.AddField(EnergyConservingSpecular, litData.energyConservingSpecular);
             context.AddField(CoatMask, descs.Contains(BlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.CoatMask) && hasClearCoat);
-            context.AddField(ClearCoat, hasClearCoat); // Enable clear coat material feature
             context.AddField(RayTracing, litData.rayTracing);
 
             context.AddField(SpecularAA, lightingData.specularAA &&
@@ -229,6 +226,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
 
             collector.AddBoolProperty(kTransmissionEnable, litData.sssTransmission);
+            if (litData.clearCoat && litData.HasMaterialType(~HDLitData.MaterialTypeMask.ColoredTranslucent))
+                collector.AddBoolProperty(kClearCoatEnabled, true);
         }
 
         static readonly List<string> materialFeatureSuffixes = new()
@@ -260,6 +259,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     {
                         new() { displayName = featureDefine, referenceName = featureDefine },
                     }
+                });
+            }
+
+            if (litData.clearCoat && litData.HasMaterialType(~HDLitData.MaterialTypeMask.ColoredTranslucent))
+            {
+                pass.keywords.Add(new KeywordDescriptor
+                {
+                    displayName = "Cleat Coat",
+                    referenceName = "_MATERIAL_FEATURE_CLEAR_COAT",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.ShaderFeature,
+                    scope = KeywordScope.Local,
+                    stages = KeywordShaderStage.Fragment | (supportRaytracing ? KeywordShaderStage.RayTracing : 0),
                 });
             }
         }

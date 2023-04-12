@@ -1351,6 +1351,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kTransmittanceColorMap = "_TransmittanceColorMap";
         internal const string kRefractionModel = "_RefractionModel";
         internal const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
+        internal const string kClearCoatEnabled = "_ClearCoatEnabled";
 
         internal const string kCutoff = "_Cutoff";
         internal const string kAlphaCutoff = "_AlphaCutoff";
