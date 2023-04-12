@@ -53,7 +53,7 @@ VertexDescription GetVertexDescription(AttributesMesh input, float3 timeParamete
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
-    // Override time parameters with used one (This is required to correctly handle motion vector for vertex animation based on time)
+    // Override time parameters with used one (This is required to correctly handle motion vectors for vertex animation based on time)
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     // evaluate vertex graph
