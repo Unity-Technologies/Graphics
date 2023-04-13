@@ -228,6 +228,9 @@ MonoBehaviour:
   enabled:
     m_OverrideState: 1
     m_Value: 0
+  enabledTransparent:
+    m_OverrideState: 0
+    m_Value: 1
   tracing:
     m_OverrideState: 0
     m_Value: 1
@@ -252,12 +255,39 @@ MonoBehaviour:
   accumulationFactor:
     m_OverrideState: 0
     m_Value: 0.75
+  biasFactor:
+    m_OverrideState: 0
+    m_Value: 0.5
+  speedRejectionParam:
+    m_OverrideState: 0
+    m_Value: 0.5
+  speedRejectionScalerFactor:
+    m_OverrideState: 0
+    m_Value: 0.2
+  speedSmoothReject:
+    m_OverrideState: 0
+    m_Value: 0
+  speedSurfaceOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  speedTargetOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  enableWorldSpeedRejection:
+    m_OverrideState: 0
+    m_Value: 0
   m_RayMaxIterations:
     m_OverrideState: 0
     m_Value: 32
-  fallbackHierachy:
+  rayMiss:
     m_OverrideState: 0
     m_Value: 3
+  lastBounceFallbackHierarchy:
+    m_OverrideState: 0
+    m_Value: 3
+  ambientProbeDimmer:
+    m_OverrideState: 0
+    m_Value: 1
   layerMask:
     m_OverrideState: 0
     m_Value:
@@ -317,6 +347,7 @@ MonoBehaviour:
   - {fileID: 1865279186012764109}
   - {fileID: 250592284426735632}
   - {fileID: -1684174113285212767}
+  - {fileID: 2414116118414951557}
 --- !u!114 &250592284426735632
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -339,12 +370,15 @@ MonoBehaviour:
   tracing:
     m_OverrideState: 1
     m_Value: 1
-  fallbackHierarchy:
+  rayMiss:
     m_OverrideState: 0
     m_Value: 3
   depthBufferThickness:
     m_OverrideState: 1
     m_Value: 0.1
+  fullResolutionSS:
+    m_OverrideState: 0
+    m_Value: 1
   m_MaxRaySteps:
     m_OverrideState: 1
     m_Value: 128
@@ -360,6 +394,12 @@ MonoBehaviour:
   m_SecondDenoiserPassSS:
     m_OverrideState: 1
     m_Value: 1
+  lastBounceFallbackHierarchy:
+    m_OverrideState: 0
+    m_Value: 3
+  ambientProbeDimmer:
+    m_OverrideState: 0
+    m_Value: 0
   layerMask:
     m_OverrideState: 1
     m_Value:
@@ -481,6 +521,28 @@ MonoBehaviour:
   m_HighQualityFiltering:
     m_OverrideState: 1
     m_Value: 1
+--- !u!114 &2414116118414951557
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a76fd08475e21554b8f284f723dd7cf8, type: 3}
+  m_Name: WaterRendering
+  m_EditorClassIdentifier: 
+  active: 1
+  enable:
+    m_OverrideState: 1
+    m_Value: 1
+  triangleSize:
+    m_OverrideState: 1
+    m_Value: 15
+  ambientProbeDimmer:
+    m_OverrideState: 0
+    m_Value: 0.5
 --- !u!114 &2872089784039257290
 MonoBehaviour:
   m_ObjectHideFlags: 3
