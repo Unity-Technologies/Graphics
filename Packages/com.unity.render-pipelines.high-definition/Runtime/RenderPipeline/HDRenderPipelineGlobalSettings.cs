@@ -173,28 +173,20 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Camera's FrameSettings
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-        [SerializeField]
-        FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.NewDefaultCamera();
+        [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultCameraFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
+        FrameSettings m_ObsoleteRenderingPathDefaultCameraFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
+        
+        [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
+        FrameSettings m_ObsoleteRenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.CustomOrBakedReflection);
 
-        [SerializeField]
-        FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.NewDefaultCustomOrBakeReflectionProbe();
+        [SerializeField, FormerlySerializedAs("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), Obsolete("Kept For Migration. #from(2023.2")]
+        FrameSettings m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.RealtimeReflection);
 
-        [SerializeField]
-        FrameSettings m_RenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettings.NewDefaultRealtimeReflectionProbe();
+        [SerializeField] private RenderingPathFrameSettings m_RenderingPath = new();
 
         internal ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
         {
-            switch (type)
-            {
-                case FrameSettingsRenderType.Camera:
-                    return ref m_RenderingPathDefaultCameraFrameSettings;
-                case FrameSettingsRenderType.CustomOrBakedReflection:
-                    return ref m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
-                case FrameSettingsRenderType.RealtimeReflection:
-                    return ref m_RenderingPathDefaultRealtimeReflectionFrameSettings;
-                default:
-                    throw new System.ArgumentException("Unknown FrameSettingsRenderType");
-            }
+            return ref m_RenderingPath.GetDefaultFrameSettings(type);
         }
 
         #endregion

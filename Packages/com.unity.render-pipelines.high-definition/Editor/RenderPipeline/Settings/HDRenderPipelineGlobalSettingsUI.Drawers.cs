@@ -64,73 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawFrameSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_Camera, CoreEditorStyles.subSectionHeaderStyle);
-                DrawFrameSettingsSubsection(0, serialized.defaultCameraFrameSettings, owner);
-                EditorGUILayout.Space();
-
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_RTProbe, CoreEditorStyles.subSectionHeaderStyle);
-                DrawFrameSettingsSubsection(1, serialized.defaultRealtimeReflectionFrameSettings, owner);
-                EditorGUILayout.Space();
-
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_BakedProbe, CoreEditorStyles.subSectionHeaderStyle);
-                DrawFrameSettingsSubsection(2, serialized.defaultBakedOrCustomReflectionFrameSettings, owner);
-                EditorGUILayout.Space();
-            }
-        }
-
-        static private bool[] m_ShowFrameSettings_Rendering = { false, false, false };
-        static private bool[] m_ShowFrameSettings_Lighting = { false, false, false };
-        static private bool[] m_ShowFrameSettings_AsyncCompute = { false, false, false };
-        static private bool[] m_ShowFrameSettings_LightLoopDebug = { false, false, false };
-
-        static void DrawFrameSettingsSubsection(int index, SerializedFrameSettings serialized, Editor owner)
-        {
-            var oldWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = Styles.labelWidth;
-
-            CoreEditorUtils.DrawSplitter();
-            m_ShowFrameSettings_Rendering[index] = CoreEditorUtils.DrawHeaderFoldout(Styles.renderingSettingsHeaderContent, m_ShowFrameSettings_Rendering[index]);
-            if (m_ShowFrameSettings_Rendering[index])
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    FrameSettingsUI.Drawer_SectionRenderingSettings(serialized, owner, withOverride: false);
-                }
-            }
-
-            CoreEditorUtils.DrawSplitter();
-            m_ShowFrameSettings_Lighting[index] = CoreEditorUtils.DrawHeaderFoldout(Styles.lightSettingsHeaderContent, m_ShowFrameSettings_Lighting[index]);
-            if (m_ShowFrameSettings_Lighting[index])
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    FrameSettingsUI.Drawer_SectionLightingSettings(serialized, owner, withOverride: false);
-                }
-            }
-
-            CoreEditorUtils.DrawSplitter();
-            m_ShowFrameSettings_AsyncCompute[index] = CoreEditorUtils.DrawHeaderFoldout(Styles.asyncComputeSettingsHeaderContent, m_ShowFrameSettings_AsyncCompute[index]);
-            if (m_ShowFrameSettings_AsyncCompute[index])
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    FrameSettingsUI.Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride: false);
-                }
-            }
-
-            CoreEditorUtils.DrawSplitter();
-            m_ShowFrameSettings_LightLoopDebug[index] = CoreEditorUtils.DrawHeaderFoldout(Styles.lightLoopSettingsHeaderContent, m_ShowFrameSettings_LightLoopDebug[index]);
-            if (m_ShowFrameSettings_LightLoopDebug[index])
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    FrameSettingsUI.Drawer_SectionLightLoopSettings(serialized, owner, withOverride: false);
-                }
-            }
-            CoreEditorUtils.DrawSplitter();
-            EditorGUIUtility.labelWidth = oldWidth;
+            EditorGUILayout.PropertyField(serialized.serializedObject.FindProperty("m_RenderingPath"));
         }
 
         #endregion // Frame Settings

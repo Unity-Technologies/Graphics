@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    /// Class that stores the shader stripping settings shared on any pipeline
+    /// Class that stores the shader stripping settings that are specific for <see cref="UniversalRenderPipeline"/>
     /// </summary>
     [Serializable][Category("Shader Stripping")]
     public class URPShaderStrippingSetting
