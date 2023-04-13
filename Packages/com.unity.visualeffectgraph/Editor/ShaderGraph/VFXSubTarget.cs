@@ -293,35 +293,77 @@ namespace UnityEditor.VFX
             return new AdditionalCommandDescriptor("FragInputsVFX", builder.ToString());
         }
 
+        static readonly (PragmaDescriptor oldDesc, PragmaDescriptor newDesc)[] k_CommonPragmaReplacement =
+        {
+            //Irrelevant general multicompile instancing (VFX will append them when needed)
+            ( Pragma.MultiCompileInstancing, VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone),
+            ( Pragma.DOTSInstancing, VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone),
+            ( Pragma.InstancingOptions(InstancingOptions.RenderingLayer), VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone ),
+            ( Pragma.InstancingOptions(InstancingOptions.NoLightProbe), VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone ),
+            ( Pragma.InstancingOptions(InstancingOptions.NoLodFade), VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone ),
+        };
+
         static PragmaCollection ApplyPragmaModifier(PragmaCollection pragmas, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo, bool addPragmaRequireCubeArray)
         {
-            if (shaderGraphSRPInfo.pragmasReplacement != null || addPragmaRequireCubeArray)
+            var pragmasReplacement = k_CommonPragmaReplacement;
+            if (shaderGraphSRPInfo.pragmasReplacement != null)
+                pragmasReplacement = shaderGraphSRPInfo.pragmasReplacement.Concat(pragmasReplacement).ToArray();
+
+            var overridenPragmas = new PragmaCollection();
+            foreach (var pragma in pragmas)
             {
-                var overridenPragmas = new PragmaCollection();
-                foreach (var pragma in pragmas)
+                var currentPragma = pragma;
+
+                if (pragmasReplacement != null)
                 {
-                    var currentPragma = pragma;
+                    var replacement = pragmasReplacement.FirstOrDefault(o => o.oldDesc.value == pragma.descriptor.value);
+                    if (replacement.newDesc.value == VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone.value)
+                        continue; //Skip this irrelevant pragmas, kPragmaDescriptorNone shouldn't be null/empty
 
-                    if (shaderGraphSRPInfo.pragmasReplacement != null)
-                    {
-                        var replacement = shaderGraphSRPInfo.pragmasReplacement.FirstOrDefault(o => o.oldDesc.value == pragma.descriptor.value);
-                        if (replacement.newDesc.value == VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone.value)
-                            continue; //Skip this irrelevant pragmas, kPragmaDescriptorNone shouldn't be null/empty
-
-                        if (!string.IsNullOrEmpty(replacement.newDesc.value))
-                            currentPragma = new PragmaCollection.Item(replacement.newDesc, pragma.fieldConditions);
-                    }
-                    overridenPragmas.Add(currentPragma.descriptor, currentPragma.fieldConditions);
+                    if (!string.IsNullOrEmpty(replacement.newDesc.value))
+                        currentPragma = new PragmaCollection.Item(replacement.newDesc, pragma.fieldConditions);
                 }
-
-                if (addPragmaRequireCubeArray)
-                {
-                    overridenPragmas.Add(new PragmaDescriptor() { value = "require cubearray" });
-                }
-
-                return overridenPragmas;
+                overridenPragmas.Add(currentPragma.descriptor, currentPragma.fieldConditions);
             }
-            return pragmas;
+
+            if (addPragmaRequireCubeArray)
+            {
+                overridenPragmas.Add(new PragmaDescriptor() { value = "require cubearray" });
+            }
+
+            return overridenPragmas;
+        }
+
+        static readonly (KeywordDescriptor oldDesc, KeywordDescriptor newDesc)[] k_CommonKeywordReplacement =
+        {
+            (new KeywordDescriptor() {referenceName = Rendering.BuiltIn.ShaderGraph.BuiltInFields.VelocityPrecomputed.define}, VFXSRPBinder.ShaderGraphBinder.kKeywordDescriptorNone)
+        };
+
+        static KeywordCollection ApplyKeywordModifier(KeywordCollection keywords, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo)
+        {
+            if (keywords != null)
+            {
+                var keywordsReplacement = k_CommonKeywordReplacement;
+                if (shaderGraphSRPInfo.keywordsReplacement != null)
+                    keywordsReplacement = keywordsReplacement.Concat(shaderGraphSRPInfo.keywordsReplacement).ToArray();
+
+                var overridenKeywords = new KeywordCollection();
+                foreach (var keyword in keywords)
+                {
+                    var currentKeyword = keyword;
+
+                    var replacement = keywordsReplacement.FirstOrDefault(o => o.oldDesc.referenceName == keyword.descriptor.referenceName);
+                    if (replacement.newDesc.referenceName == VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone.value)
+                        continue; //Skip this irrelevant pragmas, kPragmaDescriptorNone shouldn't be null/empty
+
+                    if (!string.IsNullOrEmpty(replacement.newDesc.referenceName))
+                        currentKeyword = new KeywordCollection.Item(replacement.newDesc, currentKeyword.fieldConditions);
+
+                    overridenKeywords.Add(currentKeyword.descriptor, currentKeyword.fieldConditions);
+                }
+                return overridenKeywords;
+            }
+            return keywords;
         }
 
         internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXTaskCompiledData data)
@@ -382,6 +424,7 @@ namespace UnityEditor.VFX
                 var passDescriptor = passes[i].descriptor;
 
                 passDescriptor.pragmas = ApplyPragmaModifier(passDescriptor.pragmas, shaderGraphSRPInfo, addPragmaRequireCubeArray);
+                passDescriptor.keywords = ApplyKeywordModifier(passDescriptor.keywords, shaderGraphSRPInfo);
 
                 // Warning: We are replacing the struct provided in the regular pass. It is ok as for now the VFX editor don't support
                 // tessellation or raytracing
