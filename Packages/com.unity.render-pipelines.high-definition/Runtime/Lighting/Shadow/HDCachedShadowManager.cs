@@ -44,6 +44,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Cache here to be able to compute resolutions.
         private HDShadowInitParameters m_InitParams;
 
+        // Empty data to be used if area light is off
+        internal HDCachedShadowAtlasDataForShadowRequestUpdateJob emptyAreaShadowAtlasJob;
+
         // ------------------------ Public API -------------------------------
 
         /// <summary>
@@ -245,6 +248,9 @@ namespace UnityEngine.Rendering.HighDefinition
             punctualShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.PunctualAtlas);
             if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.AreaLightAtlas);
+            else
+                emptyAreaShadowAtlasJob.initEmpty();
+
             directionalLightAtlas = new HDShadowAtlas();
         }
 
@@ -430,9 +436,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void GetUnmanagedDataForShadowRequestJobs(ref HDCachedShadowManagerDataForShadowRequestUpdateJob dataForShadowRequestUpdateJob)
         {
+
             dataForShadowRequestUpdateJob.directionalShadowPendingUpdate = directionalShadowPendingUpdate;
             punctualShadowAtlas.GetUnmanageDataForShadowRequestJobs(ref dataForShadowRequestUpdateJob.punctualShadowAtlas);
-            areaShadowAtlas.GetUnmanageDataForShadowRequestJobs(ref dataForShadowRequestUpdateJob.areaShadowAtlas);
+            if (ShaderConfig.s_AreaLights == 1)
+                areaShadowAtlas.GetUnmanageDataForShadowRequestJobs(ref dataForShadowRequestUpdateJob.areaShadowAtlas);
+            else
+                dataForShadowRequestUpdateJob.areaShadowAtlas = emptyAreaShadowAtlasJob;
+
             dataForShadowRequestUpdateJob.directionalLightAtlas.shadowRequests = directionalLightAtlas.m_ShadowRequests;
             dataForShadowRequestUpdateJob.cachedDirectionalAngles.Value = m_CachedDirectionalAngles;
             dataForShadowRequestUpdateJob.directionalHasCachedAtlas = DirectionalHasCachedAtlas();
@@ -468,6 +479,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (areaShadowAtlas != null)
                 areaShadowAtlas.DisposeNativeCollections();
+
+            emptyAreaShadowAtlasJob.DisposeNativeCollections();
         }
     }
 }
