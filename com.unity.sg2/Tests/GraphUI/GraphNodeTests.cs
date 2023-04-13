@@ -119,9 +119,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             Assert.AreEqual(beforeContexts.Count, afterContexts.Count, "Context node should not be duplicated by copy/paste");
         }
 
-        private int CountErrors(IReadOnlyList<BaseGraphProcessingResult> graphProcessingResults)
+        private static List<GraphProcessingError> GetErrorsFromResults(IReadOnlyList<BaseGraphProcessingResult> graphProcessingResults)
         {
-            return -1;
+            var errors = new List<GraphProcessingError>();
+            foreach (var result in graphProcessingResults)
+            {
+                if (result is ErrorsAndWarningsResult errorsAndWarningsResult)
+                {
+                    errors.AddRange(errorsAndWarningsResult.Errors);
+                }
+            }
+            return errors;
         }
 
         [UnityTest]
@@ -133,11 +141,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             );
             yield return null;
             var results = m_GraphView.GraphViewModel.GraphProcessingState.Results;
-            var errorCount = CountErrors(results);
-            Assert.IsTrue(errorCount == 1, "Outdated node should create 1 graph processing error");
-
-            Assert.IsTrue(errors[0].ParentModel == node, "Graph processing error should be attached to outdated node");
-            Assert.IsTrue(errors[0].ErrorType == LogType.Warning, "Graph processing error should be a warning");
+            var errors = GetErrorsFromResults(results);
+            Assert.IsTrue(errors.Count == 1, "Outdated node should create 1 graph processing error");
+            var firstError = errors[0];
+            Assert.IsTrue(firstError.IsWarning, "Graph processing error should be a warning");
+            m_GraphView.GraphModel.TryGetModelFromGuid(firstError.SourceNodeGuid, out var parentModel);
+            Assert.IsTrue(parentModel == node, "Graph processing error should be attached to outdated node");
         }
 
         [UnityTest]
@@ -149,7 +158,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             );
             yield return null;
 
-            var errorCount = CountErrors(m_GraphView.GraphViewModel.GraphProcessingState.Results);
+            var errorCount = GetErrorsFromResults(m_GraphView.GraphViewModel.GraphProcessingState.Results).Count;
             Assert.IsTrue(errorCount == 0, "Up-to-date node should not have any warnings");
         }
 
@@ -180,7 +189,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
             m_GraphView.Dispatch(new DismissNodeUpgradeCommand(node));
             yield return null;
 
-            var errorCount = CountErrors(m_GraphView.GraphViewModel.GraphProcessingState.Results);
+            var errorCount = GetErrorsFromResults(m_GraphView.GraphViewModel.GraphProcessingState.Results).Count;
             Assert.IsTrue(errorCount == 0, "Dismissing node upgrade should remove warning badges");
         }
 
