@@ -31,6 +31,7 @@ namespace UnityEditor.VFX
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
 
+        public abstract bool IsShaderVFXCompatible(Shader shader);
         public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) { }
 
         public virtual bool TryGetQueueOffset(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out int queueOffset)

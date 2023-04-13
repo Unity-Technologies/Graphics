@@ -62,6 +62,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             urpMetadata.surfaceType = target.surfaceType;
             urpMetadata.alphaMode = target.alphaMode;
             urpMetadata.castShadows = target.castShadows;
+            urpMetadata.isVFXCompatible = graphData.IsVFXCompatible();
             return urpMetadata;
         }
 

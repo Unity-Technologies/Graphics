@@ -18,6 +18,11 @@ namespace UnityEditor.VFX.URP
         public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
         public override Type SRPOutputDataType { get { return null; } } // null by now but use VFXURPSubOutput when there is a need to store URP specific data
 
+        public override bool IsShaderVFXCompatible(Shader shader)
+        {
+            return shader.TryGetMetadataOfType<UniversalMetadata>(out var metadata) && metadata.isVFXCompatible;
+        }
+
         public override void SetupMaterial(Material material, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader, shaderGraph);

@@ -23,6 +23,8 @@ namespace UnityEditor.VFX.HDRP
         public override string SRPAssetTypeStr { get { return typeof(HDRenderPipelineAsset).Name; } }
         public override Type SRPOutputDataType { get { return typeof(VFXHDRPSubOutput); } }
 
+        public override bool IsShaderVFXCompatible(Shader shader) => shader.TryGetMetadataOfType<HDMetadata>(out var metadata) && metadata.isVFXCompatible;
+
         public override void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             try
