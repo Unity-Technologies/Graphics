@@ -40,10 +40,10 @@
         return vec;
     }
 
-    float3 GridToVector( float2 coord )
+    float3 GridToVector( float2 coord, bool IsHemi )
     {
         float3 vec;
-        if (_ImposterIsHalfSphere)
+        if (IsHemi)
         {
             vec = OctaHemiEnc(coord);
         }
@@ -72,11 +72,11 @@
         return vec.xz;
     }
     //3D to 2D
-    float2 VectorToGrid( float3 vec )
+    float2 VectorToGrid( float3 vec , bool isHemi)
     {
         float2 coord;
 
-        if (_ImposterIsHalfSphere)
+        if (isHemi)
         {
             vec.y = max(0.001,vec.y);
             vec = normalize(vec);
@@ -109,14 +109,14 @@
     }
 
     //frame and framecout, returns 
-    float3 FrameXYToRay( float2 frame, float2 frameCountMinusOne )
+    float3 FrameXYToRay( float2 frame, float2 frameCountMinusOne, bool isHemi)
     {
         //divide frame x y by framecount minus one to get 0-1
         float2 f = frame.xy / frameCountMinusOne;
         //bias and scale to -1 to 1
         f = (f-0.5)*2.0; 
         //convert to vector, either full sphere or hemi sphere
-        float3 vec = GridToVector( f );
+        float3 vec = GridToVector( f, isHemi );
         vec = normalize(vec);
         return vec;
     }
@@ -197,7 +197,7 @@
     }
 
     //Calculate Vertex postion and UVs
-    void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in float imposterOffset, in float imposterSize,
+    void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in float imposterOffset, in float imposterSize, in bool isHemi,
         out float3 outPos, out float4 outUVGrid, out float4 outUV0, out float4 outUV1, out float4 outUV2)
     {
         //incoming vertex, object space
@@ -242,7 +242,7 @@
         rayLocal.Origin = objectSpaceCameraPos - imposterOffset;
         rayLocal.Direction = rayDirectionLocal;
         //find which grid we are at: floor(View2DVec * FrameXY)/FramesXY
-        float2 grid = VectorToGrid(pivotToCameraRay);
+        float2 grid = VectorToGrid(pivotToCameraRay, isHemi);
         float2 gridRaw = grid;
         grid = saturate((grid + 1.0) * 0.5); //bias and scale to 0 to 1 
         grid *= framesMinusOne;//scale to fit the frames
@@ -259,9 +259,9 @@
         float2 frame2 = gridFloor + float2(1, 1);
 
         //convert frame coordinate to octahedron direction
-        float3 frame0ray = FrameXYToRay(frame0, framesMinusOne.xx);
-        float3 frame1ray = FrameXYToRay(frame1, framesMinusOne.xx);
-        float3 frame2ray = FrameXYToRay(frame2, framesMinusOne.xx);
+        float3 frame0ray = FrameXYToRay(frame0, framesMinusOne.xx, isHemi);
+        float3 frame1ray = FrameXYToRay(frame1, framesMinusOne.xx, isHemi);
+        float3 frame2ray = FrameXYToRay(frame2, framesMinusOne.xx, isHemi);
 
         float3 planeCenter = float3(0, 0, 0);
 
@@ -306,6 +306,90 @@
         outUV0 = float4(vUv0.xy, frame0local.xz);
         outUV1 = float4(vUv1.xy, frame1local.xz);
         outUV2 = float4(vUv2.xy, frame2local.xz);;
+    }
+    void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrames, in float imposterOffset, in float imposterSize, in bool isHemi,
+        out float3 outPos, out float4 outUVGrid, out float4 outUV0)
+    {
+        //incoming vertex, object space
+        float3 vertex = inPos;
+
+        //camera in object space
+        float3 objectSpaceCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos.xyz, 1)).xyz;
+        float2 texcoord = inUV.xy;
+
+        float framesMinusOne = imposterFrames - 1;
+
+        //pivot to camera ray
+        float3 pivotToCameraRay = normalize(objectSpaceCameraPos.xyz - imposterOffset);
+
+        //scale uv to single frame
+        texcoord = float2(texcoord.x, texcoord.y) * (1.0 / imposterFrames.x);
+
+        //radius * 2 * unity scaling
+        float2 size = imposterSize.xx * 2.0; // * objectScale.xx; //unity_BillboardSize.xy                 
+        //Need to get this because the view change dramatics
+        float3 projected = SpriteProjection(pivotToCameraRay, imposterFrames, size, texcoord.xy);
+
+        //this creates the proper offset for vertices to camera facing billboard
+        float3 vertexOffset = projected + imposterOffset;
+        //subtract from camera pos //WHY?
+        vertexOffset = normalize(objectSpaceCameraPos - vertexOffset);
+        //then add the original projected world
+        vertexOffset += projected;
+        //remove position of vertex
+        vertexOffset -= vertex.xyz;
+        //add pivot
+        vertexOffset += imposterOffset;
+
+        //camera to projection vector
+        float3 rayDirectionLocal = (projected + imposterOffset) - objectSpaceCameraPos;
+
+        //projected position to camera ray
+        // float3 projInterpolated = normalize( objectSpaceCameraPos - (projected + imposterOffset) ); 
+        float3 projInterpolated = normalize(objectSpaceCameraPos - (projected + imposterOffset));
+
+        Ray rayLocal;
+        rayLocal.Origin = objectSpaceCameraPos - imposterOffset;
+        rayLocal.Direction = rayDirectionLocal;
+        //find which grid we are at: floor(View2DVec * FrameXY)/FramesXY
+        float2 grid = VectorToGrid(pivotToCameraRay, isHemi);
+        float2 gridRaw = grid;
+        grid = saturate((grid + 1.0) * 0.5); //bias and scale to 0 to 1 
+        grid *= framesMinusOne;//scale to fit the frames
+
+        float2 gridFrac = frac(grid);
+
+        float2 gridFloor = floor(grid);
+        //how much blend between the 3 frames
+        float4 weights = TriangleInterpolate(gridFrac);
+
+        //3 nearest frames
+        float2 frame0 = gridFloor;;
+
+        //convert frame coordinate to octahedron direction
+        float3 frame0ray = FrameXYToRay(frame0, framesMinusOne.xx, isHemi);
+
+        float3 planeCenter = float3(0, 0, 0);
+
+        float3 plane0x;
+        float3 plane0normal = frame0ray;
+        float3 plane0z;
+        //get plane basis
+        float3 frame0local = FrameTransform(projInterpolated, frame0ray, plane0x, plane0z);
+        frame0local.xz = frame0local.xz / imposterFrames.xx; //for displacement
+
+        //virtual plane UV coordinates
+        float2 vUv0 = VirtualPlaneUV(plane0normal, plane0x, plane0z, planeCenter, size, rayLocal);
+        vUv0 /= imposterFrames.xx;
+
+        //vert pos
+        vertex += vertexOffset;
+        outPos = vertex;
+
+        //surface
+        outUVGrid.xy = texcoord;
+        outUVGrid.zw = grid;
+        outUV0 = float4(vUv0.xy, frame0local.xz);
     }
     //Sample from UVs 
     void ImposterSample(bool parallaxCheck, in float imposterFrames, in texture2D Texture, in float4 mapTexelSize,
@@ -389,7 +473,6 @@
         vp0uv *= scaleFactor;
 
         if (parallaxCheck) {
-        //TODO: add this when sampling a normal map --> add parallax shift 
         float depth0 = SAMPLE_TEXTURE2D(Texture, ss, vp0uv).a;
         vp0uv -= inUV0.zw * (depth0 - 0.5);
         }
