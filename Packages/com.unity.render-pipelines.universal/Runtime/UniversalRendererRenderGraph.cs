@@ -842,7 +842,15 @@ namespace UnityEngine.Rendering.Universal
             {
                 TextureHandle backbuffer = resources.GetTexture(UniversalResource.BackBufferColor);
                 TextureHandle overlayUITexture = resources.GetTexture(UniversalResource.OverlayUITexture);
-                m_FinalBlitPass.Render(renderGraph, ref renderingData, cameraColor, backbuffer, overlayUITexture);
+                TextureHandle target = backbuffer;
+
+                if (resolveToDebugScreen)
+                {
+                    debugHandlerColorTarget = target;
+                    target = resources.GetTexture(UniversalResource.DebugScreenTexture);
+                }
+
+                m_FinalBlitPass.Render(renderGraph, ref renderingData, cameraColor, target, overlayUITexture);
                 m_ActiveColorID = UniversalResource.BackBufferColor;
                 m_ActiveDepthID = UniversalResource.BackBufferDepth;
             }
@@ -854,7 +862,15 @@ namespace UnityEngine.Rendering.Universal
             if (shouldRenderUI && !outputToHDR)
             {
                 TextureHandle backbuffer = resources.GetTexture(UniversalResource.BackBufferColor);
-                m_DrawOverlayUIPass.RenderOverlay(renderGraph, in backbuffer, ref renderingData);
+                TextureHandle target = backbuffer;
+
+                if (resolveToDebugScreen)
+                {
+                    debugHandlerColorTarget = target;
+                    target = resources.GetTexture(UniversalResource.DebugScreenTexture);
+                }
+
+                m_DrawOverlayUIPass.RenderOverlay(renderGraph, in target, ref renderingData);
             }
 
             if (debugHandler != null)
