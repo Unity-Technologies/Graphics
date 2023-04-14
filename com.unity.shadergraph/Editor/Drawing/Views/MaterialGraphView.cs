@@ -439,7 +439,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 group = inputSlot.owner.group;
             }
 
-            RedirectNodeData.Create(graph, outputSlot.concreteValueType, contentViewContainer.WorldToLocal(position), inputSlot.slotReference,
+            RedirectNodeData.Create(graph, outputSlot.valueType, contentViewContainer.WorldToLocal(position), inputSlot.slotReference,
                 outputSlot.slotReference, group);
         }
 
