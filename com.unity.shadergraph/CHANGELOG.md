@@ -4,28 +4,65 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [16.0.0] - 2023-03-22
+
+This version is compatible with Unity 2023.2.0a9.
+
+### Fixed
+- Improved performance of disconnecting nodes in large graphs.
+- Fixed a typo in the Hyperbolic Cosine Node in Shader Graph.
+- Fixed a bug where the nodes could not be created after entering then exiting play mode.
+
+## [15.0.3] - 2022-12-02
+
+This version is compatible with Unity 2023.2.0a1.
+
+### Fixed
+- Fixed multiple memory leaks in ShaderGraph so that windows and view elements now dispose of resources properly.
+- Fixed rare line-ending conflict in shader graph node templates when source control rewrites EOL markers.
 
 ## [15.0.2] - 2022-11-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2023.1.0a23.
 
+### Changed
+- Modified the AssetPostprocessor for Shader Graph so it now performs the majority of its work when a shader-related asset has been changed.
+
+### Fixed
+- Improved the stability of shadergraph imports when doing operations with the package manager.
+- Fixed shader graph incorrectly stripping variants for BiRP shaders that weren't built with shader graph.
+- Fixed Shader Graph BiRP Target so it now works correctly with point lights and transparent objects.
+- Fixed unity_StereoEyeIndex error when building XR project with URP Fullscreen master node containing Shader.
 
 ## [15.0.1] - 2022-08-04
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2023.1.0a19.
 
+### Changed
+- Reduced time taken by code generation when a shader graph asset is imported.
+
+### Fixed
+- Fixed a compilation bug in BiRP Target in some variants with lightmaps.
+- Fixed the TimeManager for MaterialVariant tests.
 
 ## [15.0.0] - 2022-06-13
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+This version is compatible with Unity 2023.1.0a6.
+
+### Fixed
+- Fixed shader graph incorrectly stripping variants for BiRP shaders that weren't built with shader graph.
+- Fixed unity_StereoEyeIndex error when building XR project with URP Fullscreen master node containing Shader.
 
 ## [14.0.3] - 2021-05-09
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed the sample buffer nodes in ShaderGraph.
+- Set the default value of Normalize Output toggle in Transform Node to **true** to make different node versions consistent.
 
 ## [14.0.2] - 2021-02-04
 

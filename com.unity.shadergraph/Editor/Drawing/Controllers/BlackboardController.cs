@@ -792,18 +792,31 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardCategoryControllers.TryGetValue(categoryGUID, out var blackboardCategoryController);
             if (blackboardCategoryController != null)
             {
-                blackboardCategoryController.Destroy();
+                blackboardCategoryController.Dispose();
                 m_BlackboardCategoryControllers.Remove(categoryGUID);
             }
             else
                 AssertHelpers.Fail("Tried to remove a category that doesn't exist. ");
         }
 
+        public override void Dispose()
+        {
+            if (m_Blackboard == null)
+                return;
+
+            base.Dispose();
+            m_DefaultCategoryController = null;
+            ClearBlackboardCategories();
+
+            m_Blackboard?.Dispose();
+            m_Blackboard = null;
+        }
+
         void ClearBlackboardCategories()
         {
             foreach (var categoryController in m_BlackboardCategoryControllers.Values)
             {
-                categoryController.Destroy();
+                categoryController.Dispose();
             }
             m_BlackboardCategoryControllers.Clear();
         }

@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("  a_Az_Z0_9_"), "a_Az_Z0_9_");
             Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("a_Az_Z0_9_  "), "a_Az_Z0_9_");
             Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("  a_Az_Z0_9_  "), "a_Az_Z0_9_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("_ _"), "___");
+            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("_ _"), "_"); // double underscore sequences are not valid
             Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("      "), "_");
             Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("*1   "), "_1");
             Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("  *-(1)"), "_1");

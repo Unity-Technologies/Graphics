@@ -66,6 +66,8 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         internal HLSLDeclaration hlslDeclarationOverride;
 
+        private bool shouldForceExposed => hlslDeclarationOverride == HLSLDeclaration.HybridPerInstance;
+
         internal Precision precision
         {
             get => m_Precision;
@@ -87,7 +89,7 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_Hidden = value;
         }
 
-        internal string hideTagString => hidden ? "[HideInInspector]" : "";
+        internal string hideTagString => hidden || (shouldForceExposed && !isExposed) ? "[HideInInspector]" : "";
 
         // reference names are the HLSL declaration name / property block ref name
         internal virtual void GetPropertyReferenceNames(List<string> result)
@@ -106,6 +108,8 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             return string.Empty;
         }
+
+        internal bool shouldGeneratePropertyBlock => generatePropertyBlock || shouldForceExposed;
 
         // the more complex interface for complex properties (defaulted for simple properties)
         internal virtual void AppendPropertyBlockStrings(ShaderStringBuilder builder)

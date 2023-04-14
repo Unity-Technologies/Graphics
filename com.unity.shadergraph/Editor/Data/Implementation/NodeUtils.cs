@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.Rendering.ShaderGraph;
@@ -197,10 +199,12 @@ namespace UnityEditor.Graphing
         private static List<AbstractMaterialNode> GetChildNodes(AbstractMaterialNode node)
         {
             List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
-            var ids = node.GetOutputSlots<MaterialSlot>().Select(x => x.id);
-            foreach (var slot in ids)
+            var slots = node.GetOutputSlots<MaterialSlot>();
+            var edges = new List<IEdge>();
+            foreach (var slot in slots)
             {
-                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                node.owner.GetEdges(slot, edges);
+                foreach (var edge in edges)
                 {
                     var inputNode = ((Edge)edge).inputSlot.node;
                     if (inputNode != null)
@@ -208,6 +212,7 @@ namespace UnityEditor.Graphing
                         nodeList.Add(inputNode);
                     }
                 }
+                edges.Clear();
             }
             return nodeList;
         }
@@ -260,7 +265,7 @@ namespace UnityEditor.Graphing
         // graph instead of just what I have declared as the "local" connected graph
         public static void ReevaluateActivityOfConnectedNodes(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
         {
-            List<AbstractMaterialNode> forest = GetForest(node);
+            var forest = GetForest(node);
             ReevaluateActivityOfNodeList(forest, changedNodes);
         }
 
@@ -281,70 +286,17 @@ namespace UnityEditor.Graphing
         }
 
         //Go to the leaves of the node, then get all trees with those leaves
-        private static List<AbstractMaterialNode> GetForest(AbstractMaterialNode node)
+        private static HashSet<AbstractMaterialNode> GetForest(AbstractMaterialNode node)
         {
-            List<AbstractMaterialNode> leaves = GetLeaves(node);
-            List<AbstractMaterialNode> forrest = new List<AbstractMaterialNode>();
-            foreach (var leaf in leaves)
-            {
-                if (!forrest.Contains(leaf))
-                {
-                    forrest.Add(leaf);
-                }
-                foreach (var child in GetChildNodesRecursive(leaf))
-                {
-                    if (!forrest.Contains(child))
-                    {
-                        forrest.Add(child);
-                    }
-                }
-            }
-            return forrest;
-        }
+            var initial = new HashSet<AbstractMaterialNode> { node };
 
-        private static List<AbstractMaterialNode> GetChildNodesRecursive(AbstractMaterialNode node)
-        {
-            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>() { node };
-            List<AbstractMaterialNode> children = GetChildNodes(node);
-            foreach (var child in children)
-            {
-                if (!output.Contains(child))
-                {
-                    output.Add(child);
-                }
-                foreach (var descendent in GetChildNodesRecursive(child))
-                {
-                    if (!output.Contains(descendent))
-                    {
-                        output.Add(descendent);
-                    }
-                }
-            }
-            return output;
-        }
+            var upstream = new HashSet<AbstractMaterialNode>();
+            PreviewManager.PropagateNodes(initial, PreviewManager.PropagationDirection.Upstream, upstream);
 
-        private static List<AbstractMaterialNode> GetLeaves(AbstractMaterialNode node)
-        {
-            List<AbstractMaterialNode> parents = GetParentNodes(node);
-            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>();
-            if (parents.Count == 0)
-            {
-                output.Add(node);
-            }
-            else
-            {
-                foreach (var parent in parents)
-                {
-                    foreach (var leaf in GetLeaves(parent))
-                    {
-                        if (!output.Contains(leaf))
-                        {
-                            output.Add(leaf);
-                        }
-                    }
-                }
-            }
-            return output;
+            var forest = new HashSet<AbstractMaterialNode>();
+            PreviewManager.PropagateNodes(upstream, PreviewManager.PropagationDirection.Downstream, forest);
+
+            return forest;
         }
 
         public static void GetDownsteamNodesForNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node)
@@ -477,51 +429,66 @@ namespace UnityEditor.Graphing
             return ShaderStage.Fragment;
         }
 
-        public static ShaderStageCapability GetEffectiveShaderStageCapability(MaterialSlot initialSlot, bool goingBackwards)
-        {
-            var graph = initialSlot.owner.owner;
-            s_SlotStack.Clear();
-            s_SlotStack.Push(initialSlot);
-            ShaderStageCapability capabilities = ShaderStageCapability.All;
-            while (s_SlotStack.Any())
-            {
-                var slot = s_SlotStack.Pop();
-
-                // Clear any stages from the total capabilities that this slot doesn't support (e.g. if this is vertex, clear pixel)
-                capabilities &= slot.stageCapability;
-                // Can early out if we know nothing is compatible, otherwise we have to keep checking everything we can reach.
-                if (capabilities == ShaderStageCapability.None)
-                    return capabilities;
-
-                if (goingBackwards && slot.isInputSlot)
-                {
-                    foreach (var edge in graph.GetEdges(slot.slotReference))
-                    {
-                        var node = edge.outputSlot.node;
-                        s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
-                    }
-                }
-                else if (!goingBackwards && slot.isOutputSlot)
-                {
-                    foreach (var edge in graph.GetEdges(slot.slotReference))
-                    {
-                        var node = edge.inputSlot.node;
-                        s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
-                    }
-                }
-                else
-                {
-                    var ownerSlots = Enumerable.Empty<MaterialSlot>();
-                    if (goingBackwards && slot.isOutputSlot)
-                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>(slot);
-                    else if (!goingBackwards && slot.isInputSlot)
-                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>(slot);
-                    foreach (var ownerSlot in ownerSlots)
-                        s_SlotStack.Push(ownerSlot);
-                }
+        private static ShaderStageCapability GetEffectiveShaderStageCapabilityRecursive(SlotReference slotRef, bool goingBackwards, Dictionary<SlotReference, ShaderStageCapability> lookUp) {
+            var slot = slotRef.slot;
+            ShaderStageCapability capabilities = slot.stageCapability;
+            // Can early out if we know nothing is compatible, otherwise we have to keep checking everything we can reach.
+            if (capabilities == ShaderStageCapability.None) {
+                lookUp[slotRef] = capabilities;
+                return capabilities;
             }
 
+            var graph = slot.owner.owner;
+            if (goingBackwards && slot.isInputSlot)
+            {
+                foreach (var edge in graph.GetEdges(slot.slotReference))
+                {
+                    if (!lookUp.TryGetValue(edge.outputSlot, out var childCapabilities)) {
+                        childCapabilities = GetEffectiveShaderStageCapabilityRecursive(edge.outputSlot, goingBackwards, lookUp);
+                    }
+                    capabilities &= childCapabilities;
+                    if (capabilities == ShaderStageCapability.None)
+                        break;
+                }
+            }
+            else if (!goingBackwards && slot.isOutputSlot)
+            {
+                foreach (var edge in graph.GetEdges(slot.slotReference))
+                {
+                    if (!lookUp.TryGetValue(edge.inputSlot, out var childCapabilities)) {
+                        childCapabilities = GetEffectiveShaderStageCapabilityRecursive(edge.inputSlot, goingBackwards, lookUp);
+                    }
+                    capabilities &= childCapabilities;
+                    if (capabilities == ShaderStageCapability.None)
+                        break;
+                }
+            }
+            else
+            {
+                var ownerSlots = Enumerable.Empty<MaterialSlot>();
+                if (goingBackwards && slot.isOutputSlot)
+                    ownerSlots = slot.owner.GetInputSlots<MaterialSlot>(slot);
+                else if (!goingBackwards && slot.isInputSlot)
+                    ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>(slot);
+                foreach (var ownerSlot in ownerSlots) {
+                    var childSlotRef = new SlotReference(ownerSlot.owner, ownerSlot.id);
+                    if (!lookUp.TryGetValue(childSlotRef, out var childCapabilities)) {
+                        childCapabilities = GetEffectiveShaderStageCapabilityRecursive(childSlotRef, goingBackwards, lookUp);
+                    }
+                    capabilities &= childCapabilities;
+                    if (capabilities == ShaderStageCapability.None)
+                        break;
+                }
+            }
+            lookUp[slotRef] = capabilities;
             return capabilities;
+        }
+
+        public static ShaderStageCapability GetEffectiveShaderStageCapability(MaterialSlot initialSlot, bool goingBackwards, Dictionary<SlotReference, ShaderStageCapability> lookUp = null)
+        {
+            if (lookUp == null)
+                lookUp = new Dictionary<SlotReference, ShaderStageCapability>();
+            return GetEffectiveShaderStageCapabilityRecursive(new SlotReference(initialSlot.owner, initialSlot.id), goingBackwards, lookUp);
         }
 
         public static string GetSlotDimension(ConcreteSlotValueType slotValue)
@@ -896,54 +863,11 @@ namespace UnityEditor.Graphing
             if (originalId == null)
                 originalId = "";
 
-            StringBuilder hlslId = new StringBuilder(originalId.Length);
-            bool lastInvalid = false;
-            for (int i = 0; i < originalId.Length; i++)
-            {
-                char c = originalId[i];
+            var result = Regex.Replace(originalId, @"^[^A-Za-z0-9_]+|[^A-Za-z0-9_]+$", ""); // trim leading/trailing bad characters (excl '_').
+            result = Regex.Replace(result, @"[^A-Za-z0-9]+", "_"); // replace sequences of bad characters with underscores (incl '_').
 
-                bool isLetter = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-                bool isUnderscore = (c == '_');
-                bool isDigit = (c >= '0' && c <= '9');
-
-                bool validChar = isLetter || isUnderscore || isDigit;
-
-                if (!validChar)
-                {
-                    // when we see an invalid character, we just record that we saw it and go to the next character
-                    // this way we combine multiple invalid characters, and trailing ones just get dropped
-                    lastInvalid = true;
-                }
-                else
-                {
-                    // whenever we hit a valid character
-                    // if the last character was invalid, append an underscore
-                    // unless we're at the beginning of the string
-                    if (lastInvalid && (hlslId.Length > 0))
-                        hlslId.Append("_");
-
-                    // HLSL ids can't start with a digit, prepend an underscore to prevent this
-                    if (isDigit && (hlslId.Length == 0))
-                        hlslId.Append("_");
-
-                    hlslId.Append(c);
-
-                    lastInvalid = false;
-                }
-            }
-
-            // empty strings not allowed -- append an underscore if it's empty
-            if (hlslId.Length <= 0)
-                hlslId.Append("_");
-
-            var result = hlslId.ToString();
-
-            while (IsHLSLKeyword(result))
+            if (result.Length == 0 || Char.IsDigit(result[0]) || IsHLSLKeyword(result) || (isDisallowedIdentifier?.Invoke(result) ?? false))
                 result = "_" + result;
-
-            if (isDisallowedIdentifier != null)
-                while (isDisallowedIdentifier(result))
-                    result = "_" + result;
 
             return result;
         }

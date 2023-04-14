@@ -119,6 +119,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_Control is IDisposable disposable)
                 disposable.Dispose();
+
+            styleSheets.Clear();
+            m_Control = null;
+            m_EdgeControl = null;
+            UnregisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
         }
     }
 }
