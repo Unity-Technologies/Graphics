@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Imposter UV",
-            tooltip: "Calculate the billboard positon and the virtual UVs for sampling.",
+            tooltip: "Calculates the billboard positon and the virtual UVs for sampling.",
             category: "Input/Mesh Deformation",
             hasPreview: false,
             description: "pkg://Documentation~/previews/ImposterUV.md",
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Defs
             parameters: new ParameterUIDescriptor[] {
                 new ParameterUIDescriptor(
                     name: "Pos",
-                    displayName:"Position",
+                    displayName:"In Position",
                     tooltip: "The postiont in Object space"
                 ),
                 new ParameterUIDescriptor(
@@ -96,6 +96,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "HemiSphere",
                     tooltip: "If it's true, calculate imposter grid and UVs base on hemisphere type."
+                ),
+                new ParameterUIDescriptor(
+                    name: "OutPos",
+                    displayName:"Out Position",
+                    tooltip: "The output billboard position."
                 ),
                 new ParameterUIDescriptor(
                     name: "UV0",

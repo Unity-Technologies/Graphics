@@ -207,7 +207,12 @@
         return res;
     }
 
-    void ImposterVertex(inout ImposterData imp, in float imposterFrames,in float imposterOffset, in float imposterSize, bool hemiCheck)
+    void ImposterVertex(
+        inout ImposterData imp,
+        in float imposterFrames,
+        in float imposterOffset,
+        in float imposterSize,
+        bool hemiCheck)
     {
         //incoming vertex, object space
         float3 vertex = imp.vertex;
@@ -359,7 +364,7 @@
         vp1uv = clamp(vp1uv, frame1 - border, frame1 + gridSize + border);
         vp2uv = clamp(vp2uv, frame2 - border, frame2 + gridSize + border);
 
-        //float4 ddxy = float4(ddx(imp.uv), ddy(imp.uv));
+       // float4 ddxy = float4(ddx(imp.uv), ddy(imp.uv));
 
         //outAlbedo = ImposterBlendWeights(albedoMap, ss, vp0uv, vp1uv, vp2uv, weights.xyz, ddxy);
         //outNormal = ImposterBlendWeights(normalMap, ss, vp0uv, vp1uv, vp2uv, weights.xyz, ddxy);

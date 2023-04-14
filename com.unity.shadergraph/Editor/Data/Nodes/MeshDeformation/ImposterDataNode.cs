@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(SizeSlotId, kSlotSizeName, kSlotSizeName, SlotType.Input, 0));
             AddSlot(new BooleanMaterialSlot(HemiCheckSlotId, kSlotHemiCheckName, kSlotHemiCheckName, SlotType.Input, false));
 
-            RemoveSlotsNameNotMatching(new[] { FramesSlotId, OffsetSlotId, SizeSlotId, PositionOutputSlotId, UVOutputSlotId, GridOutputSlotId, Frame0OutputSlotId, Frame1OutputSlotId, Frame2OutputSlotId, PositionSlotId, UVSlotId });
+            RemoveSlotsNameNotMatching(new[] { FramesSlotId, OffsetSlotId, SizeSlotId, PositionOutputSlotId, UVOutputSlotId, GridOutputSlotId, Frame0OutputSlotId, Frame1OutputSlotId, Frame2OutputSlotId, PositionSlotId, UVSlotId, HemiCheckSlotId });
         }
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph
             var HemiCheck = GetSlotValue(HemiCheckSlotId, generationMode);
 
             var OutPosition = GetVariableNameForSlot(PositionOutputSlotId);
-            var OutUV = GetSlotValue(UVOutputSlotId, generationMode);
+            var OutUV = GetVariableNameForSlot(UVOutputSlotId);
             var Frame0 = GetSlotValue(Frame0OutputSlotId, generationMode);
             var Frame1 = GetSlotValue(Frame1OutputSlotId, generationMode);
             var Frame2 = GetSlotValue(Frame2OutputSlotId, generationMode);

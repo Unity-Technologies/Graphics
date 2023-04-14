@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Version,
             Name,
             displayName: "Imposter Sample",
-            tooltip: "Sample the imposter textures base on the input UVs.",
+            tooltip: "Samples from the three virtual UVs and blends them base on the camera intersection point to get the correct result.",
             category: "Input/Mesh Deformation",
             hasPreview: false,
             description: "pkg://Documentation~/previews/ImposterSample.md",
@@ -107,6 +107,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Parallax",
                     tooltip: "If Texture is a normal map, add parallax shif if the value is true"
+                ),
+                new ParameterUIDescriptor(
+                    name: "RGBA",
+                    tooltip: "A vector4 from the sampled texture"
                 )
             }
         );

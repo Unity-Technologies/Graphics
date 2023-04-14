@@ -60,23 +60,22 @@ MonoBehaviour:
       m_Values: 000100000002000000040000
       m_SchemaId:
         m_Id: With3Levels
-    cubeReflectionResolution:
-      m_Values: 000100000002000000040000
-      m_SchemaId:
-        m_Id: With3Levels
     supportDecals: 1
     supportDecalLayers: 0
     supportSurfaceGradient: 1
     decalNormalBufferHP: 0
     supportHighQualityLineRendering: 0
+    highQualityLineRenderingMemoryBudget: 128
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
     lightProbeSystem: 0
+    oldLightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
-    supportProbeVolumeStreaming: 0
+    supportProbeVolumeGPUStreaming: 0
+    supportProbeVolumeDiskStreaming: 0
     probeVolumeSHBands: 1
     supportProbeVolumeScenarios: 0
     supportProbeVolumeScenarioBlending: 1
@@ -320,7 +319,7 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 22
+  m_Version: 23
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
