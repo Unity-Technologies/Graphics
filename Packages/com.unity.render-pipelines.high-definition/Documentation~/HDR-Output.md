@@ -8,7 +8,7 @@ HDRP can output HDR content for displays which support that functionality.
 
 To activate HDR output, navigate to **Project Settings > Player** > **Other Settings** and enable **Use display in HDR mode**.
 
-Note that HDR Output will be active only in Game View and in Player.
+Note that HDR Output will be active only in Game View and in Player. Currently the feature is not working on DirectX 11 on PC, please use DirectX 12 to make use of it. 
 
 ## HDR tone mapping in HDRP
 

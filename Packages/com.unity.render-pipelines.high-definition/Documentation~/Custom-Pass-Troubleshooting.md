@@ -149,3 +149,9 @@ class Outline : CustomPass
     }
 }
 ```
+
+## My effect is not rendered when MSAA is enabled
+
+When enabling MSAA on your camera, make sure that the color buffer and depth buffer format matches. This can be done by ensuring that you use both "Camera" buffers or "Custom" buffers at the same time.
+
+The graphics API doesn't support mixing MSAA buffers and non-MSAA buffers when binding render targets, doing so can result in undefined behavior or the API will just discard your draw call.

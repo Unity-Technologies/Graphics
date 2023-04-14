@@ -213,8 +213,8 @@ These settings determine the method that the Cameras and Reflection Probes using
   </tr>
   <tr>
     <td></td>
-    <td><strong>Custom Post-process</strong></td>
-    <td>Enable the checkbox to allow HDRP to perform a depth test for Shaders rendered in the After Post-process rendering pass.</td>
+    <td><strong>Depth Test</strong></td>
+    <td>Enable the checkbox to allow HDRP to perform a depth test for Shaders rendered in the After Post-process rendering pass. HDRP disables the depth test when you enable dynamic resolution scaling or any effect that uses jittered depth (DLSS, TAA) to prevent artefacts.</td>
   </tr>
   <tr>
     <td><strong>LOD Bias Mode</strong></td>
