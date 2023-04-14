@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
         private const int ImposterFramesInputSlotId = 7;
         private const int ImposterOffsetInputSlotId = 8;
         private const int ImposterSizeInputSlotId = 9;
+        private const int ImposterHemiCheckInputSlotId = 10;
 
         public const string kUV0OutputSlotName = "UV0";
         public const string kUV1OutputSlotName = "UV1";
@@ -32,6 +33,7 @@ namespace UnityEditor.ShaderGraph
         public const string kImposterFramesInputSlotName = "Imposter Frames";
         public const string kImposterOffsetInputSlotName = "Imposter Offset";
         public const string kImposterSizeInputSlotName = "Imposter Size";
+        public const string kImposterHemiCheckInputSlotName = "Hemi Sphere";
 
 
         public ImposterUVNode()
@@ -55,8 +57,9 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(ImposterFramesInputSlotId, kImposterFramesInputSlotName, kImposterFramesInputSlotName, SlotType.Input, 0));
             AddSlot(new Vector1MaterialSlot(ImposterOffsetInputSlotId, kImposterOffsetInputSlotName, kImposterOffsetInputSlotName, SlotType.Input, 0));
             AddSlot(new Vector1MaterialSlot(ImposterSizeInputSlotId, kImposterSizeInputSlotName, kImposterSizeInputSlotName, SlotType.Input, 0));
+            AddSlot(new BooleanMaterialSlot(ImposterHemiCheckInputSlotId, kImposterHemiCheckInputSlotName, kImposterHemiCheckInputSlotName, SlotType.Input, false));
 
-            RemoveSlotsNameNotMatching(new[] { ImposterPosOutputSlotId, UV0OutputSlotId, UV1OutputSlotId, UV2OutputSlotId, UVGridOutputSlotId, PositionInputSlotId, UVInputSlotId, ImposterFramesInputSlotId, ImposterOffsetInputSlotId, ImposterSizeInputSlotId });
+            RemoveSlotsNameNotMatching(new[] { ImposterHemiCheckInputSlotId, ImposterPosOutputSlotId, UV0OutputSlotId, UV1OutputSlotId, UV2OutputSlotId, UVGridOutputSlotId, PositionInputSlotId, UVInputSlotId, ImposterFramesInputSlotId, ImposterOffsetInputSlotId, ImposterSizeInputSlotId });
         }
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
@@ -75,6 +78,7 @@ namespace UnityEditor.ShaderGraph
             var imposterFrame = GetSlotValue(ImposterFramesInputSlotId, generationMode);
             var imposterOffset = GetSlotValue(ImposterOffsetInputSlotId, generationMode);
             var imposterSize = GetSlotValue(ImposterSizeInputSlotId, generationMode);
+            var hemiCheck = GetSlotValue(ImposterHemiCheckInputSlotId, generationMode);
 
             var result = @$"
 $precision4 {UV0};
@@ -86,7 +90,7 @@ $precision4 {outUVGrid};
 
 
             //TODO: change it to call ImposterUV_Parallax
-            result += $@"ImposterUV({inPos}, {inUV}, {imposterFrame}, {imposterOffset}, {imposterSize},
+            result += $@"ImposterUV({inPos}, {inUV}, {imposterFrame}, {imposterOffset}, {imposterSize}, {hemiCheck},
                         {outPos}, {outUVGrid}, {UV0}, {UV1}, {UV2});";
 
             sb.AppendLine(result);
