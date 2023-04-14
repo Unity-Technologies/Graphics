@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering
         const int kMinCommandsPerJob = 512;
         const int kRayDirectionsPerPosition = 3 * 3 * 3 - 1;
 
-        static List<MeshCollider> ms_AddedOccluders;
+        static List<MeshCollider> s_AddedOccluders;
         static List<Collider> s_ExcludedColliders;
         static List<Rigidbody> s_ExcludedRigidBodies;
 
@@ -58,8 +58,8 @@ namespace UnityEngine.Rendering
                 // We need to restore even if we are going to modify again because removing colliders from a volume component might lead to changes
                 // in rendering while baking is in process and this is undesirable. If we re-enable now the enabling/disabling all happen in a single frame.
                 RestorePhysicsComponentsAfterBaking();
-                // We do not cleanup occluders here as it is done after the validity masks are processed.
-                //CleanupOccluders();
+                // We cleanup occluders here in case bake is cancelled by the user. We have to add them again later when the validity masks are processed.
+                CleanupOccluders();
             }
         }
 
@@ -73,11 +73,8 @@ namespace UnityEngine.Rendering
             var colliderObjects = Object.FindObjectsByType<Collider>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
             foreach (var collider in colliderObjects)
             {
-                if (collider.enabled && !collider.TryGetComponent<MeshRenderer>(out var _))
-                {
-                    collider.enabled = false;
+                if (collider.enabled && (!GIContributors.ContributesGI(collider.gameObject) || !collider.TryGetComponent<MeshRenderer>(out var _)))
                     s_ExcludedColliders.Add(collider);
-                }
             }
 
             // Because we need to trigger physics update to update the physics search tree when adding new occluders
@@ -87,10 +84,7 @@ namespace UnityEngine.Rendering
             foreach (var rigidBody in rigidbodies)
             {
                 if (!rigidBody.isKinematic)
-                {
-                    rigidBody.isKinematic = true;
                     s_ExcludedRigidBodies.Add(rigidBody);
-                }
             }
 
         }
@@ -115,7 +109,7 @@ namespace UnityEngine.Rendering
 
         static void AddOccluders()
         {
-            ms_AddedOccluders = new List<MeshCollider>();
+            s_AddedOccluders = new List<MeshCollider>();
 
             for (int sceneIndex = 0; sceneIndex < SceneManagement.SceneManager.sceneCount; ++sceneIndex)
             {
@@ -129,12 +123,12 @@ namespace UnityEngine.Rendering
                     MeshRenderer[] renderComponents = gameObject.GetComponentsInChildren<MeshRenderer>();
                     foreach (MeshRenderer mr in renderComponents)
                     {
-                        if ((GameObjectUtility.GetStaticEditorFlags(mr.gameObject) & StaticEditorFlags.ContributeGI) != 0 && !mr.gameObject.TryGetComponent<MeshCollider>(out _))
+                        if (GIContributors.ContributesGI(mr.gameObject) && !mr.gameObject.TryGetComponent<MeshCollider>(out _))
                         {
                             var meshCollider = mr.gameObject.AddComponent<MeshCollider>();
                             meshCollider.hideFlags |= HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
 
-                            ms_AddedOccluders.Add(meshCollider);
+                            s_AddedOccluders.Add(meshCollider);
                         }
                     }
                 }
@@ -155,7 +149,7 @@ namespace UnityEngine.Rendering
 
         private static void CleanupOccluders()
         {
-            ms_AddedOccluders.ForEach(Object.DestroyImmediate);
+            s_AddedOccluders?.ForEach(Object.DestroyImmediate);
         }
 
         struct TouchupsPerCell
