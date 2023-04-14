@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Static version for testability
-        public static RedirectNodeData Create(GraphData graph, ConcreteSlotValueType edgeType, Vector2 absolutePosition, SlotReference inputRef, SlotReference outputRef, GroupData group)
+        public static RedirectNodeData Create(GraphData graph, SlotValueType edgeType, Vector2 absolutePosition, SlotReference inputRef, SlotReference outputRef, GroupData group)
         {
             var nodeData = new RedirectNodeData();
             nodeData.AddSlots(edgeType);
@@ -38,68 +38,80 @@ namespace UnityEditor.ShaderGraph
             return nodeData;
         }
 
-        void AddSlots(ConcreteSlotValueType edgeType)
+        void AddSlots(SlotValueType edgeType)
         {
             // Valuetype gets the type should be the type for input and output
             switch (edgeType)
             {
-                case ConcreteSlotValueType.Boolean:
+                case SlotValueType.Boolean:
                     AddSlot(new BooleanMaterialSlot(kInputSlotID, "", "", SlotType.Input, false));
                     AddSlot(new BooleanMaterialSlot(kOutputSlotID, "", "", SlotType.Output, false));
                     break;
-                case ConcreteSlotValueType.Vector1:
+                case SlotValueType.Vector1:
                     AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
                     break;
-                case ConcreteSlotValueType.Vector2:
+                case SlotValueType.Vector2:
                     AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
                     break;
-                case ConcreteSlotValueType.Vector3:
+                case SlotValueType.Vector3:
                     AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
                     break;
-                case ConcreteSlotValueType.Vector4:
+                case SlotValueType.Vector4:
                     AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
                     break;
-                case ConcreteSlotValueType.Matrix2:
+                case SlotValueType.Matrix2:
                     AddSlot(new DynamicMatrixMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new DynamicMatrixMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
-                case ConcreteSlotValueType.Matrix3:
+                case SlotValueType.Matrix3:
                     AddSlot(new DynamicMatrixMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new DynamicMatrixMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
-                case ConcreteSlotValueType.Matrix4:
+                case SlotValueType.Matrix4:
                     AddSlot(new DynamicMatrixMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new DynamicMatrixMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
-                case ConcreteSlotValueType.Texture2D:
+                case SlotValueType.Texture2D:
                     AddSlot(new Texture2DMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new Texture2DMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
-                case ConcreteSlotValueType.Texture2DArray:
+                case SlotValueType.Texture2DArray:
                     AddSlot(new Texture2DArrayMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new Texture2DArrayMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
-                case ConcreteSlotValueType.Texture3D:
+                case SlotValueType.Texture3D:
                     AddSlot(new Texture3DMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new Texture3DMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
-                case ConcreteSlotValueType.Cubemap:
+                case SlotValueType.Cubemap:
                     AddSlot(new CubemapMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new CubemapMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
-                case ConcreteSlotValueType.SamplerState:
+                case SlotValueType.SamplerState:
                     AddSlot(new SamplerStateMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new SamplerStateMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
-                case ConcreteSlotValueType.Gradient:
+                case SlotValueType.Gradient:
                     AddSlot(new GradientMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new GradientMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;
-                case ConcreteSlotValueType.VirtualTexture:
+                case SlotValueType.Dynamic:
+                    AddSlot(new DynamicValueMaterialSlot(kInputSlotID, "", "", SlotType.Input, Matrix4x4.zero));
+                    AddSlot(new DynamicValueMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Matrix4x4.zero));
+                    break;
+                case SlotValueType.DynamicMatrix:
+                    AddSlot(new DynamicMatrixMaterialSlot(kInputSlotID, "", "", SlotType.Input));
+                    AddSlot(new DynamicMatrixMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
+                    break;
+                case SlotValueType.DynamicVector:
+                    AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
+                    AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
+                    break;
+                case SlotValueType.VirtualTexture:
                     AddSlot(new VirtualTextureMaterialSlot(kInputSlotID, "", "", SlotType.Input));
                     AddSlot(new VirtualTextureMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
                     break;

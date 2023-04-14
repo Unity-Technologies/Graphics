@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
         ColorspaceConversion m_Conversion = new ColorspaceConversion(Colorspace.RGB, Colorspace.RGB);
 
         [EnumConversionControl]
-        internal ColorspaceConversion conversion
+        ColorspaceConversion conversion
         {
             get { return m_Conversion; }
             set

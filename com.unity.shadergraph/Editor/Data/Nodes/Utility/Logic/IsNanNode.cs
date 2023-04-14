@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    Out = IsNaN(In) ? 1 : 0;
+    Out = isnan(In) ? 1 : 0;
 }
 ";
         }

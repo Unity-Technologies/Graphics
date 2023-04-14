@@ -30,7 +30,6 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireDepthTexture
         , IMayRequireVertexSkinning
         , IMayRequireVertexID
-        , IDisposable
     {
         [Serializable]
         public class MinimalSubGraphNode : IHasDependencies
@@ -897,12 +896,6 @@ namespace UnityEditor.ShaderGraph
                 m_Dropdowns.Add(referenceName);
                 m_DropdownSelectedEntries.Add(value);
             }
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
-            m_SubGraph = null;
         }
     }
 }

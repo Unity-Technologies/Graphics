@@ -439,9 +439,6 @@ namespace UnityEditor.ShaderGraph
             if (string.IsNullOrEmpty(result))
                 return string.Empty;
 
-            // stomp any newline differences that might try to sneak in via this path
-            result = result.Replace("\r\n", "\n");
-
             using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
                 GetSlots(tempSlots);

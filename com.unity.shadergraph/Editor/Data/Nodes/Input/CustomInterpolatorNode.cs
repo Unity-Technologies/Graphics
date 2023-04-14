@@ -139,8 +139,15 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotid)
         {
-            var slotRef = GetSlotReference(0);
-            return GetOutputForSlot(slotRef, slotRef.slot.concreteValueType, GenerationMode.Preview);
+            // Awkward case where current preview generation code does not use the Output for the all/isfinite preview for self.
+            // GetOutputForSlot does _not_ make use of GetVariableNameForSlot in any way, so this is just to prevent disrupting
+            // any existing expected behavior in the preview.
+            if (CustomInterpolatorUtils.generatorNodeOnly)
+            {
+                var slotRef = GetSlotReference(0);
+                return GetOutputForSlot(slotRef, slotRef.slot.concreteValueType, GenerationMode.Preview);
+            }
+            return "float4(1,0,1,1)";
         }
 
         protected internal override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)

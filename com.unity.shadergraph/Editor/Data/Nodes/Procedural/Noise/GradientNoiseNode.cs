@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph
                 s.AppendLine($"void Unity_GradientNoise_{hashTypeString}_$precision ($precision2 UV, $precision3 Scale, out $precision Out)");
                 using (s.BlockScope())
                 {
-                    s.AppendLine("$precision2 p = UV * Scale.xy;");
+                    s.AppendLine("$precision2 p = UV * Scale;");
                     s.AppendLine("$precision2 ip = floor(p);");
                     s.AppendLine("$precision2 fp = frac(p);");
                     s.AppendLine($"$precision d00 = dot(Unity_GradientNoise_{hashTypeString}_Dir_$precision(ip), fp);");

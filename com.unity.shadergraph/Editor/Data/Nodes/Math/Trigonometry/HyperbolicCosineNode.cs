@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    Out = cosh(In);
+    Out = sinh(In);
 }
 ";
         }
