@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
         public const string kImposterFramesName = "Imposter Frames";
         public const string kSlotTextureName = "Texture";
         public const string kParallaxCheckName = "Parallax";
-        public const string kImposterBorderClampName = "Imposter Border Clamp";
+        public const string kImposterBorderClampName = "Imposter Clip";
         public const string kUVGridName = "UVGrid";
 
 

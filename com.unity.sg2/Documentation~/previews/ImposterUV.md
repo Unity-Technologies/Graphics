@@ -2,15 +2,15 @@
 Calculates the billboard positon and the virtual UVs for sampling.
 
 ## Inputs
-**InPosition** - The postiont in Object space.
+**InPosition** - The postion in Object space.
 **UV** - The UV coordinates of the mesh.
 **Frames** - The amount of the imposter frames
-**Offset** - The offset value from the origin.
+**Offset** - The offset value from the pivot.
 **Size** - The size of the imposter.
-**HemiSphere** - If it's true, calculate imposter grid and UVs base on hemisphere type.
+**HemiSphere** - If it's true, calculates the imposter grid and UVs base on hemisphere type.
 
 ## Output
-**OutPosition** - The output billboard position..
+**OutPosition** - The output billboard position.
 **UV0** - The virtual UV for the base frame.
 **UV1** - The virtual UV for the second frame.
 **UV2** - The virtual UV for the third frame.

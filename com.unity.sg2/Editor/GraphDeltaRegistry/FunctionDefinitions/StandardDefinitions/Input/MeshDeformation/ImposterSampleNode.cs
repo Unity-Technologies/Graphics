@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     functions: new FunctionDescriptor[] {
                      new(
                     "ThreeFrames",
-    @"ImposterSample(Parallax, Frames, Texture.tex, Texture.texelSize, BorderClamp, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);",
+    @"ImposterSample(Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);",
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("UV1", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("UV2", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
-                    new ParameterDescriptor("BorderClamp", TYPE.Vec3, Usage.In),
+                    new ParameterDescriptor("Frames", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("Clip", TYPE.Float, Usage.In),
                     new ParameterDescriptor("Parallax", TYPE.Bool, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out)
                 },
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
                   ),
                      new(
                     "OneFrame",
-    @"ImposterSample_oneFrame(Parallax, Frames, Texture.tex, Texture.texelSize, BorderClamp, Grid, UV0, Sampler.samplerstate, RGBA)",
+    @"ImposterSample_oneFrame(Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, Sampler.samplerstate, RGBA)",
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("UV0", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Frames", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("BorderClamp", TYPE.Vec3, Usage.In),
+                    new ParameterDescriptor("Clip", TYPE.Float, Usage.In),
                     new ParameterDescriptor("Parallax", TYPE.Bool, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out)
                 },
@@ -100,13 +100,12 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "The amount of the imposter frames"
                 ),
                 new ParameterUIDescriptor(
-                    name: "BorderClamp",
-                    displayName:"Border Clamp",
-                    tooltip: "The amount of clamping for a single frame"
+                    name: "Clip",
+                    tooltip: "The amount of clipping for a single frame"
                 ),
                 new ParameterUIDescriptor(
                     name: "Parallax",
-                    tooltip: "If Texture is a normal map, add parallax shif if the value is true"
+                    tooltip: "Adds parallax effect the port value is true"
                 ),
                 new ParameterUIDescriptor(
                     name: "RGBA",

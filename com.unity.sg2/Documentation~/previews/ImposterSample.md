@@ -6,10 +6,10 @@ Samples from the three virtual UVs and blends them base on the camera intersecti
 **UV0** - The virtual UV for the base frame.
 **UV1** - The virtual UV for the second frame.
 **UV2** - The virtual UV for the third frame.
-**Grid** - The current UV grid using to find the sample frames.
+**Grid** - The current UV grid, which is used to find the corresponding sample frames.
 **Frames** - The amount of the imposter frames
-**Border Clamp** - The amount of clamping for a single frame.
-**Parallax** - If Texture is a normal map, add parallax shif if the value is true.
+**Clip** - The amount of clipping for a single frame.
+**Parallax** - Adds parallax shif if the port value is true, only applicable when sampling a normal map.
 
 ## Output
 **RGBA** - A vector4 from the sampled texture.
