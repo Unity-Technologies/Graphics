@@ -148,18 +148,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 // TODO RENDERGRAPH: See https://jira.unity3d.com/projects/URP/issues/URP-1737
                 // This branch of the if statement must be removed for render graph and the new command list with a novel way of using Blitter with fill mode
-                else if (cameraData.isSceneViewCamera)
+                else if (GL.wireframe && cameraData.isSceneViewCamera)
                 {
-                    cmd.SetGlobalTexture("_BlitTexture", m_Source);
                     // This set render target is necessary so we change the LOAD state to DontCare.
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    Vector2 viewportScale = m_Source.useScaling ? new Vector2(m_Source.rtHandleProperties.rtHandleScale.x, m_Source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Vector4 scaleBias = new Vector4(viewportScale.x, viewportScale.y, 0, 0);
-                    cmd.SetGlobalVector("_BlitScaleBias", scaleBias);
-                    var shaderPass = m_Source.rt?.filterMode == FilterMode.Bilinear ? k_FinalBlitBilinearSamplerShaderPass : k_FinalBlitPointSamplerShaderPass;
-                    cmd.Blit(m_Source.nameID, m_CameraTargetHandle.nameID, m_PassData.blitMaterial, shaderPass);
+                    cmd.Blit(m_Source.nameID, m_CameraTargetHandle.nameID);
                 }
                 else
                 {
