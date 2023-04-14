@@ -1,9 +1,9 @@
 {
     "name": "com.unity.testing.graphics-performance",
     "displayName":"Performance Graphics Tests Framework",
-    "version": "12.1.7",
-    "unity": "2021.2",
-    "unityRelease": "0a1",
+    "version": "1.0.0",
+    "unity": "2019.3",
+    "unityRelease": "0b4",
     "description": "Provides performance framework helpers for writing tests for graphics code, such as test scene asset description, performance performance report and shader static analysis.",
     "keywords": ["qa", "test", "testing", "tests", "graphics", "performance"],
     "dependencies": {
