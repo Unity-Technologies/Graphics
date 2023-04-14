@@ -4,13 +4,11 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 
 TEXTURE2D_X(_BlitTexture);
 TEXTURECUBE(_BlitCubeTexture);
-SamplerState sampler_PointClamp;
-SamplerState sampler_LinearClamp;
-SamplerState sampler_PointRepeat;
-SamplerState sampler_LinearRepeat;
+
 uniform float4 _BlitScaleBias;
 uniform float4 _BlitScaleBiasRt;
 uniform float _BlitMipLevel;
