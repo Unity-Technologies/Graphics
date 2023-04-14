@@ -312,9 +312,7 @@ namespace UnityEngine.Rendering
             foreach (var sceneData in sceneDataList)
             {
                 if (sceneData.asset == null)
-                {
                     return false;
-                }
             }
 
             return true;
@@ -1750,6 +1748,10 @@ namespace UnityEngine.Rendering
                     CleanupOccluders();
                 }
             }
+
+            s_ExcludedColliders = null;
+            s_ExcludedRigidBodies = null;
+            s_AddedOccluders = null;
 
             // We need to reset that view
             ProbeReferenceVolume.instance.ResetDebugViewToMaxSubdiv();
