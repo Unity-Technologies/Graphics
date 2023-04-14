@@ -159,6 +159,7 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, out PositionInputs
         #if URP_USE_METALLIC_MAP
             metallicMapSample = SampleTexture(VFX_SAMPLER(metallicMap), uvData);
             surfaceData.metallic *= metallicMapSample.r;
+            maskMapBlend *= metallicMapSample.b;
         #endif
 
         #if URP_USE_OCCLUSION_MAP
