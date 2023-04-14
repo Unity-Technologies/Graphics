@@ -436,16 +436,19 @@
         }
 
         // clip out neighboring frames 
-        float2 gridSize = 1.0 / imposterFrames.xx;
-        gridSize *= mapTexelSize.zw;
-        gridSize *= mapTexelSize.xy;
-        float2 border = mapTexelSize.xy * imposterBorderClamp;
+        //float2 gridSize = 1.0 / imposterFrames.xx;
+        //gridSize *= mapTexelSize.zw;
+        //gridSize *= mapTexelSize.xy;
+        //float2 border = mapTexelSize.xy * imposterBorderClamp;
 
-        vp0uv = clamp(vp0uv, frame0 - border, frame0 + gridSize + border);
-        vp1uv = clamp(vp1uv, frame1 - border, frame1 + gridSize + border);
-        vp2uv = clamp(vp2uv, frame2 - border, frame2 + gridSize + border);
+        //vp0uv = clamp(vp0uv, frame0 - border, frame0 + gridSize + border);
+        //vp1uv = clamp(vp1uv, frame1 - border, frame1 + gridSize + border);
+        //vp2uv = clamp(vp2uv, frame2 - border, frame2 + gridSize + border);
 
-        outColor = ImposterBlendWeights(Texture, ss, vp0uv, vp1uv, vp2uv, weights.xyz, float4(ddx(inUV), ddy(inUV)));
+        float4 blendedColor = ImposterBlendWeights(Texture, ss, vp0uv, vp1uv, vp2uv, weights.xyz, float4(ddx(inUV), ddy(inUV)));
+        outColor.a = blendedColor.a - imposterBorderClamp + 1;
+        clip(outColor.a);
+        outColor.rgb = blendedColor.rgb;
     }
 
     void ImposterSample_oneFrame(bool parallaxCheck, in float imposterFrames, in texture2D Texture, in float4 mapTexelSize,
