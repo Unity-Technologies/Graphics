@@ -290,12 +290,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseDownEvent(MouseDownEvent e)
         {
-            // Handles double-click with left mouse, which should trigger a rename action on this category
-            if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
-            {
-                OpenTextEditor();
-                e.StopPropagation();
-            }
+            // See this issue: https://jira.unity3d.com/browse/SGB-535
         }
 
         internal void OpenTextEditor()

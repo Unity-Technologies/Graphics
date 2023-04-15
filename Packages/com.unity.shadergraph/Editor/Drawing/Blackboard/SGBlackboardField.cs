@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Add(mainContainer);
 
-            RegisterCallback<MouseDownEvent>(OnMouseDownEvent, TrickleDown.TrickleDown);
+            RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
 
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable;
 
@@ -256,11 +256,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseDownEvent(MouseDownEvent e)
         {
-            if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
-            {
-                OpenTextEditor();
-                e.StopPropagation();
-            }
+            // See this issue: https://jira.unity3d.com/browse/SGB-535
+            e.StopPropagation();
         }
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
