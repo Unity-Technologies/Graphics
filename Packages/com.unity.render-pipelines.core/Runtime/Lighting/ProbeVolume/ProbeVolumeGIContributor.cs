@@ -360,6 +360,54 @@ namespace UnityEngine.Rendering
             Profiling.Profiler.EndSample();
             return contributors;
         }
+
+        public GIContributors FilterLayerMaskOnly(LayerMask layerMask)
+        {
+            Profiling.Profiler.BeginSample("Filter GIContributors LayerMask");
+
+            var contributors = new GIContributors()
+            {
+                renderers = new(),
+                terrains = new(),
+            };
+
+            foreach (var renderer in renderers)
+            {
+                int rendererLayerMask = 1 << renderer.component.gameObject.layer;
+                if ((rendererLayerMask & layerMask) != 0)
+                    contributors.renderers.Add(renderer);
+            }
+
+            foreach (var terrain in terrains)
+            {
+                int terrainLayerMask = 1 << terrain.component.gameObject.layer;
+                if ((terrainLayerMask & layerMask) != 0)
+                {
+                    // Filter out trees
+                    var filteredPrototypes = new List<TerrainContributor.TreePrototype>();
+                    foreach (var treeProto in terrain.treePrototypes)
+                    {
+                        int treeProtoLayerMask = 1 << treeProto.component.gameObject.layer;
+
+                        if ((treeProtoLayerMask & layerMask) != 0)
+                            filteredPrototypes.Add(treeProto);
+                    }
+
+                    var terrainContrib = new TerrainContributor()
+                    {
+                        component = terrain.component,
+                        boundsWithTrees = terrain.boundsWithTrees,
+                        boundsTerrainOnly = terrain.boundsTerrainOnly,
+                        treePrototypes = filteredPrototypes.ToArray(),
+                    };
+
+                    contributors.terrains.Add(terrainContrib);
+                }
+            }
+
+            Profiling.Profiler.EndSample();
+            return contributors;
+        }
 #endif
     }
 }

@@ -304,6 +304,30 @@ namespace UnityEngine.Rendering
             List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes,
             HashSet<Brick> brickSet)
         {
+            var firstLayerMask = probeVolumes.First().component.objectLayerMask;
+            if (probeVolumes.Count > 1 && probeVolumes.Any(p => p.component.objectLayerMask != firstLayerMask))
+            {
+                // Pack list of probe volumes per layer mask so we can process multiple of volumes in a single voxelization step
+                var probeVolumesPerLayers = new Dictionary<LayerMask, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)>>();
+
+                foreach (var probeVolume in probeVolumes)
+                {
+                    if (!probeVolumesPerLayers.TryGetValue(probeVolume.component.objectLayerMask, out var probeVolumeList))
+                        probeVolumeList = probeVolumesPerLayers[probeVolume.component.objectLayerMask] = new();
+                    probeVolumeList.Add(probeVolume);
+                }
+
+                foreach (var probeVolumesPerLayer in probeVolumesPerLayers.Values)
+                {
+                    // re-filter contributors locally for these layers:
+                    var contributorsPerLayer = contributors.FilterLayerMaskOnly(probeVolumesPerLayer.First().component.objectLayerMask);
+                    // Subdivide the cell using  a list of probe volumes containing the same layer mask
+                    SubdivideSubCell(cellAABB, subdivisionCtx, ctx, contributorsPerLayer, probeVolumesPerLayer, brickSet);
+                }
+
+                return;
+            }
+            
             float minBrickSize = subdivisionCtx.profile.minBrickSize;
 
             var cmd = CommandBufferPool.Get($"Subdivide (Sub)Cell {cellAABB.center}");
@@ -371,7 +395,6 @@ namespace UnityEngine.Rendering
             Graphics.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
-
         }
 
         static bool RasterizeGeometry(CommandBuffer cmd, Bounds cellAABB, GPUSubdivisionContext ctx, GIContributors contributors)

@@ -69,10 +69,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_IRIDESCENCE", materialId == MaterialId.LitIridescence);
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == MaterialId.LitSpecular);
             }
-            else if (material.HasProperty(kUseSplitLighting))
-                useSplitLighting = material.GetInt(kUseSplitLighting) != 0;
+            else
+            {
+                int index = material.shader.FindPropertyIndex(kUseSplitLighting);
+                if (index != -1)
+                    useSplitLighting = material.shader.GetPropertyDefaultFloatValue(index) != 0;
+
+            }
+
             if (material.HasProperty(kClearCoatEnabled))
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", material.GetFloat(kClearCoatEnabled) > 0.0);
+
             BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting);
         }
 
