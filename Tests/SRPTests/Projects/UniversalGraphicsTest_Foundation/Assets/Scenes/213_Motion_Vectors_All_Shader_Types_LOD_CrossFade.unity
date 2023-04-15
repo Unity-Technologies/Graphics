@@ -17694,6 +17694,11 @@ PrefabInstance:
       propertyPath: WaitFrames
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 5925587397941101150, guid: a477888deb65a194793f87af3323de08,
+        type: 3}
+      propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
+      value: 0.00017
+      objectReference: {fileID: 0}
     - target: {fileID: 6456975910273469994, guid: a477888deb65a194793f87af3323de08,
         type: 3}
       propertyPath: m_Name
