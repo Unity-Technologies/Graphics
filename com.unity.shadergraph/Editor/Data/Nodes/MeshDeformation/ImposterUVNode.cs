@@ -54,9 +54,9 @@ namespace UnityEditor.ShaderGraph
 
             AddSlot(new Vector3MaterialSlot(PositionInputSlotId, kPositionInputSlotName, kPositionInputSlotName, SlotType.Input, Vector3.zero));
             AddSlot(new Vector4MaterialSlot(UVInputSlotId, kUVInputSlotName, kUVInputSlotName, SlotType.Input, Vector4.zero));
-            AddSlot(new Vector1MaterialSlot(ImposterFramesInputSlotId, kImposterFramesInputSlotName, kImposterFramesInputSlotName, SlotType.Input, 0));
-            AddSlot(new Vector1MaterialSlot(ImposterOffsetInputSlotId, kImposterOffsetInputSlotName, kImposterOffsetInputSlotName, SlotType.Input, 0));
-            AddSlot(new Vector1MaterialSlot(ImposterSizeInputSlotId, kImposterSizeInputSlotName, kImposterSizeInputSlotName, SlotType.Input, 0));
+            AddSlot(new Vector1MaterialSlot(ImposterFramesInputSlotId, kImposterFramesInputSlotName, kImposterFramesInputSlotName, SlotType.Input, 16));
+            AddSlot(new Vector3MaterialSlot(ImposterOffsetInputSlotId, kImposterOffsetInputSlotName, kImposterOffsetInputSlotName, SlotType.Input, Vector3.zero));
+            AddSlot(new Vector1MaterialSlot(ImposterSizeInputSlotId, kImposterSizeInputSlotName, kImposterSizeInputSlotName, SlotType.Input, 1));
             AddSlot(new BooleanMaterialSlot(ImposterHemiCheckInputSlotId, kImposterHemiCheckInputSlotName, kImposterHemiCheckInputSlotName, SlotType.Input, false));
 
             RemoveSlotsNameNotMatching(new[] { ImposterHemiCheckInputSlotId, ImposterPosOutputSlotId, UV0OutputSlotId, UV1OutputSlotId, UV2OutputSlotId, UVGridOutputSlotId, PositionInputSlotId, UVInputSlotId, ImposterFramesInputSlotId, ImposterOffsetInputSlotId, ImposterSizeInputSlotId });

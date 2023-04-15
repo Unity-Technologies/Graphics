@@ -19,9 +19,9 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
                 new ParameterDescriptor("inUV", TYPE.Vec4, Usage.In, REF.UV0),
-                new ParameterDescriptor("Frames", TYPE.Float, Usage.In),
-                new ParameterDescriptor("Offset", TYPE.Float, Usage.In),
-                new ParameterDescriptor("Size", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
+                new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1}),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
                 new ParameterDescriptor("OutPos", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("UV0", TYPE.Vec4, Usage.Out),
@@ -40,9 +40,9 @@ namespace UnityEditor.ShaderGraph.Defs
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
                 new ParameterDescriptor("inUV", TYPE.Vec4, Usage.In, REF.UV0),
-                new ParameterDescriptor("Frames", TYPE.Float, Usage.In),
-                new ParameterDescriptor("Offset", TYPE.Float, Usage.In),
-                new ParameterDescriptor("Size", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
+                new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1f}),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
                 new ParameterDescriptor("OutPos", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("UV0", TYPE.Vec4, Usage.Out),
@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Offest",
-                    tooltip: "The offset value from the origin"
+                    tooltip: "The offset value from the origin vertex positon"
                 ),
                 new ParameterUIDescriptor(
                     name: "Size",

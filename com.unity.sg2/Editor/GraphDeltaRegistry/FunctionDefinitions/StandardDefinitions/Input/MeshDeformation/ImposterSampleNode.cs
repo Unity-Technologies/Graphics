@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("UV1", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("UV2", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("Frames", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Clip", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
+                    new ParameterDescriptor("Clip", TYPE.Float, Usage.In, new float[] {1f}),
                     new ParameterDescriptor("Parallax", TYPE.Bool, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out)
                 },
@@ -42,8 +42,8 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("UV0", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("Frames", TYPE.Float, Usage.In),
-                    new ParameterDescriptor("Clip", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
+                    new ParameterDescriptor("Clip", TYPE.Float, Usage.In, new float[] {1f}),
                     new ParameterDescriptor("Parallax", TYPE.Bool, Usage.In),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out)
                 },

@@ -78,8 +78,8 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector4MaterialSlot(UV1SlotId, kUV1SlotName, kUV1SlotName, SlotType.Input, Vector4.zero));
             AddSlot(new Vector4MaterialSlot(UV2SlotId, kUV2SlotName, kUV2SlotName, SlotType.Input, Vector4.zero));
             AddSlot(new Vector4MaterialSlot(UVGridSlotId, kUVGridName, kUVGridName, SlotType.Input, Vector4.zero));
-            AddSlot(new Vector1MaterialSlot(ImposterFramesSlotId, kImposterFramesName, kImposterFramesName, SlotType.Input, 0));
-            AddSlot(new Vector1MaterialSlot(ImposterBorderClampSlotId, kImposterBorderClampName, kImposterBorderClampName, SlotType.Input, 0));
+            AddSlot(new Vector1MaterialSlot(ImposterFramesSlotId, kImposterFramesName, kImposterFramesName, SlotType.Input, 16));
+            AddSlot(new Vector1MaterialSlot(ImposterBorderClampSlotId, kImposterBorderClampName, kImposterBorderClampName, SlotType.Input, 1));
             AddSlot(new BooleanMaterialSlot(ParallaxCheckSlotId, kParallaxCheckName, kParallaxCheckName, SlotType.Input, false));
 
 
