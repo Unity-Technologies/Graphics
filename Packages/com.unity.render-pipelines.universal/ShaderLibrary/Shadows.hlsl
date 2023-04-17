@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 #include "Core.hlsl"
+#include "Shadows.deprecated.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 
