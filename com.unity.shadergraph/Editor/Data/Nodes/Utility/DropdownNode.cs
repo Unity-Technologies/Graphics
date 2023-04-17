@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Utility", "Dropdown")]
-    class DropdownNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode
+    class DropdownNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode, IShaderInputObserver
     {
         internal const int k_MinEnumEntries = 2;
 
@@ -30,7 +33,6 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Dropdown = value;
-                m_Dropdown.value.displayNameUpdateTrigger += UpdateNodeDisplayName;
                 UpdateNode();
                 Dirty(ModificationScope.Topological);
             }
@@ -180,6 +182,15 @@ namespace UnityEditor.ShaderGraph
                 owner.AddConcretizationError(objectId, "Dropdown Node has no associated dropdown.");
                 hasError = true;
             }
+        }
+
+        public void OnShaderInputUpdated(ModificationScope modificationScope)
+        {
+            UpdateNode();
+            Dirty(modificationScope);
+
+            if(modificationScope == ModificationScope.Layout)
+                UpdateNodeDisplayName(dropdown.displayName);
         }
     }
 }

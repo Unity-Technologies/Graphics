@@ -15,7 +15,7 @@ using Object = System.Object;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(130, Extension, -902)]
+    [ScriptedImporter(131, Extension, -902)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -177,6 +177,8 @@ Shader ""Hidden/GraphErrorShader2""
             return primaryShader;
         }
 
+        internal static bool subtargetNotFoundError = false;
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var importLog = new AssetImportErrorLog(ctx);
@@ -192,6 +194,11 @@ Shader ""Hidden/GraphErrorShader2""
                 assetGuid = AssetDatabase.AssetPathToGUID(path)
             };
             MultiJson.Deserialize(graph, textGraph);
+            if (subtargetNotFoundError)
+            {
+                Debug.LogError($"{ctx.assetPath}: Import Error: Expected active subtarget not found, defaulting to first available.");
+                subtargetNotFoundError = false;
+            }                
             graph.OnEnable();
             graph.ValidateGraph();
 

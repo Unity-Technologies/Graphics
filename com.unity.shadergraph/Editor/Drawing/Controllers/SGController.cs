@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph
             get { return Enumerable.Empty<SGController>(); }
         }
 
-        List<ISGControlledElement> m_EventHandlers = new List<ISGControlledElement>();
+        protected List<ISGControlledElement> m_EventHandlers = new List<ISGControlledElement>();
     }
 
     abstract class SGController<T> : SGController
@@ -162,7 +162,11 @@ namespace UnityEditor.ShaderGraph
         // Cleanup delegate association before destruction
         public void Cleanup()
         {
+            if (m_DataStore == null)
+                return;
             DataStore.Subscribe -= ModelChanged;
+            m_Model = default;
+            m_DataStore = null;
         }
     }
 
@@ -194,6 +198,10 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual void Destroy() { }
+        public virtual void Dispose()
+        {
+            m_EventHandlers.Clear();
+            m_ViewModel = default;
+        }
     }
 }

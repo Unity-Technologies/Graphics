@@ -13,19 +13,23 @@ using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulat
 
 namespace UnityEditor.ShaderGraph
 {
-    sealed class PropertyNodeView : TokenNode, IShaderNodeView, IInspectable
+    sealed class PropertyNodeView : TokenNode, IShaderNodeView, IInspectable, IShaderInputObserver
     {
         static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
+        public static StyleSheet styleSheet;
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
-        Action m_propertyViewUpdateTrigger;
+        Action m_TriggerInspectorUpdate;
 
         Action m_ResetReferenceNameAction;
 
         public PropertyNodeView(PropertyNode node, EdgeConnectorListener edgeConnectorListener)
             : base(null, ShaderPort.Create(node.GetOutputSlots<MaterialSlot>().First(), edgeConnectorListener))
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNodeView"));
+            if (styleSheet == null)
+                styleSheet = Resources.Load<StyleSheet>("Styles/PropertyNodeView");
+            styleSheets.Add(styleSheet);
+
             this.node = node;
             viewDataKey = node.objectId.ToString();
             userData = node;
@@ -52,9 +56,13 @@ namespace UnityEditor.ShaderGraph
             // add the right click context menu
             IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
             this.AddManipulator(contextMenuManipulator);
+        }
 
-            // Set callback association for display name updates
-            property.displayNameUpdateTrigger += node.UpdateNodeDisplayName;
+        // Updating the text label of the output slot
+        void UpdateDisplayName()
+        {
+            var slot = node.GetSlots<MaterialSlot>().ToList().First();
+            this.Q<Label>("type").text = slot.displayName;
         }
 
         public Node gvNode => this;
@@ -87,9 +95,9 @@ namespace UnityEditor.ShaderGraph
                     inputTypeName = property.GetPropertyTypeString(),
                     requestModelChangeAction = this.RequestModelChange
                 };
-                shaderInputPropertyDrawer.GetViewModel(shaderInputViewModel, node.owner, this.MarkNodesAsDirty);
+                shaderInputPropertyDrawer.GetViewModel(shaderInputViewModel, node.owner, this.OnDisplayNameUpdated);
 
-                this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
+                this.m_TriggerInspectorUpdate = inspectorUpdateDelegate;
                 this.m_ResetReferenceNameAction = shaderInputPropertyDrawer.ResetReferenceName;
             }
         }
@@ -97,17 +105,6 @@ namespace UnityEditor.ShaderGraph
         void RequestModelChange(IGraphDataAction changeAction)
         {
             node.owner?.owner.graphDataStore.Dispatch(changeAction);
-        }
-
-        void ChangeExposedField(bool newValue)
-        {
-            property.generatePropertyBlock = newValue;
-            UpdateIcon();
-        }
-
-        void ChangeDisplayName(string newValue)
-        {
-            property.displayName = newValue;
         }
 
         internal static void AddMainColorMenuOptions(ContextualMenuPopulateEvent evt, ColorShaderProperty colorProp, GraphData graphData, Action inspectorUpdateAction)
@@ -213,85 +210,21 @@ namespace UnityEditor.ShaderGraph
 
             if (property is ColorShaderProperty colorProp)
             {
-                AddMainColorMenuOptions(evt, colorProp, node.owner, m_propertyViewUpdateTrigger);
+                AddMainColorMenuOptions(evt, colorProp, node.owner, m_TriggerInspectorUpdate);
             }
 
             if (property is Texture2DShaderProperty texProp)
             {
-                AddMainTextureMenuOptions(evt, texProp, node.owner, m_propertyViewUpdateTrigger);
+                AddMainTextureMenuOptions(evt, texProp, node.owner, m_TriggerInspectorUpdate);
             }
         }
 
-        void RegisterPropertyChangeUndo(string actionName)
+        void OnDisplayNameUpdated(bool triggerPropertyViewUpdate = false, ModificationScope modificationScope = ModificationScope.Node)
         {
-            var graph = node.owner as GraphData;
-            graph.owner.RegisterCompleteObjectUndo(actionName);
-        }
-
-        void MarkNodesAsDirty(bool triggerPropertyViewUpdate = false, ModificationScope modificationScope = ModificationScope.Node)
-        {
-            DirtyNodes(modificationScope);
             if (triggerPropertyViewUpdate)
-                this.m_propertyViewUpdateTrigger();
-        }
+                m_TriggerInspectorUpdate?.Invoke();
 
-        void ChangePropertyValue(object newValue)
-        {
-            if (property == null)
-                return;
-
-            switch (property)
-            {
-                case BooleanShaderProperty booleanProperty:
-                    booleanProperty.value = ((ToggleData)newValue).isOn;
-                    break;
-                case Vector1ShaderProperty vector1Property:
-                    vector1Property.value = (float)newValue;
-                    break;
-                case Vector2ShaderProperty vector2Property:
-                    vector2Property.value = (Vector2)newValue;
-                    break;
-                case Vector3ShaderProperty vector3Property:
-                    vector3Property.value = (Vector3)newValue;
-                    break;
-                case Vector4ShaderProperty vector4Property:
-                    vector4Property.value = (Vector4)newValue;
-                    break;
-                case ColorShaderProperty colorProperty:
-                    colorProperty.value = (Color)newValue;
-                    break;
-                case Texture2DShaderProperty texture2DProperty:
-                    texture2DProperty.value.texture = (Texture)newValue;
-                    break;
-                case Texture2DArrayShaderProperty texture2DArrayProperty:
-                    texture2DArrayProperty.value.textureArray = (Texture2DArray)newValue;
-                    break;
-                case Texture3DShaderProperty texture3DProperty:
-                    texture3DProperty.value.texture = (Texture3D)newValue;
-                    break;
-                case CubemapShaderProperty cubemapProperty:
-                    cubemapProperty.value.cubemap = (Cubemap)newValue;
-                    break;
-                case Matrix2ShaderProperty matrix2Property:
-                    matrix2Property.value = (Matrix4x4)newValue;
-                    break;
-                case Matrix3ShaderProperty matrix3Property:
-                    matrix3Property.value = (Matrix4x4)newValue;
-                    break;
-                case Matrix4ShaderProperty matrix4Property:
-                    matrix4Property.value = (Matrix4x4)newValue;
-                    break;
-                case SamplerStateShaderProperty samplerStateProperty:
-                    samplerStateProperty.value = (TextureSamplerState)newValue;
-                    break;
-                case GradientShaderProperty gradientProperty:
-                    gradientProperty.value = (Gradient)newValue;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            this.MarkDirtyRepaint();
+            UpdateDisplayName();
         }
 
         void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
@@ -358,9 +291,7 @@ namespace UnityEditor.ShaderGraph
 
             if (scope == ModificationScope.Topological || scope == ModificationScope.Node)
             {
-                // Updating the text label of the output slot
-                var slot = node.GetSlots<MaterialSlot>().ToList().First();
-                this.Q<Label>("type").text = slot.displayName;
+                UpdateDisplayName();
             }
         }
 
@@ -444,6 +375,17 @@ namespace UnityEditor.ShaderGraph
             {
                 propRow.RemoveFromClassList("hovered");
             }
+            styleSheets.Clear();
+            m_TriggerInspectorUpdate = null;
+            m_ResetReferenceNameAction = null;
+            UnregisterCallback<MouseEnterEvent>(OnMouseHover);
+            UnregisterCallback<MouseLeaveEvent>(OnMouseHover);
+        }
+
+        public void OnShaderInputUpdated(ModificationScope modificationScope)
+        {
+            if (modificationScope == ModificationScope.Layout)
+                UpdateDisplayName();
         }
     }
 }

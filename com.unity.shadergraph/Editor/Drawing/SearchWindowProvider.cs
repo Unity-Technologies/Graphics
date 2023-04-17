@@ -11,6 +11,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Searcher;
 using UnityEngine.Profiling;
 using UnityEngine.Pool;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -22,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string slotName;
     }
 
-    class SearchWindowProvider : ScriptableObject
+    class SearchWindowProvider : IDisposable
     {
         internal EditorWindow m_EditorWindow;
         internal GraphData m_Graph;
@@ -36,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public VisualElement target { get; internal set; }
         public bool regenerateEntries { get; set; }
         private const string k_HiddenFolderName = "Hidden";
+        ShaderStageCapability m_ConnectedSlotCapability; // calculated in GenerateNodeEntries
 
         public void Initialize(EditorWindow editorWindow, GraphData graph, GraphView graphView)
         {
@@ -50,13 +52,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Icon.Apply();
         }
 
-        void OnDestroy()
+        public void Dispose()
         {
             if (m_Icon != null)
             {
-                DestroyImmediate(m_Icon);
+                Object.DestroyImmediate(m_Icon);
                 m_Icon = null;
             }
+
+            m_EditorWindow = null;
+            m_Graph = null;
+            m_GraphView = null;
+            connectedPort = null;
+
+            currentNodeEntries?.Clear();
+            currentNodeEntries = null;
         }
 
         List<int> m_Ids;
@@ -69,6 +79,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
 
             bool hideCustomInterpolators = m_Graph.activeTargets.All(at => at.ignoreCustomInterpolators);
+
+            if (connectedPort != null)
+            {
+                var slot = connectedPort.slot;
+
+                // Precalculate slot compatibility to avoid traversing graph for every added entry.
+                m_ConnectedSlotCapability = slot.stageCapability;
+                if (m_ConnectedSlotCapability == ShaderStageCapability.All || slot.owner is SubGraphNode)
+                {
+                    m_ConnectedSlotCapability = NodeUtils.GetEffectiveShaderStageCapability(slot, true)
+                        & NodeUtils.GetEffectiveShaderStageCapability(slot, false);
+                }
+            }
+            else
+            {
+                m_ConnectedSlotCapability = ShaderStageCapability.All;
+            }
 
             if (target is ContextView contextView)
             {
@@ -268,21 +295,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             var connectedSlot = connectedPort.slot;
             m_Slots.Clear();
             node.GetSlots(m_Slots);
-            var hasSingleSlot = m_Slots.Count(s => s.isOutputSlot != connectedSlot.isOutputSlot) == 1;
-            m_Slots.RemoveAll(slot =>
-            {
-                var materialSlot = (MaterialSlot)slot;
-                return !materialSlot.IsCompatibleWith(connectedSlot);
-            });
-
-            m_Slots.RemoveAll(slot =>
-            {
-                var materialSlot = (MaterialSlot)slot;
-                return !materialSlot.IsCompatibleStageWith(connectedSlot);
-            });
 
             foreach (var slot in m_Slots)
             {
+                if (!slot.IsCompatibleWith(connectedSlot))
+                {
+                    continue;
+                }
+
+                if (!slot.IsCompatibleStageWith(m_ConnectedSlotCapability))
+                {
+                    continue;
+                }
+
                 //var entryTitle = new string[title.Length];
                 //title.CopyTo(entryTitle, 0);
                 //entryTitle[entryTitle.Length - 1] += ": " + slot.displayName;

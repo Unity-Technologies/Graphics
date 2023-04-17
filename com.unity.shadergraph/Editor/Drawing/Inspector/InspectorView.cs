@@ -32,7 +32,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public override string layoutKey => "UnityEditor.ShaderGraph.InspectorWindow";
 
         TabbedView m_GraphInspectorView;
-        TabbedView m_NodeSettingsTab;
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
 
@@ -223,6 +222,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void TriggerInspectorUpdate()
         {
             Update();
+        }
+
+        public override void Dispose()
+        {
+            m_AllActivePropertyDrawers.Clear();
+            m_PropertyDrawerList.Clear();
+            m_graphSettingsPropertyDrawer = null;
+            m_GraphInspectorView.Q<TabButton>("GraphSettingsButton").OnSelect -= GraphSettingsTabClicked;
+            m_GraphInspectorView.Q<TabButton>("NodeSettingsButton").OnSelect -= NodeSettingsTabClicked;
+            m_GraphInspectorView = null;
+            m_GraphSettingsContainer = null;
+            m_NodeSettingsContainer = null;
+            m_MaxItemsMessageLabel = null;
         }
 
         // This should be implemented by any inspector class that wants to define its own GraphSettings
