@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input", "Mesh Deformation", "ImposterSample")]
-    class ImposterSampleNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTransform, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IGeneratesFunction
+    class ImposterSampleNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTransform, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IGeneratesFunction, IMayRequireViewDirection
     {
         private const int RGBAOutputSlotId = 0;
 
@@ -26,6 +26,8 @@ namespace UnityEditor.ShaderGraph
         private const int ParallaxCheckSlotId = 7;
         private const int ImposterBorderClampSlotId = 8;
         private const int UVGridSlotId = 9;
+        private const int ViewDirSlotId = 10;
+        private const int HeightMapChannelSlotId = 11;
 
         public const string kRGBAOutputSlotName = "RGBA";
 
@@ -38,6 +40,8 @@ namespace UnityEditor.ShaderGraph
         public const string kParallaxCheckName = "Parallax";
         public const string kImposterBorderClampName = "Imposter Clip";
         public const string kUVGridName = "UVGrid";
+        public const string kViewDirName = "View Dir";
+        public const string kHeightMapChannelName = "Height Map Channel";
 
 
         public ImposterSampleNode()
@@ -80,10 +84,12 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector4MaterialSlot(UVGridSlotId, kUVGridName, kUVGridName, SlotType.Input, Vector4.zero));
             AddSlot(new Vector1MaterialSlot(ImposterFramesSlotId, kImposterFramesName, kImposterFramesName, SlotType.Input, 16));
             AddSlot(new Vector1MaterialSlot(ImposterBorderClampSlotId, kImposterBorderClampName, kImposterBorderClampName, SlotType.Input, 1));
-            AddSlot(new BooleanMaterialSlot(ParallaxCheckSlotId, kParallaxCheckName, kParallaxCheckName, SlotType.Input, false));
+            AddSlot(new Vector1MaterialSlot(ParallaxCheckSlotId, kParallaxCheckName, kParallaxCheckName, SlotType.Input, 0));
+            AddSlot(new Vector1MaterialSlot(HeightMapChannelSlotId, kHeightMapChannelName, kHeightMapChannelName, SlotType.Input, 3));
+            AddSlot(new ViewDirectionMaterialSlot(ViewDirSlotId, kViewDirName, kViewDirName, CoordinateSpace.Tangent));
 
 
-            RemoveSlotsNameNotMatching(new[] { ParallaxCheckSlotId, RGBAOutputSlotId, TextureSlotId, SamplerSlotId, UV0SlotId, UV1SlotId, UV2SlotId, ImposterFramesSlotId, ImposterBorderClampSlotId, UVGridSlotId });
+            RemoveSlotsNameNotMatching(new[] { HeightMapChannelSlotId, ViewDirSlotId, ParallaxCheckSlotId, RGBAOutputSlotId, TextureSlotId, SamplerSlotId, UV0SlotId, UV1SlotId, UV2SlotId, ImposterFramesSlotId, ImposterBorderClampSlotId, UVGridSlotId });
         }
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
@@ -100,17 +106,19 @@ namespace UnityEditor.ShaderGraph
             var ss = GetSlotValue(SamplerSlotId, generationMode);
             var BorderClamp = GetSlotValue(ImposterBorderClampSlotId, generationMode);
             var UVGrid = GetSlotValue(UVGridSlotId, generationMode);
-            var checkValue = GetSlotValue(ParallaxCheckSlotId, generationMode);
+            var parallax = GetSlotValue(ParallaxCheckSlotId, generationMode);
+            var viewDir = GetSlotValue(ViewDirSlotId, generationMode);
+            var channel = GetSlotValue(HeightMapChannelSlotId, generationMode);
 
             var result = @$"$precision4 {RGBA};";
             if (m_SampleType == SampleType.ThreeFrame)
             {
-                result += $@"ImposterSample({checkValue}, {ImposterFrames}, {Texture}.tex, {Texture}.texelSize, {BorderClamp},
+                result += $@"ImposterSample({channel},{viewDir}, {parallax}, {ImposterFrames}, {Texture}.tex, {Texture}.texelSize, {BorderClamp},
                                     {UVGrid}, {UV0}, {UV1}, {UV2}, {ss}.samplerstate, {RGBA});";
             }
             else
             {
-                result += $@"ImposterSample_oneFrame({checkValue}, {ImposterFrames}, {Texture}.tex, {Texture}.texelSize, {BorderClamp},
+                result += $@"ImposterSample_oneFrame({channel},{viewDir},{parallax}, {ImposterFrames}, {Texture}.tex, {Texture}.texelSize, {BorderClamp},
                                     {UVGrid}, {UV0}, {ss}.samplerstate, {RGBA});";
             }
 
@@ -131,7 +139,10 @@ namespace UnityEditor.ShaderGraph
             else
                 return NeededCoordinateSpace.None;
         }
-
+        public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return NeededCoordinateSpace.Tangent;
+        }
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             if (stageCapability == ShaderStageCapability.Vertex || stageCapability == ShaderStageCapability.All)

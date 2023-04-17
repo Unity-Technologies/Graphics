@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Defs
             "ImposteUV",
             functions: new FunctionDescriptor[] {
                      new(
-                         "ThreeFrames",
+            "ThreeFrames",
 "  ImposterUV(Pos, inUV, Frames, Offset, Size, HemiSphere, OutPos, Grid, UV0, UV1, UV2);",
             new ParameterDescriptor[]
             {
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     "\"Packages/com.unity.shadergraph/ShaderGraphLibrary/Imposter_2Nodes.hlsl\""
                 }
                 ),new(
-                         "OneFrames",
+            "OneFrame",
 "  ImposterUV_oneFrame(Pos, inUV, Frames, Offset, Size, HemiSphere, OutPos, Grid, UV0);",
             new ParameterDescriptor[]
             {

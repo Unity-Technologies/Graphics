@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     functions: new FunctionDescriptor[] {
                      new(
                     "ThreeFrames",
-    @"ImposterSample(Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);",
+    @"ImposterSample(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);",
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -25,7 +25,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
                     new ParameterDescriptor("Clip", TYPE.Float, Usage.In, new float[] {1f}),
-                    new ParameterDescriptor("Parallax", TYPE.Bool, Usage.In),
+                    new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
+                    new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out)
                 },
                 new string[]
@@ -35,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
                   ),
                      new(
                     "OneFrame",
-    @"ImposterSample_oneFrame(Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, Sampler.samplerstate, RGBA)",
+    @"ImposterSample_oneFrame(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, Sampler.samplerstate, RGBA)",
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -44,7 +46,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
                     new ParameterDescriptor("Clip", TYPE.Float, Usage.In, new float[] {1f}),
-                    new ParameterDescriptor("Parallax", TYPE.Bool, Usage.In),
+                    new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
+                    new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
+                    new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out)
                 },
                 new string[]
@@ -106,6 +110,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Parallax",
                     tooltip: "Adds parallax effect the port value is true"
+                ),
+                new ParameterUIDescriptor(
+                    name: "HeightMapChannel",
+                    displayName:"Heigh Map Channel",
+                    tooltip: "The texture channel to sample from for the parallax effect"
                 ),
                 new ParameterUIDescriptor(
                     name: "RGBA",
