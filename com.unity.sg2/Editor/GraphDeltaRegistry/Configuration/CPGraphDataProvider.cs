@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Configuration
             public List<CPDataDescriptor> CPIO;
         }
 
-        internal static void GatherProviderCPIO(ITargetProvider targetProvider, out List<TemplateDataDescriptor> descriptors)
+        internal static void GatherProviderCPIO(Target targetProvider, out List<TemplateDataDescriptor> descriptors)
         {
             descriptors = new List<TemplateDataDescriptor>();
             Target target = targetProvider as Target;

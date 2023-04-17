@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
             graphModel.DeleteNodes(redirects, false);
         }
 
-        internal static void HandlePasteSerializedData(UndoStateComponent undoState, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState, PasteSerializedDataCommand command)
+        internal static void HandlePasteSerializedData(UndoStateComponent undoState, GraphModelStateComponent graphModelState, SelectionStateComponent selectionState, PasteDataCommand command)
         {
             if (!command.Data.IsEmpty())
             {

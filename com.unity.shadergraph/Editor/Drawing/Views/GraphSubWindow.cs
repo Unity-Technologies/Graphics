@@ -371,6 +371,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         void OnWindowResize(MouseUpEvent upEvent)
         {
         }
+
+        public virtual void Dispose()
+        {
+            m_MainContainer = null;
+            m_Root = null;
+            m_TitleLabel = null;
+            m_SubTitleLabel = null;
+            m_ScrollView = null;
+            m_ContentContainer = null;
+            m_HeaderItem = null;
+            m_ParentView = null;
+            cachedWindowDockingStyle = null;
+            styleSheets.Clear();
+        }
     }
     #endregion
 }

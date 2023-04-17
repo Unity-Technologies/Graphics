@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class MaterialSlot : JsonObject
+    abstract class MaterialSlot : JsonObject, IDisposable
     {
         const string k_NotInit = "Not Initialized";
 
@@ -295,7 +295,12 @@ namespace UnityEditor.ShaderGraph
             if (startStage == ShaderStageCapability.All || otherSlot.owner is SubGraphNode)
                 startStage = NodeUtils.GetEffectiveShaderStageCapability(otherSlot, true)
                     & NodeUtils.GetEffectiveShaderStageCapability(otherSlot, false);
-            return startStage == ShaderStageCapability.All || stageCapability == ShaderStageCapability.All || stageCapability == startStage;
+            return IsCompatibleStageWith(startStage);
+        }
+
+        internal bool IsCompatibleStageWith(ShaderStageCapability capability)
+        {
+            return capability == ShaderStageCapability.All || stageCapability == ShaderStageCapability.All || stageCapability == capability;
         }
 
         public string GetDefaultValue(GenerationMode generationMode, ConcretePrecision concretePrecision)
@@ -356,6 +361,11 @@ namespace UnityEditor.ShaderGraph
             {
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
             }
+        }
+
+        public void Dispose()
+        {
+            owner = null;
         }
 
         // this tracks old CustomFunctionNode slots that are expecting the old bare resource inputs

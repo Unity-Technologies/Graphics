@@ -1288,9 +1288,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            // Clear render textures
             if (renderData.renderTexture != null)
                 Object.DestroyImmediate(renderData.renderTexture, true);
+            if(renderData.texture != null)
+                Object.DestroyImmediate(renderData.texture, true);
 
+            // Clear callbacks
+            renderData.onPreviewChanged = null;
             if (renderData.shaderData != null && renderData.shaderData.node != null)
                 renderData.shaderData.node.UnregisterCallback(OnNodeModified);
         }

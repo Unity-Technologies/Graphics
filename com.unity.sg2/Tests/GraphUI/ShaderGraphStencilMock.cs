@@ -1,7 +1,10 @@
+using Unity.GraphToolsFoundation.Editor;
+
 namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
 {
     class ShaderGraphStencilMock : ShaderGraphStencil
     {
-        // Stencil overrides for testing can go here.
+        public ShaderGraphStencilMock(GraphModel graphModel)
+            : base(graphModel) { }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +9,7 @@ using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
-    sealed class ContextView : StackNode
+    sealed class ContextView : StackNode, IDisposable
     {
         ContextData m_ContextData;
 
@@ -139,6 +140,15 @@ namespace UnityEditor.ShaderGraph
                 };
                 graphView.nodeCreationRequest(context);
             });
+        }
+
+        public void Dispose()
+        {
+            m_Port = null;
+            m_ContextData = null;
+            m_EditorWindow = null;
+            inputContainer.Clear();
+            outputContainer.Clear();
         }
     }
 }

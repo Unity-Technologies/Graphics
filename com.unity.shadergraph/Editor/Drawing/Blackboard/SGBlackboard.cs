@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_TitleLabel.text = ViewModel.title;
 
-            m_SubTitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+            m_SubTitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent, TrickleDown.TrickleDown);
             m_SubTitleLabel.text = ViewModel.subtitle;
 
             m_PathLabelTextField = this.Q<TextField>("subTitleTextField");
@@ -529,7 +529,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
             {
                 StartEditingPath();
-                evt.PreventDefault();
+                evt.StopPropagation();
             }
         }
 
@@ -577,6 +577,36 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_SubTitleLabel.text = BlackboardUtils.FormatPath(newPath);
             m_EditPathCancelled = false;
+        }
+
+        public override void Dispose()
+        {
+            m_PathLabelTextField.Q("unity-text-input").UnregisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); }, TrickleDown.TrickleDown);
+            m_PathLabelTextField.Q("unity-text-input").UnregisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed, TrickleDown.TrickleDown);
+            UnregisterCallback<MouseUpEvent>(OnMouseUpEvent);
+            UnregisterCallback<DragExitedEvent>(OnDragExitedEvent);
+            UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
+            UnregisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+            UnregisterCallback<DragExitedEvent>(OnDragExitedEvent);
+            UnregisterCallback<MouseEnterEvent>(OnMouseEnterEvent);
+            m_ScrollBoundaryTop.UnregisterCallback<MouseEnterEvent>(ScrollRegionTopEnter);
+            m_ScrollBoundaryTop.UnregisterCallback<DragUpdatedEvent>(OnFieldDragUpdate);
+            m_ScrollBoundaryTop.UnregisterCallback<MouseLeaveEvent>(ScrollRegionTopLeave);
+            m_ScrollBoundaryBottom.UnregisterCallback<MouseEnterEvent>(ScrollRegionBottomEnter);
+            m_ScrollBoundaryBottom.UnregisterCallback<DragUpdatedEvent>(OnFieldDragUpdate);
+            m_ScrollBoundaryBottom.UnregisterCallback<MouseLeaveEvent>(ScrollRegionBottomLeave);
+
+            m_BlackboardCategories.Clear();
+            m_ViewModel = null;
+            m_DragIndicator = null;
+            m_Controller = null;
+            m_AddBlackboardItemMenu = null;
+            addItemRequested = null;
+            m_BottomResizer = null;
+            m_ScrollBoundaryBottom = null;
+            m_ScrollBoundaryTop = null;
+            m_PathLabelTextField = null;
         }
     }
 }

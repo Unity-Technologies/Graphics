@@ -74,6 +74,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool m_RenameInProgress;
 
+        ContextualMenuManipulator m_ContextMenuManipulator;
+        SelectionDropper m_SelectionDropperManipulator;
+
         public delegate bool CanAcceptDropDelegate(ISelectable selected);
 
         public CanAcceptDropDelegate canAcceptDrop { get; set; }
@@ -144,14 +147,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddToClassList("blackboardCategory");
 
             // add the right click context menu
-            IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
-            this.AddManipulator(contextMenuManipulator);
+            m_ContextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
+            this.AddManipulator(m_ContextMenuManipulator);
 
             // add drag and drop manipulator
-            var selectionDropperManipulator = new SelectionDropper();
-            this.AddManipulator(selectionDropperManipulator);
+            m_SelectionDropperManipulator = new SelectionDropper();
+            this.AddManipulator(m_SelectionDropperManipulator);
 
-            RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+            RegisterCallback<MouseDownEvent>(OnMouseDownEvent, TrickleDown.TrickleDown);
             var textInputElement = m_TextField.Q(TextField.textInputUssName);
             textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); }, TrickleDown.TrickleDown);
             // Register hover callbacks
@@ -227,7 +230,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SetDragIndicatorVisible(bool visible)
         {
-            m_DragIndicator.visible = visible;
+            if(m_DragIndicator != null)
+                m_DragIndicator.visible = visible;
         }
 
         public bool CategoryContains(List<ISelectable> selection)
@@ -290,16 +294,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
             {
                 OpenTextEditor();
-                e.PreventDefault();
-            }
-            else if (e.clickCount == 1 && e.button == (int)MouseButton.LeftMouse && IsRenamable())
-            {
-                // Select the child elements within this category (the field views)
-                var fieldViews = this.Query<SGBlackboardField>();
-                foreach (var child in fieldViews.ToList())
-                {
-                    this.AddToSelection(child);
-                }
+                e.StopPropagation();
             }
         }
 
@@ -314,7 +309,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_RenameInProgress = true;
         }
 
-        void OnEditTextFinished()
+        internal void OnEditTextFinished()
         {
             m_TitleLabel.visible = true;
             m_TextField.style.display = DisplayStyle.None;
@@ -663,6 +658,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public override void Select(VisualElement selectionContainer, bool additive)
         {
+            if (controller == null)
+                return;
+
             // Don't add the un-named/default category to graph selections
             if (controller.Model.IsNamedCategory())
             {
@@ -764,6 +762,39 @@ namespace UnityEditor.ShaderGraph.Drawing
             var otherBlackboard = other.blackboard;
 
             return thisBlackboard.IndexOf(this).CompareTo(otherBlackboard.IndexOf(other));
+        }
+
+        public void Dispose()
+        {
+            if (m_Controller == null)
+                return;
+
+            UnregisterCallback<MouseDownEvent>(OnMouseDownEvent);
+            var textInputElement = m_TextField.Q(TextField.textInputUssName);
+            textInputElement.UnregisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); }, TrickleDown.TrickleDown);
+            UnregisterCallback<MouseEnterEvent>(OnHoverStartEvent);
+            UnregisterCallback<MouseLeaveEvent>(OnHoverEndEvent);
+            UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
+            UnregisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+            m_Foldout.UnregisterCallback<ChangeEvent<bool>>(OnFoldoutToggle);
+
+            this.RemoveManipulator(m_ContextMenuManipulator);
+            this.RemoveManipulator(m_SelectionDropperManipulator);
+
+            m_Controller = null;
+            m_ViewModel = null;
+            m_MainContainer = null;
+            m_Header = null;
+            m_TitleLabel = null;
+            m_Foldout = null;
+            m_RowsContainer = null;
+            m_TextField = null;
+            m_DragIndicator = null;
+            m_ContextMenuManipulator = null;
+            m_SelectionDropperManipulator = null;
+
+            RemoveFromHierarchy();
         }
     }
 }

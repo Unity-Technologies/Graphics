@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable, GenerationAPI] // TODO: Public
-    internal abstract class Target : JsonObject, ITargetProvider
+    internal abstract class Target : JsonObject
     {
         public string displayName { get; set; }
         public bool isHidden { get; set; }
@@ -27,6 +27,25 @@ namespace UnityEditor.ShaderGraph
         {
             NeverAllowedByTargetAttribute never = NodeClassCache.GetAttributeOnNodeType<NeverAllowedByTargetAttribute>(nodeType);
             return never == null;
+        }
+
+        public virtual bool DerivativeModificationCallback(
+                out string dstGraphFunctions,
+                out string dstGraphPixel,
+                out bool[] adjustedUvDerivs,
+                string primaryShaderName,
+                string passName,
+                string propStr,
+                string surfaceDescStr,
+                string graphFuncStr,
+                string graphPixelStr,
+                List<string> customFuncs,
+                bool applyEmulatedDerivatives)
+        {
+            dstGraphFunctions = "";
+            dstGraphPixel = "";
+            adjustedUvDerivs = new bool[4];
+            return false;
         }
 
         // think this is not called by anyone anymore, leaving it to avoid changing client code

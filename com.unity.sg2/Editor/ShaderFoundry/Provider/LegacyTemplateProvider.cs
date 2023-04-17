@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 
 using UnityEditor.ShaderFoundry;
-using UnityEngine;
 using PassIdentifier = UnityEngine.Rendering.PassIdentifier;
 using BlockInput = UnityEditor.ShaderFoundry.BlockVariable;
 using BlockOutput = UnityEditor.ShaderFoundry.BlockVariable;
