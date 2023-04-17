@@ -272,6 +272,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalPrepassTextureMS = Shader.PropertyToID("_DecalPrepassTextureMS");
         public static readonly int _DrawOrder = Shader.PropertyToID("_DrawOrder");
 
+        public static readonly int _AffectAlbedo = Shader.PropertyToID(HDMaterialProperties.kAffectAlbedo);
+        public static readonly int _AffectNormal = Shader.PropertyToID(HDMaterialProperties.kAffectNormal);
+        public static readonly int _AffectAO = Shader.PropertyToID(HDMaterialProperties.kAffectAO);
+        public static readonly int _AffectMetal = Shader.PropertyToID(HDMaterialProperties.kAffectMetal);
+        public static readonly int _AffectSmoothness = Shader.PropertyToID(HDMaterialProperties.kAffectSmoothness);
+        public static readonly int _AffectEmission = Shader.PropertyToID(HDMaterialProperties.kAffectEmission);
+
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");

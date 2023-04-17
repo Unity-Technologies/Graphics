@@ -246,11 +246,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // that the upgrader uses to detect version changes.
         static internal void SaveAssetsToDisk(bool updateMaterialLastSeenVersions = true, bool updateShaderGraphLastSeenVersions = false)
         {
-            string commandLineOptions = System.Environment.CommandLine;
-            bool inTestSuite = commandLineOptions.Contains("-testResults");
-            if (inTestSuite)
-                return;
-
             foreach (var asset in s_ImportedAssetThatNeedSaving)
             {
                 AssetDatabase.MakeEditable(asset);

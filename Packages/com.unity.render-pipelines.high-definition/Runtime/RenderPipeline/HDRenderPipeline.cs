@@ -1533,7 +1533,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Make sure that the volumetric cloud animation data is in sync with the parent camera.
-                    hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
                     useFetchedGpuExposure = true;
                 }
                 else
