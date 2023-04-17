@@ -63,6 +63,7 @@
 
 * [Post-processing](integration-with-post-processing.md)
   * [How to configure](integration-with-post-processing.md#post-proc-how-to)
+  * [HDR Output](post-processing/hdr-output.md)
   * [Volumes](Volumes.md)
     * [Volume Profile](VolumeProfile.md)
     * [Volume Overrides](VolumeOverrides.md)
