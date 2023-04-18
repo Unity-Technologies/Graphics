@@ -620,13 +620,17 @@ namespace UnityEditor.Rendering
         public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = null, Action<GenericMenu> customMenuContextAction = null, bool isBoxed = false, bool isTitleHeader = false, bool shouldUpdate = true)
             => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL, customMenuContextAction, isBoxed, isTitleHeader, shouldUpdate);
 
-        private static void GetHeaderToggleRects(bool isBoxed, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect)
+        private static void GetHeaderToggleRects(bool isBoxed, bool hasToggle, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect)
         {
             backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
 
             labelRect = backgroundRect;
             labelRect.xMin += 32f;
             labelRect.xMax -= 20f + 16 + 5;
+            if (!hasToggle)
+            {
+                labelRect.xMin -= (EditorGUI.indentLevel+1) * 15f;
+            }
 
             foldoutRect = backgroundRect;
             foldoutRect.y += 1f;
@@ -661,7 +665,7 @@ namespace UnityEditor.Rendering
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = null, Action<GenericMenu> customMenuContextAction = null, bool isBoxed = false, bool isTitleHeader = false, bool shouldUpdate = true)
         {
-            GetHeaderToggleRects(isBoxed, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect);
+            GetHeaderToggleRects(isBoxed, true, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect);
             DrawBackground(backgroundRect, isTitleHeader);
 
             // Title
@@ -702,29 +706,33 @@ namespace UnityEditor.Rendering
         /// <summary>Draw a header toggle like in Volumes</summary>
         /// <param name="title"> The title of the header </param>
         /// <param name="foldoutExpanded">If the foldout is expanded</param>
-        /// <param name="toogleProperty">The property to bind the toggle</param>
+        /// <param name="toggleProperty">The property to bind the toggle</param>
         /// <param name="contextAction">The context action</param>
         /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
         /// <param name="documentationURL">Documentation URL</param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderToggleFoldout(GUIContent title, bool foldoutExpanded, SerializedProperty toogleProperty, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
+        public static bool DrawHeaderToggleFoldout(GUIContent title, bool foldoutExpanded, SerializedProperty toggleProperty, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
         {
-            GetHeaderToggleRects(false, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect);
+            bool hasToggle = toggleProperty != null;
+            GetHeaderToggleRects(false, hasToggle, out Rect labelRect, out Rect foldoutRect, out Rect toggleRect, out Rect backgroundRect);
 
             DrawBackground(backgroundRect);
 
             // Title
-            using (new EditorGUI.DisabledScope(!toogleProperty.boolValue))
+            using (new EditorGUI.DisabledScope(hasToggle && !toggleProperty.boolValue))
                 EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
 
             // Foldout
             bool expanded = GUI.Toggle(foldoutRect, foldoutExpanded, GUIContent.none, EditorStyles.foldout);
 
             // Active checkbox
-            toogleProperty.serializedObject.Update();
-            toogleProperty.boolValue = GUI.Toggle(toggleRect, toogleProperty.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
-            toogleProperty.serializedObject.ApplyModifiedProperties();
+            if (hasToggle)
+            {
+                toggleProperty.serializedObject.Update();
+                toggleProperty.boolValue = GUI.Toggle(toggleRect, toggleProperty.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
+                toggleProperty.serializedObject.ApplyModifiedProperties();
+            }
 
             contextAction = ContextMenu(title, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL, labelRect);
             expanded = HandleEvents(contextAction, backgroundRect, expanded);

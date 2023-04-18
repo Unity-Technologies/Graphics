@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -341,10 +342,18 @@ namespace UnityEngine.Rendering
                     components.RemoveAt(i);
         }
 
+#if UNITY_EDITOR
         void OnValidate()
         {
-            if (VolumeManager.instance.isInitialized)
-                VolumeManager.instance.OnVolumeProfileChanged(this);
+            // Delay the callback because when undoing the deletion of a VolumeComponent from a profile,
+            // it's possible VolumeComponent.OnEnable() has not yet been called, resulting in a crash when trying to
+            // update the default state.
+            EditorApplication.delayCall += () =>
+            {
+                if (VolumeManager.instance.isInitialized)
+                    VolumeManager.instance.OnVolumeProfileChanged(this);
+            };
         }
+#endif
     }
 }

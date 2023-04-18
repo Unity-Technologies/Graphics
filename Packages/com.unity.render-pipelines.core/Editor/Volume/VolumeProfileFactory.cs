@@ -49,11 +49,31 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="path">The path to save the Asset to, relative to the Project folder.</param>
         /// <returns>The newly created <see cref="VolumeProfile"/>.</returns>
-        public static VolumeProfile CreateVolumeProfileAtPath(string path)
+        public static VolumeProfile CreateVolumeProfileAtPath(string path) => CreateVolumeProfileAtPath(path, null);
+
+        /// <summary>
+        /// Creates a <see cref="VolumeProfile"/> Asset and saves it at the given path.
+        /// </summary>
+        /// <param name="path">The path to save the Asset to, relative to the Project folder.</param>
+        /// <param name="dataSource">Another `VolumeProfile` that Unity uses as a data source.</param>
+        /// <returns>The newly created <see cref="VolumeProfile"/>.</returns>
+        public static VolumeProfile CreateVolumeProfileAtPath(string path, VolumeProfile dataSource)
         {
             var profile = ScriptableObject.CreateInstance<VolumeProfile>();
             profile.name = Path.GetFileName(path);
             AssetDatabase.CreateAsset(profile, path);
+
+            if (dataSource != null)
+            {
+                foreach (var sourceComponent in dataSource.components)
+                {
+                    var profileComponent = profile.Add(sourceComponent.GetType());
+                    for (int i = 0; i < sourceComponent.parameters.Count; i++)
+                        profileComponent.parameters[i].overrideState = sourceComponent.parameters[i].overrideState;
+                    VolumeProfileUtils.CopyValuesToComponent(sourceComponent, profileComponent, true);
+                }
+            }
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             return profile;
