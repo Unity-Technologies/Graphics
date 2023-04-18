@@ -14,7 +14,7 @@ Shader Graph package versions on Unity Engine 2018.x are *Preview* versions, whi
 
 With the release of Unity 2021.1, graphics packages are relocating to the core of Unity. This move simplifies the experience of working with new Unity graphics features, as well as ensuring that your projects are always running on the latest verified graphics code.
 
-For each release of Unity (alpha / beta / patch release) graphics packages are embedded within the main Unity installer. When you install the latest release of Unity, you also get the latest [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest), [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest), Shader Graph, [Visual Effect (VFX) Graph](https://docs.unity3d.com/Packages.com.unity.visualeffectgraph@latest) packages, among others.
+For each release of Unity (alpha / beta / patch release) graphics packages are embedded within the main Unity installer. When you install the latest release of Unity, you also get the latest [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest), [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest), Shader Graph, [Visual Effect (VFX) Graph](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest) packages, among others.
 
 Tying graphics packages to the main Unity release allows better testing to ensure that the graphics packages you use have been tested extensively with the version of Unity you have downloaded.
 

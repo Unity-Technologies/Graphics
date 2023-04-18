@@ -118,7 +118,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (keywordDefinition != KeywordDefinition.Predefined)
             {
-                var entryStrings = keywordEntries.Select(x => $"{keywordReferenceName}_{x.referenceName}");
+                var entryStrings = keywordEntries.Select(x => string.IsNullOrEmpty(x.referenceName) ? "_" : $"{keywordReferenceName}_{x.referenceName}");
                 string variantsString = string.Join(" ", entryStrings);
                 GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
             }

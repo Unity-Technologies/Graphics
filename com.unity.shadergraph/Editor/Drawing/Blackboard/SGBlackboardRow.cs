@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class SGBlackboardRow : VisualElement
+    class SGBlackboardRow : VisualElement, IDisposable
     {
         static readonly string k_UxmlTemplatePath = "UXML/Blackboard/SGBlackboardRow";
         static readonly string k_StyleSheetPath = "Styles/SGBlackboard";
@@ -73,6 +73,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PropertyViewContainer.Add(propertyView);
 
             expanded = false;
+        }
+
+        public void Dispose()
+        {
+            Clear();
+            m_ExpandButton.clickable = null;
+            m_Root = null;
+            m_ItemContainer = null;
+            m_PropertyViewContainer = null;
+            m_ExpandButton = null;
         }
     }
 }

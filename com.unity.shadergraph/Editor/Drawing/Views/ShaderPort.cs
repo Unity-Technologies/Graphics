@@ -7,10 +7,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     sealed class ShaderPort : Port
     {
+        public static StyleSheet styleSheet;
         ShaderPort(Orientation portOrientation, Direction portDirection, Capacity portCapacity, Type type)
             : base(portOrientation, portDirection, portCapacity, type)
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderPort"));
+            if(styleSheet == null)
+                styleSheet =  Resources.Load<StyleSheet>("Styles/ShaderPort");
+            styleSheets.Add(styleSheet);
         }
 
         MaterialSlot m_Slot;
@@ -27,6 +30,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             port.portName = slot.displayName;
             port.visualClass = slot.concreteValueType.ToClassName();
             return port;
+        }
+
+        public void Dispose()
+        {
+            this.RemoveManipulator(m_EdgeConnector);
+            m_EdgeConnector = null;
+            m_Slot = null;
+            styleSheets.Clear();
+            DisconnectAll();
+            OnDisconnect = null;
         }
 
         public MaterialSlot slot

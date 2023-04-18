@@ -466,14 +466,15 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public List<string> GetPotentialTargetDisplayNames()
+        public IEnumerable<Target> GetValidTargets()
         {
-            List<string> displayNames = new List<string>(m_AllPotentialTargets.Count);
-            for (int validIndex = 0; validIndex < m_AllPotentialTargets.Count; validIndex++)
+            foreach (var potentialTarget in m_AllPotentialTargets)
             {
-                displayNames.Add(m_AllPotentialTargets[validIndex].GetDisplayName());
+                var target = potentialTarget.GetTarget();
+                if (target is IMayObsolete targetObsolete && targetObsolete.IsObsolete())
+                    continue;
+                yield return potentialTarget.GetTarget();
             }
-            return displayNames;
         }
 
         public void SetTargetActive(Target target, bool skipSortAndUpdate = false)
@@ -1093,13 +1094,24 @@ namespace UnityEditor.ShaderGraph
             m_AddedEdges.Remove(edge);
         }
 
+        public void RemoveEdges(IEdge[] edges)
+        {
+            if (edges.Length == 0)
+                return;
+            foreach (var edge in edges)
+            {
+                RemoveEdgeNoValidate(edge);
+            }
+            ValidateGraph();
+        }
+
         public void RemoveEdge(IEdge e)
         {
             RemoveEdgeNoValidate(e);
             ValidateGraph();
         }
 
-        public void RemoveElements(AbstractMaterialNode[] nodes, IEdge[] edges, GroupData[] groups, StickyNoteData[] notes)
+        public void RemoveElements(AbstractMaterialNode[] nodes, IEdge[] edges, GroupData[] groups, StickyNoteData[] notes, ShaderInput[] inputs = null)
         {
             foreach (var node in nodes)
             {
@@ -1141,6 +1153,14 @@ namespace UnityEditor.ShaderGraph
             foreach (var groupData in groups)
             {
                 RemoveGroupNoValidate(groupData);
+            }
+
+            if (inputs != null)
+            {
+                foreach (var shaderInput in inputs)
+                {
+                    RemoveGraphInputNoValidate(shaderInput);
+                }
             }
 
             ValidateGraph();
@@ -1253,14 +1273,27 @@ namespace UnityEditor.ShaderGraph
             return m_NodeDictionary.TryGetValue(node.objectId, out var foundNode) && node == foundNode;
         }
 
+        public void GetEdges(MaterialSlot slot, List<IEdge> foundEdges)
+        {
+            List<IEdge> candidateEdges;
+            if (!m_NodeEdges.TryGetValue(slot.owner.objectId, out candidateEdges))
+                return;
+
+            foreach (var edge in candidateEdges)
+            {
+                var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
+                if (cs.node == slot.owner && cs.slotId == slot.id)
+                    foundEdges.Add(edge);
+            }
+        }
+
         public void GetEdges(SlotReference s, List<IEdge> foundEdges)
         {
-            MaterialSlot slot = s.slot;
-
             List<IEdge> candidateEdges;
             if (!m_NodeEdges.TryGetValue(s.node.objectId, out candidateEdges))
                 return;
 
+            MaterialSlot slot = s.slot;
             foreach (var edge in candidateEdges)
             {
                 var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
@@ -1858,8 +1891,9 @@ namespace UnityEditor.ShaderGraph
             GraphConcretization.ConcretizeGraph(this);
             GraphValidation.ValidateGraph(this);
 
-            foreach (var edge in m_AddedEdges.ToList())
+            for (int i = 0; i < m_AddedEdges.Count; ++i)
             {
+                var edge = m_AddedEdges[i];
                 if (!ContainsNode(edge.outputSlot.node) || !ContainsNode(edge.inputSlot.node))
                 {
                     Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}\n{2}", edge.outputSlot.node.objectId, edge.inputSlot.node.objectId, Environment.StackTrace);
@@ -1867,16 +1901,15 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            foreach (var groupChange in m_ParentGroupChanges.ToList())
+            for (int i = 0; i < m_ParentGroupChanges.Count; ++i)
             {
-                if (groupChange.groupItem is AbstractMaterialNode node && !ContainsNode(node))
+                var groupChange = m_ParentGroupChanges[i];
+                switch (groupChange.groupItem)
                 {
-                    m_ParentGroupChanges.Remove(groupChange);
-                }
-
-                if (groupChange.groupItem is StickyNoteData stickyNote && !m_StickyNoteDatas.Contains(stickyNote))
-                {
-                    m_ParentGroupChanges.Remove(groupChange);
+                    case AbstractMaterialNode node when !ContainsNode(node):
+                    case StickyNoteData stickyNote when !m_StickyNoteDatas.Contains(stickyNote):
+                        m_ParentGroupChanges.Remove(groupChange);
+                        break;
                 }
             }
 
@@ -1888,7 +1921,6 @@ namespace UnityEditor.ShaderGraph
                 // Clear category data as it will get reconstructed in the BlackboardController constructor
                 m_CategoryData.Clear();
             }
-
 
             ValidateCustomBlockLimit();
             ValidateContextBlocks();
@@ -2797,6 +2829,9 @@ namespace UnityEditor.ShaderGraph
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
+
+            foreach (var node in GetNodes<AbstractMaterialNode>())
+                node.Dispose();
         }
 
         internal void ValidateCustomBlockLimit()

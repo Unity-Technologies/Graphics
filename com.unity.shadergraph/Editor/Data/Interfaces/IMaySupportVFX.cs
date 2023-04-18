@@ -5,7 +5,6 @@ namespace UnityEditor.ShaderGraph
         bool SupportsVFX();
         bool CanSupportVFX();
     }
-
     static class MaySupportVFXExtensions
     {
         public static bool SupportsVFX(this Target target)

@@ -16,6 +16,7 @@ using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
 using Unity.Profiling;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -245,7 +246,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
+            m_SearchWindowProvider = new SearcherProvider();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = NodeCreationRequest;
             //regenerate entries when graph view is refocused, to propogate subgraph changes
@@ -540,10 +541,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (graphViewChange.elementsToRemove != null)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Remove Elements");
-                m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<IShaderNodeView>().Select(v => v.node).ToArray(),
+                m_Graph.RemoveElements(
+                    graphViewChange.elementsToRemove.OfType<IShaderNodeView>().Select(v => v.node).ToArray(),
                     graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge)e.userData).ToArray(),
                     graphViewChange.elementsToRemove.OfType<ShaderGroup>().Select(g => g.userData).ToArray(),
-                    graphViewChange.elementsToRemove.OfType<StickyNote>().Select(n => n.userData).ToArray());
+                    graphViewChange.elementsToRemove.OfType<StickyNote>().Select(n => n.userData).ToArray(),
+                    graphViewChange.elementsToRemove.OfType<SGBlackboardField>().Select(f => (ShaderInput)f.userData).ToArray()
+                );
                 foreach (var edge in graphViewChange.elementsToRemove.OfType<Edge>())
                 {
                     if (edge.input != null)
@@ -864,6 +868,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.UnregisterCallback(OnNodeChanged);
                 var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
                     .FirstOrDefault(p => p.node != null && p.node == node);
+
+                // When deleting a node make sure to clear any input observers
+                switch (node)
+                {
+                    case PropertyNode propertyNode:
+                        propertyNode.property.RemoveObserver(propertyNode);
+                        propertyNode.property.RemoveObserver(nodeView as IShaderInputObserver);
+                        break;
+                    case KeywordNode keywordNode:
+                        keywordNode.keyword.RemoveObserver(keywordNode);
+                        break;
+                    case DropdownNode dropdownNode:
+                        dropdownNode.dropdown.RemoveObserver(dropdownNode);
+                        break;
+                }
+
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
@@ -935,6 +955,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var tokenNode = new PropertyNodeView(propertyNode, m_EdgeConnectorListener);
                 m_GraphView.AddElement(tokenNode);
                 nodeView = tokenNode;
+
+                // Register node model and node view as observer of property
+                propertyNode.property.AddObserver(propertyNode);
+                propertyNode.property.AddObserver(tokenNode);
             }
             else if (node is BlockNode blockNode)
             {
@@ -956,6 +980,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 var materialNodeView = new MaterialNodeView { userData = materialNode };
+
+                // For keywords and dropdowns, we only register the node model itself as an observer,
+                // the material node view redraws completely on changes so it doesn't need to be an observer
+                switch (node)
+                {
+                    case KeywordNode keywordNode:
+                        keywordNode.keyword.AddObserver(keywordNode);
+                        break;
+                    case DropdownNode dropdownNode:
+                        dropdownNode.dropdown.AddObserver(dropdownNode);
+                        break;
+                }
+
                 m_GraphView.AddElement(materialNodeView);
                 materialNodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener, graphView);
                 m_ColorManager.UpdateNodeView(materialNodeView);
@@ -1367,19 +1404,42 @@ namespace UnityEditor.ShaderGraph.Drawing
                 showInProjectRequested = null;
                 isCheckedOut = null;
                 checkOut = null;
-                foreach (var node in m_GraphView.Children().OfType<IShaderNodeView>())
-                    node.Dispose();
+                foreach (var materialNodeView in m_GraphView.Query<MaterialNodeView>().ToList())
+                    materialNodeView.Dispose();
+                foreach (var propertyNodeView in m_GraphView.Query<PropertyNodeView>().ToList())
+                    propertyNodeView.Dispose();
+                foreach (var redirectNodeView in m_GraphView.Query<RedirectNodeView>().ToList())
+                    redirectNodeView.Dispose();
+                foreach (var contextView in m_GraphView.Query<ContextView>().ToList())
+                    contextView.Dispose();
+                foreach (var edge in m_GraphView.Query<Edge>().ToList())
+                {
+                    edge.output = null;
+                    edge.input = null;
+                }
+
                 m_GraphView.nodeCreationRequest = null;
                 m_GraphView = null;
             }
+
+            m_BlackboardController?.Dispose();
+            m_BlackboardController = null;
+
+            m_InspectorView?.Dispose();
+            m_InspectorView = null;
+
             if (previewManager != null)
             {
                 previewManager.Dispose();
                 previewManager = null;
             }
+
+            // Unload any static resources here
+            Resources.UnloadAsset(ShaderPort.styleSheet);
+
             if (m_SearchWindowProvider != null)
             {
-                Object.DestroyImmediate(m_SearchWindowProvider);
+                m_SearchWindowProvider.Dispose();
                 m_SearchWindowProvider = null;
             }
         }
