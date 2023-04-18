@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     /// A marker to adjust probes in an area of the scene.
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Light/Probe Adjustment Volume")]
+    [AddComponentMenu("Rendering/Probe Adjustment Volume")]
     public class ProbeTouchupVolume : MonoBehaviour, ISerializationCallbackReceiver
     {
         /// <summary>The type of shape that an adjustment volume can take. </summary>

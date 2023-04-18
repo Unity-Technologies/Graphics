@@ -586,7 +586,7 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
+            bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.cameraType == CameraType.Preview;
             useDepthPriming = IsDepthPrimingEnabled(ref cameraData);
             // This indicates whether the renderer will output a depth texture.
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || useDepthPriming;
@@ -608,7 +608,7 @@ namespace UnityEngine.Rendering.Universal
             // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - Render passes require it
             bool requiresDepthPrepass = (requiresDepthTexture || cameraHasPostProcessingWithDepth) && (!CanCopyDepth(ref renderingData.cameraData) || forcePrepass);
-            requiresDepthPrepass |= isSceneViewCamera;
+            requiresDepthPrepass |= isSceneViewOrPreviewCamera;
             requiresDepthPrepass |= isGizmosEnabled;
             requiresDepthPrepass |= isPreviewCamera;
             requiresDepthPrepass |= renderPassInputs.requiresDepthPrepass;
@@ -642,7 +642,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 m_CopyDepthPass.renderPassEvent = copyDepthPassEvent;
             }
-            else if (cameraHasPostProcessingWithDepth || isSceneViewCamera || isGizmosEnabled)
+            else if (cameraHasPostProcessingWithDepth || isSceneViewOrPreviewCamera || isGizmosEnabled)
             {
                 // If only post process requires depth texture, we can re-use depth buffer from main geometry pass instead of enqueuing a depth copy pass, but no proper API to do that for now, so resort to depth copy pass for now
                 m_CopyDepthPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
@@ -769,7 +769,7 @@ namespace UnityEngine.Rendering.Universal
                     mainLightShadows = false;
                     additionalLightShadows = false;
 
-                    if (!isSceneViewCamera)
+                    if (!isSceneViewOrPreviewCamera)
                     {
                         requiresDepthPrepass = false;
                         useDepthPriming = false;
@@ -1100,7 +1100,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // if this is not lastCameraInTheStack we still need to Store, since the MSAA buffer might be needed by the Overlay cameras
-                RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack && !isPreviewCamera ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 RenderBufferStoreAction transparentPassDepthStoreAction = lastCameraInTheStack ? RenderBufferStoreAction.DontCare : RenderBufferStoreAction.Store;
 
                 // If CopyDepthPass pass event is scheduled on or after AfterRenderingTransparent, we will need to store the depth buffer or resolve (store for now until latest trunk has depth resolve support) it for MSAA case
@@ -1223,7 +1223,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            if (isSceneViewCamera || (isGizmosEnabled && lastCameraInTheStack))
+            if (isSceneViewOrPreviewCamera || (isGizmosEnabled && lastCameraInTheStack))
             {
                 // Scene view camera should always resolve target (not stacked)
                 m_FinalDepthCopyPass.Setup(m_DepthTexture, k_CameraTarget);

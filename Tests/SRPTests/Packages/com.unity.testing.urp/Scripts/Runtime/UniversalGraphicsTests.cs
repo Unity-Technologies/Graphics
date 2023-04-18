@@ -21,6 +21,8 @@ public class UniversalGraphicsTests
     [UseGraphicsTestCases(universalPackagePath)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        GlobalResolutionSetter.SetResolution(RuntimePlatform.Android, width: 1920, height: 1080);
+
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load

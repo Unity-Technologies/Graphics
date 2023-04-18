@@ -1633,6 +1633,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 m_CurrentSunLightDataIndex = i;
                                 m_CurrentSunLight = additionalLightData.legacyLight;
+                                m_CurrentSunLightAdditionalLightData = additionalLightData;
                             }
                         }
 
@@ -1665,7 +1666,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_EnableBakeShadowMask = m_EnableBakeShadowMask || m_ProcessedLightsBuilder.bakedShadowsCount > 0;
                 m_CurrentShadowSortedSunLightIndex = m_GpuLightsBuilder.currentShadowSortedSunLightIndex;
-                m_CurrentSunLightAdditionalLightData = m_GpuLightsBuilder.currentSunLightAdditionalLightData;
                 m_CurrentSunShadowMapFlags = m_GpuLightsBuilder.currentSunShadowMapFlags;
                 m_CurrentSunLightDirectionalLightData = m_GpuLightsBuilder.currentSunLightDirectionalLightData;
 

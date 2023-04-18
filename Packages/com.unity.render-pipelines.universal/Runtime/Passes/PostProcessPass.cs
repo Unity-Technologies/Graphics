@@ -507,7 +507,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-
             // Combined post-processing stack
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.UberPostProcess)))
             {
@@ -536,7 +535,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                 // Lens Flare
+                // Lens Flare
                 if (useLensFlare)
                 {
                     bool usePanini;
@@ -555,9 +554,13 @@ namespace UnityEngine.Rendering.Universal
                         paniniCropToFit = 1.0f;
                     }
 
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDrivenComputeOcclusion)))
+                    {
+                        LensFlareDataDrivenComputeOcclusion(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
+                    }
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                     {
-                        DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
+                        LensFlareDataDriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
                     }
                 }
 
@@ -905,7 +908,7 @@ namespace UnityEngine.Rendering.Universal
                 switch (light.type)
                 {
                     case LightType.Directional:
-                        return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, wo);
+                        return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
                     case LightType.Point:
                         return LensFlareCommonSRP.ShapeAttenuationPointLight();
                     case LightType.Spot:
@@ -918,14 +921,40 @@ namespace UnityEngine.Rendering.Universal
             return 1.0f;
         }
 
-        void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
+        void LensFlareDataDrivenComputeOcclusion(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
+        {
+            if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
+                return;
+
+            var gpuView = camera.worldToCameraMatrix;
+            var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+            // Zero out the translation component.
+            gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+            var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
+
+            cmd.SetGlobalTexture(m_Depth.name, m_Depth.nameID);
+
+            LensFlareCommonSRP.ComputeOcclusion(
+                m_Materials.lensFlareDataDriven, camera,
+                (float)m_Descriptor.width, (float)m_Descriptor.height,
+                usePanini, paniniDistance, paniniCropToFit, true,
+                camera.transform.position,
+                gpuVP,
+                cmd,
+                false, false, null, null,
+                ShaderConstants._FlareOcclusionTex, -1, ShaderConstants._FlareOcclusionIndex, ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
+                -1, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4);
+        }
+
+        void LensFlareDataDriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
             var gpuView = camera.worldToCameraMatrix;
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
             // Zero out the translation component.
             gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
             var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
-            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)m_Descriptor.width, (float)m_Descriptor.height,
+
+            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, camera, (float)m_Descriptor.width, (float)m_Descriptor.height,
                 usePanini, paniniDistance, paniniCropToFit,
                 true,
                 camera.transform.position,

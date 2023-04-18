@@ -640,13 +640,13 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_AttachedGameObjects = 0;
         private HDLightRenderEntity m_DefaultLightEntity = HDLightRenderEntity.Invalid;
 
-        private NativeList<LightEntityInfo> m_LightEntities = new NativeList<LightEntityInfo>(Allocator.Persistent);
+        private NativeList<LightEntityInfo> m_LightEntities;
 
         // Technically only used for spot lights. Not good for perf, would like to deprecate this whenever possible.
         private DynamicArray<SpotLightCallbackData> m_CustomViewCallbackEvents = new DynamicArray<SpotLightCallbackData>();
         private int m_ValidCustomViewCallbackEvents;
-        private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
-        private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetPackedHandles = new NativeList<HDShadowRequestSetHandle>(Allocator.Persistent);
+        private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetHandles;
+        private NativeList<HDShadowRequestSetHandle> m_ShadowRequestSetPackedHandles;
 
         private Queue<int> m_FreeIndices = new Queue<int>();
         private Dictionary<int, LightEntityInfo> m_LightsToEntityItem = new Dictionary<int, LightEntityInfo>();

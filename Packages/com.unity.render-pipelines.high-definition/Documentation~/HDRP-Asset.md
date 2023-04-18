@@ -268,3 +268,5 @@ These settings define the quality levels (low, medium, high) related to post pro
 | ----------------------- | --------------------------------------------------------------- |
 | **CPU Cache Size**      | Amount of CPU memory (in MB) that can be allocated by the Streaming Virtual Texturing system to cache texture data. |
 | **GPU Cache Size per Format** | Amount of GPU memory (in MB) that can be allocated per format by the Streaming Virtual Texturing system to cache texture data. The value assigned to None is used for all unspecified formats. |
+| **Preload Textures Per Frame** | The number of textures Unity tries to preload their least detailed mipmap levels (least being @@128@@x@@128@@) into GPU memory per frame. Use this to avoid texture pop-in. The range is @@0@@ through @@1024@@. The default is @@0@@, which disables preloading. |
+| **Preload Mip Count** | The number of mipmap levels to preload. The range is @@1@@ through @@9@@. The default is @@1@@, which preloads only the highest mipmap level with the smallest size (128 × 128 pixels, the size of a Streaming Virtual Texturing tile). |

@@ -1,13 +1,16 @@
 {
-	"name": "com.unity.testing.urp",
-	"displayName":"URP Graphic Tests Library",
-	"version": "1.0.0",
-	"unity": "2019.3",
-	"unityRelease": "0b4",
-	"description": "Common assets library for URP test projects.",
-	"keywords": ["qa", "test", "testing", "tests", "graphics", "HDRP"],
-	"dependencies": {
-  "com.unity.testframework.graphics": "7.11.0-exp.1",
-	"com.unity.render-pipelines.universal": "file:./com.unity.render-pipelines.universal"
-	}
+  "name": "com.unity.testing.urp",
+  "displayName": "URP Graphic Tests Library",
+  "version": "1.0.0",
+  "unity": "2019.3",
+  "unityRelease": "0b4",
+  "description": "Common assets library for URP test projects.",
+  "keywords": [
+    "qa",
+    "test",
+    "testing",
+    "tests",
+    "graphics",
+    "HDRP"
+  ]
 }

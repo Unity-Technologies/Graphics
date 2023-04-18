@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Serialization;
+using static Unity.Mathematics.math;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -288,11 +289,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderingProperties.SetFloat(HDShaderIDs._VolumetricMaterialEndTimesRcpDistFadeLen, engineData.endTimesRcpDistFadeLen);
             m_RenderingProperties.SetInteger(HDShaderIDs._VolumetricMaterialFalloffMode, (int)engineData.falloffMode);
 
+            var AABBExtents = abs(bounds.right * bounds.extentX) +
+                     abs(bounds.up * bounds.extentY) +
+                     abs(bounds.forward * bounds.extentZ);
+
+            var AABB = new Bounds(bounds.center, AABBExtents * 2f);
             var renderParams = new RenderParams
             {
                 layer = gameObject.layer,
                 rendererPriority = parameters.priority,
-                worldBounds = new Bounds(position, parameters.size),
+                worldBounds = AABB,
                 motionVectorMode = MotionVectorGenerationMode.ForceNoMotion,
                 reflectionProbeUsage = ReflectionProbeUsage.Off,
                 renderingLayerMask = 0xFFFFFFFF,

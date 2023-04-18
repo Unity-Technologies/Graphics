@@ -251,7 +251,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdrInPlayerSettings && HDROutputSettings.main.available)
             {
-                if (camera.camera.cameraType != CameraType.Game)
+                // TODO: Until we can test it, disable on Mac.
+                if (camera.camera.cameraType != CameraType.Game || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                     HDROutputSettings.main.RequestHDRModeChange(false);
                 else
                     HDROutputSettings.main.RequestHDRModeChange(true);
@@ -349,6 +350,22 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.lodBias = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedLODBias(m_Asset);
             QualitySettings.maximumLODLevel = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
+#if UNITY_EDITOR
+            UpgradeResourcesIfNeeded();
+
+            //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
+            //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
+            //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
+            if ((m_GlobalSettings.AreRuntimeResourcesCreated() == false)
+                || (m_GlobalSettings.AreEditorResourcesCreated() == false)
+                || (m_RayTracingSupported && !m_GlobalSettings.AreRayTracingResourcesCreated()))
+                return;
+            else
+                m_ResourcesInitialized = true;
+
+            m_GlobalSettings.EnsureShadersCompiled();
+#endif
+
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             bool pipelineSupportsRayTracing = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
 
@@ -369,22 +386,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VFXRayTracingSupported = m_Asset.currentPlatformRenderPipelineSettings.supportVFXRayTracing && m_RayTracingSupported;
             VFXManager.SetRayTracingEnabled(m_VFXRayTracingSupported);
 
-#if UNITY_EDITOR
-            UpgradeResourcesIfNeeded();
-
-            //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
-            //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
-            //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            if ((m_GlobalSettings.AreRuntimeResourcesCreated() == false)
-                || (m_GlobalSettings.AreEditorResourcesCreated() == false)
-                || (m_RayTracingSupported && !m_GlobalSettings.AreRayTracingResourcesCreated()))
-                return;
-            else
-                m_ResourcesInitialized = true;
-
-            m_GlobalSettings.EnsureShadersCompiled();
-#endif
-
             CheckResourcesValidity();
 
 #if ENABLE_VIRTUALTEXTURES
@@ -394,6 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 settings = new VirtualTexturingSettingsSRP();
 
             VirtualTexturing.Streaming.SetCPUCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
+            VirtualTexturing.Streaming.EnableMipPreloading(settings.streamingMipPreloadTexturesPerFrame, settings.streamingPreloadMipCount);
 
             GPUCacheSetting[] gpuCacheSettings = new GPUCacheSetting[settings.streamingGpuCacheSettings.Count];
             for (int i = 0; i < settings.streamingGpuCacheSettings.Count; ++i)
@@ -1570,7 +1572,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Make sure that the volumetric cloud animation data is in sync with the parent camera.
-                    hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
                     useFetchedGpuExposure = true;
                 }
                 else
@@ -2001,6 +2002,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (camera.TryGetComponent<HDAdditionalCameraData>(out hdCam))
                     {
                         cameraRequestedDynamicRes = hdCam.allowDynamicResolution && camera.cameraType == CameraType.Game;
+
+                        // DRS should be disabled in case this camera will be path tracing.
+                        cameraRequestedDynamicRes &= !HDCamera.GetOrCreate(camera).IsPathTracingEnabled();
                     }
 
                     // We now setup DLSS if its enabled. DLSS can override the drsSettings (i.e. setting a System scaler slot, and providing quality settings).

@@ -332,7 +332,11 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (targetColorBuffer != TargetBuffer.None && targetDepthBuffer == TargetBuffer.None)
                 CoreUtils.SetRenderTarget(cmd, colorBuffer, clearFlags);
             else
+            {
+                if (colorBuffer.isMSAAEnabled != depthBuffer.isMSAAEnabled)
+                    Debug.LogError("Color and Depth buffer MSAA flags doesn't match, no rendering will occur.");
                 CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlags);
+            }
         }
 
         /// <summary>

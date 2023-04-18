@@ -164,7 +164,7 @@ namespace UnityEngine
         /// <param name="camera">The Camera to which light values are relative.</param>
         public void SynchronizeOnTransform(Camera camera)
         {
-            Axes axes = GetWorldSpaceAxes(camera);
+            Axes axes = GetWorldSpaceAxes(camera, anchorPosition);
 
             Vector3 worldAnchorToLight = transform.position - anchorPosition;
 
@@ -194,11 +194,13 @@ namespace UnityEngine
         /// <param name="anchor">The anchor position.</param>
         public void UpdateTransform(Camera camera, Vector3 anchor)
         {
-            var axes = GetWorldSpaceAxes(camera);
+            // It is important not to read the property anchorPosition here since the distance might have been updated
+            // (which is a part of the calculation), but the transform is yet to be set.
+            var axes = GetWorldSpaceAxes(camera, anchor);
             UpdateTransform(axes.up, axes.right, axes.forward, anchor);
         }
 
-        Axes GetWorldSpaceAxes(Camera camera)
+        Axes GetWorldSpaceAxes(Camera camera, Vector3 anchor)
         {
             // Fallback when the light anchor object is child of the camera (bad setup)
             if (transform.IsChildOf(camera.transform))
@@ -216,13 +218,13 @@ namespace UnityEngine
             if (m_FrameSpace == UpDirection.Local)
             {
                 Vector3 localUp = Camera.main.transform.up;
-                viewToWorld = Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.LookAt(camera.transform.position, anchorPosition, localUp).inverse;
+                viewToWorld = Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.LookAt(camera.transform.position, anchor, localUp).inverse;
                 viewToWorld = viewToWorld.inverse;
             }
             // Correct view to world for perspective
-            else if (!camera.orthographic && camera.transform.position != anchorPosition)
+            else if (!camera.orthographic && camera.transform.position != anchor)
             {
-                var d = (anchorPosition - camera.transform.position).normalized;
+                var d = (anchor - camera.transform.position).normalized;
                 var f = Quaternion.LookRotation(d);
                 viewToWorld = Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(camera.transform.position, f, Vector3.one).inverse;
                 viewToWorld = viewToWorld.inverse;
@@ -260,8 +262,8 @@ namespace UnityEngine
 
             // TODO: fix light rotated when camera rotates
 
-            Axes axes = GetWorldSpaceAxes(camera);
             Vector3 anchor = anchorPosition;
+            Axes axes = GetWorldSpaceAxes(camera, anchor);
             Vector3 d = transform.position - anchor;
             Vector3 proj = Vector3.ProjectOnPlane(d, axes.up);
 

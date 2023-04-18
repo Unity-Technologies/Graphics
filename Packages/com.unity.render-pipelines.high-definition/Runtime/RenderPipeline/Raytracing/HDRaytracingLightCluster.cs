@@ -283,16 +283,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Grab the light range
                     float lightRange = light.range;
 
-                    if (currentLight.type != HDLightType.Area)
+                    // Common volume data
+                    m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
+                    m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
+
+                    bool isAreaLight = currentLight.type == HDLightType.Area;
+                    bool isBoxLight = (currentLight.type == HDLightType.Spot) && (currentLight.spotLightShape == SpotLightShape.Box);
+
+                    if (!isAreaLight && !isBoxLight)
                     {
                         m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
                         m_LightVolumesCPUArray[realIndex].position = lightPositionRWS;
-                        m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
-                        m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
                         m_LightVolumesCPUArray[realIndex].shape = 0;
                         m_LightVolumesCPUArray[realIndex].lightType = 0;
                         punctualLightCount++;
                     }
+                    // Area lights and box spot lights require AABB intersection data
                     else
                     {
                         // let's compute the oobb of the light influence volume first
@@ -306,11 +312,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Fill the volume data
                         m_LightVolumesCPUArray[realIndex].range = bounds.extents;
                         m_LightVolumesCPUArray[realIndex].position = bounds.center;
-                        m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
-                        m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
                         m_LightVolumesCPUArray[realIndex].shape = 1;
-                        m_LightVolumesCPUArray[realIndex].lightType = 1;
-                        areaLightCount++;
+                        if (isAreaLight)
+                        {
+                            m_LightVolumesCPUArray[realIndex].lightType = 1;
+                            areaLightCount++;
+                        }
+                        else
+                        {
+                            m_LightVolumesCPUArray[realIndex].lightType = 0;
+                            punctualLightCount++;
+                        }
                     }
                     realIndex++;
                 }

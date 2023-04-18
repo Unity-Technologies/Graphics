@@ -6,6 +6,8 @@
 
 #pragma kernel SharpenCS
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 TEXTURE2D_X(_InputTexture);
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 

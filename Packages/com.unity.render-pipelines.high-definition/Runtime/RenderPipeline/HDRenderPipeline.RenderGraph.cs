@@ -294,6 +294,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
 #if ENABLE_VIRTUALTEXTURES
+                //Check debug data to see if user disabled streaming.
+                if (HDDebugDisplaySettings.Instance != null && HDDebugDisplaySettings.Instance.vtSettings.data.debugDisableResolving)
+                    resolveVirtualTextureFeedback = false;
+
                 // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
                 // We don't write it when FullScreenDebug mode or path tracer.
                 if (resolveVirtualTextureFeedback)
