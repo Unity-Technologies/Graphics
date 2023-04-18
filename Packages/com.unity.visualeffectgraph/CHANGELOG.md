@@ -4,18 +4,29 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [12.1.10] - 2023-01-18
-
-This version is compatible with Unity 2021.3.18f1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.10] - 2023-03-24
+
+This version is compatible with Unity 2021.3.22f1.
+
+### Fixed
+- Fixed an issue causing unexpected sorting on some VFX output while using the new SG integration.
+- Fixed an exception while using Unlit ShaderGraph with VFX.
+- Fixed an issue where Alpha Clipping had an unexpected behavior in editor when used in MaterialOverride with SG integration, .
+- Fixed an unsafe deletion of VFXParticleSystem which can lead to a crash while deleting VisualEffect.
+- Fixed NRE when the Vector2 is configured as a range, it was preventing Decal output context creation.
+- Added missing DepthNormal pass for Unlit & Unify SSAO integration with Unlit for URP.
+- Fixed a crash when drag & dropping a vfx on another vfx with a circular dependency
+- Add support for multiple subgraphs drag&drop
+- GPU Event weren't always safe
 
 ## [12.1.9] - 2022-12-12
 
-This version is compatible with Unity 2021.3.16f1.
+This version is compatible with Unity 2021.3.18f1.
 
 ### Fixed
 - Added a Visual Effect Graph to the scene did not take the default parent into account.
@@ -29,7 +40,7 @@ This version is compatible with Unity 2021.3.16f1.
 
 ## [12.1.8] - 2022-11-04
 
-This version is compatible with Unity 2021.3.14f1.
+This version is compatible with Unity 2021.3.16f1.
 
 ### Changed
 - Reduced time taken by code generation when a VFX asset is imported
@@ -53,7 +64,7 @@ This version is compatible with Unity 2021.3.14f1.
 
 ## [12.1.7] - 2022-03-29
 
-This version is compatible with Unity 2021.2.19f1.
+This version is compatible with Unity 2021.3.14f1.
 
 ### Fixed
 - Fixed an exception when changing the setting of space of a shape to world.
@@ -61,14 +72,14 @@ This version is compatible with Unity 2021.2.19f1.
 
 ## [12.1.6] - 2022-02-09
 
-This version is compatible with Unity 2021.2.14f1.
+This version is compatible with Unity 2021.2.19f1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.5] - 2022-01-14
 
-This version is compatible with Unity 2021.2.12f1.
+This version is compatible with Unity 2021.2.14f1.
 
 ### Fixed
 - Unexpected possible connection between GPUEvent and Spawn context [Case 1362739](https://issuetracker.unity3d.com/product/unity/issues/guid/1362739/)

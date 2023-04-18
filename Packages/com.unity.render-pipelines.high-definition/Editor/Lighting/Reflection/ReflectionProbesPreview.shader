@@ -64,9 +64,8 @@ Shader "Hidden/Debug/ReflectionProbePreview"
 
             float4 frag(v2f i) : SV_Target
             {
-                //float3 view = normalize(i.worldpos - _CameraWorldPosition);
                 float3 V = normalize(i.positionWS - GetPrimaryCameraPosition());
-                float3 R = reflect(V, i.normalWS);
+                float3 R = reflect(V, normalize(i.normalWS));
                 float4 color = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, R, _MipLevel).rgba;
                 color = color * exp2(_Exposure) * GetCurrentExposureMultiplier();
 

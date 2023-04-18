@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph;
 using System.Text.RegularExpressions;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.Rendering.ShaderGraph;
@@ -261,7 +262,7 @@ namespace UnityEditor.Graphing
         // graph instead of just what I have declared as the "local" connected graph
         public static void ReevaluateActivityOfConnectedNodes(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
         {
-            List<AbstractMaterialNode> forest = GetForest(node);
+            var forest = GetForest(node);
             ReevaluateActivityOfNodeList(forest, changedNodes);
         }
 
@@ -282,70 +283,17 @@ namespace UnityEditor.Graphing
         }
 
         //Go to the leaves of the node, then get all trees with those leaves
-        private static List<AbstractMaterialNode> GetForest(AbstractMaterialNode node)
+        private static HashSet<AbstractMaterialNode> GetForest(AbstractMaterialNode node)
         {
-            List<AbstractMaterialNode> leaves = GetLeaves(node);
-            List<AbstractMaterialNode> forrest = new List<AbstractMaterialNode>();
-            foreach (var leaf in leaves)
-            {
-                if (!forrest.Contains(leaf))
-                {
-                    forrest.Add(leaf);
-                }
-                foreach (var child in GetChildNodesRecursive(leaf))
-                {
-                    if (!forrest.Contains(child))
-                    {
-                        forrest.Add(child);
-                    }
-                }
-            }
-            return forrest;
-        }
+            var initial = new HashSet<AbstractMaterialNode> { node };
 
-        private static List<AbstractMaterialNode> GetChildNodesRecursive(AbstractMaterialNode node)
-        {
-            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>() { node };
-            List<AbstractMaterialNode> children = GetChildNodes(node);
-            foreach (var child in children)
-            {
-                if (!output.Contains(child))
-                {
-                    output.Add(child);
-                }
-                foreach (var descendent in GetChildNodesRecursive(child))
-                {
-                    if (!output.Contains(descendent))
-                    {
-                        output.Add(descendent);
-                    }
-                }
-            }
-            return output;
-        }
+            var upstream = new HashSet<AbstractMaterialNode>();
+            PreviewManager.PropagateNodes(initial, PreviewManager.PropagationDirection.Upstream, upstream);
 
-        private static List<AbstractMaterialNode> GetLeaves(AbstractMaterialNode node)
-        {
-            List<AbstractMaterialNode> parents = GetParentNodes(node);
-            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>();
-            if (parents.Count == 0)
-            {
-                output.Add(node);
-            }
-            else
-            {
-                foreach (var parent in parents)
-                {
-                    foreach (var leaf in GetLeaves(parent))
-                    {
-                        if (!output.Contains(leaf))
-                        {
-                            output.Add(leaf);
-                        }
-                    }
-                }
-            }
-            return output;
+            var forest = new HashSet<AbstractMaterialNode>();
+            PreviewManager.PropagateNodes(upstream, PreviewManager.PropagationDirection.Downstream, forest);
+
+            return forest;
         }
 
         public static void GetDownsteamNodesForNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node)

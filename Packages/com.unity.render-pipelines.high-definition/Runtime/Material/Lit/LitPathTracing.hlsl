@@ -67,7 +67,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 
         mtlData.bsdfWeight[1] = Fcoat * mtlData.bsdfData.coatMask;
         coatingTransmission = 1.0 - mtlData.bsdfWeight[1];
-        mtlData.bsdfWeight[2] = coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * GetSpecularCompensation(mtlData);
+        mtlData.bsdfWeight[2] = coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * GetSpecularCompensation(mtlData).x; // assume spec is float as dieltric
         mtlData.bsdfWeight[3] = (coatingTransmission - mtlData.bsdfWeight[2]) * mtlData.bsdfData.transmittanceMask;
         mtlData.bsdfWeight[0] = coatingTransmission * (1.0 - mtlData.bsdfData.transmittanceMask) * Luminance(mtlData.bsdfData.diffuseColor) * max(mtlData.bsdfData.ambientOcclusion, 0.001);
     }

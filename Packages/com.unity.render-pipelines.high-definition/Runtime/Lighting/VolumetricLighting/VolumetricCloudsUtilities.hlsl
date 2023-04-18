@@ -514,6 +514,23 @@ float EvaluateFinalTransmittance(float3 color, float transmittance)
     // This approach only makes sense if the color is not black
     return luminance > 0.0 ? lerp(transmittance, resultLuminance / luminance, _ImprovedTransmittanceBlend) : transmittance;
 }
+
+// This function will return something strictly smaller than 0 if any of the lower res pixels
+// have some amound of clouds.
+float EvaluateRegionEmptiness(NeighborhoodUpsampleData3x3 data)
+{
+    float emptyRegionFlag = 1.0f;
+    emptyRegionFlag *= lerp(1.0, data.lowValue0.w, data.lowWeightA.x != 0.0 ? 1.0 : 0.0);
+    emptyRegionFlag *= lerp(1.0, data.lowValue1.w, data.lowWeightA.y != 0.0 ? 1.0 : 0.0);
+    emptyRegionFlag *= lerp(1.0, data.lowValue2.w, data.lowWeightA.z != 0.0 ? 1.0 : 0.0);
+    emptyRegionFlag *= lerp(1.0, data.lowValue3.w, data.lowWeightA.w != 0.0 ? 1.0 : 0.0);
+    emptyRegionFlag *= lerp(1.0, data.lowValue4.w, data.lowWeightB.x != 0.0 ? 1.0 : 0.0);
+    emptyRegionFlag *= lerp(1.0, data.lowValue5.w, data.lowWeightB.y != 0.0 ? 1.0 : 0.0);
+    emptyRegionFlag *= lerp(1.0, data.lowValue6.w, data.lowWeightB.z != 0.0 ? 1.0 : 0.0);
+    emptyRegionFlag *= lerp(1.0, data.lowValue7.w, data.lowWeightB.w != 0.0 ? 1.0 : 0.0);
+    emptyRegionFlag *= lerp(1.0, data.lowValue8.w, data.lowWeightC != 0.0 ? 1.0 : 0.0);
+    return emptyRegionFlag;
+}
 #endif // REAL_TIME_VOLUMETRIC_CLOUDS
 
 #endif // VOLUMETRIC_CLOUD_UTILITIES_H

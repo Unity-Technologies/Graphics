@@ -4,18 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [12.1.10] - 2023-01-18
-
-This version is compatible with Unity 2021.3.18f1.
+## [Unreleased]
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.10] - 2023-03-24
+
+This version is compatible with Unity 2021.3.22f1.
+
+### Fixed
+- Fixed an issue where specular color was not matching behaviour in Legacy and HDRP.
+- Fixed XR vsync is disabled when focus is lost.
+- Fix soft shadow filtering quality when using large empty shadow atlas. Use allocated atlas size instead of requested size.
+- Fix incorrect Depth for Camera Stacks
 
 ## [12.1.9] - 2022-12-12
 
-This version is compatible with Unity 2021.3.16f1.
+This version is compatible with Unity 2021.3.18f1.
 
 ### Changed
 - Shader parameters used by additional lights are now removed when additional lights are disabled in URP Assets.
@@ -27,7 +33,7 @@ This version is compatible with Unity 2021.3.16f1.
 
 ## [12.1.8] - 2022-11-04
 
-This version is compatible with Unity 2021.3.14f1.
+This version is compatible with Unity 2021.3.16f1.
 
 ### Added
 - Added public api and updated docs for Light2D shape properties.
@@ -71,7 +77,7 @@ This version is compatible with Unity 2021.3.14f1.
 
 ## [12.1.7] - 2022-03-29
 
-This version is compatible with Unity 2021.2.19f1.
+This version is compatible with Unity 2021.3.14f1.
 
 ### Changed
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
@@ -85,7 +91,7 @@ This version is compatible with Unity 2021.2.19f1.
 
 ## [12.1.6] - 2022-02-09
 
-This version is compatible with Unity 2021.2.14f1.
+This version is compatible with Unity 2021.2.19f1.
 
 ### Fixed
 - Fixed an issue where the menu button to be able to convert selected materials was missing.
@@ -96,7 +102,7 @@ This version is compatible with Unity 2021.2.14f1.
 
 ## [12.1.5] - 2022-01-14
 
-This version is compatible with Unity 2021.2.12f1.
+This version is compatible with Unity 2021.2.14f1.
 
 ### Fixed
 - Fixed FXAA quality issues when render scale is not 1.0.
