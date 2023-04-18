@@ -22,17 +22,6 @@ Pass
 		nointerpolation float3 builtInInterpolants : TEXCOORD1;
 		#endif
 
-		#if VFX_USE_RIM_LIGHT
-		float3 offsets : TEXCOORD0;
-		nointerpolation float3 rotX : TEXCOORD2;
-		nointerpolation float3 rotY : TEXCOORD3;
-		float3 posWS : TEXCOORD5;
-		nointerpolation float4 rimSettings : COLOR1;
-		#if VFX_USE_NORMAL_MAP
-		nointerpolation uint faceID : TEXCOORD4;
-		#endif
-		#endif
-
         UNITY_VERTEX_OUTPUT_STEREO
 
         VFX_VERTEX_OUTPUT_INSTANCE_INDEX
@@ -53,25 +42,6 @@ Pass
 #define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.z
 #endif
 
-#if VFX_USE_RIM_LIGHT
-#define VFX_VARYING_OFFSETS offsets
-#define VFX_VARYING_ROTX rotX
-#define VFX_VARYING_ROTY rotY
-#define VFX_VARYING_POSWS posWS
-#if VFX_USE_NORMAL_MAP
-#define VFX_VARYING_FACEID faceID
-#endif
-#endif
-
-	${VFXBegin:VFXVertexAdditionalProcess}
-#if VFX_USE_RIM_LIGHT
-	${VFXLoadParameter:{rimColor}}
-	${VFXLoadParameter:{rimCoef}}
-	rimCoef = saturate(1.0f - rimCoef);
-	o.rimSettings = float4(rimColor.rgb,rimCoef);
-#endif
-	${VFXEnd}
-
 	${VFXPassForwardDefine}
 	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
 
@@ -87,20 +57,6 @@ Pass
 		VFXTransformPSInputs(i);
 
 		o.color = VFXGetFragmentColor(i);
-
-#if VFX_USE_RIM_LIGHT
-		float3 normal = VFXCubeGetLocalNormal(i);
-#if VFX_USE_NORMAL_MAP
-		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i));
-		normal = VFXCubeTransformNormalTS(normal,n);
-#endif
-		normal = VFXCubeTransformNormalWS(i,normal);
-
-		const float r0 = i.rimSettings.a;
-		float3 posToCam = normalize(VFXGetViewWorldPosition() - i.posWS);
-		const float3 fresnel = r0 + (1.0f - r0) * pow(1.0f - saturate(dot(normal,posToCam)),5.0f);
-		o.color.rgb += saturate(fresnel) * i.rimSettings.rgb;
-#endif
 
         o.color = VFXApplyPreExposure(o.color, i);
 		o.color = VFXApplyFog(o.color,i);

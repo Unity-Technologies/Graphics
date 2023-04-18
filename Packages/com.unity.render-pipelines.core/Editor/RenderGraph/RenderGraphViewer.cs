@@ -17,6 +17,7 @@ public class RenderGraphViewer : EditorWindow
     }
 
     const float kRenderPassWidth = 20.0f;
+    const float kRenderPassHeight = 20.0f;
     const float kResourceHeight = 15.0f;
 
     class CellElement : VisualElement
@@ -89,6 +90,8 @@ public class RenderGraphViewer : EditorWindow
     readonly StyleColor m_ResourceColorRead = new StyleColor(new Color(0.2f, 1.0f, 0.2f));
     readonly StyleColor m_ResourceColorWrite = new StyleColor(new Color(1.0f, 0.2f, 0.2f));
     readonly StyleColor m_ImportedResourceColor = new StyleColor(new Color(0.3f, 0.75f, 0.75f));
+    readonly StyleColor m_DependencyColor = new StyleColor(new Color(1.0f, 0.75f, 0.1f));
+    readonly StyleColor m_AsyncPassColor = new StyleColor(new Color(1.0f, 0.75f, 0.1f));
     readonly StyleColor m_CulledPassColor = new StyleColor(Color.black);
     readonly StyleColor m_ResourceHighlightColor = new StyleColor(Color.white);
     readonly StyleColor m_ResourceLifeHighLightColor = new StyleColor(new Color32(103, 103, 103, 255));
@@ -100,6 +103,7 @@ public class RenderGraphViewer : EditorWindow
     DynamicArray<PassElementInfo> m_PassElementsInfo = new DynamicArray<PassElementInfo>();
 
     Filter m_Filter = Filter.Textures | Filter.ComputeBuffers;
+    bool m_AsyncVisualization = false;
 
     void RenderPassLabelChanged(GeometryChangedEvent evt)
     {
@@ -155,12 +159,44 @@ public class RenderGraphViewer : EditorWindow
 
     void MouseEnterPassCallback(MouseEnterEvent evt, int index)
     {
+        if (m_AsyncVisualization)
+            UpdatePassDependenciesColor(index, m_DependencyColor);
         UpdateResourceLifetimeColor(index, m_ResourceColorRead, m_ResourceColorWrite);
     }
 
     void MouseLeavePassCallback(MouseLeaveEvent evt, int index)
     {
+        if (m_AsyncVisualization)
+            UpdatePassDependenciesColor(index, m_OriginalPassColor);
         UpdateResourceLifetimeColor(index, m_OriginalResourceLifeColor, m_OriginalResourceLifeColor);
+    }
+
+    void UpdatePassColor(int passIndex, StyleColor color)
+    {
+        var passDebugData = m_CurrentDebugData.passList[passIndex];
+        if (!passDebugData.culled)
+        {
+
+            VisualElement passElement = m_PassElementsInfo[passIndex].pass;
+            if (passElement != null)
+            {
+                VisualElement passButton = passElement.Q("RenderPass.Cell");
+                passButton.style.backgroundColor = color;
+            }
+        }
+    }
+
+    void UpdatePassDependenciesColor(int passIndex, StyleColor color)
+    {
+        var pass = m_CurrentDebugData.passList[passIndex];
+
+        if (pass.culled)
+            return;
+
+        if (pass.syncToPassIndex != -1)
+            UpdatePassColor(pass.syncToPassIndex, color);
+        if (pass.syncFromPassIndex != -1)
+            UpdatePassColor(pass.syncFromPassIndex, color);
     }
 
     void UpdatePassColor((int index, int resourceType) resInfo, StyleColor colorRead, StyleColor colorWrite)
@@ -168,32 +204,10 @@ public class RenderGraphViewer : EditorWindow
         var resource = m_CurrentDebugData.resourceLists[resInfo.resourceType][resInfo.index];
 
         foreach (int consumer in resource.consumerList)
-        {
-            var passDebugData = m_CurrentDebugData.passList[consumer];
-            if (passDebugData.culled)
-                continue;
-
-            VisualElement passElement = m_PassElementsInfo[consumer].pass;
-            if (passElement != null)
-            {
-                VisualElement passButton = passElement.Q("RenderPass.Cell");
-                passButton.style.backgroundColor = colorRead;
-            }
-        }
+            UpdatePassColor(consumer, colorRead);
 
         foreach (int producer in resource.producerList)
-        {
-            var passDebugData = m_CurrentDebugData.passList[producer];
-            if (passDebugData.culled)
-                continue;
-
-            VisualElement passElement = m_PassElementsInfo[producer].pass;
-            if (passElement != null)
-            {
-                VisualElement passButton = passElement.Q("RenderPass.Cell");
-                passButton.style.backgroundColor = colorWrite;
-            }
-        }
+            UpdatePassColor(producer, colorWrite);
     }
 
     void UpdateResourceLabelColor((int index, int resourceType) resInfo, StyleColor color)
@@ -224,7 +238,7 @@ public class RenderGraphViewer : EditorWindow
         UpdateResourceLabelColor(info, resource.imported ? m_ImportedResourceColor : m_OriginalResourceColor); ;
     }
 
-    VisualElement CreateRenderPass(string name, int index, bool culled)
+    VisualElement CreateRenderPass(string name, int index, bool culled, bool async)
     {
         var container = new VisualElement();
         container.name = "RenderPass";
@@ -239,6 +253,8 @@ public class RenderGraphViewer : EditorWindow
         cell.style.marginLeft = 0.0f;
         cell.style.marginRight = 0.0f;
         cell.style.marginTop = 0.0f;
+        cell.style.width = kRenderPassWidth;
+        cell.style.height = kRenderPassHeight;
         cell.RegisterCallback<MouseEnterEvent, int>(MouseEnterPassCallback, index);
         cell.RegisterCallback<MouseLeaveEvent, int>(MouseLeavePassCallback, index);
 
@@ -252,6 +268,8 @@ public class RenderGraphViewer : EditorWindow
         var label = new Label(name);
         label.name = "RenderPass.Label";
         label.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 0.0f, -45.0f));
+        if (async && m_AsyncVisualization)
+            label.style.color = m_AsyncPassColor;
         container.Add(label);
 
         label.RegisterCallback<GeometryChangedEvent>(RenderPassLabelChanged);
@@ -402,12 +420,23 @@ public class RenderGraphViewer : EditorWindow
         var filters = new EnumFlagsField("Filters", m_Filter);
         filters.labelElement.style.minWidth = 0;
         filters.labelElement.style.alignItems = Align.Center;
+        filters.style.minWidth = 180.0f;
         filters.RegisterCallback<ChangeEvent<System.Enum>>((evt) =>
         {
             m_Filter = (Filter)evt.newValue;
             RebuildGraphViewerUI();
         });
         controlsElement.Add(filters);
+
+        var asyncToggleElement = new Toggle("Async Visualization");
+        asyncToggleElement.name = "Header.AsyncVisualization";
+        asyncToggleElement.value = m_AsyncVisualization;
+        asyncToggleElement.RegisterCallback<ChangeEvent<bool>>((evt) =>
+        {
+            m_AsyncVisualization = evt.newValue;
+            RebuildGraphViewerUI();
+        });
+        controlsElement.Add(asyncToggleElement);
 
         var legendsElement = new VisualElement();
         legendsElement.name = "Header.Legends";
@@ -418,6 +447,7 @@ public class RenderGraphViewer : EditorWindow
         legendsElement.Add(CreateColorLegend("Resource Write", m_ResourceColorWrite));
         legendsElement.Add(CreateColorLegend("Culled Pass", m_CulledPassColor));
         legendsElement.Add(CreateColorLegend("Imported Resource", m_ImportedResourceColor));
+        legendsElement.Add(CreateColorLegend("Async/Dependency", m_DependencyColor));
 
         m_HeaderElement.Add(legendsElement);
     }
@@ -470,7 +500,7 @@ public class RenderGraphViewer : EditorWindow
             }
             else
             {
-                var passElement = CreateRenderPass(pass.name, passIndex, pass.culled);
+                var passElement = CreateRenderPass(pass.name, passIndex, pass.culled, pass.async);
                 m_PassElementsInfo[passIndex].pass = passElement;
                 m_PassElementsInfo[passIndex].remap = finalPassCount;
                 passNamesElement.Add(passElement);

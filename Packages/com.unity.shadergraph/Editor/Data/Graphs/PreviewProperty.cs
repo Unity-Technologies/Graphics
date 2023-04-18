@@ -262,8 +262,10 @@ namespace UnityEditor.ShaderGraph
             }
             else if (propType == PropertyType.Color)
                 mat.SetColor(name, m_StructData.colorValue);
-            else if (propType == PropertyType.Float || propType == PropertyType.Vector2 || propType == PropertyType.Vector3 || propType == PropertyType.Vector4)
+            else if (propType == PropertyType.Vector2 || propType == PropertyType.Vector3 || propType == PropertyType.Vector4)
                 mat.SetVector(name, m_StructData.vector4Value);
+            else if (propType == PropertyType.Float)
+                mat.SetFloat(name, m_StructData.floatValue);
             else if (propType == PropertyType.Boolean)
                 mat.SetFloat(name, m_StructData.booleanValue ? 1 : 0);
             else if (propType == PropertyType.Matrix2 || propType == PropertyType.Matrix3 || propType == PropertyType.Matrix4)

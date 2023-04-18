@@ -290,9 +290,9 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
 #endif
 }
 
-float4 VFXGetPreviousClipPosition(VFX_SRP_ATTRIBUTES input, AttributesElement element)
+float4 VFXGetPreviousClipPosition(VFX_SRP_ATTRIBUTES input, AttributesElement element, float4 cPositionFallback)
 {
-    float4 cPreviousPos = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    float4 cPreviousPos = cPositionFallback;
 
 #if (VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS)
     uint elementIndex = element.index;
@@ -317,8 +317,20 @@ VFX_SRP_ATTRIBUTES VFXTransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, A
         float4x4 previousElementToVFX = VFXGetPreviousElementToVFX(elementToVFXBaseIndex);
         input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;
     }
-
+    else
 #endif//WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
+    {
+        float4x4 elementToVFXMatrix = GetElementToVFXMatrix(
+            element.attributes.axisX,
+            element.attributes.axisY,
+            element.attributes.axisZ,
+            float3(element.attributes.angleX, element.attributes.angleY, element.attributes.angleZ),
+            float3(element.attributes.pivotX, element.attributes.pivotY, element.attributes.pivotZ),
+            GetElementSize(element.attributes),
+            element.attributes.position);
+        input.positionOS = mul(elementToVFXMatrix, float4(input.positionOS, 1.0f)).xyz;
+    }
+
     return input;
 }
 

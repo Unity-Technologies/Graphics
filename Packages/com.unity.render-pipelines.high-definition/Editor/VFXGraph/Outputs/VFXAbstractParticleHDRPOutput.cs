@@ -257,5 +257,18 @@ namespace UnityEditor.VFX.HDRP
             colorMapping = ColorMappingMode.Default;
             base.OnEnable();
         }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return "colorMapping";
+            }
+        }
+
     }
 }

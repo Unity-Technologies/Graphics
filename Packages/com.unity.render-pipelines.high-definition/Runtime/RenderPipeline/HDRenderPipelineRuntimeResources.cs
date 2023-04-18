@@ -431,6 +431,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class MaterialResources
         {
+			[Reload("Runtime/RenderPipelineResources/Material/AreaLightCookieViewer.mat")]
+            public Material areaLightCookieMaterial; // We also need one for the cookie because the emissive map is a keyword in our Unlit shader.
         }
 
         [Serializable, ReloadGroup]

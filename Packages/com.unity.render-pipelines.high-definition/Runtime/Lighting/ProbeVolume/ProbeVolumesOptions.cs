@@ -61,10 +61,10 @@ namespace UnityEngine.Rendering
         public APVLeakReductionModeParameter leakReductionMode = new APVLeakReductionModeParameter(APVLeakReductionMode.ValidityAndNormalBased);
 
         /// <summary>
-        /// The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.
+        /// The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have for the probe to be considered.
         /// </summary>
-        [AdditionalProperty, Tooltip("The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.")]
-        public ClampedFloatParameter minValidDotProductValue = new ClampedFloatParameter(0.1f, 0.0f, 0.33f);
+        [AdditionalProperty, Tooltip("Controls how normal based leak reduction is applied. Lower values would consider all probes equally important, while higher ones would favor probes further along the normal direction of the surface.")]
+        public ClampedFloatParameter minValidDotProductValue = new ClampedFloatParameter(0.1f, -1.0f, 0.33f);
 
 
         /// <summary>

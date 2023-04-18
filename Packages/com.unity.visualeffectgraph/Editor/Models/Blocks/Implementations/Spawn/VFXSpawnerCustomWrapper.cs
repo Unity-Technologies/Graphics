@@ -13,6 +13,7 @@ namespace UnityEditor.VFX
             {
                 "m_customType",
                 VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks))
+                    .Where(o => o != typeof(LoopAndDelay)) //Explicitly exclude loop and delay from listing, preferably use VFXSpawnContext settings instead 
                     .Select(o => new SerializableType(o) as object)
                     .ToArray()
             }
@@ -98,11 +99,16 @@ namespace UnityEditor.VFX
             base.GenerateErrors(manager);
 
             //Type isn't reachable ... but we already stored a type, log an error.
-            if (m_customType == null
-                && !object.ReferenceEquals(m_customType, null)
-                && !string.IsNullOrEmpty(m_customType.text))
+            if (m_customType == null)
             {
-                manager.RegisterError("CustomSpawnerIDNotFound", VFXErrorType.Error, "Can't find : " + m_customType.text);
+                if (!object.ReferenceEquals(m_customType, null) && !string.IsNullOrEmpty(m_customType.text))
+                    manager.RegisterError("CustomSpawnerIDNotFound", VFXErrorType.Error, "The serialized reference to a VFXSpawnerCallbacks script is missing : " + m_customType.text);
+                else
+                    manager.RegisterError("CustomSpawnerIDNull", VFXErrorType.Error, "The serialized reference to a VFXSpawnerCallbacks script is missing.");
+            }
+            else if ((Type)m_customType == typeof(LoopAndDelay))
+            {
+                manager.RegisterError("CustomSpawnerLoopAndDelay", VFXErrorType.Warning, "The block Loop And Delay is now deprecated in favor of the spawn context settings in inspector.");
             }
 
             if (customBehavior == null && m_customType != null)
@@ -120,7 +126,7 @@ namespace UnityEditor.VFX
             {
                 if (m_customType != null)
                     return ObjectNames.NicifyVariableName(((Type)m_customType).Name);
-                return "null";
+                return "Missing VFXSpawnerCallbacks";
             }
         }
 

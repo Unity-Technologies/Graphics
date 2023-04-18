@@ -7,7 +7,6 @@ Pass
 	
 	HLSLPROGRAM
 	#pragma target 4.5
-	${VFXPassForwardAdditionalPragma}
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/PassForwardCommon.template")}
 	ENDHLSL
 }

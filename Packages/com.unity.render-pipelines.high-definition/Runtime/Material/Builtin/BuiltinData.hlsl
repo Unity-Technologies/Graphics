@@ -108,7 +108,7 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs p
         result = float3(0, 0, 0);
         for (uint i = 0; (i < 8) && (layerId < layerCount); i++)
         {
-            if (lightLayers & (1 << i))
+            if (lightLayers & (1U << i))
             {
                 if ((posInput.positionSS.y / stripeSize) % layerCount == layerId)
                     result = _DebugRenderingLayersColors[i].xyz;

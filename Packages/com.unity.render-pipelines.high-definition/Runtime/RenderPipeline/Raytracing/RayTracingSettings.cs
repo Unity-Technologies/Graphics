@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("When enabled, the culling region for punctual and area lights shadow maps is increased from frustum culling to extended culling. For Directional lights, cascades are not extended, but additional objects may appear in the cascades.")]
         [FormerlySerializedAs("extendCulling")]
-        public BoolParameter extendShadowCulling = new BoolParameter(false);
+        public BoolParameter extendShadowCulling = new BoolParameter(true);
 
         /// <summary>
         /// Enables the override of the camera culling. This increases the validity area of animated skinned mesh that are outside of the frustum..

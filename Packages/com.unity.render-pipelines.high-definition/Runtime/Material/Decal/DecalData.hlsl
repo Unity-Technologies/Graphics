@@ -62,6 +62,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     // Following code match the code in DecalUtilities.hlsl used for cluster. It have the same kind of condition and similar code structure
     surfaceData.baseColor = _BaseColor;
 #ifdef _COLORMAP
+    // Caution: We have same issue with mips evaluation than with emissive but we chose to not pay the cost of it for BaseColor
     surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
  #endif
     surfaceData.baseColor.w *= fadeFactor;

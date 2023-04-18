@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -23,6 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent k_DepthOfFieldMode = new GUIContent("Focus Mode", "Controls the focus of the camera lens.");
 
+            public static readonly string PbrDofResolutionTitle = "Enable High Resolution";
             public static readonly string InfoBox = "Physically Based DoF currently has a high performance overhead. Enabling TAA is highly recommended when using this option.";
             public static readonly string FocusDistanceInfoBox = "When using the Physical Camera mode, the depth of field will be influenced by the Aperture, the Focal Length and the Sensor size set in the physical properties of the camera.";
         }
@@ -171,6 +173,19 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        void PropertyPBRDofResolution(SerializedDataParameter property)
+        {
+            using (var scope = new OverridablePropertyScope(property, Styles.PbrDofResolutionTitle, this))
+            {
+                if (!scope.displayed)
+                    return;
+
+                bool isHighResolution = property.value.intValue <= (int)DepthOfFieldResolution.Half;
+                isHighResolution = EditorGUILayout.Toggle(Styles.PbrDofResolutionTitle, isHighResolution);
+                property.value.intValue = isHighResolution ? Math.Min((int)DepthOfFieldResolution.Half, property.value.intValue) : (int)DepthOfFieldResolution.Quarter;
+            }
+        }
+
         void DrawQualitySettings()
         {
             using (new QualityScope(this))
@@ -179,10 +194,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
                 PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
                 PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
-
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityFiltering);
                 PropertyField(m_PhysicallyBased);
+                if (m_PhysicallyBased.value.boolValue)
+                    PropertyPBRDofResolution(m_Resolution);
+                else
+                    PropertyField(m_Resolution);
+                
+                PropertyField(m_HighQualityFiltering);
                 if (m_PhysicallyBased.value.boolValue)
                 {
                     if (BeginAdditionalPropertiesScope())

@@ -75,6 +75,11 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
                 Pass Replace
             }
 
+            // Depending on virtual texturing, light layers buffer can be put in slot 4 or 5
+            // When using decal layers, we must make sure we don't write to RGB channels
+            ColorMask[_LightLayersMaskBuffer4] 4
+            ColorMask[_LightLayersMaskBuffer5] 5
+
             HLSLPROGRAM
             //enable GPU instancing support
             #pragma multi_compile_instancing

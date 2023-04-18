@@ -387,18 +387,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_IsHDRenderPipelineDecal)
                 {
+                    bool affectNormal = m_Material.GetFloat(HDShaderIDs._AffectNormal) != 0.0f;
+                    m_Normal.Initialize(affectNormal ? m_Material.GetTexture("_NormalMap") : null, Vector4.zero);
+
+                    bool affectMetal = m_Material.GetFloat(HDShaderIDs._AffectMetal) != 0.0f;
+                    bool affectAO = m_Material.GetFloat(HDShaderIDs._AffectAO) != 0.0f;
+                    bool affectSmoothness = m_Material.GetFloat(HDShaderIDs._AffectSmoothness) != 0.0f;
+                    bool useMask = affectMetal | affectAO | affectSmoothness;
+                    m_Mask.Initialize(useMask ? m_Material.GetTexture("_MaskMap") : null, Vector4.zero);
+
+                    float normalBlendSrc = m_Material.GetFloat("_NormalBlendSrc");
+                    float maskBlendSrc = m_Material.GetFloat("_MaskBlendSrc");
+                    bool affectAlbedo = m_Material.GetFloat(HDShaderIDs._AffectAlbedo) != 0.0f;
+                    // base color is always added since it will be used for the general alpha value
                     m_Diffuse.Initialize(m_Material.GetTexture("_BaseColorMap"), Vector4.zero);
-                    m_Normal.Initialize(m_Material.GetTexture("_NormalMap"), Vector4.zero);
-                    m_Mask.Initialize(m_Material.GetTexture("_MaskMap"), Vector4.zero);
+
                     m_Blend = m_Material.GetFloat("_DecalBlend");
                     m_BaseColor = m_Material.GetVector("_BaseColor");
-                    m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), 0.0f);
+                    m_BlendParams = new Vector3(normalBlendSrc, maskBlendSrc, 0.0f);
                     int affectFlags =
-                        (m_Material.GetFloat("_AffectAlbedo") != 0.0f ? (1 << 0) : 0) |
-                        (m_Material.GetFloat("_AffectNormal") != 0.0f ? (1 << 1) : 0) |
-                        (m_Material.GetFloat("_AffectMetal") != 0.0f ? (1 << 2) : 0) |
-                        (m_Material.GetFloat("_AffectAO") != 0.0f ? (1 << 3) : 0) |
-                        (m_Material.GetFloat("_AffectSmoothness") != 0.0f ? (1 << 4) : 0);
+                        (affectAlbedo ? (1 << 0) : 0) |
+                        (affectNormal ? (1 << 1) : 0) |
+                        (affectMetal ? (1 << 2) : 0) |
+                        (affectAO ? (1 << 3) : 0) |
+                        (affectSmoothness ? (1 << 4) : 0);
 
                     // convert to float
                     m_BlendParams.z = (float)affectFlags;

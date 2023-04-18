@@ -1,27 +1,28 @@
 {
     "name": "Unity.Testing.VisualEffectGraph.Tests",
-    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.Testing.VisualEffectGraph",
         "Unity.Testing.XR.Runtime",
         "Unity.VisualEffectGraph.Editor",
         "Unity.VisualEffectGraph.Runtime",
-        "UnityEngine.TestTools.Graphics",
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEngine.TestTools.Graphics"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": true,
-    "precompiledReferences": [
-        "nunit.framework.dll"
-    ],
-    "autoReferenced": false,
-    "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
-    ],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "versionDefines": [
+        {
+            "name": "com.unity.timeline",
+            "expression": "[0.0.0-builtin]",
+            "define": "VFX_HAS_TIMELINE"
+        },
+        {
+            "name": "com.unity.timeline",
+            "expression": "1.0.0",
+            "define": "VFX_HAS_TIMELINE"
+        }
+    ]
 }

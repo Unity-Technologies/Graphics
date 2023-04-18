@@ -42,7 +42,7 @@ float4 _SelectionID;
 
 #pragma fragment frag
 void frag(ps_input i
-#ifdef WRITE_NORMAL_BUFFER
+#if defined(WRITE_NORMAL_BUFFER) && VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
 , out float4 outNormalBuffer : SV_Target0
 #else
 , out float4 outColor : SV_Target

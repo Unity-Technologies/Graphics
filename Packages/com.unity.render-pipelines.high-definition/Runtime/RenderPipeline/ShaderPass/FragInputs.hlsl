@@ -105,3 +105,10 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
         break;
     }
 }
+
+void AdjustFragInputsToOffScreenRendering(inout FragInputs input, bool offScreenRenderingEnabled, float offScreenRenderingFactor)
+{
+    // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
+    input.positionSS.xy = offScreenRenderingEnabled ? (uint2)round(input.positionSS.xy * offScreenRenderingFactor) : input.positionSS.xy;
+    input.positionPixel = offScreenRenderingEnabled ? (uint2)round(input.positionPixel * offScreenRenderingFactor) : input.positionPixel;
+}

@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering
     /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Light/Probe Volume")]
+    [AddComponentMenu("Rendering/Probe Volume")]
     public partial class ProbeVolume : MonoBehaviour
     {
         /// <summary>Indicates which renderers should be considerer for the Probe Volume bounds when baking</summary>

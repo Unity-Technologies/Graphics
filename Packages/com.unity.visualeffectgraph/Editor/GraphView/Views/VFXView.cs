@@ -1864,12 +1864,13 @@ namespace UnityEditor.VFX.UI
                 return controllers
                     .Where(x => !x.isSubgraphActivation)
                     .Select(t => (Port)GetDataAnchorByController(t))
+                    .Where(t => t != null)
                     .ToList();
             }
             else
             {
                 var controllers = controller.GetCompatiblePorts((startAnchor as VFXFlowAnchor).controller, nodeAdapter);
-                return controllers.Select(t => (Port)GetFlowAnchorByController(t)).ToList();
+                return controllers.Select(t => (Port)GetFlowAnchorByController(t)).Where(t => t != null).ToList();
             }
         }
 
