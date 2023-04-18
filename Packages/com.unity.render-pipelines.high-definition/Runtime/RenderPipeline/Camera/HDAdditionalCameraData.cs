@@ -455,7 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float deExposureMultiplier = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
-        FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
+        FrameSettings m_RenderingPathCustomFrameSettings = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);
 
         /// <summary>Mask specifying which frame settings are overridden when using custom frame settings.</summary>
         public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;

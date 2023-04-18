@@ -18,31 +18,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal bool largeLabelWidth = true;
 
-        static Editor s_CachedDefaultVolumeProfileEditor;
-        static Editor s_CachedLookDevVolumeProfileEditor;
-        static int s_CurrentVolumeProfileInstanceID;
-
-        static Type s_VolumeProfileEditorType = Type.GetType("UnityEditor.Rendering.VolumeProfileEditor");
+        Editor m_DefaultVolumeProfileEditor;
+        Editor m_LookDevVolumeProfileEditor;
 
         internal Editor GetDefaultVolumeProfileEditor(VolumeProfile asset)
         {
-            // The state of the profile can change without the asset reference changing so in this case we need to reset the editor.
-            if (s_CurrentVolumeProfileInstanceID != asset.GetInstanceID() && s_CachedDefaultVolumeProfileEditor != null)
-            {
-                s_CurrentVolumeProfileInstanceID = asset.GetInstanceID();
-                UnityEngine.Object.DestroyImmediate(s_CachedDefaultVolumeProfileEditor);
-                s_CachedDefaultVolumeProfileEditor = null;
-            }
-
-            Editor.CreateCachedEditor(asset, s_VolumeProfileEditorType, ref s_CachedDefaultVolumeProfileEditor);
-
-            return s_CachedDefaultVolumeProfileEditor;
+            CreateCachedEditor(asset, typeof(VolumeProfileEditor), ref m_DefaultVolumeProfileEditor);
+            var editor = m_DefaultVolumeProfileEditor as VolumeProfileEditor;
+            editor.componentList.SetIsGlobalDefaultVolumeProfile(true);
+            return m_DefaultVolumeProfileEditor;
         }
 
         internal Editor GetLookDevDefaultVolumeProfileEditor(VolumeProfile lookDevAsset)
         {
-            Editor.CreateCachedEditor(lookDevAsset, s_VolumeProfileEditorType, ref s_CachedLookDevVolumeProfileEditor);
-            return s_CachedLookDevVolumeProfileEditor;
+            CreateCachedEditor(lookDevAsset, typeof(VolumeProfileEditor), ref m_LookDevVolumeProfileEditor);
+            return m_LookDevVolumeProfileEditor;
         }
 
         void OnEnable()
@@ -54,11 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private void OnDisable()
         {
-            if (s_CachedDefaultVolumeProfileEditor != null)
-                UnityEngine.Object.DestroyImmediate(s_CachedDefaultVolumeProfileEditor);
-
-            if (s_CachedLookDevVolumeProfileEditor != null)
-                UnityEngine.Object.DestroyImmediate(s_CachedLookDevVolumeProfileEditor);
+            CoreUtils.Destroy(m_DefaultVolumeProfileEditor);
+            CoreUtils.Destroy(m_LookDevVolumeProfileEditor);
 
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }

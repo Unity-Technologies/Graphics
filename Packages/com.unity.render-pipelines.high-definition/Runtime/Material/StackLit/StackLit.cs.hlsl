@@ -194,7 +194,7 @@ struct SurfaceData
     float3 coatExtinction;
     uint diffusionProfileHash;
     float subsurfaceMask;
-    float transmissionMask;
+    float3 transmissionMask;
     float thickness;
     float specularOcclusionCustomInput;
     float soFixupVisibilityRatioThreshold;
@@ -463,7 +463,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.subsurfaceMask.xxx;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_TRANSMISSION_MASK:
-            result = surfacedata.transmissionMask.xxx;
+            result = surfacedata.transmissionMask;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS:
             result = surfacedata.thickness.xxx;

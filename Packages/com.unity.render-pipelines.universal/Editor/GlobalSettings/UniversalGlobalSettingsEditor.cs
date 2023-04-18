@@ -8,7 +8,6 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(UniversalRenderPipelineGlobalSettings))]
     sealed class UniversalGlobalSettingsEditor : Editor
     {
-
         [MenuItem("Assets/Create/Rendering/URP Global Settings Asset", priority = CoreUtils.Sections.section4 + 2)]
         internal static void CreateAsset()
         {
@@ -17,26 +16,16 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedUniversalRenderPipelineGlobalSettings m_SerializedGlobalSettings;
 
-        static Editor s_CachedDefaultVolumeProfileEditor;
-        static int s_CurrentVolumeProfileInstanceID;
-
-        static Type s_VolumeProfileEditorType = Type.GetType("UnityEditor.Rendering.VolumeProfileEditor");
+        Editor m_DefaultVolumeProfileEditor;
+        Editor m_LookDevVolumeProfileEditor;
 
         internal Editor GetDefaultVolumeProfileEditor(VolumeProfile asset)
         {
-            // The state of the profile can change without the asset reference changing so in this case we need to reset the editor.
-            if (s_CurrentVolumeProfileInstanceID != asset.GetInstanceID() && s_CachedDefaultVolumeProfileEditor != null)
-            {
-                s_CurrentVolumeProfileInstanceID = asset.GetInstanceID();
-                UnityEngine.Object.DestroyImmediate(s_CachedDefaultVolumeProfileEditor);
-                s_CachedDefaultVolumeProfileEditor = null;
-            }
-
-            Editor.CreateCachedEditor(asset, s_VolumeProfileEditorType, ref s_CachedDefaultVolumeProfileEditor);
-
-            return s_CachedDefaultVolumeProfileEditor;
+            CreateCachedEditor(asset, typeof(VolumeProfileEditor), ref m_DefaultVolumeProfileEditor);
+            var editor = m_DefaultVolumeProfileEditor as VolumeProfileEditor;
+            editor.componentList.SetIsGlobalDefaultVolumeProfile(true);
+            return m_DefaultVolumeProfileEditor;
         }
-
 
         void OnEnable()
         {
@@ -47,8 +36,7 @@ namespace UnityEditor.Rendering.Universal
 
         void OnDisable()
         {
-            if (s_CachedDefaultVolumeProfileEditor != null)
-                UnityEngine.Object.DestroyImmediate(s_CachedDefaultVolumeProfileEditor);
+            CoreUtils.Destroy(m_DefaultVolumeProfileEditor);
 
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }

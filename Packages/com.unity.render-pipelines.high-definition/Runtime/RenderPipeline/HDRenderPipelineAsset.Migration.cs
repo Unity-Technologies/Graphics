@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RemovalOfUpscaleFilter,
             CombinedPlanarAndCubemapReflectionAtlases,
             APVByDefault,
+            MergeDitheringAndLODQualitySetting,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -278,8 +279,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     data.m_RenderPipelineSettings.lightProbeSystem = RenderPipelineSettings.LightProbeSystem.ProbeVolumes;
                 }
-            })
+            }),
 #pragma warning restore 618
+            MigrationStep.New(Version.MergeDitheringAndLODQualitySetting, (HDRenderPipelineAsset data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                if (data.m_RenderPipelineSettings.m_ObsoleteSupportDitheringCrossFade)
+                {
+                    var qualitySettings = QualitySettings.names;
+                    for (int i = 0; i < qualitySettings.Length; i++)
+                    {
+                        QualitySettings.SetQualityLevel(i,false);
+                        if (QualitySettings.renderPipeline == data)
+                        {
+                            QualitySettings.enableLODCrossFade = true;
+                        }
+                    }
+                }
+#pragma warning restore 618
+            })
             );
         #endregion
 

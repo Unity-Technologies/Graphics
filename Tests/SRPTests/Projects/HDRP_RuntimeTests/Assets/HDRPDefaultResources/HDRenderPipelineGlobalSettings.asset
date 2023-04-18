@@ -116,6 +116,8 @@ MonoBehaviour:
   useDLSSCustomProjectId: 0
   supportProbeVolumes: 1
   autoRegisterDiffusionProfiles: 0
+  analyticDerivativeEmulation: 0
+  analyticDerivativeDebugOutput: 0
   apvScenesData:
     m_ObsoleteSerializedBakingSets: []
     sceneToBakingSet:
@@ -135,7 +137,12 @@ MonoBehaviour:
       m_Keys:
       - 5028fc98db6fe304c90852113dca5b00
       m_Values: 01
-  m_Version: 8
+  m_Version: 9
+  m_ShaderStrippingSetting:
+    m_Version: 0
+    m_ExportShaderVariants: 1
+    m_ShaderVariantLogLevel: 0
+    m_StripRuntimeDebugShaders: 1
   m_ShaderVariantLogLevel: 0
   m_SupportRuntimeDebugDisplay: 0
   m_ExportShaderVariants: 1

@@ -22,5 +22,7 @@ namespace UnityEditor.ShaderGraph
         {
             return AnyConnectedControl<PositionControl>();
         }
+
+        public bool IsVFXCompatible() => m_Graph.hasVFXCompatibleTarget;
     }
 }

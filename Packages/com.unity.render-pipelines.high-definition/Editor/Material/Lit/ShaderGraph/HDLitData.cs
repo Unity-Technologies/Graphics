@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             Iridescence = 1 << MaterialId.LitIridescence,
             SpecularColor = 1 << MaterialId.LitSpecular,
             Translucent = 1 << MaterialId.LitTranslucent,
+            ColoredTranslucent = 1 << MaterialId.LitColoredTranslucent,
         }
 
         [SerializeField]

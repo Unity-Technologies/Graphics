@@ -547,8 +547,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         // TODO: Need a better way to handle this
-#if VFX_GRAPH_10_0_0_OR_NEWER
         public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.SupportsVFX());
+#if VFX_GRAPH_10_0_0_OR_NEWER
         public bool hasVFXTarget
         {
             get
@@ -1696,7 +1696,7 @@ namespace UnityEditor.ShaderGraph
 
         void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propertyNode, bool deleteNodeIfNoConcreteFormExists = true)
         {
-            var property = properties.FirstOrDefault(x => x == propertyNode.property);
+            var property = properties.FirstOrDefault(x => x == propertyNode.property) ?? propertyNode.property;
             if (property == null)
                 return;
 

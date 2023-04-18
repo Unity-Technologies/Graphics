@@ -568,14 +568,51 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
         }
 
+        static Editor s_VolumeProfileEditor;
         static void DrawVolumes(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(serialized.qualityDefaultVolumeProfileProp, Styles.qualityDefaultVolumeProfileLabel);
-            if (EditorGUI.EndChangeCheck())
-                VolumeManager.instance.SetQualityDefaultProfile(serialized.qualityDefaultVolumeProfileProp.objectReferenceValue as VolumeProfile);
-
             CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, serialized.volumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(serialized.volumeProfileProp, Styles.volumeProfileLabel);
+            var profile = serialized.volumeProfileProp.objectReferenceValue as VolumeProfile;
+            if (EditorGUI.EndChangeCheck() && UniversalRenderPipeline.asset == serialized.serializedObject.targetObject)
+                VolumeManager.instance.SetQualityDefaultProfile(serialized.volumeProfileProp.objectReferenceValue as VolumeProfile);
+
+            var contextMenuButtonRect = GUILayoutUtility.GetRect(CoreEditorStyles.contextMenuIcon,
+                Styles.volumeProfileContextMenuStyle.Value);
+            if (GUI.Button(contextMenuButtonRect, CoreEditorStyles.contextMenuIcon,
+                    Styles.volumeProfileContextMenuStyle.Value))
+            {
+                var srpAsset = serialized.serializedObject.targetObject as UniversalRenderPipelineAsset;
+                var pos = new Vector2(contextMenuButtonRect.x, contextMenuButtonRect.yMax);
+                VolumeProfileUtils.OnVolumeProfileContextClick(pos, s_VolumeProfileEditor as VolumeProfileEditor,
+                    defaultVolumeProfilePath: $"Assets/{srpAsset.name}_VolumeProfile.asset",
+                    onNewVolumeProfileCreated: volumeProfile =>
+                    {
+                        Undo.RecordObject(srpAsset, "Set UniversalRenderPipelineAsset Volume Profile");
+                        srpAsset.volumeProfile = volumeProfile;
+                        if (UniversalRenderPipeline.asset == srpAsset)
+                            VolumeManager.instance.SetQualityDefaultProfile(volumeProfile);
+                        EditorUtility.SetDirty(srpAsset);
+                    });
+            }
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(2);
+
+            if (profile != null)
+            {
+                Editor.CreateCachedEditor(profile, typeof(VolumeProfileEditor), ref s_VolumeProfileEditor);
+                bool oldEnabled = GUI.enabled;
+                GUI.enabled = AssetDatabase.IsOpenForEdit(profile);
+                s_VolumeProfileEditor.OnInspectorGUI();
+                GUI.enabled = oldEnabled;
+            }
+            else
+            {
+                CoreUtils.Destroy(s_VolumeProfileEditor);
+            }
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER

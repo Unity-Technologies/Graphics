@@ -363,7 +363,7 @@ namespace UnityEngine.Rendering.Universal
             m_TargetDepthHandle?.Release();
             ReleaseRenderTargets();
 
-            DebugHandler?.Dispose();
+            base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
@@ -375,6 +375,10 @@ namespace UnityEngine.Rendering.Universal
             CleanupRenderGraphResources();
 
             LensFlareCommonSRP.Dispose();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            Experimental.Rendering.XRSystem.Dispose();
+#endif
         }
 
         internal override void ReleaseRenderTargets()
@@ -624,7 +628,7 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
-            bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.cameraType == CameraType.Preview;
+            bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.isPreviewCamera;
             useDepthPriming = IsDepthPrimingEnabled(ref cameraData);
             // This indicates whether the renderer will output a depth texture.
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || useDepthPriming;
@@ -737,12 +741,13 @@ namespace UnityEngine.Rendering.Universal
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
-                //Scene filtering redraws the objects on top of the resulting frame. It has to draw directly to the sceneview buffer.
+                // Scene filtering redraws the objects on top of the resulting frame. It has to draw directly to the sceneview buffer.
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
                 bool intermediateRenderTexture = (createColorTexture || createDepthTexture) && !sceneViewFilterEnabled;
 
                 // RTHandles do not support combining color and depth in the same texture so we create them separately
-                createDepthTexture = intermediateRenderTexture;
+                // Should be independent from filtered scene view
+                createDepthTexture |= createColorTexture;
 
                 RenderTargetIdentifier targetId = BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1570,8 +1575,8 @@ namespace UnityEngine.Rendering.Universal
                 isCompatibleBackbufferTextureDimension = cameraData.xr.renderTargetDesc.dimension == cameraTargetDescriptor.dimension;
             }
 #endif
-
-            bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
+            bool postProcessEnabled = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
+            bool requiresBlitForOffscreenCamera = postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 

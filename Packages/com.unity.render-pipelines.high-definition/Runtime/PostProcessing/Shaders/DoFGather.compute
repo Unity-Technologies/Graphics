@@ -10,10 +10,12 @@
 
 #pragma multi_compile _ ENABLE_ALPHA
 #pragma multi_compile _ HIGH_QUALITY
+#pragma multi_compile _ FORCE_POINT_SAMPLING 
 
 CBUFFER_START(cb0)
 float4 _Params;
 float4 _Params2;
+float4 _Params3;
 CBUFFER_END
 
 #define NumRings            _Params.x
@@ -23,6 +25,7 @@ CBUFFER_END
 #define MaxColorMip         _Params2.y
 #define OneOverResScale     _Params2.z
 #define ResScale            _Params2.w
+#define AdaptiveSamplingWeights _Params3.xy
 
 // Outpute texture
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);

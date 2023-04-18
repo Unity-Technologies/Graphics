@@ -24,7 +24,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             HDRenderPipeline.currentPipeline?.ResetPathTracing();
-
+#if UNITY_EDITOR
+            HDRenderPipeline.currentPipeline?.UpdateDecalSystemShaderGraphs();
+#endif
+            
             if (!hdSaveContext.updateMaterials)
                 return;
 

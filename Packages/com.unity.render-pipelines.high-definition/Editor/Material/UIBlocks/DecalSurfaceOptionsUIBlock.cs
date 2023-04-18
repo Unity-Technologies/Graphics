@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent affectSmoothnessText = new GUIContent("Affect Smoothness", "When enabled, this decal uses the smoothness channel of its Mask Map. When disabled, the decal has no smoothness effect.");
             public static GUIContent affectEmissionText = new GUIContent("Affect Emission", "When enabled, this decal becomes emissive and appears self-illuminated. Affect Emission does not support Affects Transparents option on Decal Projector.");
             public static GUIContent supportLodCrossFadeText = new GUIContent("Support LOD CrossFade", "When enabled, this decal material supports LOD Cross fade if use on a Mesh.");
+            public static GUIContent transparentDynamicUpdateText = new GUIContent("Transparent Dynamic Update", "When enabled, the decal will update the transparent decal atlas every frame. This has a performance impact.");
         }
 
         MaterialProperty affectsAlbedo = new MaterialProperty();
@@ -27,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty affectsAO = new MaterialProperty();
         MaterialProperty affectsSmoothness = new MaterialProperty();
         MaterialProperty affectsEmission = new MaterialProperty();
+        MaterialProperty transparentDynamicUpdate = new MaterialProperty();
 
         /// <summary>
         /// Constructs a DecalSurfaceOptionsUIBlock based on the parameters.
@@ -48,6 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
             affectsAO = FindProperty(kAffectAO);
             affectsSmoothness = FindProperty(kAffectSmoothness);
             affectsEmission = FindProperty(kAffectEmission);
+            transparentDynamicUpdate = FindProperty(kTransparentDynamicUpdateDecals);
         }
 
         /// <summary>
@@ -86,6 +89,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.HelpBox("Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals. There is a performance cost of enabling this option.",
                     MessageType.Info);
             }
+
+            if (transparentDynamicUpdate != null)
+                materialEditor.ShaderProperty(transparentDynamicUpdate, Styles.transparentDynamicUpdateText);
         }
     }
 }

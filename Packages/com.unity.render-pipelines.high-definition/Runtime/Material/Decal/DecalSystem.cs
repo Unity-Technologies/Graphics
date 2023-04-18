@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -16,10 +17,27 @@ namespace UnityEngine.Rendering.HighDefinition
             DecalProjectorForwardEmissive = 1,
             DBufferMesh = 2,
             DecalMeshForwardEmissive = 3,
+            AtlasProjector = 4
         };
 
         public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
         public static readonly string s_AtlasSizeWarningMessage = "Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset";
+
+        static class DecalShaderIds
+        {
+            // Outputs that are affected
+            public static readonly int _AffectAlbedo = Shader.PropertyToID(HDMaterialProperties.kAffectAlbedo);
+            public static readonly int _AffectNormal = Shader.PropertyToID(HDMaterialProperties.kAffectNormal);
+            public static readonly int _AffectMetal = Shader.PropertyToID(HDMaterialProperties.kAffectMetal);
+            public static readonly int _AffectAO = Shader.PropertyToID(HDMaterialProperties.kAffectAO);
+            public static readonly int _AffectSmoothness = Shader.PropertyToID(HDMaterialProperties.kAffectSmoothness);
+
+            // Shader graph atlas texture pass properties
+            public static readonly int _DiffuseScaleBias = Shader.PropertyToID("_DiffuseScaleBias");
+            public static readonly int _NormalScaleBias = Shader.PropertyToID("_NormalScaleBias");
+            public static readonly int _MaskScaleBias = Shader.PropertyToID("_MaskScaleBias");
+            public static readonly int _TextureTypes = Shader.PropertyToID("_TextureTypes");
+        }
 
         public class CullResult : IDisposable
         {
@@ -223,6 +241,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public IntScalableSetting transparentTextureResolution
+        {
+            get
+            {
+                HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
+                if (hdrp != null)
+                {
+                    return hdrp.currentPlatformRenderPipelineSettings.decalSettings.transparentTextureResolution;
+                }
+                else
+                {
+                    return new IntScalableSetting(new int[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels);
+                }
+            }
+        }
+
         public Camera CurrentCamera
         {
             get
@@ -236,6 +270,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private const int kDecalBlockSize = 128;
+        private const int kDecalBlockGrowthPercentage = 20;
+        private const int kDecalMaxBlockSize = 2048;
 
         // to work on Vulkan Mobile?
         // Core\CoreRP\ShaderLibrary\UnityInstancing.hlsl
@@ -274,6 +310,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool m_AllocationSuccess = true;
         public bool m_PrevAllocationSuccess = true;
 
+#if UNITY_EDITOR
+        private bool m_ShaderGraphSaved = false;
+        private bool m_ShaderGraphSaveRequested = false;
+#endif
+
         public Texture2DAtlas Atlas
         {
             get
@@ -288,13 +329,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public class TextureScaleBias : IComparable
         {
-            public Texture m_Texture = null;
+            public Texture texture => m_Texture;
+            public int width => m_Width;
+            public int height => m_Height;
+            public bool blitTexture => m_BlitTexture;
+            public bool updateTexture
+            {
+                get => m_UpdateTexture;
+                set => m_UpdateTexture = value;
+            }
+
+            private Texture m_Texture = null;
             public Vector4 m_ScaleBias = Vector4.zero;
+            private int m_Width = 0;
+            private int m_Height = 0;
+            private bool m_BlitTexture = true;
+            private bool m_UpdateTexture = false;
             public int CompareTo(object obj)
             {
                 TextureScaleBias other = obj as TextureScaleBias;
-                int size = m_Texture.width * m_Texture.height;
-                int otherSize = other.m_Texture.width * other.m_Texture.height;
+                int size = width * height;
+                int otherSize = other.width * other.height;
                 if (size > otherSize)
                 {
                     return -1;
@@ -313,10 +368,77 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_Texture = texture;
                 m_ScaleBias = scaleBias;
+                if (m_Texture != null)
+                {
+                    m_Width = texture.width;
+                    m_Height = texture.height;
+                }
+                else
+                    m_Width = m_Height = 0;
+            }
+
+            public void Initialize(int textureSize, Vector4 scaleBias)
+            {
+                // If transparency is not used no textures should be created
+                if (textureSize == 0)
+                {
+                    m_Texture = null;
+                }
+                // For shader graphs only create a 1x1 texture to get a correct index for the atlas
+                // Recreate this texture in case the resolution changes to reallocate it
+                else if (m_Texture == null || m_Width != textureSize || m_Height != textureSize)
+                {
+                    m_Texture = new Texture2D(1, 1);
+                }
+                m_Width = m_Height = textureSize;
+                m_ScaleBias = scaleBias;
+                m_BlitTexture = false;
+                m_UpdateTexture = false;
             }
         }
 
         private List<TextureScaleBias> m_TextureList = new List<TextureScaleBias>();
+
+        struct ShaderGraphData
+        {
+            public TextureScaleBias diffuse;
+            public TextureScaleBias normal;
+            public TextureScaleBias mask;
+            public Material material;
+            public int passIndex;
+            public bool updateTexture;
+            public MaterialPropertyBlock propertyBlock;
+
+            public bool HasTexture(Decal.DecalAtlasTextureType type)
+            {
+                switch (type)
+                {
+                    case Decal.DecalAtlasTextureType.Diffuse:
+                        return diffuse.texture != null;
+                    case Decal.DecalAtlasTextureType.Normal:
+                        return normal.texture != null;
+                    case Decal.DecalAtlasTextureType.Mask:
+                        return mask.texture != null;
+                }
+                return false;
+            }
+
+            public bool UpdateTexture(Decal.DecalAtlasTextureType type)
+            {
+                switch (type)
+                {
+                    case Decal.DecalAtlasTextureType.Diffuse:
+                        return diffuse.updateTexture;
+                    case Decal.DecalAtlasTextureType.Normal:
+                        return normal.updateTexture;
+                    case Decal.DecalAtlasTextureType.Mask:
+                        return mask.updateTexture;
+                }
+                return false;
+            }
+        }
+        private List<ShaderGraphData> m_ShaderGraphList = new List<ShaderGraphData>();
+        private List<int> m_ShaderGraphVertexCount = new List<int>();
 
         static public bool IsHDRenderPipelineDecal(Shader shader)
         {
@@ -347,6 +469,38 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private partial class DecalSet : IDisposable
         {
+            enum AffectAttribute
+            {
+                _AffectAlbedo       = 1 << 0,
+                _AffectNormal       = 1 << 1,
+                _AffectMetal        = 1 << 2,
+                _AffectAO           = 1 << 3,
+                _AffectSmoothness   = 1 << 4
+            }
+
+            int GetAttributeFlag(int nameId, AffectAttribute attribute)
+            {
+                if (m_Material.HasProperty(nameId))
+                {
+                    return m_Material.GetFloat(nameId) != 0.0f ? (int)attribute : 0;
+                }
+                return 0;
+            }
+
+            private int GetAffectFlags()
+            {
+                return GetAttributeFlag(DecalShaderIds._AffectAlbedo, AffectAttribute._AffectAlbedo)
+                    | GetAttributeFlag(DecalShaderIds._AffectNormal, AffectAttribute._AffectNormal)
+                    | GetAttributeFlag(DecalShaderIds._AffectMetal, AffectAttribute._AffectMetal)
+                    | GetAttributeFlag(DecalShaderIds._AffectAO, AffectAttribute._AffectAO)
+                    | GetAttributeFlag(DecalShaderIds._AffectSmoothness, AffectAttribute._AffectSmoothness);
+            }
+
+            private bool HasAffectFlagSet(AffectAttribute attribute, int affectFlags)
+            {
+                return (affectFlags & (int)attribute) != 0;
+            }
+
             public void InitializeMaterialValues()
             {
                 if (m_Material == null)
@@ -386,18 +540,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     // convert to float
                     m_BlendParams.z = (float)affectFlags;
 
-                    m_ScalingBAndRemappingM = new Vector4(0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f, 0.0f);
+                    m_SampleNormalAlpha = 0.0f;
+                    m_ScalingBlueMaskMap = m_Material.GetFloat("_DecalMaskMapBlueScale");
                     // If we have a texture, we use the remapping parameter, otherwise we use the regular one and the default texture is white
                     if (m_Material.GetTexture("_MaskMap"))
                     {
                         m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
-                        m_ScalingBAndRemappingM.z = m_Material.GetFloat("_MetallicRemapMin");
-                        m_ScalingBAndRemappingM.w = m_Material.GetFloat("_MetallicRemapMax");
+                        m_RemappingMetallic.x = m_Material.GetFloat("_MetallicRemapMin");
+                        m_RemappingMetallic.y = m_Material.GetFloat("_MetallicRemapMax");
                     }
                     else
                     {
                         m_RemappingAOS = new Vector4(m_Material.GetFloat("_AO"), m_Material.GetFloat("_AO"), m_Material.GetFloat("_Smoothness"), m_Material.GetFloat("_Smoothness"));
-                        m_ScalingBAndRemappingM.z = m_Material.GetFloat("_Metallic");
+                        m_RemappingMetallic.x = m_Material.GetFloat("_Metallic");
                     }
 
                     // For HDRP/Decal, pass are always present but can be enabled/disabled
@@ -411,7 +566,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
+                    int affectFlags = GetAffectFlags();
+                    // Diffuse is always added to ensure we have an alpha value
+                    m_Diffuse.Initialize(m_MaxShaderGraphTextureSize, Vector4.zero);
+
+                    bool outputNormal = HasAffectFlagSet(AffectAttribute._AffectNormal, affectFlags);
+                    m_Normal.Initialize(outputNormal ? m_MaxShaderGraphTextureSize : 0, Vector4.zero);
+
+                    bool outputMask = HasAffectFlagSet(AffectAttribute._AffectMetal, affectFlags) |
+                        HasAffectFlagSet(AffectAttribute._AffectAO, affectFlags) |
+                        HasAffectFlagSet(AffectAttribute._AffectSmoothness, affectFlags);
+                    m_Mask.Initialize(outputMask ? m_MaxShaderGraphTextureSize : 0, Vector4.zero);
+
+                    // Constant values that are modified within the graph
                     m_Blend = 1.0f;
+                    m_BaseColor = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                    // Blend mode selection can be done directly in the graph so use constant values
+                    float normalBlendSrc = 0.0f;
+                    float maskBlendSrc = 1.0f;
+                    m_BlendParams = new Vector3(normalBlendSrc, maskBlendSrc, (float)affectFlags);
+                    
+                    m_SampleNormalAlpha = 1.0f;
+                    // Metallic, AO and Smoothness remapping can be done directly in the shader graph
+                    // By hard coding those values we do an additional lerp within EvalDecalMask which could be avoided
+                    float remapMin = 0.0f;
+                    float remapMax = 1.0f;
+                    // This scale can be applied in the shader graph by multiplying the MAOS alpha
+                    m_ScalingBlueMaskMap = 1.0f;
+                    m_RemappingMetallic = new Vector2(remapMin, remapMax);
+                    m_RemappingAOS = new Vector4(remapMin, remapMax, remapMin, remapMax);
+                    
                     // With ShaderGraph it is possible that the pass isn't generated. But if it is, it can be disabled.
                     m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]);
                     if (m_cachedProjectorPassValue != -1 && m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]) == false)
@@ -419,6 +603,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.DecalProjectorForwardEmissive]);
                     if (m_cachedProjectorEmissivePassValue != -1 && m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DecalProjectorForwardEmissive]) == false)
                         m_cachedProjectorEmissivePassValue = -1;
+                    m_cachedAtlasProjectorPassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.AtlasProjector]);
+                    if (m_cachedAtlasProjectorPassValue != -1 && m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.AtlasProjector]) == false)
+                        m_cachedAtlasProjectorPassValue = -1;
+
+                    if (m_Material.HasProperty(HDShaderIDs._TransparentDynamicUpdateDecals))
+                    {
+                        m_UpdateShaderGraphTexture |= m_Material.GetFloat(HDShaderIDs._TransparentDynamicUpdateDecals) == 1.0f;
+                    }
+
+                    int materialCRC = m_Material.ComputeCRC();
+                    if (materialCRC != m_MaterialCRC)
+                    {
+                        m_UpdateShaderGraphTexture = true;
+                        m_MaterialCRC = materialCRC;
+                    }
                 }
             }
 
@@ -479,6 +678,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CachedSceneLayerMask[index] = data.sceneLayerMask;
                 m_CachedFadeFactor[index] = data.fadeFactor;
                 m_CachedDecalLayerMask[index] = data.decalLayerMask;
+                m_CachedShaderGraphTextureSize[index] = decalProjector.TransparentTextureResolution;
 
                 UpdateCachedDrawOrder();
 
@@ -504,11 +704,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // increase array size if no space left
                 if (m_DecalsCount == m_Handles.Length)
                 {
-                    int newCapacity = m_DecalsCount + kDecalBlockSize;
+                    int growByAmount = Math.Min(Math.Max(m_DecalsCount * kDecalBlockGrowthPercentage / 100, kDecalBlockSize), kDecalMaxBlockSize);
+                    int newCapacity = m_DecalsCount + growByAmount;
 
                     m_ResultIndices = new int[newCapacity];
 
-                    ResizeJobArrays(newCapacity);
+                    GrowJobArrays(growByAmount);
 
                     ArrayExtensions.ResizeArray(ref m_Handles, newCapacity);
                     ArrayExtensions.ResizeArray(ref m_CachedDrawDistances, newCapacity);
@@ -519,6 +720,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ArrayExtensions.ResizeArray(ref m_CachedSceneLayerMask, newCapacity);
                     ArrayExtensions.ResizeArray(ref m_CachedDecalLayerMask, newCapacity);
                     ArrayExtensions.ResizeArray(ref m_CachedFadeFactor, newCapacity);
+                    ArrayExtensions.ResizeArray(ref m_CachedShaderGraphTextureSize, newCapacity);
                 }
 
                 DecalHandle decalHandle = new DecalHandle(m_DecalsCount, materialID);
@@ -531,20 +733,22 @@ namespace UnityEngine.Rendering.HighDefinition
             public void RemoveDecal(DecalHandle handle)
             {
                 int removeAtIndex = handle.m_Index;
+                int lastIndex = m_DecalsCount - 1;
                 // replace with last decal in the list and update index
-                m_Handles[removeAtIndex] = m_Handles[m_DecalsCount - 1]; // move the last decal in list
+                m_Handles[removeAtIndex] = m_Handles[lastIndex]; // move the last decal in list
                 m_Handles[removeAtIndex].m_Index = removeAtIndex;
-                m_Handles[m_DecalsCount - 1] = null;
+                m_Handles[lastIndex] = null;
 
                 // update cached data
                 RemoveFromJobArrays(removeAtIndex);
-                m_CachedDrawDistances[removeAtIndex] = m_CachedDrawDistances[m_DecalsCount - 1];
-                m_CachedAngleFade[removeAtIndex] = m_CachedAngleFade[m_DecalsCount - 1];
-                m_CachedUVScaleBias[removeAtIndex] = m_CachedUVScaleBias[m_DecalsCount - 1];
-                m_CachedAffectsTransparency[removeAtIndex] = m_CachedAffectsTransparency[m_DecalsCount - 1];
-                m_CachedLayerMask[removeAtIndex] = m_CachedLayerMask[m_DecalsCount - 1];
-                m_CachedSceneLayerMask[removeAtIndex] = m_CachedSceneLayerMask[m_DecalsCount - 1];
-                m_CachedFadeFactor[removeAtIndex] = m_CachedFadeFactor[m_DecalsCount - 1];
+                m_CachedDrawDistances[removeAtIndex] = m_CachedDrawDistances[lastIndex];
+                m_CachedAngleFade[removeAtIndex] = m_CachedAngleFade[lastIndex];
+                m_CachedUVScaleBias[removeAtIndex] = m_CachedUVScaleBias[lastIndex];
+                m_CachedAffectsTransparency[removeAtIndex] = m_CachedAffectsTransparency[lastIndex];
+                m_CachedLayerMask[removeAtIndex] = m_CachedLayerMask[lastIndex];
+                m_CachedSceneLayerMask[removeAtIndex] = m_CachedSceneLayerMask[lastIndex];
+                m_CachedFadeFactor[removeAtIndex] = m_CachedFadeFactor[lastIndex];
+                m_CachedShaderGraphTextureSize[removeAtIndex] = m_CachedShaderGraphTextureSize[lastIndex];
                 m_DecalsCount--;
                 handle.m_Index = kInvalidIndex;
             }
@@ -645,7 +849,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ((m_Material != null) && (m_NumResults > 0));
             }
 
-            public void CreateDrawData()
+            public void CreateDrawData(IntScalableSetting transparentTextureResolution)
             {
                 int instanceCount = 0;
                 int batchCount = 0;
@@ -654,6 +858,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Matrix4x4[] normalToWorldBatch = null;
                 float[] decalLayerMaskBatch = null;
                 bool anyAffectTransparency = false;
+                int maxTextureSize = 0;
 
                 AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, ref decalLayerMaskBatch, batchCount);
 
@@ -702,7 +907,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                                 m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
                                 m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
-                                m_DecalDatas[m_DecalDatasCount].scalingBAndRemappingM = m_ScalingBAndRemappingM;
+                                m_DecalDatas[m_DecalDatasCount].remappingMetallic = m_RemappingMetallic;
+                                m_DecalDatas[m_DecalDatasCount].scalingBlueMaskMap = m_ScalingBlueMaskMap;
+                                m_DecalDatas[m_DecalDatasCount].sampleNormalAlpha = m_SampleNormalAlpha;
                                 m_DecalDatas[m_DecalDatasCount].decalLayerMask = (uint)m_CachedDecalLayerMask[decalIndex];
 
                                 // we have not allocated the textures in atlas yet, so only store references to them
@@ -725,12 +932,38 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
                     }
+
+                    // Max texture size is independent of the culling
+                    if (!m_IsHDRenderPipelineDecal)
+                        maxTextureSize = Math.Max(m_CachedShaderGraphTextureSize[decalIndex].Value(transparentTextureResolution), maxTextureSize);
                 }
 
                 // only add if any projectors in this decal set affect transparency, doesn't actually allocate textures in the atlas yet, this is because we want all the textures in the list so we can optimize the packing
                 if (anyAffectTransparency)
                 {
                     AddToTextureList(ref instance.m_TextureList);
+                    if (!m_IsHDRenderPipelineDecal)
+                    {
+                        ShaderGraphData data;
+                        data.diffuse = m_Diffuse;
+                        data.normal = m_Normal;
+                        data.mask = m_Mask;
+                        data.material = m_Material;
+                        data.passIndex = m_cachedAtlasProjectorPassValue;
+                        data.updateTexture = m_UpdateShaderGraphTexture;
+                        data.propertyBlock = m_PropertyBlock;
+                        instance.m_ShaderGraphList.Add(data);
+
+                        if (m_MaxShaderGraphTextureSize != maxTextureSize)
+                        {
+                            // The update is delayed by one frame. This ensures that InitializeMaterialValues is called with the new texture size
+                            // By doing this we avoid looping over all projectors in InitializeMaterialValues
+                            m_UpdateShaderGraphTexture = true;
+                            m_MaxShaderGraphTextureSize = maxTextureSize;
+                        }
+                        else
+                            m_UpdateShaderGraphTexture = false;
+                    }
                 }
             }
 
@@ -746,15 +979,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void AddToTextureList(ref List<TextureScaleBias> textureList)
             {
-                if (m_Diffuse.m_Texture != null)
+                if (m_Diffuse.texture != null)
                 {
                     textureList.Add(m_Diffuse);
                 }
-                if (m_Normal.m_Texture != null)
+                if (m_Normal.texture != null)
                 {
                     textureList.Add(m_Normal);
                 }
-                if (m_Mask.m_Texture != null)
+                if (m_Mask.texture != null)
                 {
                     textureList.Add(m_Mask);
                 }
@@ -832,6 +1065,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            public bool updateShaderGraphTexture
+            {
+                set
+                {
+                    m_UpdateShaderGraphTexture = value;
+                }
+            }
+
             public int DrawOrder => m_CachedDrawOrder;
 
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
@@ -852,12 +1093,16 @@ namespace UnityEngine.Rendering.HighDefinition
             private RenderingLayerMask[] m_CachedDecalLayerMask = new RenderingLayerMask[kDecalBlockSize];
             private ulong[] m_CachedSceneLayerMask = new ulong[kDecalBlockSize];
             private float[] m_CachedFadeFactor = new float[kDecalBlockSize];
+            private IntScalableSettingValue[] m_CachedShaderGraphTextureSize = new IntScalableSettingValue[kDecalBlockSize];
             private Material m_Material;
             private MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
+            private int m_MaterialCRC = 0;
             private float m_Blend = 0.0f;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
-            private Vector4 m_ScalingBAndRemappingM; // unused, mask map blue, metal remap min, metal remap max
+            private Vector2 m_RemappingMetallic;
+            private float m_ScalingBlueMaskMap;
+            private float m_SampleNormalAlpha;
             private Vector3 m_BlendParams;
 
             private bool m_IsHDRenderPipelineDecal;
@@ -866,6 +1111,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // At the init of material we look for pass index by name and cached the result.
             private int m_cachedProjectorPassValue;
             private int m_cachedProjectorEmissivePassValue;
+            private int m_cachedAtlasProjectorPassValue;
+
+            // Maximum size of the shader graph texture size.
+            // This is used so only a single texture is used for all projectors within this set even if they have different resolutions
+            private int m_MaxShaderGraphTextureSize = 0;
+            private bool m_UpdateShaderGraphTexture = true;
 
             TextureScaleBias m_Diffuse = new TextureScaleBias();
             TextureScaleBias m_Normal = new TextureScaleBias();
@@ -915,12 +1166,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public DecalHandle AddDecal(DecalProjector decalProjector)
         {
             var material = decalProjector.material;
-            SetupMipStreamingSettings(material, true);
 
             DecalSet decalSet = null;
             int key = material != null ? material.GetInstanceID() : kNullMaterialIndex;
             if (!m_DecalSets.TryGetValue(key, out decalSet))
             {
+				SetupMipStreamingSettings(material, true);
                 decalSet = new DecalSet(material);
                 m_DecalSets.Add(key, decalSet);
             }
@@ -947,17 +1198,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void UpdateCachedData(DecalHandle handle, DecalProjector decalProjector)
+        private DecalSet GetDecalSet(DecalHandle handle)
         {
             if (!DecalHandle.IsValid(handle))
-                return;
+                return null;
 
             DecalSet decalSet = null;
             int key = handle.m_MaterialID;
             if (m_DecalSets.TryGetValue(key, out decalSet))
-            {
+                return decalSet;
+            else
+                return null;
+        }
+
+        public void UpdateCachedData(DecalHandle handle, DecalProjector decalProjector)
+        {
+            DecalSet decalSet = GetDecalSet(handle);
+            if (decalSet != null)
                 decalSet.UpdateCachedData(handle, decalProjector);
-            }
+        }
+
+        public void UpdateTransparentShaderGraphTextures(DecalHandle handle, DecalProjector decalProjector)
+        {
+            DecalSet decalSet = GetDecalSet(handle);
+            if (decalSet != null)
+                decalSet.updateShaderGraphTexture = true;
         }
 
         public void BeginCull(CullRequest request)
@@ -1023,15 +1288,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void AddTexture(CommandBuffer cmd, TextureScaleBias textureScaleBias)
         {
-            if (textureScaleBias.m_Texture != null)
+            // In case any shader graphs are rendered we need to recreate the mipmaps for the full texture atlas
+            // In that case we can skip blitting the decal material texture into the atlas
+            bool blitMipmaps = m_ShaderGraphList.Count == 0;
+            if (textureScaleBias.texture != null)
             {
-                if (Atlas.IsCached(out textureScaleBias.m_ScaleBias, textureScaleBias.m_Texture))
+                if (textureScaleBias.blitTexture)
                 {
-                    Atlas.UpdateTexture(cmd, textureScaleBias.m_Texture, ref textureScaleBias.m_ScaleBias);
+                    if (Atlas.IsCached(out textureScaleBias.m_ScaleBias, textureScaleBias.texture))
+                    {
+                        Atlas.UpdateTexture(cmd, textureScaleBias.texture, ref textureScaleBias.m_ScaleBias, true, blitMipmaps);
+                    }
+                    else if (!Atlas.AddTexture(cmd, ref textureScaleBias.m_ScaleBias, textureScaleBias.texture))
+                    {
+                        m_AllocationSuccess = false;
+                    }
                 }
-                else if (!Atlas.AddTexture(cmd, ref textureScaleBias.m_ScaleBias, textureScaleBias.m_Texture))
+                else
                 {
-                    m_AllocationSuccess = false;
+                    if (!Atlas.IsCached(out textureScaleBias.m_ScaleBias, textureScaleBias.texture))
+                    {
+                        if (!Atlas.AllocateTextureWithoutBlit(textureScaleBias.texture.GetInstanceID(), textureScaleBias.width, textureScaleBias.height, ref textureScaleBias.m_ScaleBias))
+                        {
+                            m_AllocationSuccess = false;
+                        }
+                        else
+                        {
+                            textureScaleBias.updateTexture = true;
+                        }
+                    }
                 }
             }
             else
@@ -1044,6 +1329,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void UpdateCachedMaterialData()
         {
             m_TextureList.Clear();
+            m_ShaderGraphList.Clear();
             foreach (var pair in m_DecalSets)
             {
                 pair.Value.InitializeMaterialValues();
@@ -1058,6 +1344,120 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DecalDatas[decalDataIndex].normalScaleBias = m_NormalTextureScaleBias[decalDataIndex].m_ScaleBias;
                 m_DecalDatas[decalDataIndex].maskScaleBias = m_MaskTextureScaleBias[decalDataIndex].m_ScaleBias;
             }
+        }
+
+        class UpdateShaderGraphTexturePassData
+        {
+            public TextureHandle atlasTexture;
+            public List<int> shaderGraphVertexCount;
+            public List<ShaderGraphData> shaderGraphData;
+            public bool updateMipmaps;
+        }
+
+        class UpdateAtlasMipmapsPassData
+        {
+            public TextureHandle atlasTexture;
+        }
+
+        public void UpdateShaderGraphAtlasTextures(RenderGraph renderGraph)
+        {
+#if UNITY_EDITOR
+            // Ensure that the update happens the next frame after the save has been requested to use the new shader graph values
+            if (m_ShaderGraphSaveRequested)
+            {
+                if (!m_ShaderGraphSaved)
+                    m_ShaderGraphSaved = true;
+                else
+                    m_ShaderGraphSaveRequested = false;
+            }
+#endif
+
+            m_ShaderGraphVertexCount.Clear();
+
+            UpdateShaderGraphTexturePassData updatePassData;
+            using (var builder = renderGraph.AddRenderPass<UpdateShaderGraphTexturePassData>("UpdateShaderGraphDecalTexture", out updatePassData, ProfilingSampler.Get(HDProfileId.UpdateShaderGraphDecalTexture)))
+            {
+                updatePassData.atlasTexture = builder.WriteTexture(renderGraph.ImportTexture(Atlas.AtlasTexture));
+                updatePassData.shaderGraphData = m_ShaderGraphList;
+                updatePassData.updateMipmaps = false;
+
+                for (int i = 0; i < m_ShaderGraphList.Count; i++)
+                {
+                    ShaderGraphData shaderGraphData = m_ShaderGraphList[i];
+                    if (shaderGraphData.passIndex == -1)
+                    {
+                        Debug.LogError("Trying to update a shader graph texture with an invalid pass index");
+                        continue;
+                    }
+
+                    int offset = 0;
+                    Vector4 textureTypes = Vector4.zero;
+                    bool updateTextures = false;
+                    for (int textureIndex = 0; textureIndex < (int)Decal.DecalAtlasTextureType.Count; textureIndex++)
+                    {
+                        var type = (Decal.DecalAtlasTextureType)textureIndex;
+                        if (shaderGraphData.HasTexture(type))
+                        {
+                            textureTypes[offset++] = (float)type;
+                            updateTextures |= shaderGraphData.UpdateTexture(type);
+                        }
+                    }
+
+#if UNITY_EDITOR
+                    // If any shader graphs have been saved an update of the textures is forced to ensure the changes are   propagated
+                    if (m_ShaderGraphSaved)
+                        updateTextures = true;
+#endif
+                    m_ShaderGraphVertexCount.Add(offset * 4);
+
+                    // Skip textures if none of them have to be updated
+                    // Updates can either happen through individual textures changes within the atlas or if the entire shader   graph is dynamic
+                    if (!updateTextures && !shaderGraphData.updateTexture)
+                        continue;
+
+                    shaderGraphData.propertyBlock.SetVector(DecalShaderIds._DiffuseScaleBias, shaderGraphData.diffuse.m_ScaleBias);
+                    shaderGraphData.propertyBlock.SetVector(DecalShaderIds._NormalScaleBias, shaderGraphData.normal.m_ScaleBias);
+                    shaderGraphData.propertyBlock.SetVector(DecalShaderIds._MaskScaleBias, shaderGraphData.mask.m_ScaleBias);
+                    shaderGraphData.propertyBlock.SetVector(DecalShaderIds._TextureTypes, textureTypes);
+
+                    updatePassData.updateMipmaps = true;
+                }
+
+                updatePassData.shaderGraphVertexCount = m_ShaderGraphVertexCount;
+
+                builder.SetRenderFunc((UpdateShaderGraphTexturePassData data, RenderGraphContext context) =>
+                {
+                    context.cmd.SetRenderTarget(data.atlasTexture);
+
+                    for (int i = 0; i < data.shaderGraphData.Count; i++)
+                    {
+                        int vertexCount = data.shaderGraphVertexCount[i];
+                        if (vertexCount == 0)
+                            continue;
+
+                        ShaderGraphData shaderGraphData = data.shaderGraphData[i];
+                        context.cmd.DrawProcedural(Matrix4x4.identity, shaderGraphData.material, shaderGraphData.passIndex, MeshTopology.Quads, vertexCount, 1, shaderGraphData.propertyBlock);
+                    }
+                });
+            }
+
+            // Create the mipmaps for the texture atlas
+            if (updatePassData.updateMipmaps)
+            {
+                using (var builder = renderGraph.AddRenderPass<UpdateAtlasMipmapsPassData>("UpdateDecalAtlasMipmaps", out var passData, ProfilingSampler.Get(HDProfileId.UpdateDecalAtlasMipmaps)))
+                {
+                    passData.atlasTexture = builder.WriteTexture(renderGraph.ImportTexture(Atlas.AtlasTexture));
+
+                    builder.SetRenderFunc((UpdateAtlasMipmapsPassData data, RenderGraphContext context) =>
+                    {
+                        context.cmd.GenerateMips(data.atlasTexture);
+                    });
+                }
+            }
+
+#if UNITY_EDITOR
+            m_ShaderGraphSaved = m_ShaderGraphSaveRequested;
+#endif
         }
 
         public void UpdateTextureAtlas(CommandBuffer cmd)
@@ -1122,8 +1522,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            IntScalableSetting textureResolutionSetting = transparentTextureResolution;
+
             foreach (var decalSet in m_DecalSetsRenderList)
-                decalSet.CreateDrawData();
+                decalSet.CreateDrawData(textureResolutionSetting);
         }
 
         public void Cleanup()
@@ -1160,5 +1562,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_AllocationSuccess;
         }
+
+#if UNITY_EDITOR
+        public void UpdateTransparentShaderGraphs()
+        {
+            m_ShaderGraphSaveRequested = true;
+        }
+#endif
     }
 }

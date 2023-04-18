@@ -106,9 +106,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Custom
     }
 
-    sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget
+    sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX
 #if HAS_VFX_GRAPH
-        , IMaySupportVFX, IRequireVFXContext
+        , IRequireVFXContext
 #endif
     {
         public override int latestVersion => 1;
@@ -820,17 +820,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return false;
         }
 
-        public bool SupportsVFX()
-        {
-#if HAS_VFX_GRAPH
-            if (!CanSupportVFX())
-                return false;
-
-            return m_SupportVFX;
-#else
-            return false;
-#endif
-        }
+        public bool SupportsVFX() => CanSupportVFX() && m_SupportVFX;
 
         [Serializable]
         class UniversalTargetLegacySerialization

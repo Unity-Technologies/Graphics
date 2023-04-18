@@ -1,6 +1,10 @@
 #ifndef __PROBEVOLUME_HLSL__
 #define __PROBEVOLUME_HLSL__
 
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+//#define USE_APV_TEXTURE_HALF
+#endif // SHADER_API_MOBILE || SHADER_API_SWITCH
+
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ShaderVariablesProbeVolumes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -8,6 +12,7 @@
 // Unpack variables
 #define _PoolDim _PoolDim_CellInMeters.xyz
 #define _RcpPoolDim _RcpPoolDim_Padding.xyz
+#define _RcpPoolDimXY _RcpPoolDim_Padding.w
 #define _CellInMeters _PoolDim_CellInMeters.w
 #define _MinEntryPosition _MinEntryPos_Noise.xyz
 #define _PVSamplingNoise _MinEntryPos_Noise.w
@@ -44,35 +49,47 @@ SAMPLER(s_point_clamp_sampler);
 // TODO: Remove define when we are sure about what to do with this.
 #define MANUAL_FILTERING 0
 
-
 struct APVResources
 {
     StructuredBuffer<int> index;
 
-    Texture3D L0_L1Rx;
+#ifdef USE_APV_TEXTURE_HALF
+    TEXTURE3D_HALF(L0_L1Rx);
 
-    Texture3D L1G_L1Ry;
-    Texture3D L1B_L1Rz;
-    Texture3D L2_0;
-    Texture3D L2_1;
-    Texture3D L2_2;
-    Texture3D L2_3;
+    TEXTURE3D_HALF(L1G_L1Ry);
+    TEXTURE3D_HALF(L1B_L1Rz);
+    TEXTURE3D_HALF(L2_0);
+    TEXTURE3D_HALF(L2_1);
+    TEXTURE3D_HALF(L2_2);
+    TEXTURE3D_HALF(L2_3);
 
-    Texture3D Validity;
+    TEXTURE3D_HALF(Validity);
+#else // !USE_APV_TEXTURE_HALF
+    TEXTURE3D(L0_L1Rx);
+
+    TEXTURE3D(L1G_L1Ry);
+    TEXTURE3D(L1B_L1Rz);
+    TEXTURE3D(L2_0);
+    TEXTURE3D(L2_1);
+    TEXTURE3D(L2_2);
+    TEXTURE3D(L2_3);
+
+    TEXTURE3D(Validity);
+#endif // USE_APV_TEXTURE_HALF
 };
 
 struct APVSample
 {
-    float3 L0;
-    float3 L1_R;
-    float3 L1_G;
-    float3 L1_B;
+    real3 L0;
+    real3 L1_R;
+    real3 L1_G;
+    real3 L1_B;
 #ifdef PROBE_VOLUMES_L2
-    float4 L2_R;
-    float4 L2_G;
-    float4 L2_B;
-    float3 L2_C;
-#endif
+    real4 L2_R;
+    real4 L2_G;
+    real4 L2_B;
+    real3 L2_C;
+#endif // PROBE_VOLUMES_L2
 
 #define APV_SAMPLE_STATUS_INVALID -1
 #define APV_SAMPLE_STATUS_ENCODED 0
@@ -90,10 +107,8 @@ struct APVSample
             L1_G = DecodeSH(L0.g, L1_G);
             L1_B = DecodeSH(L0.b, L1_B);
 #ifdef PROBE_VOLUMES_L2
-            float4 outL2_C = float4(L2_C, 0.0f);
-            DecodeSH_L2(L0, L2_R, L2_G, L2_B, outL2_C);
-            L2_C = outL2_C.xyz;
-#endif
+            DecodeSH_L2(L0, L2_R, L2_G, L2_B, L2_C);
+#endif // PROBE_VOLUMES_L2
 
             status = APV_SAMPLE_STATUS_DECODED;
         }
@@ -108,7 +123,7 @@ struct APVSample
             L1_B = EncodeSH(L0.b, L1_B);
 #ifdef PROBE_VOLUMES_L2
             EncodeSH_L2(L0, L2_R, L2_G, L2_B, L2_C);
-#endif
+#endif // PROBE_VOLUMES_L2
 
             status = APV_SAMPLE_STATUS_ENCODED;
         }
@@ -119,16 +134,30 @@ struct APVSample
 StructuredBuffer<int> _APVResIndex;
 StructuredBuffer<uint3> _APVResCellIndices;
 
+#ifdef USE_APV_TEXTURE_HALF
+TEXTURE3D_HALF(_APVResL0_L1Rx);
+
+TEXTURE3D_HALF(_APVResL1G_L1Ry);
+TEXTURE3D_HALF(_APVResL1B_L1Rz);
+TEXTURE3D_HALF(_APVResL2_0);
+TEXTURE3D_HALF(_APVResL2_1);
+TEXTURE3D_HALF(_APVResL2_2);
+TEXTURE3D_HALF(_APVResL2_3);
+
+TEXTURE3D_HALF(_APVResValidity);
+#else // !USE_APV_TEXTURE_HALF
 TEXTURE3D(_APVResL0_L1Rx);
 
 TEXTURE3D(_APVResL1G_L1Ry);
 TEXTURE3D(_APVResL1B_L1Rz);
-
 TEXTURE3D(_APVResL2_0);
 TEXTURE3D(_APVResL2_1);
 TEXTURE3D(_APVResL2_2);
 TEXTURE3D(_APVResL2_3);
+
 TEXTURE3D(_APVResValidity);
+#endif // USE_APV_TEXTURE_HALF
+
 
 // -------------------------------------------------------------
 // Various weighting functions for occlusion or helper functions.
@@ -151,7 +180,7 @@ uint3 GetSampleOffset(uint i)
 
 // The validity mask is sampled once and contains a binary info on whether a probe neighbour (relevant for trilinear) is to be used
 // or not. The entry in the mask uses the same mapping that GetSampleOffset above uses.
-float GetValidityWeight(uint offset, uint validityMask)
+real GetValidityWeight(uint offset, uint validityMask)
 {
     uint mask = 1U << offset;
     return (validityMask & mask) > 0 ? 1 : 0;
@@ -162,23 +191,35 @@ float ProbeDistance(uint subdiv)
     return pow(3, subdiv) * _MinBrickSize / 3.0f;
 }
 
-float3 GetSnappedProbePosition(float3 posWS, uint subdiv)
+real ProbeDistanceReal(uint subdiv)
 {
-    float distBetweenProbes = ProbeDistance(subdiv);
-    float3 dividedPos = posWS / distBetweenProbes;
-    return (dividedPos  - frac(dividedPos)) * distBetweenProbes;
+    return pow(3, subdiv) * _MinBrickSize / 3.0;
 }
 
-float GetNormalWeight(int3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, int subdiv)
+float3 GetSnappedProbePosition(float3 posWS, uint subdiv)
+{
+    float3 distBetweenProbes = ProbeDistance(subdiv);
+    float3 dividedPos = posWS / distBetweenProbes;
+    return (dividedPos - frac(dividedPos)) * distBetweenProbes;
+}
+
+float GetNormalWeight(uint3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, uint subdiv)
 {
     // TODO: This can be optimized.
-    float3 samplePos = (sample0Pos - posWS) + offset * ProbeDistance(subdiv);
+    float3 samplePos = (sample0Pos - posWS) + (float3)offset * ProbeDistance(subdiv);
     float3 vecToProbe = normalize(samplePos);
     float weight = saturate(dot(vecToProbe, normalWS) - _LeakReductionParams.z);
     return weight;
-
 }
 
+real GetNormalWeightReal(uint3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, uint subdiv)
+{
+    // TODO: This can be optimized.
+    real3 samplePos = (real3)(sample0Pos - posWS) + (real3)offset * ProbeDistanceReal(subdiv);
+    real3 vecToProbe = normalize(samplePos);
+    real weight = saturate(dot(vecToProbe, (half3)normalWS) - (real)_LeakReductionParams.z);
+    return weight;
+}
 
 // -------------------------------------------------------------
 // Indexing functions
@@ -216,15 +257,15 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
 
 uint GetIndexData(APVResources apvRes, float3 posWS)
 {
-    int3 entryPos = floor(posWS / _GlobalIndirectionEntryDim);
+    float3 entryPos = floor(posWS / _GlobalIndirectionEntryDim);
     float3 topLeftEntryWS = entryPos * _GlobalIndirectionEntryDim;
 
-    bool isALoadedCell = all(entryPos <= _MaxLoadedCellInEntries) && all(entryPos >= _MinLoadedCellInEntries);
+    bool isALoadedCell = all(entryPos >= _MinLoadedCellInEntries && entryPos <= _MaxLoadedCellInEntries);
 
     // Make sure we start from 0
-    entryPos -= (int3)_MinEntryPosition;
+    int3 entryPosInt = (int3)(entryPos - _MinEntryPosition);
 
-    int flatIdx = entryPos.z * (_GlobalIndirectionDimension.x * _GlobalIndirectionDimension.y) + entryPos.y * _GlobalIndirectionDimension.x + entryPos.x;
+    int flatIdx = dot(entryPosInt, int3(1, (int)_GlobalIndirectionDimension.x, ((int)_GlobalIndirectionDimension.x * (int)_GlobalIndirectionDimension.y)));
 
     int stepSize = 0;
     int3 minRelativeIdx, maxRelativeIdx;
@@ -238,7 +279,7 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
         int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
 
         // Out of bounds.
-        if (any(localBrickIndex < minRelativeIdx || localBrickIndex >= maxRelativeIdx))
+        if(!all(localBrickIndex >= minRelativeIdx && localBrickIndex < maxRelativeIdx))
         {
             isValidBrick = false;
         }
@@ -246,9 +287,9 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
         int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
         // Relative to valid region
         int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
-        int flattenedLocationInCell = localRelativeIndexLoc.z * (sizeOfValid.x * sizeOfValid.y) + localRelativeIndexLoc.x * sizeOfValid.y + localRelativeIndexLoc.y;
+        int flattenedLocationInCell = dot(localRelativeIndexLoc, int3(sizeOfValid.y, 1, sizeOfValid.x * sizeOfValid.y));
 
-        locationInPhysicalBuffer = chunkIdx * _IndexChunkSize + flattenedLocationInCell;
+        locationInPhysicalBuffer = chunkIdx * (int)_IndexChunkSize + flattenedLocationInCell;
 
     }
     else
@@ -286,35 +327,35 @@ APVResources FillAPVResources()
 bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWSForSample, out float3 uvw, out uint subdiv)
 {
     // resolve the index
-    float3 posRS = posWSForSample.xyz / _MinBrickSize;
     uint packed_pool_idx = GetIndexData(apvRes, posWSForSample.xyz);
 
     // unpack pool idx
     // size is encoded in the upper 4 bits
     subdiv = (packed_pool_idx >> 28) & 15;
     float  cellSize = pow(3.0, subdiv);
-    uint   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
-    uint3  pool_idx;
-    uint3 poolDim = (uint3)_PoolDim;
-    pool_idx.z = flattened_pool_idx * _RcpPoolDim.x * _RcpPoolDim.y;
-    flattened_pool_idx -= pool_idx.z * (poolDim.x * poolDim.y);
-    pool_idx.y = flattened_pool_idx * _RcpPoolDim.x;
-    pool_idx.x = flattened_pool_idx - (pool_idx.y * poolDim.x);
+
+    float   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
+    float3 pool_idx;
+    pool_idx.z = floor(flattened_pool_idx * _RcpPoolDimXY);
+    flattened_pool_idx -= (pool_idx.z * (_PoolDim.x * _PoolDim.y));
+    pool_idx.y = floor(flattened_pool_idx * _RcpPoolDim.x);
+    pool_idx.x = floor(flattened_pool_idx - (pool_idx.y * _PoolDim.x));
 
     // calculate uv offset and scale
+    float3 posRS = posWSForSample.xyz / _MinBrickSize;
     float3 offset = frac(posRS / (float)cellSize);  // [0;1] in brick space
     //offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
 
-    uvw = ((float3)pool_idx + 0.5 + 3.0 * offset) * _RcpPoolDim; // add offset with brick footprint converted to text footprint in pool texel space
+    uvw = (pool_idx + 0.5 + (3.0 * offset)) * _RcpPoolDim; // add offset with brick footprint converted to text footprint in pool texel space
 
     // no valid brick loaded for this index, fallback to ambient probe
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
-    return packed_pool_idx != 0xffffffff;
+    return packed_pool_idx != 0xffffffffu;
 }
 
 bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv, out float3 biasedPosWS)
 {
-    biasedPosWS = posWS + normalWS * _NormalBias + viewDirWS * _ViewBias;
+    biasedPosWS = (posWS + normalWS * _NormalBias) + viewDirWS * _ViewBias;
     return TryToGetPoolUVWAndSubdiv(apvRes, biasedPosWS, uvw, subdiv);
 }
 
@@ -329,12 +370,12 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 
 APVSample SampleAPV(APVResources apvRes, float3 uvw)
 {
     APVSample apvSample;
-    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
+    real4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
+    real4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
+    real4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
 
     apvSample.L0 = L0_L1Rx.xyz;
-    apvSample.L1_R = float3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
+    apvSample.L1_R = real3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
     apvSample.L1_G = L1G_L1Ry.xyz;
     apvSample.L1_B = L1B_L1Rz.xyz;
 
@@ -343,7 +384,7 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     apvSample.L2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
     apvSample.L2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
     apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb;
-#endif
+#endif // PROBE_VOLUMES_L2
 
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
 
@@ -354,12 +395,12 @@ APVSample LoadAndDecodeAPV(APVResources apvRes, int3 loc)
 {
     APVSample apvSample;
 
-    float4 L0_L1Rx = LOAD_TEXTURE3D(apvRes.L0_L1Rx, loc).rgba;
-    float4 L1G_L1Ry = LOAD_TEXTURE3D(apvRes.L1G_L1Ry, loc).rgba;
-    float4 L1B_L1Rz = LOAD_TEXTURE3D(apvRes.L1B_L1Rz, loc).rgba;
+    real4 L0_L1Rx = LOAD_TEXTURE3D(apvRes.L0_L1Rx, loc).rgba;
+    real4 L1G_L1Ry = LOAD_TEXTURE3D(apvRes.L1G_L1Ry, loc).rgba;
+    real4 L1B_L1Rz = LOAD_TEXTURE3D(apvRes.L1B_L1Rz, loc).rgba;
 
     apvSample.L0 = L0_L1Rx.xyz;
-    apvSample.L1_R = float3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
+    apvSample.L1_R = real3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
     apvSample.L1_G = L1G_L1Ry.xyz;
     apvSample.L1_B = L1B_L1Rz.xyz;
 
@@ -368,7 +409,7 @@ APVSample LoadAndDecodeAPV(APVResources apvRes, int3 loc)
     apvSample.L2_G = LOAD_TEXTURE3D(apvRes.L2_1, loc).rgba;
     apvSample.L2_B = LOAD_TEXTURE3D(apvRes.L2_2, loc).rgba;
     apvSample.L2_C = LOAD_TEXTURE3D(apvRes.L2_3, loc).rgb;
-#endif
+#endif // PROBE_VOLUMES_L2
 
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
     apvSample.Decode();
@@ -376,7 +417,7 @@ APVSample LoadAndDecodeAPV(APVResources apvRes, int3 loc)
     return apvSample;
 }
 
-void WeightSample(inout APVSample apvSample, float weight)
+void WeightSample(inout APVSample apvSample, real weight)
 {
     apvSample.L0 *= weight;
     apvSample.L1_R *= weight;
@@ -388,10 +429,10 @@ void WeightSample(inout APVSample apvSample, float weight)
     apvSample.L2_G *= weight;
     apvSample.L2_B *= weight;
     apvSample.L2_C *= weight;
-#endif
+#endif // PROBE_VOLUMES_L2
 }
 
-void AccumulateSamples(inout APVSample dst, APVSample other, float weight)
+void AccumulateSamples(inout APVSample dst, APVSample other, real weight)
 {
     WeightSample(other, weight);
     dst.L0   += other.L0;
@@ -404,7 +445,7 @@ void AccumulateSamples(inout APVSample dst, APVSample other, float weight)
     dst.L2_G += other.L2_G;
     dst.L2_B += other.L2_B;
     dst.L2_C += other.L2_C;
-#endif
+#endif // PROBE_VOLUMES_L2
 }
 
 APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, float3 uvw)
@@ -423,7 +464,7 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
 
     ZERO_INITIALIZE(APVSample, baseSample);
 
-    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255;
+    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255.0;
     for (uint i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
@@ -450,49 +491,58 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
     return baseSample;
 }
 
-void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, inout float3 uvw, out float3 normalizedOffset, out float validityWeights[8])
+void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, uint subdiv, float3 biasedPosWS, inout float3 uvw, out float3 normalizedOffset, out float validityWeights[8])
 {
-    float3 texCoordFloat = uvw * _PoolDim - .5f;
+    float3 texCoordFloat = uvw * _PoolDim - 0.5f;
     int3 texCoordInt = texCoordFloat;
-    float3 texFrac = frac(texCoordFloat);
-    float3 oneMinTexFrac = 1.0f - texFrac;
-    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255;
+    real3 texFrac = frac(texCoordFloat);
+    real3 oneMinTexFrac = 1.0 - texFrac;
+    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255.0;
 
-    float3 fracOffset = -texFrac;
-    float weights[8] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-    float totalW = 0.0f;
+    real4 weights[2];
+    real totalW = 0.0;
     uint i = 0;
     float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
 
+    UNITY_UNROLL
     for (i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
-        float trilinearW =
+        real trilinearW =
             ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
             ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
-        float validityWeight = GetValidityWeight(i, validityMask);
+        real validityWeight = GetValidityWeight(i, validityMask);
         validityWeights[i] = validityWeight;
 
-        float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
+        real geoW = GetNormalWeightReal(offset, posWS, positionCentralProbe, normalWS, subdiv);
 
-        weights[i] = max(0.0001f, saturate(trilinearW * geoW * validityWeight));
-        totalW += weights[i];
+        real weight = saturate(trilinearW * (geoW * validityWeight));
+
+        weights[i/4][i%4] = weight;
+        totalW += weight;
     }
 
+    half rcpTotalW = rcp(max(0.0001, totalW));
+    weights[0] *= rcpTotalW;
+    weights[1] *= rcpTotalW;
+
+    real3 fracOffset = -texFrac;
+
+    UNITY_UNROLL
     for (i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
-        fracOffset += (float3)offset * weights[i] * rcp(totalW);
+        fracOffset += (real3)offset * weights[i/4][i%4];
     }
 
-    normalizedOffset = fracOffset + texFrac;
+    normalizedOffset = (float3)(fracOffset + texFrac);
 
-    uvw = uvw + fracOffset * _RcpPoolDim;
+    uvw = uvw + (float3)fracOffset * _RcpPoolDim;
 }
 
-void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, inout float3 uvw)
+void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, uint subdiv, float3 biasedPosWS, inout float3 uvw)
 {
     float3 normalizedOffset;
     float validityWeights[8];
@@ -576,7 +626,7 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, out float
 
         bakeDiffuseLighting += apvSample.L0;
 
-        if (_Weight < 1.f)
+        //if (_Weight < 1.f)
         {
             bakeDiffuseLighting = lerp(EvaluateAmbientProbe(normalWS), bakeDiffuseLighting, _Weight);
         }
@@ -605,7 +655,7 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
 
-        if (_Weight < 1.f)
+        //if (_Weight < 1.f)
         {
             bakeDiffuseLighting = lerp(EvaluateAmbientProbe(normalWS), bakeDiffuseLighting, _Weight);
             backBakeDiffuseLighting = lerp(EvaluateAmbientProbe(backNormalWS), backBakeDiffuseLighting, _Weight);
@@ -648,7 +698,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         backBakeDiffuseLighting += apvSample.L0;
         lightingInReflDir += apvSample.L0;
 
-        if (_Weight < 1.f)
+        //if (_Weight < 1.f)
         {
             bakeDiffuseLighting = lerp(EvaluateAmbientProbe(normalWS), bakeDiffuseLighting, _Weight);
             backBakeDiffuseLighting = lerp(EvaluateAmbientProbe(backNormalWS), backBakeDiffuseLighting, _Weight);
@@ -726,7 +776,7 @@ float EvaluateReflectionProbeSH(float3 sampleDir, float4 reflProbeSHL0L1, float4
     L2 += reflProbeSHL2_2 * vC;
 
     outFactor += L2;
-#endif
+#endif // PROBE_VOLUMES_L2
 
     return outFactor;
 }

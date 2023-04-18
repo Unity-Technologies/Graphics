@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DynamicScaling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
 #ifdef USE_FULL_PRECISION_BLIT_TEXTURE
@@ -13,10 +14,7 @@ TEXTURE2D_X_FLOAT(_BlitTexture);
 TEXTURE2D_X(_BlitTexture);
 #endif
 TEXTURECUBE(_BlitCubeTexture);
-SamplerState sampler_PointClamp;
-SamplerState sampler_LinearClamp;
-SamplerState sampler_PointRepeat;
-SamplerState sampler_LinearRepeat;
+
 uniform float4 _BlitScaleBias;
 uniform float4 _BlitScaleBiasRt;
 uniform float4 _BlitTexture_TexelSize;

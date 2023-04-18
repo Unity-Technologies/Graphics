@@ -395,6 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 settings = new VirtualTexturingSettingsSRP();
 
             VirtualTexturing.Streaming.SetCPUCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
+            VirtualTexturing.Streaming.EnableMipPreloading(settings.streamingMipPreloadTexturesPerFrame, settings.streamingPreloadMipCount);
 
             GPUCacheSetting[] gpuCacheSettings = new GPUCacheSetting[settings.streamingGpuCacheSettings.Count];
             for (int i = 0; i < settings.streamingGpuCacheSettings.Count; ++i)
@@ -609,6 +610,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_GlobalSettings.ClearRayTracingResources();
         }
 
+        public void UpdateDecalSystemShaderGraphs()
+        {
+            DecalSystem.instance.UpdateTransparentShaderGraphs();
+        }
 #endif
 
         /// <summary>

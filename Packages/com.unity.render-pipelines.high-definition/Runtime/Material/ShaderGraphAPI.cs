@@ -64,12 +64,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 useSplitLighting = materialId == MaterialId.LitSSS;
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == MaterialId.LitTranslucent || (materialId == MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COLORED_TRANSMISSION", materialId == MaterialId.LitColoredTranslucent);
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", materialId == MaterialId.LitAniso);
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_IRIDESCENCE", materialId == MaterialId.LitIridescence);
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == MaterialId.LitSpecular);
             }
-            else if (material.HasProperty(kUseSplitLighting))
-                useSplitLighting = material.GetInt(kUseSplitLighting) != 0;
+            else
+            {
+                int index = material.shader.FindPropertyIndex(kUseSplitLighting);
+                if (index != -1)
+                    useSplitLighting = material.shader.GetPropertyDefaultFloatValue(index) != 0;
+
+            }
+
+            if (material.HasProperty(kClearCoatEnabled))
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", material.GetFloat(kClearCoatEnabled) > 0.0);
+
             BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, useSplitLighting);
         }
 

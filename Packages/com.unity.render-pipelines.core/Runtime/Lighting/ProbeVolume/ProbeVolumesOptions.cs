@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A volume component that holds settings for the Probe Volumes System per-camera options.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Probe Volumes Options (Experimental)"), SupportedOnRenderPipeline]
+    [Serializable, VolumeComponentMenu("Lighting/Probe Volumes Options"), SupportedOnRenderPipeline]
     public sealed class ProbeVolumesOptions : VolumeComponent
     {
         /// <summary>
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering
         /// The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.
         /// </summary>
         [AdditionalProperty, Tooltip("The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.")]
-        public ClampedFloatParameter minValidDotProductValue = new ClampedFloatParameter(0.1f, 0.0f, 0.33f);
+        public ClampedFloatParameter minValidDotProductValue = new ClampedFloatParameter(0.1f, -1.0f, 0.33f);
 
 
         /// <summary>

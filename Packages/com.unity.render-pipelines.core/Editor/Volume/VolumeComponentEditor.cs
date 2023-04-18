@@ -57,6 +57,8 @@ namespace UnityEditor.Rendering
 
         EditorPrefBool m_EditorPrefBool;
 
+        internal string categoryTitle { get; set; }
+
         /// <summary>
         /// If the editor for this <see cref="VolumeComponent"/> is expanded or not in the inspector
         /// </summary>
@@ -192,6 +194,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         protected Volume volume => inspector?.target as Volume;
 
+        VolumeProfile volumeProfile => inspector?.target as VolumeProfile;
+
         List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
@@ -262,7 +266,15 @@ namespace UnityEditor.Rendering
             activeProperty = serializedObject.FindProperty("active");
 
             var inspectorKey = inspector != null ? inspector.GetType().Name : string.Empty;
-            m_EditorPrefBool = new EditorPrefBool(k_KeyPrefix + inspectorKey + volumeComponent.GetType().Name, true);
+
+            bool expandedByDefault = true;
+            if (!enableOverrides)
+            {
+                inspectorKey += "-default"; // Ensures the default VolumeProfile editor doesn't share expander state with other editors
+                expandedByDefault = false;
+            }
+
+            m_EditorPrefBool = new EditorPrefBool(k_KeyPrefix + inspectorKey + volumeComponent.GetType().Name, expandedByDefault);
 
             InitAdditionalPropertiesPreference();
 
@@ -381,23 +393,35 @@ namespace UnityEditor.Rendering
         {
         }
 
+        internal void AddDefaultProfileContextMenuEntries(
+            GenericMenu menu,
+            VolumeProfile defaultProfile,
+            GenericMenu.MenuFunction copyAction)
+        {
+            // Host can be either VolumeProfileEditor or VolumeEditor
+            var profile = volume
+                ? volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile
+                : volumeProfile;
+
+            if (defaultProfile != null &&
+                profile != null &&
+                defaultProfile != profile)
+            {
+                menu.AddItem(EditorGUIUtility.TrTextContent($"Show Default Volume Profile"), false,
+                    () => Selection.activeObject = defaultProfile);
+                menu.AddItem(EditorGUIUtility.TrTextContent($"Apply Values to Default Volume Profile"), false, copyAction);
+            }
+        }
+
         void OnPropertyContextMenu(GenericMenu menu, SerializedProperty property)
         {
             if (property.serializedObject.targetObject != target)
                 return;
 
             var targetComponent = property.serializedObject.targetObject as VolumeComponent;
-            bool isDefaultVolumeEditor = inspector.target == VolumeManager.instance.globalDefaultProfile;
-            if (!isDefaultVolumeEditor)
-            {
-                menu.AddSeparator(string.Empty);
-                // TODO need to get pipeline-specific path here
-                menu.AddItem(EditorGUIUtility.TrTextContent("Show Default Volume Profile"), false, () => SettingsService.OpenProjectSettings("Project/Graphics"));
-                menu.AddItem(new GUIContent("Copy Parameter to Default Volume Profile"), false, () =>
-                {
-                    VolumeProfileUtils.AssignValuesToDefaultProfile(targetComponent, property);
-                });
-            }
+
+            AddDefaultProfileContextMenuEntries(menu, VolumeManager.instance.globalDefaultProfile,
+                () => VolumeProfileUtils.AssignValuesToProfile(VolumeManager.instance.globalDefaultProfile, targetComponent, property));
         }
 
         internal bool OnInternalInspectorGUI()
@@ -405,7 +429,10 @@ namespace UnityEditor.Rendering
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
             {
-                TopRowFields();
+                if (enableOverrides)
+                    TopRowFields();
+                else
+                    GUILayout.Space(4);
                 OnInspectorGUI();
                 EditorGUILayout.Space();
             }
@@ -440,19 +467,8 @@ namespace UnityEditor.Rendering
         /// <returns>A label to display in the component header.</returns>
         public virtual GUIContent GetDisplayTitle()
         {
-            var targetType = target.GetType();
             var title = string.IsNullOrEmpty(volumeComponent.displayName) ? ObjectNames.NicifyVariableName(volumeComponent.GetType().Name) : volumeComponent.displayName;
-            var supportedOn = targetType.GetCustomAttribute<SupportedOnRenderPipelineAttribute>(false);
-            if(supportedOn !=null)
-                return EditorGUIUtility.TrTextContent(title, string.Join(", ", supportedOn.renderPipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name))));
-
-#pragma warning disable CS0618
-            var volumeComponentMenuForRenderPipelineAttribute = targetType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>(false);
-            if (volumeComponentMenuForRenderPipelineAttribute != null)
-                return EditorGUIUtility.TrTextContent(title, string.Join(", ", volumeComponentMenuForRenderPipelineAttribute.pipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name))));
-#pragma warning restore CS0618
-
-            return EditorGUIUtility.TrTextContent(title,  string.Empty);
+            return EditorGUIUtility.TrTextContent(title, string.Empty);
         }
 
         void AddToggleState(GUIContent content, bool state)
@@ -562,8 +578,9 @@ namespace UnityEditor.Rendering
                 s_HeadersGuiContents.Add(header, content);
             }
 
-            var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight));
-            EditorGUI.LabelField(rect, content, EditorStyles.miniLabel);
+            EditorGUILayout.Space(4);
+            var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+            EditorGUI.LabelField(rect, content, EditorStyles.miniBoldLabel);
         }
 
         /// <summary>
@@ -808,13 +825,19 @@ namespace UnityEditor.Rendering
                     editor.HandleDecorators(property, label);
 
                     int relativeIndentation = editor.HandleRelativeIndentation(property);
-                    if (relativeIndentation != 0)
-                        indentScope = new IndentLevelScope(relativeIndentation * 15);
+
+                    int indent = relativeIndentation * 15;
+                    if (haveCustomOverrideCheckbox)
+                        indent += 15;
+
+                    if (indent != 0)
+                        indentScope = new IndentLevelScope(indent);
 
                     if (!haveCustomOverrideCheckbox)
                     {
                         EditorGUILayout.BeginHorizontal();
-                        editor.DrawOverrideCheckbox(property);
+                        if (editor.enableOverrides)
+                            editor.DrawOverrideCheckbox(property);
 
                         disabledScope = new EditorGUI.DisabledScope(!property.overrideState.boolValue);
                     }
@@ -873,5 +896,10 @@ namespace UnityEditor.Rendering
                 GUILayout.EndHorizontal();
             }
         }
+
+        /// <summary>
+        /// Whether to draw the UI elements related to overrides.
+        /// </summary>
+        public bool enableOverrides { get; set; } = true;
     }
 }

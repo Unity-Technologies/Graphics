@@ -1,7 +1,5 @@
 // Must match: LightBatch.isBatchingSupported
-#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)
-    #define USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA  1
-#endif
+#define USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA 0
 
 #if USE_NORMAL_MAP
     #if LIGHT_QUALITY_FAST
@@ -142,7 +140,7 @@ struct PerLight2D
     int         LightType;
 };
 
-#if defined(USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA)
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT2D_DATA
 
     #define UNITY_LIGHT2D_DATA                  \
                                                 \
@@ -155,6 +153,18 @@ struct PerLight2D
             int idx = (int)(color.b * 64) + _BatchBufferOffset; \
             return _Light2DBuffer[idx];                         \
         }
+
+    #define _L2D_INVMATRIX          light.InvMatrix
+    #define _L2D_COLOR              light.Color
+    #define _L2D_POSITION           light.Position
+    #define _L2D_FALLOFF_INTENSITY  light.FalloffIntensity
+    #define _L2D_FALLOFF_DISTANCE   light.FalloffDistance
+    #define _L2D_OUTER_ANGLE        light.OuterAngle
+    #define _L2D_INNER_ANGLE        light.InnerAngle
+    #define _L2D_INNER_RADIUS_MULT  light.InnerRadiusMult
+    #define _L2D_VOLUME_OPACITY     light.VolumeOpacity
+    #define _L2D_SHADOW_INTENSITY   light.ShadowIntensity
+    #define _L2D_LIGHT_TYPE         light.LightType
 
 #else
 
@@ -171,22 +181,17 @@ struct PerLight2D
             float       L2DVolumeOpacity;       \
             float       L2DShadowIntensity;     \
             int         L2DLightType;           \
-                                                \
-            PerLight2D GetPerLight2D(float4 color)                  \
-            {                                                       \
-                PerLight2D light;                                   \
-                light.InvMatrix = L2DInvMatrix;                     \
-                light.Color = L2DColor;                             \
-                light.Position = L2DPosition;                       \
-                light.FalloffIntensity = L2DFalloffIntensity;       \
-                light.FalloffDistance = L2DFalloffDistance;         \
-                light.OuterAngle = L2DOuterAngle;                   \
-                light.InnerAngle = L2DInnerAngle;                   \
-                light.InnerRadiusMult = L2DInnerRadiusMult;         \
-                light.VolumeOpacity = L2DVolumeOpacity;             \
-                light.ShadowIntensity = L2DShadowIntensity;         \
-                light.LightType = L2DLightType;                     \
-                return light;                                       \
-            }
+
+    #define _L2D_INVMATRIX          L2DInvMatrix
+    #define _L2D_COLOR              L2DColor
+    #define _L2D_POSITION           L2DPosition
+    #define _L2D_FALLOFF_INTENSITY  L2DFalloffIntensity
+    #define _L2D_FALLOFF_DISTANCE   L2DFalloffDistance
+    #define _L2D_OUTER_ANGLE        L2DOuterAngle
+    #define _L2D_INNER_ANGLE        L2DInnerAngle
+    #define _L2D_INNER_RADIUS_MULT  L2DInnerRadiusMult
+    #define _L2D_VOLUME_OPACITY     L2DVolumeOpacity
+    #define _L2D_SHADOW_INTENSITY   L2DShadowIntensity
+    #define _L2D_LIGHT_TYPE         L2DLightType
 
 #endif

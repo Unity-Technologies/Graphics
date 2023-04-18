@@ -153,9 +153,9 @@ namespace UnityEngine.Rendering
         // would be error-prone)
         // The "Default State" is evaluated as follows:
         //   Default-constructed VolumeComponents (VolumeParameter values coming from code)
-        // + Values from globalDefaultProfile in SRP Global Settings (if present)
-        // + Values from qualityDefaultProfile in SRP Asset (if present)
-        // + Values from customDefaultProfiles added via scripting API (if present)
+        // + Values from globalDefaultProfile
+        // + Values from qualityDefaultProfile
+        // + Values from customDefaultProfiles
         // = Default State.
         VolumeComponent[] m_ComponentsDefaultState;
 

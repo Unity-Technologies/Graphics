@@ -7,20 +7,16 @@ namespace UnityEditor.Rendering.HighDefinition
         internal class Styles
         {
             public const int labelWidth = 220;
+            public const int defaultVolumeLabelWidth = 250;
+            public const int volumeProfileEditorLabelWidth = 280;
 
-            public static readonly GUIContent defaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Render Pipeline Default Volume Profile");
-            public static readonly GUIContent lookDevVolumeProfileLabel = EditorGUIUtility.TrTextContent("LookDev Volume Profile");
+            public static readonly GUIContent defaultVolumeProfileSectionLabel = EditorGUIUtility.TrTextContent("Default Volume Profile");
+            public static readonly GUIContent defaultVolumeProfileAssetLabel = EditorGUIUtility.TrTextContent("Volume Profile", "Settings that will be applied project-wide to all Volumes by default when High Definition Render Pipeline is active.");
+            public static readonly GUIContent lookDevVolumeProfileSectionLabel = EditorGUIUtility.TrTextContent("LookDev Volume Profile");
+            public static readonly GUIContent lookDevVolumeProfileAssetLabel = EditorGUIUtility.TrTextContent("Volume Profile");
 
             public static readonly GUIContent frameSettingsLabel = EditorGUIUtility.TrTextContent("Frame Settings (Default Values)");
-            public static readonly GUIContent frameSettingsLabel_Camera = EditorGUIUtility.TrTextContent("Camera");
-            public static readonly GUIContent frameSettingsLabel_RTProbe = EditorGUIUtility.TrTextContent("Realtime Reflection");
-            public static readonly GUIContent frameSettingsLabel_BakedProbe = EditorGUIUtility.TrTextContent("Baked or Custom Reflection");
-            public static readonly GUIContent renderingSettingsHeaderContent = EditorGUIUtility.TrTextContent("Rendering");
-            public static readonly GUIContent lightSettingsHeaderContent = EditorGUIUtility.TrTextContent("Lighting");
-            public static readonly GUIContent asyncComputeSettingsHeaderContent = EditorGUIUtility.TrTextContent("Asynchronous Compute Shaders");
-            public static readonly GUIContent lightLoopSettingsHeaderContent = EditorGUIUtility.TrTextContent("Light Loop Debug");
 
-            public static readonly GUIContent volumeComponentsLabel = EditorGUIUtility.TrTextContent("Volume Profiles");
             public static readonly GUIContent customPostProcessOrderLabel = EditorGUIUtility.TrTextContent("Custom Post Process Orders");
 
             public static readonly GUIContent resourceLabel = EditorGUIUtility.TrTextContent("Resources");
@@ -40,7 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent useDLSSCustomProjectIdLabel = EditorGUIUtility.TrTextContent("Use DLSS Custom Project Id", "Set to utilize a custom project Id for the NVIDIA Deep Learning Super Sampling extension.");
             public static readonly GUIContent DLSSProjectIdLabel = EditorGUIUtility.TrTextContent("DLSS Custom Project Id", "The custom project ID string to utilize for the NVIDIA Deep Learning Super Sampling extension.");
 
-            public static readonly GUIContent newVolumeProfileLabel = EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)");
             public static readonly GUIContent fixAssetButtonLabel = EditorGUIUtility.TrTextContent("Fix", "Ensure a HD Global Settings Asset is assigned.");
 
             public static readonly GUIContent probeVolumeSupportContentLabel = EditorGUIUtility.TrTextContent("Probe Volumes", "Set whether Probe volumes are supported by the project. The feature is highly experimental and subject to changes.");

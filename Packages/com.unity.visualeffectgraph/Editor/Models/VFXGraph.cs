@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
+using UnityEditor.ShaderGraph.Internal;
 
 using UnityObject = UnityEngine.Object;
 
@@ -196,54 +198,111 @@ namespace UnityEditor.VFX
                 serializedVFXManager.ApplyModifiedProperties();
 
                 AssetDatabase.StartAssetEditing();
-                foreach (var guid in allVisualEffectAssets)
+                try
                 {
-                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    foreach (var guid in AssetDatabase.FindAssets("t:VisualEffectAsset"))
+                    {
+                        var path = AssetDatabase.GUIDToAssetPath(guid);
 
-                    AssetDatabase.ImportAsset(path);
+                        AssetDatabase.ImportAsset(path);
+                    }
+
+                    VFXAssetManager.ImportAllVFXShaders();
                 }
-                AssetDatabase.StopAssetEditing();
+                finally
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
             }
         }
     }
     class VFXAssetManager : EditorWindow
     {
-        public static List<VisualEffectObject> GetAllVisualEffectObjects()
+        public static Dictionary<VisualEffectObject, string> GetAllVisualEffectObjects()
         {
-            var vfxObjects = new List<VisualEffectObject>();
+            var allVisualEffectObjects = new Dictionary<VisualEffectObject, string>();
             var vfxObjectsGuid = AssetDatabase.FindAssets("t:VisualEffectObject");
             foreach (var guid in vfxObjectsGuid)
             {
-                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
                 var vfxObj = AssetDatabase.LoadAssetAtPath<VisualEffectObject>(assetPath);
                 if (vfxObj != null)
                 {
-                    vfxObjects.Add(vfxObj);
+                    allVisualEffectObjects[vfxObj] = assetPath;
                 }
             }
-            return vfxObjects;
+
+            return allVisualEffectObjects;
+        }
+
+        public static Dictionary<Shader, string> GetAllShaderGraph()
+        {
+            var allShaderGraphObjects = new Dictionary<Shader, string>();
+            var shaderGraphGuids = AssetDatabase.FindAssets("t:Shader");
+            foreach (var guid in shaderGraphGuids)
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                var shaderGraph = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+                if (shaderGraph != null)
+                {
+                    allShaderGraphObjects[shaderGraph] = assetPath;
+                }
+            }
+
+            return allShaderGraphObjects;
+        }
+
+        // Import VFX shader graph assets
+        // Because some shader compatible with VFX can be there before the Visual Effect package is installed
+        // We must re-import them to generate the ShaderGraphVfxAsset
+        public static void ImportAllVFXShaders()
+        {
+            var currentSrpBinder = VFXLibrary.currentSRPBinder;
+            if (currentSrpBinder != null)
+            {
+                foreach (var (shader, path) in GetAllShaderGraph())
+                {
+                    var assets = AssetDatabase.LoadAllAssetsAtPath(path);
+                    if (assets.OfType<ShaderGraphVfxAsset>().Any())
+                    {
+                        continue;
+                    }
+
+                    if (shader != null && currentSrpBinder.IsShaderVFXCompatible(shader))
+                    {
+                        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                    }
+                }
+            }
         }
 
         public static void Build(bool forceDirty = false)
         {
-            var vfxObjects = GetAllVisualEffectObjects();
-
-            foreach (var vfxObj in vfxObjects)
+            AssetDatabase.StartAssetEditing();
+            try
             {
-                if (VFXViewPreference.advancedLogs)
-                    Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxObj, AssetDatabase.GetAssetPath(vfxObj)));
-
-                var resource = vfxObj.GetResource();
-                if (resource != null)
+                foreach (var vfxObj in GetAllVisualEffectObjects())
                 {
-                    VFXGraph graph = resource.GetOrCreateGraph();
-                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-                    if (forceDirty)
-                        EditorUtility.SetDirty(resource);
-                }
-            }
+                    if (VFXViewPreference.advancedLogs)
+                        Debug.Log($"Recompile VFX asset: {vfxObj.Key} ({vfxObj.Value})");
 
-            VFXExpression.ClearCache();
+                    var resource = VisualEffectResource.GetResourceAtPath(vfxObj.Value);
+                    if (resource != null)
+                    {
+                        AssetDatabase.ImportAsset(vfxObj.Value);
+                        if (forceDirty)
+                            EditorUtility.SetDirty(resource);
+                    }
+                }
+
+                VFXExpression.ClearCache();
+
+                ImportAllVFXShaders();
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
         }
 
         [MenuItem("Edit/VFX/Rebuild And Save All VFX Graphs", priority = 320)]
@@ -1120,18 +1179,23 @@ namespace UnityEditor.VFX
 
             var dependencies = new HashSet<int>();
             GetImportDependentAssets(dependencies);
-            var dependentAssetGUIDs = dependencies
-                .Where(x => x != 0)
-                .Select(x => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(x)))
-                .Distinct()
-                .ToArray();
 
-            foreach (var guid in dependentAssetGUIDs)
+            var guids = new HashSet<string>();
+            foreach (var dependency in dependencies)
             {
-                visualEffectResource.AddImportDependency(guid);
-            }
+                if (dependency == 0)
+                    continue;
 
-            return dependentAssetGUIDs;
+                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(dependency, out string guid, out long localId))
+                {
+                    if (!guids.Contains(guid))
+                    {
+                        guids.Add(guid);
+                        visualEffectResource.AddImportDependency(guid);
+                    }
+                }
+            }
+            return guids.ToArray();
         }
 
         private VisualEffectResource m_Owner;

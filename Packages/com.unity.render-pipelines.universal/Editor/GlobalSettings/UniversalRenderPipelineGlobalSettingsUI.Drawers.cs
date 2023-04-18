@@ -8,10 +8,17 @@ namespace UnityEditor.Rendering.Universal
 
     internal partial class UniversalRenderPipelineGlobalSettingsUI
     {
+        public class DocumentationUrls
+        {
+            public static readonly string k_Volumes = "Volumes";
+        }
+
         #region Rendering Layer Names
 
         static readonly CED.IDrawer RenderingLayerNamesSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.renderingLayersLabel, contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized))),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(
+                Styles.renderingLayersLabel,
+                contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.Group(DrawRenderingLayerNames),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
@@ -28,19 +35,23 @@ namespace UnityEditor.Rendering.Universal
                     if (changed.changed)
                     {
                         serialized.serializedObject?.ApplyModifiedProperties();
-                        if (serialized.serializedObject?.targetObject is UniversalRenderPipelineGlobalSettings urpGlobalSettings)
+                        if (serialized.serializedObject?.targetObject is UniversalRenderPipelineGlobalSettings
+                            urpGlobalSettings)
                             urpGlobalSettings.UpdateRenderingLayerNames();
                     }
                 }
             }
         }
 
-        static void OnContextClickRenderingLayerNames(Vector2 position, SerializedUniversalRenderPipelineGlobalSettings serialized)
+        static void OnContextClickRenderingLayerNames(
+            Vector2 position,
+            SerializedUniversalRenderPipelineGlobalSettings serialized)
         {
             var menu = new GenericMenu();
             menu.AddItem(CoreEditorStyles.resetButtonLabel, false, () =>
             {
-                var globalSettings = (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings);
+                var globalSettings =
+                    (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings);
                 globalSettings.ResetRenderingLayerNames();
             });
             menu.DropDown(new Rect(position, Vector2.zero));
@@ -50,14 +61,19 @@ namespace UnityEditor.Rendering.Universal
 
         #region Default Volume Profile
 
-        static readonly CED.IDrawer DefaultVolumeProfileSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.defaultVolumeProfileHeaderLabel)),
+        private static readonly CED.IDrawer DefaultVolumeProfileSection = CED.Group(
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(
+                Styles.defaultVolumeProfileHeaderLabel,
+                Documentation.GetPageLink(DocumentationUrls.k_Volumes),
+                pos => OnVolumeProfileSectionContextClick(pos, serialized, owner))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(DrawVolumeProfile),
+            CED.Group(DrawVolumeSection),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
 
-        static void DrawVolumeProfile(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        private static bool s_DefaultVolumeProfileFoldoutExpanded = true;
+
+        static void DrawVolumeSection(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
         {
             if (owner is not UniversalGlobalSettingsEditor universalGlobalSettingsEditor)
                 return;
@@ -65,62 +81,64 @@ namespace UnityEditor.Rendering.Universal
             using (new EditorGUI.IndentLevelScope())
             {
                 var oldWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = Styles.labelWidth;
+                EditorGUIUtility.labelWidth = Styles.defaultVolumeLabelWidth;
 
                 var globalSettings = serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings;
-                VolumeProfile asset = null;
-                using (new EditorGUILayout.HorizontalScope())
+
+                var previousDefaultVolumeProfileAsset = serialized.defaultVolumeProfile.objectReferenceValue;
+                VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
+                    serialized.defaultVolumeProfile,
+                    Styles.defaultVolumeProfileLabel,
+                    getOrCreateVolumeProfile: () => globalSettings.GetOrCreateDefaultVolumeProfile(),
+                    ref s_DefaultVolumeProfileFoldoutExpanded
+                );
+                EditorGUIUtility.labelWidth = Styles.volumeProfileEditorLabelWidth;
+
+                if (defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
                 {
-                    var oldAssetValue = serialized.defaultVolumeProfile.objectReferenceValue;
-                    EditorGUILayout.PropertyField(serialized.defaultVolumeProfile, Styles.defaultVolumeProfileLabel);
-                    asset = serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile;
-                    if (asset == null)
-                    {
-                        if (oldAssetValue != null)
-                        {
-                            Debug.Log("Default Volume Profile Asset cannot be null. Rolling back to previous value.");
-                            serialized.defaultVolumeProfile.objectReferenceValue = oldAssetValue;
-                            asset = oldAssetValue as VolumeProfile;
-                        }
-                        else
-                        {
-                            asset = globalSettings.GetOrCreateDefaultVolumeProfile();
-                        }
-                    }
-
-                    if (asset != oldAssetValue)
-                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(asset);
-
-                    if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
-                    {
-                        if (globalSettings != null)
-                        {
-                            string path = $"Assets/VolumeProfile_Default.asset";
-                            VolumeProfileFactory.CreateVolumeProfileWithCallback(path, (volumeProfile) =>
-                            {
-                                globalSettings.volumeProfile = volumeProfile;
-                                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(volumeProfile);
-                                EditorUtility.SetDirty(globalSettings);
-                            });
-                        }
-                        else
-                        {
-                            Debug.LogError("Trying to create a Volume Profile but for URP Global Settings asset that is null. Operation aborted.");
-                        }
-                    }
+                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation(defaultVolumeProfileAsset);
+                    if (!confirmed)
+                        serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
                 }
 
-                if (asset != null)
+                if (defaultVolumeProfileAsset != null && s_DefaultVolumeProfileFoldoutExpanded)
                 {
-                    var editor = universalGlobalSettingsEditor.GetDefaultVolumeProfileEditor(asset);
+                    var editor =
+                        universalGlobalSettingsEditor.GetDefaultVolumeProfileEditor(defaultVolumeProfileAsset) as
+                            VolumeProfileEditor;
 
                     bool oldEnabled = GUI.enabled;
-                    GUI.enabled = AssetDatabase.IsOpenForEdit(asset);
+                    GUI.enabled = AssetDatabase.IsOpenForEdit(defaultVolumeProfileAsset);
+                    GUILayout.Space(4);
                     editor.OnInspectorGUI();
                     GUI.enabled = oldEnabled;
                 }
 
                 EditorGUIUtility.labelWidth = oldWidth;
+            }
+        }
+
+        static void OnVolumeProfileSectionContextClick(
+            Vector2 position,
+            SerializedUniversalRenderPipelineGlobalSettings serialized,
+            Editor owner)
+        {
+            if (owner is UniversalGlobalSettingsEditor universalGlobalSettingsEditor)
+            {
+                var editor = universalGlobalSettingsEditor.GetDefaultVolumeProfileEditor(
+                    serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile) as VolumeProfileEditor;
+
+                VolumeProfileUtils.OnVolumeProfileContextClick(position, editor,
+                    defaultVolumeProfilePath: "Assets/VolumeProfile_Default.asset",
+                    onNewVolumeProfileCreated: volumeProfile =>
+                    {
+                        var globalSettings =
+                            serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings;
+                        Undo.RecordObject(globalSettings, "Set Global Settings Volume Profile");
+                        globalSettings.volumeProfile = volumeProfile;
+                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(volumeProfile);
+                        EditorUtility.SetDirty(globalSettings);
+                    });
             }
         }
 

@@ -113,8 +113,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
 
-            if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
-                return true;
 
             if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
@@ -247,7 +245,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool isDecalMeshForwardEmissive = snippet.passName == "DecalMeshForwardEmissive";
                 bool isDBufferProjector = snippet.passName == "DBufferProjector";
                 bool isDecalProjectorForwardEmissive = snippet.passName == "DecalProjectorForwardEmissive";
-                if (isDBufferMesh || isDecalMeshForwardEmissive || isDBufferProjector || isDecalProjectorForwardEmissive)
+                bool isAtlasProjector = snippet.passName == "AtlasProjector";
+                if (isDBufferMesh || isDecalMeshForwardEmissive || isDBufferProjector || isDecalProjectorForwardEmissive || isAtlasProjector)
                     return true;
 
                 // If no decal support, remove decal variant

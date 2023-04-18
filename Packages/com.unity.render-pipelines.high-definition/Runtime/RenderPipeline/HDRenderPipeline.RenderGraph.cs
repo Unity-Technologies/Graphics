@@ -227,6 +227,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
+                    DecalSystem.instance.UpdateShaderGraphAtlasTextures(m_RenderGraph);
+
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
@@ -294,6 +296,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
 #if ENABLE_VIRTUALTEXTURES
+                //Check debug data to see if user disabled streaming.
+                if (HDDebugDisplaySettings.Instance != null && HDDebugDisplaySettings.Instance.vtSettings.data.debugDisableResolving)
+                    resolveVirtualTextureFeedback = false;
+
                 // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
                 // We don't write it when FullScreenDebug mode or path tracer.
                 if (resolveVirtualTextureFeedback)

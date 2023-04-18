@@ -12,7 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class DocumentationUrls
         {
-            public static readonly string k_Volumes = "Volume-Profile";
+            public static readonly string k_Volumes = "Volumes";
+            public static readonly string k_LookDev = "Look-Dev";
             public static readonly string k_FrameSettings = "Frame-Settings";
             public static readonly string k_RenderingLayers = "Rendering-Layers";
             public static readonly string k_DecalLayers = "Decal";
@@ -64,73 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawFrameSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_Camera, CoreEditorStyles.subSectionHeaderStyle);
-                DrawFrameSettingsSubsection(0, serialized.defaultCameraFrameSettings, owner);
-                EditorGUILayout.Space();
-
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_RTProbe, CoreEditorStyles.subSectionHeaderStyle);
-                DrawFrameSettingsSubsection(1, serialized.defaultRealtimeReflectionFrameSettings, owner);
-                EditorGUILayout.Space();
-
-                EditorGUILayout.LabelField(Styles.frameSettingsLabel_BakedProbe, CoreEditorStyles.subSectionHeaderStyle);
-                DrawFrameSettingsSubsection(2, serialized.defaultBakedOrCustomReflectionFrameSettings, owner);
-                EditorGUILayout.Space();
-            }
-        }
-
-        static private bool[] m_ShowFrameSettings_Rendering = { false, false, false };
-        static private bool[] m_ShowFrameSettings_Lighting = { false, false, false };
-        static private bool[] m_ShowFrameSettings_AsyncCompute = { false, false, false };
-        static private bool[] m_ShowFrameSettings_LightLoopDebug = { false, false, false };
-
-        static void DrawFrameSettingsSubsection(int index, SerializedFrameSettings serialized, Editor owner)
-        {
-            var oldWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = Styles.labelWidth;
-
-            CoreEditorUtils.DrawSplitter();
-            m_ShowFrameSettings_Rendering[index] = CoreEditorUtils.DrawHeaderFoldout(Styles.renderingSettingsHeaderContent, m_ShowFrameSettings_Rendering[index]);
-            if (m_ShowFrameSettings_Rendering[index])
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    FrameSettingsUI.Drawer_SectionRenderingSettings(serialized, owner, withOverride: false);
-                }
-            }
-
-            CoreEditorUtils.DrawSplitter();
-            m_ShowFrameSettings_Lighting[index] = CoreEditorUtils.DrawHeaderFoldout(Styles.lightSettingsHeaderContent, m_ShowFrameSettings_Lighting[index]);
-            if (m_ShowFrameSettings_Lighting[index])
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    FrameSettingsUI.Drawer_SectionLightingSettings(serialized, owner, withOverride: false);
-                }
-            }
-
-            CoreEditorUtils.DrawSplitter();
-            m_ShowFrameSettings_AsyncCompute[index] = CoreEditorUtils.DrawHeaderFoldout(Styles.asyncComputeSettingsHeaderContent, m_ShowFrameSettings_AsyncCompute[index]);
-            if (m_ShowFrameSettings_AsyncCompute[index])
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    FrameSettingsUI.Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride: false);
-                }
-            }
-
-            CoreEditorUtils.DrawSplitter();
-            m_ShowFrameSettings_LightLoopDebug[index] = CoreEditorUtils.DrawHeaderFoldout(Styles.lightLoopSettingsHeaderContent, m_ShowFrameSettings_LightLoopDebug[index]);
-            if (m_ShowFrameSettings_LightLoopDebug[index])
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    FrameSettingsUI.Drawer_SectionLightLoopSettings(serialized, owner, withOverride: false);
-                }
-            }
-            CoreEditorUtils.DrawSplitter();
-            EditorGUIUtility.labelWidth = oldWidth;
+            EditorGUILayout.PropertyField(serialized.serializedObject.FindProperty("m_RenderingPath"));
         }
 
         #endregion // Frame Settings
@@ -180,13 +115,24 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Volume Profiles
 
         static readonly CED.IDrawer VolumeSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.volumeComponentsLabel, Documentation.GetPageLink(DocumentationUrls.k_Volumes))),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(
+                Styles.defaultVolumeProfileSectionLabel,
+                Documentation.GetPageLink(DocumentationUrls.k_Volumes),
+                pos => OnDefaultVolumeProfileSectionContextClick(pos, serialized, owner))),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(DrawVolumeSection),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
+            CED.Group(DrawDefaultVolumeSection),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(
+                Styles.lookDevVolumeProfileSectionLabel,
+                Documentation.GetPageLink(DocumentationUrls.k_LookDev),
+                pos => OnLookDevVolumeProfileSectionContextClick(pos, serialized, owner))),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group(DrawLookDevVolumeSection)
         );
 
-        static void DrawVolumeSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        private static bool s_DefaultVolumeProfileFoldoutExpanded = true;
+
+        static void DrawDefaultVolumeSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             if (owner is not HDRenderPipelineGlobalSettingsEditor hdGlobalSettingsEditor)
                 return;
@@ -194,105 +140,91 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.IndentLevelScope())
             {
                 var oldWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = Styles.labelWidth;
+                EditorGUIUtility.labelWidth = Styles.defaultVolumeLabelWidth;
 
                 HDRenderPipelineGlobalSettings globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
-                VolumeProfile asset = null;
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    var oldAssetValue = serialized.defaultVolumeProfile.objectReferenceValue;
-                    EditorGUILayout.PropertyField(serialized.defaultVolumeProfile, Styles.defaultVolumeProfileLabel);
-                    asset = serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile;
-                    if (asset == null)
-                    {
-                        if (oldAssetValue != null)
-                        {
-                            Debug.Log("Default Volume Profile Asset cannot be null. Rolling back to previous value.");
-                            serialized.defaultVolumeProfile.objectReferenceValue = oldAssetValue;
-                            asset = oldAssetValue as VolumeProfile;
-                        }
-                        else
-                        {
-                            asset = globalSettings.GetOrCreateDefaultVolumeProfile();
-                        }
-                    }
 
+                var previousDefaultVolumeProfileAsset = serialized.defaultVolumeProfile.objectReferenceValue;
+                VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
+                    serialized.defaultVolumeProfile,
+                    Styles.defaultVolumeProfileAssetLabel,
+                    getOrCreateVolumeProfile: () => globalSettings.GetOrCreateDefaultVolumeProfile(),
+                    ref s_DefaultVolumeProfileFoldoutExpanded
+                );
+                EditorGUIUtility.labelWidth = Styles.volumeProfileEditorLabelWidth;
+
+                if (defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
+                {
                     var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
-                    if (asset != oldAssetValue)
-                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(asset, defaultValuesAsset);
-
-                    if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
-                    {
-                        if (globalSettings != null)
-                        {
-                            string path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/VolumeProfile_Default.asset";
-                            VolumeProfileFactory.CreateVolumeProfileWithCallback(path, (volumeProfile) =>
-                            {
-                                globalSettings.volumeProfile = volumeProfile;
-                                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(volumeProfile, defaultValuesAsset);
-                                EditorUtility.SetDirty(globalSettings);
-                            });
-                        }
-                        else
-                        {
-                            Debug.LogError("Trying to create a Volume Profile for a null HDRP Global Settings. Operation aborted.");
-                        }
-                    }
+                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation(defaultVolumeProfileAsset, defaultValuesAsset);
+                    if (!confirmed)
+                        serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
                 }
-                if (asset != null)
-                {
-                    var editor = hdGlobalSettingsEditor.GetDefaultVolumeProfileEditor(asset);
 
+                if (defaultVolumeProfileAsset != null && s_DefaultVolumeProfileFoldoutExpanded)
+                {
+                    var editor = hdGlobalSettingsEditor.GetDefaultVolumeProfileEditor(defaultVolumeProfileAsset) as VolumeProfileEditor;
                     bool oldEnabled = GUI.enabled;
-                    GUI.enabled = AssetDatabase.IsOpenForEdit(asset);
+                    GUI.enabled = AssetDatabase.IsOpenForEdit(defaultVolumeProfileAsset);
+                    GUILayout.Space(4);
                     editor.OnInspectorGUI();
                     GUI.enabled = oldEnabled;
                 }
+                EditorGUIUtility.labelWidth = oldWidth;
+            }
+        }
 
-                EditorGUILayout.Space();
+        static void OnDefaultVolumeProfileSectionContextClick(Vector2 pos, SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            if (owner is not HDRenderPipelineGlobalSettingsEditor hdGlobalSettingsEditor)
+                return;
 
-                VolumeProfile lookDevAsset = null;
-                using (new EditorGUILayout.HorizontalScope())
+            var editor = hdGlobalSettingsEditor.GetDefaultVolumeProfileEditor(
+                serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile) as VolumeProfileEditor;
+
+            VolumeProfileUtils.OnVolumeProfileContextClick(pos, editor,
+                defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/VolumeProfile_Default.asset",
+                onNewVolumeProfileCreated: volumeProfile =>
                 {
-                    var oldAssetValue = serialized.lookDevVolumeProfile.objectReferenceValue;
-                    EditorGUILayout.PropertyField(serialized.lookDevVolumeProfile, Styles.lookDevVolumeProfileLabel);
-                    lookDevAsset = serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile;
-                    if (lookDevAsset == null)
-                    {
-                        if (oldAssetValue != null)
-                        {
-                            Debug.Log("LookDev Volume Profile Asset cannot be null. Rolling back to previous value.");
-                            serialized.lookDevVolumeProfile.objectReferenceValue = oldAssetValue;
-                        }
-                        else
-                        {
-                            lookDevAsset = globalSettings.GetOrAssignLookDevVolumeProfile();
-                        }
-                    }
+                    var globalSettings =
+                        serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
 
-                    if (GUILayout.Button(Styles.newVolumeProfileLabel, GUILayout.Width(38), GUILayout.Height(18)))
-                    {
-                        if (globalSettings != null)
-                        {
-                            string path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/LookDevProfile_Default.asset";
-                            VolumeProfileFactory.CreateVolumeProfileWithCallback(path, (volumeProfile) =>
-                            {
-                                globalSettings.lookDevVolumeProfile = volumeProfile;
-                                EditorUtility.SetDirty(globalSettings);
-                            });
-                        }
-                        else
-                        {
-                            Debug.LogError("Trying to create a Volume Profile for a null HDRP Global Settings. Operation aborted.");
-                        }
-                    }
-                }
-                if (lookDevAsset != null)
+                    Undo.RecordObject(globalSettings, "Set Global Settings Volume Profile");
+                    globalSettings.volumeProfile = volumeProfile;
+                    var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(volumeProfile, defaultValuesAsset);
+                    EditorUtility.SetDirty(globalSettings);
+                });
+        }
+
+        private static bool s_LookDevVolumeProfileFoldoutExpanded = true;
+
+        static void DrawLookDevVolumeSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            if (owner is not HDRenderPipelineGlobalSettingsEditor hdGlobalSettingsEditor)
+                return;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                var oldWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = Styles.defaultVolumeLabelWidth;
+
+                HDRenderPipelineGlobalSettings globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
+                VolumeProfile lookDevAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
+                    serialized.lookDevVolumeProfile,
+                    Styles.lookDevVolumeProfileAssetLabel,
+                    getOrCreateVolumeProfile: () => globalSettings.GetOrAssignLookDevVolumeProfile(),
+                    ref s_LookDevVolumeProfileFoldoutExpanded
+                );
+                EditorGUIUtility.labelWidth = Styles.volumeProfileEditorLabelWidth;
+
+                if (lookDevAsset != null && s_LookDevVolumeProfileFoldoutExpanded)
                 {
-                    var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(lookDevAsset);
+                    var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(lookDevAsset) as VolumeProfileEditor;;
 
                     bool oldEnabled = GUI.enabled;
                     GUI.enabled = AssetDatabase.IsOpenForEdit(lookDevAsset);
+                    GUILayout.Space(4);
                     editor.OnInspectorGUI();
                     GUI.enabled = oldEnabled;
 
@@ -303,6 +235,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUIUtility.labelWidth = oldWidth;
             }
+        }
+
+        static void OnLookDevVolumeProfileSectionContextClick(Vector2 pos, SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            if (owner is not HDRenderPipelineGlobalSettingsEditor hdGlobalSettingsEditor)
+                return;
+
+            var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(
+                serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile) as VolumeProfileEditor;
+
+            VolumeProfileUtils.OnVolumeProfileContextClick(pos, editor,
+                defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/LookDevProfile_Default.asset",
+                onNewVolumeProfileCreated: volumeProfile =>
+                {
+                    var globalSettings =
+                        serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
+
+                    Undo.RecordObject(globalSettings, "Set Global Settings LookDev Profile");
+                    globalSettings.lookDevVolumeProfile = volumeProfile;
+                    EditorUtility.SetDirty(globalSettings);
+                });
         }
 
         #endregion // Volume Profiles

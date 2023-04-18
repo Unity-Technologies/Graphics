@@ -70,6 +70,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_SupportLodCrossFade = value;
         }
 
+        [SerializeField]
+        bool m_TransparentDynamicUpdate;
+        public bool transparentDynamicUpdate
+        {
+            get => m_TransparentDynamicUpdate;
+            set => m_TransparentDynamicUpdate = value;
+        }
+
         public bool affectsMaskmap => affectsSmoothness || affectsMetal || affectsAO;
     }
 }

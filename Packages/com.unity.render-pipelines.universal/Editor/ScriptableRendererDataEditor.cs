@@ -231,7 +231,7 @@ namespace UnityEditor.Rendering.Universal
 
         private void AddShowAdditionalPropertiesMenuItem(ref GenericMenu menu, int id)
         {
-            if (m_Editors[id].GetType() == typeof(FullScreenPassRendererFeatureEditor))
+            if (m_Editors[id] != null && m_Editors[id].GetType() == typeof(FullScreenPassRendererFeatureEditor))
             {
                 var featureReference = m_Editors[id] as FullScreenPassRendererFeatureEditor;
                 bool additionalPropertiesAreCurrentlyOn = featureReference.showAdditionalProperties;

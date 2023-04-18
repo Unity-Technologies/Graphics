@@ -96,6 +96,11 @@ HDRP now renders an **HDRI Sky** for any Camera this Volume affects.
     <td></td>
     <td>Use the slider to set the angle to rotate the cubemap, in degrees.</td>
   </tr>
+<tr>
+    <td></td>
+    <td><strong>Lock Sun</strong></td>
+    <td>Make the Sun rotate automatically when you move the HDRI Sky, and the HDRI Sky rotate automatically when you rotate the Sun.</td>
+  </tr>
   <tr>
     <td><strong>Update Mode</strong></td>
     <td></td>

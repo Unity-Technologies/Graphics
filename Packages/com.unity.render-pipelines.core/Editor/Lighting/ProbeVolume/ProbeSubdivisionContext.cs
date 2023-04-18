@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering
 
                     IEnumerator Subdivide()
                     {
-                        var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext();
+                        var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(true);
 
                         // Cull all the cells that are not visible (we don't need them for realtime debug)
                         ctx.cells.RemoveAll(c =>

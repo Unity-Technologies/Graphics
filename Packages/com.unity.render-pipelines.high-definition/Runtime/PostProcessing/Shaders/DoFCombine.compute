@@ -9,12 +9,14 @@
 #pragma kernel KMain
 
 #pragma multi_compile _ ENABLE_ALPHA
+#pragma multi_compile _ FORCE_POINT_SAMPLING
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
 
 CBUFFER_START(cb0)
 float4 _Params;
+float4 _Params2;
 CBUFFER_END
 
 #define NumRings            _Params.x
@@ -31,6 +33,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define ResScale        1.0f
 #define OneOverResScale 1.0f
 #define MaxColorMip     0.0f
+#define AdaptiveSamplingWeights _Params2.xy
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DoFGatherUtils.hlsl"
 
 [numthreads(GROUP_RES, GROUP_RES, 1)]

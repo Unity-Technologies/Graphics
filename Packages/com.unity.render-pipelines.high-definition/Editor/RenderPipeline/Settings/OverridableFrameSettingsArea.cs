@@ -55,7 +55,18 @@ namespace UnityEditor.Rendering.HighDefinition
             /// and we draw the UI accordingly.
             /// </summary>
             public bool hasMixedValues;
-            public GUIContent label => EditorGUIUtility.TrTextContent(attributes[field].displayedName, attributes[field].tooltip);
+
+            private GUIContent m_Label;
+
+            public GUIContent label
+            {
+                get
+                {
+                    m_Label ??= EditorGUIUtility.TrTextContent(attributes[field].displayedName, attributes[field].tooltip);
+                    return m_Label;
+                }
+            }
+
             public bool IsOverrideableWithDependencies(SerializedFrameSettings serialized, FrameSettings? defaultFrameSettings)
             {
                 FrameSettingsFieldAttribute attribute = attributes[field];
@@ -168,7 +179,33 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void DrawField(Field field, bool withOverride)
+        public float Draw(ref Rect rect)
+        {
+            float rectY = rect.y;
+
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
+
+            if (fields == null)
+                throw new ArgumentOutOfRangeException("Cannot be used without using the constructor with a capacity initializer.");
+
+            for (int i = 0; i < fields.Count; ++i)
+            {
+                if (!fields[i].hideFromUI)
+                {
+                    DrawField(rect, fields[i]);
+                    rect.y += rect.height + EditorGUIUtility.standardVerticalSpacing*2;
+                }
+            }
+
+            return (rect.position.y + rect.height) - rectY + EditorGUIUtility.standardVerticalSpacing;
+        }
+
+        void DrawField(Field field, bool withOverride = false)
+        {
+            DrawField(GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight), field, withOverride);
+        }
+
+        void DrawField(Rect lineRect, Field field, bool withOverride = false)
         {
             int indentLevel = attributes[field.field].indentLevel;
             if (indentLevel == 0)
@@ -188,7 +225,6 @@ namespace UnityEditor.Rendering.HighDefinition
             const int k_LabelFieldSeparator = 2;
             float indentValue = k_IndentPerLevel * EditorGUI.indentLevel;
 
-            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
             Rect overrideRect = lineRect;
             overrideRect.width = k_CheckBoxWidth;
             Rect labelRect = lineRect;
@@ -335,34 +371,33 @@ namespace UnityEditor.Rendering.HighDefinition
 
         object DrawFieldShape(Rect rect, object field)
         {
-            if (field is GUIContent)
+            switch (field)
             {
-                EditorGUI.LabelField(rect, (GUIContent)field);
-                return null;
-            }
-            else if (field is string)
-                return EditorGUI.TextField(rect, (string)field);
-            else if (field is bool)
-                return EditorGUI.Toggle(rect, (bool)field);
-            else if (field is int)
-                return EditorGUI.IntField(rect, (int)field);
-            else if (field is float)
-                return EditorGUI.FloatField(rect, (float)field);
-            else if (field is Color)
-                return EditorGUI.ColorField(rect, (Color)field);
-            else if (field is Enum)
-                return EditorGUI.EnumPopup(rect, (Enum)field);
-            else if (field is LayerMask)
-                return EditorGUI.MaskField(rect, (LayerMask)field, GraphicsSettings.currentRenderPipeline.prefixedRenderingLayerMaskNames);
-            else if (field is UnityEngine.Object)
-                return EditorGUI.ObjectField(rect, (UnityEngine.Object)field, field.GetType(), true);
-            else if (field is SerializedProperty)
-                return EditorGUI.PropertyField(rect, (SerializedProperty)field, includeChildren: true);
-            else
-            {
-                EditorGUI.LabelField(rect, new GUIContent("Unsupported type"));
-                Debug.LogError("Unsupported format " + field.GetType() + " in OverridableSettingsArea.cs. Please add it!");
-                return null;
+                case GUIContent content:
+                    EditorGUI.LabelField(rect, content);
+                    return null;
+                case string text:
+                    return EditorGUI.TextField(rect, text);
+                case bool boolean:
+                    return EditorGUI.Toggle(rect, boolean);
+                case int integer:
+                    return EditorGUI.IntField(rect, integer);
+                case float floatValue:
+                    return EditorGUI.FloatField(rect, floatValue);
+                case Color color:
+                    return EditorGUI.ColorField(rect, color);
+                case Enum enumeration:
+                    return EditorGUI.EnumPopup(rect, enumeration);
+                case LayerMask layerMask:
+                    return EditorGUI.MaskField(rect, layerMask, GraphicsSettings.currentRenderPipeline.prefixedRenderingLayerMaskNames);
+                case UnityEngine.Object unityObject:
+                    return EditorGUI.ObjectField(rect, unityObject, field.GetType(), true);
+                case SerializedProperty serializedProperty:
+                    return EditorGUI.PropertyField(rect, serializedProperty, includeChildren: true);
+                default:
+                    EditorGUI.LabelField(rect, new GUIContent("Unsupported type"));
+                    Debug.LogError($"Unsupported format {field.GetType()} in OverridableSettingsArea.cs. Please add it!");
+                    return null;
             }
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using UnityEngine;
@@ -137,12 +138,51 @@ namespace UnityEditor.Rendering.HighDefinition
             // Thus do not rely on serialized properties
             LightType lightType = targetAdditionalData.legacyLight.type;
 
-            if (lightType == LightType.Directional
-                || lightType == LightType.Point
-                || lightType == LightType.Disc)
+            if (lightType == LightType.Directional || lightType == LightType.Point || lightType == LightType.Disc)
+            {
                 base.OnSceneGUI();
+            }
             else
                 HDLightUI.DrawHandles(targetAdditionalData, this);
+
+            if (lightType == LightType.Directional)
+            {
+                var hdriSkies = GetHDRISkys();
+                foreach (var sky in hdriSkies)
+                {
+                    if (sky.lockSun.value)
+                    {
+                        Vector3 currentRot = targetAdditionalData.legacyLight.transform.rotation.eulerAngles;
+                        if (Math.Abs(sky.rotation.value - currentRot.y) > 0.01f)
+                        {
+                            sky.sunInitialRotation.value = 0f - currentRot.y;
+                            sky.rotation.value = currentRot.y;
+                            EditorUtility.SetDirty(sky);
+                        }
+                    }
+                }
+            }
+        }
+
+        List<HDRISky> GetHDRISkys()
+        {
+            LayerMask volumesMask = LayerMask.NameToLayer("Everything");
+            var volumes = VolumeManager.instance.GetVolumes(volumesMask);
+
+            List<HDRISky> skies = new List<HDRISky>();
+            foreach (var volume in volumes)
+            {
+                foreach (var component in volume.profile.components)
+                {
+                    HDRISky sky = component as HDRISky;
+                    if (sky != null)
+                    {
+                        skies.Add(sky);
+                    }
+                }
+            }
+
+            return skies;
         }
 
         internal Color legacyLightColor

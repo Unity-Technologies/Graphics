@@ -1795,8 +1795,7 @@ namespace UnityEngine.Rendering.Universal
         {
             bool hdrOutputSupported = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && asset.supportsHDR;
             bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
-            // TODO: Until we can test it, disable for mobile
-            return !Application.isMobilePlatform && hdrOutputSupported && hdrOutputActive;
+            return hdrOutputSupported && hdrOutputActive;
         }
 
         /// <summary>

@@ -402,7 +402,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.opaqueCullMode,
                 systemData.zTest,
                 builtinData.backThenFrontRendering,
-                builtinData.transparencyFog
+                builtinData.transparencyFog,
+                systemData.renderQueueType
             );
 
             // Add all shader properties required by the inspector for Tessellation

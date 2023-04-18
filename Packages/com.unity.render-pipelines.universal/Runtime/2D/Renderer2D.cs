@@ -87,8 +87,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_Renderer2DData.lightCullResult = new Light2DCullResult();
 
-            // the fall back here because 2D Renderer is in another unreferenced DLL.
-            Blitter.Initialize(data.coreBlitPS, data.coreBlitColorAndDepthPS);
+            // No need to initialize blitter dhe UniversalRenderPipeline already does this
         }
 
         protected override void Dispose(bool disposing)
@@ -107,6 +106,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_SamplingMaterial);
 
             CleanupRenderGraphResources();
+            base.Dispose(disposing);
         }
 
         public Renderer2DData GetRenderer2DData()

@@ -6365,11 +6365,11 @@ MonoBehaviour:
     PerPixelAlphaThreshold: 0
     RMSEThreshold: 0
     AverageCorrectnessThreshold: 0.0001
-    IncorrectPixelsThreshold: 0.0001
+    IncorrectPixelsThreshold: 0
     UseHDR: 1
     UseBackBuffer: 0
     ImageResolution: 0
-    ActiveImageTests: 3
+    ActiveImageTests: 1
     ActivePixelTests: 1
   WaitFrames: 0
   XRCompatible: 0

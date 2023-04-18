@@ -226,6 +226,10 @@ namespace UnityEngine.Rendering.HighDefinition
         LineRenderingSetup,
         LineRenderingComposite,
 
+        // Decal
+        UpdateShaderGraphDecalTexture,
+        UpdateDecalAtlasMipmaps,
+
         // Post-processing
         AlphaCopy,
         StopNaNs,

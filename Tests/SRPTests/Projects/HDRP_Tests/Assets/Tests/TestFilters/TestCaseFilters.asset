@@ -24,82 +24,55 @@ MonoBehaviour:
     Reason: Disable this test as we disable the feature for Yamto on Mac
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 029a23150c357e745b0a9f972f07049c, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-28487
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
-    ColorSpace: 1
+    - {fileID: 102900000, guid: fc784678bf952de4482e78aea61ccdc8, type: 3}
+    ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
-    Reason: API Bug
+    Reason: fail on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: API Bug
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable with cache server
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: d0d3270af482d2349baf7fc2a1dc7d4f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable with cache server
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable with cache server
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable with cache server
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 86f8f2a99d6720b48abc19c684103d74, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on  XR yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 0ab0b142387a4e7469f3ed9d0e03b84f, type: 3}
-    ColorSpace: 1
+    - {fileID: 102900000, guid: d4a7e5df537f6b0468c09ce661d8791d, type: 3}
+    ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
-    Reason: Instability only on yamato (black rabbit)
+    Reason: incorrect on metal
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: edecbcde87e543140b1f4e2ffe510a3c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: incorrect on metal
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c59b82120d32fbf4d96793fb7e0ec339, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: incorrect on metal
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2b613394fffde014b985766d7ac86297, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: corrupt on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 8c93fca0ef1024d9b9164ffe0ffd909e, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: corrupt on yamato

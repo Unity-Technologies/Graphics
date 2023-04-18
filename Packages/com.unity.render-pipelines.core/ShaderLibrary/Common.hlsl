@@ -794,7 +794,8 @@ half Eps_half() { return HALF_EPS; }
 half Min_half() { return HALF_MIN; }
 half Max_half() { return HALF_MAX; }
 
-// Compute
+// Compute the 'epsilon equal' relative to the scale of 'a' & 'b'.
+// Farther to 0.0f 'a' or 'b' are, larger epsilon have to be.
 bool NearlyEqual(float a, float b, float epsilon)
 {
     return abs(a - b) / (abs(a) + abs(b)) < epsilon;
@@ -1485,6 +1486,12 @@ bool HasFlag(uint bitfield, uint flag)
 real3 SafeNormalize(float3 inVec)
 {
     float dp3 = max(FLT_MIN, dot(inVec, inVec));
+    return inVec * rsqrt(dp3);
+}
+
+real3 SafeNormalize(half3 inVec)
+{
+    half dp3 = max(HALF_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 

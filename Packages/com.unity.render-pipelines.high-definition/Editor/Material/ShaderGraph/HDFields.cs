@@ -17,8 +17,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region Fields
         // Material
-        public static FieldDescriptor Anisotropy = new FieldDescriptor(kMaterial, "Anisotropy", "_MATERIAL_FEATURE_TRANSMISSION 1");
-        public static FieldDescriptor Iridescence = new FieldDescriptor(kMaterial, "Iridescence", "_MATERIAL_FEATURE_TRANSMISSION 1");
+        public static FieldDescriptor Anisotropy = new FieldDescriptor(kMaterial, "Anisotropy", "_MATERIAL_FEATURE_ANISOTROPY 1");
+        public static FieldDescriptor Iridescence = new FieldDescriptor(kMaterial, "Iridescence", "_MATERIAL_FEATURE_IRIDESCENCE 1");
         public static FieldDescriptor SubsurfaceScattering = new FieldDescriptor(kMaterial, "SubsurfaceScattering", "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1");
         public static FieldDescriptor Transmission = new FieldDescriptor(kMaterial, "Transmission", "_MATERIAL_FEATURE_TRANSMISSION 1");
 

@@ -51,9 +51,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BoundingSpheres.CopyTo(m_CachedBoundingSpheres);
             }
 
-            private void ResizeJobArrays(int newCapacity)
+            private void GrowJobArrays(int growByAmount)
             {
-                m_CachedTransforms.ResizeArray(newCapacity);
+                int newCapacity = m_DecalsCount + growByAmount;
+
+                m_CachedTransforms.capacity = newCapacity;
+
                 m_Positions.ResizeArray(newCapacity);
                 m_Rotations.ResizeArray(newCapacity);
                 m_Scales.ResizeArray(newCapacity);

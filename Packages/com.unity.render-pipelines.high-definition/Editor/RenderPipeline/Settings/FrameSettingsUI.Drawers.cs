@@ -93,16 +93,16 @@ namespace UnityEditor.Rendering.HighDefinition
         //separated to add enum popup on default frame settings
         internal static CED.IDrawer InspectorInnerbox(bool withOverride = true, bool isBoxed = true) => CED.Group(
             CED.FoldoutGroup(renderingSettingsHeaderContent, Expandable.RenderingPasses, k_ExpandedState, isBoxed ? FoldoutOption.Indent | FoldoutOption.Boxed : FoldoutOption.Indent,
-                CED.Group(206, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
+                CED.Group(206, (serialized, owner) => Drawer_Section(0, serialized, owner, withOverride))
                 ),
             CED.FoldoutGroup(lightSettingsHeaderContent, Expandable.LightingSettings, k_ExpandedState, isBoxed ? FoldoutOption.Indent | FoldoutOption.Boxed : FoldoutOption.Indent,
-                CED.Group(206, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
+                CED.Group(206, (serialized, owner) => Drawer_Section(1, serialized, owner, withOverride))
                 ),
             CED.FoldoutGroup(asyncComputeSettingsHeaderContent, Expandable.AsynComputeSettings, k_ExpandedState, isBoxed ? FoldoutOption.Indent | FoldoutOption.Boxed : FoldoutOption.Indent,
-                CED.Group(206, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
+                CED.Group(206, (serialized, owner) => Drawer_Section(2, serialized, owner, withOverride))
                 ),
             CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, isBoxed ? FoldoutOption.Indent | FoldoutOption.Boxed : FoldoutOption.Indent,
-                CED.Group(206, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
+                CED.Group(206, (serialized, owner) => Drawer_Section(3, serialized, owner, withOverride))
                 ),
             CED.Group((serialized, owner) =>
             {
@@ -156,93 +156,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return null;
         }
 
-        static internal void Drawer_SectionRenderingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
-        {
-            bool isGUIenabled = GUI.enabled;
-
-            FrameSettings? defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
-            var area = OverridableFrameSettingsArea.GetGroupContent(0, defaultFrameSettings, serialized);
-
-            area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.ClearGBuffers, ignoreDependencies: true);
-
-            area.AmmendInfo(FrameSettingsField.MSAAMode, ignoreDependencies: true);
-            area.AmmendInfo(
-                FrameSettingsField.MSAAMode,
-                overridedDefaultValue: defaultFrameSettings?.msaaMode ?? MSAAMode.FromHDRPAsset,
-                customGetter: () => serialized.msaaMode.GetEnumValue<MSAAMode>(),
-                customSetter: v => serialized.msaaMode.SetEnumValue((MSAAMode)v),
-                hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues
-            );
-
-            area.AmmendInfo(FrameSettingsField.ComputeThickness, ignoreDependencies: true);
-
-            area.AmmendInfo(FrameSettingsField.DecalLayers, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, ignoreDependencies: true);
-
-            var hdrpAsset = GetHDRPAssetFor(owner);
-            bool isDefaultSetting = (defaultFrameSettings != null);
-            RenderPipelineSettings qualityLevelSettings = hdrpAsset?.currentPlatformRenderPipelineSettings ?? default;
-            area.AmmendInfo(
-                FrameSettingsField.LODBiasMode,
-                overridedDefaultValue: (isDefaultSetting) ? defaultFrameSettings?.lodBiasMode : serialized.lodBiasMode.GetEnumValue<LODBiasMode>(),
-                customGetter: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>(),
-                customSetter: v => serialized.lodBiasMode.SetEnumValue((LODBiasMode)v),
-                hasMixedValues: serialized.lodBiasMode.hasMultipleDifferentValues
-            );
-            area.AmmendInfo(FrameSettingsField.LODBiasQualityLevel,
-                overridedDefaultValue: (isDefaultSetting) ? (ScalableLevel3ForFrameSettingsUIOnly) defaultFrameSettings?.lodBiasQualityLevel : (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
-                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
-                customSetter: v => serialized.lodBiasQualityLevel.intValue = (int)v,
-                overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.OverrideQualitySettings,
-                ignoreDependencies: true,
-                hasMixedValues: serialized.lodBiasQualityLevel.hasMultipleDifferentValues);
-
-            area.AmmendInfo(FrameSettingsField.LODBias,
-                overridedDefaultValue: hdrpAsset ? qualityLevelSettings.lodBias[serialized.lodBiasQualityLevel.intValue] : 0,
-                customGetter: () => serialized.lodBias.floatValue,
-                customSetter: v => serialized.lodBias.floatValue = (float)v,
-                overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
-                ignoreDependencies: true,
-                labelOverride: serialized.lodBiasMode.GetEnumValue<LODBiasMode>() == LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias",
-                hasMixedValues: serialized.lodBias.hasMultipleDifferentValues);
-
-            area.AmmendInfo(
-                FrameSettingsField.MaximumLODLevelMode,
-                overridedDefaultValue: (isDefaultSetting) ? defaultFrameSettings?.maximumLODLevelMode : serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>(),
-                customGetter: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>(),
-                customSetter: v => serialized.maximumLODLevelMode.SetEnumValue((MaximumLODLevelMode)v),
-                hasMixedValues: serialized.maximumLODLevelMode.hasMultipleDifferentValues
-            );
-            area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
-                overridedDefaultValue: (isDefaultSetting) ? (ScalableLevel3ForFrameSettingsUIOnly) defaultFrameSettings?.maximumLODLevelQualityLevel : (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
-                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
-                customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
-                overrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings,
-                ignoreDependencies: true,
-                hasMixedValues: serialized.maximumLODLevelQualityLevel.hasMultipleDifferentValues);
-
-            area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
-                overridedDefaultValue: hdrpAsset ? qualityLevelSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue] : 0,
-                customGetter: () => serialized.maximumLODLevel.intValue,
-                customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
-                overrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,
-                ignoreDependencies: true,
-                labelOverride: serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() == MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level",
-                hasMixedValues: serialized.maximumLODLevel.hasMultipleDifferentValues);
-
-            area.AmmendInfo(FrameSettingsField.MaterialQualityLevel,
-                overridedDefaultValue: defaultFrameSettings?.materialQuality.Into() ?? MaterialQualityMode.Medium,
-                customGetter: () => ((MaterialQuality)serialized.materialQuality.intValue).Into(),
-                customSetter: v => serialized.materialQuality.intValue = (int)((MaterialQualityMode)v).Into(),
-                hasMixedValues: serialized.materialQuality.hasMultipleDifferentValues
-            );
-
-            area.Draw(withOverride);
-            GUI.enabled = isGUIenabled;
-        }
-
         // Use an enum to have appropriate UI enum field in the frame setting api
         // Do not use anywhere else
         enum ScalableLevel3ForFrameSettingsUIOnly
@@ -252,90 +165,161 @@ namespace UnityEditor.Rendering.HighDefinition
             High
         }
 
-        static internal void Drawer_SectionLightingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
+        internal static OverridableFrameSettingsArea GetFrameSettingsArea(int index, SerializedFrameSettings serialized, FrameSettings? defaultFrameSettings, HDRenderPipelineAsset hdrpAsset)
         {
-            bool isGUIenabled = GUI.enabled;
+            var area = OverridableFrameSettingsArea.GetGroupContent(index, defaultFrameSettings, serialized);
 
+            RenderPipelineSettings qualityLevelSettings = hdrpAsset?.currentPlatformRenderPipelineSettings ?? default;
+            bool isDefaultSetting = (defaultFrameSettings != null);
+
+            switch (index)
+            {
+                case 0: // Rendering
+                {
+                    area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.ClearGBuffers, ignoreDependencies: true);
+
+                    area.AmmendInfo(FrameSettingsField.MSAAMode, ignoreDependencies: true);
+                    area.AmmendInfo(
+                        FrameSettingsField.MSAAMode,
+                        overridedDefaultValue: defaultFrameSettings?.msaaMode ?? MSAAMode.FromHDRPAsset,
+                        customGetter: () => serialized.msaaMode.GetEnumValue<MSAAMode>(),
+                        customSetter: v => serialized.msaaMode.SetEnumValue((MSAAMode)v),
+                        hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues
+                    );
+
+                    area.AmmendInfo(FrameSettingsField.ComputeThickness, ignoreDependencies: true);
+
+                    area.AmmendInfo(FrameSettingsField.DecalLayers, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, ignoreDependencies: true);
+
+                    area.AmmendInfo(
+                        FrameSettingsField.LODBiasMode,
+                        overridedDefaultValue: (isDefaultSetting) ? defaultFrameSettings?.lodBiasMode : serialized.lodBiasMode.GetEnumValue<LODBiasMode>(),
+                        customGetter: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>(),
+                        customSetter: v => serialized.lodBiasMode.SetEnumValue((LODBiasMode)v),
+                        hasMixedValues: serialized.lodBiasMode.hasMultipleDifferentValues
+                    );
+                    area.AmmendInfo(FrameSettingsField.LODBiasQualityLevel,
+                        overridedDefaultValue:  (ScalableLevel3ForFrameSettingsUIOnly) ((isDefaultSetting) ? defaultFrameSettings?.lodBiasQualityLevel : serialized.lodBiasQualityLevel.intValue),
+                        customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
+                        customSetter: v => serialized.lodBiasQualityLevel.intValue = (int)v,
+                        overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.OverrideQualitySettings,
+                        ignoreDependencies: true,
+                        hasMixedValues: serialized.lodBiasQualityLevel.hasMultipleDifferentValues);
+
+                    area.AmmendInfo(FrameSettingsField.LODBias,
+                        overridedDefaultValue: hdrpAsset ? qualityLevelSettings.lodBias[serialized.lodBiasQualityLevel.intValue] : 0,
+                        customGetter: () => serialized.lodBias.floatValue,
+                        customSetter: v => serialized.lodBias.floatValue = (float)v,
+                        overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
+                        ignoreDependencies: true,
+                        labelOverride: serialized.lodBiasMode.GetEnumValue<LODBiasMode>() == LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias",
+                        hasMixedValues: serialized.lodBias.hasMultipleDifferentValues);
+
+                    area.AmmendInfo(
+                        FrameSettingsField.MaximumLODLevelMode,
+                        overridedDefaultValue: (isDefaultSetting) ? defaultFrameSettings?.maximumLODLevelMode : serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>(),
+                        customGetter: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>(),
+                        customSetter: v => serialized.maximumLODLevelMode.SetEnumValue((MaximumLODLevelMode)v),
+                        hasMixedValues: serialized.maximumLODLevelMode.hasMultipleDifferentValues
+                    );
+                    area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
+                        overridedDefaultValue: (ScalableLevel3ForFrameSettingsUIOnly) (isDefaultSetting ? defaultFrameSettings?.maximumLODLevelQualityLevel : serialized.maximumLODLevelQualityLevel.intValue),
+                        customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
+                        customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
+                        overrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings,
+                        ignoreDependencies: true,
+                        hasMixedValues: serialized.maximumLODLevelQualityLevel.hasMultipleDifferentValues);
+
+                    area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
+                        overridedDefaultValue: hdrpAsset ? qualityLevelSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue] : 0,
+                        customGetter: () => serialized.maximumLODLevel.intValue,
+                        customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
+                        overrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,
+                        ignoreDependencies: true,
+                        labelOverride: serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() == MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level",
+                        hasMixedValues: serialized.maximumLODLevel.hasMultipleDifferentValues);
+
+                    area.AmmendInfo(FrameSettingsField.MaterialQualityLevel,
+                        overridedDefaultValue: defaultFrameSettings?.materialQuality.Into() ?? MaterialQualityMode.Medium,
+                        customGetter: () => ((MaterialQuality)serialized.materialQuality.intValue).Into(),
+                        customSetter: v => serialized.materialQuality.intValue = (int)((MaterialQualityMode)v).Into(),
+                        hasMixedValues: serialized.materialQuality.hasMultipleDifferentValues
+                    );
+
+                } break;
+                case 1: // Lighting
+                {
+                    area.AmmendInfo(FrameSettingsField.Volumetrics, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.TransparentSSR, ignoreDependencies: true);
+
+                    area.AmmendInfo(
+                        FrameSettingsField.SssQualityMode,
+                        overridedDefaultValue: SssQualityMode.FromQualitySettings,
+                        customGetter: () => serialized.sssQualityMode.GetEnumValue<SssQualityMode>(),
+                        customSetter: v => serialized.sssQualityMode.SetEnumValue((SssQualityMode)v),
+                        overrideable: () => serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false,
+                        ignoreDependencies: true,
+                        hasMixedValues: serialized.sssQualityMode.hasMultipleDifferentValues
+                    );
+                    area.AmmendInfo(FrameSettingsField.SssQualityLevel,
+                        overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                        customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.sssQualityLevel.intValue,// 3 levels
+                        customSetter: v => serialized.sssQualityLevel.intValue = Math.Max(0, Math.Min((int)v, 2)),// Levels 0-2
+                        overrideable: () => (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+                        && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() == SssQualityMode.FromQualitySettings),
+                        ignoreDependencies: true,
+                        hasMixedValues: serialized.sssQualityLevel.hasMultipleDifferentValues
+                    );
+                    area.AmmendInfo(FrameSettingsField.SssCustomSampleBudget,
+                        overridedDefaultValue: (int)DefaultSssSampleBudgetForQualityLevel.Low,
+                        customGetter: () => serialized.sssCustomSampleBudget.intValue,
+                        customSetter: v => serialized.sssCustomSampleBudget.intValue = Math.Max(1, Math.Min((int)v, (int)DefaultSssSampleBudgetForQualityLevel.Max)),
+                        overrideable: () => (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+                        && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
+                        ignoreDependencies: true,
+                        hasMixedValues: serialized.sssCustomSampleBudget.hasMultipleDifferentValues
+                    );
+                    area.AmmendInfo(FrameSettingsField.SssCustomDownsampleSteps,
+                        overridedDefaultValue: 0,
+                        customGetter: () => serialized.sssDownsampleSteps.intValue,
+                        customSetter: v => serialized.sssDownsampleSteps.intValue = Math.Max(0, Math.Min((int)v, (int)DefaultSssDownsampleSteps.Max)),
+                        overrideable: () => (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+                        && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
+                        ignoreDependencies: true,
+                        hasMixedValues: serialized.sssDownsampleSteps.hasMultipleDifferentValues
+                    );
+                } break;
+                case 2: // AsyncCompute
+                {
+                    area.AmmendInfo(FrameSettingsField.LightListAsync, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.SSRAsync, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.SSAOAsync, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.ContactShadowsAsync, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.VolumeVoxelizationsAsync, ignoreDependencies: true);
+                } break;
+                case 3: //LightLoop
+                {
+                    area.AmmendInfo(FrameSettingsField.ComputeLightEvaluation, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.ComputeLightVariants, ignoreDependencies: true);
+                    area.AmmendInfo(FrameSettingsField.ComputeMaterialVariants, ignoreDependencies: true);
+                } break;
+            }
+
+            return area;
+        }
+
+        private static void Drawer_Section(int index, SerializedFrameSettings serialized, Editor owner, bool withOverride)
+        {
+            bool oldEnabled = GUI.enabled;
             FrameSettings? defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
             var hdrpAsset = GetHDRPAssetFor(owner);
-            RenderPipelineSettings qualityLevelSettings = hdrpAsset?.currentPlatformRenderPipelineSettings ?? default;
-
-            var area = OverridableFrameSettingsArea.GetGroupContent(1, defaultFrameSettings, serialized);
-
-            area.AmmendInfo(FrameSettingsField.Volumetrics, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.TransparentSSR, ignoreDependencies: true);
-
-            area.AmmendInfo(
-                FrameSettingsField.SssQualityMode,
-                overridedDefaultValue: SssQualityMode.FromQualitySettings,
-                customGetter: () => serialized.sssQualityMode.GetEnumValue<SssQualityMode>(),
-                customSetter: v => serialized.sssQualityMode.SetEnumValue((SssQualityMode)v),
-                overrideable: () => serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false,
-                ignoreDependencies: true,
-                hasMixedValues: serialized.sssQualityMode.hasMultipleDifferentValues
-            );
-            area.AmmendInfo(FrameSettingsField.SssQualityLevel,
-                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
-                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.sssQualityLevel.intValue,// 3 levels
-                customSetter: v => serialized.sssQualityLevel.intValue = Math.Max(0, Math.Min((int)v, 2)),// Levels 0-2
-                overrideable: () => (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
-                && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() == SssQualityMode.FromQualitySettings),
-                ignoreDependencies: true,
-                hasMixedValues: serialized.sssQualityLevel.hasMultipleDifferentValues
-            );
-            area.AmmendInfo(FrameSettingsField.SssCustomSampleBudget,
-                overridedDefaultValue: (int)DefaultSssSampleBudgetForQualityLevel.Low,
-                customGetter: () => serialized.sssCustomSampleBudget.intValue,
-                customSetter: v => serialized.sssCustomSampleBudget.intValue = Math.Max(1, Math.Min((int)v, (int)DefaultSssSampleBudgetForQualityLevel.Max)),
-                overrideable: () => (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
-                && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
-                ignoreDependencies: true,
-                hasMixedValues: serialized.sssCustomSampleBudget.hasMultipleDifferentValues
-            );
-            area.AmmendInfo(FrameSettingsField.SssCustomDownsampleSteps,
-                overridedDefaultValue: 0,
-                customGetter: () => serialized.sssDownsampleSteps.intValue,
-                customSetter: v => serialized.sssDownsampleSteps.intValue = Math.Max(0, Math.Min((int)v, (int)DefaultSssDownsampleSteps.Max)),
-                overrideable: () => (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
-                && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
-                ignoreDependencies: true,
-                hasMixedValues: serialized.sssDownsampleSteps.hasMultipleDifferentValues
-            );
+            var area = GetFrameSettingsArea(index, serialized, defaultFrameSettings, hdrpAsset);
             area.Draw(withOverride);
-
-            GUI.enabled = isGUIenabled;
-        }
-
-        static internal void Drawer_SectionAsyncComputeSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
-        {
-            var area = GetFrameSettingSectionContent(2, serialized, owner);
-
-            area.AmmendInfo(FrameSettingsField.LightListAsync, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.SSRAsync, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.SSAOAsync, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.ContactShadowsAsync, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.VolumeVoxelizationsAsync, ignoreDependencies: true);
-
-            area.Draw(withOverride);
-        }
-
-        static internal void Drawer_SectionLightLoopSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
-        {
-            var area = GetFrameSettingSectionContent(3, serialized, owner);
-
-            area.AmmendInfo(FrameSettingsField.ComputeLightEvaluation, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.ComputeLightVariants, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.ComputeMaterialVariants, ignoreDependencies: true);
-
-            area.Draw(withOverride);
-        }
-
-        static OverridableFrameSettingsArea GetFrameSettingSectionContent(int group, SerializedFrameSettings serialized, Editor owner)
-        {
-            FrameSettings? defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
-            var area = OverridableFrameSettingsArea.GetGroupContent(group, defaultFrameSettings, serialized);
-            return area;
+            GUI.enabled = oldEnabled;
         }
     }
 }
