@@ -1,0 +1,2994 @@
+{
+    "MonoBehaviour": {
+        "m_Enabled": true,
+        "m_EditorHideFlags": 0,
+        "m_Name": "UnrealNodeComparison",
+        "m_EditorClassIdentifier": "",
+        "m_GraphModel": {
+            "rid": 1000
+        },
+        "references": {
+            "version": 2,
+            "RefIds": [
+                {
+                    "rid": 1000,
+                    "type": {
+                        "class": "SGGraphModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 13478189369819674024,
+                            "m_Value1": 8164899817179422677
+                        },
+                        "m_GraphNodeModels": [
+                            {
+                                "rid": 1001
+                            },
+                            {
+                                "rid": 8304198447166128192
+                            },
+                            {
+                                "rid": 8304198447166128195
+                            },
+                            {
+                                "rid": 8304198447166128198
+                            },
+                            {
+                                "rid": 8304198447166128201
+                            },
+                            {
+                                "rid": 8304198447166128204
+                            },
+                            {
+                                "rid": 8304198447166128208
+                            },
+                            {
+                                "rid": 8304198447166128210
+                            },
+                            {
+                                "rid": 8304198447166128213
+                            },
+                            {
+                                "rid": 8304198447166128216
+                            },
+                            {
+                                "rid": 8304198447166128218
+                            },
+                            {
+                                "rid": 8304198447166128221
+                            },
+                            {
+                                "rid": 8304198447166128223
+                            },
+                            {
+                                "rid": 8304198447166128225
+                            },
+                            {
+                                "rid": 8304198447166128227
+                            },
+                            {
+                                "rid": 8304198447166128229
+                            },
+                            {
+                                "rid": 8304198447166128232
+                            },
+                            {
+                                "rid": 8304198447166128235
+                            },
+                            {
+                                "rid": 8304198447166128238
+                            },
+                            {
+                                "rid": 8304198447166128242
+                            },
+                            {
+                                "rid": 8304198447166128245
+                            },
+                            {
+                                "rid": 8304198447166128248
+                            },
+                            {
+                                "rid": 8304198447166128251
+                            },
+                            {
+                                "rid": 8304198447166128254
+                            }
+                        ],
+                        "m_BadgeModels": [],
+                        "m_GraphWireModels": [],
+                        "m_GraphStickyNoteModels": [],
+                        "m_GraphPlacematModels": [],
+                        "m_GraphVariableModels": [],
+                        "m_GraphPortalModels": [],
+                        "m_SectionModels": [
+                            {
+                                "rid": 1002
+                            },
+                            {
+                                "rid": 1003
+                            }
+                        ],
+                        "m_GraphElementMetaData": [
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 16512614136016756655,
+                                    "m_Value1": 5125260147847375410
+                                },
+                                "m_Category": 4,
+                                "m_Index": 0
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 18158283150774729941,
+                                    "m_Value1": 16573564848198995143
+                                },
+                                "m_Category": 0,
+                                "m_Index": 1
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 11534644016727466542,
+                                    "m_Value1": 3865103503914475092
+                                },
+                                "m_Category": 0,
+                                "m_Index": 2
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 4610971453532452638,
+                                    "m_Value1": 17061560609721717930
+                                },
+                                "m_Category": 0,
+                                "m_Index": 3
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 16765199165393251052,
+                                    "m_Value1": 5772586031747954842
+                                },
+                                "m_Category": 0,
+                                "m_Index": 4
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 11093960889714200138,
+                                    "m_Value1": 10125617378082129706
+                                },
+                                "m_Category": 0,
+                                "m_Index": 5
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 12017573326059957414,
+                                    "m_Value1": 15343594832886004765
+                                },
+                                "m_Category": 0,
+                                "m_Index": 6
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 15770202109145815459,
+                                    "m_Value1": 8191418002547580572
+                                },
+                                "m_Category": 0,
+                                "m_Index": 7
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 1118897339991542505,
+                                    "m_Value1": 12145629875204048259
+                                },
+                                "m_Category": 0,
+                                "m_Index": 8
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 9071985020313047552,
+                                    "m_Value1": 12928514407138697551
+                                },
+                                "m_Category": 0,
+                                "m_Index": 9
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 6575488192885976195,
+                                    "m_Value1": 12357450604793505209
+                                },
+                                "m_Category": 0,
+                                "m_Index": 10
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 11829072991382920971,
+                                    "m_Value1": 6410818464578341283
+                                },
+                                "m_Category": 0,
+                                "m_Index": 11
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 8085713114337323488,
+                                    "m_Value1": 11383585626928770229
+                                },
+                                "m_Category": 0,
+                                "m_Index": 12
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 15936402662662030078,
+                                    "m_Value1": 15920525590686583874
+                                },
+                                "m_Category": 0,
+                                "m_Index": 13
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 7286566302776522647,
+                                    "m_Value1": 9830918789164574208
+                                },
+                                "m_Category": 0,
+                                "m_Index": 14
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 1881008476573629783,
+                                    "m_Value1": 12503450157565888003
+                                },
+                                "m_Category": 0,
+                                "m_Index": 15
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 14925916729891171953,
+                                    "m_Value1": 13921942061268404616
+                                },
+                                "m_Category": 0,
+                                "m_Index": 16
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 7013506249244423570,
+                                    "m_Value1": 5527298949550250230
+                                },
+                                "m_Category": 0,
+                                "m_Index": 17
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 17560906808761451080,
+                                    "m_Value1": 136416023091770942
+                                },
+                                "m_Category": 0,
+                                "m_Index": 18
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 9662469959668467333,
+                                    "m_Value1": 12895877270539127950
+                                },
+                                "m_Category": 0,
+                                "m_Index": 19
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 17227338655145022903,
+                                    "m_Value1": 11102169817832812004
+                                },
+                                "m_Category": 0,
+                                "m_Index": 20
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 1596939628737404957,
+                                    "m_Value1": 9696311278507414399
+                                },
+                                "m_Category": 0,
+                                "m_Index": 21
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 8700431671419886787,
+                                    "m_Value1": 4129008094456081831
+                                },
+                                "m_Category": 0,
+                                "m_Index": 22
+                            },
+                            {
+                                "m_Guid": {
+                                    "m_Value0": 12253505824163315895,
+                                    "m_Value1": 7955333068546059539
+                                },
+                                "m_Category": 0,
+                                "m_Index": 23
+                            }
+                        ],
+                        "m_StencilTypeName": "UnityEditor.ShaderGraph.GraphUI.ShaderGraphStencil, Unity.ShaderGraph.GraphUI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                        "graphHandlerBox": {
+                            "json": "{\n    \"m_serializedData\": [\n        {\n            \"layerName\": \"User\",\n            \"layerData\": [\n                {\n                    \"id\": \"00926c7f4f2ae67d4fa105e75a4f6bb3\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"0bdf8b69364f29a4a309b5746dcdf758\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"1d20a3a2217829167f530c0bbc379086\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"1eb744651b76fd3faa944280fad6c6ec\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"2e22a0bb9e4913a0549ef09a289ba335\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"4802f76db3dfb4f33e760e76a6a5e401\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"4ace7d9fa6aaf5992a871b885b6b858c\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"577dab513eaf1a1a03468414ac2d85ad\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"712e39582f8223cf880979098bac34c1\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"836cbe49acd3405bb925273cda7b7eab\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"8506ecfe3bfd17868ecc84610d5cf7b2\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"92353248c6fa5461f61855171ce9b44c\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"9777534d72151f650026de638d706e88\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"a399c09f4303dbda9c9e96f845c3ad71\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"a66c03aa44ffc6a61d7cb0e73466efd4\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"b7406f0ea0320daa132d9bd44605676e\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"b75546853bcd13efe4edfca3a0d4129a\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"c35c8a1f8224be78a76dc448fc2e4d39\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"d57ce3a4512efffbc74ccd3e6b2101e6\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.BaseColor.TypeField.c0\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.5\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.BaseColor.TypeField.c1\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.5\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.BaseColor.TypeField.c2\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+FieldHeader`1[[System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"System.Single, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                    \"valueData\": \"{\\n    \\\"m_data\\\": 0.5\\n}\"\n                },\n                {\n                    \"id\": \"DefaultContextDescriptor.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"e029cbcf3c393670b5ec549bd09efa9d\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"e94a53da331f870f83c5e86c05f28da8\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"ecaaf0a9d0f3a9e89af8b75169581c50\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"fe428f79c97929dd42cc6396ac11f1dc\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"FragIn\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"FragIn.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"FragIn.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"MaterialPropertyContext\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"MaterialPropertyContext.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertIn\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertIn.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertIn.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertOut\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+NodeHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertOut.In\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                },\n                {\n                    \"id\": \"VertOut.Out\",\n                    \"headerType\": \"UnityEditor.ShaderGraph.GraphDelta.GraphStorage+PortHeader, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                    \"headerData\": \"\",\n                    \"valueType\": \"\",\n                    \"valueData\": \"\"\n                }\n            ]\n        }\n    ],\n    \"m_metadata\": {\n        \"serializedBlocks\": [\n            {\n                \"key\": \"MaterialPropertyContext\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertIn\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"MaterialPropertyContext.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertIn.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertOut\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertIn.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertOut.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"FragIn\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"VertOut.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"FragIn.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_contextDescriptor\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"_Context\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"FragIn.Out\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.In\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_isInput\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        },\n                        {\n                            \"key\": \"_isHorizontal\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":false}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.BaseColor.TypeField.c0\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.BaseColor.TypeField.c1\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"DefaultContextDescriptor.BaseColor.TypeField.c2\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_ReconcretizeOnDataChange\",\n                            \"valueType\": \"System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089\",\n                            \"valueEntry\": \"{\\\"data\\\":true}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"d57ce3a4512efffbc74ccd3e6b2101e6\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Multiply\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"2e22a0bb9e4913a0549ef09a289ba335\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Add\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"1eb744651b76fd3faa944280fad6c6ec\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Divide\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"ecaaf0a9d0f3a9e89af8b75169581c50\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Subtract\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"4ace7d9fa6aaf5992a871b885b6b858c\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Lerp\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"a66c03aa44ffc6a61d7cb0e73466efd4\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Absolute\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"a399c09f4303dbda9c9e96f845c3ad71\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Normalize\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"e94a53da331f870f83c5e86c05f28da8\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Log\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"00926c7f4f2ae67d4fa105e75a4f6bb3\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"OneMinus\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"836cbe49acd3405bb925273cda7b7eab\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Power\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"0bdf8b69364f29a4a309b5746dcdf758\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Ceiling\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"e029cbcf3c393670b5ec549bd09efa9d\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Floor\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"fe428f79c97929dd42cc6396ac11f1dc\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Round\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"9777534d72151f650026de638d706e88\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Sign\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"577dab513eaf1a1a03468414ac2d85ad\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Arccosine\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"712e39582f8223cf880979098bac34c1\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Arcsine\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"92353248c6fa5461f61855171ce9b44c\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Arctangent\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"4802f76db3dfb4f33e760e76a6a5e401\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Arctangent2\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"8506ecfe3bfd17868ecc84610d5cf7b2\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Cosine\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"b75546853bcd13efe4edfca3a0d4129a\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"CrossProduct\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"1d20a3a2217829167f530c0bbc379086\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Distance\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"c35c8a1f8224be78a76dc448fc2e4d39\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"DotProduct\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            },\n            {\n                \"key\": \"b7406f0ea0320daa132d9bd44605676e\",\n                \"block\": {\n                    \"serializedEntries\": [\n                        {\n                            \"key\": \"_RegistryKey\",\n                            \"valueType\": \"UnityEditor.ShaderGraph.GraphDelta.RegistryKey, Unity.ShaderGraph.GraphDeltaRegistry, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\",\n                            \"valueEntry\": \"{\\\"data\\\":{\\\"Name\\\":\\\"Transform\\\",\\\"Version\\\":1}}\"\n                        }\n                    ]\n                }\n            }\n        ]\n    },\n    \"edges\": [\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    77,\n                    97,\n                    116,\n                    101,\n                    114,\n                    105,\n                    97,\n                    108,\n                    80,\n                    114,\n                    111,\n                    112,\n                    101,\n                    114,\n                    116,\n                    121,\n                    67,\n                    111,\n                    110,\n                    116,\n                    101,\n                    120,\n                    116,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    73,\n                    110,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    73,\n                    110,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    79,\n                    117,\n                    116,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    86,\n                    101,\n                    114,\n                    116,\n                    79,\n                    117,\n                    116,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    70,\n                    114,\n                    97,\n                    103,\n                    73,\n                    110,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        },\n        {\n            \"m_output\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    70,\n                    114,\n                    97,\n                    103,\n                    73,\n                    110,\n                    46,\n                    79,\n                    117,\n                    116\n                ]\n            },\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    68,\n                    101,\n                    102,\n                    97,\n                    117,\n                    108,\n                    116,\n                    67,\n                    111,\n                    110,\n                    116,\n                    101,\n                    120,\n                    116,\n                    68,\n                    101,\n                    115,\n                    99,\n                    114,\n                    105,\n                    112,\n                    116,\n                    111,\n                    114,\n                    46,\n                    73,\n                    110\n                ]\n            }\n        }\n    ],\n    \"defaultConnections\": [\n        {\n            \"m_context\": \"WorldSpaceTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    98,\n                    55,\n                    52,\n                    48,\n                    54,\n                    102,\n                    48,\n                    101,\n                    97,\n                    48,\n                    51,\n                    50,\n                    48,\n                    100,\n                    97,\n                    97,\n                    49,\n                    51,\n                    50,\n                    100,\n                    57,\n                    98,\n                    100,\n                    52,\n                    52,\n                    54,\n                    48,\n                    53,\n                    54,\n                    55,\n                    54,\n                    101,\n                    46,\n                    87,\n                    111,\n                    114,\n                    108,\n                    100,\n                    84,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceBiTangent\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    98,\n                    55,\n                    52,\n                    48,\n                    54,\n                    102,\n                    48,\n                    101,\n                    97,\n                    48,\n                    51,\n                    50,\n                    48,\n                    100,\n                    97,\n                    97,\n                    49,\n                    51,\n                    50,\n                    100,\n                    57,\n                    98,\n                    100,\n                    52,\n                    52,\n                    54,\n                    48,\n                    53,\n                    54,\n                    55,\n                    54,\n                    101,\n                    46,\n                    87,\n                    111,\n                    114,\n                    108,\n                    100,\n                    66,\n                    105,\n                    84,\n                    97,\n                    110,\n                    103,\n                    101,\n                    110,\n                    116\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpaceNormal\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    98,\n                    55,\n                    52,\n                    48,\n                    54,\n                    102,\n                    48,\n                    101,\n                    97,\n                    48,\n                    51,\n                    50,\n                    48,\n                    100,\n                    97,\n                    97,\n                    49,\n                    51,\n                    50,\n                    100,\n                    57,\n                    98,\n                    100,\n                    52,\n                    52,\n                    54,\n                    48,\n                    53,\n                    54,\n                    55,\n                    54,\n                    101,\n                    46,\n                    87,\n                    111,\n                    114,\n                    108,\n                    100,\n                    78,\n                    111,\n                    114,\n                    109,\n                    97,\n                    108\n                ]\n            }\n        },\n        {\n            \"m_context\": \"WorldSpacePosition\",\n            \"m_input\": {\n                \"m_path\": [],\n                \"m_fullPath\": [\n                    98,\n                    55,\n                    52,\n                    48,\n                    54,\n                    102,\n                    48,\n                    101,\n                    97,\n                    48,\n                    51,\n                    50,\n                    48,\n                    100,\n                    97,\n                    97,\n                    49,\n                    51,\n                    50,\n                    100,\n                    57,\n                    98,\n                    100,\n                    52,\n                    52,\n                    54,\n                    48,\n                    53,\n                    54,\n                    55,\n                    54,\n                    101,\n                    46,\n                    87,\n                    111,\n                    114,\n                    108,\n                    100,\n                    80,\n                    111,\n                    115,\n                    105,\n                    116,\n                    105,\n                    111,\n                    110\n                ]\n            }\n        }\n    ],\n    \"referableNames\": [],\n    \"referenceNodeMappings\": []\n}"
+                        },
+                        "targetSettingsBox": {
+                            "json": "{\n    \"m_SGVersion\": 0,\n    \"m_Type\": \"UnityEditor.ShaderGraph.SerializableTargetSettings+TargetSettingsObject\",\n    \"m_ObjectId\": \"16a5f31602294eeeb2e93388748ca911\",\n    \"m_GraphTargets\": [\n        {\n            \"m_Id\": \"176af446bac24f89bf6be3f56d5e01db\"\n        }\n    ]\n}\n\n{\n    \"m_SGVersion\": 1,\n    \"m_Type\": \"UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget\",\n    \"m_ObjectId\": \"176af446bac24f89bf6be3f56d5e01db\",\n    \"m_Datas\": [],\n    \"m_ActiveSubTarget\": {\n        \"m_Id\": \"9bdec95dd2e64c0095aaae5e3b35f90a\"\n    },\n    \"m_AllowMaterialOverride\": false,\n    \"m_SurfaceType\": 0,\n    \"m_ZTestMode\": 4,\n    \"m_ZWriteControl\": 0,\n    \"m_AlphaMode\": 0,\n    \"m_RenderFace\": 2,\n    \"m_AlphaClip\": false,\n    \"m_CastShadows\": true,\n    \"m_ReceiveShadows\": true,\n    \"m_SupportsLODCrossFade\": false,\n    \"m_CustomEditorGUI\": \"\",\n    \"m_SupportVFX\": false\n}\n\n{\n    \"m_SGVersion\": 2,\n    \"m_Type\": \"UnityEditor.Rendering.Universal.ShaderGraph.UniversalUnlitSubTarget\",\n    \"m_ObjectId\": \"9bdec95dd2e64c0095aaae5e3b35f90a\"\n}\n\n"
+                        },
+                        "mainPreviewModel": {
+                            "serializedMesh": {
+                                "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
+                                "m_Guid": ""
+                            }
+                        },
+                        "isSubGraph": false
+                    }
+                },
+                {
+                    "rid": 1001,
+                    "type": {
+                        "class": "SGContextNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 16512614136016756655,
+                            "m_Value1": 5125260147847375410
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "m_Title": "Fragment Stage",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [],
+                            "m_ValueList": []
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_Blocks": [
+                            {
+                                "rid": 1004
+                            }
+                        ],
+                        "m_BlockGuids": [
+                            {
+                                "m_Value0": 3772769446489682414,
+                                "m_Value1": 16077975633992519978
+                            }
+                        ],
+                        "m_RegistryKey": {
+                            "Name": "_Context",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "DefaultContextDescriptor"
+                    }
+                },
+                {
+                    "rid": 1002,
+                    "type": {
+                        "class": "SectionModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 2409572748268411857,
+                            "m_Value1": 2683011294759518935
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Items": [],
+                        "m_Title": "Properties"
+                    }
+                },
+                {
+                    "rid": 1003,
+                    "type": {
+                        "class": "SectionModel",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 8088605098792685706,
+                            "m_Value1": 4274125908318371001
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Items": [],
+                        "m_Title": "Keywords"
+                    }
+                },
+                {
+                    "rid": 1004,
+                    "type": {
+                        "class": "SGBlockNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 3772769446489682414,
+                            "m_Value1": 16077975633992519978
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 0.0,
+                            "y": 0.0
+                        },
+                        "m_Title": "BaseColor",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 4,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "BaseColor"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 1005
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_ContextNodeModel": {
+                            "rid": 1001
+                        },
+                        "<ContextEntryName>k__BackingField": "BaseColor"
+                    }
+                },
+                {
+                    "rid": 1005,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "DefaultContextDescriptor",
+                        "portName": "BaseColor",
+                        "m_StoredValue": {
+                            "e00": 0.5,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.5,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.5,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 3,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128192,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 18158283150774729941,
+                            "m_Value1": 16573564848198995143
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 753.0,
+                            "y": 154.0
+                        },
+                        "m_Title": "Multiply",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "A",
+                                "B"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128193
+                                },
+                                {
+                                    "rid": 8304198447166128194
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Multiply",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "d57ce3a4512efffbc74ccd3e6b2101e6",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128193,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "d57ce3a4512efffbc74ccd3e6b2101e6",
+                        "portName": "A",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128194,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "d57ce3a4512efffbc74ccd3e6b2101e6",
+                        "portName": "B",
+                        "m_StoredValue": {
+                            "e00": 2.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128195,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 11534644016727466542,
+                            "m_Value1": 3865103503914475092
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 752.9999389648438,
+                            "y": 305.0
+                        },
+                        "m_Title": "Add",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "A",
+                                "B"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128196
+                                },
+                                {
+                                    "rid": 8304198447166128197
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Add",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "2e22a0bb9e4913a0549ef09a289ba335",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128196,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "2e22a0bb9e4913a0549ef09a289ba335",
+                        "portName": "A",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128197,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "2e22a0bb9e4913a0549ef09a289ba335",
+                        "portName": "B",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128198,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 4610971453532452638,
+                            "m_Value1": 17061560609721717930
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 752.9999389648438,
+                            "y": 456.0
+                        },
+                        "m_Title": "Divide",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "A",
+                                "B"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128199
+                                },
+                                {
+                                    "rid": 8304198447166128200
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Divide",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "1eb744651b76fd3faa944280fad6c6ec",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128199,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "1eb744651b76fd3faa944280fad6c6ec",
+                        "portName": "A",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128200,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "1eb744651b76fd3faa944280fad6c6ec",
+                        "portName": "B",
+                        "m_StoredValue": {
+                            "e00": 2.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128201,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 16765199165393251052,
+                            "m_Value1": 5772586031747954842
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 752.9999389648438,
+                            "y": 607.0
+                        },
+                        "m_Title": "Subtract",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "A",
+                                "B"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128202
+                                },
+                                {
+                                    "rid": 8304198447166128203
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Subtract",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "ecaaf0a9d0f3a9e89af8b75169581c50",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128202,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "ecaaf0a9d0f3a9e89af8b75169581c50",
+                        "portName": "A",
+                        "m_StoredValue": {
+                            "e00": 1.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128203,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "ecaaf0a9d0f3a9e89af8b75169581c50",
+                        "portName": "B",
+                        "m_StoredValue": {
+                            "e00": 1.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128204,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 11093960889714200138,
+                            "m_Value1": 10125617378082129706
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1019.0,
+                            "y": 153.99998474121095
+                        },
+                        "m_Title": "Lerp",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "A",
+                                "B",
+                                "T"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128205
+                                },
+                                {
+                                    "rid": 8304198447166128206
+                                },
+                                {
+                                    "rid": 8304198447166128207
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Lerp",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "4ace7d9fa6aaf5992a871b885b6b858c",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128205,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "4ace7d9fa6aaf5992a871b885b6b858c",
+                        "portName": "A",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128206,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "4ace7d9fa6aaf5992a871b885b6b858c",
+                        "portName": "B",
+                        "m_StoredValue": {
+                            "e00": 1.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128207,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "4ace7d9fa6aaf5992a871b885b6b858c",
+                        "portName": "T",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128208,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 12017573326059957414,
+                            "m_Value1": 15343594832886004765
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1019.0,
+                            "y": 329.0
+                        },
+                        "m_Title": "Absolute",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128209
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Absolute",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "a66c03aa44ffc6a61d7cb0e73466efd4",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128209,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "a66c03aa44ffc6a61d7cb0e73466efd4",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128210,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 15770202109145815459,
+                            "m_Value1": 8191418002547580572
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1019.0,
+                            "y": 456.0000305175781
+                        },
+                        "m_Title": "Normalize",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "Mode",
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128211
+                                },
+                                {
+                                    "rid": 8304198447166128212
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Normalize",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "a399c09f4303dbda9c9e96f845c3ad71",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128211,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 8304198447166128212,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "a399c09f4303dbda9c9e96f845c3ad71",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128213,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 1118897339991542505,
+                            "m_Value1": 12145629875204048259
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1018.9999389648438,
+                            "y": 617.0
+                        },
+                        "m_Title": "Log",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "Base",
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128214
+                                },
+                                {
+                                    "rid": 8304198447166128215
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Log",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "e94a53da331f870f83c5e86c05f28da8",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128214,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 8304198447166128215,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "e94a53da331f870f83c5e86c05f28da8",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 1.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128216,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 9071985020313047552,
+                            "m_Value1": 12928514407138697551
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1019.0,
+                            "y": 778.0000610351563
+                        },
+                        "m_Title": "One Minus",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128217
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "OneMinus",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "00926c7f4f2ae67d4fa105e75a4f6bb3",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128217,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "00926c7f4f2ae67d4fa105e75a4f6bb3",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 1.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128218,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 6575488192885976195,
+                            "m_Value1": 12357450604793505209
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1273.5,
+                            "y": 158.99996948242188
+                        },
+                        "m_Title": "Power",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "Base",
+                                "Exp"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128219
+                                },
+                                {
+                                    "rid": 8304198447166128220
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Power",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "836cbe49acd3405bb925273cda7b7eab",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128219,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "836cbe49acd3405bb925273cda7b7eab",
+                        "portName": "Base",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128220,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "836cbe49acd3405bb925273cda7b7eab",
+                        "portName": "Exp",
+                        "m_StoredValue": {
+                            "e00": 2.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128221,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 11829072991382920971,
+                            "m_Value1": 6410818464578341283
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1273.5,
+                            "y": 329.0
+                        },
+                        "m_Title": "Ceiling",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128222
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Ceiling",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "0bdf8b69364f29a4a309b5746dcdf758",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128222,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "0bdf8b69364f29a4a309b5746dcdf758",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128223,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 8085713114337323488,
+                            "m_Value1": 11383585626928770229
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1273.5,
+                            "y": 456.0
+                        },
+                        "m_Title": "Floor",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128224
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Floor",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "e029cbcf3c393670b5ec549bd09efa9d",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128224,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "e029cbcf3c393670b5ec549bd09efa9d",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128225,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 15936402662662030078,
+                            "m_Value1": 15920525590686583874
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1273.5,
+                            "y": 583.0
+                        },
+                        "m_Title": "Round",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128226
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Round",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "fe428f79c97929dd42cc6396ac11f1dc",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128226,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "fe428f79c97929dd42cc6396ac11f1dc",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128227,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 7286566302776522647,
+                            "m_Value1": 9830918789164574208
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1273.5,
+                            "y": 710.0
+                        },
+                        "m_Title": "Sign",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128228
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Sign",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "9777534d72151f650026de638d706e88",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128228,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "9777534d72151f650026de638d706e88",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128229,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 1881008476573629783,
+                            "m_Value1": 12503450157565888003
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1546.4998779296875,
+                            "y": 158.99998474121095
+                        },
+                        "m_Title": "Arccosine",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "Mode",
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128230
+                                },
+                                {
+                                    "rid": 8304198447166128231
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Arccosine",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "577dab513eaf1a1a03468414ac2d85ad",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128230,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 8304198447166128231,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "577dab513eaf1a1a03468414ac2d85ad",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 1.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128232,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 14925916729891171953,
+                            "m_Value1": 13921942061268404616
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1546.4998779296875,
+                            "y": 329.0
+                        },
+                        "m_Title": "Arcsine",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "Mode",
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128233
+                                },
+                                {
+                                    "rid": 8304198447166128234
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Arcsine",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "712e39582f8223cf880979098bac34c1",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128233,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 8304198447166128234,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "712e39582f8223cf880979098bac34c1",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128235,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 7013506249244423570,
+                            "m_Value1": 5527298949550250230
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1546.4998779296875,
+                            "y": 493.5
+                        },
+                        "m_Title": "Arctangent",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "Mode",
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128236
+                                },
+                                {
+                                    "rid": 8304198447166128237
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Arctangent",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "92353248c6fa5461f61855171ce9b44c",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128236,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 8304198447166128237,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "92353248c6fa5461f61855171ce9b44c",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128238,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 17560906808761451080,
+                            "m_Value1": 136416023091770942
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1546.5,
+                            "y": 658.0
+                        },
+                        "m_Title": "Arctangent 2",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "",
+                                "A",
+                                "B"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128239
+                                },
+                                {
+                                    "rid": 8304198447166128240
+                                },
+                                {
+                                    "rid": 8304198447166128241
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Arctangent2",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "4802f76db3dfb4f33e760e76a6a5e401",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128239,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 8304198447166128240,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "4802f76db3dfb4f33e760e76a6a5e401",
+                        "portName": "A",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128241,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "4802f76db3dfb4f33e760e76a6a5e401",
+                        "portName": "B",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128242,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 9662469959668467333,
+                            "m_Value1": 12895877270539127950
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1546.5001220703125,
+                            "y": 846.5
+                        },
+                        "m_Title": "Cosine",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "Mode",
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128243
+                                },
+                                {
+                                    "rid": 8304198447166128244
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Cosine",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "8506ecfe3bfd17868ecc84610d5cf7b2",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128243,
+                    "type": {
+                        "class": "AnyConstant",
+                        "ns": "Unity.GraphToolsFoundation.Editor",
+                        "asm": "UnityEditor.GraphToolsFoundationModule"
+                    },
+                    "data": {}
+                },
+                {
+                    "rid": 8304198447166128244,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "8506ecfe3bfd17868ecc84610d5cf7b2",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128245,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 17227338655145022903,
+                            "m_Value1": 11102169817832812004
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1799.22509765625,
+                            "y": 158.875
+                        },
+                        "m_Title": "Cross Product",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "A",
+                                "B"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128246
+                                },
+                                {
+                                    "rid": 8304198447166128247
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "CrossProduct",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "b75546853bcd13efe4edfca3a0d4129a",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128246,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "b75546853bcd13efe4edfca3a0d4129a",
+                        "portName": "A",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 3,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128247,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "b75546853bcd13efe4edfca3a0d4129a",
+                        "portName": "B",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 1.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 3,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128248,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 1596939628737404957,
+                            "m_Value1": 9696311278507414399
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1798.9754638671875,
+                            "y": 310.7751159667969
+                        },
+                        "m_Title": "Distance",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "A",
+                                "B"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128249
+                                },
+                                {
+                                    "rid": 8304198447166128250
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Distance",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "1d20a3a2217829167f530c0bbc379086",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128249,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "1d20a3a2217829167f530c0bbc379086",
+                        "portName": "A",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128250,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "1d20a3a2217829167f530c0bbc379086",
+                        "portName": "B",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128251,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 8700431671419886787,
+                            "m_Value1": 4129008094456081831
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1798.7752685546875,
+                            "y": 463.22515869140627
+                        },
+                        "m_Title": "Dot Product",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "A",
+                                "B"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128252
+                                },
+                                {
+                                    "rid": 8304198447166128253
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "DotProduct",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "c35c8a1f8224be78a76dc448fc2e4d39",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128252,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "c35c8a1f8224be78a76dc448fc2e4d39",
+                        "portName": "A",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128253,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "c35c8a1f8224be78a76dc448fc2e4d39",
+                        "portName": "B",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 1,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                },
+                {
+                    "rid": 8304198447166128254,
+                    "type": {
+                        "class": "SGNodeModel",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "m_Guid": {
+                            "m_Value0": 12253505824163315895,
+                            "m_Value1": 7955333068546059539
+                        },
+                        "m_Color": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 0.0
+                        },
+                        "m_HasUserColor": false,
+                        "m_Version": 2,
+                        "m_Position": {
+                            "x": 1799.025390625,
+                            "y": 615.0750122070313
+                        },
+                        "m_Title": "Transform",
+                        "m_Tooltip": "",
+                        "m_SpawnFlags": 0,
+                        "m_InputConstantsById": {
+                            "m_KeyList": [
+                                "In"
+                            ],
+                            "m_ValueList": [
+                                {
+                                    "rid": 8304198447166128255
+                                }
+                            ]
+                        },
+                        "m_State": 0,
+                        "m_Collapsed": false,
+                        "m_CurrentModeIndex": 0,
+                        "m_RegistryKey": {
+                            "Name": "Transform",
+                            "Version": 1
+                        },
+                        "m_GraphDataName": "b7406f0ea0320daa132d9bd44605676e",
+                        "m_IsPreviewExpanded": false,
+                        "m_NodePreviewMode": 0
+                    }
+                },
+                {
+                    "rid": 8304198447166128255,
+                    "type": {
+                        "class": "GraphTypeConstant",
+                        "ns": "UnityEditor.ShaderGraph.GraphUI",
+                        "asm": "Unity.ShaderGraph.GraphUI"
+                    },
+                    "data": {
+                        "graphModel": {
+                            "rid": 1000
+                        },
+                        "nodeName": "b7406f0ea0320daa132d9bd44605676e",
+                        "portName": "In",
+                        "m_StoredValue": {
+                            "e00": 0.0,
+                            "e01": 0.0,
+                            "e02": 0.0,
+                            "e03": 0.0,
+                            "e10": 0.0,
+                            "e11": 0.0,
+                            "e12": 0.0,
+                            "e13": 0.0,
+                            "e20": 0.0,
+                            "e21": 0.0,
+                            "e22": 0.0,
+                            "e23": 0.0,
+                            "e30": 0.0,
+                            "e31": 0.0,
+                            "e32": 0.0,
+                            "e33": 0.0
+                        },
+                        "m_StoredLength": 3,
+                        "m_StoredHeight": 1,
+                        "m_StoredPrimitive": 3
+                    }
+                }
+            ]
+        }
+    }
+}
