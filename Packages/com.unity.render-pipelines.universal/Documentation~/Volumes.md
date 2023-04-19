@@ -16,7 +16,7 @@ With Mode set to **Global**, Volumes affect the Camera everywhere in the Scene. 
 
 You can add a __Volume__ component to any GameObject. A Scene can contain multiple GameObjects with Volume components. You can add multiple Volume components to a GameObject.
 
-The Volume component references a [Volume Profile](VolumeProfile.md), which contains the Scene properties. A Volume Profile contains default values for every property and hides them by default. [Volume Overrides](VolumeOverrides.md) let you change or extend the default properties in a [Volume Profile](VolumeProfile.md).
+The Volume component references a [Volume Profile](Volume-Profile.md), which contains the Scene properties. A Volume Profile contains default values for every property and hides them by default. [Volume Overrides](VolumeOverrides.md) let you change or extend the default properties in a [Volume Profile](Volume-Profile.md).
 
 At runtime, URP goes through all of the enabled Volume components attached to active GameObjects in the Scene, and determines each Volume's contribution to the final Scene settings. URP uses the Camera position and the Volume component properties to calculate the contribution. URP interpolates values from all Volumes with a non-zero contribution to calculate the final property values.
 
@@ -36,7 +36,7 @@ Volumes components contain properties that control how they affect Cameras and h
 
 ## Volume Profiles
 
-The __Profile__ field stores a [Volume Profile](VolumeProfile.md), which is an Asset that contains the properties that URP uses to render the Scene. You can edit this Volume Profile, or assign a different Volume Profile to the __Profile__ field. You can also create a Volume Profile or clone the current one by clicking the __New__ and __Clone__ buttons respectively.
+The __Profile__ field stores a [Volume Profile](Volume-Profile.md), which is an Asset that contains the properties that URP uses to render the Scene. You can edit this Volume Profile, or assign a different Volume Profile to the __Profile__ field. You can also create a Volume Profile or clone the current one by clicking the __New__ and __Clone__ buttons respectively.
 
 ## <a name="volume-local"></a>How to use Local Volumes
 
