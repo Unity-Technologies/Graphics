@@ -208,7 +208,11 @@ half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionW
     // sees that specularTerm have only non-negative terms, so it skips max(0,..) in clamp (leaving only min(100,...))
 #if REAL_IS_HALF
     specularTerm = specularTerm - HALF_MIN;
-    specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
+    // Update: Conservative bump from 100.0 to 1000.0 to better match the full float specular look.
+    // Roughly 65504.0 / 32*2 == 1023.5,
+    // or HALF_MAX / ((mobile) MAX_VISIBLE_LIGHTS * 2),
+    // to reserve half of the per light range for specular and half for diffuse + indirect + emissive.
+    specularTerm = clamp(specularTerm, 0.0, 1000.0); // Prevent FP16 overflow on mobiles
 #endif
 
     return specularTerm;
