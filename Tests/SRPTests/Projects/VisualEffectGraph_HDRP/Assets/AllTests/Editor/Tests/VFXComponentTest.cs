@@ -629,6 +629,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+		[Timeout(900000)]
         public IEnumerator CreateComponent_And_Check_NoneTexture_Constraint_Doesnt_Generate_Any_Error()
         {
             yield return new EnterPlayMode();
