@@ -770,10 +770,11 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.indentLevel++;
 
+            Rect volumeUpdateRect = EditorGUILayout.GetControlRect();
             EditorGUI.BeginChangeCheck();
             DrawLayerMask(m_AdditionalCameraDataVolumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
             DrawObjectField(m_AdditionalCameraDataVolumeTrigger, ref selectedVolumeTrigger, Styles.volumeTrigger);
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataVolumeFrameworkUpdateMode, Styles.volumeUpdates);
+            VolumeFrameworkUpdateMode selectedValue = (VolumeFrameworkUpdateMode)EditorGUI.EnumPopup(volumeUpdateRect, Styles.volumeUpdates, (VolumeFrameworkUpdateMode)m_AdditionalCameraDataVolumeFrameworkUpdateMode.intValue);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -783,6 +784,7 @@ namespace UnityEditor.Rendering.Universal
                 VolumeFrameworkUpdateMode curVolumeUpdateMode = (VolumeFrameworkUpdateMode)m_AdditionalCameraDataVolumeFrameworkUpdateMode.intValue;
                 camera.SetVolumeFrameworkUpdateMode(curVolumeUpdateMode);
 
+                m_AdditionalCameraDataVolumeFrameworkUpdateMode.intValue = (int)selectedValue;
                 m_AdditionalCameraDataSO.ApplyModifiedProperties();
             }
             EditorGUI.indentLevel--;
