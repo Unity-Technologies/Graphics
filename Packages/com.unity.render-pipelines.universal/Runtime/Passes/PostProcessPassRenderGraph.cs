@@ -63,7 +63,6 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle sourceTexture;
             internal TextureHandle depthStencilTexture;
             internal TextureHandle blendTexture;
-            internal CameraData cameraData;
             internal Material material;
         }
 
@@ -150,12 +149,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
                 builder.UseTexture( renderer.resources.GetTexture(UniversalResource.CameraDepth) ,IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.cameraData = renderingData.cameraData;
                 passData.material = material;
 
                 builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
                 {
-                    var pixelRect = data.cameraData.pixelRect;
                     var SMAAMaterial = data.material;
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
@@ -170,12 +167,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.destinationTexture = builder.UseTextureFragment(blendTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.sourceTexture = builder.UseTexture(edgeTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.cameraData = renderingData.cameraData;
                 passData.material = material;
 
                 builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
                 {
-                    var pixelRect = data.cameraData.pixelRect;
                     var SMAAMaterial = data.material;
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
@@ -192,12 +187,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.destinationTexture = builder.UseTextureFragment(SMAATarget, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.sourceTexture = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
                 passData.blendTexture = builder.UseTexture(blendTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
-                passData.cameraData = renderingData.cameraData;
                 passData.material = material;
 
                 builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
                 {
-                    var pixelRect = data.cameraData.pixelRect;
                     var SMAAMaterial = data.material;
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
