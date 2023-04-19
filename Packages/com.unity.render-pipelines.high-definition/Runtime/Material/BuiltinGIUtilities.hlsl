@@ -110,6 +110,10 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
     else
     {
         // Note: Probe volume here refer to LPPV not APV
+#if SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 1
+        if (unity_ProbeVolumeParams.y == 0.0)
+            positionRWS += _WorldSpaceCameraPos;
+#endif
         SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
             unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
     }
@@ -188,6 +192,10 @@ float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS
     float4 rawOcclusionMask;
     if (unity_ProbeVolumeParams.x == 1.0)
     {
+#if SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 1
+        if (unity_ProbeVolumeParams.y == 0.0)
+            positionRWS += _WorldSpaceCameraPos;
+#endif
         rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, GetProbeVolumeWorldToObject(),
             unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
     }

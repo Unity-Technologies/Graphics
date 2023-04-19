@@ -181,16 +181,17 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, ignoreDependencies: true);
 
             var hdrpAsset = GetHDRPAssetFor(owner);
+            bool isDefaultSetting = (defaultFrameSettings != null);
             RenderPipelineSettings qualityLevelSettings = hdrpAsset?.currentPlatformRenderPipelineSettings ?? default;
             area.AmmendInfo(
                 FrameSettingsField.LODBiasMode,
-                overridedDefaultValue: LODBiasMode.FromQualitySettings,
+                overridedDefaultValue: (isDefaultSetting) ? defaultFrameSettings?.lodBiasMode : serialized.lodBiasMode.GetEnumValue<LODBiasMode>(),
                 customGetter: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>(),
                 customSetter: v => serialized.lodBiasMode.SetEnumValue((LODBiasMode)v),
                 hasMixedValues: serialized.lodBiasMode.hasMultipleDifferentValues
             );
             area.AmmendInfo(FrameSettingsField.LODBiasQualityLevel,
-                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                overridedDefaultValue: (isDefaultSetting) ? (ScalableLevel3ForFrameSettingsUIOnly) defaultFrameSettings?.lodBiasQualityLevel : (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
                 customSetter: v => serialized.lodBiasQualityLevel.intValue = (int)v,
                 overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.OverrideQualitySettings,
@@ -208,13 +209,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             area.AmmendInfo(
                 FrameSettingsField.MaximumLODLevelMode,
-                overridedDefaultValue: MaximumLODLevelMode.FromQualitySettings,
+                overridedDefaultValue: (isDefaultSetting) ? defaultFrameSettings?.maximumLODLevelMode : serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>(),
                 customGetter: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>(),
                 customSetter: v => serialized.maximumLODLevelMode.SetEnumValue((MaximumLODLevelMode)v),
                 hasMixedValues: serialized.maximumLODLevelMode.hasMultipleDifferentValues
             );
             area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
-                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                overridedDefaultValue: (isDefaultSetting) ? (ScalableLevel3ForFrameSettingsUIOnly) defaultFrameSettings?.maximumLODLevelQualityLevel : (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
                 customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
                 overrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings,
