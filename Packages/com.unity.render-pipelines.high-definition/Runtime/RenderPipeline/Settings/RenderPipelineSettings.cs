@@ -373,6 +373,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Use lightProbeSystem instead", false)]
         internal bool oldSupportProbeVolume;
 
+        /// <summary> Support LOD Dithering Cross-Fade/// </summary>
+        [Obsolete("This setting has no effect, use LOD Quality Setting instead", false)]
+        public bool supportDitheringCrossFade;
 
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
@@ -501,10 +504,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [FormerlySerializedAs("supportRuntimeDebugDisplay"), Obsolete("Moved to HDGlobal Settings")]
         internal bool m_ObsoleteSupportRuntimeDebugDisplay;
-
-        [SerializeField]
-        [FormerlySerializedAs("supportDitheringCrossFade"), Obsolete("Merged with LOD Quality Setting")]
-        internal bool m_ObsoleteSupportDitheringCrossFade;
 #pragma warning restore 618
     }
 }

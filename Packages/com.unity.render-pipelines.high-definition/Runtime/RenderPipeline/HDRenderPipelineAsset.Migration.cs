@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.MergeDitheringAndLODQualitySetting, (HDRenderPipelineAsset data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                if (data.m_RenderPipelineSettings.m_ObsoleteSupportDitheringCrossFade)
+                if (data.m_RenderPipelineSettings.supportDitheringCrossFade)
                 {
                     var qualitySettings = QualitySettings.names;
                     for (int i = 0; i < qualitySettings.Length; i++)
