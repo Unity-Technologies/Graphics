@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string subShaderInclude => CoreIncludes.kStackLit;
 
         // SubShader features
-        protected override bool supportPathtracing => true;
+        protected override bool supportPathtracing => !TargetsVFX();
         protected override bool supportDistortion => true;
         protected override bool requireSplitLighting => stackLitData.subsurfaceScattering;
 

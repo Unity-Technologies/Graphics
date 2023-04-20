@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected VFXContext m_ContextVFX = null;
         protected VFXTaskCompiledData m_TaskDataVFX;
         protected bool TargetsVFX() => m_ContextVFX != null;
+        protected bool TargetVFXSupportsRaytracing() => TargetsVFX() && ((VFXAbstractParticleOutput)m_ContextVFX).isRayTraced;
 
         protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
 
