@@ -114,16 +114,15 @@ float2 PlaneIntersectionUV(float3 planeNormal, float3 planeX, float3 planeZ, flo
         uv = float2(0, 0);
     }
 
-   // uv /= UVscale;
+    uv /= UVscale;
     uv += float2(0.5, 0.5);
     return uv;
 }
 
 float3 CalculateBillboardProjection(float3 objectSpaceCameraDir, float2 uv)
 {
-    float3 up = normalize(objectSpaceCameraDir);
-    float3 x = normalize(cross(up, float3(0.0, 1.0, 0.0)));
-    float3 z = normalize(cross(x, up));
+    float3 x = normalize(cross(objectSpaceCameraDir, float3(0.0, 1.0, 0.0)));
+    float3 z = normalize(cross(x, objectSpaceCameraDir));
 
     uv = uv * 2.0 - 1.0;
 
@@ -131,7 +130,6 @@ float3 CalculateBillboardProjection(float3 objectSpaceCameraDir, float2 uv)
     float3 newZ = z * uv.y;
 
     float3 result = newX + newZ;
-
     return result;
 }
 
@@ -142,7 +140,7 @@ void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in flo
     float framesMinusOne = imposterFrames - 1;
 
     //camera pos in object space
-    float3 objectSpaceCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos.xyz, 1)).xyz;
+    float3 objectSpaceCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos.xyz, 1)).xyz - imposterOffset;
     float3 objectSpaceCameraDir = normalize(objectSpaceCameraPos.xyz);
 
     //get uv in a single frame
@@ -228,6 +226,7 @@ void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in flo
 
     //vert pos
     outPos = BillboardPos + imposterOffset;
+
     //surface
     outUVGrid.xy = UVscaled;
     outUVGrid.zw = grid;
@@ -241,7 +240,7 @@ void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrame
     float framesMinusOne = imposterFrames - 1;
 
     //camera pos in object space
-    float3 objectSpaceCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos.xyz, 1)).xyz;
+    float3 objectSpaceCameraPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos.xyz, 1)).xyz - imposterOffset;
     float3 objectSpaceCameraDir = normalize(objectSpaceCameraPos.xyz);
 
     //get uv in a single frame
@@ -315,7 +314,7 @@ void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrame
 }
 //Sample from UVs 
 void ImposterSample(in int heightMapChannel, in float3 viewDirTS, in float parallax, in float imposterFrames, in texture2D Texture, in float4 mapTexelSize,
-    in float imposterClip, in float4 inUVGrid, in float4 inUV0, in float4 inUV1, in float4 inUV2, in SamplerState ss, out float4 outColor)
+    in float4 inUVGrid, in float4 inUV0, in float4 inUV1, in float4 inUV2, in SamplerState ss, out float4 outColor)
 {
     float2 inUV = inUVGrid.xy;
 
@@ -346,29 +345,29 @@ void ImposterSample(in int heightMapChannel, in float3 viewDirTS, in float paral
 
     if (parallax != 0) {
 
-        vp0uv += ParallaxMappingChannel(TEXTURE2D_ARGS(Texture, ss), viewDirTS, parallax * 0.01, vp0uv, heightMapChannel);
-        vp1uv += ParallaxMappingChannel(TEXTURE2D_ARGS(Texture, ss), viewDirTS, parallax * 0.01, vp1uv, heightMapChannel);
-        vp2uv += ParallaxMappingChannel(TEXTURE2D_ARGS(Texture, ss), viewDirTS, parallax * 0.01, vp2uv, heightMapChannel);
+        vp0uv = ParallaxMappingChannel(TEXTURE2D_ARGS(Texture, ss), viewDirTS, parallax * 0.01, vp0uv, heightMapChannel);
+        vp1uv = ParallaxMappingChannel(TEXTURE2D_ARGS(Texture, ss), viewDirTS, parallax * 0.01, vp1uv, heightMapChannel);
+        vp2uv = ParallaxMappingChannel(TEXTURE2D_ARGS(Texture, ss), viewDirTS, parallax * 0.01, vp2uv, heightMapChannel);
     }
 
     // clip out neighboring frames 
-    float2 gridSize = 1.0 / imposterFrames.xx;
-    float2 bleeds = mapTexelSize.xy * imposterClip;
-    vp0uv = clamp(vp0uv, frame0 - bleeds, frame0 + gridSize + bleeds);
-    vp1uv = clamp(vp1uv, frame1 - bleeds, frame1 + gridSize + bleeds);
-    vp2uv = clamp(vp2uv, frame2 - bleeds, frame2 + gridSize + bleeds);
+    //float2 gridSize = 1.0 / imposterFrames.xx;
+    //float2 bleeds = mapTexelSize.xy * imposterClip;
+    //vp0uv = clamp(vp0uv, frame0 - bleeds, frame0 + gridSize + bleeds);
+    //vp1uv = clamp(vp1uv, frame1 - bleeds, frame1 + gridSize + bleeds);
+    //vp2uv = clamp(vp2uv, frame2 - bleeds, frame2 + gridSize + bleeds);
 
     float4 blendedColor = SAMPLE_TEXTURE2D_GRAD(Texture, ss, vp0uv, ddx(inUV), ddy(inUV)) * weights.x
         + SAMPLE_TEXTURE2D_GRAD(Texture, ss, vp1uv, ddx(inUV), ddy(inUV)) * weights.y
         + SAMPLE_TEXTURE2D_GRAD(Texture, ss, vp2uv, ddx(inUV), ddy(inUV)) * weights.z;
 
-    outColor.a = blendedColor.a - imposterClip + 1;
-    clip(outColor.a);
+    outColor.a = blendedColor.a;
+    //clip(outColor.a);
     outColor.rgb = blendedColor.rgb;
 }
 
 void ImposterSample_oneFrame(in int heightMapChannel, in float3 viewDirTS, in float parallax, in float imposterFrames, in texture2D Texture, in float4 mapTexelSize,
-    in float imposterClip, in float4 inUVGrid, in float4 inUV0, in SamplerState ss, out float4 outColor)
+    in float4 inUVGrid, in float4 inUV0, in SamplerState ss, out float4 outColor)
 {
     float2 inUV = inUVGrid.xy;
 
@@ -394,14 +393,10 @@ void ImposterSample_oneFrame(in int heightMapChannel, in float3 viewDirTS, in fl
         vp0uv += ParallaxMappingChannel(TEXTURE2D_ARGS(Texture, ss), viewDirTS, parallax * 0.01, vp0uv, heightMapChannel);
     }
 
-    // clip out neighboring frames 
-    float2 gridSize = 1.0 / imposterFrames.xx;
-    float2 bleeds = mapTexelSize.xy * imposterClip;
-    vp0uv = clamp(vp0uv, frame0 - bleeds, frame0 + gridSize + bleeds);
 
     float4 blendedColor = SAMPLE_TEXTURE2D_GRAD(Texture, ss, vp0uv, ddx(inUV), ddy(inUV));
 
-    outColor.a = blendedColor.a - imposterClip + 1;
+    outColor.a = blendedColor.a;
     clip(outColor.a);
     outColor.rgb = blendedColor.rgb;
 }
