@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.Universal
 
                 for (var i = 0; i < m_Attachments.lightTextures.Length; i++)
                 {
-                    m_Attachments.lightTextures[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[i], false);
+                    m_Attachments.lightTextures[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[i], false, FilterMode.Bilinear);
                 }
             }
 
@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     cameraTargetDescriptor.useMipMap = false;
                     cameraTargetDescriptor.autoGenerateMips = false;
-                    cameraTargetDescriptor.depthBufferBits = (int) DepthBits.None;
+                    cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
 
                     RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandle, cameraTargetDescriptor, cameraTargetFilterMode, TextureWrapMode.Clamp, name: "_CameraTargetAttachment");
                 }
@@ -195,9 +195,16 @@ namespace UnityEngine.Rendering.Universal
             CreateResources(renderGraph, ref renderingData);
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, false);
 
+            OnBeforeRendering(renderGraph);
+
             OnMainRendering(renderGraph, ref renderingData);
 
             OnAfterRendering(renderGraph, ref renderingData);
+        }
+
+        private void OnBeforeRendering(RenderGraph renderGraph)
+        {
+            m_LightPass.Setup(renderGraph, ref m_Renderer2DData);
         }
 
         private void OnMainRendering(RenderGraph renderGraph, ref RenderingData renderingData)
@@ -234,7 +241,7 @@ namespace UnityEngine.Rendering.Universal
                 ClearLightTextures(renderGraph, ref m_Renderer2DData, ref layerBatch);
 
                 // Light Pass
-                m_LightPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, m_Attachments.lightTextures, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
+                m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.lightTextures, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
 
                 // Clear camera targets
                 if (i == 0 && clearFlags != RTClearFlags.None)
@@ -263,7 +270,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Light Volume Pass
-                m_LightPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, m_Attachments.colorAttachment, m_Attachments.normalTexture, m_Attachments.depthAttachment, true);
+                m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.colorAttachment, m_Attachments.normalTexture, m_Attachments.depthAttachment, true);
             }
 
             bool shouldRenderUI = cameraData.rendersOverlayUI;
@@ -272,7 +279,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, out m_Attachments.overlayUITexture, ref renderingData);
             }
-
         }
 
         private void OnAfterRendering(RenderGraph renderGraph, ref RenderingData renderingData)
@@ -291,7 +297,6 @@ namespace UnityEngine.Rendering.Universal
                 RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
                 HDRDebugViewPass.ConfigureDescriptor(ref descriptor);
                 m_Attachments.debugScreenTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_DebugScreenTexture", false);
-                
             }
 
             bool applyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
@@ -377,6 +382,8 @@ namespace UnityEngine.Rendering.Universal
         {
             m_RenderGraphCameraColorHandle?.Release();
             m_RenderGraphCameraDepthHandle?.Release();
+            m_CameraSortingLayerHandle?.Release();
+            m_LightPass.Dispose();
         }
     }
 
@@ -385,9 +392,6 @@ namespace UnityEngine.Rendering.Universal
         static private ProfilingSampler s_ClearProfilingSampler = new ProfilingSampler("Clear Targets");
         private class PassData
         {
-            internal TextureHandle color;
-            internal TextureHandle depth;
-
             internal RTClearFlags clearFlags;
             internal Color clearColor;
         }
@@ -399,17 +403,17 @@ namespace UnityEngine.Rendering.Universal
             if (clearFlags != RTClearFlags.Color)
                 Debug.Assert(depthHandle.IsValid(), "Trying to clear an invalid depth target");
 
-            using (var builder = graph.AddRenderPass<PassData>("Clear Target", out var passData, s_ClearProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>("Clear Target", out var passData, s_ClearProfilingSampler))
             {
-                passData.color = builder.UseColorBuffer(colorHandle, 0);
+                builder.UseTextureFragment(colorHandle, 0);
                 if (depthHandle.IsValid())
-                    passData.depth = builder.UseDepthBuffer(depthHandle, DepthAccess.Write);
+                    builder.UseTextureFragmentDepth(depthHandle, IBaseRenderGraphBuilder.AccessFlags.Write);
                 passData.clearFlags = clearFlags;
                 passData.clearColor = clearColor;
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
                     context.cmd.ClearRenderTarget(data.clearFlags, data.clearColor, 1, 0);
                 });

@@ -141,6 +141,12 @@ namespace UnityEngine.Rendering.Universal
             return new Renderer2D(this);
         }
 
+        internal void Dispose()
+        {
+            for (var i = 0; i < m_LightBlendStyles.Length; ++i)
+                m_LightBlendStyles[i].renderTargetHandle?.Release();
+        }
+
         /// <summary>
         /// OnEnable implementation.
         /// </summary>

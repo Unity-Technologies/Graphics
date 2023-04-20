@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
+            m_Renderer2DData.Dispose();
             m_Render2DLightingPass.Dispose();
             m_PostProcessPasses.Dispose();
             m_ColorTextureHandle?.Release();

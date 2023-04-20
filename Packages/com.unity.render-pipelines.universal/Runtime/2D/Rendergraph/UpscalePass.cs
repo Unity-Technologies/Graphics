@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering.Universal;
 
@@ -12,19 +13,16 @@ namespace UnityEngine.Rendering.Universal
 
         private RTHandle source;
         private RTHandle destination;
-        private PassData m_PassData;
 
         private class PassData
         {
             internal TextureHandle source;
-            internal RenderingData renderingData;
         }
 
         public UpscalePass(RenderPassEvent evt, Material blitMaterial)
         {
             renderPassEvent = evt;
             m_BlitMaterial = blitMaterial;
-            m_PassData = new PassData();
         }
 
         public void Setup(RTHandle colorTargetHandle, int width, int height, FilterMode mode, ref RenderingData renderingData, out RTHandle upscaleHandle)
@@ -50,13 +48,11 @@ namespace UnityEngine.Rendering.Universal
             var cmd = renderingData.commandBuffer;
             cmd.SetRenderTarget(destination);
 
-            m_PassData.renderingData = renderingData;
-            ExecutePass(ref renderingData, source);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), source);
         }
 
-        private static void ExecutePass(ref RenderingData renderingData, RTHandle source)
+        private static void ExecutePass(RasterCommandBuffer cmd, RTHandle source)
         {
-            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
             {
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
@@ -70,17 +66,17 @@ namespace UnityEngine.Rendering.Universal
             if (ppc == null || !ppc.enabled || !ppc.requiresUpscalePass)
                 return;
 
-            using (var builder = graph.AddRenderPass<PassData>("Upscale Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>("Upscale Pass", out var passData, m_ProfilingSampler))
             {
-                passData.renderingData = renderingData;
-                builder.UseColorBuffer(upscaleHandle, 0);
-                passData.source = builder.ReadTexture(cameraColorAttachment);
+                passData.source = cameraColorAttachment;
+                builder.UseTextureFragment(upscaleHandle, 0);
+                builder.UseTexture(cameraColorAttachment);
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(ref data.renderingData, data.source);
+                    ExecutePass(context.cmd, data.source);
                 });
             }
         }
