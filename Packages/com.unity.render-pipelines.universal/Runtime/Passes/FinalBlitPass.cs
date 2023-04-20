@@ -99,6 +99,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputParameters);
             HDROutputUtils.ConfigureHDROutput(material, HDROutputSettings.main.displayColorGamut, hdrOperation);
+            // Blit material does not reference HDR_INPUT, so we don't need to enable the keyword.
+            //material.EnableKeyword(ShaderKeywordStrings.HDRInput);
         }
 
         /// <inheritdoc/>

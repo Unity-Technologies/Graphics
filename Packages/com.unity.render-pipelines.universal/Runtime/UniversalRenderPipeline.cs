@@ -1733,8 +1733,7 @@ namespace UnityEngine.Rendering.Universal
             ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
 
             // Fall back to the automatic filter if FSR was selected, but isn't supported on the current platform
-            // TODO: Investigate how to make FSR work with HDR output.
-            if ((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported() || HDROutputIsActive()))
+            if ((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported()))
             {
                 selection = UpscalingFilterSelection.Auto;
             }
@@ -1863,7 +1862,7 @@ namespace UnityEngine.Rendering.Universal
             float minNits = HDROutputSettings.main.minToneMapLuminance;
             float maxNits = HDROutputSettings.main.maxToneMapLuminance;
             float paperWhite = HDROutputSettings.main.paperWhiteNits;
-            ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
+            //ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
 
             if (!tonemapping.detectPaperWhite.value)
             {
@@ -1875,7 +1874,7 @@ namespace UnityEngine.Rendering.Universal
                 maxNits = tonemapping.maxNits.value;
             }
 
-            hdrOutputParameters = new Vector4(minNits, maxNits, paperWhite, (int)colorPrimaries);
+            hdrOutputParameters = new Vector4(minNits, maxNits, paperWhite, 1f / paperWhite);
         }
 
         internal static void GetHDROutputGradingParameters(Tonemapping tonemapping, out Vector4 hdrOutputParameters)
