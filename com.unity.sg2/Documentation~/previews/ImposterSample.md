@@ -10,7 +10,6 @@ This creates the illusion of a 3D object on a billboard object because the impos
 **UV2** - The virtual UV for the third frame.
 **Grid** - The current UV grid, which is used to find the corresponding sample frames.
 **Frames** - The number of the imposter frames in each axis.
-**Clip** - The amount of clipping for a single frame.
 **Parallax** - Parallax strength.
 **Height Map Channel** - The channle of the height map to sample for parallax mapping, if any.
 

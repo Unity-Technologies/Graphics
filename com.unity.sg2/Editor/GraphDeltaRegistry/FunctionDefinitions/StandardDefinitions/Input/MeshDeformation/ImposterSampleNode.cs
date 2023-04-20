@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     functions: new FunctionDescriptor[] {
                      new(
                     "ThreeFrames",
-    @"ImposterSample(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);",
+    @"ImposterSample(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);",
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -24,7 +24,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("UV2", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
-                    new ParameterDescriptor("Clip", TYPE.Float, Usage.In, new float[] {1f}),
                     new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
                     new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
                     new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),
@@ -37,7 +36,7 @@ namespace UnityEditor.ShaderGraph.Defs
                   ),
                      new(
                     "OneFrame",
-    @"ImposterSample_oneFrame(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, Sampler.samplerstate, RGBA);",
+    @"ImposterSample_oneFrame(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Grid, UV0, Sampler.samplerstate, RGBA);",
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -45,7 +44,6 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("UV0", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
-                    new ParameterDescriptor("Clip", TYPE.Float, Usage.In, new float[] {1f}),
                     new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
                     new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
                     new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),
@@ -102,10 +100,6 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Frames",
                     tooltip: "The amount of the imposter frames"
-                ),
-                new ParameterUIDescriptor(
-                    name: "Clip",
-                    tooltip: "The amount of clipping for a single frame"
                 ),
                 new ParameterUIDescriptor(
                     name: "Parallax",

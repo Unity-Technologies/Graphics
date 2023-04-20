@@ -16,7 +16,6 @@ If the imposter object has more than one texture to sample (e.g. color, normal, 
 | UV2 | Input      |    Vector4 | The virtual UV for the third frame |
 | Grid | Input      |    Vector4 | The current UV grid, which is used to find the corresponding sample frames |
 | Frames | Input      |    Float | The number of the imposter frames in each axis|
-| Clip | Input      |    Float | The amount of clipping for a single frame |
 | Parallax | Input      |    Float | Parallax strength|
 | Height Map Channel | Input      |    Int | The channle of the height map to sample for parallax mapping, if any|
 | RGBA | Output      |    Vector3 | A vector4 from the sampled texture |
@@ -57,11 +56,11 @@ The Imposter Sample Node [!include[nodes-controls](./snippets/nodes-controls.md)
 ### ThreeFrames
 
 ```
-ImposterSample(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);
+ImposterSample(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);
 ```
 
 ### OneFrame
 
 ```
-ImposterSample_oneFrame(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, Sampler.samplerstate, RGBA);
+ImposterSample_oneFrame(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Grid, UV0, Sampler.samplerstate, RGBA);
 ```
