@@ -1136,6 +1136,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
                 cameraData.xrRendering = false;
+                cameraData.allowHDROutput = false;
             }
             else if (baseAdditionalCameraData != null)
             {
@@ -1146,6 +1147,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
                 cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && XRSystem.displayActive;
+                cameraData.allowHDROutput = baseAdditionalCameraData.allowHDROutput;
             }
             else
             {
@@ -1156,6 +1158,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
                 cameraData.xrRendering = XRSystem.displayActive;
+                cameraData.allowHDROutput = false;
             }
 
             ///////////////////////////////////////////////////////////////////
@@ -1163,6 +1166,7 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
 
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
+            cameraData.allowHDROutput &= settings.supportsHDR;
 
             Rect cameraRect = baseCamera.rect;
             cameraData.pixelRect = baseCamera.pixelRect;
