@@ -14,7 +14,8 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                      new(
             "ThreeFrames",
-"  ImposterUV(Pos, inUV, Frames, Offset, Size, HemiSphere, OutPos, Grid, UV0, UV1, UV2);",
+"  ImposterUV(Pos, inUV, Frames, Offset, Size, HemiSphere, Parallax, ViewDirectionTS, HeightMapChannel, " +
+                         " Sampler, Texture, OutPos, Weights, UV0, UV1, UV2, Grid);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
@@ -23,10 +24,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1}),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
+                new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
+                new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
+                new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),
                 new ParameterDescriptor("OutPos", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("UV0", TYPE.Vec4, Usage.Out),
                 new ParameterDescriptor("UV1", TYPE.Vec4, Usage.Out),
                 new ParameterDescriptor("UV2", TYPE.Vec4, Usage.Out),
+                new ParameterDescriptor("Weights", TYPE.Vec4, Usage.Out),
                 new ParameterDescriptor("Grid", TYPE.Vec4, Usage.Out)
             },
             new string[]
@@ -34,18 +41,25 @@ namespace UnityEditor.ShaderGraph.Defs
                     "\"Packages/com.unity.sg2/Editor/GraphDeltaRegistry/FunctionDefinitions/StandardDefinitions/Input/MeshDeformation/Imposter.hlsl\""
                 }
                 ),new(
-            "OneFrame",
-"  ImposterUV_oneFrame(Pos, inUV, Frames, Offset, Size, HemiSphere, OutPos, Grid, UV0);",
+            "OneFrame",//TODO: change it back to one frame
+"  ImposterUV(Pos, inUV, Frames, Offset, Size, HemiSphere, Parallax, ViewDirectionTS, HeightMapChannel, " +
+                         " Sampler, Texture, OutPos, Weights, UV0, UV1, UV2, Grid);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
                 new ParameterDescriptor("inUV", TYPE.Vec4, Usage.In, REF.UV0),
                 new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
                 new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
-                new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1f}),
+                new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1}),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
+                new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
+                new ParameterDescriptor("ViewDirectionTS", TYPE.Vec3, Usage.Local, REF.TangentSpace_ViewDirection),
+                new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),
                 new ParameterDescriptor("OutPos", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("UV0", TYPE.Vec4, Usage.Out),
+                new ParameterDescriptor("Weights", TYPE.Vec4, Usage.Out),
                 new ParameterDescriptor("Grid", TYPE.Vec4, Usage.Out)
             },
             new string[]
@@ -100,6 +114,23 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "If it's true, calculate imposter grid and UVs base on hemisphere type."
                 ),
                 new ParameterUIDescriptor(
+                    name: "Texture",
+                    tooltip: "The texture asset to sample"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Sampler",
+                    tooltip: "The texture sampler to use for sampling the texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Parallax",
+                    tooltip: "Adds parallax effect the port value is true"
+                ),
+                new ParameterUIDescriptor(
+                    name: "HeightMapChannel",
+                    displayName:"Heigh Map Channel",
+                    tooltip: "The texture channel to sample from for the parallax effect"
+                ),
+                new ParameterUIDescriptor(
                     name: "OutPos",
                     displayName:"Out Position",
                     tooltip: "The output billboard position."
@@ -115,6 +146,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "UV2",
                     tooltip: "The virtual UV for the third frame"
+                ),                
+                new ParameterUIDescriptor(
+                    name: "Weights",
+                    tooltip: "Blending weights for three frames"
                 ),
                 new ParameterUIDescriptor(
                     name: "Grid",
