@@ -2,17 +2,17 @@
 
 ## Description
 
-The Imposter UV Node calculates the billboard positon and the virtual UVs for sampling.
+The Imposter UV Node calculates the billboard position and the UV coordinates needed by the Imposter Sample node.
 ## Ports
 
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
 | In Position | Input      |    Vector3 | The postion in Object space |
 | UV | Input      |    Vector4 | The UV coordinates of the mesh |
-| Frames | Input      |    Float | The amount of the imposter frames |
+| Frames | Input      |    Float | The number of the imposter frames in each axis|
 | Offset | Input      |    Float | The offset value from the pivot |
 | Size | Input      |    Float | The size of the imposter |
-| HemiSphere | Input      |    Boolean | If it's true, calculates the imposter grid and UVs base on hemisphere type |
+| HemiSphere | Input      |    Boolean | If it's true, calculates the imposter grid and UVs base on hemisphere type.ase on hemisphere type. Useful if the object is only seen from above |
 | Out Positon | Output      |    Vector3 | The output billboard position |
 | UV0 | Output      |    Vector4 | The virtual UV for the base frame |
 | UV1 | Output      |    Vector4 | The virtual UV for the second frame |
