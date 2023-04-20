@@ -34,6 +34,8 @@ namespace UnityEngine.Experimental.Rendering
 
         // MSAA level (number of samples per pixel) shared by all XR displays
         static MSAASamples s_MSAASamples = MSAASamples.None;
+        // Occlusion Mesh scaling factor
+        static float s_OcclusionMeshScaling = 1.0f;
 
         // Internal resources used by XR rendering
         static Material s_OcclusionMeshMaterial;
@@ -127,6 +129,59 @@ namespace UnityEngine.Experimental.Rendering
         public static MSAASamples GetDisplayMSAASamples()
         {
             return s_MSAASamples;
+        }
+
+        /// <summary>
+        /// Used by the render pipeline to scale all occlusion meshes used by all XRPasses.
+        /// </summary>
+        /// <param name="occlusionMeshScale">A value of 1.0f represents 100% of the original mesh size. A value less or equal to 0.0f disables occlusion mesh draw. </param>
+        internal static void SetOcclusionMeshScale(float occlusionMeshScale)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            Debug.Assert(occlusionMeshScale <= 1.0f);
+            s_OcclusionMeshScaling = occlusionMeshScale;
+#endif
+        }
+
+        /// <summary>
+        /// Returned value used by the render pipeline to scale all occlusion meshes used by all XRPasses.
+        /// </summary>
+        internal static float GetOcclusionMeshScale()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            return s_OcclusionMeshScaling;
+#else
+            return 1.0f;
+#endif
+        }
+
+        /// <summary>
+        /// Used to communicate to the XR device how to render the XR MirrorView. Note: not all blit modes are supported by all providers. Blitmode set here serves as preference purpose.
+        /// </summary>
+        /// <param name="mirrorBlitMode"> Mirror view mode to be set as preferred. See `XRMirrorViewBlitMode` for the builtin blit modes. </param>
+        internal static void SetMirrorViewMode(int mirrorBlitMode)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (s_Display == null)
+                return;
+
+            s_Display.SetPreferredMirrorBlitMode(mirrorBlitMode);
+#endif
+        }
+
+        /// <summary>
+        /// Get current blit modes preferred by XRDisplay
+        /// </summary>
+        internal static int GetMirrorViewMode()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (s_Display == null)
+                return XRMirrorViewBlitMode.None;
+
+            return s_Display.GetPreferredMirrorBlitMode();
+#else
+            return 0;
+#endif
         }
 
         /// <summary>
@@ -379,6 +434,7 @@ namespace UnityEngine.Experimental.Rendering
                 renderTargetDesc        = rtDesc,
                 cullingParameters       = cullingParameters,
                 occlusionMeshMaterial   = s_OcclusionMeshMaterial,
+                occlusionMeshScale      = s_OcclusionMeshScaling,
                 foveatedRenderingInfo   = xrRenderPass.foveatedRenderingInfo,
                 multipassId             = s_Layout.GetActivePasses().Count,
                 cullingPassId           = xrRenderPass.cullingPassIndex,

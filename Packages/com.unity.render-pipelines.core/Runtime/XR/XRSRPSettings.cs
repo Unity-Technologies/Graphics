@@ -1,5 +1,6 @@
 using System;
 using UnityEditor;
+using UnityEngine.Experimental.Rendering;
 
 #if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;
@@ -11,60 +12,8 @@ namespace UnityEngine.Rendering
     /// XRGraphics insulates SRP from API changes across platforms, Editor versions, and as XR transitions into XR SDK
     /// </summary>
     [Serializable]
-    public class XRGraphics
+    public class XRSRPSettings
     {
-        /// <summary>
-        /// Stereo Rendering Modes.
-        /// </summary>
-        public enum StereoRenderingMode
-        {
-            /// <summary>Multi Pass.</summary>
-            MultiPass = 0,
-            /// <summary>Single Pass.</summary>
-            SinglePass,
-            /// <summary>Single Pass Instanced.</summary>
-            SinglePassInstanced,
-            /// <summary>Single Pass Multi View.</summary>
-            SinglePassMultiView
-        };
-
-        /// <summary>
-        /// Eye texture resolution scale.
-        /// </summary>
-        public static float eyeTextureResolutionScale
-        {
-            get
-            {
-#if ENABLE_VR && ENABLE_VR_MODULE
-                if (enabled)
-                    return XRSettings.eyeTextureResolutionScale;
-#endif
-                return 1.0f;
-            }
-
-            set
-            {
-#if ENABLE_VR && ENABLE_VR_MODULE
-                XRSettings.eyeTextureResolutionScale = value;
-#endif
-            }
-        }
-
-        /// <summary>
-        /// Render viewport scale.
-        /// </summary>
-        public static float renderViewportScale
-        {
-            get
-            {
-#if ENABLE_VR && ENABLE_VR_MODULE
-                if (enabled)
-                    return XRSettings.renderViewportScale;
-#endif
-                return 1.0f;
-            }
-        }
-
         /// <summary>
         /// Try enable.
         /// </summary>
@@ -74,11 +23,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-#if UNITY_2020_1_OR_NEWER
                 return false;
-#else
-                return UnityEditorInternal.VR.VREditor.GetVREnabledOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
-#endif
             }
         }
 #endif
@@ -144,22 +89,6 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Stereo rendering mode.
-        /// </summary>
-        public static StereoRenderingMode stereoRenderingMode
-        {
-            get
-            {
-#if ENABLE_VR && ENABLE_VR_MODULE
-                if (enabled)
-                    return (StereoRenderingMode)XRSettings.stereoRenderingMode;
-#endif
-
-                return StereoRenderingMode.SinglePass;
-            }
-        }
-
-        /// <summary>
         /// Eye texture descriptor.
         /// </summary>
         public static RenderTextureDescriptor eyeTextureDesc
@@ -201,6 +130,50 @@ namespace UnityEngine.Rendering
                     return XRSettings.eyeTextureHeight;
 #endif
                 return 0;
+            }
+        }
+
+        /// <summary>
+        /// Eye texture height.
+        /// </summary>
+        public static float occlusionMeshScale
+        {
+            get
+            {
+#if ENABLE_VR && ENABLE_VR_MODULE
+                if (enabled)
+                    return XRSystem.GetOcclusionMeshScale();
+#endif
+                return 0;
+            }
+            set
+            {
+#if ENABLE_VR && ENABLE_VR_MODULE
+                if (enabled)
+                    XRSystem.SetOcclusionMeshScale(value);
+#endif
+            }
+        }
+
+        /// <summary>
+        /// Eye texture height.
+        /// </summary>
+        public static int mirrorViewMode
+        {
+            get
+            {
+#if ENABLE_VR && ENABLE_VR_MODULE
+                if (enabled)
+                    return XRSystem.GetMirrorViewMode();
+#endif
+                return 0;
+            }
+            set
+            {
+#if ENABLE_VR && ENABLE_VR_MODULE
+                if (enabled)
+                    XRSystem.SetMirrorViewMode(value);
+#endif
             }
         }
     }

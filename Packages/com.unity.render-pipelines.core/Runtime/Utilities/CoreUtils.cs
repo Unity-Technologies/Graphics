@@ -1660,5 +1660,31 @@ namespace UnityEngine.Rendering
             }
         }
 #endif
+
+        /// <summary>
+        /// Calcualte frustum corners at specified camera depth given projection matrix and depth z.
+        /// </summary>
+        /// <param name="z"> Z-depth from the camera origin at which the corners will be calculated. </param>
+        /// <returns> Return conner vectors for left-bottom, right-bottm, right-top, left-top in view space. </returns>
+        public static Vector3[] CalculateViewSpaceCorners(Matrix4x4 proj, float z)
+        {
+            Vector3[] outCorners = new Vector3[4];
+            Matrix4x4 invProj = Matrix4x4.Inverse(proj);
+
+            // We transform a point further than near plane and closer than far plane, for precision reasons.
+            // In a perspective camera setup (near=0.1, far=1000), a point at 0.95 projected depth is about
+            // 5 units from the camera.
+            const float projZ = 0.95f;
+            outCorners[0] = invProj.MultiplyPoint(new Vector3(-1, -1, projZ));
+            outCorners[1] = invProj.MultiplyPoint(new Vector3(1, -1, projZ));
+            outCorners[2] = invProj.MultiplyPoint(new Vector3(1, 1, projZ));
+            outCorners[3] = invProj.MultiplyPoint(new Vector3(-1, 1, projZ));
+
+            // Rescale vectors to have the desired z distance.
+            for (int r = 0; r < 4; ++r)
+                outCorners[r] *= z / (-outCorners[r].z);
+
+            return outCorners;
+        }
     }
 }

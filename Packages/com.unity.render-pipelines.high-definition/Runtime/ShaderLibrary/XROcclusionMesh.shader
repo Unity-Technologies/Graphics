@@ -26,7 +26,7 @@ Shader "Hidden/HDRP/XROcclusionMesh"
         Varyings Vert(Attributes input)
         {
             Varyings output;
-            output.vertex = float4(input.vertex.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), UNITY_NEAR_CLIP_VALUE, 1.0f);
+            output.vertex = mul(UNITY_MATRIX_M, float4(input.vertex.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), UNITY_NEAR_CLIP_VALUE, 1.0f));
 
         #if XR_OCCLUSION_MESH_COMBINED
             output.rtArrayIndex = input.vertex.z;
