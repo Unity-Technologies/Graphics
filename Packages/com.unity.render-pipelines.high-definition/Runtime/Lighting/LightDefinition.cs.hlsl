@@ -5,6 +5,12 @@
 #ifndef LIGHTDEFINITION_CS_HLSL
 #define LIGHTDEFINITION_CS_HLSL
 //
+// UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
+//
+#define ENVCACHETYPE_TEXTURE2D (0)
+#define ENVCACHETYPE_CUBEMAP (1)
+
+//
 // UnityEngine.Rendering.HighDefinition.GPULightType:  static fields
 //
 #define GPULIGHTTYPE_DIRECTIONAL (0)
@@ -17,6 +23,12 @@
 #define GPULIGHTTYPE_DISC (7)
 
 //
+// UnityEngine.Rendering.HighDefinition.GPUImageBasedLightingType:  static fields
+//
+#define GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION (0)
+#define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
+
+//
 // UnityEngine.Rendering.HighDefinition.CookieMode:  static fields
 //
 #define COOKIEMODE_NONE (0)
@@ -24,25 +36,13 @@
 #define COOKIEMODE_REPEAT (2)
 
 //
-// UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
-//
-#define ENVCACHETYPE_TEXTURE2D (0)
-#define ENVCACHETYPE_CUBEMAP (1)
-
-//
-// UnityEngine.Rendering.HighDefinition.GPUImageBasedLightingType:  static fields
-//
-#define GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION (0)
-#define GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION (1)
-
-//
-// UnityEngine.Rendering.HighDefinition.EnvLightReflectionData:  static fields
+// UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT:  static fields
 //
 #define MAX_PLANAR_REFLECTIONS (16)
 #define MAX_CUBE_REFLECTIONS (64)
 
 //
-// UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT:  static fields
+// UnityEngine.Rendering.HighDefinition.EnvLightReflectionData:  static fields
 //
 #define MAX_PLANAR_REFLECTIONS (16)
 #define MAX_CUBE_REFLECTIONS (64)
@@ -100,24 +100,6 @@ struct DirectionalLightData
     float3 surfaceTint;
     float4 surfaceTextureScaleOffset;
 };
-
-// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionData
-// PackingRules = Exact
-CBUFFER_START(EnvLightReflectionData)
-    float4x4 _PlanarCaptureVP[16];
-    float4 _PlanarCaptureForward[16];
-    float4 _PlanarScaleOffset[16];
-    float4 _CubeScaleOffset[64];
-CBUFFER_END
-
-// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT
-// PackingRules = Exact
-GLOBAL_CBUFFER_START(EnvLightReflectionDataRT, b5)
-    float4x4 _PlanarCaptureVPRT[16];
-    float4 _PlanarCaptureForwardRT[16];
-    float4 _PlanarScaleOffsetRT[16];
-    float4 _CubeScaleOffsetRT[64];
-CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
 // PackingRules = Exact
@@ -195,6 +177,22 @@ struct EnvLightData
     int normalizeWithAPV;
     float2 padding;
 };
+
+// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT
+// PackingRules = Exact
+GLOBAL_CBUFFER_START(EnvLightReflectionDataRT, b5)
+    float4x4 _PlanarCaptureVPRT[16];
+    float4 _PlanarScaleOffsetRT[16];
+    float4 _CubeScaleOffsetRT[64];
+CBUFFER_END
+
+// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionData
+// PackingRules = Exact
+CBUFFER_START(EnvLightReflectionData)
+    float4x4 _PlanarCaptureVP[16];
+    float4 _PlanarScaleOffset[16];
+    float4 _CubeScaleOffset[64];
+CBUFFER_END
 
 
 #endif

@@ -588,7 +588,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxCubeReflectionsOnScreen = 64;
         EnvLightReflectionDataRT m_EnvLightReflectionDataRT = new EnvLightReflectionDataRT();
 
-        unsafe void SetPlanarReflectionDataRT(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset, ref Vector3 capturedForwardWS)
+        unsafe void SetPlanarReflectionDataRT(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset)
         {
             Debug.Assert(index < k_MaxPlanarReflectionsOnScreen);
 
@@ -597,9 +597,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int j = 0; j < 4; ++j)
                 m_EnvLightReflectionDataRT._PlanarScaleOffsetRT[index * 4 + j] = scaleOffset[j];
-
-            for (int j = 0; j < 3; ++j)
-                m_EnvLightReflectionDataRT._PlanarCaptureForwardRT[index * 4 + j] = capturedForwardWS[j];
         }
 
         unsafe void SetCubeReflectionDataRT(int index, ref Vector4 scaleOffset)
@@ -632,7 +629,6 @@ namespace UnityEngine.Rendering.HighDefinition
             int fetchIndex;
             Vector4 scaleOffset;
             Matrix4x4 vp;
-            Vector3 capturedForwardWS;
             EnvLightData envLightData = new EnvLightData();
 
             // Build the data for every light
@@ -641,12 +637,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDProbe probeData = lights.reflectionProbeArray[lightIdx];
 
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
-                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, out fetchIndex, out scaleOffset, out vp, out capturedForwardWS);
+                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, out fetchIndex, out scaleOffset, out vp);
 
                 switch (processedProbe.hdProbe)
                 {
                     case PlanarReflectionProbe planarProbe:
-                        SetPlanarReflectionDataRT(fetchIndex, ref vp, ref scaleOffset, ref capturedForwardWS);
+                        SetPlanarReflectionDataRT(fetchIndex, ref vp, ref scaleOffset);
                         break;
                     case HDAdditionalReflectionData reflectionData:
                         SetCubeReflectionDataRT(fetchIndex, ref scaleOffset);
