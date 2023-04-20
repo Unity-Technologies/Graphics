@@ -1,5 +1,5 @@
-#ifndef IMPOSTERSTART
-#define IMPOSTESTART
+#ifndef SHADERGRAPHIMPOSTER
+#define SHADERGRAPHIMPOSTER
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
@@ -42,7 +42,6 @@ float3 GridToVector(float2 coord, bool IsHemi)
     return dir;
 }
 
-//for hemisphere
 float2 VectorToHemi(float3 dir)
 {
     dir.xz /= dot(1.0, abs(dir));
@@ -115,7 +114,7 @@ float2 PlaneIntersectionUV(float3 planeNormal, float3 planeX, float3 planeZ, flo
         uv = float2(0, 0);
     }
 
-    uv /= UVscale;
+   // uv /= UVscale;
     uv += float2(0.5, 0.5);
     return uv;
 }
@@ -148,9 +147,10 @@ void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in flo
 
     //get uv in a single frame
     float2 UVscaled = inUV.xy * (1.0 / imposterFrames);
-    float2 size = imposterSize.xx * 2.0;
+    float2 size = imposterSize.xx * 1.33;
 
     float3 BillboardPos = CalculateBillboardProjection(objectSpaceCameraDir, inUV.xy);
+    BillboardPos *= 0.67;
 
     //camera to projection vector
     float3 rayDirLocal = BillboardPos - objectSpaceCameraPos;
@@ -228,7 +228,6 @@ void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in flo
 
     //vert pos
     outPos = BillboardPos + imposterOffset;
-
     //surface
     outUVGrid.xy = UVscaled;
     outUVGrid.zw = grid;

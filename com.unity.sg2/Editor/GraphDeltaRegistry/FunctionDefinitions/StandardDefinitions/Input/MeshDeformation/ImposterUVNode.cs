@@ -75,10 +75,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Pos",
                     displayName:"In Position",
+                    options: REF.OptionList.Positions,
                     tooltip: "The postiont in Object space"
                 ),
                 new ParameterUIDescriptor(
                     name: "UV",
+                    options: REF.OptionList.UVs,
                     tooltip: "The UV coordinates of the mesh"
                 ),
                 new ParameterUIDescriptor(
