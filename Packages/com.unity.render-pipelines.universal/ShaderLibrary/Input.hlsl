@@ -118,6 +118,7 @@ float4 _ScreenSizeOverride;
 #if USE_FORWARD_PLUS
 float4 _FPParams0;
 float4 _FPParams1;
+float4 _FPParams2;
 
 #define URP_FP_ZBIN_SCALE (_FPParams0.x)
 #define URP_FP_ZBIN_OFFSET (_FPParams0.y)
@@ -130,6 +131,9 @@ float4 _FPParams1;
 #define URP_FP_TILE_SCALE ((float2)_FPParams1.xy)
 #define URP_FP_TILE_COUNT_X ((uint)_FPParams1.z)
 #define URP_FP_WORDS_PER_TILE ((uint)_FPParams1.w)
+
+#define URP_FP_ZBIN_COUNT ((uint)_FPParams2.x)
+#define URP_FP_TILE_COUNT ((uint)_FPParams2.y)
 
 #endif
 
@@ -169,7 +173,6 @@ float urp_ReflProbes_Count;
 #ifndef SHADER_API_GLES3
 CBUFFER_START(urp_ReflectionProbeBuffer)
 #endif
-half4 urp_ReflProbes_HDR[MAX_REFLECTION_PROBES];
 float4 urp_ReflProbes_BoxMax[MAX_REFLECTION_PROBES];          // w contains the blend distance
 float4 urp_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the importance
 float4 urp_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
