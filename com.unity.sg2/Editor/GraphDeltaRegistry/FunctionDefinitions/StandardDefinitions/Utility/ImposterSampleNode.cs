@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 },
                 new string[]
                     {
-                    "\"Packages/com.unity.sg2/Editor/GraphDeltaRegistry/FunctionDefinitions/StandardDefinitions/Input/MeshDeformation/Imposter.hlsl\""
+                    "\"Packages/com.unity.sg2/Editor/GraphDeltaRegistry/FunctionDefinitions/StandardDefinitions/Utility/Imposter.hlsl\""
                     }
                   ),
                      new(
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 },
                 new string[]
                     {
-                    "\"Packages/com.unity.sg2/Editor/GraphDeltaRegistry/FunctionDefinitions/StandardDefinitions/Input/MeshDeformation/Imposter.hlsl\""
+                    "\"Packages/com.unity.sg2/Editor/GraphDeltaRegistry/FunctionDefinitions/StandardDefinitions/Utility/Imposter.hlsl\""
                     }
             )
         }

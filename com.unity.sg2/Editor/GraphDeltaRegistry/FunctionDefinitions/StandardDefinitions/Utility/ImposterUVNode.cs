@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Defs
             },
             new string[]
                 {
-                    "\"Packages/com.unity.sg2/Editor/GraphDeltaRegistry/FunctionDefinitions/StandardDefinitions/Input/MeshDeformation/Imposter.hlsl\""
+                    "\"Packages/com.unity.sg2/Editor/GraphDeltaRegistry/FunctionDefinitions/StandardDefinitions/Utility/Imposter.hlsl\""
                 }
                 ),new(
             "OneFrame",
@@ -56,12 +56,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
                 new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),
                 new ParameterDescriptor("OutPos", TYPE.Vec3, Usage.Out),
-                new ParameterDescriptor("UV0", TYPE.Vec4, Usage.Out),
+                new ParameterDescriptor("UV0", TYPE.Vec2, Usage.Out),
                 new ParameterDescriptor("Grid", TYPE.Vec4, Usage.Out)
             },
             new string[]
                 {
-                    "\"Packages/com.unity.sg2/Editor/GraphDeltaRegistry/FunctionDefinitions/StandardDefinitions/Input/MeshDeformation/Imposter.hlsl\""
+                    "\"Packages/com.unity.sg2/Editor/GraphDeltaRegistry/FunctionDefinitions/StandardDefinitions/Utility/Imposter.hlsl\""
                 }
                 )
             }
