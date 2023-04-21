@@ -1367,10 +1367,10 @@ namespace UnityEngine.Rendering.Universal
             // replace the requested desc.msaaSamples value with the actual value the engine falls back to
             desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
 
-            // if the target platform doesn't support storing multisampled RTs and we are doing a separate opaque pass, using a Load load action on the subsequent passes
+            // if the target platform doesn't support storing multisampled RTs and we are doing any offscreen passes, using a Load load action on the subsequent passes
             // will result in loading Resolved data, which on some platforms is discarded, resulting in losing the results of the previous passes.
             // As a workaround we disable MSAA to make sure that the results of previous passes are stored. (fix for Case 1247423).
-            if (!SystemInfo.supportsStoreAndResolveAction && requiresOpaqueTexture)
+            if (!SystemInfo.supportsStoreAndResolveAction)
                 desc.msaaSamples = 1;
 
             return desc;
