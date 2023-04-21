@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     functions: new FunctionDescriptor[] {
                      new(
                     "ThreeFrames",
-    @"ImposterSample Frames, Texture.tex, Texture.texelSize, Weights, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);",
+    @"ImposterSample( Frames, Texture.tex, Texture.texelSize, Weights, Clip, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);",
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Weights", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
+                    new ParameterDescriptor("Clip", TYPE.Float, Usage.Static, new float[] {0.1f}),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out)
                 },
                 new string[]
@@ -34,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Defs
                   ),
                      new(
                     "OneFrame",//TODO: change back to one frame
-    @"ImposterSample Frames, Texture.tex, Texture.texelSize, Weights, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);",
+    @"ImposterSample_oneFrame (Frames, Texture.tex, Texture.texelSize, Clip, Grid, UV0, Sampler.samplerstate, RGBA);",
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -43,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Weights", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
+                    new ParameterDescriptor("Clip", TYPE.Float, Usage.Static, new float[] {0.1f}),
                     new ParameterDescriptor("RGBA", TYPE.Vec4, Usage.Out)
                 },
                 new string[]
@@ -100,6 +102,11 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Weights",
                     tooltip: "Blending weights for three frames"
+                ),
+                new ParameterUIDescriptor(
+                    name: "Clip",
+                    displayName:"Imposter Frame Clip",
+                    tooltip: "The value to clamp between imposter frame. Useful when doing parallax mapping."
                 ),
                 new ParameterUIDescriptor(
                     name: "RGBA",
