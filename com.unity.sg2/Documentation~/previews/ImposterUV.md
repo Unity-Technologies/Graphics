@@ -7,6 +7,10 @@ Calculates the billboard positon and the virtual UVs for sampling.
 **Frames** - The number of the imposter frames in each axis.
 **Offset** - The offset value from the pivot.
 **Size** - The size of the imposter.
+**Height Map** - The height map texture to sample.
+**Sampler** - The texture sampler to use for sampling the texture.
+**Parallax** - Parallax strength.
+**Height Map Channel** - The channle of the height map to sample for parallax mapping, if any.
 **HemiSphere** - If it's true, calculates the imposter grid and UVs base on hemisphere type. Useful if the object is only seen from above.
 
 ## Output

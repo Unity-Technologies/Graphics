@@ -9,12 +9,17 @@ This creates the illusion of a 3D object on a billboard object because the impos
 **UV1** - The virtual UV for the second frame.
 **UV2** - The virtual UV for the third frame.
 **Grid** - The current UV grid, which is used to find the corresponding sample frames.
+**Weights** - The blending values in between the slected three frames.
 **Frames** - The number of the imposter frames in each axis.
-**Parallax** - Parallax strength.
-**Height Map Channel** - The channle of the height map to sample for parallax mapping, if any.
+**Imposter Frame Clip** - The clamping value in between frames.
 
 ## Output
 **RGBA** - A vector4 from the sampled texture.
+**RGB** - A vector3 from the sampled texture.
+**R** - The r channel of the sampled texture.
+**G** - The g channel of the sampled texture.
+**B** - The b channel of the sampled texture.
+**A** - The a channel of the sampled texture.
 
 ## Controls
-**Sample Type** - Select whether to sample three frames or one frame, three frames for smoother result, one frame for better performance.
+**Sample Type** - Select whether to sample three frames or one frame, three frames for smoother result, one frame for better performance. 

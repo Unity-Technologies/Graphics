@@ -11,14 +11,19 @@ If the imposter object has more than one texture to sample (e.g. color, normal, 
 |:------------ |:-------------|:-----|:---|
 | Texture | Input      |    Texture2D | The texture asset to sample |
 | Sampler | Input      |    Sampler State | The texture sampler to use for sampling the texture |
-| UV0 | Input      |    Vector4 | The virtual UV for the base frame |
-| UV1 | Input      |    Vector4 | The virtual UV for the second frame |
-| UV2 | Input      |    Vector4 | The virtual UV for the third frame |
+| UV0 | Input      |    Vector2 | The virtual UV for the base frame |
+| UV1 | Input      |    Vector2 | The virtual UV for the second frame |
+| UV2 | Input      |    Vector2 | The virtual UV for the third frame |
 | Grid | Input      |    Vector4 | The current UV grid, which is used to find the corresponding sample frames |
 | Frames | Input      |    Float | The number of the imposter frames in each axis|
-| Parallax | Input      |    Float | Parallax strength|
-| Height Map Channel | Input      |    Int | The channle of the height map to sample for parallax mapping, if any|
+| Weights | Input      |    Float | The blending values in between the slected three frames|
+| Imposter Frame Clip | Input      |    Float | The clamping value in between frames|
 | RGBA | Output      |    Vector3 | A vector4 from the sampled texture |
+| RGB | Output      |    Vector3 | A vector3 from the sampled texture |
+| R | Output      |    Vector3 | The r channel of the sampled texture |
+| G | Output      |    Vector3 | The g channel of the sampled texture |
+| B | Output      |    Vector3 | The b channel of the sampled texture |
+| A | Output      |    Vector3 | The a channel of the sampled texture |
 
 ## Controls
 
@@ -44,7 +49,7 @@ The Imposter Sample Node [!include[nodes-controls](./snippets/nodes-controls.md)
 </tr>
 <tr>
 <td><strong>One Frame</strong></td>
-<td>Calculates only one frame for better performance.</td>
+<td>Calculates only one frame for better performance. UV1, UV2 and Weights inputs won't be shown.</td>
 </tr>
 </tbody>
 </table>
@@ -56,11 +61,11 @@ The Imposter Sample Node [!include[nodes-controls](./snippets/nodes-controls.md)
 ### ThreeFrames
 
 ```
-ImposterSample(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);
+ImposterSample(ImposterFrames, Texture.tex, Texture.texelSize, Weights,IpmosterClip, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);
 ```
 
 ### OneFrame
 
 ```
-ImposterSample_oneFrame(HeightMapChannel, ViewDirectionTS, Parallax, Frames, Texture.tex, Texture.texelSize, Grid, UV0, Sampler.samplerstate, RGBA);
+ImposterSample_oneFrame(ImposterFrames, Texture.tex, Texture.texelSize, Weights,IpmosterClip, Grid, UV0, UV1, UV2, Sampler.samplerstate, RGBA);
 ```
