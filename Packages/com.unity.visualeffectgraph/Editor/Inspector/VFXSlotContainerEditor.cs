@@ -103,7 +103,15 @@ class VFXSlotContainerEditor : Editor
                         && fieldInfo.GetCustomAttributes<DelayedAttribute>().Any())
             {
                 //Workaround: Range & Delayed attribute are incompatible, avoid the slider usage to keep the delayed behavior
-                var newValue = EditorGUILayout.DelayedIntField(ObjectNames.NicifyVariableName(prop.Value.name), prop.Value.intValue);
+                var tooltipAttribute = fieldInfo.GetCustomAttributes<TooltipAttribute>().FirstOrDefault();
+                GUIContent guiContent;
+                if (tooltipAttribute != null)
+                    guiContent = new GUIContent(ObjectNames.NicifyVariableName(prop.Value.name),
+                        tooltipAttribute.tooltip);
+                else
+                    guiContent = new GUIContent(ObjectNames.NicifyVariableName(prop.Value.name));
+
+                var newValue = EditorGUILayout.DelayedIntField(guiContent, prop.Value.intValue);
                 if (EditorGUI.EndChangeCheck())
                 {
                     newValue = Mathf.Clamp(newValue, (int)rangeAttribute.min, (int)rangeAttribute.max);

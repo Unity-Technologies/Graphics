@@ -483,10 +483,12 @@ namespace UnityEditor.VFX
             var components = ExtractComponents(linear).ToArray();
             if (components.Length != 3 && components.Length != 4)
                 throw new ArgumentException("input expression must be a 3 or 4 components vector");
-
             VFXExpression exp = VFXValue.Constant(1.0f / 2.2f);
             for (int i = 0; i < 3; ++i)
-                components[i] = new VFXExpressionPow(components[i], exp);
+                components[i] = new VFXExpressionBranch(
+                    new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Greater,components[i], ZeroExpression[VFXValueType.Float]),
+                    new VFXExpressionPow(components[i], exp),
+                    ZeroExpression[VFXValueType.Float]);
 
             return new VFXExpressionCombine(components);
         }
