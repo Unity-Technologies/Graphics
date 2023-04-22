@@ -1,5 +1,4 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
-
 //#pragma enable_d3d11_debug_symbols
 
 // Line evaluation
