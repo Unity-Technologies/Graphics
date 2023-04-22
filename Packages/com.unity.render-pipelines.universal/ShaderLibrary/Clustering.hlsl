@@ -5,6 +5,10 @@
 
 #if USE_FORWARD_PLUS
 
+// Debug switches for disabling parts of the algorithm. Not implemented for mobile.
+#define URP_FP_DISABLE_ZBINNING 0
+#define URP_FP_DISABLE_TILING 0
+
 // internal
 struct ClusterIterator
 {
@@ -21,15 +25,29 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     ClusterIterator state = (ClusterIterator)0;
 
     uint2 tileId = uint2(normalizedScreenSpaceUV * URP_FP_TILE_SCALE);
-    state.tileOffset = (tileId.y * URP_FP_TILE_COUNT_X + tileId.x) * URP_FP_WORDS_PER_TILE;
+    state.tileOffset = tileId.y * URP_FP_TILE_COUNT_X + tileId.x;
+#if defined(USING_STEREO_MATRICES)
+    state.tileOffset += URP_FP_TILE_COUNT * unity_StereoEyeIndex;
+#endif
+    state.tileOffset *= URP_FP_WORDS_PER_TILE;
 
     float viewZ = dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
-    uint zBinBaseIndex = min(4*MAX_ZBIN_VEC4S - 1, (uint)(log2(viewZ) * URP_FP_ZBIN_SCALE + URP_FP_ZBIN_OFFSET)) * (2 + URP_FP_WORDS_PER_TILE);
+    uint zBinBaseIndex = (uint)((IsPerspectiveProjection() ? log2(viewZ) : viewZ) * URP_FP_ZBIN_SCALE + URP_FP_ZBIN_OFFSET);
+#if defined(USING_STEREO_MATRICES)
+    zBinBaseIndex += URP_FP_ZBIN_COUNT * unity_StereoEyeIndex;
+#endif
+    zBinBaseIndex = min(4*MAX_ZBIN_VEC4S - 1, zBinBaseIndex) * (2 + URP_FP_WORDS_PER_TILE);
+
     uint zBinHeaderIndex = zBinBaseIndex + headerIndex;
     state.zBinOffset = zBinBaseIndex + 2;
 
+#if !URP_FP_DISABLE_ZBINNING
+    uint header = Select4(asuint(URP_ZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
+#else
+    uint header = headerIndex == 0 ? ((URP_FP_PROBES_BEGIN - 1) << 16) : (((URP_FP_WORDS_PER_TILE * 32 - 1) << 16) | URP_FP_PROBES_BEGIN);
+#endif
 #if MAX_LIGHTS_PER_TILE > 32
-    state.entityIndexNextMax = Select4(asuint(URP_ZBins[zBinHeaderIndex / 4]), zBinHeaderIndex % 4);
+    state.entityIndexNextMax = header;
 #else
     uint tileIndex = state.tileOffset;
     uint zBinIndex = state.zBinOffset;
@@ -37,7 +55,8 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     {
         state.tileMask =
             Select4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
-            Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4);
+            Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4) &
+            (0xFFFFFFFFu << (header & 0x1F)) & (0xFFFFFFFFu >> (31 - (header >> 16)));
     }
 #endif
 
@@ -56,8 +75,12 @@ bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
         uint tileIndex = it.tileOffset + wordIndex;
         uint zBinIndex = it.zBinOffset + wordIndex;
         it.tileMask =
+#if !URP_FP_DISABLE_TILING
             Select4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
+#endif
+#if !URP_FP_DISABLE_ZBINNING
             Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4) &
+#endif
             // Mask out the beginning and end of the word.
             (0xFFFFFFFFu << (it.entityIndexNextMax & 0x1F)) & (0xFFFFFFFFu >> (31 - min(31, maxIndex - wordIndex * 32)));
         // The light index can start at a non-multiple of 32, but the following iterations should always be multiples of 32.
