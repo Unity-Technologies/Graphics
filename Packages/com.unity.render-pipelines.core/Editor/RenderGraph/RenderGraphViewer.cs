@@ -609,6 +609,7 @@ public class RenderGraphViewer : EditorWindow
 
         m_HeaderElement = new VisualElement();
         m_HeaderElement.name = "Header";
+        m_HeaderElement.style.flexWrap = new StyleEnum<Wrap>(Wrap.Wrap);
         m_HeaderElement.style.flexDirection = FlexDirection.Row;
         m_HeaderElement.style.justifyContent = Justify.SpaceBetween;
         m_HeaderElement.style.minHeight = 25.0f;
