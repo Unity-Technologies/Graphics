@@ -64,29 +64,31 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 		return o;
 #endif
 
+	float2 varyingUV = (float2)0.0f;
+
 #if VFX_PRIMITIVE_QUAD
 
 #if HAS_STRIPS
 #if VFX_STRIPS_UV_STRECHED
-	o.VFX_VARYING_UV.x = (float)(relativeIndexInStrip) / (stripData.nextIndex - 1);
+	varyingUV.x = (float)(relativeIndexInStrip) / (stripData.nextIndex - 1);
 #elif VFX_STRIPS_UV_PER_SEGMENT
-	o.VFX_VARYING_UV.x = PARTICLE_IN_EDGE;
+	varyingUV.x = PARTICLE_IN_EDGE;
 #else
 	${VFXLoadParameter:{texCoord}}
-    o.VFX_VARYING_UV.x = texCoord;
+    varyingUV.x = texCoord;
 #endif
 
-	o.VFX_VARYING_UV.y = (id & 2) * 0.5f;
-	const float2 vOffsets = float2(0.0f,o.VFX_VARYING_UV.y - 0.5f);
+	varyingUV.y = (id & 2) * 0.5f;
+	const float2 vOffsets = float2(0.0f,varyingUV.y - 0.5f);
 
 #if VFX_STRIPS_SWAP_UV
-	o.VFX_VARYING_UV.xy = float2(1.0f - o.VFX_VARYING_UV.y, o.VFX_VARYING_UV.x);
+	varyingUV.xy = float2(1.0f - varyingUV.y, varyingUV.x);
 #endif
 
 #else
-	o.VFX_VARYING_UV.x = float(id & 1);
-	o.VFX_VARYING_UV.y = (id & 2) * 0.5f;
-	const float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;
+	varyingUV.x = float(id & 1);
+	varyingUV.y = (id & 2) * 0.5f;
+	const float2 vOffsets = varyingUV.xy - 0.5f;
 #endif
 
 #elif VFX_PRIMITIVE_TRIANGLE
@@ -100,7 +102,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	const float kUVScale = 0.866025388240814208984375f;
 
 	const float2 vOffsets = kOffsets[id % 3];
-	o.VFX_VARYING_UV.xy = (vOffsets * kUVScale) + 0.5f;
+	varyingUV.xy = (vOffsets * kUVScale) + 0.5f;
 
 #elif VFX_PRIMITIVE_OCTAGON
 
@@ -118,7 +120,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadParameter:{cropFactor}}
 	cropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
 	const float2 vOffsets = kUvs[id & 7] * cropFactor;
-	o.VFX_VARYING_UV.xy = vOffsets + 0.5f;
+	varyingUV.xy = vOffsets + 0.5f;
 
 #endif
 
@@ -146,6 +148,10 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
     #ifdef VFX_VARYING_POSWS
         o.VFX_VARYING_POSWS = vPosWS;
     #endif
+
+	#ifdef VFX_VARYING_UV
+		o.VFX_VARYING_UV.xy = varyingUV;
+	#endif
 
 #if VFX_NON_UNIFORM_SCALE
 	float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
