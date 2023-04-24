@@ -124,7 +124,7 @@ VFXContextUI VFXBlockUI.node #node-border #title.activationslot > #title-label
 
 VFXBlockUI.activationslot.collapsed.VFXNodeUI.node #contents > #top > #input
 {
-    padding: 0px;
+    padding-top: 0px;
 }
 
 VFXBlockUI.activationslot.collapsed.VFXNodeUI.node #contents > #divider
