@@ -24,10 +24,10 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("UV0", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("UV1", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("UV2", TYPE.Vec4, Usage.In),
-                    new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Weights", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
@@ -56,8 +56,8 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor[]
                 {
                     new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                    new ParameterDescriptor("UV0", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                    new ParameterDescriptor("UV0", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Grid", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Weights", TYPE.Vec4, Usage.In),
                     new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
