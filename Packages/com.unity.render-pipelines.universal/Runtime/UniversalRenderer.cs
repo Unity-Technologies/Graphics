@@ -348,6 +348,7 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.Cleanup();
             m_PostProcessPasses.Dispose();
 
+            base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);

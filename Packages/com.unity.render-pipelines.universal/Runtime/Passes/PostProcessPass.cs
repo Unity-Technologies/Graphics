@@ -1589,6 +1589,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public MaterialLibrary(PostProcessData data)
             {
+                // NOTE NOTE NOTE NOTE NOTE NOTE
+                // If you create something here you must also destroy it in Cleanup()
+                // or it will leak during enter/leave play mode cycles
+                // NOTE NOTE NOTE NOTE NOTE NOTE
                 stopNaN = Load(data.shaders.stopNanPS);
                 subpixelMorphologicalAntialiasing = Load(data.shaders.subpixelMorphologicalAntialiasingPS);
                 gaussianDepthOfField = Load(data.shaders.gaussianDepthOfFieldPS);
@@ -1631,6 +1635,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.Destroy(easu);
                 CoreUtils.Destroy(uber);
                 CoreUtils.Destroy(finalPass);
+                CoreUtils.Destroy(lensFlareDataDriven);
             }
         }
 
