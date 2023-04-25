@@ -34,8 +34,11 @@ namespace UnityEngine.Experimental.Rendering
 
         // MSAA level (number of samples per pixel) shared by all XR displays
         static MSAASamples s_MSAASamples = MSAASamples.None;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
         // Occlusion Mesh scaling factor
         static float s_OcclusionMeshScaling = 1.0f;
+#endif
 
         // Internal resources used by XR rendering
         static Material s_OcclusionMeshMaterial;
@@ -434,7 +437,7 @@ namespace UnityEngine.Experimental.Rendering
                 renderTargetDesc        = rtDesc,
                 cullingParameters       = cullingParameters,
                 occlusionMeshMaterial   = s_OcclusionMeshMaterial,
-                occlusionMeshScale      = s_OcclusionMeshScaling,
+                occlusionMeshScale      = GetOcclusionMeshScale(),
                 foveatedRenderingInfo   = xrRenderPass.foveatedRenderingInfo,
                 multipassId             = s_Layout.GetActivePasses().Count,
                 cullingPassId           = xrRenderPass.cullingPassIndex,
