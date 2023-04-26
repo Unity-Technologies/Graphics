@@ -21,8 +21,25 @@ To use dynamic resolution in your Project, you must enable dynamic resolution in
 
 1. In the Inspector for your HDRP Asset, go to **Rendering** **> Dynamic Resolution** and enable the **Enable** checkbox. For information on how to customize the rest of the HDRP Asset’s global dynamic resolution properties, see the dynamic resolution section of the [HDRP Asset documentation](HDRP-Asset.md#DynamicResolution).
 2. For every [Camera](HDRP-Camera.md) you want to perform dynamic resolution, go to the **General** section and enable **Allow Dynamic Resolution**.
+3. Add a HD Dynamic Resolution component.
 
-HDRP does not scale dynamic resolution automatically. To use dynamic resolution with scaling in your scene, call the following function:
+## HD Dynamic Resolution component
+
+The HD Dynamic Resolution component changes the screen resolution based on the average amount of GPU frame time between each frame over a given number of frames.
+If the average frame time is different from the target frame time, HDRP changes the resolution in a series of steps.
+
+| **Property**                         | **Description**                                              |
+| ------------------------------------ | ------------------------------------------------------------ |
+| **Default Target Frame Rate** | The desired target frame rate in FPS. If Application.targetFrameRate is already set, Application.targetFrameRate overrides this parameter. |
+| **Evaluation Frame Count** | Per how many frames we evaluate GPU performance against the target frame rate, using the averaged GPU frame time over frames. |
+| **Scale Up Duration** | The number of consecutive times where the GPU performance is above the target to increase dynamic resolution by one step. |
+| **Scale Down Duration** | The number of consecutive times where the GPU performance is below the target to decrease dynamic resolution by one step. |
+| **Scale Up Step Count** | The number of steps to upscale from minimum screen percentage to maximum screen percentage set in the current HDRP Asset. |
+| **Scale Down Step Count** | The number of steps to downscale from maximum screen percentage to minimum screen percentage set in the current HDRP Asset. |
+| **Enable Debug View** | Enables the debug view of dynamic resolution. |
+
+## Custom dynamic resolution
+Instead of using a HD Dynamic Resolution component, you can write custom logic for dynamic resolution. To do so, call the following function in your script:
 
 ```DynamicResolutionHandler.SetDynamicResScaler(PerformDynamicRes scaler, DynamicResScalePolicyType scalerType)```
 
@@ -62,7 +79,7 @@ public class DynamicRes : MonoBehaviour
         {
             currentScale += directionOfChange * fractionDeltaStep;
 
-            // When currenScale reaches the minimum or maximum resolution, this switches the direction of resolution change.
+            // When currentScale reaches the minimum or maximum resolution, this switches the direction of resolution change.
             if (currentScale <= 0.0f || currentScale >= 1.0f)
             {
                 directionOfChange *= -1.0f;
