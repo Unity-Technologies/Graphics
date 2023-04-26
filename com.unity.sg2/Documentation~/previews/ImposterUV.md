@@ -8,7 +8,7 @@ Calculates the billboard positon and the virtual UVs for sampling.
 **Size** - The size of the imposter.
 **Offset** - The offset value from the pivot.
 **Frame Clipping Threshold** - The clamping value for the neighboring frames most useful when parallax mapping is enabled.
-**Texel Size** - The texel size of the heightmap or the textures will be sampled in the Imposter Sample Node.
+**Texture Size** - The texture resolution.
 **Height Map** - The height map texture to sample.
 **Sampler** - The texture sampler to use for sampling the texture.
 **Parallax** - Parallax strength.

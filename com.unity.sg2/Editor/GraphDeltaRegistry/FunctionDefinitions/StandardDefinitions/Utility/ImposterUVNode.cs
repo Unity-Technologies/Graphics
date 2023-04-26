@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Defs
                      new(
             "ThreeFrames",
 "  ImposterUV(Pos, inUV, Frames, Offset, Size, FrameClip, HemiSphere, Parallax,  HeightMapChannel, " +
-                         " Sampler.samplerstate, Texture.tex, TexelSize, OutPos, Weights, UV0, UV1, UV2, Grid);",
+                         " Sampler.samplerstate, Texture.tex, TextureSize, OutPos, Weights, UV0, UV1, UV2, Grid);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1}),
                 new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("FrameClip", TYPE.Float, Usage.In),
-                new ParameterDescriptor("TexelSize", TYPE.Vec4, Usage.In),
+                new ParameterDescriptor("TextureSize", TYPE.Float, Usage.In, new float[]{ 1024}),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
                 new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
                 new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),new(
             "OneFrame",
 "  ImposterUV_oneFrame(Pos, inUV, Frames, Offset, Size, FrameClip, HemiSphere, Parallax, HeightMapChannel, " +
-                         " Sampler.samplerstate, Texture.tex, TexelSize, OutPos, UV0, Grid);",
+                         " Sampler.samplerstate, Texture.tex, TextureSize, OutPos, UV0, Grid);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1}),
                 new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("FrameClip", TYPE.Float, Usage.In),
-                new ParameterDescriptor("TexelSize", TYPE.Vec4, Usage.In),
+                new ParameterDescriptor("TextureSize", TYPE.Float, Usage.In, new float[]{ 1024}),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
                 new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
                 new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -113,9 +113,9 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "The value to clamp between imposter frame. Useful when doing parallax mapping."
                 ),
                 new ParameterUIDescriptor(
-                    name: "TexelSize",
-                    displayName:"Texel Size",
-                    tooltip: "The texel size of the sampling texture."
+                    name: "TextureSize",
+                    displayName:"Texture Size",
+                    tooltip: "The resolution of the sampling texture."
                 ),
                 new ParameterUIDescriptor(
                     name: "Size",
