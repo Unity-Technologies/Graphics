@@ -136,8 +136,8 @@ float3 CalculateBillboardProjection(float3 objectSpaceCameraDir, float2 uv)
 }
 
 //Calculate Vertex postion and UVs
-void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in float3 imposterOffset, in float imposterSize,
-    in bool isHemi, in float parallax, in int heightMapChannel, in SamplerState ss, in Texture2D heightMap,
+void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in float3 imposterOffset, in float imposterSize, in float imposterFrameClip,
+    in bool isHemi, in float parallax, in int heightMapChannel, in SamplerState ss, in Texture2D heightMap, in float4 mapTexelSize,
     out float3 outPos, out float4 outWeights, out float2 outUV0, out float2 outUV1, out float2 outUV2, out float4 outUVGrid)
 {
     float framesMinusOne = imposterFrames - 1;
@@ -237,19 +237,36 @@ void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in flo
     float2 vp1uv = frame1grid + vUv1.xy;
     float2 vp2uv = frame2grid + vUv2.xy;
 
+    //vert pos
+    outPos = BillboardPos + imposterOffset;
+
+    //frame size ->2048/12 = 170.6
+    float frameSize = mapTexelSize.z / imposterFrames;
+    //actual texture size used -> 170*12 = 2040
+    float actualTextureSize = floor(frameSize) * imposterFrames;
+    //the  scalar -> 2048/2040 = 0.99609375
+    float scalar = mapTexelSize.z / actualTextureSize;
+
+    vp0uv *= scalar;
+    vp0uv *= scalar;
+    vp0uv *= scalar;
+
     if (parallax != 0) {
 
         float h0 = SAMPLE_TEXTURE2D(heightMap, ss, vp0uv)[heightMapChannel];
-        float h1 = SAMPLE_TEXTURE2D(heightMap, ss, vp0uv)[heightMapChannel];
-        float h2 = SAMPLE_TEXTURE2D(heightMap, ss, vp0uv)[heightMapChannel];
+        float h1 = SAMPLE_TEXTURE2D(heightMap, ss, vp1uv)[heightMapChannel];
+        float h2 = SAMPLE_TEXTURE2D(heightMap, ss, vp2uv)[heightMapChannel];
 
         vp0uv += (0.5 - h0) * frame0local.xy * parallax;
         vp1uv += (0.5 - h1) * frame1local.xy * parallax;
         vp2uv += (0.5 - h2) * frame2local.xy * parallax;
     }
-
-    //vert pos
-    outPos = BillboardPos + imposterOffset;
+    //clip out neighboring frames 
+    float2 gridSize = 1.0 / imposterFrames.xx;
+    float2 bleeds = mapTexelSize.xy * imposterFrameClip;
+    vp0uv = clamp(vp0uv, frame0grid - bleeds, frame0grid + gridSize + bleeds);
+    vp1uv = clamp(vp1uv, frame1grid - bleeds, frame1grid + gridSize + bleeds);
+    vp2uv = clamp(vp2uv, frame2grid - bleeds, frame2grid + gridSize + bleeds);
 
     //surface
     outUV0 = vp0uv;
@@ -259,9 +276,10 @@ void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in flo
     outUVGrid.xy = UVscaled;
     outUVGrid.zw = grid;
 }
-void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrames, in float3 imposterOffset, in float imposterSize,
-    in bool isHemi, in float parallax, in int heightMapChannel, in SamplerState ss, in Texture2D heightMap,
-    out float3 outPos, out float2 outUV0, out float4 outUVGrid)
+
+void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrames, in float3 imposterOffset, in float imposterSize, in float imposterFrameClip,
+    in bool isHemi, in float parallax, in int heightMapChannel, in SamplerState ss, in Texture2D heightMap, in float4 mapTexelSize,
+    out float3 outPos, out float4 outWeights, out float2 outUV0, out float4 outUVGrid)
 {
     float framesMinusOne = imposterFrames - 1;
 
@@ -321,13 +339,27 @@ void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrame
     float2 frame0grid = gridSnap;
     float2 vp0uv = frame0grid + vUv0.xy;
 
+    //vert pos
+    outPos = BillboardPos + imposterOffset;
+
+    //frame size ->2048/12 = 170.6
+    float frameSize = mapTexelSize.z / imposterFrames;
+    //actual texture size used -> 170*12 = 2040
+    float actualTextureSize = floor(frameSize) * imposterFrames;
+    //the  scalar -> 2048/2040 = 0.99609375
+    float scalar = mapTexelSize.z / actualTextureSize;
+
+    vp0uv *= scalar;
+
     if (parallax != 0) {
+
         float h0 = SAMPLE_TEXTURE2D(heightMap, ss, vp0uv)[heightMapChannel];
         vp0uv += (0.5 - h0) * frame0local.xy * parallax;
     }
-
-    //vert pos
-    outPos = BillboardPos + imposterOffset;
+    //clip out neighboring frames 
+    float2 gridSize = 1.0 / imposterFrames.xx;
+    float2 bleeds = mapTexelSize.xy * imposterFrameClip;
+    vp0uv = clamp(vp0uv, frame0grid - bleeds, frame0grid + gridSize + bleeds);
 
     //surface
     outUV0 = vp0uv;
@@ -335,58 +367,18 @@ void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrame
     outUVGrid.zw = grid;
 
 }
-//Sample from UVs 
-void ImposterSample(in float imposterFrames, in texture2D Texture, in float4 mapTexelSize, in float4 weights, in float imposterFrameClip, in float4 inUVGrid,
+//Sample from UVs and blend bases on the weights
+void ImposterSample(in texture2D Texture, in float4 weights, in float4 inUVGrid,
     in float2 inUV0, in float2 inUV1, in float2 inUV2, in SamplerState ss, out float4 outColor)
 {
-    //frame size ->2048/12 = 170.6
-    float frameSize = mapTexelSize.z / imposterFrames;
-    //actual texture size used -> 170*12 = 2040
-    float actualTextureSize = floor(frameSize) * imposterFrames;
-    //the  scalar -> 2048/2040 = 0.99609375
-    float scalar = mapTexelSize.z / actualTextureSize;
-
-    inUV0 *= scalar;
-    inUV1 *= scalar;
-    inUV2 *= scalar;
-
-    float2 gridSnap = floor(inUVGrid.zw) / imposterFrames.xx;
-    float2 frame0grid = gridSnap;
-    float2 frame1grid = gridSnap + (lerp(float2(0, 1), float2(1, 0), weights.w) / imposterFrames.xx);
-    float2 frame2grid = gridSnap + (float2(1, 1) / imposterFrames.xx);
-
-    //clip out neighboring frames 
-    float2 gridSize = 1.0 / imposterFrames.xx;
-    float2 bleeds = mapTexelSize.xy * imposterFrameClip;
-    inUV0 = clamp(inUV0, frame0grid - bleeds, frame0grid + gridSize + bleeds);
-    inUV1 = clamp(inUV1, frame1grid - bleeds, frame1grid + gridSize + bleeds);
-    inUV2 = clamp(inUV2, frame2grid - bleeds, frame2grid + gridSize + bleeds);
-
     outColor = SAMPLE_TEXTURE2D_GRAD(Texture, ss, inUV0, ddx(inUVGrid.xy), ddy(inUVGrid.xy)) * weights.x
         + SAMPLE_TEXTURE2D_GRAD(Texture, ss, inUV1, ddx(inUVGrid.xy), ddy(inUVGrid.xy)) * weights.y
         + SAMPLE_TEXTURE2D_GRAD(Texture, ss, inUV2, ddx(inUVGrid.xy), ddy(inUVGrid.xy)) * weights.z;
 }
 
-void ImposterSample_oneFrame(in float imposterFrames, in texture2D Texture, in float4 mapTexelSize, in float imposterFrameClip, in float4 inUVGrid,
+void ImposterSample_oneFrame(in texture2D Texture, in float4 inUVGrid,
     in float2 inUV0, in SamplerState ss, out float4 outColor)
 {
-    //frame size ->2048/12 = 170.6
-    float frameSize = mapTexelSize.z / imposterFrames;
-    //actual texture size used -> 170*12 = 2040
-    float actualTextureSize = floor(frameSize) * imposterFrames;
-    //the  scalar -> 2048/2040 = 0.99609375
-    float scalar = mapTexelSize.z / actualTextureSize;
-
-    inUV0 *= scalar;
-
-    float2 gridSnap = floor(inUVGrid.zw) / imposterFrames.xx;
-    float2 frame0grid = gridSnap;
-
-    //clip out neighboring frames 
-    float2 gridSize = 1.0 / imposterFrames.xx;
-    float2 bleeds = mapTexelSize.xy * imposterFrameClip;
-    inUV0 = clamp(inUV0, frame0grid - bleeds, frame0grid + gridSize + bleeds);
-
     outColor = SAMPLE_TEXTURE2D_GRAD(Texture, ss, inUV0, ddx(inUVGrid.xy), ddy(inUVGrid.xy));
 }
 

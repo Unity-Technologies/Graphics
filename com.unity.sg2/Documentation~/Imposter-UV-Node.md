@@ -10,13 +10,15 @@ The Imposter UV Node calculates the billboard position and the UV coordinates ne
 | In Position | Input      |    Vector3 | The postion in Object space |
 | In UV | Input      |    Vector4 | The UV coordinates of the mesh |
 | Frames | Input      |    Float | The number of the imposter frames in each axis|
-| Offset | Input      |    Float | The offset value from the pivot |
 | Size | Input      |    Float | The size of the imposter |
+| Offset | Input      |    Float | The offset value from the pivot |
+| Frame Clipping Threshold | Input      |    Float | The clamping value for the neighboring frames most useful when parallax mapping is enabled |
+| Texel Size | Input      |    Vector4 | The texel size of the heightmap or the textures will be sampled in the Imposter Sample Node. |
+| HemiSphere | Input      |    Boolean | If it's true, calculates the imposter grid and UVs base on hemisphere type.This is Useful if the imposter object will only be seen from above |
+| Parallax | Input      |    Float | Parallax strength, if it equals to 0 than he parallax related control won't affect the outputs.|
 | Height map | Input      |    Texture2D | The height map texture to sample |
 | Sampler | Input      |    Sampler State | The texture sampler to use for sampling the texture |
-| Parallax | Input      |    Float | Parallax strength|
 | Height Map Channel | Input      |    Int | The channle of the height map to sample for parallax mapping, if any|
-| HemiSphere | Input      |    Boolean | If it's true, calculates the imposter grid and UVs base on hemisphere type.This is Useful if the imposter object will only be seen from above |
 | Out Positon | Output      |    Vector3 | The output billboard position |
 | UV0 | Output      |    Vector2 | The virtual UV for the base frame |
 | UV1 | Output      |    Vector2 | The virtual UV for the second frame |
@@ -61,11 +63,11 @@ The Imposter UV Node [!include[nodes-controls](./snippets/nodes-controls.md)]
 ### ThreeFrames
 
 ```
-ImposterUV(Pos, inUV, Frames, Offset, Size, HemiSphere, Parallax, HeightMapChannel, ss, HeightMap, OutPos, Weights, Grid, UV0, UV1, UV2)
+ImposterUV(Pos, inUV, Frames, Offset, Size, imposterFrameClip, HemiSphere, Parallax, HeightMapChannel, ss, HeightMap, TexelSize, OutPos, Weights, Grid, UV0, UV1, UV2)
 ```
 
 ### OneFrame
 
 ```
-ImposterUV_oneFrame(Pos, inUV, Frames, Offset, Size, HemiSphere, Parallax, HeightMapChannel, ss, HeightMap, OutPos, Grid, UV0);
+ImposterUV_oneFrame(Pos, inUV, Frames, Offset, Size, imposterFrameClip, HemiSphere, Parallax, HeightMapChannel, ss, HeightMap, TexelSize, OutPos, Grid, UV0);
 ```

@@ -14,20 +14,22 @@ namespace UnityEditor.ShaderGraph.Defs
             functions: new FunctionDescriptor[] {
                      new(
             "ThreeFrames",
-"  ImposterUV(Pos, inUV, Frames, Offset, Size, HemiSphere, Parallax, HeightMapChannel, " +
-                         " Sampler.samplerstate, Texture.tex, OutPos, Weights, UV0, UV1, UV2, Grid);",
+"  ImposterUV(Pos, inUV, Frames, Offset, Size, FrameClip, HemiSphere, Parallax,  HeightMapChannel, " +
+                         " Sampler.samplerstate, Texture.tex, TexelSize, OutPos, Weights, UV0, UV1, UV2, Grid);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
-                new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                 new ParameterDescriptor("inUV", TYPE.Vec4, Usage.In, REF.UV0),
-                new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
-                new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),
                 new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
                 new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1}),
                 new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("FrameClip", TYPE.Float, Usage.In),
+                new ParameterDescriptor("TexelSize", TYPE.Vec4, Usage.In),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
+                new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),//TODO: this one should be a dropdown with r/g/b/a chnnal options like Parallax Mapping node
                 new ParameterDescriptor("OutPos", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("UV0", TYPE.Vec2, Usage.Out),
                 new ParameterDescriptor("UV1", TYPE.Vec2, Usage.Out),
@@ -41,20 +43,22 @@ namespace UnityEditor.ShaderGraph.Defs
                 }
                 ),new(
             "OneFrame",
-"  ImposterUV_oneFrame(Pos, inUV, Frames, Offset, Size, HemiSphere, Parallax, HeightMapChannel, " +
-                         " Sampler.samplerstate, Texture.tex, OutPos, UV0, Grid);",
+"  ImposterUV_oneFrame(Pos, inUV, Frames, Offset, Size, FrameClip, HemiSphere, Parallax, HeightMapChannel, " +
+                         " Sampler.samplerstate, Texture.tex, TexelSize, OutPos, UV0, Grid);",
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
-                new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
-                new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
                 new ParameterDescriptor("inUV", TYPE.Vec4, Usage.In, REF.UV0),
-                new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
-                new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),
                 new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
                 new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1}),
                 new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
+                new ParameterDescriptor("FrameClip", TYPE.Float, Usage.In),
+                new ParameterDescriptor("TexelSize", TYPE.Vec4, Usage.In),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
+                new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
+                new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
+                new ParameterDescriptor("Sampler", TYPE.SamplerState, Usage.In),
+                new ParameterDescriptor("HeightMapChannel", TYPE.Int, Usage.In, 3),//TODO: this one should be a dropdown with r/g/b/a chnnal options like Parallax Mapping node
                 new ParameterDescriptor("OutPos", TYPE.Vec3, Usage.Out),
                 new ParameterDescriptor("UV0", TYPE.Vec2, Usage.Out),
                 new ParameterDescriptor("Grid", TYPE.Vec4, Usage.Out)
@@ -72,7 +76,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Imposter UV",
             tooltip: "Calculates the billboard positon and the virtual UVs for sampling.",
-            category: "Input/Mesh Deformation",
+            category: "Utility",
             hasPreview: false,
             description: "pkg://Documentation~/previews/ImposterUV.md",
             synonyms: new string[] { "billboard" },
@@ -102,6 +106,16 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "Offest",
                     tooltip: "The offset value from the origin vertex positon"
+                ),
+                new ParameterUIDescriptor(
+                    name: "FrameClip",
+                    displayName:"Frame Clipping Threshold",
+                    tooltip: "The value to clamp between imposter frame. Useful when doing parallax mapping."
+                ),
+                new ParameterUIDescriptor(
+                    name: "TexelSize",
+                    displayName:"Texel Size",
+                    tooltip: "The texel size of the sampling texture."
                 ),
                 new ParameterUIDescriptor(
                     name: "Size",

@@ -10,8 +10,6 @@ This creates the illusion of a 3D object on a billboard object because the impos
 **UV2** - The virtual UV for the third frame.
 **Grid** - The current UV grid, which is used to find the corresponding sample frames.
 **Weights** - The blending values in between the slected three frames.
-**Frames** - The number of the imposter frames in each axis.
-**Imposter Frame Clip** - The clamping value in between frames.
 
 ## Output
 **RGBA** - A vector4 from the sampled texture.
