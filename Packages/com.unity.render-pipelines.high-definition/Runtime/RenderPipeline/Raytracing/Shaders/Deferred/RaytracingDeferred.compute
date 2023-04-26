@@ -53,6 +53,7 @@ TEXTURE2D_X(_RaytracingDirectionBuffer);
 TEXTURE2D_X(_RaytracingDistanceBuffer);
 
 RW_TEXTURE2D_X(float4, _RaytracingLitBufferRW);
+RW_TEXTURE2D_X(float, _RaytracingDistanceBufferRW);
 
 [numthreads(RAYTRACING_DEFERRED_TILE_SIZE, RAYTRACING_DEFERRED_TILE_SIZE, 1)]
 void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -62,12 +63,13 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_DEFERRED_TILE_SIZE + groupThreadId;
 
-    #ifdef HALF_RESOLUTION
-    currentCoord = ComputeSourceCoordinates(currentCoord, _RaytracingFrameIndex);
-    #endif
-
     // Initialize the output buffer
     _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+    _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
+
+    #ifdef HALF_RESOLUTION
+    currentCoord = ComputeSourceCoordinates(currentCoord, _RayTracingCheckerIndex);
+    #endif
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
@@ -86,10 +88,12 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // if the distance is exactly zero, this means we are facing an environement ray that we need to evaluate
     float3 finalColor = 0.0f;
+    bool rayIsSky = false;
     if (RayTracingGBufferIsSky(rayDistance))
     {
         // Weight value used to do the blending
         float weight = 0.0;
+        rayIsSky = true;
 
         #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
         // Try the APV if enabled
@@ -158,12 +162,21 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
                 finalColor = clamp(finalColor, 0.0, _RaytracingIntensityClamp);
             }
         }
+
+        // For unlit material, the distance is stored negatively so we need to apply an abs to it.
+        rayDistance = abs(rayDistance);
     }
 
     // If the distance is negative, this means it is a sky pixel or an unlit material
     if (!RayTracingGBufferIsLit(rayDistance))
     {
+    #if defined(HALF_RESOLUTION)
+        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord / 2)] = float4(finalColor * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier()), 0.0);
+        _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentCoord / 2)] = rayIsSky ? _RaytracingRayMaxLength : rayDistance;
+    #else
         _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier()), 0.0);
+        _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentCoord)] = rayIsSky ? _RaytracingRayMaxLength : rayDistance;
+    #endif
         return;
     }
 
@@ -220,7 +233,13 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
             finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
         }
     }
+    #if defined(HALF_RESOLUTION)
+    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord / 2)] = float4(finalColor, 1.0);
+    _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentCoord / 2)] = rayDistance;
+    #else
     _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
+    _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
+    #endif
 }
 
 // Input textures for the diffuse deferred lightloop that we will be executing

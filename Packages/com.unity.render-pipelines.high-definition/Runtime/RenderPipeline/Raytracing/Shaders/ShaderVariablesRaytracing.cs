@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _RayTracingRayBias;
         // Far plane ray bias
         public float _RayTracingDistantRayBias;
-        // Padding
-        public int _PaddingRT0;
+        // Ray Frame Index for reflection signals
+        public int _RayTracingReflectionFrameIndex;
     }
 }

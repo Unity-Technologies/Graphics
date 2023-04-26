@@ -34,8 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty RTRFullResolution;
         public SerializedProperty RTRRayMaxIterations;
         public SerializedProperty RTRDenoise;
-        public SerializedProperty RTRDenoiserRadius;
-        public SerializedProperty RTRSmoothDenoising;
+        public SerializedProperty RTRDenoiserRadiusDimmer;
+        public SerializedProperty RTRDenoiserAntiFlicker;
 
         // Ray Traced Global Illumination
         public SerializedProperty RTGIRayLength;
@@ -89,8 +89,8 @@ namespace UnityEditor.Rendering.HighDefinition
             RTRFullResolution = root.Find((GlobalLightingQualitySettings s) => s.RTRFullResolution);
             RTRRayMaxIterations = root.Find((GlobalLightingQualitySettings s) => s.RTRRayMaxIterations);
             RTRDenoise = root.Find((GlobalLightingQualitySettings s) => s.RTRDenoise);
-            RTRDenoiserRadius = root.Find((GlobalLightingQualitySettings s) => s.RTRDenoiserRadius);
-            RTRSmoothDenoising = root.Find((GlobalLightingQualitySettings s) => s.RTRSmoothDenoising);
+            RTRDenoiserRadiusDimmer = root.Find((GlobalLightingQualitySettings s) => s.RTRDenoiserRadiusDimmer);
+            RTRDenoiserAntiFlicker = root.Find((GlobalLightingQualitySettings s) => s.RTRDenoiserAntiFlicker);
 
             // Ray Traced Global Illumination
             RTGIRayLength = root.Find((GlobalLightingQualitySettings s) => s.RTGIRayLength);

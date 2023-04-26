@@ -1,0 +1,196 @@
+#pragma kernel TemporalStabilization
+
+#pragma only_renderers d3d11 xboxseries ps5
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_Utilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/ReBlurDenoiser.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDTemporalFilter.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+
+#define CTYPE float4
+#define CTYPE_SWIZZLE xyzw
+#define ENABLE_ALPHA 1
+#define YCOCG 1
+#define WIDE_NEIGHBOURHOOD 1
+#define NEIGHBOUROOD_CORNER_METHOD VARIANCE
+#define HISTORY_CLIP DIRECT_CLIP
+#define PERCEPTUAL_SPACE 0
+#define ANTI_FLICKER 1
+#define ANTI_FLICKER_MV_DEPENDENT 1
+#define TEMPORAL_CONTRAST 0
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+
+#define REBLUR_TS_TILE_SIZE 8
+
+// #pragma enable_d3d11_debug_symbols
+
+// Input texture
+TEXTURE2D_X(_DenoiseInputTexture);
+TEXTURE2D_X(_StabilizationHistoryBuffer);
+TEXTURE2D_X(_HistoryBuffer);
+TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X_UINT(_ValidationBuffer);
+TEXTURE2D_X_UINT2(_StencilTexture);
+
+// Output texture
+RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+
+// LDS used to pre-fetch the neighborhood data a 8x8 region with a one pixel border (10x10)
+groupshared float4 gs_cacheLightingDistance[100];
+groupshared float gs_cacheLinearDepth[100];
+groupshared float gs_cacheDepth[100];
+groupshared bool gs_cacheValidity[100];
+
+void FillReflectionDataLDS(uint elementIndex, uint2 groupOrigin, float exposureMultiplier)
+{
+    // Define which value we will be acessing with this worker thread
+    int acessCoordX = elementIndex % 10;
+    int acessCoordY = elementIndex / 10;
+
+    // The initial position of the access
+    int2 originXY = (int2)groupOrigin - int2(1, 1) + int2(acessCoordX, acessCoordY);
+
+    // Compute the sample position
+    int2 tapCoord = clamp(originXY.xy, 0, _ScreenSize.xy - 1);
+
+    // Read the value from the texture
+    float4 lightingDistance = LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord.xy);
+    // Pack it and store it into the LDS
+    gs_cacheLightingDistance[elementIndex] = ConvertToWorkingSpace(float4(lightingDistance.xyz * exposureMultiplier, lightingDistance.w));
+
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, tapCoord.xy).x;
+    gs_cacheDepth[elementIndex] = depthValue;
+    gs_cacheLinearDepth[elementIndex] = Linear01Depth(depthValue, _ZBufferParams);
+
+    // Validity flag of the sample
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, tapCoord.xy));
+    bool validity = (stencilValue & STENCILUSAGE_IS_UNLIT) == 0;
+    validity = validity && (stencilValue & STENCILUSAGE_TRACE_REFLECTION_RAY) != 0;
+    validity = validity && (depthValue != UNITY_RAW_FAR_CLIP_VALUE);
+    gs_cacheValidity[elementIndex] = validity;
+}
+
+uint ReflectionDataOffsetToLDSAdress(uint2 groupThreadId, int2 offset)
+{
+    // Compute the tap coordinate in the 10x10 grid
+    uint2 tapAddress = (uint2)((int2)(groupThreadId + 1) + offset);
+    return clamp((uint)(tapAddress.x) % 10 + tapAddress.y * 10, 0u, 99u);
+}
+
+[numthreads(REBLUR_TS_TILE_SIZE, REBLUR_TS_TILE_SIZE, 1)]
+void TemporalStabilization(uint3 dispatchThreadId : SV_DispatchThreadID, int groupIndex : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 currentCoord = dispatchThreadId.xy;
+
+    float exposureMultiplier = GetCurrentExposureMultiplier();
+
+    if (groupIndex < 50)
+    {
+        FillReflectionDataLDS(groupIndex * 2, groupId * 8, exposureMultiplier);
+        FillReflectionDataLDS(groupIndex * 2 + 1, groupId * 8, exposureMultiplier);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Evaluate the LDS index of the current pixel
+    uint centralLDSIndex = ReflectionDataOffsetToLDSAdress(groupThreadId, int2(0, 0));
+
+    // IF this is a background pixel, we have nothing to do here
+    if (gs_cacheDepth[centralLDSIndex] == UNITY_RAW_FAR_CLIP_VALUE || !gs_cacheValidity[centralLDSIndex])
+    {
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, -1.0);
+        return;
+    }
+
+    // Read the validation mask
+    uint validationMask = LOAD_TEXTURE2D_X(_ValidationBuffer, currentCoord.xy).x;
+    uint disocclusion = (validationMask & (HISTORYREJECTIONFLAGS_REPROJECTION | HISTORYREJECTIONFLAGS_PREVIOUS_DEPTH | HISTORYREJECTIONFLAGS_POSITION)) != 0;
+
+    // if we have a discocclusion, means we cannot use any of the signals and we will be relying on for the temporal stabilization
+    if (disocclusion || _ReBlurHistoryValidity == 0.0)
+    {
+        float4 signal = gs_cacheLightingDistance[centralLDSIndex];
+        signal.xyz = ConvertToOutputSpace(signal.xyz);
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord.xy)] = float4(signal.xyz * GetInverseCurrentExposureMultiplier(), signal.w);
+        return;
+    }
+
+    // Fetch the position of the current pixel
+    PositionInputs posInputs = GetPositionInput(currentCoord.xy, _ScreenSize.zw, gs_cacheDepth[centralLDSIndex], UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
+
+    // Evaluate the position and view vectors
+    float3 viewWS = GetWorldSpaceNormalizeViewDir(posInputs.positionWS);
+
+    // Normal and roughness
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord.xy, normalData);
+
+    // Surface motion history (the disocclusion code guarantees that the reprojected surface motion is inside the viewport)
+    float2 historyUVUnscaled;
+    float2 historySurfaceMotionCoord;
+    float2 historySurfaceMotionUV;
+    float2 velocity;
+    EvaluateSurfaceMotionUV(currentCoord.xy, posInputs, historyUVUnscaled, historySurfaceMotionCoord, historySurfaceMotionUV, velocity);
+
+    // Read the previous signal
+    float4 prevSignal = LOAD_TEXTURE2D_X(_StabilizationHistoryBuffer, historySurfaceMotionCoord);
+    prevSignal = ConvertToWorkingSpace(float4(prevSignal.xyz * exposureMultiplier, prevSignal.w));
+
+    // Grab the clipping neighbourhood
+    NeighbourhoodSamples nbSamples;
+    nbSamples.neighbours[0] = gs_cacheLightingDistance[ReflectionDataOffsetToLDSAdress(groupThreadId, int2(-1, -1))];
+    nbSamples.neighbours[1] = gs_cacheLightingDistance[ReflectionDataOffsetToLDSAdress(groupThreadId, int2(0, -1))];
+    nbSamples.neighbours[2] = gs_cacheLightingDistance[ReflectionDataOffsetToLDSAdress(groupThreadId, int2(1, -1))];
+    nbSamples.neighbours[3] = gs_cacheLightingDistance[ReflectionDataOffsetToLDSAdress(groupThreadId, int2(-1, 0))];
+    nbSamples.neighbours[4] = gs_cacheLightingDistance[ReflectionDataOffsetToLDSAdress(groupThreadId, int2(1, 0))];
+    nbSamples.neighbours[5] = gs_cacheLightingDistance[ReflectionDataOffsetToLDSAdress(groupThreadId, int2(-1, 1))];
+    nbSamples.neighbours[6] = gs_cacheLightingDistance[ReflectionDataOffsetToLDSAdress(groupThreadId, int2(0, 1))];
+    nbSamples.neighbours[7] = gs_cacheLightingDistance[ReflectionDataOffsetToLDSAdress(groupThreadId, int2(1, 1))];
+    nbSamples.central = gs_cacheLightingDistance[centralLDSIndex];
+
+    // We need to make sure to process the neighbors to discards the one that have either incompatible depths or are background pixels
+    UNITY_UNROLL
+    for (int y = -1; y <= 1; ++y)
+    {
+        UNITY_UNROLL
+        for (int x = -1; x <= 1; ++x)
+        {
+            // If this is the central pixel, there is nothing to be done.
+            if (x == 0 && y == 0) continue;
+
+            // Get the LDS index of the current tap
+            uint tapLDSIndex = ReflectionDataOffsetToLDSAdress(groupThreadId, int2(x, y));
+
+            // Compute the neighborhood index
+            int nIndex = (x + 1) + (y + 1) * 3;
+            nIndex = nIndex > 4 ? nIndex - 1 : nIndex;
+            
+            // If this is a background pixel or one that doesn't have SSR or is Unlit we can't use it
+            if (gs_cacheDepth[tapLDSIndex] == UNITY_RAW_FAR_CLIP_VALUE
+                || !gs_cacheValidity[tapLDSIndex]
+                || (abs(gs_cacheLinearDepth[centralLDSIndex] - gs_cacheLinearDepth[tapLDSIndex]) > gs_cacheLinearDepth[centralLDSIndex] * 0.2))
+            {
+                nbSamples.neighbours[nIndex] = nbSamples.central;
+            }
+        }
+    }
+
+    float motionVecLenInPixels = length(velocity * _ScreenSize.xy);
+    float hitDistanceAttenuation = HitDistanceAttenuation(normalData.perceptualRoughness, length(posInputs.positionWS), nbSamples.central.w);
+    float2 antiFlickerParams = float2(_ReBlurAntiFlickeringStrength * hitDistanceAttenuation, 1.0);
+    float aggressivelyClampedHistoryLuma = 0;
+    VarianceNeighbourhood(nbSamples, GetLuma(prevSignal), GetLuma(nbSamples.central), antiFlickerParams, motionVecLenInPixels, 1.0, aggressivelyClampedHistoryLuma);
+
+    // Clip the history
+    prevSignal = GetClippedHistory(nbSamples.central, prevSignal, nbSamples.minNeighbour, nbSamples.maxNeighbour);
+
+    // Move back to the output space
+    prevSignal.xyz = ConvertToOutputSpace(prevSignal.xyz);
+
+    // Normalize the result
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(prevSignal.xyz * GetInverseCurrentExposureMultiplier(), prevSignal.w);
+}

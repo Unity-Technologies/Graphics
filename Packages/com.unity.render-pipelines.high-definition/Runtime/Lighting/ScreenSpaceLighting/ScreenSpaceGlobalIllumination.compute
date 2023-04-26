@@ -79,7 +79,7 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 
 #if HALF_RES
     // Compute the full resolution pixel for the inputs that do not have a pyramid
-    inputCoord = inputCoord * 2;
+    inputCoord = ComputeSourceCoordinates(inputCoord, _RayTracingCheckerIndex);
 #endif
 
     // Read the depth value as early as possible
@@ -212,7 +212,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint2 currentCoord = dispatchThreadId.xy;
 #if HALF_RES
     // Compute the full resolution pixel for the inputs that do not have a pyramid
-    inputCoord = inputCoord * 2;
+    inputCoord = ComputeSourceCoordinates(inputCoord, _RayTracingCheckerIndex);
 #endif
 
     // Read the depth and compute the position

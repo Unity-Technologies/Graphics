@@ -86,7 +86,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _SpecularFade;
     uint _EnableRenderingLayers;
     int _ReflectionsMode;
-    int _UnusedPadding2;
+    uint _RayTracingCheckerIndex;
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;

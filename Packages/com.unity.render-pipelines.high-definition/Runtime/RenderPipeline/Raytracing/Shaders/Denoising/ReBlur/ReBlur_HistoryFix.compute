@@ -1,0 +1,96 @@
+#pragma kernel HistoryFix
+
+#pragma only_renderers d3d11 xboxseries ps5
+
+// #pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_Utilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/ReBlurDenoiser.cs.hlsl"
+
+// Dispatch size resolution
+#define REBLUR_HISTORY_FIX_TILE_SIZE 8
+
+// Input texture
+TEXTURE2D_X(_LightingDistanceTexture);
+TEXTURE2D_X_UINT(_AccumulationTexture);
+TEXTURE2D_X(_DepthTexture);
+StructuredBuffer<int2> _DepthPyramidMipLevelOffsets;
+TEXTURE2D_X(_ReBlurMipChain);
+
+// Output texture
+RW_TEXTURE2D_X(float4, _LightingDistanceTextureRW);
+
+float Gaussian(float radius, float sigma)
+{
+    float v = radius / sigma;
+    return exp(-(v*v));
+}
+
+[numthreads(REBLUR_HISTORY_FIX_TILE_SIZE, REBLUR_HISTORY_FIX_TILE_SIZE, 1)]
+void HistoryFix(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 currentCoord = dispatchThreadId.xy;
+
+    // Fetch the full resolution depth
+    float depthFR = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+
+    // IF this is a background pixel, we have nothing to do here
+    if (depthFR == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Linearize the full resolution depth
+    float linearDepth = Linear01Depth(depthFR, _ZBufferParams);
+
+    // Grab the signal of the current frame
+    float4 signal = LOAD_TEXTURE2D_X(_LightingDistanceTexture, currentCoord.xy);
+    uint accumulation = LOAD_TEXTURE2D_X(_AccumulationTexture, currentCoord.xy).x;
+
+    // Evaluate the normalized accumulation factor
+    float normAcc = saturate(accumulation / MAX_FRAME_NUM_WITH_HISTORY_FIX);
+
+    // We don't need the history fix here, all good.
+    if (normAcc == 1.0)
+    {
+        _LightingDistanceTextureRW[COORD_TEXTURE2D_X(currentCoord)] = signal;
+        return;
+    }
+
+    // Normal and roughness
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord.xy, normalData);
+
+    // Grab the signal of the current frame
+    int mipLevel = (int)(MIP_LEVEL_COUNT * (1.0 - normAcc) * normalData.perceptualRoughness);
+
+    // Now we need to loop through the LODs (going from the lowest to the highest until we have enough representative samples)
+    float4 signalSum = 0.0;
+    float weightSum = 0.0;
+    int2 mipOffset = _DepthPyramidMipLevelOffsets[mipLevel];
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            // Evaluate the tap coordinate
+            int2 tapCoord = (currentCoord << mipLevel) + int2(x, y);
+
+            // Read and linearize the depth
+            float tapDepth = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + tapCoord).x, _ZBufferParams);
+
+            // Is the depth compatible with the full resolution depth
+            float4 lightDistance = LOAD_TEXTURE2D_X_LOD(_ReBlurMipChain, tapCoord, mipLevel);
+            if ((abs(tapDepth - linearDepth) < linearDepth * 0.1) && lightDistance.w >= 0.0)
+            {   
+                float weight = Gaussian(length(int2(x, y)), 1.0);
+                signalSum += lightDistance * weight;
+                weightSum += weight;
+            }
+        }
+    }
+
+    // Normalize the result
+    _LightingDistanceTextureRW[COORD_TEXTURE2D_X(currentCoord)] = weightSum != 0.0 ? signalSum / weightSum : LOAD_TEXTURE2D_X_LOD(_ReBlurMipChain, currentCoord.xy, 0);
+}

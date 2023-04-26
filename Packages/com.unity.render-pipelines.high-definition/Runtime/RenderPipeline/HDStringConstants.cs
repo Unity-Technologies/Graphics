@@ -445,6 +445,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _NormalBufferTexture = Shader.PropertyToID("_NormalBufferTexture");
         public static readonly int _NormalBufferRW = Shader.PropertyToID("_NormalBufferRW");
         public static readonly int _RaytracePrepassBufferTexture = Shader.PropertyToID("_RaytracePrepassBufferTexture");
+        public static readonly int _ClearCoatMaskTexture = Shader.PropertyToID("_ClearCoatMaskTexture");
 
         public static readonly int _ShaderVariablesScreenSpaceReflection = Shader.PropertyToID("ShaderVariablesScreenSpaceReflection");
         public static readonly int _SsrFrameIndex = Shader.PropertyToID("_SsrFrameIndex");
@@ -746,6 +747,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayTracingLayerMask = Shader.PropertyToID("_RayTracingLayerMask");
         public static readonly int _PixelSpreadAngleTangent = Shader.PropertyToID("_PixelSpreadAngleTangent");
         public static readonly string _RaytracingAccelerationStructureName = "_RaytracingAccelerationStructure";
+        public static readonly int _RayTracingLightingTextureRW = Shader.PropertyToID("_RayTracingLightingTextureRW");
+        public static readonly int _RayTracingDistanceTextureRW = Shader.PropertyToID("_RayTracingDistanceTextureRW");
 
         // Path tracing variables
         public static readonly int _InvViewportScaleBias = Shader.PropertyToID("_InvViewportScaleBias");
@@ -781,6 +784,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DenoiserFilterRadius = Shader.PropertyToID("_DenoiserFilterRadius");
         public static readonly int _NormalHistoryCriterion = Shader.PropertyToID("_NormalHistoryCriterion");
         public static readonly int _DenoiseInputTexture = Shader.PropertyToID("_DenoiseInputTexture");
+        public static readonly int _LightingInputTexture = Shader.PropertyToID("_LightingInputTexture"); 
+        public static readonly int _DistanceInputTexture = Shader.PropertyToID("_DistanceInputTexture");
         public static readonly int _DenoiseOutputTextureRW = Shader.PropertyToID("_DenoiseOutputTextureRW");
         public static readonly int _DenoiseOutputArrayTextureRW = Shader.PropertyToID("_DenoiseOutputArrayTextureRW");
         public static readonly int _AccumulationOutputTextureRW = Shader.PropertyToID("_AccumulationOutputTextureRW");

@@ -133,6 +133,18 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingReflectionAdjustWeight,
         RaytracingReflectionFilter,
         RaytracingReflectionUpscale,
+
+        // ReBlur Denoiser
+        ReBlurPreBlur,
+        ReBlurTemporalAccumulation,
+        ReBlurMipGeneration,
+        ReBlurMipHistoryFix,
+        ReBlurBlur,
+        ReBlurCopyHistory,
+        ReBlurTemporalStabilization,
+        ReBlurCopyHistoryStab,
+        ReBlurPostBlur,
+
         // RTAO
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,

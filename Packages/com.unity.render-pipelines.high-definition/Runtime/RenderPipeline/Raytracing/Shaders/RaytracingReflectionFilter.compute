@@ -1,4 +1,3 @@
-#pragma kernel ReflectionRescaleAndAdjustWeight
 #pragma kernel ReflectionAdjustWeight
 #pragma kernel ReflectionUpscale
 
@@ -13,6 +12,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
 
 // Raytracing Includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/OnlineVariance.hlsl"
@@ -29,6 +29,7 @@ TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X(_SsrLightingTextureRW);
 TEXTURE2D_X(_DirectionPDFTexture);
 TEXTURE2D_X(_SsrClearCoatMaskTexture);
+TEXTURE2D_X_UINT2(_StencilTexture);
 
 // Output Textures for the spatial filtering
 RW_TEXTURE2D_X(float4, _RaytracingReflectionTexture);
@@ -55,40 +56,6 @@ NormalData EvaluateNormalData(uint2 sourceCoord)
 }
 
 [numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]
-void ReflectionRescaleAndAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Half resolution coordinate that should be processed
-    uint2 halfResCoord = dispatchThreadId.xy;
-
-    // Evaluate which full resolution coordinate should be used for depth, normal, smoothness and clear coat evaluation
-    uint2 centerGeometryCoord = ComputeSourceCoordinates(halfResCoord, _RaytracingFrameIndex);
-
-    // Pixel coordinate where the direction an lighting are stored
-    uint2 fullResCoord = halfResCoord * 2;
-
-    // Fetch the depth
-    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerGeometryCoord).x;
-
-    // Fetch the normal data
-    NormalData normalData = EvaluateNormalData(centerGeometryCoord);
-
-    // Duplicating same early out condition we do on reflection dispatchrays as that info is 1/2 res while we need full res granularity here.
-    // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below.
-    float perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness);
-    if (depth == UNITY_RAW_FAR_CLIP_VALUE || perceptualSmoothness < _RaytracingReflectionMinSmoothness || LOAD_TEXTURE2D_X(_DirectionPDFTexture, fullResCoord).w < 0.0)
-    {
-        _RaytracingReflectionTexture[COORD_TEXTURE2D_X(halfResCoord)] = float4(0.0f, 0.0f, 0.0f, 0.0f);
-        return;
-    }
-
-    // We also need to compute the fade factor for this sample
-    float weight = ComputeWeightValue(perceptualSmoothness);
-    _RaytracingReflectionTexture[COORD_TEXTURE2D_X(halfResCoord)] = float4(LOAD_TEXTURE2D_X(_SsrLightingTextureRW, fullResCoord).xyz, weight);
-}
-
-[numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]
 void ReflectionAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
@@ -102,10 +69,13 @@ void ReflectionAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     // Fetch the normal data
     NormalData normalData = EvaluateNormalData(targetCoord);
 
+    // Does this pixel have SSR?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, targetCoord));
+
     // Duplicating same early out condition we do on reflection dispatchrays as that info is 1/2 res while we need full res granularity here.
     // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below.
     float perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness);
-    if (depth == UNITY_RAW_FAR_CLIP_VALUE || perceptualSmoothness < _RaytracingReflectionMinSmoothness || LOAD_TEXTURE2D_X(_DirectionPDFTexture, targetCoord).w < 0.0)
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE || perceptualSmoothness < _RaytracingReflectionMinSmoothness || (stencilValue & STENCILUSAGE_TRACE_REFLECTION_RAY) == 0)
     {
         _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(0.0f, 0.0f, 0.0f, 0.0f);
         return;
@@ -119,64 +89,120 @@ void ReflectionAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(lighting, weight);
 }
 
+groupshared float3 gs_cacheLighting[36];
+groupshared float gs_cacheDepth[36];
+groupshared bool gs_cacheValidity[36];
+
+void FillRegionLDS(uint groupIndex, uint2 groupOrigin)
+{
+    // Define which value we will be acessing with this worker thread
+    int acessCoordX = groupIndex % 6;
+    int acessCoordY = groupIndex / 6;
+
+    // The initial position of the access
+    int2 originXY = groupOrigin / 2 - int2(1, 1);
+
+    // Compute the sample position
+    int2 sampleCoord = int2(clamp(originXY.x + acessCoordX, 0, _ScreenSize.x / 2 - 1), clamp(originXY.y + acessCoordY, 0, _ScreenSize.y / 2 - 1));
+
+    // The representative coordinate to use depends if we are using the checkerboard integration pattern (or not)
+    int2 representativeCoord = ComputeSourceCoordinates(sampleCoord, _RayTracingCheckerIndex);
+
+    // Read the depth value and linearize it
+    float sampleDepth = LOAD_TEXTURE2D_X(_DepthTexture, representativeCoord).x;
+    gs_cacheDepth[groupIndex] = Linear01Depth(sampleDepth, _ZBufferParams);
+
+    // Evaluate if the the pixel's data can be used (if it is not unlit, has receive SSR and has the right smoothness value)
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, representativeCoord));
+    bool validity = (stencilValue & STENCILUSAGE_IS_UNLIT) == 0;
+    validity = validity && (stencilValue & STENCILUSAGE_TRACE_REFLECTION_RAY) != 0;
+    validity = validity && (sampleDepth != UNITY_RAW_FAR_CLIP_VALUE);
+    gs_cacheValidity[groupIndex] = validity;
+
+    // Read the lighting data
+    float3 sampleLighting = LOAD_TEXTURE2D_X(_SsrLightingTextureRW, sampleCoord).xyz;
+    gs_cacheLighting[groupIndex] = sampleLighting;
+}
+
+uint OffsetToLDSAdress(uint2 groupThreadId, int2 offset)
+{
+    // Compute the tap coordinate in the 6x6 grid
+    uint2 tapAddress = (uint2)((int2)(groupThreadId / 2 + 1) + offset);
+    return clamp((uint)(tapAddress.x) % 6 + tapAddress.y * 6, 0, 35);
+}
+
+// Couple helper functions
+float sqr(float value)
+{
+    return value * value;
+}
+float gaussian(float radius, float sigma)
+{
+    return exp(-sqr(radius / sigma));
+}
+
 [numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]
-void ReflectionUpscale(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void ReflectionUpscale(uint3 dispatchThreadId : SV_DispatchThreadID,
+                uint2 groupThreadId : SV_GroupThreadID,
+                int groupIndex : SV_GroupIndex,
+                uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Only 36 workers of the 64 do the pre-fetching
+    if (groupIndex < 36)
+    {
+        // Load 1 value per thread
+        FillRegionLDS(groupIndex, groupId * 8);
+    }
+    // Make sure all values are loaded in LDS by now.
+    GroupMemoryBarrierWithGroupSync();
 
     // Compute the three coordinates we need to be reading from
     uint2 fullResolution = dispatchThreadId.xy;
 
     // Fetch the full resolution depth
-    float hiResDepth = LOAD_TEXTURE2D_X(_DepthTexture, fullResolution).x;
-
-    // Compute the main half resolution pixel
-    uint2 halfResolution = fullResolution / 2;
-
-    // And the representative coordinate
-    uint2 representativeCoord = ComputeSourceCoordinates(halfResolution, _RaytracingFrameIndex);
+    float hiResDepth = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, fullResolution).x, _ZBufferParams); 
 
     // If the full resolution depth is a background pixel, write the invalid data and we are done
-    if (hiResDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    if (hiResDepth == 1.0)
     {
         _RaytracingReflectionTexture[COORD_TEXTURE2D_X(fullResolution)] = float4(0.0f, 0.0f, 0.0f, 0.0f);
         return;
     }
 
-    // Compute the shift within the half res
-    int2 halfResShift = fullResolution - representativeCoord;
+    // Does this pixel have SSR, otherwise no need to upscale
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, fullResolution));
+    if ((stencilValue & STENCILUSAGE_TRACE_REFLECTION_RAY) == 0)
+        return;
 
-    // Compute the shift of the pixel in the group
-    int shiftIndex = halfResShift.y * 2 + halfResShift.x;
+    float4 fallbackLighting = 0.0;
+    float weightSum = 0.0;
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            // Evaluate the initial weight
+            float radius = sqrt(x * x + y * y);
+            float weight = gaussian(radius, 0.5);
 
-    // Compute the shift in the upscale table
-    int offsetInCoordTable = shiftIndex * 4;
+            // Compute the LDS index of this half res tap
+            int tapHalfResLDSIndex = OffsetToLDSAdress(groupThreadId, int2(x, y));
+            float tapDepth = gs_cacheDepth[tapHalfResLDSIndex];
 
-    float2 halfScreenSize = _ScreenSize.xy * 0.5;
+            // Make sure the depth is not a background depth and is similar to the final one
+            weight *= ((tapDepth != 1.0) ? 1.0 : 0.0);
+            weight *= (((abs(tapDepth - hiResDepth) < hiResDepth * 0.1)) ? 1.0 : 0.0);
 
-    // Compute the half resolution coordinates we should tap from
-    int2 halfResTap0 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable], halfScreenSize - 1);
-    int2 halfResTap1 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable + 1], halfScreenSize - 1);
-    int2 halfResTap2 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable + 2], halfScreenSize - 1);
-    int2 halfResTap3 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable + 3], halfScreenSize - 1);
-
-    // We are not using the depth pyramid to read the half res depths, so we need to multiply them by 2.
-    float4 lowDepths = float4(LOAD_TEXTURE2D_X(_DepthTexture, ComputeSourceCoordinates(halfResTap0, _RaytracingFrameIndex)).x
-                            , LOAD_TEXTURE2D_X(_DepthTexture, ComputeSourceCoordinates(halfResTap1, _RaytracingFrameIndex)).x
-                            , LOAD_TEXTURE2D_X(_DepthTexture, ComputeSourceCoordinates(halfResTap2, _RaytracingFrameIndex)).x
-                            , LOAD_TEXTURE2D_X(_DepthTexture, ComputeSourceCoordinates(halfResTap3, _RaytracingFrameIndex)).x);
-
-    // Grab all the color values required for upscale
-    float4 lowResCol0 = max(0, LOAD_TEXTURE2D_X(_SsrLightingTextureRW, halfResTap0));
-    float4 lowResCol1 = max(0, LOAD_TEXTURE2D_X(_SsrLightingTextureRW, halfResTap1));
-    float4 lowResCol2 = max(0, LOAD_TEXTURE2D_X(_SsrLightingTextureRW, halfResTap2));
-    float4 lowResCol3 = max(0, LOAD_TEXTURE2D_X(_SsrLightingTextureRW, halfResTap3));
-    float4 highResColor = BilUpColor(hiResDepth, lowDepths, lowResCol0, lowResCol1, lowResCol2, lowResCol3);
-
-    // Because of the bilateral upscale process, we need to make sure that if all weights were 1.0, we need keep the final weight to 1.0 (precision issues).
-    float combinedWeight = lowResCol0.w * lowResCol1.w * lowResCol2.w * lowResCol3.w;
-    highResColor.w = max(combinedWeight, highResColor.w);
+            // Make sure the pixel has a valid signal
+            weight *= gs_cacheValidity[tapHalfResLDSIndex] ? 1.0 : 0.0;
+            
+            // Add the contribution of the sample
+            fallbackLighting += float4(gs_cacheLighting[tapHalfResLDSIndex], 0.0) * weight;
+            weightSum += weight; 
+        }
+    }
 
     // Bilateral upscale and output the result
-    _RaytracingReflectionTexture[COORD_TEXTURE2D_X(fullResolution)] = highResColor;
+    _RaytracingReflectionTexture[COORD_TEXTURE2D_X(fullResolution)] = weightSum == 0.0 ? float4(0, 0, 0, 0) : fallbackLighting / weightSum;;
 }

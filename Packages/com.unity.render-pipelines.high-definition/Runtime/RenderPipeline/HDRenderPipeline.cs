@@ -1046,6 +1046,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesGlobalCB._CoarseStencilBufferSize = new Vector4(coarseStencilWidth, coarseStencilHeight, 1.0f / coarseStencilWidth, 1.0f / coarseStencilHeight);
 
             m_ShaderVariablesGlobalCB._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
+            m_ShaderVariablesGlobalCB._RayTracingCheckerIndex = (uint)RayTracingFrameIndex(hdCamera, 4);
             m_ShaderVariablesGlobalCB._IndirectDiffuseMode = (int)GetIndirectDiffuseMode(hdCamera);
             m_ShaderVariablesGlobalCB._ReflectionsMode = (int)GetReflectionsMode(hdCamera);
 

@@ -1,6 +1,3 @@
-
-#pragma only_renderers d3d11 xboxseries ps5
-
 #pragma kernel TemporalAccumulationFullRes TEMPORAL_ACCUMULATION=TemporalAccumulationFullRes
 #pragma kernel TemporalAccumulationHalfRes TEMPORAL_ACCUMULATION=TemporalAccumulationHalfRes HALF_RESOLUTION
 #pragma kernel CopyHistory
@@ -8,6 +5,8 @@
 #pragma kernel BilateralFilterV_FR      BILATERAL_FILTER=BilateralFilterV_FR    FINAL_PASS
 #pragma kernel BilateralFilterH_HR      BILATERAL_FILTER=BilateralFilterH_HR    HALF_RESOLUTION
 #pragma kernel BilateralFilterV_HR      BILATERAL_FILTER=BilateralFilterV_HR    FINAL_PASS  HALF_RESOLUTION
+
+#pragma only_renderers d3d11 xboxseries ps5
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -62,7 +61,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
     // The source coordinate for the normal and depth depends if we are in half res or not
     #ifdef HALF_RESOLUTION
-    uint2 geometryCoords = ComputeSourceCoordinates(mainCoord, _RaytracingFrameIndex);
+    uint2 geometryCoords = ComputeSourceCoordinates(mainCoord, _RayTracingCheckerIndex);
     #else
     uint2 geometryCoords = mainCoord;
     #endif
@@ -252,7 +251,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     #endif
 
     #if HALF_RESOLUTION
-    uint2 geometrCoords = ComputeSourceCoordinates(centerCoord, _RaytracingFrameIndex);
+    uint2 geometrCoords = ComputeSourceCoordinates(centerCoord, _RayTracingCheckerIndex);
     #else
     uint2 geometrCoords = centerCoord;
     #endif
@@ -289,7 +288,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
                 continue;
 
             #if HALF_RESOLUTION
-            uint2 tapGeometryCoords = ComputeSourceCoordinates(tapCoord, _RaytracingFrameIndex);
+            uint2 tapGeometryCoords = ComputeSourceCoordinates(tapCoord, _RayTracingCheckerIndex);
             #else
             uint2 tapGeometryCoords = tapCoord;
             #endif
