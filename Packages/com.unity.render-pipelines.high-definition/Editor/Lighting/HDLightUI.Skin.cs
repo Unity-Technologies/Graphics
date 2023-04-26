@@ -132,6 +132,14 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent evsmLightLeakBias = EditorGUIUtility.TrTextContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = EditorGUIUtility.TrTextContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");
             public readonly GUIContent evsmAdditionalBlurPasses = EditorGUIUtility.TrTextContent("Blur passes", "Increasing this will increase the softness of the shadow, but it will severely impact performance.");
+            public readonly GUIContent dirLightPCSSMaxBlockerDistance = EditorGUIUtility.TrTextContent("Max Blocker Distance", "Maximum distance of PCSS shadow blockers limiting blur filter kernel size, larger kernels may require more samples to avoid quality degradation.");
+            public readonly GUIContent dirLightPCSSMaxSamplingDistance = EditorGUIUtility.TrTextContent("Max Sampling Distance", "Maximum distance from the receiver PCSS shadow sampling occurs, lower to avoid light bleeding but may cause self-shadowing");
+            public readonly GUIContent dirLightPCSSMinFilterSizeTexels = EditorGUIUtility.TrTextContent("Min Filter", "Minimum filter size (in shadowmap texels) to avoid aliasing close to caster");
+            public readonly GUIContent dirLightPCSSMinFilterMaxAngularDiameter = EditorGUIUtility.TrTextContent("Min Filter Max Angular Diameter", "Maximum angular diameter to reach minimum filter size, lower to avoid self-shadowing but may cause light bleeding");
+            public readonly GUIContent dirLightPCSSBlockerSearchAngularDiameter = EditorGUIUtility.TrTextContent("Blocker Search Angular Diameter", "Angular diameter to use for blocker search, increase to avoid missing hidden close blockers but may cause self-shadowing");
+            public readonly GUIContent dirLightPCSSBlockerSamplingClumpExponent = EditorGUIUtility.TrTextContent("Blocker Sampling Clump Exponent", "Affects how blocker search samples are distributed.  Samples distance to center is elevated to this power.");
+            public readonly GUIContent dirLightPCSSBlockerSampleCount = EditorGUIUtility.TrTextContent("Blocker Sample Count", "Controls the number of samples that HDRP uses to determine average blocker distance, increases quality at the expense of performance.");
+            public readonly GUIContent dirLightPCSSFilterSampleCount = EditorGUIUtility.TrTextContent("Filter Sample Count", "Controls the number of samples that HDRP uses to blur shadows over the kernel, increases quality at the expense of performance.");
 
             // Very high shadow settings
             public readonly GUIContent lightAngle = EditorGUIUtility.TrTextContent("Light Angle");

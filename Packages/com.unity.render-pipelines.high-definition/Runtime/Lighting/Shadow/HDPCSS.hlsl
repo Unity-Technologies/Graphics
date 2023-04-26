@@ -276,3 +276,135 @@ real PCSS_Area(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, 
 
     return sum / sampleCount;
 }
+
+///////////////////////////////
+// PCSS variant for directional lights
+
+// Samples uniformly spread across the disk kernel
+real2 ComputeFibonacciSpiralDiskSampleClumped_Directional(const in int sampleIndex, const in real sampleCountInverse, const in real clumpExponent, out real sampleDistNorm)
+{
+    // Samples biased away from the center, so that sample 0 doesn't fall at (0, 0), or it will not be affected by sample jitter and create a visible edge.
+    sampleDistNorm = (real)sampleIndex * sampleCountInverse;
+
+    // non-uniform distribution when clumpExponent != 0.5
+    // More samples in the middle
+    sampleDistNorm = PositivePow(sampleDistNorm, clumpExponent);
+
+    return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
+}
+
+// Samples uniformly spread across the disk kernel
+real2 ComputeFibonacciSpiralDiskSampleUniform_Directional(const in int sampleIndex, const in real sampleCountInverse, const in real sampleBias, out real sampleDistNorm)
+{
+    // Samples biased away from the center, so that sample 0 doesn't fall at (0, 0), or it will not be affected by sample jitter and create a visible edge.
+    sampleDistNorm = (real)sampleIndex * sampleCountInverse + sampleBias;
+
+    // sqrt results in uniform distribution
+    sampleDistNorm = sqrt(sampleDistNorm);
+
+    return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
+}
+
+bool BlockerSearch_Directional(inout real averageBlocker, real filterSize, real3 posTCAtlas, float2 shadowmapInAtlasScale, float2 shadowmapInAtlasOffset, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount, float radial2DepthScale, real minFilterRadius, real minFilterRadial2DepthScale, real blockerClumpSampleExponent)
+{
+    // Limitation:
+    // Note that in cascade shadows, all occluders behind the near plane will get clamped to the near plane
+    // This will lead to the closest blocker sometimes being reported as much closer to the receiver than it really is
+    #if UNITY_REVERSED_Z
+    #define Z_OFFSET_DIRECTION 1
+    #else
+    #define Z_OFFSET_DIRECTION (-1)
+    #endif
+
+    real sampleCountInverse = rcp((real)sampleCount);
+    float2 minCoord = shadowmapInAtlasOffset;
+    float2 maxCoord = shadowmapInAtlasOffset + shadowmapInAtlasScale;
+    averageBlocker = 0.0;
+    real sum = 0.0;
+    real totalSamples = 0.0;
+    for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
+    {
+        real sampleDistNorm;
+        real2 offset = 0.0f;
+        offset = ComputeFibonacciSpiralDiskSampleClumped_Directional(i, sampleCountInverse, blockerClumpSampleExponent, sampleDistNorm);
+        // Apply rotational temporal jitter
+        offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
+                       offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
+        // Scale the normalized offset to shadowmap space
+        offset *= filterSize;
+        // Scale shadowmap space offset to shadow atlas space
+        offset *= shadowmapInAtlasScale;
+
+        float2 sampleCoord = posTCAtlas.xy + offset;
+
+        // Offset the receiver z coordinate to conform to the cone defined by the light source disk (e.g. sun)
+        // This is important to avoid receiver self-occlusion
+        float radialOffset = filterSize * sampleDistNorm;
+
+        // Widen the cone to a wider one up until the minimum filter radius is reached
+        // This allows forcing softening while still avoiding self-shadowing
+        float zoffset = radialOffset * (radialOffset < minFilterRadius ? minFilterRadial2DepthScale : radial2DepthScale);
+
+        float coordz = posTCAtlas.z + (Z_OFFSET_DIRECTION) * zoffset;
+
+        real blocker = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, sampleCoord, 0.0).x;
+        // Note: COMPARE_DEVICE_DEPTH_CLOSER(x,y) == true means x is closer to the light source than y
+        if (!any(sampleCoord < minCoord || sampleCoord > maxCoord) &&
+            COMPARE_DEVICE_DEPTH_CLOSER(blocker, coordz))
+        {
+            sum += blocker;
+            totalSamples += 1.0;
+        }
+    }
+    if(totalSamples > 0.0)
+    {
+        averageBlocker = sum / totalSamples;
+        return true;
+    }
+    else
+        return false;
+}
+
+real PCSS_Directional(real3 posTCAtlas, real filterSize, real2 shadowmapInAtlasScale, real2 shadowmapInAtlasOffset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount, float radial2DepthScale, float maxPCSSOffset, real samplingFilterSize)
+{
+    #if UNITY_REVERSED_Z
+    #define Z_OFFSET_DIRECTION 1
+    #else
+    #define Z_OFFSET_DIRECTION (-1)
+    #endif
+    float2 minCoord = shadowmapInAtlasOffset;
+    float2 maxCoord = shadowmapInAtlasOffset + shadowmapInAtlasScale;
+
+    real sampleCountInverse = rcp((real)sampleCount);
+    real sampleCountBias = 0.5 * sampleCountInverse;
+
+    real sum = 0.0;
+    real totalSamples = 0.0;
+    for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
+    {
+        real sampleDistNorm;
+        real2 offset = ComputeFibonacciSpiralDiskSampleUniform_Directional(i, sampleCountInverse, sampleCountBias, sampleDistNorm);
+        offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
+                       offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
+        // Scale the normalized offset to shadowmap space
+        offset *= samplingFilterSize;
+        // Scale shadowmap space offset to shadow atlas space
+        offset *= shadowmapInAtlasScale;
+
+        float2 sampleCoord = posTCAtlas.xy + offset;
+
+        // Offset the receiver z coordinate to conform to the cone defined by the light source disk (e.g. sun)
+        // This is important to avoid receiver self-occlusion
+        float zOffset = filterSize * sampleDistNorm * radial2DepthScale;
+        float coordz = posTCAtlas.z + Z_OFFSET_DIRECTION * min(zOffset, maxPCSSOffset);
+
+        if (!any(sampleCoord < minCoord || sampleCoord > maxCoord))
+        {
+            const real shadowSample = SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(sampleCoord, coordz)).r;
+            sum += shadowSample;
+            totalSamples += 1.0;
+        }
+    }
+    // totalSamples shall not be zero (at least the center will get sampled)
+    return sum / totalSamples;
+}

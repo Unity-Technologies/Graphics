@@ -86,6 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 shadowMapSize;
 
         public Vector4 shadowFilterParams0;
+        public Vector4 dirLightPCSSParams0;
+        public Vector4 dirLightPCSSParams1;
 
         public Vector3 cacheTranslationDelta;
         public float isInCachedAtlas;
@@ -207,6 +209,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public byte blockerSampleCount;
         public byte filterSampleCount;
 
+        // Parameters specific to directional lights
+        public float dirLightPCSSDepth2RadialScale;         // scales depth to light cone radius (in shadowmap space)
+        public float dirLightPCSSRadial2DepthScale;         // scales radius to light cone depth (in shadowmap space)
+        public float dirLightPCSSMaxBlockerDistance;        // Maximum distance of blockers, limiting blur size
+        public float dirLightPCSSMaxSamplingDistance;       // Maximum sampling distance, to avoid light leaks
+        public float dirLightPCSSMinFilterSizeTexels;       // Minimum filter size (in texels)
+        public float dirLightPCSSMinFilterRadial2DepthScale;// Minimum filter radius to light cone depth (in shadowmap space)
+        public float dirLightPCSSBlockerRadial2DepthScale;  // scales radius to light cone depth (in shadowmap space)
+        public float dirLightPCSSBlockerSamplingClumpExponent; // Blocker sample clump exponent to apply to linear radial range
+
         public byte typeData;
 
         public BitArray8 flags;
@@ -288,6 +300,14 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowSoftness = default;
             blockerSampleCount = default;
             filterSampleCount = default;
+            dirLightPCSSDepth2RadialScale = default;
+            dirLightPCSSRadial2DepthScale = default;
+            dirLightPCSSMaxBlockerDistance = default;
+            dirLightPCSSMaxSamplingDistance = default;
+            dirLightPCSSMinFilterSizeTexels = default;
+            dirLightPCSSMinFilterRadial2DepthScale = default;
+            dirLightPCSSBlockerRadial2DepthScale = default;
+            dirLightPCSSBlockerSamplingClumpExponent = default;
             minFilterSize = default;
             kernelSize = default;
             evsmParams = default;
@@ -972,6 +992,15 @@ namespace UnityEngine.Rendering.HighDefinition
             data.shadowFilterParams0.y = HDShadowUtils.Asfloat(shadowRequest.blockerSampleCount);
             data.shadowFilterParams0.z = HDShadowUtils.Asfloat(shadowRequest.filterSampleCount);
             data.shadowFilterParams0.w = shadowRequest.minFilterSize;
+
+            data.dirLightPCSSParams0.x = shadowRequest.dirLightPCSSDepth2RadialScale;
+            data.dirLightPCSSParams0.y = shadowRequest.dirLightPCSSRadial2DepthScale;
+            data.dirLightPCSSParams0.z = shadowRequest.dirLightPCSSMaxBlockerDistance;
+            data.dirLightPCSSParams0.w = shadowRequest.dirLightPCSSMaxSamplingDistance;
+            data.dirLightPCSSParams1.x = shadowRequest.dirLightPCSSMinFilterSizeTexels;
+            data.dirLightPCSSParams1.y = shadowRequest.dirLightPCSSMinFilterRadial2DepthScale;
+            data.dirLightPCSSParams1.z = shadowRequest.dirLightPCSSBlockerRadial2DepthScale;
+            data.dirLightPCSSParams1.w = shadowRequest.dirLightPCSSBlockerSamplingClumpExponent;
 
             data.zBufferParam = shadowRequest.zBufferParam;
             if (atlas.HasBlurredEVSM())
