@@ -95,7 +95,8 @@ namespace UnityEditor.VFX
         // 4: Bounds helper change
         // 5: HasAttributeBuffer flag
         // 6: needsComputeBounds needs Sanitization
-        public const uint compiledVersion = 6;
+        // 7: changes in data serialization and additional mappings added to runtime data (graphValueOffset and parentSystemIndex) 
+        public const uint compiledVersion = 7;
 
         public VFXGraphCompiledData(VFXGraph graph)
         {
@@ -622,7 +623,7 @@ namespace UnityEditor.VFX
         }
 
         private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo,
-            Dictionary<VFXContext, uint> outDataToSystemIndex,
+            Dictionary<VFXData, uint> outDataToSystemIndex,
             List<VFXCPUBufferDesc> outCpuBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
             IEnumerable<VFXContext> contexts,
@@ -696,7 +697,7 @@ namespace UnityEditor.VFX
                     else
                         throw new InvalidOperationException("system names manager cannot be null");
 
-                    outDataToSystemIndex.Add(spawnContext, (uint)outSystemDescs.Count);
+                    outDataToSystemIndex.Add(spawnContext.GetData(), (uint)outSystemDescs.Count);
                     compiledData.taskToCompiledData[task] = contextData;
 
                     outSystemDescs.Add(new VFXEditorSystemDesc()
@@ -1047,10 +1048,10 @@ namespace UnityEditor.VFX
             public List<VFXContext> initSystems;
         }
 
-        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<VFXContext> input, Dictionary<VFXContext, uint> contextToSystemIndex)
+        static IEnumerable<uint> ConvertDataToSystemIndex(IEnumerable<VFXContext> input, Dictionary<VFXData, uint> dataToSystemIndex)
         {
-            foreach (var data in input)
-                if (contextToSystemIndex.TryGetValue(data, out var index))
+            foreach (var context in input)
+                if (dataToSystemIndex.TryGetValue(context.GetData(), out var index))
                     yield return index;
         }
 
@@ -1238,7 +1239,7 @@ namespace UnityEditor.VFX
                 });
 
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
-                var dataToSystemIndex = new Dictionary<VFXContext, uint>();
+                var dataToSystemIndex = new Dictionary<VFXData, uint>();
                 FillSpawner(contextSpawnToSpawnInfo, dataToSystemIndex, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, compiledData, ref subgraphInfos, m_Graph.systemNames);
 
                 var eventDescs = new List<EventDesc>();
@@ -1254,9 +1255,7 @@ namespace UnityEditor.VFX
                     {
                         //^ dataToSystemIndex have already been filled by FillSpawner
                         //TODO: Rework this approach and always use FillDescs after an appropriate ordering of compilableData
-                        //TODO: We should identify context by its VFXData but connected spawn context are sharing the same VFXData (see VFXData.InnerSetData)
-                        foreach (var context in data.owners)
-                            dataToSystemIndex.Add(context, (uint)systemDescs.Count);
+                        dataToSystemIndex.Add(data, (uint)systemDescs.Count);
                     }
 
                     data.FillDescs(VFXGraph.compileReporter,
@@ -1269,6 +1268,7 @@ namespace UnityEditor.VFX
                         contextSpawnToBufferIndex,
                         dependentBuffersData,
                         subgraphInfos.contextEffectiveInputLinks,
+                        dataToSystemIndex,
                         m_Graph.systemNames);
                 }
 
