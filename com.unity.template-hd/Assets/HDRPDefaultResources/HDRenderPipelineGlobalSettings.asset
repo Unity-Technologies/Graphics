@@ -126,11 +126,15 @@ MonoBehaviour:
     bakingSets:
     - {fileID: 11400000, guid: 14c4997762cdbb84cbeaf27fe572fa3c, type: 2}
     sceneBounds:
-      m_Keys: []
-      m_Values: []
+      m_Keys:
+      - 3db1837cc97a95e4c98610966fac2b0b
+      m_Values:
+      - m_Center: {x: 24.3, y: 8.1, z: 0}
+        m_Extent: {x: 56.7, y: 24.300001, z: 32.4}
     hasProbeVolumes:
-      m_Keys: []
-      m_Values: 
+      m_Keys:
+      - 3db1837cc97a95e4c98610966fac2b0b
+      m_Values: 01
   m_Version: 9
   m_ShaderStrippingSetting:
     m_Version: 0
