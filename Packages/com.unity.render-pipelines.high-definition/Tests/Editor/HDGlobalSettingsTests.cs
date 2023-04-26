@@ -1,116 +1,58 @@
 using NUnit.Framework;
+using System;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Graphs;
-using UnityEditor.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     public class HDGlobalSettingsTests : MonoBehaviour
     {
-        HDRenderPipelineGlobalSettings initialGlobalSettings;
-        HDRenderPipelineGlobalSettings otherGlobalSettings;
-
-
-        [SetUp]
-        public void SetUp()
-        {
-            UnityEditor.SceneManagement.EditorSceneManager.NewScene(UnityEditor.SceneManagement.NewSceneSetup.DefaultGameObjects);
-            otherGlobalSettings = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            ScriptableObject.DestroyImmediate(otherGlobalSettings);
-            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
-        }
-
-        void EnsureHDRPIsActivePipeline()
-        {
-            Camera.main.Render();
-
-            // Skip test if project is not configured to be SRP project
-            if (RenderPipelineManager.currentPipeline == null)
-                Assert.Ignore("Test project has no SRP configured, skipping test");
-
-            initialGlobalSettings = HDRenderPipelineGlobalSettings.instance;
-            Assert.IsInstanceOf<HDRenderPipeline>(RenderPipelineManager.currentPipeline);
-            Assert.IsNotNull(initialGlobalSettings);
-        }
-
-        [Test]
-        public void HDRPFrameRendered_GlobalSettingsShouldBeAssigned()
-        {
-            EnsureHDRPIsActivePipeline();
-        }
-
-        [Test]
-        public void HDRPFrameRendered_EnsureGlobalSettingsIfNullAssigned()
-        {
-            EnsureHDRPIsActivePipeline();
-
-            GraphicsSettings.UnregisterRenderPipelineSettings<HDRenderPipeline>();
-
-            Assert.IsNull(HDRenderPipelineGlobalSettings.instance);
-
-            Camera.main.Render();
-            Assert.IsNotNull(HDRenderPipelineGlobalSettings.instance);
-        }
-
-        [Test]
-        [Description("Case 1342987 - Support undo on Global Settings assignation ")]
-        public void Undo_HDRPActive_ChangeGlobalSettings()
-        {
-            EnsureHDRPIsActivePipeline();
-            Undo.IncrementCurrentGroup();
-            GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(otherGlobalSettings);
-
-            Assert.AreEqual(otherGlobalSettings, HDRenderPipelineGlobalSettings.instance);
-
-            Undo.PerformUndo();
-            Assert.AreEqual(initialGlobalSettings, HDRenderPipelineGlobalSettings.instance);
-        }
-
-        [Test]
-        [Description("Case 1342987 - Support undo on Global Settings assignation ")]
-        public void Undo_HDRPActive_UnregisterGlobalSettings()
-        {
-            EnsureHDRPIsActivePipeline();
-            Undo.IncrementCurrentGroup();
-            GraphicsSettings.UnregisterRenderPipelineSettings<HDRenderPipeline>();
-            Assert.IsNull(HDRenderPipelineGlobalSettings.instance);
-
-            Undo.PerformUndo();
-            Assert.AreEqual(initialGlobalSettings, HDRenderPipelineGlobalSettings.instance);
-        }
+        static readonly string k_ProfilePath = $"Assets/Temp/{nameof(HDGlobalSettingsTests)}/{nameof(DiffusionProfile_AutoRegister)}/DiffusionProfile.asset";
+        static readonly string k_MaterialPath = $"Assets/Temp/{nameof(HDGlobalSettingsTests)}/{nameof(DiffusionProfile_AutoRegister)}/Material.mat";
 
         [Test]
         public void DiffusionProfile_AutoRegister()
         {
-            string profilePath = "Assets/HDGlobalSetttingsTests_DiffusionProfile.asset";
-            string materialPath = "Assets/HDGlobalSetttingsTests_Material.mat";
+            if (GraphicsSettings.currentRenderPipeline == null ||
+                GraphicsSettings.currentRenderPipeline.GetType() != typeof(HDRenderPipelineAsset))
+            {
+                Assert.Ignore("Test project has no SRP configured, skipping test");
+                return;
+            }
 
-            EnsureHDRPIsActivePipeline();
+            Assert.IsTrue(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var hdGlobalSettings));
+            Assert.IsInstanceOf<HDRenderPipelineGlobalSettings>(hdGlobalSettings);
 
-            var profiles = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList;
-            var autoRegister = HDRenderPipelineGlobalSettings.instance.autoRegisterDiffusionProfiles;
-            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = new DiffusionProfileSettings[0];
-            HDRenderPipelineGlobalSettings.instance.autoRegisterDiffusionProfiles = true;
+            var instance = hdGlobalSettings as HDRenderPipelineGlobalSettings;
+            Assert.IsNotNull(instance);
+
+            var profiles = instance.diffusionProfileSettingsList;
+            var autoRegister = instance.autoRegisterDiffusionProfiles;
+
+            instance.diffusionProfileSettingsList = Array.Empty<DiffusionProfileSettings>();
+            instance.autoRegisterDiffusionProfiles = true;
 
             var profile = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
-            AssetDatabase.CreateAsset(profile, profilePath);
+            CoreUtils.EnsureFolderTreeInAssetFilePath(k_ProfilePath);
+            AssetDatabase.CreateAsset(profile, k_ProfilePath);
 
             var material = new Material(Shader.Find("HDRP/Lit"));
-            AssetDatabase.CreateAsset(material, materialPath);
-
+            CoreUtils.EnsureFolderTreeInAssetFilePath(k_MaterialPath);
+            AssetDatabase.CreateAsset(material, k_MaterialPath);
+            
             HDMaterial.SetDiffusionProfile(material, profile);
             AssetDatabase.SaveAssets();
 
-            Assert.IsTrue(HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == profile));
+            Assert.IsTrue(instance.diffusionProfileSettingsList.Any(d => d == profile));
 
-            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = profiles;
-            HDRenderPipelineGlobalSettings.instance.autoRegisterDiffusionProfiles = autoRegister;
+            // Rollback previous data
+            instance.diffusionProfileSettingsList = profiles;
+            instance.autoRegisterDiffusionProfiles = autoRegister;
+
+            // Delete temporary assets
+            AssetDatabase.DeleteAsset(k_MaterialPath);
+            AssetDatabase.DeleteAsset(k_ProfilePath);
+            AssetDatabase.SaveAssets();
         }
     }
 }

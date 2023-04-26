@@ -37,7 +37,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
             ///////////////////////////
 
-            HDRenderPipeline.SetupDLSSFeature(HDRenderPipelineGlobalSettings.instance);
+#if UNITY_EDITOR
+            var hdrpGlobalSettings = HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: true);
+#else
+            var hdrpGlobalSettings = HDRenderPipelineGlobalSettings.instance;
+#endif
+            HDRenderPipeline.SetupDLSSFeature(hdrpGlobalSettings);
         }
 
         void Reset()

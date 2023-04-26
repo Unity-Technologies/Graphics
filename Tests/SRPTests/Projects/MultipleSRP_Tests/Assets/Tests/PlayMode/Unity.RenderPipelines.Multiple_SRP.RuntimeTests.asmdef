@@ -1,17 +1,14 @@
 {
-    "name": "EditModeTests.CrossPipeline",
+    "name": "Unity.RenderPipelines.Multiple_SRP.RuntimeTests",
     "rootNamespace": "CrossPipeline",
     "references": [
-        "UnityEditor.TestTools.Graphics",
-        "UnityEngine.TestTools.Graphics.Tests",
-        "UnityEditor.TestRunner",
+        "UnityEngine.TestTools.Graphics",
         "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
         "Common.Editor",
         "Common.Runtime"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
