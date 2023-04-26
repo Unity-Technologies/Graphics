@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_TitleLabel.text = ViewModel.title;
 
-            m_SubTitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent, TrickleDown.TrickleDown);
+            m_SubTitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
             m_SubTitleLabel.text = ViewModel.subtitle;
 
             m_PathLabelTextField = this.Q<TextField>("subTitleTextField");

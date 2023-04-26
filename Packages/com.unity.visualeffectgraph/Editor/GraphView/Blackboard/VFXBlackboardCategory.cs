@@ -322,6 +322,9 @@ namespace UnityEditor.VFX.UI
             {
                 OpenTextEditor();
                 e.StopPropagation();
+
+                // Prevent MouseDown from refocusing the Label on PostDispatch
+                focusController.IgnoreEvent(e);
             }
         }
 

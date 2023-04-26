@@ -57,8 +57,8 @@ namespace UnityEditor.VFX.UI
 
             m_Node = node;
 
-            RegisterCallback<PointerEnterEvent>(OnPointerEnter, TrickleDown.TrickleDown);
-            RegisterCallback<PointerLeaveEvent>(OnPointerLeave, TrickleDown.TrickleDown);
+            RegisterCallback<PointerEnterEvent>(OnPointerEnter);
+            RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
             Profiler.EndSample();

@@ -158,8 +158,8 @@ namespace UnityEditor.VFX.UI
             this.AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
 
-            RegisterCallback<PointerEnterEvent>(OnPointerEnter, TrickleDown.TrickleDown);
-            RegisterCallback<PointerLeaveEvent>(OnPointerLeave, TrickleDown.TrickleDown);
+            RegisterCallback<PointerEnterEvent>(OnPointerEnter);
+            RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
             RegisterCallback<FocusInEvent>(OnFocusIn);
 
             m_SelectionBorder = this.Query("selection-border");
