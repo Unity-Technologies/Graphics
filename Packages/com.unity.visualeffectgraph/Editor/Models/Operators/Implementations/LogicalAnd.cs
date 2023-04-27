@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-LogicAnd")]
     [VFXInfo(category = "Logic")]
     class LogicalAnd : VFXOperator
     {

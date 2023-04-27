@@ -1,11 +1,8 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-BufferCount")]
     [VFXInfo(category = "Sampling")]
     class BufferCount : VFXOperator
     {

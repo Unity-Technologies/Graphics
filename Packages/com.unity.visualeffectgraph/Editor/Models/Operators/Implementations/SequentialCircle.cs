@@ -1,9 +1,8 @@
-using System;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    //[VFXHelpURL("Operator-SequentialCircle")]
     [VFXInfo(category = "Math")]
     class SequentialCircle : VFXOperator
     {

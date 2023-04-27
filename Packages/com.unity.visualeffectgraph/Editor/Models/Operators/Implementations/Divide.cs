@@ -1,7 +1,6 @@
-using System;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Divide")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Divide : VFXOperatorNumericCascadedUnified
     {

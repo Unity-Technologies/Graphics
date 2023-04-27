@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Modulo")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Modulo : VFXOperatorNumericUniform
     {

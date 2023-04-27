@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Operator-GetCustomAttribute")]
     [VFXInfo(category = "Attribute", experimental = true)]
     class GetCustomAttribute : VFXOperator
     {

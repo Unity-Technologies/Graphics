@@ -13,6 +13,7 @@ namespace UnityEditor.VFX.Operator
         };
     }
 
+    [VFXHelpURL("Operator-Exp")]
     [VFXInfo(category = "Math/Exp", variantProvider = typeof(MathBaseVariantProvider))]
     class Exp : VFXOperatorNumericUniform
     {

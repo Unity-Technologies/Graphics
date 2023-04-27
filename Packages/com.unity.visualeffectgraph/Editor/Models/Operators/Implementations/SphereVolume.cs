@@ -1,9 +1,8 @@
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Volume(Sphere)")]
     [VFXInfo(category = "Math/Geometry")]
     class SphereVolume : VFXOperator
     {

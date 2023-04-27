@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    //[VFXHelpURL("Operator-PerParticleTotalTime")]
     [VFXInfo(category = "Time")]
     class PerParticleTotalTime : VFXOperator
     {

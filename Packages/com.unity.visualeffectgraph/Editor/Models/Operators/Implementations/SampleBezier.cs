@@ -4,6 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SampleBezier")]
     [VFXInfo(category = "Math/Vector")]
     class SampleBezier : VFXOperator
     {

@@ -1,7 +1,6 @@
-using System;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Tangent")]
     [VFXInfo(category = "Math/Trigonometry")]
     class Tangent : VFXOperatorNumericUniform
     {

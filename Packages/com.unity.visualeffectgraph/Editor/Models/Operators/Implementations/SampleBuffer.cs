@@ -1,11 +1,12 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SampleBuffer")]
     [VFXInfo(category = "Sampling")]
     class SampleBuffer : VFXOperatorDynamicType
     {

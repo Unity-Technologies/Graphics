@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SampleSDF")]
     [VFXInfo(category = "Sampling")]
     class SampleSDF : VFXOperator
     {

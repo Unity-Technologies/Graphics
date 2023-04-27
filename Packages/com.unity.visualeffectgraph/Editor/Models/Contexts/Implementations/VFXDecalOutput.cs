@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Context-OutputForwardDecal")]
     [VFXInfo]
     class VFXDecalOutput : VFXAbstractParticleOutput
     {

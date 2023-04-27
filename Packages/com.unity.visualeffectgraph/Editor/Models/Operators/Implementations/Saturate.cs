@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Saturate")]
     [VFXInfo(category = "Math/Clamp")]
     class Saturate : VFXOperatorNumericUniform
     {

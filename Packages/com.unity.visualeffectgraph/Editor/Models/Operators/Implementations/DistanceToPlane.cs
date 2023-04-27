@@ -1,9 +1,8 @@
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Distance(Plane)")]
     [VFXInfo(category = "Math/Geometry")]
     class DistanceToPlane : VFXOperator
     {
