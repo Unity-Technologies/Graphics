@@ -15,7 +15,7 @@ If the imposter object has more than one texture to sample (e.g. color, normal, 
 | UV1 | Input      |    Vector2 | The virtual UV for the second frame |
 | UV2 | Input      |    Vector2 | The virtual UV for the third frame |
 | Grid | Input      |    Vector4 | The current UV grid, which is used to find the corresponding sample frames |
-| Weights | Input      |    Float | The blending values in between the slected three frames|
+| Weights | Input      |    Vector4 | The blending values in between the slected three frames|
 | RGBA | Output      |    Vector4 | A vector4 from the sampled texture |
 | RGB | Output      |    Vector3 | A vector3 from the sampled texture |
 | R | Output      |    Float | The r channel of the sampled texture |

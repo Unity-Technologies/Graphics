@@ -130,8 +130,8 @@ float3 CalculateBillboardProjection(float3 objectSpaceCameraDir, float2 uv)
 }
 
 //Calculate Vertex postion and UVs
-void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in float3 imposterOffset, in float imposterSize, in float imposterFrameClip,
-    in bool isHemi, in float parallax, in int heightMapChannel, in SamplerState ss, in Texture2D heightMap, in float TextureSize,
+void ImposterUV(in float3 inPos, in float2 inUV, in int imposterFrames, in float3 imposterOffset, in float imposterSize, in float imposterFrameClip,
+    in bool isHemi, in float parallax, in int heightMapChannel, in SamplerState ss, in Texture2D heightMap, in int TextureSize,
     out float3 outPos, out float4 outWeights, out float2 outUV0, out float2 outUV1, out float2 outUV2, out float4 outUVGrid)
 {
     float framesMinusOne = imposterFrames - 1;
@@ -141,10 +141,10 @@ void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in flo
     float3 objectSpaceCameraDir = normalize(objectSpaceCameraPos.xyz);
 
     //get uv in a single frame
-    float2 UVscaled = inUV.xy * (1.0 / imposterFrames);
+    float2 UVscaled = inUV * (1.0 / imposterFrames);
     float2 size = imposterSize.xx * 1.33;
 
-    float3 BillboardPos = CalculateBillboardProjection(objectSpaceCameraDir, inUV.xy);
+    float3 BillboardPos = CalculateBillboardProjection(objectSpaceCameraDir, inUV);
     BillboardPos *= 0.67;
 
     //camera to projection vector
@@ -268,9 +268,9 @@ void ImposterUV(in float3 inPos, in float4 inUV, in float imposterFrames, in flo
     outUVGrid.zw = grid;
 }
 
-void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrames, in float3 imposterOffset, in float imposterSize, in float imposterFrameClip,
-    in bool isHemi, in float parallax, in int heightMapChannel, in SamplerState ss, in Texture2D heightMap, in float4 TextureSize,
-    out float3 outPos, out float4 outWeights, out float2 outUV0, out float4 outUVGrid)
+void ImposterUV_oneFrame(in float3 inPos, in float2 inUV, in int imposterFrames, in float3 imposterOffset, in float imposterSize, in float imposterFrameClip,
+    in bool isHemi, in float parallax, in int heightMapChannel, in SamplerState ss, in Texture2D heightMap, in int TextureSize,
+    out float3 outPos, out float2 outUV0, out float4 outUVGrid)
 {
     float framesMinusOne = imposterFrames - 1;
 
@@ -279,10 +279,10 @@ void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrame
     float3 objectSpaceCameraDir = normalize(objectSpaceCameraPos.xyz);
 
     //get uv in a single frame
-    float2 UVscaled = inUV.xy * (1.0 / imposterFrames);
+    float2 UVscaled = inUV * (1.0 / imposterFrames);
     float2 size = imposterSize.xx * 1.33;
 
-    float3 BillboardPos = CalculateBillboardProjection(objectSpaceCameraDir, inUV.xy);
+    float3 BillboardPos = CalculateBillboardProjection(objectSpaceCameraDir, inUV);
     BillboardPos *= 0.67;
 
     //camera to projection vector
@@ -346,7 +346,7 @@ void ImposterUV_oneFrame(in float3 inPos, in float4 inUV, in float imposterFrame
     }
     //clip out neighboring frames 
     float2 gridSize = 1.0 / imposterFrames.xx;
-    float2 bleeds =  imposterFrameClip/ TextureSize;
+    float2 bleeds = imposterFrameClip / TextureSize;
     vp0uv = clamp(vp0uv, frame0grid - bleeds, frame0grid + gridSize + bleeds);
 
     //surface

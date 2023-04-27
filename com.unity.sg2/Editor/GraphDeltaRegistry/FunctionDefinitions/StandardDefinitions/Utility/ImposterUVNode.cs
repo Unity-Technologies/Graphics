@@ -19,12 +19,12 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
-                new ParameterDescriptor("inUV", TYPE.Vec4, Usage.In, REF.UV0),
-                new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
+                new ParameterDescriptor("inUV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Frames", TYPE.Int, Usage.In, new float[] {16}),
                 new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1}),
                 new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("FrameClip", TYPE.Float, Usage.In),
-                new ParameterDescriptor("TextureSize", TYPE.Float, Usage.In, new float[]{ 1024}),
+                new ParameterDescriptor("TextureSize", TYPE.Int, Usage.In, new float[]{ 1024}),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
                 new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
                 new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -48,12 +48,12 @@ namespace UnityEditor.ShaderGraph.Defs
             new ParameterDescriptor[]
             {
                 new ParameterDescriptor("Pos", TYPE.Vec3, Usage.In, REF.ObjectSpace_Position),
-                new ParameterDescriptor("inUV", TYPE.Vec4, Usage.In, REF.UV0),
-                new ParameterDescriptor("Frames", TYPE.Float, Usage.In, new float[] {16f}),
+                new ParameterDescriptor("inUV", TYPE.Vec2, Usage.In, REF.UV0),
+                new ParameterDescriptor("Frames", TYPE.Int, Usage.In, new float[] {16}),
                 new ParameterDescriptor("Size", TYPE.Float, Usage.In, new float[] {1}),
                 new ParameterDescriptor("Offset", TYPE.Vec3, Usage.In),
                 new ParameterDescriptor("FrameClip", TYPE.Float, Usage.In),
-                new ParameterDescriptor("TextureSize", TYPE.Float, Usage.In, new float[]{ 1024}),
+                new ParameterDescriptor("TextureSize", TYPE.Int, Usage.In, new float[]{ 1024}),
                 new ParameterDescriptor("HemiSphere", TYPE.Bool, Usage.In),
                 new ParameterDescriptor("Parallax", TYPE.Float, Usage.In),
                 new ParameterDescriptor("Texture", TYPE.Texture2D, Usage.In),
@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "Parallax",
-                    tooltip: "Adds parallax effect the port value is true"
+                    tooltip: "Adds a parallax effect if the port value is greater than zero"
                 ),
                 new ParameterUIDescriptor(
                     name: "HeightMapChannel",

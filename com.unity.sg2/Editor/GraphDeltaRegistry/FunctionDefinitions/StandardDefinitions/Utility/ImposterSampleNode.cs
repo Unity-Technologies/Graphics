@@ -118,6 +118,26 @@ namespace UnityEditor.ShaderGraph.Defs
                 new ParameterUIDescriptor(
                     name: "RGBA",
                     tooltip: "A vector4 from the sampled texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "RGB",
+                    tooltip: "A vector3 from the sampled texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "R",
+                    tooltip: "The red channel of the sampled texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "G",
+                    tooltip: "The green channel of the sampled texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "B",
+                    tooltip: "The blue channel of the sampled texture"
+                ),
+                new ParameterUIDescriptor(
+                    name: "A",
+                    tooltip: "The alpha channel of the sampled texture"
                 )
             }
         );

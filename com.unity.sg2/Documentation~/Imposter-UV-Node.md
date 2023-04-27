@@ -8,17 +8,17 @@ The Imposter UV Node calculates the billboard position and the UV coordinates ne
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
 | In Position | Input      |    Vector3 | The postion in Object space |
-| In UV | Input      |    Vector4 | The UV coordinates of the mesh |
-| Frames | Input      |    Float | The number of the imposter frames in each axis|
+| In UV | Input      |    Vector2 | The UV coordinates of the mesh |
+| Frames | Input      |    Int | The number of the imposter frames in each axis|
 | Size | Input      |    Float | The size of the imposter |
-| Offset | Input      |    Float | The offset value from the pivot |
+| Offset | Input      |    Vector3 | The offset value from the pivot |
 | Frame Clipping Threshold | Input      |    Float | The clamping value for the neighboring frames most useful when parallax mapping is enabled |
-| Texture Size | Input      |    Float | The resolution of the texture. |
+| Texture Size | Input      |    Int | The resolution of the texture. |
 | HemiSphere | Input      |    Boolean | If it's true, calculates the imposter grid and UVs base on hemisphere type.This is Useful if the imposter object will only be seen from above |
 | Parallax | Input      |    Float | Parallax strength, if it equals to 0 than he parallax related control won't affect the outputs.|
 | Height map | Input      |    Texture2D | The height map texture to sample |
 | Sampler | Input      |    Sampler State | The texture sampler to use for sampling the texture |
-| Height Map Channel | Input      |    Int | The channle of the height map to sample for parallax mapping, if any|
+| Height Map Channel | Input      |    Int | The channel of the height map to sample for parallax mapping, if any|
 | Out Positon | Output      |    Vector3 | The output billboard position |
 | UV0 | Output      |    Vector2 | The virtual UV for the base frame |
 | UV1 | Output      |    Vector2 | The virtual UV for the second frame |
