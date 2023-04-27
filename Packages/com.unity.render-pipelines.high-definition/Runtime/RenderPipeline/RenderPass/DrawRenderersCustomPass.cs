@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 stencilReference = overrideStencil ? stencilReferenceValue : 0,
             };
 
-            PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.GetBakedLightingWithShadowMaskRenderConfig() : HDUtils.GetBakedLightingRenderConfig();
+            PerObjectData renderConfig = HDUtils.GetRendererConfiguration(ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume), ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask));
             var overrideShaderMaterial = (overrideShader != null) ? new Material(overrideShader) : null;
 
             var result = new RendererUtils.RendererListDesc(shaderPasses, ctx.cullingResults, ctx.hdCamera.camera)
