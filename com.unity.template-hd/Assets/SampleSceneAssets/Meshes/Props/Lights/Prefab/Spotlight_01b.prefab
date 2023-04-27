@@ -102,6 +102,10 @@ PrefabInstance:
       propertyPath: m_LensFlareData
       value: 
       objectReference: {fileID: 11400000, guid: 84cfb5afef7adac40b81ffb9d0dbed06, type: 2}
+    - target: {fileID: 8673117982346068446, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2, type: 3}
+      propertyPath: occlusionRadius
+      value: 0.035
+      objectReference: {fileID: 0}
     - target: {fileID: 9203907179793585638, guid: ac937fd9ae94a3a40b3a7185b6b1f0e2, type: 3}
       propertyPath: m_Shadows.m_Type
       value: 0
