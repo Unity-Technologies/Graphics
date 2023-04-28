@@ -9,10 +9,10 @@ Calculates the billboard positon and the virtual UVs for sampling.
 **Offset** - The offset value from the pivot.
 **Frame Clipping Threshold** - The clamping value for the neighboring frames most useful when parallax mapping is enabled.
 **Texture Size** - The texture resolution.
-**Height Map** - The height map texture to sample.
-**Sampler** - The texture sampler to use for sampling the texture.
+**Heightmap** - The height map texture to sample.
+**Heightmap Sampler** - The texture sampler to use for sampling the texture.
 **Parallax** - Parallax strength.
-**Height Map Channel** - The channle of the height map to sample for parallax mapping, if any.
+**Heightmap Sample Channel** - The channle of the height map to sample for parallax mapping, if any.
 **HemiSphere** - If it's true, calculates the imposter grid and UVs base on hemisphere type. Useful if the object is only seen from above.
 
 ## Output

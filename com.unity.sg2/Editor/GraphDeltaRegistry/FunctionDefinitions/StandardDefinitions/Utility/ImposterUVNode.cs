@@ -122,16 +122,17 @@ namespace UnityEditor.ShaderGraph.Defs
                     tooltip: "The size of the imposter"
                 ),
                 new ParameterUIDescriptor(
-                    name: "HemiSphere",
+                    name: "Hemisphere",
                     tooltip: "If it's true, calculate imposter grid and UVs base on hemisphere type."
                 ),
                 new ParameterUIDescriptor(
                     name: "Texture",
-                    displayName:"Height Map",
+                    displayName:"Heightmap",
                     tooltip: "The texture asset to sample"
                 ),
                 new ParameterUIDescriptor(
                     name: "Sampler",
+                    displayName:"Heightmap Sampler",
                     tooltip: "The texture sampler to use for sampling the texture"
                 ),
                 new ParameterUIDescriptor(
@@ -140,7 +141,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new ParameterUIDescriptor(
                     name: "HeightMapChannel",
-                    displayName:"Heigh Map Channel",
+                    displayName:"Heighmap Sample Channel",
                     tooltip: "The texture channel to sample from for the parallax effect"
                 ),
                 new ParameterUIDescriptor(
