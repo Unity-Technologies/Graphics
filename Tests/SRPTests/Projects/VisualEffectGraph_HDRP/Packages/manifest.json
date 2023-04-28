@@ -17,7 +17,7 @@
     "com.unity.testing.visualeffectgraph": "file:../../../Packages/com.unity.testing.visualeffectgraph",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.timeline": "1.7.1",
-    "com.unity.ugui": "1.0.0",
+    "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",

@@ -9,7 +9,7 @@
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "local.utf.references": "file:../../../Packages/UnityTestFrameworkPackages",
     "local.gtf.references": "file:../../../Packages/GraphicsTestFrameworkPackages",
-    "com.unity.ugui": "1.0.0",
+    "com.unity.ugui": "2.0.0",
     "com.unity.xr.mock-hmd": "1.1.1-preview.1",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
