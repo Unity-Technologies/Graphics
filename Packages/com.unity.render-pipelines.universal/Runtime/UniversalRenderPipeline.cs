@@ -1159,7 +1159,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
                 cameraData.xrRendering = XRSystem.displayActive;
-                cameraData.allowHDROutput = false;
+                cameraData.allowHDROutput = true;
             }
 
             ///////////////////////////////////////////////////////////////////
