@@ -8,7 +8,6 @@
 **View WS** - 
 **Scattering Foam** - 
 **Low Frequency Height** - 
-**SSS Mask** - 
 **Horizontal Displacement** - 
 
 ## Output

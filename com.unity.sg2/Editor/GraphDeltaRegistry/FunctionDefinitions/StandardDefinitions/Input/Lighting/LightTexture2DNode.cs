@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph.Defs
             Name,
             displayName: "Light Texture 2D",
             tooltip: "A 2D Light texture asset.",
-            category: "Utility/Input/Lighting",
+            category: "Input/Lighting",
             synonyms: new string[0],
             description: "pkg://Documentation~/previews/LightTexture2D.md",
             hasPreview: false,
