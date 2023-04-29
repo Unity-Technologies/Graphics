@@ -116,6 +116,9 @@ namespace UnityEngine.Rendering
                     MeshRenderer renderer = null;
 
                     var prefab = prototypes[i].prefab;
+                    if (prefab == null)
+                        continue;
+
                     if (prefab.TryGetComponent<LODGroup>(out var lodGroup))
                     {
                         var groups = lodGroup.GetLODs();
