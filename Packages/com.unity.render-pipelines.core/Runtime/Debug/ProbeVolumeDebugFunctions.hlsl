@@ -33,7 +33,7 @@
                 float samplingFactor = ComputeSamplingFactor(probePosition_WS, snappedProbePosition_WS, normalizedOffset, probeDistance);
 
                 // Let's cull probes that are not sampled
-                if (samplingFactor == 0.0)
+                if (samplingFactor == -1.0f)
                 {
                     DoCull(o);
                     return o;
