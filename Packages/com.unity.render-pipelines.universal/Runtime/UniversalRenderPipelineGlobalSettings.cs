@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [URPHelpURL("urp-global-settings")]
     [DisplayInfo(name = "URP Global Settings Asset", order = CoreUtils.Sections.section4 + 2)]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<UniversalRenderPipelineGlobalSettings, UniversalRenderPipeline>
     {
         #region Version system

@@ -17,6 +17,14 @@ namespace UnityEditor.Rendering
             GraphicsSettings.UnregisterRenderPipelineSettings<DummyRenderPipeline>();
         }
 
+        public class DummyRenderPipelineAsset : RenderPipelineAsset<DummyRenderPipeline>
+        {
+            protected override RenderPipeline CreatePipeline()
+            {
+                throw new System.NotImplementedException();
+            }
+        }
+
         public class DummyRenderPipeline : RenderPipeline
         {
             protected override void Render(ScriptableRenderContext context, Camera[] cameras)
@@ -25,6 +33,7 @@ namespace UnityEditor.Rendering
             }
         }
 
+        [SupportedOnRenderPipeline(typeof(DummyRenderPipelineAsset))]
         public class DummyRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>
         {
             internal static string defaultPath => "Assets/Tests/DummyRenderPipelineGlobalSettings.asset";
