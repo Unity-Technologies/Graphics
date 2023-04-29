@@ -129,14 +129,23 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2 upBounds = GetScreenSpaceBounds(upVector, hdCamera);
             var boundsSS = new float4(rightBounds.x, rightBounds.y, upBounds.x, upBounds.y);
 
+            m_WaterLineBufferSize = maxPixelCount;
+            m_ReductionSize = HDUtils.DivRoundUp(Mathf.CeilToInt(boundsSS.y - boundsSS.x), 128);
+
+            if (m_ReductionSize == 0)
+            {
+                // Can happen if water and camera upVector are aligned
+                // Put some parameters that will fill waterline with constant value
+                m_ReductionSize = 1;
+                boundsSS.z = -1;
+                boundsSS.w = 1;
+            }
+
             cb._BoundsSS = boundsSS;
             cb._UpDirectionX = upVector.x;
             cb._UpDirectionY = upVector.y;
             cb._BufferStride = maxPixelCount;
             cb._EnableUnderwater = 1;
-
-            m_WaterLineBufferSize = maxPixelCount;
-            m_ReductionSize = HDUtils.DivRoundUp(Mathf.CeilToInt(boundsSS.y - boundsSS.x), 128);
         }
 
         class WaterLineRenderingData
