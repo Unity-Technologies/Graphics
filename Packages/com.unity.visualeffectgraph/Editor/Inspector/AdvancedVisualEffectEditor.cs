@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
-
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX.UI;
@@ -194,17 +193,8 @@ namespace UnityEditor.VFX
                     GUI.enabled = saveEnabled;
                     if (GUILayout.Button(Contents.createAsset, EditorStyles.miniButton, Styles.MiniButtonWidth))
                     {
-                        string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
-                        if (!string.IsNullOrEmpty(filePath))
-                        {
-                            VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
-                            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath);
-                            m_VisualEffectAsset.objectReferenceValue = asset;
-                            serializedObject.ApplyModifiedProperties();
 
-                            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-                            window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
-                        }
+                        CreateNewVFX();
                     }
                 }
                 else
@@ -758,6 +748,23 @@ namespace UnityEditor.VFX
         private void DetachIfDeleted()
         {
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.DetachIfDeleted());
+        }
+
+        private void CreateNewVFX()
+        {
+            void OnTemplateCreate(string templateFilePath)
+            {
+                if (!string.IsNullOrEmpty(templateFilePath))
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(templateFilePath);
+                    m_VisualEffectAsset.objectReferenceValue = asset;
+                    serializedObject.ApplyModifiedProperties();
+
+                    VFXViewWindow.GetWindow(asset, true).LoadAsset(asset, targets.Length > 1 ? target as VisualEffect : null);
+                }
+            }
+
+            VFXTemplateWindow.ShowCreateFromTemplate(null, OnTemplateCreate);
         }
     }
 }

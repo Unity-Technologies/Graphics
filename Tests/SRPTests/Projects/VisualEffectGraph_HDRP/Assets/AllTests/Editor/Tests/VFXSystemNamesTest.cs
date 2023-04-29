@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.Test
 
             m_TestAssetRandomFileName = $"{VFXTestCommon.tempBasePath}random_{Guid.NewGuid()}.vfx";
             // Create default VFX Graph
-            var templateString = File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            var templateString = File.ReadAllText(VFXTestCommon.simpleParticleSystemPath);
             File.WriteAllText(m_TestAssetRandomFileName, templateString);
             AssetDatabase.ImportAsset(m_TestAssetRandomFileName);
 

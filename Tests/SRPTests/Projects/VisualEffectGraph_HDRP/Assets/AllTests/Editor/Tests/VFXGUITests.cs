@@ -765,7 +765,7 @@ namespace UnityEditor.VFX.Test
         {
             //Create a new vfx based on the usual template
             System.IO.Directory.CreateDirectory(TempDirectoryName);
-            var templateString = System.IO.File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            var templateString = System.IO.File.ReadAllText(VFXTestCommon.simpleParticleSystemPath);
             var fileName = TempDirectoryName + $"/{GUID.Generate()}.vfx";
             System.IO.File.WriteAllText(fileName, templateString);
             AssetDatabase.ImportAsset(fileName);

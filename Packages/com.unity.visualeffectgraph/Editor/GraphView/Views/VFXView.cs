@@ -407,11 +407,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
-            if (d.category == "System")
-            {
-                VFXAnalytics.GetInstance().OnSystemTemplateCreated(d.name);
-            }
-
             UpdateSelectionWithNewNode();
             var groupNode = GetPickedGroupNode(mPos);
 
@@ -422,27 +417,22 @@ namespace UnityEditor.VFX.UI
             {
                 string path = d.modelDescriptor as string;
 
-                if (path.StartsWith(VisualEffectAssetEditorUtility.templatePath) || ((VFXResources.defaultResources.userTemplateDirectory.Length > 0) && path.StartsWith(VFXResources.defaultResources.userTemplateDirectory)))
-                    CreateTemplateSystem(path, mPos, groupNode);
-                else
+                if (Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
                 {
-                    if (Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
+                    var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
+                    if (subGraph != null && (!controller.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) && subGraph.GetResource() != controller.model))
                     {
-                        var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
-                        if (subGraph != null && (!controller.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) && subGraph.GetResource() != controller.model))
-                        {
-                            VFXModel newModel = VFXSubgraphOperator.CreateInstance<VFXSubgraphOperator>() as VFXModel;
+                        VFXModel newModel = VFXSubgraphOperator.CreateInstance<VFXSubgraphOperator>() as VFXModel;
 
-                            controller.AddVFXModel(mPos, newModel);
+                        controller.AddVFXModel(mPos, newModel);
 
-                            newModel.SetSettingValue("m_Subgraph", subGraph);
+                        newModel.SetSettingValue("m_Subgraph", subGraph);
 
-                            UpdateSelectionWithNewNode();
+                        UpdateSelectionWithNewNode();
 
-                            controller.LightApplyChanges();
+                        controller.LightApplyChanges();
 
-                            return controller.GetNewNodeController(newModel);
-                        }
+                        return controller.GetNewNodeController(newModel);
                     }
                 }
             }
@@ -515,29 +505,9 @@ namespace UnityEditor.VFX.UI
         SelectionDragger m_SelectionDragger;
         RectangleSelector m_RectangleSelector;
 
-        public void OnCreateAsset()
+        private void OnCreateAsset()
         {
-            string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
-            if (!string.IsNullOrEmpty(filePath))
-            {
-                VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
-
-                var existingWindow = VFXViewWindow.GetAllWindows().SingleOrDefault(x =>
-                {
-                    var asset = x.displayedResource != null ? x.displayedResource.asset : null;
-                    return asset != null && AssetDatabase.GetAssetPath(asset) == filePath;
-                });
-                if (existingWindow != null)
-                {
-                    existingWindow.Show();
-                    existingWindow.Focus();
-                }
-                else
-                {
-                    VFXViewWindow.GetWindow(this).LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
-                }
-
-            }
+            VFXTemplateWindow.ShowCreateFromTemplate(this, null);
         }
 
         public VFXView()
@@ -596,6 +566,9 @@ namespace UnityEditor.VFX.UI
 
             m_VCSDropDown = new VFXVCSDropdownButton(this);
             m_Toolbar.Add(m_VCSDropDown);
+
+            var templateDropDownButton = new CreateFromTemplateDropDownButton(this);
+            m_Toolbar.Add(templateDropDownButton);
 
             m_BackButton = new Button { tooltip = "Back to parent", name = "BackButton" };
             m_BackButton.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "back.png")) });

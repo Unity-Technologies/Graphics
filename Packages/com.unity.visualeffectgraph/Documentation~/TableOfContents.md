@@ -21,6 +21,7 @@
   * [Subgraph](Subgraph.md)
   * [Blackboard](Blackboard.md)
   * [Sticky Notes](StickyNotes.md)
+  * [Templates Window](Templates-window.md)
   * [Project Settings](VisualEffectProjectSettings.md)
   * [Preferences](VisualEffectPreferences.md)
   * [Visual Effect Bounds](visual-effect-bounds.md)

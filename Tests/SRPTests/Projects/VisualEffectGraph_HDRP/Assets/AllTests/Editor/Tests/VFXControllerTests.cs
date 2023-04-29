@@ -954,7 +954,7 @@ namespace UnityEditor.VFX.Test
         public void ConvertToSubgraph()
         {
             //Create a new vfx based on the usual template
-            var templateString = System.IO.File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            var templateString = System.IO.File.ReadAllText(VFXTestCommon.simpleParticleSystemPath);
             System.IO.File.WriteAllText(testSubgraphAssetName, templateString);
 
             VFXViewWindow window = VFXViewWindow.GetWindow<VFXViewWindow>();
@@ -1177,7 +1177,7 @@ namespace UnityEditor.VFX.Test
         {
             testAssetRandomFileName = $"Assets/TmpTests/random_{Guid.NewGuid()}.vfx";
             // Create default VFX Graph
-            var templateString = File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            var templateString = File.ReadAllText(VFXTestCommon.simpleParticleSystemPath);
             File.WriteAllText(testAssetRandomFileName, templateString);
             AssetDatabase.ImportAsset(testAssetRandomFileName);
 
@@ -1212,7 +1212,7 @@ namespace UnityEditor.VFX.Test
         {
             testAssetRandomFileName = $"Assets/TmpTests/random_{Guid.NewGuid()}.vfx";
             // Create default VFX Graph
-            var templateString = File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
+            var templateString = File.ReadAllText(VFXTestCommon.simpleParticleSystemPath);
             File.WriteAllText(testAssetRandomFileName, templateString);
             AssetDatabase.ImportAsset(testAssetRandomFileName);
 

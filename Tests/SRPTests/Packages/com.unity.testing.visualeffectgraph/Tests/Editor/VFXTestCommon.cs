@@ -24,6 +24,7 @@ namespace UnityEditor.VFX.Test
 {
     class VFXTestCommon
     {
+        public static readonly string simpleParticleSystemPath = "Packages/com.unity.testing.visualeffectgraph/CommonAssets/VFX/SimpleParticleSystem.vfx";
         public static readonly string tempBasePath = "Assets/TmpTests/";
         static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
         static readonly string tempFileFormatPlayable = tempBasePath + "vfx_{0}.playable";
