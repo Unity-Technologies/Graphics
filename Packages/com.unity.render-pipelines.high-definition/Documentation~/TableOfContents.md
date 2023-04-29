@@ -57,6 +57,7 @@
       * [Ambient Occlusion](Override-Ambient-Occlusion.md)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller.md)
       * [Screen Space Global Illumination](Override-Screen-Space-GI.md)
+      * [Screen Space Lens Flare](shared/lens-flare/Override-Screen-Space-Lens-Flare.md)
       * [Screen Space Reflection](Override-Screen-Space-Reflection.md)
       * [Screen Space Refraction](Override-Screen-Space-Refraction.md)
     * Material
@@ -227,7 +228,7 @@
 * Components
   * [Decal Projector](Decal-Projector.md)
   * [Mesh Renderer Extension](Mesh-Renderer-Extension.md)
-  * [Lens Flare](shared/lens-flare/lens-flare-component.md)
+  * [Lens Flare (SRP)](shared/lens-flare/lens-flare-component.md)
     * [Lens Flare asset](shared/lens-flare/lens-flare-asset.md)
 * Tools
   * [Look Dev](Look-Dev.md)

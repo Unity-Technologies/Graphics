@@ -646,6 +646,11 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 <td>Select this option to display what texture tile each pixel uses. Pixels that this debug view renders with the same color request the same texture tile to be streamed into video memory by the streaming virtual texturing system. This debug view is useful to see which areas of the screen use textures that the virtual texturing system steams into video memory. It can help to identify issues with the virtual texture streaming system.</td>
 </tr>
 <tr>
+<tr>
+<td><strong>LensFlareScreenSpace</strong></td>
+<td>Display the lens flares that the <a href="shared/lens-flare/Override-Screen-Space-Lens-Flare.html">Screen Space Lens Flare</a> override generates.</td>
+</tr>
+<tr>
 <td><strong>Compute Thickness</strong></td>
 <td>Select this option to display thickness for each layer selected in the current HDRP Asset.<br/>
 Debug View Color Scale:<br/>
