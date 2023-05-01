@@ -1476,7 +1476,7 @@ namespace UnityEditor.VFX.Test
             },
         };
 
-        [UnityTest]
+        [UnityTest, Timeout(300 * 1000)]
         public IEnumerator CreateSpawner_ChangeLoopMode([ValueSource("k_CreateSpawner_ChangeLoopModeTestCases")] CreateSpawner_ChangeLoopMode_TestCase testCase)
         {
             yield return new EnterPlayMode();

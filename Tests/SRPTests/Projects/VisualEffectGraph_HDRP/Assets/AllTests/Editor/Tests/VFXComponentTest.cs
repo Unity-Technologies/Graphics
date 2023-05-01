@@ -519,17 +519,22 @@ namespace UnityEditor.VFX.Test
             var initialize = graph.children.First(o => o is VFXBasicInitialize);
             bool r = operatorSample3D.outputSlots.First().Link(initialize.children.OfType<VFXBlock>().First().inputSlots.First());
             Assert.IsTrue(r);
-            graph.SetExpressionGraphDirty();
-            graph.RecompileIfNeeded();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            GameObject currentObject = new GameObject("TemporaryGameObject_NoneTexture", typeof(VisualEffect));
+            var currentObject = new GameObject("TemporaryGameObject_NoneTexture", typeof(VisualEffect));
             var vfx = currentObject.GetComponent<VisualEffect>();
             var asset = graph.visualEffectResource.asset;
             vfx.visualEffectAsset = asset;
 
-            int maxFrame = 512;
-            while ((vfx.culled || vfx.aliveParticleCount == 0) && --maxFrame > 0)
+            int maxFrame = 64;
+            while (vfx.culled && --maxFrame > 0)
                 yield return null;
+            Assert.Greater(maxFrame, 0u, "Culling Test Failure");
+
+            maxFrame = 64;
+            while (vfx.aliveParticleCount == 0 && --maxFrame > 0)
+                yield return null;
+            Assert.Greater(maxFrame, 0u, "Alive Particle Count failure");
 
             //Wait for a few frame to be sure the rendering has been triggered
             for (int i = 0; i < 3; ++i)
