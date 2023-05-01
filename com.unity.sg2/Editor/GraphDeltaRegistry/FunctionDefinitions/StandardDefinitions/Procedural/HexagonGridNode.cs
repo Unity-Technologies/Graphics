@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "Four",
-@"   offset.x = ddx(UV); offset = ddy(UV);
+@"   offset.x = ddx(UV); offset.y = ddy(UV);
     HexGridFunction(UV + (float2(0.0,0.33)*offset), Scale, LineWidth, Out);
     Total += Out;
     HexGridFunction(UV + (float2(-0.33,0.0)*offset), Scale, LineWidth, Out);
@@ -94,12 +94,12 @@ namespace UnityEditor.ShaderGraph.Defs
                 ),
                 new(
                     "Nine",
-@"   offset.x = ddx(UV); offset = ddy(UV);
+@"   offset.x = ddx(UV); offset.y = ddy(UV);
     HexGridFunction(UV + (float2(0.33,0.33)*offset), Scale, LineWidth, Out);
     Total += Out;
     HexGridFunction(UV + (float2(0.0,0.33)*offset), Scale, LineWidth, Out);
     Total += Out;
-    HexGridFunction(UV + (float2(-0.33,0.25)*offset), Scale, LineWidth, Out);
+    HexGridFunction(UV + (float2(-0.33,0.33)*offset), Scale, LineWidth, Out);
     Total += Out;
 
     HexGridFunction(UV + (float2(0.33,0.0)*offset), Scale, LineWidth, Out);
