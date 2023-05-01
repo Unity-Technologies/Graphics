@@ -190,6 +190,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Use to detect frame changes (for accurate frame count in editor, consider using hdCamera.GetCameraFrameCount)
         int m_FrameCount;
 
+        // Standard render workflow uses default render loop history channel
+        // User render requests can use different ones to avoid mixing history information
+        HDCamera.HistoryChannel m_CurrentCameraHistoryChannel = HDCamera.HistoryChannel.RenderLoopHistory;
+
         internal GraphicsFormat GetColorBufferFormat()
         {
             if (CoreUtils.IsSceneFilteringEnabled())
@@ -2171,6 +2175,172 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+
+        /// <summary>
+        /// Check whether RenderRequest type is supported
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="data"></param>
+        /// <typeparam name="RequestData"></typeparam>
+        /// <returns></returns>
+        protected override bool IsRenderRequestSupported<RequestData>(Camera camera, RequestData data)
+        {
+            if (data is StandardRequest)
+                return true;
+
+            return false;
+        }
+
+        // To prevent run-time alloc
+        static List<Camera> s_RenderRequestCamera = new List<Camera>();
+        static readonly AOVRequestDataCollection s_EmptyAOVRequests = new AOVRequestDataCollection(null);
+
+        /// <summary>
+        /// Process a render request requested by user manually through RPC RenderRequest API
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="camera"></param>
+        /// <param name="renderRequest"></param>
+        /// <typeparam name="RequestData"></typeparam>
+        protected override void ProcessRenderRequests<RequestData>(ScriptableRenderContext context, Camera camera, RequestData renderRequest)
+        {
+            StandardRequest standardRequest = renderRequest as StandardRequest;
+
+            if(standardRequest != null)
+            {
+                //store original texture that will be temporarily switched
+                var originalTarget = camera.targetTexture;
+
+                RenderTexture destination = standardRequest.destination;
+                
+                //don't go further if no destination texture
+                if(destination == null)
+                {
+                    Debug.LogError("RenderRequest has no destination texture, set one before sending request");
+                    return;
+                }
+
+                int mipLevel = standardRequest.mipLevel;
+
+                //if mip is 0 and target is Texture2D we can directly render to the destination
+                //otherwise we use a temporary texture
+                RenderTexture temporaryRT = null;
+                if(destination.dimension == TextureDimension.Tex2D && mipLevel == 0)
+                {
+                    camera.targetTexture = destination;
+                }
+                else
+                {
+                    RenderTextureDescriptor RTDesc = destination.descriptor;
+                    //need to use default constructor of RenderTextureDescriptor which doesn't enable allowVerticalFlip for cubemaps.
+                    if (destination.dimension == TextureDimension.Cube)
+                        RTDesc = new RenderTextureDescriptor();
+
+                    RTDesc.colorFormat = destination.format;
+                    RTDesc.volumeDepth = 1;
+                    RTDesc.msaaSamples = destination.descriptor.msaaSamples;
+                    RTDesc.dimension = TextureDimension.Tex2D;
+                    RTDesc.width = destination.width / (int)Math.Pow(2, mipLevel);
+                    RTDesc.height = destination.height / (int)Math.Pow(2, mipLevel);
+                    RTDesc.width = Mathf.Max(1, RTDesc.width);
+                    RTDesc.height = Mathf.Max(1, RTDesc.height);
+
+                    temporaryRT = RenderTexture.GetTemporary(RTDesc);
+
+                    camera.targetTexture = temporaryRT;
+                }
+
+                HDAdditionalCameraData hdCam = null;
+                camera.TryGetComponent<HDAdditionalCameraData>(out hdCam);
+                AOVRequestDataCollection existingAOVs = null;
+
+                //temporarily disable AOV requests
+                if(hdCam != null)
+                {
+                    existingAOVs = (AOVRequestDataCollection) hdCam.aovRequests;
+                    hdCam.SetAOVRequests(s_EmptyAOVRequests);
+                }
+
+                //Next render call will create/use a HDCamera with a specific history channel different from main render loop one
+                //doing so, we can differentiate and preserve camera history buffers/data
+                m_CurrentCameraHistoryChannel = HDCamera.HistoryChannel.CustomUserHistory0;
+
+                s_RenderRequestCamera.Clear();
+                s_RenderRequestCamera.Add(camera);
+                //trigger whole render pipeline
+                Render(context, s_RenderRequestCamera);
+
+                m_CurrentCameraHistoryChannel = HDCamera.HistoryChannel.RenderLoopHistory;
+
+                //re-enable any AOV request
+                if(existingAOVs != null)
+                {
+                    hdCam.SetAOVRequests(existingAOVs);
+                }
+
+                if(temporaryRT)
+                {
+                    bool isCopySupported = false;
+
+                    int slice = standardRequest.slice;
+                    int face = (int)standardRequest.face;
+
+                    switch(destination.dimension)
+                    {
+                        case TextureDimension.Tex2D:
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.Basic) != 0)
+                            {
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, 0, mipLevel);
+                            }
+                            break;
+                        case TextureDimension.Tex2DArray:
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
+                            {
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, slice, mipLevel);
+                            }
+                            break;
+                        case TextureDimension.Tex3D:
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
+                            {    
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, slice, mipLevel);
+                            }
+                            break;
+                        case TextureDimension.Cube:
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
+                            {
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, face, mipLevel);
+                            }
+                            break;                        
+                        case TextureDimension.CubeArray:
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
+                            {
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, face + slice * 6, mipLevel);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if(!isCopySupported)
+                        Debug.LogError("RenderRequest cannot have destination texture of this format: " + Enum.GetName(typeof(TextureDimension), destination.dimension));
+                }
+
+                //restore original target
+                camera.targetTexture = originalTarget;    
+                Graphics.SetRenderTarget(originalTarget);
+                RenderTexture.ReleaseTemporary(temporaryRT);
+            }
+            else
+            {
+                Debug.LogWarning("RenderRequest type: " + typeof(RequestData).FullName  + " is either invalid or unsupported by HDRP");
+            }
+        }
+
         void CollectScreenSpaceShadowData()
         {
             // For every unique light that has been registered, make sure it is kept track of
@@ -2477,7 +2647,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentFrameSettings.SetEnabled(FrameSettingsField.TransparentsWriteMotionVector, false);
             }
 
-            hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
+            hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId, m_CurrentCameraHistoryChannel);
 
             //Forcefully disable antialiasing if DLSS is enabled.
             if (additionalCameraData != null)

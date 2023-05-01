@@ -5,6 +5,7 @@
 * Camera components
   * [Free Camera](Free-Camera.md)
   * [Camera Switcher](Camera-Switcher.md)
+* [Render Requests](User-Render-Requests.md)
 * [Render Graph](render-graph-system.md)
   * [Benefits of the render graph system](render-graph-benefits.md)
   * [Render graph fundamentals](render-graph-fundamentals.md)
