@@ -48,24 +48,23 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
         Material m_Material;
 
-        ColorBlitPass m_RenderPass = null;
+        ColorBlitPass m_RenderPass;
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.cameraType == CameraType.Game)
             {
-                //Calling ConfigureInput with the ScriptableRenderPassInput.Color argument ensures that the opaque texture is available to the Render Pass
+                // Calling ConfigureInput with the ScriptableRenderPassInput.Color argument
+                // ensures that the opaque texture is available to the Render Pass.
                 m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Color);
-                m_RenderPass.SetTarget(renderer.cameraColorTarget, m_Intensity);
+                m_RenderPass.SetIntensity(m_Intensity);
                 renderer.EnqueuePass(m_RenderPass);
             }
         }
 
         public override void Create()
         {
-            if (m_Shader != null)
-                m_Material = new Material(m_Shader);
-
+            m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
             m_RenderPass = new ColorBlitPass(m_Material);
         }
 
@@ -91,7 +90,6 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     {
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler("ColorBlit");
         Material m_Material;
-        RenderTargetIdentifier m_CameraColorTarget;
         float m_Intensity;
 
         public ColorBlitPass(Material material)
@@ -100,15 +98,9 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
         }
 
-        public void SetTarget(RenderTargetIdentifier colorHandle, float intensity)
+        public void SetIntensity(float intensity)
         {
-            m_CameraColorTarget = colorHandle;
             m_Intensity = intensity;
-        }
-
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            ConfigureTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1));
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -124,7 +116,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 m_Material.SetFloat("_Intensity", m_Intensity);
-                cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1));
+
                 //The RenderingUtils.fullscreenMesh argument specifies that the mesh to draw is a quad.
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
             }
@@ -141,11 +133,11 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     ```hlsl
     Shader "ColorBlit"
     {
-            SubShader
+        SubShader
         {
             Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline"}
             LOD 100
-            ZWrite Off Cull Off
+            ZTest Always ZWrite Off Cull Off
             Pass
             {
                 Name "ColorBlitPass"
