@@ -502,6 +502,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalAOV;
             public TextureHandle motionVectorAOV;
 
+            public bool enableDecals;
+
 #if ENABLE_SENSOR_SDK
             public Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays;
 #endif
@@ -556,6 +558,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.motionVectorAOV = builder.WriteTexture(motionVector);
                 }
 
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
+
                 builder.SetRenderFunc(
                     (RenderPathTracingData data, RenderGraphContext ctx) =>
                     {
@@ -592,6 +596,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingMatrixParam(data.shader, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._PathTracingTilingParameters, data.tilingParameters);
+
+                        
+                        if (data.enableDecals)
+                            DecalSystem.instance.SetAtlas(ctx.cmd); // for clustered decals
 
 #if ENABLE_SENSOR_SDK
                         // SensorSDK can do its own camera rays generation

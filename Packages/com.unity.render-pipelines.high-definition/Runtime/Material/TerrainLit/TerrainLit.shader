@@ -504,6 +504,9 @@ Shader "HDRP/TerrainLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile _ PATH_TRACING_ADDITIVE_NORMAL_BLENDING
+
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
 

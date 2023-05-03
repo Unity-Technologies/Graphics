@@ -112,7 +112,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 #undef _AlbedoAffectEmissive
 #undef _EmissiveExposureWeight
 
-#ifndef SHADER_STAGE_RAY_TRACING
+#if !defined(SHADER_STAGE_RAY_TRACING) || (SHADERPASS == SHADERPASS_PATH_TRACING)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
 #endif
@@ -205,7 +205,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // This need to be init here to quiet the compiler in case of decal, but can be override later.
     surfaceData.specularOcclusion = 1.0;
 
-#if defined(DECAL_SURFACE_GRADIENT) && !defined(SHADER_STAGE_RAY_TRACING)
+#if (defined(DECAL_SURFACE_GRADIENT) && !defined(SHADER_STAGE_RAY_TRACING)) || ((SHADERPASS == SHADERPASS_PATH_TRACING) && defined(PATH_TRACING_ADDITIVE_NORMAL_BLENDING))
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
     #if HAVE_DECALS
@@ -230,14 +230,14 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     }
 #endif
 
-#else // defined(DECAL_SURFACE_GRADIENT) && !defined(SHADER_STAGE_RAY_TRACING)
+#else // (defined(DECAL_SURFACE_GRADIENT) && !defined(SHADER_STAGE_RAY_TRACING)) || ((SHADERPASS == SHADERPASS_PATH_TRACING) && defined(PATH_TRACING_ADDITIVE_NORMAL_BLENDING)
 
 #if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
     GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
 #endif
 
-#if HAVE_DECALS && !defined(SHADER_STAGE_RAY_TRACING)
+#if HAVE_DECALS && (!defined(SHADER_STAGE_RAY_TRACING) || (SHADERPASS == SHADERPASS_PATH_TRACING))
     if (_EnableDecals)
     {
         float alpha = 1.0; // unused

@@ -187,8 +187,8 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
     }
 }
 
-#if (defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)) || defined(WATER_SURFACE_GBUFFER) // forward transparent using clustered decals
-DecalData FetchDecal(uint start, uint i)
+#if (defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)) || defined(WATER_SURFACE_GBUFFER) || (SHADERPASS == SHADERPASS_PATH_TRACING) // forward transparent using clustered decals
+DecalData FetchDecal(uint start, uint i) 
 {
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     int j = FetchIndex(start, i);
@@ -206,80 +206,99 @@ DecalData FetchDecal(uint index)
 
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, uint meshRenderingDecalLayer, inout float alpha)
 {
-#if (defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)) || defined(WATER_SURFACE_GBUFFER)  // forward transparent and deferred water use clustered decals
-    uint decalCount, decalStart;
-    DBufferType0 DBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
-    DBufferType1 DBuffer1 = float4(0.5, 0.5, 0.5, 1.0);
-    DBufferType2 DBuffer2 = float4(0.0, 0.0, 0.0, 1.0);
+    DecalSurfaceData decalSurfaceData;
+    
+    // forward transparent and deferred water use clustered decals
+#if (defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)) || defined(WATER_SURFACE_GBUFFER) || (SHADERPASS == SHADERPASS_PATH_TRACING)
+        uint decalCount, decalStart;
+        DBufferType0 DBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
+        DBufferType1 DBuffer1 = float4(0.5, 0.5, 0.5, 1.0);
+        DBufferType2 DBuffer2 = float4(0.0, 0.0, 0.0, 1.0);
 #ifdef DECALS_4RT
-    DBufferType3 DBuffer3 = float2(1.0, 1.0);
+        DBufferType3 DBuffer3 = float2(1.0, 1.0);
 #else
-    float2 DBuffer3 = float2(1.0, 1.0);
+        float2 DBuffer3 = float2(1.0, 1.0);
 #endif
 
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
+#if (SHADERPASS == SHADERPASS_PATH_TRACING) && defined(PATH_TRACING_CLUSTERED_DECALS)
+        uint decalEnd, cellIndex;
+        GetLightCountAndStartCluster(posInput.positionWS, LIGHTCATEGORY_DECAL, decalStart, decalEnd, cellIndex);
+        
+        decalCount = decalEnd - decalStart;
+        // fast path can be checked based on cell index. 
+        uint decalStartLane0;
+        bool fastPath = IsFastPath(cellIndex, decalStartLane0);
+#elif !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
+        GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
 
-    // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-    uint decalStartLane0;
-    bool fastPath = IsFastPath(decalStart, decalStartLane0);
+        // Fast path is when we all pixels in a wave are accessing same tile or cluster.
+        uint decalStartLane0;
+        bool fastPath = IsFastPath(decalStart, decalStartLane0);
 
 #else // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    decalCount = _DecalCount;
-    decalStart = 0;
+        decalCount = _DecalCount;
+        decalStart = 0;
+        bool fastPath = true;
 #endif
 
-    float3 positionRWS = posInput.positionWS;
+        float3 positionRWS = posInput.positionWS;
 
     // get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
-    float3 positionRWSDdx = ddx(positionRWS);
-    float3 positionRWSDdy = ddy(positionRWS);
+#if !(SHADERPASS == SHADERPASS_PATH_TRACING)
+        float3 positionRWSDdx = ddx(positionRWS);
+        float3 positionRWSDdy = ddy(positionRWS);
+#else
+        float3 positionRWSDdx = 0;
+        float3 positionRWSDdy = 0;
+#endif 
 
-    // Scalarized loop. All decals that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the ones relevant to current thread/pixel are processed.
-    // For clarity, the following code will follow the convention: variables starting with s_ are wave uniform (meant for scalar register),
-    // v_ are variables that might have different value for each thread in the wave (meant for vector registers).
-    // This will perform more loads than it is supposed to, however, the benefits should offset the downside, especially given that decal data accessed should be largely coherent
-    // Note that the above is valid only if wave intriniscs are supported.
-    uint v_decalListOffset = 0;
-    uint v_decalIdx = decalStart;
+        // Scalarized loop. All decals that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the ones relevant to current thread/pixel are processed.
+        // For clarity, the following code will follow the convention: variables starting with s_ are wave uniform (meant for scalar register),
+        // v_ are variables that might have different value for each thread in the wave (meant for vector registers).
+        // This will perform more loads than it is supposed to, however, the benefits should offset the downside, especially given that decal data accessed should be largely coherent
+        // Note that the above is valid only if wave intriniscs are supported.
+        uint v_decalListOffset = 0;
+        uint v_decalIdx = decalStart;
 #if NEED_TO_CHECK_HELPER_LANE
-    // On some platform helper lanes don't behave as we'd expect, therefore we prevent them from entering the loop altogether.
-    bool isHelperLane = WaveIsHelperLane();
-    while (!isHelperLane && v_decalListOffset < decalCount)
+        // On some platform helper lanes don't behave as we'd expect, therefore we prevent them from entering the loop altogether.
+        bool isHelperLane = WaveIsHelperLane();
+        while (!isHelperLane && v_decalListOffset < decalCount)
 #else
-    while (v_decalListOffset < decalCount)
+        while (v_decalListOffset < decalCount)
 #endif
-    {
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        v_decalIdx = FetchIndex(decalStart, v_decalListOffset);
+        {
+#if (SHADERPASS == SHADERPASS_PATH_TRACING) && defined(PATH_TRACING_CLUSTERED_DECALS)
+            v_decalIdx = GetLightClusterCellLightByIndex(cellIndex, decalStart + v_decalListOffset);
+#elif !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
+            v_decalIdx = FetchIndex(decalStart, v_decalListOffset);
 #else
-        v_decalIdx = decalStart + v_decalListOffset;
+            v_decalIdx = decalStart + v_decalListOffset;
 #endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
-        uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
-        if (s_decalIdx == -1)
-            break;
+            uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
+            if (s_decalIdx == -1)
+                break;
 
-        DecalData s_decalData = FetchDecal(s_decalIdx);
-        bool isRejected = _EnableDecalLayers && (s_decalData.decalLayerMask & meshRenderingDecalLayer) == 0;
+            DecalData s_decalData = FetchDecal(s_decalIdx);
+            bool isRejected = _EnableDecalLayers && (s_decalData.decalLayerMask & meshRenderingDecalLayer) == 0;
 
-        // If current scalar and vector decal index match, we process the decal. The v_decalListOffset for current thread is increased.
-        // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
-        // end up with a unique v_decalIdx value that is smaller than s_decalIdx hence being stuck in a loop. All the active lanes will not have this problem.
-        if (s_decalIdx >= v_decalIdx)
-        {
-            v_decalListOffset++;
-            if (!isRejected)
-                EvalDecalMask(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
+            // If current scalar and vector decal index match, we process the decal. The v_decalListOffset for current thread is increased.
+            // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
+            // end up with a unique v_decalIdx value that is smaller than s_decalIdx hence being stuck in a loop. All the active lanes will not have this problem.
+            if (s_decalIdx >= v_decalIdx)
+            {
+                v_decalListOffset++;
+                if (!isRejected)
+                    EvalDecalMask(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
+            }
+
         }
 
-    }
-#else // Opaque - used DBuffer
-    FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
+        DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
+#else // Opaque - use DBuffer
+        FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
+        DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 #endif
-
-    DecalSurfaceData decalSurfaceData;
-    DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
 #if defined(DECAL_SURFACE_GRADIENT) && !defined(SURFACE_GRADIENT)
     // The caller doesn't expect a surface gradient but our dbuffer has volume gradients accumulated in it.

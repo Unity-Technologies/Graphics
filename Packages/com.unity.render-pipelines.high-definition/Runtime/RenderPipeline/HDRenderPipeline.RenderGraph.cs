@@ -150,6 +150,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         lightCluster.EvaluateClusterDebugView(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture);
                     }
 
+                    DecalSystem.instance.UpdateShaderGraphAtlasTextures(m_RenderGraph);
+
                     if (hdCamera.viewCount == 1)
                     {
                         colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera, colorBuffer);

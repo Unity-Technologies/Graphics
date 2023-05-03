@@ -854,9 +854,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Surface gradient decal blending
             if (asset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
+            { 
                 Shader.EnableKeyword("DECAL_SURFACE_GRADIENT");
+                Shader.EnableKeyword("PATH_TRACING_ADDITIVE_NORMAL_BLENDING");
+            }
             else
+            { 
                 Shader.DisableKeyword("DECAL_SURFACE_GRADIENT");
+                Shader.DisableKeyword("PATH_TRACING_ADDITIVE_NORMAL_BLENDING");
+            }
         }
 
         void CleanupLightLoop()

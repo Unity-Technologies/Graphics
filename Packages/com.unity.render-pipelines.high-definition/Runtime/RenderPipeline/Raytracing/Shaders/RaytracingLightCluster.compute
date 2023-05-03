@@ -49,7 +49,7 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
     uint cellIndex = targetCellIndex.z + targetCellIndex.y * 32 + targetCellIndex.x * 2048;
 
     // The size of a cell data-wise
-    uint cellDataSize = _LightPerCellCount + 4;
+	uint cellDataSize = _LightPerCellCount + CELL_META_DATA_SIZE; // Each cell contains a number of lights plus meta data counting the number of each light type. 
 
     // Diagonal direction of the cluster
     float3 bottomCorner = _MinClusterPos + float3(0.5f, 0.5f, 0.5f) * _ClusterCellSize;
@@ -61,6 +61,7 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
     uint punctualLightCount = 0;
     uint areaLightCount = 0;
     uint envLightCount = 0;
+	uint decalCount = 0;
 
     // Now let's loop through the lights and fill the cell's information
     for(uint lightIdx = 0; lightIdx < _LightVolumeCount; ++lightIdx)
@@ -87,7 +88,7 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
             intersects =  true;
             for(uint cIdx = 0; cIdx < 3; ++cIdx)
             {
-                // Check if this corner is inside the shphere
+                // Check if this corner is inside the sphere
                 float minLightPos = currentLight.position[cIdx] - currentLight.range[cIdx];
                 float maxLightPos = currentLight.position[cIdx] + currentLight.range[cIdx];
                 float clusterMinPos = (cellCenterPosition[cIdx] - _ClusterCellSize[cIdx]);
@@ -103,30 +104,36 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
         if(intersects)
         {
             // Flag this light in this cell and increase the light count
-            _RaytracingLightClusterRW[cellIndex * cellDataSize + 4 + currentLightCount] = currentLight.lightIndex;
+			_RaytracingLightClusterRW[cellIndex * cellDataSize + CELL_META_DATA_SIZE + currentLightCount] = currentLight.lightIndex;
             currentLightCount++;
 
             // Also increase the matching light count
-            if (currentLight.lightType == 0)
-            {
-                punctualLightCount++;
-            }
-            else if (currentLight.lightType == 1)
-            {
-                areaLightCount++;
-            }
-            else
-            {
-                envLightCount++;
-            }
-        }
-    }
+			if (currentLight.lightType == 0)
+			{
+				punctualLightCount++;
+			}
+			else if (currentLight.lightType == 1)
+			{
+				areaLightCount++;
+			}
+			else if (currentLight.lightType == 2)
+			{
+				envLightCount++;
+			}
+			else
+			{
+				decalCount++;
+			}
+		}
+	}
 
     // Set the light count for the cell
-    _RaytracingLightClusterRW[cellIndex * cellDataSize] = currentLightCount;
-    _RaytracingLightClusterRW[cellIndex * cellDataSize + 1] = punctualLightCount;
-    _RaytracingLightClusterRW[cellIndex * cellDataSize + 2] = punctualLightCount + areaLightCount;
-    _RaytracingLightClusterRW[cellIndex * cellDataSize + 3] = areaLightCount + punctualLightCount + envLightCount;
+	_RaytracingLightClusterRW[cellIndex * cellDataSize + CELL_META_DATA_TOTAL_INDEX]          = currentLightCount;
+	_RaytracingLightClusterRW[cellIndex * cellDataSize + CELL_META_DATA_PUNCTUAL_END_INDEX]   = punctualLightCount;
+	_RaytracingLightClusterRW[cellIndex * cellDataSize + CELL_META_DATA_AREA_END_INDEX]       = punctualLightCount + areaLightCount;
+	_RaytracingLightClusterRW[cellIndex * cellDataSize + CELL_META_DATA_ENV_END_INDEX]        = punctualLightCount + areaLightCount + envLightCount;
+	_RaytracingLightClusterRW[cellIndex * cellDataSize + CELL_META_DATA_DECAL_END_INDEX]      = punctualLightCount + areaLightCount + envLightCount + decalCount;
+        
 }
 
 

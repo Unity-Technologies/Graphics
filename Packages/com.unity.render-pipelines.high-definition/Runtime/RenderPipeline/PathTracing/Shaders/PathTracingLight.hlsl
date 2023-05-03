@@ -142,8 +142,8 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = REN
         if (PointInsideCluster(position))
         {
             list.cellIndex = GetClusterCellIndex(position);
-            localPointCount = GetPunctualLightClusterCellCount(list.cellIndex);
-            localCount = GetAreaLightClusterCellCount(list.cellIndex);
+            localPointCount = GetPunctualLightEndIndexInClusterCell(list.cellIndex);
+            localCount = GetAreaLightEndIndexInClusterCell(list.cellIndex);
         }
         else
         {

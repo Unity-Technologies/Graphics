@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the light cluster buffer at the right size
             m_NumLightsPerCell = renderPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell;
-            int bufferSize = 64 * 64 * 32 * (renderPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell + 4);
+            int bufferSize = 64 * 64 * 32 * (m_NumLightsPerCell + 5); // This +5 is to account for the meta data in each cluster cell.
             ResizeClusterBuffer(bufferSize);
 
             // Create the material required for debug
@@ -242,6 +242,9 @@ namespace UnityEngine.Rendering.HighDefinition
         void BuildGPULightVolumes(HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             int totalNumLights = rayTracingLights.lightCount;
+            // Also count decals to be added to the cluster 
+            int decalCount = GetDecalCount(hdCamera);
+            totalNumLights += decalCount;
 
             // Make sure the light volume buffer has the right size
             if (m_LightVolumesCPUArray == null || totalNumLights != m_LightVolumesCPUArray.Length)
@@ -331,49 +334,77 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int indexOffset = realIndex;
 
-            // Set Env Light volume data to the CPU buffer
-            for (int lightIdx = 0; lightIdx < rayTracingLights.reflectionProbeArray.Count; ++lightIdx)
+            // Set Env Light volume data to the CPU buffer 
+            if(!hdCamera.IsPathTracingEnabled()) // We don't use these in path tracing 
             {
-                HDProbe currentEnvLight = rayTracingLights.reflectionProbeArray[lightIdx];
-
-
-                if (currentEnvLight != null)
+                for (int lightIdx = 0; lightIdx < rayTracingLights.reflectionProbeArray.Count; ++lightIdx)
                 {
-                    // If the reflection probe is disabled, we should not be adding it
-                    if (!currentEnvLight.enabled)
-                        continue;
+                    HDProbe currentEnvLight = rayTracingLights.reflectionProbeArray[lightIdx];
 
-                    // If the reflection probe is not baked yet.
-                    if (!currentEnvLight.HasValidRenderedData())
-                        continue;
 
-                    // Compute the camera relative position
-                    Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    if (currentEnvLight != null)
                     {
-                        probePositionRWS -= hdCamera.camera.transform.position;
-                    }
+                        // If the reflection probe is disabled, we should not be adding it
+                        if (!currentEnvLight.enabled)
+                            continue;
 
-                    if (currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
-                    {
-                        m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 0;
-                        m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius);
-                        m_LightVolumesCPUArray[lightIdx + indexOffset].position = probePositionRWS;
+                        // If the reflection probe is not baked yet.
+                        if (!currentEnvLight.HasValidRenderedData())
+                            continue;
+
+                        // Compute the camera relative position
+                        Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
+                        if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        {
+                            probePositionRWS -= hdCamera.camera.transform.position;
+                        }
+
+                        if (currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
+                        {
+                            m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 0;
+                            m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius);
+                            m_LightVolumesCPUArray[lightIdx + indexOffset].position = probePositionRWS;
+                        }
+                        else
+                        {
+                            m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 1;
+                            m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.boxSize.x / 2.0f, currentEnvLight.influenceVolume.boxSize.y / 2.0f, currentEnvLight.influenceVolume.boxSize.z / 2.0f);
+                            m_LightVolumesCPUArray[lightIdx + indexOffset].position = probePositionRWS;
+                        }
+                        m_LightVolumesCPUArray[lightIdx + indexOffset].active = (currentEnvLight.gameObject.activeInHierarchy ? 1 : 0);
+                        m_LightVolumesCPUArray[lightIdx + indexOffset].lightIndex = (uint)lightIdx;
+                        m_LightVolumesCPUArray[lightIdx + indexOffset].lightType = 2;
+                        envLightCount++;
+                        realIndex++;
                     }
-                    else
-                    {
-                        m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 1;
-                        m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.boxSize.x / 2.0f, currentEnvLight.influenceVolume.boxSize.y / 2.0f, currentEnvLight.influenceVolume.boxSize.z / 2.0f);
-                        m_LightVolumesCPUArray[lightIdx + indexOffset].position = probePositionRWS;
-                    }
-                    m_LightVolumesCPUArray[lightIdx + indexOffset].active = (currentEnvLight.gameObject.activeInHierarchy ? 1 : 0);
-                    m_LightVolumesCPUArray[lightIdx + indexOffset].lightIndex = (uint)lightIdx;
-                    m_LightVolumesCPUArray[lightIdx + indexOffset].lightType = 2;
-                    envLightCount++;
                 }
             }
 
-            totalLightCount = punctualLightCount + areaLightCount + envLightCount;
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            {
+                indexOffset = realIndex;
+
+                // Add Decal data to m_lightVolumesCPUArray
+                for (int decalIdx = 0; decalIdx < decalCount; ++decalIdx)
+                {
+                    // Decal projectors are box shaped 
+                    m_LightVolumesCPUArray[decalIdx + indexOffset].shape = 1;
+
+                    // Compute the camera relative position
+                    Vector3 decalPositionRWS = DecalSystem.instance.GetClusteredDecalPosition(decalIdx);
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        decalPositionRWS -= hdCamera.camera.transform.position;
+                    }
+                    m_LightVolumesCPUArray[decalIdx + indexOffset].position = decalPositionRWS;
+                    m_LightVolumesCPUArray[decalIdx + indexOffset].range = DecalSystem.instance.GetClusteredDecalRange(decalIdx);
+                    m_LightVolumesCPUArray[decalIdx + indexOffset].active = 1;
+                    m_LightVolumesCPUArray[decalIdx + indexOffset].lightIndex = (uint)decalIdx;
+                    m_LightVolumesCPUArray[decalIdx + indexOffset].lightType = 3;
+                }
+            }
+
+            totalLightCount = punctualLightCount + areaLightCount + envLightCount + decalCount;
 
             // Push the light volumes to the GPU
             m_LightVolumeGPUArray.SetData(m_LightVolumesCPUArray);
@@ -789,6 +820,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_NumLightsPerCell;
         }
 
+        public int GetDecalCount(HDCamera hdCamera)
+        {
+            if(hdCamera.IsPathTracingEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                return DecalSystem.m_DecalDatasCount;
+            return 0;
+        }
+
         void InvalidateCluster()
         {
             // Invalidate the cluster's bounds so that we never access the buffer (the buffer's access in hlsl is surrounded by position testing)
@@ -802,7 +840,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void CullForRayTracing(HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // If there is no lights to process or no environment not the shader is missing
-            if (rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
+            if (rayTracingLights.lightCount + GetDecalCount(hdCamera) == 0 || !m_RenderPipeline.GetRayTracingState())
             {
                 InvalidateCluster();
                 return;
@@ -825,7 +863,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void BuildLightClusterBuffer(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // If there is no lights to process or no environment not the shader is missing
-            if (totalLightCount == 0 || rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
+            if (totalLightCount == 0 || rayTracingLights.lightCount + GetDecalCount(hdCamera) == 0 || !m_RenderPipeline.GetRayTracingState())
                 return;
 
             // Cull the lights within the evaluated cluster range

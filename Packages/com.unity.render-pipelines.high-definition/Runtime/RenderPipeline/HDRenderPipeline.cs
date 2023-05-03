@@ -2394,18 +2394,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetHDRState(hdCamera);
 
-            if (m_RayTracingSupported)
-            {
-                // This call need to happen once per camera
-                // TODO: This can be wasteful for "compatible" cameras.
-                // We need to determine the minimum set of feature used by all the camera and build the minimum number of acceleration structures.
-                using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructure)))
-                {
-                    BuildRayTracingAccelerationStructure(hdCamera);
-                }
-                CullForRayTracing(cmd, hdCamera);
-            }
-
 
             using (ListPool<RTHandle>.Get(out var aovBuffers))
             using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
@@ -2435,11 +2423,29 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // TODO: update singleton with DecalCullResults
                         DecalSystem.instance.CurrentCamera = hdCamera.camera; // Singletons are extremely dangerous...
+                        if (hdCamera.IsPathTracingEnabled())
+                            DecalSystem.m_CullingMode = DecalSystem.DecalCullingMode.WorldspaceBasedCulling;
+                        else
+                            DecalSystem.m_CullingMode = DecalSystem.DecalCullingMode.ViewspaceBasedCulling;
                         DecalSystem.instance.LoadCullResults(decalCullingResults);
                         DecalSystem.instance.UpdateCachedMaterialData(); // textures, alpha or fade distances could've changed
                         DecalSystem.instance.CreateDrawData();          // prepare data is separate from draw
                         DecalSystem.instance.UpdateTextureAtlas(cmd);   // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
                     }
+                }
+
+                if (m_RayTracingSupported)
+                {
+                    // This call need to happen once per camera
+                    // TODO: This can be wasteful for "compatible" cameras.
+                    // We need to determine the minimum set of feature used by all the camera and build the minimum number of acceleration structures.
+                    using (new ProfilingScope(ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructure)))
+                    {
+                        BuildRayTracingAccelerationStructure(hdCamera);
+                    }
+                    // The below builds the ray tracing light cluster.
+                    // In order for Decals to be correctly included in the light cluster, this call needs to happen *after* the above calls to the DecalSystem, specifically CreateDrawData()
+                    CullForRayTracing(cmd, hdCamera);
                 }
 
                 if (m_DebugDisplaySettings.IsDebugDisplayRemovePostprocess())

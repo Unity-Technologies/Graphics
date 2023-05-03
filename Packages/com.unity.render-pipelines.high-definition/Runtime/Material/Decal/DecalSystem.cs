@@ -285,6 +285,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static public Mesh m_DecalMesh = null;
 
+        // These flags allow one to have the *clustered* decals be culled differently.
+        // The ViewspaceBasedCulling mode uploads only those clustered decals that are in the view frustrum
+        // The WorldspaceBasedCulling uploads clustered decals more generously. This is useful for algorithms such as path tracing that require decals to be available outside of the view frustrum.
+        // Again, it only impacts the behaviour for the clustered decals; the DBuffer rendering stays the same regardless of the mode.
+        public enum DecalCullingMode
+        {
+            ViewspaceBasedCulling = 0,
+            WorldspaceBasedCulling = 1
+        }
+
+        static public DecalCullingMode m_CullingMode = DecalCullingMode.ViewspaceBasedCulling;
+
         // clustered draw data
         static public DecalData[] m_DecalDatas = new DecalData[kDecalBlockSize];
         static public SFiniteLightBound[] m_Bounds = new SFiniteLightBound[kDecalBlockSize];
@@ -294,6 +306,11 @@ namespace UnityEngine.Rendering.HighDefinition
         static public TextureScaleBias[] m_MaskTextureScaleBias = new TextureScaleBias[kDecalBlockSize];
         static public Vector4[] m_BaseColor = new Vector4[kDecalBlockSize];
 
+        // Clustered decal world space info -- useful when m_CullingMode is set to WorldspaceBasedCulling
+        // This data is cached and can be queried for algorithms doing their own clustering (e.g. path tracing). 
+        static public Vector3[] m_DecalDatasWSPositions = new Vector3[kDecalBlockSize];
+        static public Vector3[] m_DecalDatasWSRanges = new Vector3[kDecalBlockSize];
+ 
         static public int m_DecalDatasCount = 0;
 
         static public float[] m_BoundingDistances = new float[1];
@@ -849,18 +866,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ((m_Material != null) && (m_NumResults > 0));
             }
 
+            private Matrix4x4 GetEncodedNormalToWorldMatrix(Matrix4x4 original, int DecalIndex, float cullDistance, float distanceToDecal)
+            {
+                Matrix4x4 result = original;
+                float fadeFactor = m_CachedFadeFactor[DecalIndex] * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[DecalIndex].y)), 0.0f, 1.0f);
+                // NormalToWorldBatch is a Matrix4x4x but is a Rotation matrix so bottom row and last column can be used for other data to save space
+                result.m03 = fadeFactor * m_Blend;
+                result.m13 = m_CachedAngleFade[DecalIndex].x;
+                result.m23 = m_CachedAngleFade[DecalIndex].y;
+                result.SetRow(3, m_CachedUVScaleBias[DecalIndex]);
+                return result;
+            }
+
             public void CreateDrawData(IntScalableSetting transparentTextureResolution)
             {
-                int instanceCount = 0;
-                int batchCount = 0;
-                m_InstanceCount = 0;
-                Matrix4x4[] decalToWorldBatch = null;
-                Matrix4x4[] normalToWorldBatch = null;
-                float[] decalLayerMaskBatch = null;
-                bool anyAffectTransparency = false;
-                int maxTextureSize = 0;
 
-                AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, ref decalLayerMaskBatch, batchCount);
+                // Check the culling mode 
+                bool viewspaceBasedCulling = (DecalSystem.m_CullingMode == DecalCullingMode.ViewspaceBasedCulling);
+
+                int maxTextureSize = 0;
 
                 NativeArray<Matrix4x4> cachedDecalToWorld = m_DecalToWorlds.Reinterpret<Matrix4x4>();
                 NativeArray<Matrix4x4> cachedNormalToWorld = m_NormalToWorlds.Reinterpret<Matrix4x4>();
@@ -871,66 +895,91 @@ namespace UnityEngine.Rendering.HighDefinition
                 int cullingMask = camera.cullingMask;
                 ulong sceneCullingMask = HDUtils.GetSceneCullingMaskFromCamera(camera);
 
-                for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
+                /* Prepare data for the DBuffer drawing */ 
+                if(viewspaceBasedCulling)
                 {
-                    int decalIndex = m_ResultIndices[resultIndex];
-                    int decalMask = 1 << m_CachedLayerMask[decalIndex];
-                    ulong decalSceneCullingMask = m_CachedSceneLayerMask[decalIndex];
-                    bool sceneViewCullingMaskTest = true;
-#if UNITY_EDITOR
-                    // In the player, both masks will be zero. Besides we don't want to pay the cost in this case.
-                    sceneViewCullingMaskTest = (sceneCullingMask & decalSceneCullingMask) != 0;
-#endif
-                    if ((cullingMask & decalMask) != 0 && sceneViewCullingMaskTest)
+                    int instanceCount = 0;
+                    int batchCount = 0;
+                    m_InstanceCount = 0;
+
+                    Matrix4x4[] decalToWorldBatch = null;
+                    Matrix4x4[] normalToWorldBatch = null;
+                    float[] decalLayerMaskBatch = null;
+
+                    AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, ref decalLayerMaskBatch, batchCount);
+
+                    for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
                     {
-                        // do additional culling based on individual decal draw distances
-                        float distanceToDecal = (cameraPos - m_CachedBoundingSpheres[decalIndex].position).magnitude;
-                        float cullDistance = m_CachedDrawDistances[decalIndex].x + m_CachedBoundingSpheres[decalIndex].radius;
-                        if (distanceToDecal < cullDistance)
+                        int decalIndex = m_ResultIndices[resultIndex];
+                        int decalMask = 1 << m_CachedLayerMask[decalIndex];
+                        ulong decalSceneCullingMask = m_CachedSceneLayerMask[decalIndex];
+                        bool sceneViewCullingMaskTest = true;
+#if UNITY_EDITOR    
+                        // In the player, both masks will be zero. Besides we don't want to pay the cost in this case.
+                        sceneViewCullingMaskTest = (sceneCullingMask & decalSceneCullingMask) != 0;
+#endif
+                        if ((cullingMask & decalMask) != 0 && sceneViewCullingMaskTest)
                         {
-                            // d-buffer data
-                            decalToWorldBatch[instanceCount] = cachedDecalToWorld[decalIndex];
-                            normalToWorldBatch[instanceCount] = cachedNormalToWorld[decalIndex];
-                            float fadeFactor = m_CachedFadeFactor[decalIndex] * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y)), 0.0f, 1.0f);
-                            // NormalToWorldBatchis a Matrix4x4x but is a Rotation matrix so bottom row and last column can be used for other data to save space
-                            normalToWorldBatch[instanceCount].m03 = fadeFactor * m_Blend;
-                            normalToWorldBatch[instanceCount].m13 = m_CachedAngleFade[decalIndex].x;
-                            normalToWorldBatch[instanceCount].m23 = m_CachedAngleFade[decalIndex].y;
-                            normalToWorldBatch[instanceCount].SetRow(3, m_CachedUVScaleBias[decalIndex]);
-                            decalLayerMaskBatch[instanceCount] = (int)m_CachedDecalLayerMask[decalIndex];
-
-                            // clustered forward data
-                            if (m_CachedAffectsTransparency[decalIndex])
+                            // do additional culling based on individual decal draw distances
+                            float distanceToDecal = (cameraPos - m_CachedBoundingSpheres[decalIndex].position).magnitude;
+                            float cullDistance = m_CachedDrawDistances[decalIndex].x + m_CachedBoundingSpheres[decalIndex].radius;
+                            if (distanceToDecal < cullDistance)
                             {
-                                m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
-                                m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
-                                m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
-                                m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
-                                m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
-                                m_DecalDatas[m_DecalDatasCount].remappingMetallic = m_RemappingMetallic;
-                                m_DecalDatas[m_DecalDatasCount].scalingBlueMaskMap = m_ScalingBlueMaskMap;
-                                m_DecalDatas[m_DecalDatasCount].sampleNormalAlpha = m_SampleNormalAlpha;
-                                m_DecalDatas[m_DecalDatasCount].decalLayerMask = (uint)m_CachedDecalLayerMask[decalIndex];
+                                // d-buffer data
+                                decalToWorldBatch[instanceCount] = cachedDecalToWorld[decalIndex];
+                                normalToWorldBatch[instanceCount] = GetEncodedNormalToWorldMatrix(cachedNormalToWorld[decalIndex], decalIndex, cullDistance, distanceToDecal);
+                                decalLayerMaskBatch[instanceCount] = (int)m_CachedDecalLayerMask[decalIndex];
 
-                                // we have not allocated the textures in atlas yet, so only store references to them
-                                m_DiffuseTextureScaleBias[m_DecalDatasCount] = m_Diffuse;
-                                m_NormalTextureScaleBias[m_DecalDatasCount] = m_Normal;
-                                m_MaskTextureScaleBias[m_DecalDatasCount] = m_Mask;
-
-                                GetDecalVolumeDataAndBound(decalToWorldBatch[instanceCount], worldToView);
-                                m_DecalDatasCount++;
-                                anyAffectTransparency = true;
-                            }
-
-                            instanceCount++;
-                            m_InstanceCount++; // total not culled by distance or cull mask
-                            if (instanceCount == kDrawIndexedBatchSize)
-                            {
-                                instanceCount = 0;
-                                batchCount++;
-                                AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, ref decalLayerMaskBatch, batchCount);
+                                instanceCount++;
+                                m_InstanceCount++; // total not culled by distance or cull mask
+                                if (instanceCount == kDrawIndexedBatchSize)
+                                {
+                                    instanceCount = 0;
+                                    batchCount++;
+                                    AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, ref decalLayerMaskBatch, batchCount);
+                                }
                             }
                         }
+                    }
+                }
+
+                /* Prepare data for clustered decals */ 
+                // Depending on the culling mode, we consider the decals that survived culling or all of them.
+                int decalsToConsider = viewspaceBasedCulling ? m_NumResults : m_DecalsCount;
+
+                bool anyClusteredDecalsPresent = false;
+                for (int resultIndex = 0; resultIndex < decalsToConsider; resultIndex++)
+                {
+
+                    int decalIndex = viewspaceBasedCulling ? m_ResultIndices[resultIndex] : resultIndex;
+                    // Determine data to upload for clustered decal
+                    if (m_CachedAffectsTransparency[decalIndex] || !viewspaceBasedCulling) // in viewspace based mode, only cluster decals that affect transparent. In worldspace mode, upload all
+                    {
+                        float distanceToDecal = (cameraPos - m_CachedBoundingSpheres[decalIndex].position).magnitude;
+                        float cullDistance = m_CachedDrawDistances[decalIndex].x + m_CachedBoundingSpheres[decalIndex].radius;
+
+                        m_DecalDatas[m_DecalDatasCount].worldToDecal = cachedDecalToWorld[decalIndex].inverse;
+                        m_DecalDatas[m_DecalDatasCount].normalToWorld = GetEncodedNormalToWorldMatrix(cachedNormalToWorld[decalIndex], decalIndex, cullDistance, distanceToDecal);
+                        m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
+                        m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
+                        m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
+                        m_DecalDatas[m_DecalDatasCount].remappingMetallic = m_RemappingMetallic;
+                        m_DecalDatas[m_DecalDatasCount].scalingBlueMaskMap = m_ScalingBlueMaskMap;
+                        m_DecalDatas[m_DecalDatasCount].sampleNormalAlpha = m_SampleNormalAlpha;
+                        m_DecalDatas[m_DecalDatasCount].decalLayerMask = (uint)m_CachedDecalLayerMask[decalIndex];
+
+                        // we have not allocated the textures in atlas yet, so only store references to them
+                        m_DiffuseTextureScaleBias[m_DecalDatasCount] = m_Diffuse;
+                        m_NormalTextureScaleBias[m_DecalDatasCount] = m_Normal;
+                        m_MaskTextureScaleBias[m_DecalDatasCount] = m_Mask;
+
+                        m_DecalDatasWSPositions[m_DecalDatasCount] = m_Positions[decalIndex];
+                        Unity.Mathematics.float4x4 sizeOffset = m_ResolvedSizeOffsets[decalIndex];
+                        m_DecalDatasWSRanges[m_DecalDatasCount] = new Vector3(sizeOffset.c0.x, sizeOffset.c1.y, sizeOffset.c2.z);
+
+                        GetDecalVolumeDataAndBound(cachedDecalToWorld[decalIndex], worldToView);
+                        m_DecalDatasCount++;
+                        anyClusteredDecalsPresent = true;
                     }
 
                     // Max texture size is independent of the culling
@@ -938,8 +987,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         maxTextureSize = Math.Max(m_CachedShaderGraphTextureSize[decalIndex].Value(transparentTextureResolution), maxTextureSize);
                 }
 
-                // only add if any projectors in this decal set affect transparency, doesn't actually allocate textures in the atlas yet, this is because we want all the textures in the list so we can optimize the packing
-                if (anyAffectTransparency)
+                // only add if any projectors in this decal set will be clustered, doesn't actually allocate textures in the atlas yet, this is because we want all the textures in the list so we can optimize the packing
+                if (anyClusteredDecalsPresent)
                 {
                     AddToTextureList(ref instance.m_TextureList);
                     if (!m_IsHDRenderPipelineDecal)
@@ -1160,6 +1209,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetupMipStreamingSettings(material.GetTexture("_MaskMap"), allMips);
                 }
             }
+        }
+
+        public Vector3 GetClusteredDecalPosition(int clusteredDecalIdx)
+        {
+            return m_DecalDatasWSPositions[clusteredDecalIdx];
+        }
+
+        public Vector3 GetClusteredDecalRange(int clusteredDecalIdx)
+        {
+            return m_DecalDatasWSRanges[clusteredDecalIdx];
         }
 
         // Add a decal material to the decal set
@@ -1491,11 +1550,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void CreateDrawData()
         {
+            // Reset number of clustered decals 
             m_DecalDatasCount = 0;
-            // reallocate if needed
-            if (m_DecalsVisibleThisFrame > m_DecalDatas.Length)
+            // Count the current maximum number of decals to cluster, to allow reallocation if needed
+            int maxDecalsToCluster = m_DecalsVisibleThisFrame;
+            if(m_CullingMode == DecalCullingMode.WorldspaceBasedCulling)
             {
-                int newDecalDatasSize = ((m_DecalsVisibleThisFrame + kDecalBlockSize - 1) / kDecalBlockSize) * kDecalBlockSize;
+                maxDecalsToCluster = 0;
+                foreach (var pair in m_DecalSets)
+                {
+                    maxDecalsToCluster += pair.Value.Count;
+                }
+            }
+
+            // reallocate if needed
+            if (maxDecalsToCluster > m_DecalDatas.Length)
+            {
+                int newDecalDatasSize = ((maxDecalsToCluster + kDecalBlockSize - 1) / kDecalBlockSize) * kDecalBlockSize;
                 m_DecalDatas = new DecalData[newDecalDatasSize];
                 m_Bounds = new SFiniteLightBound[newDecalDatasSize];
                 m_LightVolumes = new LightVolumeData[newDecalDatasSize];
@@ -1503,6 +1574,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_NormalTextureScaleBias = new TextureScaleBias[newDecalDatasSize];
                 m_MaskTextureScaleBias = new TextureScaleBias[newDecalDatasSize];
                 m_BaseColor = new Vector4[newDecalDatasSize];
+                m_DecalDatasWSPositions = new Vector3[newDecalDatasSize];
+                m_DecalDatasWSRanges = new Vector3[newDecalDatasSize];
             }
 
             // add any visible decals according to material draw order, avoid using List.Sort() because it uses quicksort, which is an unstable sort.
@@ -1511,7 +1584,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 pair.Value.UpdateCachedDrawOrder();
 
-                if (pair.Value.IsDrawn())
+                if (pair.Value.IsDrawn() || (m_CullingMode == DecalCullingMode.WorldspaceBasedCulling))
                 {
                     int insertIndex = 0;
                     while ((insertIndex < m_DecalSetsRenderList.Count) && (pair.Value.DrawOrder > m_DecalSetsRenderList[insertIndex].DrawOrder))

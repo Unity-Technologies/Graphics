@@ -1184,6 +1184,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
         public const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
         public const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";
+        public const string kRaytracingLightCluster = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl";
 
         // Postgraph Raytracing
         public const string kPassRaytracingIndirect = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl";
@@ -1417,6 +1418,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static KeywordDescriptor DecalsRayTracing = new KeywordDescriptor()
+        {
+            displayName = "Decals",
+            referenceName = "DECALS",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "3RT", referenceName = "3RT" },
+                new KeywordEntry() { displayName = "4RT", referenceName = "4RT" },
+            },
+            stages = KeywordShaderStage.RayTracing,
+        };
+
         public static KeywordDescriptor ProbeVolumes = new KeywordDescriptor()
         {
             displayName = "ProbeVolumes",
@@ -1464,6 +1481,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "Clustered", referenceName = "CLUSTERED_LIGHTLIST" },
             },
             stages = KeywordShaderStage.Fragment,
+        };
+
+        public static KeywordDescriptor DisableLightloopTileAndCluster = new KeywordDescriptor()
+        {
+            displayName = "Disable Lightloop Tile and Cluster",
+            referenceName = "LIGHTLOOP_DISABLE_TILE_AND_CLUSTER",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor PathTracingclusteredDecals = new KeywordDescriptor()
+        {
+            displayName = "Cluster decals in the HDRP Path Tracer",
+            referenceName = "PATH_TRACING_CLUSTERED_DECALS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
         };
 
         public static KeywordDescriptor Shadow = new KeywordDescriptor()
