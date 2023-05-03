@@ -1077,7 +1077,7 @@ namespace UnityEngine.Rendering.Universal
                 // If there is any custom render pass renders to opaque pass' target before opaque pass,
                 // we can't clear color as it contains the valid rendering output.
                 bool hasPassesBeforeOpaque = activeRenderPassQueue.Find(x => (x.renderPassEvent <= RenderPassEvent.BeforeRenderingOpaques) && !x.overrideCameraTarget) != null;
-                ClearFlag opaqueForwardPassClearFlag = (hasPassesBeforeOpaque || cameraData.renderType != CameraRenderType.Base)
+                ClearFlag opaqueForwardPassClearFlag = (hasPassesBeforeOpaque || cameraData.renderType != CameraRenderType.Base || camera.clearFlags == CameraClearFlags.Nothing)
                                                     ? ClearFlag.None
                                                     : ClearFlag.Color;
 #if ENABLE_VR && ENABLE_XR_MODULE

@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.Universal
             useRenderPassEnabled = false;
 
             SetupMotionVectorGlobalMatrix(renderingData.commandBuffer, ref cameraData);
-            
+
             SetupRenderGraphLights(renderGraph, ref renderingData);
 
             SetupRenderingLayers(ref renderingData);
@@ -532,12 +532,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnMainRendering(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            RTClearFlags clearFlags = RTClearFlags.None;
-
-            if (renderingData.cameraData.renderType == CameraRenderType.Base)
-                clearFlags = RTClearFlags.All;
-            else if (renderingData.cameraData.clearDepth)
-                clearFlags = RTClearFlags.Depth;
+            RTClearFlags clearFlags = (RTClearFlags) GetCameraClearFlag(ref renderingData.cameraData);
 
             if (clearFlags != RTClearFlags.None)
                 ClearTargetsPass.Render(renderGraph, activeColorTexture, activeDepthTexture, clearFlags, renderingData.cameraData.backgroundColor);
@@ -586,7 +581,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 TextureHandle depth = resources.GetTexture(UniversalResource.CameraDepth);
                 TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
-                m_PrimedDepthCopyPass.Render(renderGraph, cameraDepthTexture, depth, ref renderingData);
+                m_PrimedDepthCopyPass.Render(renderGraph, cameraDepthTexture, depth, ref renderingData, true);
             }
 
             if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
@@ -622,7 +617,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_GBufferPass.Render(renderGraph, activeColorTexture, activeDepthTexture, ref renderingData, resources);
                 TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
-                m_GBufferCopyDepthPass.Render(renderGraph, cameraDepthTexture, activeDepthTexture, ref renderingData, "GBuffer Depth Copy");
+                m_GBufferCopyDepthPass.Render(renderGraph, cameraDepthTexture, activeDepthTexture, ref renderingData, true, "GBuffer Depth Copy");
 
                 RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights);
 
@@ -668,7 +663,7 @@ namespace UnityEngine.Rendering.Universal
             if (requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
             {
                 TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
-                m_CopyDepthPass.Render(renderGraph, cameraDepthTexture, activeDepthTexture, ref renderingData);
+                m_CopyDepthPass.Render(renderGraph, cameraDepthTexture, activeDepthTexture, ref renderingData, true);
             }
 
             if (requiresColorCopyPass)
@@ -708,7 +703,7 @@ namespace UnityEngine.Rendering.Universal
             if (requiresDepthCopyPass && m_CopyDepthMode == CopyDepthMode.AfterTransparents)
             {
                 TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
-                m_CopyDepthPass.Render(renderGraph, cameraDepthTexture, activeDepthTexture, ref renderingData);
+                m_CopyDepthPass.Render(renderGraph, cameraDepthTexture, activeDepthTexture, ref renderingData, true);
             }
 
             // TODO: Postprocess pass should be able configure its render pass inputs per camera per frame (settings) BEFORE building any of the graph
@@ -818,6 +813,12 @@ namespace UnityEngine.Rendering.Universal
 
                 bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
                 m_PostProcessPasses.postProcessPass.RenderPostProcessingRenderGraph(renderGraph, in activeColor, in internalColorLut, in overlayUITexture, in target, ref renderingData, applyFinalPostProcessing, resolveToDebugScreen, doSRGBEncoding);
+
+                if (isTargetBackbuffer)
+                {
+                    m_ActiveColorID = UniversalResource.BackBufferColor;
+                    m_ActiveDepthID = UniversalResource.BackBufferDepth;
+                }
             }
 
             if (applyFinalPostProcessing)
@@ -835,6 +836,9 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 m_PostProcessPasses.finalPostProcessPass.RenderFinalPassRenderGraph(renderGraph, in cameraColor, in overlayUITexture, in target, ref renderingData, needsColorEncoding);
+
+                m_ActiveColorID = UniversalResource.BackBufferColor;
+                m_ActiveDepthID = UniversalResource.BackBufferDepth;
             }
 
             cameraTargetResolved =
@@ -857,6 +861,9 @@ namespace UnityEngine.Rendering.Universal
                     debugHandlerColorTarget = target;
                     target = resources.GetTexture(UniversalResource.DebugScreenTexture);
                 }
+
+                // make sure we are accessing the proper camera color in case it was replaced by injected passes
+                cameraColor = resources.GetTexture(UniversalResource.CameraColor);
 
                 m_FinalBlitPass.Render(renderGraph, ref renderingData, cameraColor, target, overlayUITexture);
                 m_ActiveColorID = UniversalResource.BackBufferColor;
@@ -896,7 +903,7 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
                 m_FinalDepthCopyPass.CopyToDepth = true;
                 m_FinalDepthCopyPass.MssaSamples = 0;
-                m_FinalDepthCopyPass.Render(renderGraph, activeDepthTexture, cameraDepthTexture, ref renderingData, "Final Depth Copy");
+                m_FinalDepthCopyPass.Render(renderGraph, activeDepthTexture, cameraDepthTexture, ref renderingData, false, "Final Depth Copy");
             }
 #endif
             if (drawGizmos)
@@ -1097,7 +1104,14 @@ namespace UnityEngine.Rendering.Universal
             internal int nameID;
         }
 
-        internal static void SetGlobalTexture(RenderGraph graph, string name, TextureHandle texture, string passName = "Set Global Texture")
+        /// <summary>
+        /// Records a RenderGraph pass that binds a global texture
+        /// </summary>
+        /// <param name="graph"></param>
+        /// <param name="name"></param>
+        /// <param name="texture"></param>
+        /// <param name="passName"></param>
+        public static void SetGlobalTexture(RenderGraph graph, string name, TextureHandle texture, string passName = "Set Global Texture")
         {
             using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler))
             {
@@ -1114,7 +1128,14 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void SetGlobalTexture(RenderGraph graph, int nameID, TextureHandle texture, string passName = "Set Global Texture")
+        /// <summary>
+        /// Records a RenderGraph pass that binds a global texture
+        /// </summary>
+        /// <param name="graph"></param>
+        /// <param name="nameID"></param>
+        /// <param name="texture"></param>
+        /// <param name="passName"></param>
+        public static void SetGlobalTexture(RenderGraph graph, int nameID, TextureHandle texture, string passName = "Set Global Texture")
         {
             using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler))
             {
