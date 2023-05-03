@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
                 {
                     var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
-                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation(defaultVolumeProfileAsset, defaultValuesAsset);
+                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
                     if (!confirmed)
                         serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
                 }
@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     Undo.RecordObject(globalSettings, "Set Global Settings Volume Profile");
                     globalSettings.volumeProfile = volumeProfile;
                     var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
-                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(volumeProfile, defaultValuesAsset);
+                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(volumeProfile, defaultValuesAsset);
                     EditorUtility.SetDirty(globalSettings);
                 });
         }

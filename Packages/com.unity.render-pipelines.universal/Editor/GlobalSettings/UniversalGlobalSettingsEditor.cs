@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal
             if (target is UniversalRenderPipelineGlobalSettings settings &&
                 settings.volumeProfile != VolumeManager.instance.globalDefaultProfile)
             {
-                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(settings.volumeProfile);
+                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(settings.volumeProfile);
             }
         }
 

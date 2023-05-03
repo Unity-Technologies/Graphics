@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.Universal
 
                 if (defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
                 {
-                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation(defaultVolumeProfileAsset);
+                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<UniversalRenderPipeline>(defaultVolumeProfileAsset);
                     if (!confirmed)
                         serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
                 }
@@ -136,7 +136,7 @@ namespace UnityEditor.Rendering.Universal
                             serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings;
                         Undo.RecordObject(globalSettings, "Set Global Settings Volume Profile");
                         globalSettings.volumeProfile = volumeProfile;
-                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(volumeProfile);
+                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(volumeProfile);
                         EditorUtility.SetDirty(globalSettings);
                     });
             }

@@ -68,16 +68,22 @@ namespace UnityEditor.Rendering
         /// <param name="globalDefaultVolumeProfile">VolumeProfile asset assigned in pipeline global settings.</param>
         /// <param name="defaultValueSource">An optional VolumeProfile asset containing default values to use for
         /// any components that are added to <see cref="globalDefaultVolumeProfile"/>.</param>
+        /// <typeparam name="TRenderPipeline">The type of RenderPipeline that this VolumeProfile is used for. If it is
+        /// not the active pipeline, the function does nothing.</typeparam>
         /// <returns>Whether the operation was confirmed</returns>
-        public static bool UpdateGlobalDefaultVolumeProfileWithConfirmation(VolumeProfile globalDefaultVolumeProfile, VolumeProfile defaultValueSource = null)
+        public static bool UpdateGlobalDefaultVolumeProfileWithConfirmation<TRenderPipeline>(VolumeProfile globalDefaultVolumeProfile, VolumeProfile defaultValueSource = null)
+            where TRenderPipeline : RenderPipeline
         {
+            if (RenderPipelineManager.currentPipeline is not TRenderPipeline)
+                return false;
+
             int numComponentsMissingFromProfile = GetTypesMissingFromDefaultProfile(globalDefaultVolumeProfile).Count;
             if (numComponentsMissingFromProfile == 0 ||
                 EditorUtility.DisplayDialog(
                     "New Default Volume Profile",
                     $"Assigning {globalDefaultVolumeProfile.name} as the Default Volume Profile will add {numComponentsMissingFromProfile} Volume Components to it. Are you sure?", "Yes", "Cancel"))
             {
-                UpdateGlobalDefaultVolumeProfile(globalDefaultVolumeProfile, defaultValueSource);
+                UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(globalDefaultVolumeProfile, defaultValueSource);
                 return true;
             }
 
@@ -92,8 +98,14 @@ namespace UnityEditor.Rendering
         /// <param name="globalDefaultVolumeProfile">VolumeProfile asset assigned in pipeline global settings.</param>
         /// <param name="defaultValueSource">An optional VolumeProfile asset containing default values to use for
         /// any components that are added to <see cref="globalDefaultVolumeProfile"/>.</param>
-        public static void UpdateGlobalDefaultVolumeProfile(VolumeProfile globalDefaultVolumeProfile, VolumeProfile defaultValueSource = null)
+        /// <typeparam name="TRenderPipeline">The type of RenderPipeline that this VolumeProfile is used for. If it is
+        /// not the active pipeline, the function does nothing.</typeparam>
+        public static void UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(VolumeProfile globalDefaultVolumeProfile, VolumeProfile defaultValueSource = null)
+            where TRenderPipeline : RenderPipeline
         {
+            if (RenderPipelineManager.currentPipeline is not TRenderPipeline)
+                return;
+
             Undo.RecordObject(globalDefaultVolumeProfile, $"Ensure {globalDefaultVolumeProfile.name} has all Volume Components");
             foreach (var comp in globalDefaultVolumeProfile.components)
                 Undo.RecordObject(comp, $"Save {comp.name} state");

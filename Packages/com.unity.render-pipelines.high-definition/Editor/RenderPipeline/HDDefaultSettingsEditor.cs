@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var globalSettings = HDRenderPipelineGlobalSettings.instance;
                 var defaultValuesAsset = globalSettings != null ? globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile : null;
-                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile(settings.volumeProfile, defaultValuesAsset);
+                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(settings.volumeProfile, defaultValuesAsset);
             }
         }
 
