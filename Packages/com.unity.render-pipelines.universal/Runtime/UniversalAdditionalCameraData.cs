@@ -325,6 +325,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_Dithering = false;
         [SerializeField] bool m_ClearDepth = true;
         [SerializeField] bool m_AllowXRRendering = true;
+        [SerializeField] bool m_AllowHDROutput = true;
 
         [SerializeField] bool m_UseScreenCoordOverride;
         [SerializeField] Vector4 m_ScreenSizeOverride;
@@ -740,6 +741,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ScreenCoordScaleBias;
             set => m_ScreenCoordScaleBias = value;
+        }
+        
+        /// <summary>
+        /// Returns true if this camera allows outputting to HDR displays.
+        /// </summary>
+        public bool allowHDROutput
+        {
+            get => m_AllowHDROutput;
+            set => m_AllowHDROutput = value;
         }
 
         /// <inheritdoc/>

@@ -35,9 +35,13 @@ namespace UnityEditor.Rendering.Universal
                     CED.Conditional(
                         (serialized, owner) => serialized.serializedObject.targetObject is Camera camera && camera.targetTexture == null,
                         CED.Group(
-                            DrawerOutputHDR,
-                            DrawerOutputMSAA,
-                            DrawerOutputAllowDynamicResolution
+                            CED.Group(DrawerOutputHDR),
+                            CED.Conditional(
+                                (serialized, owner) => PlayerSettings.useHDRDisplay,
+                                CED.Group(DrawerOutputHDROutput)
+                                ),
+                            CED.Group(DrawerOutputMSAA),
+                            CED.Group(DrawerOutputAllowDynamicResolution)
                         )
                     )
                 )
@@ -209,6 +213,31 @@ namespace UnityEditor.Rendering.Universal
                                 return true;
                             });
                         }
+                    }
+                }
+                EditorGUI.EndProperty();
+            }
+            
+            static void DrawerOutputHDROutput(UniversalRenderPipelineSerializedCamera p, Editor owner)
+            {
+                Rect controlRect = EditorGUILayout.GetControlRect(true);
+                EditorGUI.BeginProperty(controlRect, Styles.allowHDROutput, p.allowHDROutput);
+                {
+                    using (var checkScope = new EditorGUI.ChangeCheckScope())
+                    {
+                        int selectedValue = !p.allowHDROutput.boolValue ? 0 : 1;
+                        var allowHDROutput = EditorGUI.IntPopup(controlRect, Styles.allowHDROutput, selectedValue, Styles.hdrOuputOptions, Styles.hdrOuputValues) == 1;
+                        
+                        var rpAsset = UniversalRenderPipeline.asset;
+                        bool perCameraHDRDisabled = !p.baseCameraSettings.HDR.boolValue && (rpAsset == null || rpAsset.supportsHDR);
+                        
+                        if (allowHDROutput && PlayerSettings.useHDRDisplay && perCameraHDRDisabled)
+                        {
+                            EditorGUILayout.HelpBox(Styles.disabledHDRRenderingWithHDROutput, MessageType.Warning);
+                        }
+
+                        if (checkScope.changed)
+                            p.allowHDROutput.boolValue = allowHDROutput;
                     }
                 }
                 EditorGUI.EndProperty();

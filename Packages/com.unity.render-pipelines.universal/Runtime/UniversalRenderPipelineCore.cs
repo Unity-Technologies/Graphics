@@ -367,6 +367,11 @@ namespace UnityEngine.Rendering.Universal
         /// True if this camera should render to high dynamic range color targets.
         /// </summary>
         public bool isHdrEnabled;
+        
+        /// <summary>
+        /// True if this camera allow color conversion and encoding for high dynamic range displays.
+        /// </summary>
+        public bool allowHDROutput;
 
         /// <summary>
         /// True if this camera requires to write _CameraDepthTexture.
@@ -418,7 +423,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// True if the Camera should output to an HDR display.
         /// </summary>
-        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && isHdrEnabled && resolveToScreen;
+        public bool isHDROutputActive => UniversalRenderPipeline.HDROutputIsActive() && allowHDROutput && resolveToScreen;
 
         /// <summary>
         /// True if the Camera should render overlay UI.
