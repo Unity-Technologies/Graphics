@@ -7,9 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.10.2] - 2022-12-13
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
 ## Fixed
 - Fixed ColorLookup VolumeComponent interpolation with the implicit default volume.
 - Fixed artifacts on mobile targets by changing some halfs to floats in Normals logic.
