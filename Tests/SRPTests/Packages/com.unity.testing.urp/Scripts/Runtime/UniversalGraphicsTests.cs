@@ -6,6 +6,9 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+#if OCULUS_SDK
+using UnityEngine.XR;
+#endif
 
 public class UniversalGraphicsTests
 {
@@ -31,11 +34,22 @@ public class UniversalGraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x => x.GetComponent<Camera>());
         Assert.True(cameras != null && cameras.Any(), "Invalid test scene, couldn't find a camera with MainCamera tag.");
+
+        // Disable camera track for OCULUS_SDK so we ensure we get a consistent screen capture for image comparison
+#if OCULUS_SDK
+        XRDevice.DisableAutoXRCameraTracking(Camera.main, true);
+#endif
         var settings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
-        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+        int waitFrames = 1;
 
+        // for OCULUS_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
+#if OCULUS_SDK
+         waitFrames = 4;
+#else
+        waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+#endif
         Scene scene = SceneManager.GetActiveScene();
 
         yield return null;
@@ -71,10 +85,23 @@ public class UniversalGraphicsTests
         }
 #endif
 
-        // Log the frame we are comparing to catch/debug waitFrame differences.
-        Debug.Log($"ImageAssert.AreEqual called on Frame #{Time.frameCount}");
-        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+        // If we're running using OCULUS_SDK, we need to use the ScreenCapture API to get stereo images for comparison
+#if OCULUS_SDK
+        yield return new WaitForSeconds(1);
+        yield return new WaitForEndOfFrame();
+        var screenShot = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+        screenShot = ScreenCapture.CaptureScreenshotAsTexture(ScreenCapture.StereoScreenCaptureMode.BothEyes);
 
+        // Log the frame we are comparing to catch/debug waitFrame differences.
+        Debug.Log($"OCULUS_SDK == true: ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(ScreenCapture.CaptureScreenshotAsTexture)}");
+        ImageAssert.AreEqual(testCase.ReferenceImage, screenShot, settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+
+        // Else continue to use the camera for image comparison
+#else
+        // Log the frame we are comparing to catch/debug waitFrame differences.
+        Debug.Log($"ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(cameras)}");
+        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+#endif
         // Does it allocate memory when it renders what's on the main camera?
         bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();

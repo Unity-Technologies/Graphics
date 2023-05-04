@@ -495,4 +495,76 @@ MonoBehaviour:
     GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: Alembic package is desktop only
+    Reason: Alembic package is desktop only	
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Problem with depth copy on Quest
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Problem with camera stacking on Quests in Bokken
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9393d7ec15067b544b982320d21a114a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Unstable for OpenGLES3 on Quest
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f7cdec6567a2ca34580a5d222405f0bd, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Unstable for OpenGLES3 on Quest
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d84ff56928dab4734b69906d7e13638d, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Unstable for OpenGLES3 on Quest
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Unstable for OpenGLES3 on Quest
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d6893e7692f584018918254147096235, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Unstable for OpenGLES3 on Quest
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9b853a2e2268046e49558e61eac1350b, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Unstable for OpenGLES3 on Quest
