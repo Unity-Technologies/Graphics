@@ -1260,9 +1260,6 @@ namespace UnityEngine.Rendering
         /// <param name ="shBands">Probe reference volume SH bands.</param>
         void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeBlendingTextureMemoryBudget blendingMemoryBudget, ProbeVolumeSHBands shBands)
         {
-            var minCellPosition = m_PendingInitInfo.pendingMinCellPosition;
-            var maxCellPosition = m_PendingInitInfo.pendingMaxCellPosition;
-
             if (!m_ProbeReferenceVolumeInit)
             {
                 Profiler.BeginSample("Initialize Reference Volume");
