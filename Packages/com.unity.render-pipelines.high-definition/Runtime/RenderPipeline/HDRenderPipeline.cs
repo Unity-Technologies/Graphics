@@ -178,7 +178,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderStateBlock m_DepthStateNoWrite;
         RenderStateBlock m_AlphaToMaskBlock;
 
-        readonly List<CustomPassVolume> m_ActivePassVolumes = new List<CustomPassVolume>(6);
         readonly List<Terrain> m_ActiveTerrains = new List<Terrain>();
 
         // Detect when windows size is changing

@@ -331,7 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
                 PushFullScreenHDRDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.VolumetricFog);
-                
+
                 ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
 
                 RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
@@ -1982,32 +1982,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle renderingLayerMaskBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer) ? prepassOutput.renderingLayersBuffer : TextureHandle.nullHandle;
 
-            bool executed = false;
-            CustomPassVolume.GetActivePassVolumes(injectionPoint, m_ActivePassVolumes);
-            foreach (var customPass in m_ActivePassVolumes)
+            var customPassTargets = new CustomPass.RenderTargets
             {
-                if (customPass == null)
-                    return false;
+                // TODO RENDERGRAPH: we can't replace the Lazy<RTHandle> buffers with RenderGraph resource because they are part of the current public API.
+                // To replace them correctly we need users to actually write render graph passes and explicit whether or not they want to use those buffers.
+                // We'll do it when we switch fully to render graph for custom passes.
+                customColorBuffer = m_CustomPassColorBuffer,
+                customDepthBuffer = m_CustomPassDepthBuffer,
 
-                var customPassTargets = new CustomPass.RenderTargets
-                {
-                    // TODO RENDERGRAPH: we can't replace the Lazy<RTHandle> buffers with RenderGraph resource because they are part of the current public API.
-                    // To replace them correctly we need users to actually write render graph passes and explicit whether or not they want to use those buffers.
-                    // We'll do it when we switch fully to render graph for custom passes.
-                    customColorBuffer = m_CustomPassColorBuffer,
-                    customDepthBuffer = m_CustomPassDepthBuffer,
+                // Render Graph Specific textures
+                colorBufferRG = colorBuffer,
+                nonMSAAColorBufferRG = m_NonMSAAColorBuffer,
+                depthBufferRG = prepassOutput.depthBuffer,
+                normalBufferRG = prepassOutput.resolvedNormalBuffer,
+                motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
+                renderingLayerMaskRG = renderingLayerMaskBuffer,
+                waterLineRG = prepassOutput.waterLine,
+            };
 
-                    // Render Graph Specific textures
-                    colorBufferRG = colorBuffer,
-                    nonMSAAColorBufferRG = m_NonMSAAColorBuffer,
-                    depthBufferRG = prepassOutput.depthBuffer,
-                    normalBufferRG = prepassOutput.resolvedNormalBuffer,
-                    motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
-                    renderingLayerMaskRG = renderingLayerMaskBuffer,
-                    waterLineRG = prepassOutput.waterLine,
-                };
-                executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets);
-            }
+            bool executed = CustomPassVolume.ExecuteAllCustomPasses(renderGraph, hdCamera, cullingResults, cameraCullingResults, injectionPoint, customPassTargets);
 
             // Push the custom pass buffer, in case it was requested in the AOVs
             aovRequest.PushCustomPassTexture(renderGraph, injectionPoint, colorBuffer, m_CustomPassColorBuffer, aovCustomPassBuffers);

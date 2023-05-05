@@ -254,6 +254,7 @@
     * [Custom Pass Volume workflow](Custom-Pass-Volume-Workflow.md)
     * [Viewing a Custom Pass in the Frame Debugger](Custom-Pass-Frame-Debugger.md)
     * [Scripting your own Custom Pass in C#](Custom-Pass-Scripting.md)
+    * [Managing Custom Passes without GameObjects](Global-Custom-Pass-API.md)
     * [Troubleshooting](Custom-Pass-Troubleshooting.md)
   * [Custom Material Inspector](hdrp-custom-material-inspector.md)
   * [Creating and Editing Lights at Runtime](creating-and-editing-lights-at-runtime.md)

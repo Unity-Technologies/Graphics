@@ -3,7 +3,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
-class WriteNormals : CustomPass
+class FullscreenClearRT : CustomPass
 {
     public Material material = null;
     public RenderTexture rt;
@@ -14,12 +14,10 @@ class WriteNormals : CustomPass
 
     protected override void Execute(CustomPassContext ctx)
     {
-        CoreUtils.SetRenderTarget(ctx.cmd, rt, ClearFlag.All, Color.clear);
-        ctx.cmd.Blit(ctx.cameraNormalBuffer, rt, material);
+        CoreUtils.SetRenderTarget(ctx.cmd, rt, ClearFlag.Color, Color.blue);
     }
 
     protected override void Cleanup()
     {
-        // Cleanup code
     }
 }

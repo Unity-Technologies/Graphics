@@ -8,6 +8,7 @@ Shader "FullScreen/BeforeOpaqueDepthAndNormal"
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
     // The PositionInputs struct allow you to retrieve a lot of useful information for your fullScreenShader:
     // struct PositionInputs
@@ -33,8 +34,15 @@ Shader "FullScreen/BeforeOpaqueDepthAndNormal"
 
     float4 FullScreenPass(Varyings varyings) : SV_Target
     {
+        float depth = LoadCameraDepth(varyings.positionCS.xy);
+        PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+        NormalData normalData;
+        DecodeFromNormalBuffer(posInput.positionNDC.xy, normalData);
+
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
-        return float4(1, 1, 0, 1);
+
+        return float4(normalData.normalWS * 0.5 + 0.5, 1);
     }
 
     ENDHLSL
