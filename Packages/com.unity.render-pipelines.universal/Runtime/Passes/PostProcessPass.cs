@@ -641,7 +641,7 @@ namespace UnityEngine.Rendering.Universal
         void DoSubpixelMorphologicalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
         {
             var camera = cameraData.camera;
-            var pixelRect = cameraData.pixelRect;
+            var pixelRect = new Rect(Vector2.zero, new Vector2(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height));
             var material = m_Materials.subpixelMorphologicalAntialiasing;
             const int kStencilBit = 64;
 
