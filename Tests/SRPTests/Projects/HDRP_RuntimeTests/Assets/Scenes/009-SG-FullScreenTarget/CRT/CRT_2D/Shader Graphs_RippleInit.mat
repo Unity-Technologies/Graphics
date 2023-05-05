@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs_RippleEffect
-  m_Shader: {fileID: -6465566751694194690, guid: 662ce5db0a9d394469e40ef7630234d3,
+  m_Name: Shader Graphs_RippleInit
+  m_Shader: {fileID: -6465566751694194690, guid: f814c5f882c6f014183aca8e3ac707e5,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -23,16 +23,8 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs:
-    - _SampleTexture2D_2939929eb05e4ad1be6b01128fcc8d21_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 13ebea0f5001fa34a98c2df25679a353, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
+    m_TexEnvs: []
     m_Ints: []
-    m_Floats:
-    - _Attenuation: 0.9999
-    - _DeltaUV: 0.4
-    - _PhaseVelocity_2: 0.1
-    - _RipplePower: 1
+    m_Floats: []
     m_Colors: []
   m_BuildTextureStacks: []
