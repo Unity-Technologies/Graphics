@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -48,6 +49,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
             yield return PostProcessSubShader(SubShaders.Decal);
+        }
+
+        public override bool IsNodeAllowedBySubTarget(Type nodeType)
+        {
+            return nodeType != typeof(SampleVirtualTextureNode) && base.IsNodeAllowedBySubTarget(nodeType);
         }
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
