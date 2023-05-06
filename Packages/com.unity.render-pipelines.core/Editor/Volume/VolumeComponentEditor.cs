@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Override this property if your editor makes use of the "Additional Properties" feature.
         /// </summary>
-        public virtual bool hasAdditionalProperties => volumeComponent.parameters.Count != m_VolumeNotAdditionalParameters.Count;
+        public virtual bool hasAdditionalProperties => volumeComponent.parameterList.Count != m_VolumeNotAdditionalParameters.Count;
 
         /// <summary>
         /// Set to true to show additional properties.
@@ -468,9 +468,9 @@ namespace UnityEditor.Rendering
 
         internal bool AreAllOverridesTo(bool state)
         {
-            for (int i = 0; i < volumeComponent.parameters.Count; ++i)
+            for (int i = 0; i < volumeComponent.parameterList.Count; ++i)
             {
-                if (volumeComponent.parameters[i].overrideState != state)
+                if (volumeComponent.parameterList[i].overrideState != state)
                     return false;
             }
             return true;

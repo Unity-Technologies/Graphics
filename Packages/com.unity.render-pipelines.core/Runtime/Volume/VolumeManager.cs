@@ -315,8 +315,10 @@ namespace UnityEngine.Rendering
         // Go through all listed components and lerp overridden values in the global state
         void OverrideData(VolumeStack stack, List<VolumeComponent> components, float interpFactor)
         {
-            foreach (var component in components)
+            var numComponents = components.Count;
+            for (int i = 0; i < numComponents; i++)
             {
+                var component = components[i];
                 if (!component.active)
                     continue;
 
@@ -447,8 +449,10 @@ namespace UnityEngine.Rendering
                 trigger.TryGetComponent<Camera>(out camera);
 
             // Traverse all volumes
-            foreach (var volume in volumes)
+            int numVolumes = volumes.Count;
+            for (int i = 0; i < numVolumes; i++)
             {
+                Volume volume = volumes[i];
                 if (volume == null)
                     continue;
 
@@ -481,8 +485,10 @@ namespace UnityEngine.Rendering
                 // Find closest distance to volume, 0 means it's inside it
                 float closestDistanceSqr = float.PositiveInfinity;
 
-                foreach (var collider in colliders)
+                int numColliders = colliders.Count;
+                for (int c = 0; c < numColliders; c++)
                 {
+                    var collider = colliders[c];
                     if (!collider.enabled)
                         continue;
 
@@ -536,8 +542,10 @@ namespace UnityEngine.Rendering
                 // to this mask in it
                 list = new List<Volume>();
 
-                foreach (var volume in m_Volumes)
+                var numVolumes = m_Volumes.Count;
+                for (int i = 0; i < numVolumes; i++)
                 {
+                    var volume = m_Volumes[i];
                     if ((mask & (1 << volume.gameObject.layer)) == 0)
                         continue;
 
