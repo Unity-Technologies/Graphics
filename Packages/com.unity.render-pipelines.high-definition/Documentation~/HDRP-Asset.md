@@ -104,7 +104,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **Screen Space Global Illumination** | Enable the checkbox to make HDRP support screen space global illumination (SSGI). SSGI is a technique for approximating global illumination efficiently in real time. |
 | **Volumetrics**                      | Enable the checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.md). |
 | **Light Layers**                     | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers or Terrains with a matching rendering Layer. |
-| **Rendering Layer Mask Buffer**      | Enable the checkbox to make HDRP write the Rendering Layer Mask of GameObjects in a fullscreen buffer target. This comes with a performance and memory cost.<br/>The [HD Sample Buffer node](HD-Sample-Buffer-Node.md) in ShaderGraph can sample this target. |
+| **Rendering Layer Mask Buffer**      | Enable the checkbox to make HDRP write the Rendering Layer Mask of GameObjects in a fullscreen buffer target. This comes with a performance and memory cost.<br/>The [HD Sample Buffer node](https://docs.unity3d.com/Packages/com.unity.shadergraphlatest?subfolder=/manual/HD-Sample-Buffer-Node.html) in ShaderGraph can sample this target. |
 
 ### Light Probe Lighting
 Use these settings in the **Quality** > **HDRP** menu to configure [Probe Volumes](probevolumes.md).
@@ -267,5 +267,5 @@ These settings define the quality levels (low, medium, high) related to post pro
 | ----------------------- | --------------------------------------------------------------- |
 | **CPU Cache Size**      | Amount of CPU memory (in MB) that can be allocated by the Streaming Virtual Texturing system to cache texture data. |
 | **GPU Cache Size per Format** | Amount of GPU memory (in MB) that can be allocated per format by the Streaming Virtual Texturing system to cache texture data. The value assigned to None is used for all unspecified formats. |
-| **Preload Textures Per Frame** | The number of textures Unity tries to preload their least detailed mipmap levels (least being @@128@@x@@128@@) into GPU memory per frame. Use this to avoid texture pop-in. The range is @@0@@ through @@1024@@. The default is @@0@@, which disables preloading. |
-| **Preload Mip Count** | The number of mipmap levels to preload. The range is @@1@@ through @@9@@. The default is @@1@@, which preloads only the highest mipmap level with the smallest size (128 × 128 pixels, the size of a Streaming Virtual Texturing tile). |
+| **Preload Textures Per Frame** | The number of textures Unity tries to preload their least detailed mipmap levels (least being 128x128) into GPU memory per frame. Use this to avoid texture pop-in. The range is 0 through 1024. The default is 0, which disables preloading. |
+| **Preload Mip Count** | The number of mipmap levels to preload. The range is 1 through 9. The default is 1, which preloads only the highest mipmap level with the smallest size (128x128 pixels, the size of a Streaming Virtual Texturing tile). |
