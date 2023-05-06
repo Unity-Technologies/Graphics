@@ -26,3 +26,38 @@ Provides access to the screen position of the mesh vertex or fragment. The X and
 | Name  | Type     | Options  | Description |
 |:------|:---------|:---------|:------------|
 | Mode  | Dropdown | Default, Raw, Center, Tiled, Pixel | Select which coordinate space to use for the **Screen Position** output. |
+
+## Generated Code Example
+
+The following code examples represent one possible outcome for each mode.
+
+**Default**
+
+```
+float4 Out = float4(IN.NDCPosition.xy, 0, 0);
+```
+
+**Raw**
+
+```
+float4 Out = IN.ScreenPosition;
+```
+
+**Center**
+
+```
+float4 Out = float4(IN.NDCPosition.xy * 2 - 1, 0, 0);
+```
+
+**Tiled**
+
+```
+float4 Out = frac(float4((IN.NDCPosition.x * 2 - 1) * _ScreenParams.x / _ScreenParams.y, IN.{0}.y * 2 - 1, 0, 0));
+```
+
+**Pixel**
+
+```
+float4 Out = float4(IN.PixelPosition.xy, 0, 0);
+```
+
