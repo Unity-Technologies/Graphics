@@ -10,7 +10,7 @@ Because aliasing can be a concern, the Hexagon Grid node provides three levels o
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
-| Scale      | Input | Float    | None | Grid scale |
+| Scale      | Input | Vector 2    | None | Grid scale |
 | Line Width | Input      |    Float    | None | Width of grid lines |
 | Grid | Output | Float | None | grid lines |
 | Edge Distance | Output | Float | None | black on tile edges and white at tile centers |
