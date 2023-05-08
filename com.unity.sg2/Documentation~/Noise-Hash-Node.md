@@ -2,7 +2,7 @@
 
 ## Description
 
-Given input data such as UV coordinates or position, the Noise Hash Node generates deterministic random values in a grid pattern. The size of the grid can be controlled with the **Scale** input
+Uses input data, such as **UV** coordinates or **Position**, to generate deterministic random values in a grid pattern. Use the **Scale** input to control the size of the grid. 
 
 You can select the desired input and output types using the dropdown. For example, if you want to input UV coordinates (or other Vector2 data) and get random single channel float data as a result, you'd select Hash21 from the dropdown - the 2 indicating the input data type and the 1 indication the output data type. And if you wanted to input Vector 3 Position data and get random three channel color data as a result, you'd select Hash33.
 
