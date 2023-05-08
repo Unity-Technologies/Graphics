@@ -3,7 +3,7 @@
 ## Description
 Generates a hexagonal grid based on input **UV**. Control the scale of the grid with input **Scale**. In addition to grid tile outlines, the Hexagon Grid node also outputs the distance from edges, and a unique value or ID for each tile.
 
-Since aliasing can be a concern, the node provides three levels of samples. One sample gives the best performance, but aliasing artifacts may be visible. Using Four or Nine samples will reduce aliasing, but will be slower to generate.
+Because aliasing can be a concern, the Hexagon Grid node provides three levels of samples: One, Four, and Nine. One sample gives the best performance, but aliasing artifacts may be visible. Four or Nine samples reduces aliasing, but is slower to generate.
 
 ## Ports
 
