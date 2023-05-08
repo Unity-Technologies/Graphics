@@ -601,6 +601,12 @@ namespace UnityEngine.Rendering.Universal
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 if (m_UseSwapBuffer && !m_ResolveToScreen)
                 {
+                    if (!m_HasFinalPass)
+                    {
+                        // We need to reenable this to be able to blit to the correct AA target
+                        renderer.EnableSwapBufferMSAA(true);
+                        destination = renderer.GetCameraColorFrontBuffer(cmd);
+                    }
                     Blitter.BlitCameraTexture(cmd, GetSource(), destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                     renderer.ConfigureCameraColorTarget(destination);
                     Swap(ref renderer);
