@@ -25,7 +25,7 @@ The UV Flow Map Node is under the **UV** category in the Create Node menu.
 |  **Strength**  | Float | A multiplier for the flow map data that controls how far the UVs are pushed in the flow direction. |
 |  **Flow Time**  | Float | The timing phase for the flow effect.  By default, this uses an internal Flow Map Time node to generate a spatially-varying phase offset for time.  For a more efficient effect, you could simply connect a time node to a frac node and pass that into Flow Time. Using the Flow Map Time node breaks up the uniform pulsing artifacts that can otherwise occur without it. |
 |  **UV**  | Vector 2 | The UV coordinates to use for the flow map effect. |
-|  **Offset**  | Float | when this value is set to 0.5 (the default) it reduces UV stretching my placing the non-stretched portion of the phase, right in the middle where it's most visible. Using values outside of the 0-0.5 range will probably result in undesired unwanted UV stretching.
+|  **Offset**  | Float | Specify where to place the non-stretched portion of the phase. If you set this value to 0.5 (the default) it places the non-stretched portion of the phase right in the middle where it's most visible and reduces UV stretching. If you use values outside of the 0-0.5 range, it will probably result in undesired UV stretching.
 
 
 ## Outputs
