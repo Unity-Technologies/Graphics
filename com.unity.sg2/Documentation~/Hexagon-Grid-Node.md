@@ -20,4 +20,4 @@ Because aliasing can be a concern, the Hexagon Grid node provides three levels o
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Samples      | Dropdown | One, Four, Nine | determines the number of samples used to generate the data. Higher samples reduces aliasing but renders slower. |
+| Samples      | Dropdown | One, Four, Nine | Specify the number of samples to use to generate the data. A higher number of samples reduces aliasing but renders slower. |
