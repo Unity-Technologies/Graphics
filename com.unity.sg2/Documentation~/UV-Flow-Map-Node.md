@@ -1,6 +1,6 @@
 # UV Flow Map Node
 
-Given a flow map directional input, the UV Flow Map node generates UV coordinates that can be used to create a flowing effect. This effect creates the illusion of directional movement in an otherwise static image and can be used for flowing water or to make static images appear to be alive with movement.  The effect is achieved by sampling an image two times.  The first sample uses the UV0 output of the UV Flow Map node and the second sample uses the UV1 output of the UV Flow Map node.  The two samples are then blended together using a Lerp node where the Lerp node's T input port is connected from the Lerp output of the UV Flow Map node.
+Uses **Flow Map** directional input to generate UV coordinates that you can use to create a flowing effect. This flowing effect creates the illusion of directional movement in an otherwise static image. You can use it to create the effect of flowing water or to make static images appear to be alive with movement. The effect is achieved by sampling an image two times. The first sample uses the UV0 output of the UV Flow Map node and the second sample uses the UV1 output of the UV Flow Map node. The two samples are then blended together using a Lerp node where the Lerp node's T input port is connected from the Lerp output of the UV Flow Map node.
 
 ![](images/)
 
