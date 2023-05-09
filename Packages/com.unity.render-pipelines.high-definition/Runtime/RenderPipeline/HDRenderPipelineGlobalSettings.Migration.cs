@@ -1,6 +1,10 @@
 using System;
 using System.Linq;
 
+#if UNITY_EDITOR
+using UnityEditor.Rendering;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     partial class HDRenderPipelineGlobalSettings : IVersionable<HDRenderPipelineGlobalSettings.Version>, IMigratableAsset
@@ -175,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (assetToUpgrade == null || assetToUpgrade.Equals(null))
             {
                 assetToUpgrade = RenderPipelineGlobalSettingsUtils.Create<HDRenderPipelineGlobalSettings>(defaultPath);
-                GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(assetToUpgrade);
+                EditorGraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(assetToUpgrade);
             }
 
             Debug.Assert(assetToUpgrade);

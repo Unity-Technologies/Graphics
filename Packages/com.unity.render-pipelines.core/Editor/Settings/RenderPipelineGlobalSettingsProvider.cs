@@ -154,11 +154,11 @@ namespace UnityEditor.Rendering
                 if (renderPipelineSettings != newSettings)
                 {
                     if (newSettings != null)
-                        GraphicsSettings.RegisterRenderPipelineSettings<TRenderPipeline>(newSettings);
+                        EditorGraphicsSettings.RegisterRenderPipelineSettings<TRenderPipeline>(newSettings);
                     else
                     {
                         if (EditorUtility.DisplayDialog($"Invalid {ObjectNames.NicifyVariableName(typeof(TGlobalSettings).Name)}", Styles.settingNullRPSettings, "Yes", "No"))
-                            GraphicsSettings.UnregisterRenderPipelineSettings<TRenderPipeline>();
+                            EditorGraphicsSettings.UnregisterRenderPipelineSettings<TRenderPipeline>();
                     }
 
                     if (renderPipelineSettings != null && !renderPipelineSettings.Equals(null))
