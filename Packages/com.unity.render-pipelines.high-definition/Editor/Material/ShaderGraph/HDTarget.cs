@@ -91,6 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Currently there is not support for VFX decals via HDRP master node.
             typeof(DecalSubTarget),
+            typeof(HDCanvasSubTarget),
             typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
             typeof(FogVolumeSubTarget),
@@ -99,12 +100,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         private static readonly List<Type> m_IncompatibleHQLineRenderingSubTargets = new()
         {
             typeof(DecalSubTarget),
+            typeof(HDCanvasSubTarget),
             typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
             typeof(FogVolumeSubTarget),
         };
 
-        internal override bool ignoreCustomInterpolators => false;
+        internal override bool ignoreCustomInterpolators => m_ActiveSubTarget.value is HDCanvasSubTarget;
         internal override int padCustomInterpolatorLimit => 8;
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
