@@ -1,7 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
