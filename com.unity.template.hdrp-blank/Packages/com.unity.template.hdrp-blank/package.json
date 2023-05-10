@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.hdrp-blank",
   "displayName":"3D HDRP",
-  "version": "14.0.2",
+  "version": "15.0.0",
   "type": "template",
   "host": "hub",
   "unity": "2023.2",
@@ -9,7 +9,7 @@
   "dependencies": {
     "com.unity.collab-proxy": "2.0.0",
     "com.unity.feature.development": "1.0.1",
-    "com.unity.render-pipelines.high-definition": "14.0.0",
+    "com.unity.render-pipelines.high-definition": "16.0.0",
     "com.unity.timeline": "1.7.3",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.8.0"
