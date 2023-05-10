@@ -10,6 +10,7 @@ The **Rendering Debugger** is a specific window for the Scriptable Render Pipeli
 * [Rendering](#RenderingPanel)
 * [Probe Volume](#ProbeVolume)
 * [Camera](#CameraPanel)
+* [Virtual Texturing](#VirtualTexturingPanel)
 
 ![](Images/RenderPipelineDebug1.png)
 The Rendering Debugger
@@ -788,3 +789,14 @@ Unity processes **Sanitized**, **Overridden**, and **Default** in a specific ord
 
 - In the image above, **Ray Tracing** is disabled at the **Sanitized** step, but enabled at the **Default** and **Overridden** steps. This means that, although **Ray Tracing** is enabled in the Frame Settings this Camera uses, it's not enabled in the HDRP Asset’s **Render Pipeline Supported Features**.
 - Also in the image above, **Decals** is disabled at the **Overridden** step, but enabled at the **Default** step. This means that **Decals** is enabled in the default Camera Frame Settings but disabled for that specific Camera’s **Custom Frame Settings**.
+
+<a name="VirtualTexturingPanel"></a>
+
+## Virtual Texturing panel
+
+You can use the **Virtual Texturing** panel to visualize [Streaming Virtual Texturing](https://docs.unity3d.com/Manual/svt-streaming-virtual-texturing.html).
+
+| **Debug Option**                     | **Description**                                               |
+| ------------------------------------ | ------------------------------------------------------------- |
+| **Debug disable Feedback Streaming** | Deactivate Streaming Virtual Texturing to quickly assess its cost in performance and memory at runtime. |
+| **Textures with Preloaded Mips**        | Display the total number of virtual textures Unity has loaded into the scene. Unity tries to preload the least detailed mipmap level (least being 128x128) into GPU memory. This number increases every time a material is loaded. |

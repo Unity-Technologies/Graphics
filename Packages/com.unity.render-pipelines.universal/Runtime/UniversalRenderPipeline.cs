@@ -70,6 +70,7 @@ namespace UnityEngine.Rendering.Universal
                 public static readonly ProfilingSampler getPerObjectLightFlags = new ProfilingSampler($"{k_Name}.{nameof(GetPerObjectLightFlags)}");
                 public static readonly ProfilingSampler getMainLightIndex = new ProfilingSampler($"{k_Name}.{nameof(GetMainLightIndex)}");
                 public static readonly ProfilingSampler setupPerFrameShaderConstants = new ProfilingSampler($"{k_Name}.{nameof(SetupPerFrameShaderConstants)}");
+                public static readonly ProfilingSampler setupPerCameraShaderConstants = new ProfilingSampler($"{k_Name}.{nameof(SetupPerCameraShaderConstants)}");
 
                 public static class Renderer
                 {
@@ -599,6 +600,8 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd); // Send all the commands enqueued so far in the CommandBuffer cmd, to the ScriptableRenderContext context
                 cmd.Clear();
 
+                SetupPerCameraShaderConstants(cmd);
+
 #if UNITY_EDITOR
                 // Emit scene view UI
                 if (isSceneViewCamera)
@@ -1066,6 +1069,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
                 cameraData.xrRendering = false;
+                cameraData.allowHDROutput = false;
             }
             else if (baseAdditionalCameraData != null)
             {
@@ -1076,6 +1080,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
                 cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && XRSystem.displayActive;
+                cameraData.allowHDROutput = baseAdditionalCameraData.allowHDROutput;
             }
             else
             {
@@ -1086,6 +1091,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
                 cameraData.xrRendering = XRSystem.displayActive;
+                cameraData.allowHDROutput = true;
             }
 
             ///////////////////////////////////////////////////////////////////
@@ -1093,6 +1099,7 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
 
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
+            cameraData.allowHDROutput &= settings.supportsHDR;
 
             Rect cameraRect = baseCamera.rect;
             cameraData.pixelRect = baseCamera.pixelRect;
@@ -1578,24 +1585,6 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.setupPerFrameShaderConstants);
 
-            // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
-            SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
-            Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
-            Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
-            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
-
-            // Used as fallback cubemap for reflections
-            Shader.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
-            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
-
-            // Ambient
-            Shader.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
-            Shader.SetGlobalVector(ShaderPropertyId.ambientEquatorColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor));
-            Shader.SetGlobalVector(ShaderPropertyId.ambientGroundColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor));
-
-            // Used when subtractive mode is selected
-            Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
-
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
             Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
 
@@ -1609,6 +1598,29 @@ namespace UnityEngine.Rendering.Universal
                 Shader.SetGlobalFloat(ShaderPropertyId.ditheringTextureInvSize, 1.0f / asset.textures.blueNoise64LTex.width);
                 Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.blueNoise64LTex);
             }
+        }
+
+        static void SetupPerCameraShaderConstants(CommandBuffer cmd)
+        {
+            using var profScope = new ProfilingScope(null, Profiling.Pipeline.setupPerCameraShaderConstants);
+
+            // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
+            SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
+            Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
+            Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
+            cmd.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
+
+            // Used as fallback cubemap for reflections
+            cmd.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
+            cmd.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
+
+            // Ambient
+            cmd.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
+            cmd.SetGlobalVector(ShaderPropertyId.ambientEquatorColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor));
+            cmd.SetGlobalVector(ShaderPropertyId.ambientGroundColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor));
+
+            // Used when subtractive mode is selected
+            cmd.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)

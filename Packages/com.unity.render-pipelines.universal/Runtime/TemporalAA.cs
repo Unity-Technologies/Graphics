@@ -184,8 +184,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 int taaFrameIndex = Time.frameCount;
 
-                float actualWidth = cameraData.pixelWidth;
-                float actualHeight = cameraData.pixelHeight;
+                float actualWidth = cameraData.cameraTargetDescriptor.width;
+                float actualHeight = cameraData.cameraTargetDescriptor.height;
                 float jitterScale = cameraData.taaSettings.jitterScale;
 
                 var jitter = CalculateJitter(taaFrameIndex) * jitterScale;

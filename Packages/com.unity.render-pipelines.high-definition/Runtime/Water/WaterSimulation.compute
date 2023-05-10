@@ -235,7 +235,7 @@ void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
 }
 
 // Output indices for the caustics buffer
-RWBuffer<int> _CauticsGeometryRW;
+RWByteAddressBuffer  _CauticsGeometryRW;
 int _CausticGeometryResolution;
 
 [numthreads(8, 8, 1)]
@@ -264,14 +264,14 @@ void PrepareCausticsGeometry(uint3 currentThread : SV_DispatchThreadID)
     uint D = B + 1;
 
     // Output the indices of triangle 0 of the quad
-    _CauticsGeometryRW[6 * quadIndex] = A;
-    _CauticsGeometryRW[6 * quadIndex + 1] = B;
-    _CauticsGeometryRW[6 * quadIndex + 2] = C;
+    _CauticsGeometryRW.Store((6 * quadIndex) * 4, A);
+    _CauticsGeometryRW.Store((6 * quadIndex + 1) * 4, B);
+    _CauticsGeometryRW.Store((6 * quadIndex + 2) * 4, C);
 
     // Output the indices of triangle 1 of the quad
-    _CauticsGeometryRW[6 * quadIndex + 3] = C;
-    _CauticsGeometryRW[6 * quadIndex + 4] = B;
-    _CauticsGeometryRW[6 * quadIndex + 5] = D;
+    _CauticsGeometryRW.Store((6 * quadIndex + 3) * 4, C);
+    _CauticsGeometryRW.Store((6 * quadIndex + 4) * 4, B);
+    _CauticsGeometryRW.Store((6 * quadIndex + 5) * 4, D);
 }
 
 static const float sizeMultiplier[4] = {1.0, 4.0, 32.0, 128.0};

@@ -289,10 +289,15 @@ float SampleCustomDepth(float2 uv)
     return LoadCustomDepth(uint2(uv * _ScreenSize.xy));
 }
 
+bool IsSky(float deviceDepth)
+{
+    return deviceDepth == UNITY_RAW_FAR_CLIP_VALUE; // We assume the sky is the part of the depth buffer that haven't been written.
+}
+
 bool IsSky(uint2 pixelCoord)
 {
     float deviceDepth = LoadCameraDepth(pixelCoord);
-    return deviceDepth == UNITY_RAW_FAR_CLIP_VALUE; // We assume the sky is the part of the depth buffer that haven't been written.
+    return IsSky(deviceDepth);
 }
 
 bool IsSky(float2 uv)

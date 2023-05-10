@@ -54,12 +54,12 @@ namespace UnityEngine.Rendering
                 var component = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 components.Add(type, component);
                 
-                for (int i = 0; i < component.parameters.Count; i++)
+                for (int i = 0; i < component.parameterList.Count; i++)
                 {
                     defaultParametersList.Add(new()
                     {
                         parameter = component.parameters[i],
-                        defaultValue = defaultVolumeComponent.parameters[i].Clone() as VolumeParameter,
+                        defaultValue = defaultVolumeComponent.parameterList[i].Clone() as VolumeParameter,
                     });
                 }
             }

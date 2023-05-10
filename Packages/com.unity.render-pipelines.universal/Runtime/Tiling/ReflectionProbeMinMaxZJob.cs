@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     [BurstCompile]
     struct ReflectionProbeMinMaxZJob : IJobFor
     {
-        public float4x4 worldToViewMatrix;
+        public Fixed2<float4x4> worldToViews;
 
         [ReadOnly]
         public NativeArray<VisibleReflectionProbe> reflectionProbes;
@@ -17,15 +17,19 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(int index)
         {
             var minMax = math.float2(float.MaxValue, float.MinValue);
-            var reflectionProbe = reflectionProbes[index];
-            var localToWorld = (float4x4)reflectionProbe.localToWorldMatrix;
+            var reflectionProbeIndex = index % reflectionProbes.Length;
+            var reflectionProbe = reflectionProbes[reflectionProbeIndex];
+            var viewIndex = index / reflectionProbes.Length;
+            var worldToView = worldToViews[viewIndex];
             var centerWS = (float3)reflectionProbe.bounds.center;
             var extentsWS = (float3)reflectionProbe.bounds.extents;
-            for (var x = -1; x <= 1; x += 2)
-            for (var y = -1; y <= 1; y += 2)
-            for (var z = -1; z <= 1; z += 2)
+            for (var i = 0; i < 8; i++)
             {
-                var cornerVS = math.mul(worldToViewMatrix, math.float4(centerWS + extentsWS * math.float3(x, y, z), 1));
+                // Convert index to x, y, and z in [-1, 1]
+                var x = ((i << 1) & 2) - 1;
+                var y = (i & 2) - 1;
+                var z = ((i >> 1) & 2) - 1;
+                var cornerVS = math.mul(worldToView, math.float4(centerWS + extentsWS * math.float3(x, y, z), 1));
                 cornerVS.z *= -1;
                 minMax.x = math.min(minMax.x, cornerVS.z);
                 minMax.y = math.max(minMax.y, cornerVS.z);

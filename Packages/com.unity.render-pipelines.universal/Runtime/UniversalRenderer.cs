@@ -667,6 +667,11 @@ namespace UnityEngine.Rendering.Universal
             if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
                 createColorTexture |= createDepthTexture;
 #endif
+            // If there is any scaling, the color and depth need to be the same resolution and the target texture
+            // will not be the proper size in this case. Same happens with GameView.
+            // This introduces the final blit pass.
+            if (RTHandles.rtHandleProperties.rtHandleScale.x != 1.0f || RTHandles.rtHandleProperties.rtHandleScale.y != 1.0f)
+                createColorTexture |= createDepthTexture;
 
             if (useRenderPassEnabled || useDepthPriming)
                 createColorTexture |= createDepthTexture;
@@ -1101,7 +1106,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_RenderTransparentForwardPass);
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
-            
+
             bool shouldRenderUI = cameraData.rendersOverlayUI;
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && outputToHDR)

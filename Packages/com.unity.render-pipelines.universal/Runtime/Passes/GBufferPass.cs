@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         continue;
 
                     // No need to setup temporaryRTs if we are using input attachments as they will be Memoryless
-                    if (m_DeferredLights.UseRenderPass && i != m_DeferredLights.GBufferShadowMask && i != m_DeferredLights.GBufferRenderingLayers && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
+                    if (m_DeferredLights.UseRenderPass && i != m_DeferredLights.GBufferRenderingLayers && (i != m_DeferredLights.GbufferDepthIndex && !m_DeferredLights.HasDepthPrepass))
                         continue;
 
                     m_DeferredLights.ReAllocateGBufferIfNeeded(cameraTextureDescriptor, i);

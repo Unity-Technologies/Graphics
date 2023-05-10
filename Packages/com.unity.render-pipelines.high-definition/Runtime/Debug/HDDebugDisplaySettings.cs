@@ -7,6 +7,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         internal DebugDisplaySettingsVolume VolumeSettings { get; private set; }
 
+
+#if ENABLE_VIRTUALTEXTURES
+        internal DebugDisplayVirtualTexturing vtSettings { get; private set; }
+#endif
+
         public HDDebugDisplaySettings()
         {
         }
@@ -15,6 +20,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             base.Reset();
             VolumeSettings = Add(new DebugDisplaySettingsVolume(new HDVolumeDebugSettings()));
+#if ENABLE_VIRTUALTEXTURES
+            vtSettings = Add(new DebugDisplayVirtualTexturing());
+#endif
         }
     }
 }

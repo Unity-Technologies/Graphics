@@ -395,9 +395,10 @@ namespace UnityEditor.VFX
                 out var fragInputsDescriptor
             );
 
-            // Omit MV or Shadow Pass if disabled on the context.
+            // Omit META and MV or Shadow Pass if disabled on the context.
             var filteredPasses = subShaderDescriptor.passes.AsEnumerable();
 
+            filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "META");
             var outputContext = (VFXAbstractParticleOutput)context;
             if (!outputContext.hasMotionVector)
                 filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "MotionVectors");

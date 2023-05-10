@@ -9,12 +9,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty streamingCpuCacheSizeInMegaBytes;
         public SerializedProperty streamingGpuCacheSettings;
+        public SerializedProperty streamingMipPreloadTexturesPerFrame;
+        public SerializedProperty streamingPreloadMipCount;
+
         public SerializedVirtualTexturingSettings(SerializedProperty root)
         {
             this.root = root;
 
             streamingCpuCacheSizeInMegaBytes = root.Find((VirtualTexturingSettingsSRP s) => s.streamingCpuCacheSizeInMegaBytes);
             streamingGpuCacheSettings = root.Find((VirtualTexturingSettingsSRP s) => s.streamingGpuCacheSettings);
+            streamingMipPreloadTexturesPerFrame = root.Find((VirtualTexturingSettingsSRP s) => s.streamingMipPreloadTexturesPerFrame);
+            streamingPreloadMipCount = root.Find((VirtualTexturingSettingsSRP s) => s.streamingPreloadMipCount);
         }
     }
 }

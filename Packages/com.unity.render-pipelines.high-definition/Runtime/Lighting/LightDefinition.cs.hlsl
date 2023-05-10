@@ -49,19 +49,16 @@
 #define MAX_CUBE_REFLECTIONS (64)
 
 //
+// UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT:  static fields
+//
+#define MAX_PLANAR_REFLECTIONS (16)
+#define MAX_CUBE_REFLECTIONS (64)
+
+//
 // UnityEngine.Rendering.HighDefinition.EnvCacheType:  static fields
 //
 #define ENVCACHETYPE_TEXTURE2D (0)
 #define ENVCACHETYPE_CUBEMAP (1)
-
-// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT
-// PackingRules = Exact
-CBUFFER_START(EnvLightReflectionDataRT)
-    float4x4 _PlanarCaptureVPRT[16];
-    float4 _PlanarCaptureForwardRT[16];
-    float4 _PlanarScaleOffsetRT[16];
-    float4 _CubeScaleOffsetRT[64];
-CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData
 // PackingRules = Exact
@@ -185,9 +182,16 @@ struct EnvLightData
 // PackingRules = Exact
 CBUFFER_START(EnvLightReflectionData)
     float4x4 _PlanarCaptureVP[16];
-    float4 _PlanarCaptureForward[16];
     float4 _PlanarScaleOffset[16];
     float4 _CubeScaleOffset[64];
+CBUFFER_END
+
+// Generated from UnityEngine.Rendering.HighDefinition.EnvLightReflectionDataRT
+// PackingRules = Exact
+CBUFFER_START(EnvLightReflectionDataRT)
+    float4x4 _PlanarCaptureVPRT[16];
+    float4 _PlanarScaleOffsetRT[16];
+    float4 _CubeScaleOffsetRT[64];
 CBUFFER_END
 
 

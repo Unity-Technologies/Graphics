@@ -258,6 +258,7 @@ Shader "Hidden/Universal/CoreBlit"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
+                #pragma multi_compile_local _ BLIT_DECODE_HDR
                 #pragma vertex VertQuadPadding
                 #pragma fragment FragOctahedralProjectNearestRepeat
             ENDHLSL
@@ -269,6 +270,7 @@ Shader "Hidden/Universal/CoreBlit"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
+                #pragma multi_compile_local _ BLIT_DECODE_HDR
                 #pragma vertex VertQuadPadding
                 #pragma fragment FragOctahedralProjectBilinearRepeat
             ENDHLSL

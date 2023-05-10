@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_FreeList.Count > 0)
             {
                 group = m_FreeList.Pop();
+                group.enabled = true;
             }
             else
             {
@@ -33,6 +34,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Free(CullingGroup group)
         {
+            // Disable group to ensure it is not being used anymore during culling
+            group.enabled = false;
             m_FreeList.Push(group);
         }
 

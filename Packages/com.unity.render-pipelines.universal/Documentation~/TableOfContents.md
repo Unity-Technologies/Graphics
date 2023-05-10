@@ -116,6 +116,7 @@
   * [Perform fullscreen blit](renderer-features/how-to-fullscreen-blit.md)
   * [Use Render Objects Renderer Feature](renderer-features/how-to-custom-effect-render-objects.md)
   * [Create a custom post-processing effect](containers/post-processing-custom-effect-low-code.md)
+  * [Change Quality settings with code](quality/quality-settings-through-code.md)
 * [Customizing URP](customizing-urp.md)
   * [Blit overview](customize/blit-overview.md)
   * [beginCameraRendering event](using-begincamerarendering.md)

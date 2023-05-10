@@ -78,5 +78,15 @@ namespace UnityEditor.VFX.HDRP
                 yield return nameof(shaderGraph);
             }
         }
+
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                foreach (var d in base.additionalDefines)
+                    yield return d;
+                yield return "_CONSERVATIVE_DEPTH_OFFSET";
+            }
+        }
     }
 }

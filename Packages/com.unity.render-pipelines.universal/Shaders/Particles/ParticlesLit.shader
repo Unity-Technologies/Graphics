@@ -151,6 +151,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
             // -------------------------------------
             // Includes
@@ -221,6 +222,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
             // -------------------------------------
             // Includes
@@ -263,6 +265,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
             // -------------------------------------
             // Includes
@@ -303,6 +306,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
             // -------------------------------------
             // Includes
@@ -345,6 +349,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
             // -------------------------------------
             // Includes
@@ -389,6 +394,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
             // -------------------------------------
             // Includes
@@ -426,7 +432,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
             ENDHLSL
         }

@@ -181,8 +181,8 @@ These settings adjust the size of the shadowmask. Smaller values causes Unity to
 | -------------------------------- | ------------------------------------------------------------ |
 | **Shadowmask**                  | Enable the checkbox to make HDRP support the [Shadowmask lighting mode](Lighting-Mode-Shadowmask.md) in your Unity Project. |
 | **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](Override-Shadows.md) override. |
-| **Shadow Filtering Quality**     | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. For information on each filtering quality preset, see the [Filtering Qualities table](#filtering-qualities). |
-| **Area Shadow Filtering Quality**| Use the drop-down to select the filtering quality for area shadows. Higher values increase the area shadow quality in HDRP as better filtering improves the shape of the penumbra of very soft shadows and reduces light leaking. For information on each area filtering quality preset, see the [Filtering Qualities table](#filtering-qualities). |
+| **Shadow Filtering Quality**     | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. For information on each filtering quality preset, see [Filtering Quality](#filtering-quality). |
+| **Area Shadow Filtering Quality**| Use the drop-down to select the filtering quality for area shadows. Higher values increase the area shadow quality in HDRP as better filtering improves the shape of the penumbra of very soft shadows and reduces light leaking. For information on each area filtering quality preset, see [Filtering Quality](#filtering-quality). |
 | **Screen Space Shadows**         | Enable the checkbox to allow HDRP to compute shadows in a separate pass and store them in a screen-aligned Texture. |
 | - **Maximum**                    | Set the maximum number of screen space shadows that HDRP can handle. |
 | - **Buffer Format**              | Defines the format (R11G11B10 or R16G16B16A16) of the buffer used for screen space shadows.|
@@ -204,7 +204,7 @@ They all share the same properties, except **Directional Light Shadows** which d
 | ***Light Atlas***   |                                                              |
 | **Resolution**      | Use the drop-down to select the resolution of the shadow atlas. |
 | **Precision**       | Use the drop-down to select the precision of the shadow map. This sets the bit depth of each pixel of the shadow map. **16 bit** is faster and uses less memory at the expense of precision. |
-| **Dynamic Rescale** | Enable the checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don’t currently fit onto it. |
+| **Dynamic Rescale** | Enable the checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don't currently fit onto it. |
 
 | ***Shadow Resolution Tiers***      |                                                              |
 | ---------------------------------- | ------------------------------------------------------------ |
@@ -276,3 +276,5 @@ These settings define the quality levels (low, medium, high) related to post pro
 | ----------------------- | --------------------------------------------------------------- |
 | **CPU Cache Size**      | Amount of CPU memory (in MB) that can be allocated by the Streaming Virtual Texturing system to cache texture data. |
 | **GPU Cache Size per Format** | Amount of GPU memory (in MB) that can be allocated per format by the Streaming Virtual Texturing system to cache texture data. The value assigned to None is used for all unspecified formats. |
+| **Preload Textures Per Frame** | The number of textures Unity tries to preload their least detailed mipmap levels (128x128 pixels) into GPU memory per frame. Use this to avoid texture pop-in. The range is 0 through 1024. The default is 0, which disables preloading. |
+| **Preload Mip Count** | The number of mipmap levels to preload. The range is 1 through 9. The default is 1, which preloads only the highest mipmap level with the smallest size (128x128 pixels, the size of a Streaming Virtual Texturing tile). |

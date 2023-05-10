@@ -9,12 +9,10 @@
 // Depending if we are in ray tracing or not we need to use a different set of environement data
 #if defined(RAY_TRACING_ENVIRONMENT_DATA) || defined(SHADER_STAGE_RAY_TRACING)
 #define PLANAR_CAPTURE_VP _PlanarCaptureVPRT
-#define PLANAR_CAPTURE_FORWARD _PlanarCaptureForwardRT
 #define PLANAR_SCALE_OFFSET _PlanarScaleOffsetRT
 #define CUBE_SCALE_OFFSET _CubeScaleOffsetRT
 #else
 #define PLANAR_CAPTURE_VP _PlanarCaptureVP
-#define PLANAR_CAPTURE_FORWARD _PlanarCaptureForward
 #define PLANAR_SCALE_OFFSET _PlanarScaleOffset
 #define CUBE_SCALE_OFFSET _CubeScaleOffset
 #endif
@@ -150,23 +148,20 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
             //_ReflAtlasPlanarCaptureVP is in capture space
-            float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, PLANAR_CAPTURE_VP[index]);
+            float4 samplePosCS = ComputeClipSpacePosition(texCoord, PLANAR_CAPTURE_VP[index]);
+#if UNITY_UV_STARTS_AT_TOP
+            samplePosCS.y = -samplePosCS.y;
+#endif
+            float2 ndc = samplePosCS.xy * rcp(samplePosCS.w);
+            ndc.xy = ndc.xy * 0.5 + 0.5;
             float2 atlasCoords = GetReflectionAtlasCoordsPlanar(PLANAR_SCALE_OFFSET[index], ndc.xy, lod);
 
-            color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
-#if UNITY_REVERSED_Z
-            // We check that the sample was capture by the probe according to its frustum planes, except the far plane.
-            //   When using oblique projection, the far plane is so distorded that it is not reliable for this check.
-            //   and most of the time, what we want, is the clipping from the oblique near plane.
-            color.a = any(ndc.xy < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
-#else
-            color.a = any(ndc.xyz < 0) || any(ndc.xy > 1) ? 0.0 : 1.0;
-#endif
-            float3 capturedForwardWS = PLANAR_CAPTURE_FORWARD[index].xyz;
-            if (dot(capturedForwardWS, texCoord) < 0.0)
-                color.a = 0.0;
-            else
+            color.a = all(abs(samplePosCS.xyz) < samplePosCS.w) ? 1.0 : 0.0;
+
+            if (color.a > 0.0)
             {
+                color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_ReflectionAtlas, s_trilinear_clamp_sampler, atlasCoords, sliceIdx, lod).rgb;
+
                 // Controls the blending on the edges of the screen
                 const float amplitude = 100.0;
 
