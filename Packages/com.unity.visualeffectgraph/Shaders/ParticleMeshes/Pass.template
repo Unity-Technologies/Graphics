@@ -51,8 +51,9 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	if (!attributes.alive)
 		return o;
 
-	o.VFX_VARYING_UV.xy = i.uv;
-
+    #ifdef VFX_VARYING_UV
+    o.VFX_VARYING_UV.xy = i.uv;
+    #endif
     #if VFX_SHADERGRAPH_HAS_UV1
     o.uv1 = i.uv1;
     #endif

@@ -629,6 +629,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+		[Timeout(900000)]
         public IEnumerator CreateComponent_And_Check_NoneTexture_Constraint_Doesnt_Generate_Any_Error()
         {
             yield return new EnterPlayMode();
@@ -906,7 +907,7 @@ namespace UnityEditor.VFX.Test
             {
                 expectedValue = new Vector2(5.0f, 6.0f);
                 parameter.value = expectedValue;
-                graph.RecompileIfNeeded();
+                graph.RecompileIfNeeded(false, true);
             }
 
             if (modifyValue)

@@ -7,6 +7,7 @@
 		${VFXInclude("Shaders/ParticleLines/PassDepth.template"),IS_OPAQUE_PARTICLE}
 		${VFXInclude("Shaders/ParticleLines/PassVelocity.template"),USE_MOTION_VECTORS_PASS}
 		${VFXInclude("Shaders/ParticleLines/PassForward.template")}
+		${VFXIncludeRP("Templates/ParticleLines/PassFullScreenDebug.template")}
 		${VFXInclude("Shaders/ParticleLines/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
 	}
 }

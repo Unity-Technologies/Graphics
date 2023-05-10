@@ -230,7 +230,7 @@ Shader "HDRP/Lit"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature_local _ALPHATEST_ON
-    #pragma shader_feature_local_fragment _DEPTHOFFSET_ON
+    #pragma shader_feature_local _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
     #pragma shader_feature_local_vertex _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
@@ -286,9 +286,8 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local_raytracing _SPECULARCOLORMAP
     #pragma shader_feature_local_raytracing _TRANSMITTANCECOLORMAP
 
-    #pragma shader_feature_local_fragment _DISABLE_DECALS
+    #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local_fragment _DISABLE_SSR
-    #pragma shader_feature_local_raytracing _DISABLE_DECALS
     #pragma shader_feature_local_raytracing _DISABLE_SSR
     // Bit of a mystery why this is not possible to have frequency specific.
     #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT

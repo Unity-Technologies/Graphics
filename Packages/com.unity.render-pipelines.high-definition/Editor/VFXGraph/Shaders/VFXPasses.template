@@ -154,3 +154,32 @@ void frag(ps_input i
 	#endif
 }
 ${VFXEnd}
+
+${VFXBegin:VFXPassFullScreenDebugCommonVertex}
+#if !defined(SHADER_API_METAL)
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
+        IncrementVertexDensityCounter(o.VFX_VARYING_POSCS);
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXPassFullScreenDebugCommonFragment}
+    #pragma fragment frag
+    [earlydepthstencil]
+    void frag(ps_input i
+#if defined(PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER)
+            , uint primitiveId : SV_PrimitiveID
+#endif
+    )
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+        VFXTransformPSInputs(i);
+        VFX_FRAG_SETUP_INSTANCE_ID(i);
+        
+#ifdef PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER
+        if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
+        {
+           IncrementQuadOverdrawCounter((uint2)i.VFX_VARYING_POSCS.xy, primitiveId);
+        }
+#endif
+    }
+${VFXEnd}

@@ -141,6 +141,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             hierarchy.Add(m_DragIndicator);
 
+            // setting Capabilities.Selectable adds a ClickSelector
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable | Capabilities.Copiable;
 
             ClearClassList();
@@ -154,7 +155,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SelectionDropperManipulator = new SelectionDropper();
             this.AddManipulator(m_SelectionDropperManipulator);
 
-            RegisterCallback<MouseDownEvent>(OnMouseDownEvent, TrickleDown.TrickleDown);
+            RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
             var textInputElement = m_TextField.Q(TextField.textInputUssName);
             textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); }, TrickleDown.TrickleDown);
             // Register hover callbacks
@@ -290,7 +291,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseDownEvent(MouseDownEvent e)
         {
-            // See this issue: https://jira.unity3d.com/browse/SGB-535
+            // Handles double-click with left mouse, which should trigger a rename action on this category
+            if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
+            {
+                OpenTextEditor();
+                e.StopPropagation();
+
+                // Prevent MouseDown from refocusing the Label on PostDispatch
+                focusController.IgnoreEvent(e);
+            }
+            else if (e.clickCount == 1 && e.button == (int)MouseButton.LeftMouse && IsRenamable())
+            {
+                // Select the child elements within this category (the field views)
+                var fieldViews = this.Query<SGBlackboardField>();
+                foreach (var child in fieldViews.ToList())
+                {
+                    this.AddToSelection(child);
+                }
+            }
         }
 
         internal void OpenTextEditor()

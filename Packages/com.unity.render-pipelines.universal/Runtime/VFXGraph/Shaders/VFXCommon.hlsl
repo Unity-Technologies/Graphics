@@ -23,11 +23,6 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 }
 #endif
 
-float4 VFXTransformFinalColor(float4 color)
-{
-    return color;
-}
-
 float2 VFXGetNormalizedScreenSpaceUV(float4 clipPos)
 {
     return GetNormalizedScreenSpaceUV(clipPos);
@@ -177,6 +172,17 @@ float4 VFXApplyAO(float4 color, float4 posCS)
     AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
     color.rgb *= aoFactor.directAmbientOcclusion;
 #endif
+
+    return color;
+}
+
+float4 VFXTransformFinalColor(float4 color, float4 posCS)
+{
+    if (IsOnlyAOLightingFeatureEnabled())
+    {
+        color.rgb = (float3)1.0f;
+        color = VFXApplyAO(color, posCS);
+    }
 
     return color;
 }

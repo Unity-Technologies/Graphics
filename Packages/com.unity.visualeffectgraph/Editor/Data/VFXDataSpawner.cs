@@ -12,6 +12,16 @@ namespace UnityEditor.VFX
     {
         public override VFXDataType type => VFXDataType.SpawnEvent;
 
+        public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+
+            while (m_Owners.Count > 1)
+            {
+                m_Owners.Last().SetDefaultData(true);
+            }    
+        }
+
         public override void CopySettings<T>(T dst)
         {
             //There is nothing serialized here

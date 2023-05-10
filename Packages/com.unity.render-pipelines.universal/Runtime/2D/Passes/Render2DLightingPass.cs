@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Profiling;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.U2D;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -12,6 +11,8 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
         private static readonly int k_UseSceneLightingID = Shader.PropertyToID("_UseSceneLighting");
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
+        private static readonly int k_LightLookupID = Shader.PropertyToID("_LightLookup");
+        private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
 
         private static readonly int[] k_ShapeLightTextureIDs =
         {
@@ -275,7 +276,7 @@ namespace UnityEngine.Rendering.Universal
                                     cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], identifier);
                                 }
 
-                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
+                                RendererLighting.EnableBlendStyle(CommandBufferHelpers.GetRasterCommandBuffer(cmd), blendStyleIndex, blendStyleUsed);
                             }
                         }
                         else
@@ -283,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
                             for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
                             {
                                 cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
-                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
+                                RendererLighting.EnableBlendStyle(CommandBufferHelpers.GetRasterCommandBuffer(cmd), blendStyleIndex, blendStyleIndex == 0);
                             }
                         }
 
@@ -484,7 +485,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                 cmd.SetGlobalColor(k_RendererColorID, Color.white);
-                RendererLighting.SetLightShaderGlobals(m_Renderer2DData, cmd);
+                cmd.SetGlobalTexture(k_FalloffLookupID, m_Renderer2DData.fallOffLookup);
+                cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
+                RendererLighting.SetLightShaderGlobals(m_Renderer2DData, CommandBufferHelpers.GetRasterCommandBuffer(cmd));
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
 
@@ -496,7 +499,7 @@ namespace UnityEngine.Rendering.Universal
                 for (var i = 0; i < batchCount; i += batchesDrawn)
                     batchesDrawn = DrawLayerBatches(layerBatches, batchCount, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings, ref desc);
 
-                RendererLighting.DisableAllKeywords(cmd);
+                RendererLighting.DisableAllKeywords(CommandBufferHelpers.GetRasterCommandBuffer(cmd));
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -526,11 +529,11 @@ namespace UnityEngine.Rendering.Universal
                         if (blendStyleIndex == 0)
                             cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
 
-                        RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
+                        RendererLighting.EnableBlendStyle(CommandBufferHelpers.GetRasterCommandBuffer(cmd), blendStyleIndex, blendStyleIndex == 0);
                     }
                 }
 
-                RendererLighting.DisableAllKeywords(cmd);
+                RendererLighting.DisableAllKeywords(CommandBufferHelpers.GetRasterCommandBuffer(cmd));
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

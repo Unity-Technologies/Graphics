@@ -63,11 +63,13 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	[unroll]
 	for (int id = 0; id < VERTEX_COUNT; ++id)
 	{
+		float2 varyingUV = (float2)0.0f;
+		
 #if VFX_PRIMITIVE_QUAD
 
-	    o.VFX_VARYING_UV.x = float(id & 1);
-	    o.VFX_VARYING_UV.y = (id & 2) * 0.5f;
-	    const float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;
+	    varyingUV.x = float(id & 1);
+	    varyingUV.y = (id & 2) * 0.5f;
+	    const float2 vOffsets = varyingUV.xy - 0.5f;
 	
 #elif VFX_PRIMITIVE_TRIANGLE
 
@@ -80,7 +82,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	    const float kUVScale = 0.866025388240814208984375f;
 	
 	    const float2 vOffsets = kOffsets[id % 3];
-	    o.VFX_VARYING_UV.xy = (vOffsets * kUVScale) + 0.5f;
+	    varyingUV.xy = (vOffsets * kUVScale) + 0.5f;
 	
 #elif VFX_PRIMITIVE_OCTAGON	
 	    // TODO Not working at the moment. Order of strips has to be fixed
@@ -100,12 +102,16 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	    ${VFXLoadParameter:{cropFactor}}
 	    cropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
 	    const float2 vOffsets = kUvs[id & 7] * cropFactor;
-	    o.VFX_VARYING_UV.xy = vOffsets + 0.5f;
+	    varyingUV.xy = vOffsets + 0.5f;
 	
 #endif
 						
 		const float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
 		o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+		
+		#ifdef VFX_VARYING_UV
+		o.VFX_VARYING_UV.xy = varyingUV;
+		#endif
 		
 		#ifdef VFX_VARYING_BENTFACTORS
 		${VFXLoadParameter:{normalBendingFactor}}

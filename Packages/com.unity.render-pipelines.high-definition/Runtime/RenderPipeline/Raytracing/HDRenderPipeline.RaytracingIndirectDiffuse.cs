@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF,
-                ReflectionHistoryBufferAllocatorFunction, 1);
+                IndirectDiffuseHistoryBufferAllocatorFunction, 1);
         }
 
         TextureHandle RenderIndirectDiffusePerformance(RenderGraph renderGraph, HDCamera hdCamera,
@@ -285,9 +285,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Trace the rays and evaluate the lighting
             DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera, fullResolution);
-            TextureHandle lightingBuffer = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
+            RayTracingDefferedLightLoopOutput lightloopOutput = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
 
-            rtgiResult = UpscaleRTGI(renderGraph, hdCamera, settings, prepassOutput.depthBuffer, prepassOutput.normalBuffer, lightingBuffer, directionBuffer, fullResolution);
+            rtgiResult = UpscaleRTGI(renderGraph, hdCamera, settings, prepassOutput.depthBuffer, prepassOutput.normalBuffer, lightloopOutput.lightingBuffer, directionBuffer, fullResolution);
 
             // Denoise if required
             rtgiResult = DenoiseRTGI(renderGraph, hdCamera, rtgiResult, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, fullResolution);

@@ -1,0 +1,29 @@
+{
+    "name": "Unity.RenderPipelines.Multiple_SRP.EditorTests",
+    "rootNamespace": "CrossPipeline",
+    "references": [
+        "UnityEditor.TestTools.Graphics",
+        "UnityEngine.TestTools.Graphics.Tests",
+        "UnityEditor.TestRunner",
+        "UnityEngine.TestRunner",
+        "Common.Editor",
+        "Common.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

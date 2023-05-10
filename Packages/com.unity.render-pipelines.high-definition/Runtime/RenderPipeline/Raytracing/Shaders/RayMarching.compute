@@ -63,7 +63,7 @@ void RAY_MARCH_KERNEL(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     // Compute the pixel position to process
     uint2 currentCoord = dispatchThreadId.xy;
     #if HALF_RESOLUTION
-    currentCoord = currentCoord * 2;
+    currentCoord = ComputeSourceCoordinates(currentCoord, _RayTracingCheckerIndex);
     #endif
 
     // Read the depth value as early as possible

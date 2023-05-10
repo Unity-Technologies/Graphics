@@ -766,6 +766,7 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks,
+            Dictionary<VFXData, uint> dataToSystemIndex,
             VFXSystemNames systemNames = null)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
@@ -795,8 +796,13 @@ namespace UnityEditor.VFX
                 {
                     throw new InvalidOperationException("Unexpected multiple input dependency for GPU event");
                 }
-                attributeSourceBufferIndex = dependentBuffers.attributeBuffers[m_DependenciesIn.FirstOrDefault()];
+
+                var dependency = m_DependenciesIn.First();
+
+                attributeSourceBufferIndex = dependentBuffers.attributeBuffers[dependency];
                 eventGPUFrom = dependentBuffers.eventBuffers[this];
+               
+                systemValueMappings.Add(new VFXMapping("parentSystemIndex", (int)dataToSystemIndex[dependency]));
             }
             var systemFlag = VFXSystemFlag.SystemDefault;
             if (attributeBufferIndex != -1)
@@ -835,17 +841,20 @@ namespace UnityEditor.VFX
             {
                 systemFlag |= VFXSystemFlag.SystemHasKill;
 
-                deadListBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = capacity, stride = 4 });
-                systemBufferMappings.Add(new VFXMapping("deadList", deadListBufferIndex));
+                if (!hasStrip) // No dead list for strips
+                {
+                    deadListBufferIndex = outBufferDescs.Count;
+                    outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = capacity, stride = 4 });
+                    systemBufferMappings.Add(new VFXMapping("deadList", deadListBufferIndex));
 
-                deadListCountIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = 1, stride = 4 });
-                systemBufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
+                    deadListCountIndex = outBufferDescs.Count;
+                    outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = 1, stride = 4 });
+                    systemBufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
 
-                deadListCountCopyIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = 1, stride = 4 });
-                systemBufferMappings.Add(new VFXMapping("deadListCountCopy", deadListCountCopyIndex));
+                    deadListCountCopyIndex = outBufferDescs.Count;
+                    outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = 1, stride = 4 });
+                    systemBufferMappings.Add(new VFXMapping("deadListCountCopy", deadListCountCopyIndex));
+                }
             }
 
             if (hasStrip)
@@ -927,6 +936,8 @@ namespace UnityEditor.VFX
                     systemValueMappings.Add(new VFXMapping("boundsPadding", boundsPaddingIndex));
                 }
             }
+
+            systemValueMappings.Add(new VFXMapping("graphValuesOffset", systemValueMappings.Count + 1));
             foreach (var uniform in m_GraphValuesLayout.uniformBlocks.SelectMany(o => o))
                 systemValueMappings.Add(new VFXMapping(m_SystemUniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 

@@ -30,9 +30,9 @@ float GetUnderWaterDistance(uint2 coord)
     uint packedValue = _WaterLine[posX + 2 + xr] & 0xFFFF;
     float waterLine = packedValue - 1;
 
-    // For the columns with missing values, try to guess based on camera pos
+    // Normalize distance to water line
     float maxHeight = (_BoundsSS.w - _BoundsSS.z);
-    float distanceToWaterLine = (posY - waterLine) / maxHeight;
+    float distanceToWaterLine = (floor(posY) - waterLine) / maxHeight;
 
     return distanceToWaterLine;
 }

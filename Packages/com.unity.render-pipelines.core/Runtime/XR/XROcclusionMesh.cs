@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal void RenderOcclusionMesh(CommandBuffer cmd)
+        internal void RenderOcclusionMesh(CommandBuffer cmd, float occlusionMeshScale)
         {
             if (IsOcclusionMeshSupported())
             {
@@ -52,7 +52,8 @@ namespace UnityEngine.Experimental.Rendering
                             m_Pass.StopSinglePass(cmd);
 
                             cmd.EnableShaderKeyword("XR_OCCLUSION_MESH_COMBINED");
-                            cmd.DrawMesh(m_CombinedMesh, Matrix4x4.identity, m_Material);
+                            Vector3 scale = new Vector3(occlusionMeshScale, occlusionMeshScale, 1.0f);
+                            cmd.DrawMesh(m_CombinedMesh, Matrix4x4.Scale(scale), m_Material);
                             cmd.DisableShaderKeyword("XR_OCCLUSION_MESH_COMBINED");
 
                             m_Pass.StartSinglePass(cmd);

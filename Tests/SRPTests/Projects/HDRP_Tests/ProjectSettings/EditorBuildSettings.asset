@@ -417,6 +417,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2321_Shadow_Cascades_CustomProj.unity
     guid: 879e29801a2c8a445a211d17ece0764a
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2322_Directional_Light_Shadow_PCSS.unity
+    guid: 33961c8c0b16d594ebac84c0592527dd
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
   - enabled: 1
@@ -476,7 +479,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3005_VertexDensity.unity
     guid: cec032192a9db8541b2c7d395ba6fd9f
-  - enabled: 1  
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3006_TileCluster_Cluster.unity
     guid: 2b613394fffde014b985766d7ac86297
   - enabled: 1
@@ -884,5 +887,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9950-LineRendering.unity
     guid: 65ec8013d474e1a4e85d97b29e7302f0
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9960-RPCRenderRequest.unity
+    guid: 877ce1fd6af6ce444ad7df1b05f9b7e0
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

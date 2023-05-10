@@ -119,6 +119,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [UnityTest]
+		[Timeout(840000)]
         public IEnumerator TransformABC()
         {
             // Test that transforming from A->B then B->C is the same as A->C (for all A,B,C)

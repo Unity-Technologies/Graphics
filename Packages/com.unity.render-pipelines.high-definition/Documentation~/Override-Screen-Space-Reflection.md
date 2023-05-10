@@ -168,8 +168,8 @@ This example image uses **Speed From Reflected Surface** to accumulate the sampl
   </tr>
   <tr>
     <td></td>
-    <td><strong>Affects Smooth Surfaces</strong></td>
-    <td>Indicates whether the denoiser affects perfectly smooth surfaces (surfaces with a <strong>Smoothness</strong> of 1.0) or not.</td>
+    <td><strong>Anti-flickering Strength</strong></td>
+    <td>Controls the anti-flickering strength of the reflection denoiser.</td>
   </tr>
 </tbody>
 </table>

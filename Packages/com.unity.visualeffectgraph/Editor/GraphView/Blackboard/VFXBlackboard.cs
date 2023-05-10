@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.UI
 
             styleSheets.Add(VFXView.LoadStyleSheet("VFXBlackboard"));
 
-            RegisterCallback<MouseDownEvent>(OnMouseClick, TrickleDown.TrickleDown);
+            RegisterCallback<MouseDownEvent>(OnMouseClick);
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);

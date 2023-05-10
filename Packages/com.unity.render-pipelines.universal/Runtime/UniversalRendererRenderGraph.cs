@@ -752,9 +752,17 @@ namespace UnityEngine.Rendering.Universal
             bool applyPostProcessing = ShouldApplyPostProcessing(ref renderingData);
             // There's at least a camera in the camera stack that applies post-processing
             bool anyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
+
+            // When FXAA or scaling is active, we must perform an additional pass at the end of the frame for the following reasons:
+            // 1. FXAA expects to be the last shader running on the image before it's presented to the screen. Since users are allowed
+            //    to add additional render passes after post processing occurs, we can't run FXAA until all of those passes complete as well.
+            //    The FinalPost pass is guaranteed to execute after user authored passes so FXAA is always run inside of it.
+            // 2. UberPost can only handle upscaling with linear filtering. All other filtering methods require the FinalPost pass.
+            // 3. TAA sharpening using standalone RCAS pass is required. (When upscaling is not enabled).
             bool applyFinalPostProcessing = anyPostProcessing && renderingData.cameraData.resolveFinalTarget &&
                                             ((renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) ||
-                                             ((renderingData.cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (renderingData.cameraData.upscalingFilter != ImageUpscalingFilter.Linear)));
+                                             ((renderingData.cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (renderingData.cameraData.upscalingFilter != ImageUpscalingFilter.Linear)) ||
+                                             (renderingData.cameraData.IsTemporalAAEnabled() && renderingData.cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f));
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && renderingData.cameraData.resolveFinalTarget;
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;

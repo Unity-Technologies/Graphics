@@ -24,6 +24,7 @@ uniform float4 _DebugArrowColor; // arrow color for position and normal debug
 uniform float4 _DebugLocator01Color; // locator color for final sampling position debug
 uniform float4 _DebugLocator02Color; // locator color for normal and view bias sampling position debug
 uniform bool _ForceDebugNormalViewBias; // additional locator to debug Normal Bias and View Bias without AntiLeak Reduction Mode
+uniform bool _DebugSamplingNoise = false;
 uniform sampler2D _NumbersTex;
 
 UNITY_INSTANCING_BUFFER_START(Props)
@@ -68,6 +69,13 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
     float3 cameraPosition_WS = _WorldSpaceCameraPos;
     float3 viewDir_WS = normalize(cameraPosition_WS - posWS);
 
+    if (_DebugSamplingNoise)
+    {
+        float2 posNDC = ComputeNormalizedDeviceCoordinates(GetCameraRelativePositionWS(posWS), UNITY_MATRIX_VP);
+        float2 posSS = floor(posNDC.xy * _ScreenSize.xy);
+        posWS = AddNoiseToSamplingPosition(posWS, posSS);
+    }
+
     APVResources apvRes = FillAPVResources();
     float3 uvw;
     uint subdiv;
@@ -95,7 +103,7 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
 // Return probe sampling weight
 float ComputeSamplingFactor(float3 probePosition_WS, float3 snappedProbePosition_WS, float3 normalizedOffset, float probeDistance)
 {
-    float samplingFactor = 0.0f;
+    float samplingFactor = -1.0f;
 
     if (distance(snappedProbePosition_WS, probePosition_WS) < 0.0001f)
     {

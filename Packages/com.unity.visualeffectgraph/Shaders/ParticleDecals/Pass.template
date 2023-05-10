@@ -150,7 +150,7 @@ ps_output frag(ps_input i)
 #else
 	//VFX_PASSDEPTH isn't defined in forward (but we are sharing the same template)
 	o.color.a = saturate(o.color.a);
-	o.color = VFXTransformFinalColor(o.color);
+	o.color = VFXTransformFinalColor(o.color,i);
 #endif
 	return o;
 }

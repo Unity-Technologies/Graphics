@@ -1,34 +1,25 @@
-<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Experimental:</b> This Feature is currently experimental and is subject to change in later major versions.</div>
+# Get Mesh Index Count
 
-# Mesh Index Count
+Menu Path: **Operator > Sampling > Get Mesh Index Count**
 
-**Menu Path : Operator > Sampling > Mesh Index Count**
-
-**Menu Path : Operator > Sampling > Skinned Mesh Index Count**
-
-The Mesh Index Count Operator allows you to retrieve the number of indices in the geometry of a mesh or skinned mesh renderer.
+Use the **Get Mesh Index Count** Operator to get the number of indices in a mesh.
 
 ## Operator settings
 
 | **Property** | **Type** | **Description**                                              |
 | ------------ | -------- | ------------------------------------------------------------ |
-| **Source**   | Enum     | **(Inspector)** Specifies the kind of geometry to sample from. The options are:<br/>&#8226; **Mesh**: Samples from a mesh asset.<br/>&#8226; **Skinned Mesh Renderer**: Samples from a [Skinned Mesh Renderer](https://docs.unity3d.com/Manual/class-SkinnedMeshRenderer.html). |
+| **Source**   | Enum     | **(Inspector)** Specify the mesh type to input.<ul><li>**Mesh**: Input a mesh asset. The Operator becomes a [Get Mesh Index Count](Operator-MeshIndexCount.md) Operator.</li><li>**Skinned Mesh Renderer**: Input a [Skinned Mesh Renderer](https://docs.unity3d.com/Manual/class-SkinnedMeshRenderer.html) component. The Operator becomes a [Get Skinned Mesh Index Count](Operator-SkinnedMeshIndexCount.md) Operator.</li></ul> |
 
 ### Operator properties
 
 | **Input**                 | **Type**              | **Description**                                              |
 | ------------------------- | --------------------- | ------------------------------------------------------------ |
-| **Mesh**                  | Mesh                  | The source mesh asset to sample.<br/>This property only appears if you set **Source** to **Mesh** |
-| **Skinned Mesh Renderer** | Skinned Mesh Renderer | The source Skinned Mesh Renderer component to sample. This is a reference to a component within the scene. To assign a Skinned Mesh Renderer to this port, create a Skinned Mesh Renderer property in the [Blackboard](Blackboard.md) and expose it.<br/>This property only appears if you set **Source** to **Skinned Mesh Renderer** |
+| **Mesh**                  | Mesh                  | Specify the mesh asset to input. This property only appears if you set **Source** to **Mesh**. |
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| **Count**  | UInt     | The number of indices in the geometry. If the topology uses a default triangle list, you can divide this value by three to get the number of triangles. |
+| **Count**  | UInt     | The number of indices in the mesh. If the mesh uses default triangle topology, you can divide the value by three to get the number of triangles. |
 
-#### Limitations
+## Limitations
 
-The Mesh Index Count Operator has the following limitations:
-
-- If a Mesh is not [readable](https://docs.unity3d.com/ScriptReference/Mesh-isReadable.html), this Operator returns uint.MaxValue. For information on how to make a Mesh readable, see [Model import settings](https://docs.unity3d.com/Manual/FBXImporter-Model.html)
-
-![](Images/ReadWrite.png)
+If the mesh isn't [readable](https://docs.unity3d.com/ScriptReference/Mesh-isReadable.html), this Operator returns 0. For information on how to make a mesh readable in the Editor, refer to the [Import Settings for a model file](https://docs.unity3d.com/Manual/FBXImporter-Model.html).

@@ -8,6 +8,12 @@ For a complete list of changes made in URP 15, refer to the [Changelog](xref:cha
 
 This section contains the overview of the new features in this release.
 
+### Screen Space Lens Flare
+
+![](../Images/shared/lens-flare/screenspacelensflaresurp.png)
+
+URP 15 includes a new [Screen Space Lens Flare](../shared/lens-flare/post-processing-screen-space-lens-flare.md) post-processing override, in addition to the existing [Lens Flare (SRP)](../shared/lens-flare/lens-flare-component.md) component. The override uses what's on the screen to create multiple types of lens flare, based on the texture from the [Bloom](../post-processing-bloom.md) override. Screen space lens flares are useful for bright spots in your scene that appear depending on the camera view, for example a bright specular reflection on a shiny metal object, or a bright outside area viewed from a dark indoor area.
+
 ### Temporal anti-aliasing (TAA)
 
 Temporal anti-aliasing (TAA) is a spatial multi-frame anti-aliasing technique that uses results from current and previous rendered frames to remove jaggies in the current frame and reduce temporal judder between frames.

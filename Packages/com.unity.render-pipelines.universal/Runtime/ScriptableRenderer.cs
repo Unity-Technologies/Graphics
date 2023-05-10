@@ -349,7 +349,9 @@ namespace UnityEngine.Rendering.Universal
 
             // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
             // TODO(@sandy-carter) set to RTHandles.rtHandleProperties.rtHandleScale once dynamic scaling is set up
-            cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, Vector4.one);
+            // setting ShaderPropertyId.rtHandleScale as an uniform is temporarily disabled since it breaks the RG path when preview cameras are selected.
+            // to be investigated and reenabled as part of the dynamic scaling work
+            //cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, Vector4.one);
 
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
@@ -868,6 +870,8 @@ namespace UnityEngine.Rendering.Universal
         {
             internal CullingResults cullResults;
             internal Camera camera;
+            internal VFX.VFXCameraXRSettings cameraXRSettings;
+            internal XRPass xrPass;
         };
 
         internal void ProcessVFXCameraCommand(RenderGraph renderGraph, ref RenderingData renderingData)
@@ -878,24 +882,23 @@ namespace UnityEngine.Rendering.Universal
                 passData.camera = renderingData.cameraData.camera;
                 passData.cullResults = renderingData.cullResults;
 
-                VFX.VFXCameraXRSettings cameraXRSettings;
-                cameraXRSettings.viewTotal = renderingData.cameraData.xr.enabled ? 2u : 1u;
-                cameraXRSettings.viewCount = renderingData.cameraData.xr.enabled ? (uint)renderingData.cameraData.xr.viewCount : 1u;
-                cameraXRSettings.viewOffset = (uint)renderingData.cameraData.xr.multipassId;
-                var xrPass = renderingData.cameraData.xr.enabled ? renderingData.cameraData.xr : null;
+                passData.cameraXRSettings.viewTotal = renderingData.cameraData.xr.enabled ? 2u : 1u;
+                passData.cameraXRSettings.viewCount = renderingData.cameraData.xr.enabled ? (uint)renderingData.cameraData.xr.viewCount : 1u;
+                passData.cameraXRSettings.viewOffset = (uint)renderingData.cameraData.xr.multipassId;
+                passData.xrPass = renderingData.cameraData.xr.enabled ? renderingData.cameraData.xr : null;
 
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc((VFXProcessCameraPassData data, RenderGraphContext context) =>
                 {
-                    if (xrPass != null)
-                        xrPass.StartSinglePass(context.cmd);
+                    if (data.xrPass != null)
+                        data.xrPass.StartSinglePass(context.cmd);
 
                     //Triggers dispatch per camera, all global parameters should have been setup at this stage.
-                    VFX.VFXManager.ProcessCameraCommand(data.camera, context.cmd, cameraXRSettings, data.cullResults);
+                    VFX.VFXManager.ProcessCameraCommand(data.camera, context.cmd, data.cameraXRSettings, data.cullResults);
 
-                    if (xrPass != null)
-                        xrPass.StopSinglePass(context.cmd);
+                    if (data.xrPass != null)
+                        data.xrPass.StopSinglePass(context.cmd);
                 });
 
             }

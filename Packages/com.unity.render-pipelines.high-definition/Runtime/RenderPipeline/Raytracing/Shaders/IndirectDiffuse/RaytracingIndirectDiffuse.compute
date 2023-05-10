@@ -40,14 +40,11 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
     // Compute the pixel position to process
     uint2 halfResCoord = groupId * RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
 
-    // Pixel where we will store the result of the raytracing
-    uint2 outputCoord = halfResCoord * 2;
-
     // Pixel coordinate in full res of the pixel that we will be using for our computation
-    uint2 sourceCoord = ComputeSourceCoordinates(halfResCoord, _RaytracingFrameIndex);
+    uint2 sourceCoord = ComputeSourceCoordinates(halfResCoord, _RayTracingCheckerIndex);
 
     // Initialize the buffer with invalid values
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(0.0, 0.0, 0.0, -1.0f);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(sourceCoord)] = float4(0.0, 0.0, 0.0, -1.0f);
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
@@ -77,7 +74,7 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
     float samplePDF = dot(sampleDir, normalData.normalWS);
 
     // In the second texture, we store the sampled direction and the invPDF of the sample
-    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(sampleDir, 1.0 / samplePDF);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(sourceCoord)] = float4(sampleDir, 1.0 / samplePDF);
 }
 
 [numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
@@ -167,28 +164,6 @@ groupshared uint gs_cacheLighting_HR[HALF_RES_REGION_SIZE_2];
 groupshared float gs_cacheDepth_HR[HALF_RES_REGION_SIZE_2];
 groupshared uint gs_cacheNormal_HR[HALF_RES_REGION_SIZE_2];
 
-// The following logic applies to the max width, max height borders aswell).
-// Given that we are working in half resolution, the last viable pixel is not (width-1, height-1) but (width-2, height-2).
-// Note that this will not work with a sample instruction, only the current load approach.
-// |---|---|---|---|---|---|---|---|
-// | I | I | I | I | I | I | I | I |
-// |---|---|---|---|---|---|---|---|
-// | V | I | V | I | V | I | O | I |
-// |---|---|---|---|---|---|---|---|
-// | I | I | I | I | I | I | I | I |
-// |---|---|---|---|---|---|---|---|
-// | V | I | V | I | V | I | V | I |
-// |---|---|---|---|---|---|---|---|
-// O being Width-2, Height-2
-
-// This function evaluates the max pixel coordinate that can be used to read the half res data from the full res buffer
-// The important part is that it takes into account if the original screen size is odd or even. If not set properly, we may end up reading
-// from outside the buffer
-uint2 GetClampSreenSizeHalf()
-{
-    uint2 readOffset = uint2(_ScreenSize.xy) % 2;
-    return uint2(_ScreenSize.x - 2 + readOffset.x, _ScreenSize.y - 2 + readOffset.y);
-}
 
 void FillUpscaleNeighborhoodDataLDS_Half(uint groupIndex, uint2 groupOrigin)
 {
@@ -203,18 +178,21 @@ void FillUpscaleNeighborhoodDataLDS_Half(uint groupIndex, uint2 groupOrigin)
 
         // Compute the full res sampling coordinate
         int2 halfResCoord = int2(originXY.x + offsetX, originXY.y + offsetY);
-        uint2 maxScreenSize = GetClampSreenSizeHalf();
-        int2 sampleCoord = int2(clamp(halfResCoord.x * 2, 0, (int)maxScreenSize.x), clamp(halfResCoord.y * 2, 0, (int)maxScreenSize.y));
 
-        // Read all the values for tap
-        float3 lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, sampleCoord).xyz;
-        float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sampleCoord).x;
-        float2 octNormalWS = Unpack888ToFloat2(LOAD_TEXTURE2D_X(_NormalBufferTexture, sampleCoord).xyz);
-
-        // Pack and store into the LDS
+        // Evalaute the LDS index for this sample
         int LDSIndex = offsetX + offsetY * HALF_RES_REGION_SIZE;
+
+        // Store the lighting into the LDS
+        int2 sampleCoordSignal = int2(clamp((uint)halfResCoord.x, (uint)0, (uint)_ScreenSize.x / 2 - 1), clamp((uint)halfResCoord.y, (uint)0, (uint)_ScreenSize.y / 2 - 1));
+        float3 lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, sampleCoordSignal).xyz;
         gs_cacheLighting_HR[LDSIndex] = PackToR11G11B10f(lighting);
+
+        // Store the depth and normal into the LDS
+        int2 sampleCoord = ComputeSourceCoordinates(halfResCoord, _RayTracingCheckerIndex);
+        sampleCoord = int2(clamp(sampleCoord.x, 0, (int)_ScreenSize.x - 1), clamp(sampleCoord.y, 0, (int)_ScreenSize.y - 1));
+        float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sampleCoord).x;
         gs_cacheDepth_HR[LDSIndex] = Linear01Depth(depthValue, _ZBufferParams);
+        float2 octNormalWS = Unpack888ToFloat2(LOAD_TEXTURE2D_X(_NormalBufferTexture, sampleCoord).xyz);
         gs_cacheNormal_HR[LDSIndex] = f32tof16(octNormalWS.x) | f32tof16(octNormalWS.y) << 16;
     }
 }
@@ -247,11 +225,10 @@ NeighborTapData GetNeighborTapDataSample_HR(uint2 groupThreadId, int2 offset)
 NeighborTapData GetNeighborTapDataSample_HR_NOLDS(uint2 fulLResCoord, int2 offset)
 {
     int2 tapCoord = (fulLResCoord / 2 + offset) * 2;
-    uint2 maxScreenSize = GetClampSreenSizeHalf();
-    tapCoord = int2(clamp(tapCoord.x, 0, (int)maxScreenSize.x), clamp(tapCoord.y, 0, (int)maxScreenSize.y));
+    tapCoord = int2(clamp(tapCoord.x, 0, (int)_ScreenSize.x - 1), clamp(tapCoord.y, 0, (int)_ScreenSize.y - 1));
 
     NeighborTapData outVal;
-    outVal.lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, tapCoord).xyz;
+    outVal.lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, tapCoord / 2).xyz;
     outVal.linearDepth = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, tapCoord).x, _ZBufferParams);
     float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, tapCoord);
     NormalData normalData;
@@ -280,7 +257,6 @@ void IndirectDiffuseIntegrationUpscaleHalfRes(uint3 dispatchThreadId : SV_Dispat
 
     // Compute the half res coordinate that we shall be using for our effect
     uint2 targetCoord = dispatchThreadId.xy;
-    uint2 sourceCoord = targetCoord / 2;
 
     // Fetch the depth
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, targetCoord).x;
@@ -421,7 +397,6 @@ void IndirectDiffuseIntegrationUpscaleFullRes(uint3 dispatchThreadId : SV_Dispat
 #endif
 
     uint2 targetCoord = dispatchThreadId.xy;
-    uint2 sourceCoord = targetCoord;
 
     // Fetch the depth
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, targetCoord).x;

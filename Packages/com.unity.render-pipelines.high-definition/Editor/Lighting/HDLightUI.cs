@@ -1577,20 +1577,29 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.blockerSampleCount, s_Styles.blockerSampleCount);
-            EditorGUILayout.PropertyField(serialized.filterSampleCount, s_Styles.filterSampleCount);
-            EditorGUILayout.PropertyField(serialized.minFilterSize, s_Styles.minFilterSize);
-            GUIContent styleForScale = s_Styles.radiusScaleForSoftness;
             if (serialized.settings.lightType.GetEnumValue<LightType>() == LightType.Directional)
             {
-                styleForScale = s_Styles.diameterScaleForSoftness;
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSMaxBlockerDistance, s_Styles.dirLightPCSSMaxBlockerDistance);
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSMaxSamplingDistance, s_Styles.dirLightPCSSMaxSamplingDistance);
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSMinFilterSizeTexels, s_Styles.dirLightPCSSMinFilterSizeTexels);
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSMinFilterMaxAngularDiameter, s_Styles.dirLightPCSSMinFilterMaxAngularDiameter);
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSBlockerSearchAngularDiameter, s_Styles.dirLightPCSSBlockerSearchAngularDiameter);
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSBlockerSamplingClumpExponent, s_Styles.dirLightPCSSBlockerSamplingClumpExponent);
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSBlockerSampleCount, s_Styles.dirLightPCSSBlockerSampleCount);
+                EditorGUILayout.PropertyField(serialized.dirLightPCSSFilterSampleCount, s_Styles.dirLightPCSSFilterSampleCount);
             }
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(serialized.scaleForSoftness, styleForScale);
-            if (EditorGUI.EndChangeCheck())
+            else
             {
-                //Clamp the value and also affect baked shadows
-                serialized.scaleForSoftness.floatValue = Mathf.Max(serialized.scaleForSoftness.floatValue, 0);
+                EditorGUILayout.PropertyField(serialized.blockerSampleCount, s_Styles.blockerSampleCount);
+                EditorGUILayout.PropertyField(serialized.filterSampleCount, s_Styles.filterSampleCount);
+                EditorGUILayout.PropertyField(serialized.minFilterSize, s_Styles.minFilterSize);
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serialized.scaleForSoftness, s_Styles.radiusScaleForSoftness);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    //Clamp the value and also affect baked shadows
+                    serialized.scaleForSoftness.floatValue = Mathf.Max(serialized.scaleForSoftness.floatValue, 0);
+                }
             }
         }
 

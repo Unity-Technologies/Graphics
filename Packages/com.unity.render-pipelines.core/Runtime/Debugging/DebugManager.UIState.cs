@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering
             set => editorUIState.open = value;
         }
 
-        private UIState runtimeUIState = new UIState() { mode = UIMode.RuntimeMode };
+        private bool m_EnableRuntimeUI = true;
 
         /// <summary>
         /// Controls whether runtime UI can be enabled. When this is set to false, there will be no overhead
@@ -76,16 +76,18 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool enableRuntimeUI
         {
-            get => runtimeUIState.open;
+            get => m_EnableRuntimeUI;
             set
             {
-                if (value != runtimeUIState.open)
+                if (value != m_EnableRuntimeUI)
                 {
-                    runtimeUIState.open = value;
+                    m_EnableRuntimeUI = value;
                     DebugUpdater.SetEnabled(value);
                 }
             }
         }
+
+        private UIState runtimeUIState = new UIState() { mode = UIMode.RuntimeMode };
 
         /// <summary>
         /// Displays the runtime version of the debug window.
@@ -118,6 +120,8 @@ namespace UnityEngine.Rendering
 
                 onDisplayRuntimeUIChanged(value);
                 DebugUpdater.HandleInternalEventSystemComponents(value);
+
+                runtimeUIState.open = m_Root != null && m_Root.activeInHierarchy;
             }
         }
 

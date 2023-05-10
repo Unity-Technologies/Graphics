@@ -17,6 +17,7 @@ ${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${V
 
 ${VFXBegin:VFXPassForwardAdditionalPragma}
 #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+#pragma multi_compile _ DEBUG_DISPLAY
 #pragma multi_compile_fog
 ${VFXEnd}
 

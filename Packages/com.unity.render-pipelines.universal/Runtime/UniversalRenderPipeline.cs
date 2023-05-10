@@ -475,12 +475,20 @@ namespace UnityEngine.Rendering.Universal
             if(standardRequest != null || singleRequest != null)
             {
                 RenderTexture destination = standardRequest != null ? standardRequest.destination : singleRequest.destination;
+                
+                //don't go further if no destination texture
+                if(destination == null)
+                {
+                    Debug.LogError("RenderRequest has no destination texture, set one before sending request");
+                    return;
+                }
+
                 int mipLevel = standardRequest != null ? standardRequest.mipLevel : singleRequest.mipLevel;
                 int slice = standardRequest != null ? standardRequest.slice : singleRequest.slice;
                 int face = standardRequest != null ? (int)standardRequest.face : (int)singleRequest.face;
 
                 //store data that will be changed
-                var orignalTarget = camera.targetTexture;
+                var originalTarget = camera.targetTexture;
 
                 //set data
                 RenderTexture temporaryRT = null;
@@ -517,28 +525,61 @@ namespace UnityEngine.Rendering.Universal
 
                 if(temporaryRT)
                 {
+                    bool isCopySupported = false;
+
                     switch(destination.dimension)
                     {
                         case TextureDimension.Tex2D:
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.Basic) != 0)
+                            {
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, 0, mipLevel);
+                            }
+                            break;
                         case TextureDimension.Tex2DArray:
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
+                            {
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, slice, mipLevel);
+                            }
+                            break;
                         case TextureDimension.Tex3D:
-                            Graphics.CopyTexture(temporaryRT, 0, 0, destination, slice, mipLevel);
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
+                            {    
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, slice, mipLevel);
+                            }
                             break;
                         case TextureDimension.Cube:
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
+                            {
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, face, mipLevel);
+                            }
+                            break;                        
                         case TextureDimension.CubeArray:
-                            Graphics.CopyTexture(temporaryRT, 0, 0, destination, face + slice * 6, mipLevel);
+                            if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
+                            {
+                                isCopySupported = true;
+                                Graphics.CopyTexture(temporaryRT, 0, 0, destination, face + slice * 6, mipLevel);
+                            }
+                            break;
+                        default:
                             break;
                     }
+
+                    if(!isCopySupported)
+                        Debug.LogError("RenderRequest cannot have destination texture of this format: " + Enum.GetName(typeof(TextureDimension), destination.dimension));
                 }
 
                 //restore data
-                camera.targetTexture = orignalTarget;
-                Graphics.SetRenderTarget(orignalTarget);
+                camera.targetTexture = originalTarget;
+                Graphics.SetRenderTarget(originalTarget);
                 RenderTexture.ReleaseTemporary(temporaryRT);
             }
             else
             {
-                Debug.LogWarning("The given RenderRequest type: " + typeof(RequestData).FullName  + ", is either invalid or unsupported by the current pipeline");
+                Debug.LogWarning("RenderRequest type: " + typeof(RequestData).FullName  + " is either invalid or unsupported by the current pipeline");
             }
         }
 
@@ -1098,7 +1139,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
             // Multiple cameras could render into the same XR display and they should share the same MSAA level.
-            if (cameraData.xrRendering && rendererSupportsMSAA)
+            // However it should still respect the sample count of the target texture camera is rendering to.
+            if (cameraData.xrRendering && rendererSupportsMSAA && camera.targetTexture == null)
                 msaaSamples = (int)XRSystem.GetDisplayMSAASamples();
 
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
@@ -1136,6 +1178,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
                 cameraData.xrRendering = false;
+                cameraData.allowHDROutput = false;
             }
             else if (baseAdditionalCameraData != null)
             {
@@ -1146,6 +1189,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
                 cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && XRSystem.displayActive;
+                cameraData.allowHDROutput = baseAdditionalCameraData.allowHDROutput;
             }
             else
             {
@@ -1156,6 +1200,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
                 cameraData.xrRendering = XRSystem.displayActive;
+                cameraData.allowHDROutput = true;
             }
 
             ///////////////////////////////////////////////////////////////////
@@ -1163,6 +1208,7 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
 
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
+            cameraData.allowHDROutput &= settings.supportsHDR;
 
             Rect cameraRect = baseCamera.rect;
             cameraData.pixelRect = baseCamera.pixelRect;
@@ -1729,8 +1775,7 @@ namespace UnityEngine.Rendering.Universal
             ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
 
             // Fall back to the automatic filter if FSR was selected, but isn't supported on the current platform
-            // TODO: Investigate how to make FSR work with HDR output.
-            if ((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported() || HDROutputIsActive()))
+            if ((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported()))
             {
                 selection = UpscalingFilterSelection.Auto;
             }
@@ -1859,7 +1904,7 @@ namespace UnityEngine.Rendering.Universal
             float minNits = HDROutputSettings.main.minToneMapLuminance;
             float maxNits = HDROutputSettings.main.maxToneMapLuminance;
             float paperWhite = HDROutputSettings.main.paperWhiteNits;
-            ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
+            //ColorPrimaries colorPrimaries = ColorGamutUtility.GetColorPrimaries(HDROutputSettings.main.displayColorGamut);
 
             if (!tonemapping.detectPaperWhite.value)
             {
@@ -1871,7 +1916,7 @@ namespace UnityEngine.Rendering.Universal
                 maxNits = tonemapping.maxNits.value;
             }
 
-            hdrOutputParameters = new Vector4(minNits, maxNits, paperWhite, (int)colorPrimaries);
+            hdrOutputParameters = new Vector4(minNits, maxNits, paperWhite, 1f / paperWhite);
         }
 
         internal static void GetHDROutputGradingParameters(Tonemapping tonemapping, out Vector4 hdrOutputParameters)

@@ -205,6 +205,16 @@ void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
     #endif
     #endif
 }
+
+float4 VFXTransformFinalColor(float4 color, VFX_VARYING_PS_INPUTS i)
+{
+    float4 posCS = (float4)0.0f;
+#if defined(VFX_VARYING_POSCS)
+    posCS = i.VFX_VARYING_POSCS;
+#endif
+    return VFXTransformFinalColor(color, posCS);
+}
+
 #endif
 
 float3 VFXGetPositionRWS(float3 posWS)

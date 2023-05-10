@@ -183,7 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 #pragma warning disable 618 // Type or member is obsolete
             m_ObsoleteincreaseSssSampleCount = root.Find((RenderPipelineSettings s) => s.m_ObsoleteincreaseSssSampleCount);
-            m_ObsoleteSupportDitheringCrossFade = root.Find((RenderPipelineSettings s) => s.m_ObsoleteSupportDitheringCrossFade);
+            m_ObsoleteSupportDitheringCrossFade = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
 #pragma warning restore 618
         }
     }

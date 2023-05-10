@@ -980,12 +980,37 @@ namespace UnityEngine.Rendering.HighDefinition
             float4 zBufferParam = GetDirectionalZBufferParam(visibleLight, nearPlane, softnessAndRangeScale.y);
             Vector3 position = new Vector3(shadowRequest.cullingSplit.view.m03, shadowRequest.cullingSplit.view.m13, shadowRequest.cullingSplit.view.m23);
 
-            float baseBias = GetBaseBias(filteringQuality == HDShadowFilteringQuality.High, softnessAndRangeScale.y);
+            // New directional light PCSS implementation no longer requires boosting base bias
+            float baseBias = GetBaseBias(filteringQuality == HDShadowFilteringQuality.High, 0.0f);
 
             SetCommonShadowRequestSettings(ref shadowRequest, shadowRequestHandle, cameraPos, invViewProjection, projection,
                 viewportSize, lightIndex, additionalLightData, shaderConfigCameraRelativeRendering, frustumPlanesStorage,
                 ShadowMapType.CascadedDirectional, zBufferParam, softnessAndRangeScale.x, position, baseBias,
                 true, false);
+
+            // Directional light PCSS parameters
+            if(filteringQuality == HDShadowFilteringQuality.High)
+            {
+                float lightAngularDiameter = additionalLightData.softnessScale * additionalLightData.angularDiameter;
+                float halfAngularDiameterTangent = Mathf.Tan(0.5f * Mathf.Deg2Rad * lightAngularDiameter);
+                float shadowMapDepth2RadialScale = Mathf.Abs(devProjMatrix.m00 / devProjMatrix.m22);
+                shadowRequest.dirLightPCSSDepth2RadialScale = halfAngularDiameterTangent * shadowMapDepth2RadialScale;
+                shadowRequest.dirLightPCSSRadial2DepthScale = 1.0f / shadowRequest.dirLightPCSSDepth2RadialScale;
+                shadowRequest.dirLightPCSSMaxBlockerDistance = additionalLightData.dirLightPCSSMaxBlockerDistance;
+                shadowRequest.dirLightPCSSMaxSamplingDistance = additionalLightData.dirLightPCSSMaxSamplingDistance;
+                shadowRequest.dirLightPCSSMinFilterSizeTexels = additionalLightData.dirLightPCSSMinFilterSizeTexels;
+                // Ensure min filter angular diameter covers blocker search angular diameter
+                float minFilterAngularDiameter = Mathf.Max(additionalLightData.dirLightPCSSBlockerSearchAngularDiameter,
+                    additionalLightData.dirLightPCSSMinFilterMaxAngularDiameter);
+                float halfMinFilterAngularDiameterTangent = Mathf.Tan(0.5f * Mathf.Deg2Rad * Mathf.Max(minFilterAngularDiameter, lightAngularDiameter));
+                shadowRequest.dirLightPCSSMinFilterRadial2DepthScale = 1.0f / (halfMinFilterAngularDiameterTangent * shadowMapDepth2RadialScale);
+                float halfBlockerSearchAngularDiameterTangent = Mathf.Tan(0.5f * Mathf.Deg2Rad * Mathf.Max(additionalLightData.dirLightPCSSBlockerSearchAngularDiameter, lightAngularDiameter));
+                shadowRequest.dirLightPCSSBlockerRadial2DepthScale = 1.0f / (halfBlockerSearchAngularDiameterTangent * shadowMapDepth2RadialScale);
+                // Uniform distribution is sqrt of linear range, so we remap the exponent to the [0.5, 3.0] range
+                shadowRequest.dirLightPCSSBlockerSamplingClumpExponent = 0.5f * additionalLightData.dirLightPCSSBlockerSamplingClumpExponent;
+                shadowRequest.blockerSampleCount = (byte)additionalLightData.dirLightPCSSBlockerSampleCount;
+                shadowRequest.filterSampleCount = (byte)additionalLightData.dirLightPCSSFilterSampleCount;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

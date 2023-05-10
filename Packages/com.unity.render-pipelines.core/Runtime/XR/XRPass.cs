@@ -13,6 +13,7 @@ namespace UnityEngine.Experimental.Rendering
         internal RenderTextureDescriptor renderTargetDesc;
         internal ScriptableCullingParameters cullingParameters;
         internal Material occlusionMeshMaterial;
+        internal float occlusionMeshScale;
         internal IntPtr foveatedRenderingInfo;
         internal int multipassId;
         internal int cullingPassId;
@@ -132,6 +133,11 @@ namespace UnityEngine.Experimental.Rendering
         /// Native pointer from the XR plugin to be consumed by ConfigureFoveatedRendering.
         /// </summary>
         public IntPtr foveatedRenderingInfo { get; private set; }
+
+        /// <summary>
+        /// Scaling factor used when drawing the occlusion mesh.
+        /// </summary>
+        public float occlusionMeshScale { get; private set; }
 
         /// <summary>
         /// Returns the projection matrix for a given view.
@@ -266,11 +272,35 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="cmd"></param>
         public void RenderOcclusionMesh(CommandBuffer cmd)
         {
-            m_OcclusionMesh.RenderOcclusionMesh(cmd);
+            if(occlusionMeshScale > 0)
+                m_OcclusionMesh.RenderOcclusionMesh(cmd, occlusionMeshScale);
         }
+
+        /// <summary>
+        /// RasterCommandBuffer version RenderOcclusionMesh.  
+        /// </summary>
         public void RenderOcclusionMesh(RasterCommandBuffer cmd)
         {
-            m_OcclusionMesh.RenderOcclusionMesh(cmd.m_WrappedCommandBuffer);
+            if (occlusionMeshScale > 0)
+                m_OcclusionMesh.RenderOcclusionMesh(cmd.m_WrappedCommandBuffer, occlusionMeshScale);
+        }
+
+        /// <summary>
+        /// Draw debug line for all XR views.
+        /// </summary>
+        public void RenderDebugXRViewsFrustum()
+        {
+            for(int i = 0; i < m_Views.Count; i++)
+            {
+                const float k_DebugVeiwsFrustumDepthZ = 10.0f;
+                var view = m_Views[i];
+                var corners = CoreUtils.CalculateViewSpaceCorners(view.projMatrix, k_DebugVeiwsFrustumDepthZ);
+
+                // Get world space camera pos
+                Vector3 worldSpaceCameraPos = -(view.viewMatrix).GetColumn(3);
+                for(int j = 0; j < 4; j++)
+                    Debug.DrawLine(worldSpaceCameraPos, view.viewMatrix.MultiplyPoint(corners[j]), i == 0 ? Color.green : Color.red);
+            }
         }
 
         /// <summary>
@@ -331,6 +361,7 @@ namespace UnityEngine.Experimental.Rendering
             renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
             renderTargetDesc = createInfo.renderTargetDesc;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
+            occlusionMeshScale = createInfo.occlusionMeshScale;
             foveatedRenderingInfo = createInfo.foveatedRenderingInfo;
         }
 

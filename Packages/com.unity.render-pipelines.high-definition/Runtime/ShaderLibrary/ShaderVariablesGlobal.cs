@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _SpecularFade;
         public uint _EnableRenderingLayers;
         public int _ReflectionsMode;
-        public int _UnusedPadding2;
+        public uint _RayTracingCheckerIndex;
 
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;

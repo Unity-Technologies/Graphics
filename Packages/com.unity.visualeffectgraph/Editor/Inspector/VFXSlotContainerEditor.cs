@@ -1,19 +1,15 @@
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Overlays;
 using UnityEditor.Experimental;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 
 using UnityObject = UnityEngine.Object;
-using UnityEditorInternal;
 using System.Reflection;
 using UnityEngine.Rendering;
 

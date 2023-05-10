@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -6,7 +5,6 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.Universal
 {
-
     internal class LightBuffer
     {
         static readonly internal int kMax = 2048 * 8;
@@ -170,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
                     lightBuffer[i].Reset();
         }
 
-        void SetBuffer(CommandBuffer cmd)
+        void SetBuffer()
         {
             Validate();
             graphicsBuffer.SetData(nativeBuffer, lightCount, lightCount, math.min(LightBuffer.kBatchMax, LightBuffer.kMax - lightCount));
@@ -225,13 +223,13 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
-        internal void Flush(CommandBuffer cmd)
+        internal void Flush(RasterCommandBuffer cmd)
         {
             if (batchCount > 0)
             {
                 using (new ProfilingScope(cmd, profilingDrawBatched))
                 {
-                    SetBuffer(cmd);
+                    SetBuffer();
                     cmd.SetGlobalInt(k_BufferOffset, lightCount);
                     cmd.DrawMultipleMeshes(matrices, lightMeshes, subsets, batchCount, cachedMaterial, -1, null);
                 }

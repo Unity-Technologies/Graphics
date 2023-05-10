@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.ClearGBuffers);
         }
 
-        struct PrepassOutput
+        internal struct PrepassOutput
         {
             // Buffers that may be output by the prepass.
             // They will be MSAA depending on the frame settings
@@ -599,7 +599,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DBufferOutput dBuffer;
         }
 
-        struct GBufferOutput
+        internal struct GBufferOutput
         {
             public TextureHandle[] mrt;
             public int gBufferCount;
@@ -1134,7 +1134,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle decalBuffer;
         }
 
-        struct DBufferOutput
+        internal struct DBufferOutput
         {
             public TextureHandle[] mrt;
             public int dBufferCount;

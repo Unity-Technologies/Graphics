@@ -91,6 +91,11 @@ namespace UnityEditor.VFX.UI
         protected virtual void OnMainButton() { }
         protected abstract Vector2 GetPopupSize();
 
+        protected void SetMainButtonTooltip(string newTooltip)
+        {
+            m_MainButton.tooltip = newTooltip;
+        }
+
         protected void ClosePopup()
         {
             m_CurrentPopup?.Close();
@@ -98,7 +103,7 @@ namespace UnityEditor.VFX.UI
 
         private Vector2 GetPopupPosition() => m_VFXView.ViewToScreenPosition(worldBound.position);
 
-        private void OnTogglePopup()
+        protected void OnTogglePopup()
         {
             // If the user click on the arrow button while the popup is opened
             // the popup is then closed (because clicked outside) and immediately reopened

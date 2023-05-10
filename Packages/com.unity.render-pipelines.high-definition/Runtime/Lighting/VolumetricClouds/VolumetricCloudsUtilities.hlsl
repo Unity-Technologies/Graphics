@@ -49,11 +49,6 @@ groupshared float gs_cloudLutDensity[CLOUD_MAP_LUT_PRESET_SIZE];
 groupshared float gs_cloudLutErosion[CLOUD_MAP_LUT_PRESET_SIZE];
 groupshared float gs_cloudLutAO[CLOUD_MAP_LUT_PRESET_SIZE];
 
-uint2 HalfResolutionIndexToOffset(uint index)
-{
-    return uint2(index & 0x1, index / 2);
-}
-
 void LoadCloudLutToLDS(uint groupThreadId)
 {
     float3 densityErosionAO = LOAD_TEXTURE2D_LOD(_CloudLutTexture, int2(0, groupThreadId), 0);
@@ -858,14 +853,6 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
 
     // return the final ray result
     return volumetricRay;
-}
-
-// This function compute the checkerboard undersampling position
-int ComputeCheckerBoardIndex(int2 traceCoord, int subPixelIndex)
-{
-    int localOffset = (traceCoord.x & 1 + traceCoord.y & 1) & 1;
-    int checkerBoardLocation = (subPixelIndex + localOffset) & 0x3;
-    return checkerBoardLocation;
 }
 
 float EvaluateFinalTransmittance(float3 color, float transmittance)

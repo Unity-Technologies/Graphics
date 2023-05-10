@@ -188,6 +188,7 @@ Shader "HDRP/LitTessellation"
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5, Same as Base, 6)] _UVEmissive("UV Set for emissive", Float) = 0
+        [HideInInspector] _ObjectSpaceUVMappingEmissive("Mapping space", Float) = 0.0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
@@ -205,6 +206,8 @@ Shader "HDRP/LitTessellation"
         _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 100.0
         _TessellationShapeFactor("Tessellation shape factor", Range(0.0, 1.0)) = 0.75 // Only use with Phong
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
+        [HiddenInInspector] _TessellationObjectScale("Tessellation object scale", Float) = 1.0
+        [HiddenInInspector] _TessellationTilingScale("Tessellation tiling scale", Float) = 1.0
 
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         [HideInInspector] _MainTex("Albedo", 2D) = "white" {}
@@ -238,7 +241,7 @@ Shader "HDRP/LitTessellation"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature_local _ALPHATEST_ON
-    #pragma shader_feature_local_fragment _DEPTHOFFSET_ON
+    #pragma shader_feature_local _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _TESSELLATION_DISPLACEMENT _PIXEL_DISPLACEMENT
     #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
@@ -296,9 +299,8 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local_raytracing _SPECULARCOLORMAP
     #pragma shader_feature_local_raytracing _TRANSMITTANCECOLORMAP
 
-    #pragma shader_feature_local_fragment _DISABLE_DECALS
+    #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local_fragment _DISABLE_SSR
-    #pragma shader_feature_local_raytracing _DISABLE_DECALS
     #pragma shader_feature_local_raytracing _DISABLE_SSR
     // Bit of a mystery why this is not possible to have frequency specific.
     #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT

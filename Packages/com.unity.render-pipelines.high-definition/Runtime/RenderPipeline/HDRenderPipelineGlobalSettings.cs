@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [HDRPHelpURL("Default-Settings-Window")]
     [DisplayInfo(name = "HDRP Global Settings Asset", order = CoreUtils.Sections.section4 + 2)]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<HDRenderPipelineGlobalSettings, HDRenderPipeline>
     {
 #if UNITY_EDITOR

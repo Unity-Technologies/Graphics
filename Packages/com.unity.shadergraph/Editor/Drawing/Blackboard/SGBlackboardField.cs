@@ -107,6 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
 
+            // setting Capabilities.Selectable adds a ClickSelector
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable;
 
             ClearClassList();
@@ -256,8 +257,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseDownEvent(MouseDownEvent e)
         {
-            // See this issue: https://jira.unity3d.com/browse/SGB-535
-            e.StopPropagation();
+            if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
+            {
+                OpenTextEditor();
+                e.StopPropagation();
+                focusController.IgnoreEvent(e);
+            }
         }
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)

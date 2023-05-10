@@ -29,6 +29,8 @@
 
 #define DELTA_PDF 1000000.0
 
+#define SAMPLE_SOLID_ANGLE
+
 // Supports punctual, spot, rect area and directional lights, in addition to one sky (aka environment)
 struct LightList
 {
@@ -396,10 +398,15 @@ bool SampleLights(LightList lightList,
 
         if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
         {
+            if (!IsRectAreaLightActive(lightData, position, normal))
+                return false;
+
+            float3 lightCenter = lightData.positionRWS;
+
+#ifndef SAMPLE_SOLID_ANGLE
             // Generate a point on the surface of the light
             float centerU = inputSample.x - 0.5;
             float centerV = inputSample.y - 0.5;
-            float3 lightCenter = lightData.positionRWS;
             float3 samplePos = lightCenter + centerU * lightData.size.x * lightData.right + centerV * lightData.size.y * lightData.up;
 
             // And the corresponding direction
@@ -419,6 +426,64 @@ bool SampleLights(LightList lightList,
 
             value = GetAreaEmission(lightData, centerU, centerV, sqDist);
             pdf = GetLocalLightWeight(lightList) * sqDist / (lightArea * cosTheta);
+#else
+            // Solid angle sampling
+            float u = inputSample.x;
+            float v = inputSample.y;
+
+            SphQuad squad;
+            lightCenter = lightCenter - 0.5 * lightData.size.x * lightData.right;
+            lightCenter = lightCenter - 0.5 * lightData.size.y * lightData.up;
+            SphQuadInit(lightCenter, lightData.size.x * lightData.right, lightData.size.y * lightData.up, position, squad);
+
+            // Generate sample
+            // TODO: Move this validity check into the common quad initialization function
+            if (squad.S < 0.00001 || isnan(squad.S))
+                return false;
+
+            // 1. compute ’cu’
+            float au = u * squad.S + squad.k;
+            float fu = (cos(au) * squad.b0 - squad.b1) / sin(au);
+            float cu = 1 / sqrt(fu * fu + squad.b0sq);// *(fu > 0 ? +1 : -1);
+            cu = (fu > 0.0f) ? cu : -cu;
+            cu = clamp(cu, -1, 1); // avoid NaNs
+
+            // 2. compute ’xu’
+            float xu = -(cu * squad.z0) / sqrt(1 - cu * cu);
+            xu = clamp(xu, squad.x0, squad.x1); // avoid Infs
+
+            // 3. compute ’yv’
+            float d = sqrt(xu * xu + squad.z0sq);
+            float h0 = squad.y0 / sqrt(d * d + squad.y0sq);
+            float h1 = squad.y1 / sqrt(d * d + squad.y1sq);
+            float hv = h0 + v * (h1 - h0);
+            float hv2 = hv * hv;
+            float eps = 0.0001;
+            float yv = (hv2 < 1.0 - eps) ? (hv * d) / sqrt(1.0 - hv2) : squad.y1;
+
+            // 4. transform (xu,yv,z0) to world coords
+            float3 samplePos = (squad.o + xu * squad.x + yv * squad.y + squad.z0 * squad.z);
+
+            // TODO: We should use this function, but we need xu and yv below for cookie evaluation
+            // float3 samplePos = SphQuadSample(squad, u, v);
+
+            outgoingDir = samplePos - position;
+            float sqDist = Length2(outgoingDir);
+            dist = sqrt(sqDist);
+            outgoingDir /= dist;
+
+            u = (xu - squad.x0)/(squad.x1 - squad.x0) - 0.5;
+            v = (yv - squad.y0)/(squad.y1 - squad.y0) - 0.5;
+            value = GetAreaEmission(lightData, u, v, sqDist); // TODO: add rcpPdf term here from lightlist when that PR lands
+            pdf = GetLocalLightWeight(lightList) / squad.S;
+
+            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
+                return false;
+
+            float cosTheta = -dot(outgoingDir, lightData.forward);
+            if (cosTheta < 0.001)
+                return false;
+#endif
         }
         else // Punctual light
         {
@@ -555,10 +620,25 @@ void EvaluateLights(LightList lightList,
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
                     ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, t, lightValue);
 #endif
-                    value += lightValue;
-
+#ifndef SAMPLE_SOLID_ANGLE
                     float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
+                    value += lightValue;
                     pdf += GetLocalLightWeight(lightList) * t2 / (lightArea * cosTheta);
+#else
+                    float3 position = rayDescriptor.Origin;
+
+                    SphQuad squad;
+                    lightCenter = lightCenter - 0.5 * lightData.size.x * lightData.right;
+                    lightCenter = lightCenter - 0.5 * lightData.size.y * lightData.up;
+                    SphQuadInit(lightCenter, lightData.size.x * lightData.right, lightData.size.y * lightData.up, position, squad);
+
+                    // TODO: Move this validity check into the common quad initialization function
+                    if (!(squad.S < 0.00001 || isnan(squad.S)))
+                    {
+                        value += lightValue;
+                        pdf += GetLocalLightWeight(lightList) / squad.S;
+                    }
+#endif
                 }
             }
         }

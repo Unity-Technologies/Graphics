@@ -1,0 +1,89 @@
+#pragma kernel MipGeneration
+#pragma kernel CopyMip
+
+#pragma only_renderers d3d11 xboxseries ps5
+
+// #pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/ReBlurDenoiser.cs.hlsl"
+
+#define REBLUR_MIP_GENERATION_TILE_SIZE 8
+
+// Input texture
+TEXTURE2D_X(_LightingDistanceTexture);
+TEXTURE2D_X(_DepthTexture);
+StructuredBuffer<int2> _DepthPyramidMipLevelOffsets;
+
+// Output texture
+RW_TEXTURE2D_X(float4, _LightingDistanceTextureRW);
+
+// Constant buffer that holds all scalar that we need
+CBUFFER_START(ReBlurMipConstantBuffer)
+    int _TargetMipLevel;
+    int _PaddingRB0;
+    int _PaddingRB1;
+    int _PaddingRB2;
+CBUFFER_END
+
+[numthreads(REBLUR_MIP_GENERATION_TILE_SIZE, REBLUR_MIP_GENERATION_TILE_SIZE, 1)]
+void MipGeneration(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 currentCoord = dispatchThreadId.xy;
+
+    // Read the lower pixel depth
+    int2 lowerDepthPyraOffset = _DepthPyramidMipLevelOffsets[_TargetMipLevel + 1];
+    float lowerDepth = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, lowerDepthPyraOffset + currentCoord).x, _ZBufferParams);
+
+    // Offset for the depth pyramid
+    int2 upperDepthPyraOffset = _DepthPyramidMipLevelOffsets[_TargetMipLevel];
+
+    float4 lightingDistance = 0;
+    float4 weightSum = 0;
+
+    // Read the data for each upper res pixel
+    float4 s0 = LOAD_TEXTURE2D_X_LOD(_LightingDistanceTexture, currentCoord * 2, _TargetMipLevel);
+    float d0 = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, upperDepthPyraOffset + currentCoord * 2).x, _ZBufferParams);
+    if ((abs(d0 - lowerDepth) < lowerDepth * 0.1) && s0.w >= 0.0)
+    {
+        lightingDistance += s0;
+        weightSum += 1;
+    }
+
+    float4 s1 = LOAD_TEXTURE2D_X_LOD(_LightingDistanceTexture, currentCoord * 2 + int2(1, 0), _TargetMipLevel);
+    float d1 = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, upperDepthPyraOffset + currentCoord * 2 + int2(1, 0)).x, _ZBufferParams);
+    if ((abs(d1 - lowerDepth) < lowerDepth * 0.1) && s1.w >= 0.0)
+    {
+        lightingDistance += s1;
+        weightSum += 1;
+    }
+
+    float4 s2 = LOAD_TEXTURE2D_X_LOD(_LightingDistanceTexture, currentCoord * 2 + int2(0, 1), _TargetMipLevel);
+    float d2 = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, upperDepthPyraOffset + currentCoord * 2 + int2(0, 1)).x, _ZBufferParams);
+    if ((abs(d2 - lowerDepth) < lowerDepth * 0.1) && s2.w >= 0.0)
+    {
+        lightingDistance += s2;
+        weightSum += 1;
+    }
+
+    float4 s3 = LOAD_TEXTURE2D_X_LOD(_LightingDistanceTexture, currentCoord * 2 + int2(1, 1), _TargetMipLevel);
+    float d3 = Linear01Depth(LOAD_TEXTURE2D_X(_DepthTexture, upperDepthPyraOffset + currentCoord * 2 + int2(1, 1)).x, _ZBufferParams);
+    if ((abs(d3 - lowerDepth) < lowerDepth * 0.1) && s3.w >= 0.0)
+    {
+        lightingDistance += s3;
+        weightSum += 1;
+    }
+
+    // Normalize the result
+    _LightingDistanceTextureRW[COORD_TEXTURE2D_X(currentCoord)] = weightSum != 0.0 ? (lightingDistance / weightSum) : ((s0 + s1 + s2 + s3) * 0.25);
+}
+
+[numthreads(REBLUR_MIP_GENERATION_TILE_SIZE, REBLUR_MIP_GENERATION_TILE_SIZE, 1)]
+void CopyMip(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    _LightingDistanceTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X_LOD(_LightingDistanceTexture, dispatchThreadId.xy, _TargetMipLevel);
+}

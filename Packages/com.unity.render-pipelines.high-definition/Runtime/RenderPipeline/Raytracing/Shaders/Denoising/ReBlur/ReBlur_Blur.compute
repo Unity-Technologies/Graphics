@@ -1,0 +1,119 @@
+#pragma kernel Blur
+
+#pragma only_renderers d3d11 xboxseries ps5
+
+// #pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/ReBlur/ReBlur_BlurUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/ReBlurDenoiser.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.cs.hlsl"
+
+// Bilateral filtering
+#define BILATERAL_ROUGHNESS
+#define BILATERLAL_UNLIT
+#define BILATERLAL_SSR
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/BilateralFilter.hlsl"
+
+#define REBLUR_BLUR_TILE_SIZE 8
+
+// Maximum world space radius of the blur
+#define BLUR_MAX_RADIUS 0.04
+#define MIN_BLUR_DISTANCE 0.03
+#define BLUR_OUT_RANGE 0.05
+
+// Input texture
+TEXTURE2D_X(_LightingDistanceTexture);
+TEXTURE2D_X_UINT(_AccumulationTexture);
+
+// Output texture
+RW_TEXTURE2D_X(float4, _LightingDistanceTextureRW);
+
+[numthreads(REBLUR_BLUR_TILE_SIZE, REBLUR_BLUR_TILE_SIZE, 1)]
+void Blur(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+	UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+	uint2 currentCoord = dispatchThreadId.xy;
+
+    // Read the central position
+    const BilateralData center = TapBilateralData(currentCoord);
+
+    // If this is a background pixel or an unlit one, we are done
+    if (center.z01 == 1.0 || center.isUnlit)
+    {
+        _LightingDistanceTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
+    // Center Signal
+    float4 centerSignal = LOAD_TEXTURE2D_X(_LightingDistanceTexture, currentCoord);
+
+    // Number of accumulated frames
+    uint accumulationFactor = LOAD_TEXTURE2D_X(_AccumulationTexture, currentCoord).x;
+
+    // Evaluate the position and view vectors
+    float3 viewWS = GetWorldSpaceNormalizeViewDir(center.position);
+
+    // Convert both directions to view space
+    float NdotV = abs(dot(center.normal, viewWS));
+
+    // Get the dominant direction
+    float4 dominantWS = GetSpecularDominantDirection(center.normal, viewWS, center.roughness);
+
+    // Evaluate the blur radius
+    float distanceToCamera = length(center.position);
+    float blurRadius = ComputeBlurRadius(center.roughness, BLUR_MAX_RADIUS) * _ReBlurDenoiserRadius;
+    blurRadius *= (1.0 - saturate(accumulationFactor / MAX_ACCUM_FRAME_NUM));
+    blurRadius *= HitDistanceAttenuation(center.roughness, distanceToCamera, centerSignal.w);
+    blurRadius *= lerp(saturate((distanceToCamera - MIN_BLUR_DISTANCE) / BLUR_OUT_RANGE), 0.0, 1.0); 
+
+    // Evalute the local basis
+    float2x3 TvBv = GetKernelBasis(dominantWS.xyz, center.normal, center.roughness);
+    TvBv[0] *= blurRadius;
+    TvBv[1] *= blurRadius;
+
+    // Loop through the samples
+    float4 signalSum = 0.0;
+    float sumWeight = 0.0;
+    for (uint sampleIndex = 0; sampleIndex < POISSON_SAMPLE_COUNT; ++sampleIndex)
+    {
+        // Pick the next sample value
+        float3 offset = k_PoissonDiskSamples[sampleIndex];
+
+        // Evaluate the tap uv
+        float2 uv = GetKernelSampleCoordinates(offset, center.position, TvBv[0], TvBv[1], _ReBlurBlurRotator);
+
+        // Is the target pixel on the screen?
+        if (uv.x > 1.0 || uv.x < 0.0 || uv.y > 1.0 || uv.y < 0.0)
+            continue;
+
+        // Evaluate the tap coordinates
+        float2 tapCoord = uv * _ScreenSize.xy;
+
+        // Fetch the corresponding data
+        const BilateralData tapData = TapBilateralData(tapCoord);
+
+        // Sample weights
+        float w = GetGaussianWeight(offset.z);
+        w *= ComputeBilateralWeight(center, tapData);
+        w *= tapData.z01 != 1.0 ? 1.0 : 0.0;
+        w = UVInScreen(uv) ? w : 0.0;
+        w = tapData.hasSSR ? w : 0.0;
+
+        // Fetch the full resolution depth
+        float4 tapSignal = LOAD_TEXTURE2D_X(_LightingDistanceTexture, tapCoord);
+        tapSignal = w ? tapSignal : 0.0;
+
+        // Accumulate
+        signalSum += tapSignal * w;
+        sumWeight += w;
+    }
+
+    // Normalize the samples (or the central one if we didn't get any valid samples)
+    signalSum = sumWeight != 0.0 ? signalSum / sumWeight : centerSignal;
+
+    // Normalize the result
+    _LightingDistanceTextureRW[COORD_TEXTURE2D_X(currentCoord)] = signalSum;
+}
