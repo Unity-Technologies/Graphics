@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: LightProbes_03
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: 'Highlight: Probe Volumes Options'
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -35,13 +37,44 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Congratulations!
+        m_Untranslated: 
       Text:
-        m_Untranslated: "In this tutorial, you learned what Light Probes are, how
-          they are placed, and how to visualize them. \r\n\r\nFor more information,
-          check out the Light Probes <a href=\"https://docs.unity3d.com/Manual/LightProbes.html\">documentation</a>
-          and <a href=\"https://forum.unity.com/forums/global-illumination.85/\">forums.</a>\r\n\r\n<b>Note:</b>
-          You do not need to save your changes in order to follow other tutorials."
+        m_Untranslated: 'This issue might be difficult to spot, but the cube in the
+          picture has a seam in the middle. The upper half of it is darker while
+          the bottom is lighter.
+
+
+          It''s because probes over the scene
+          are not placed evenly. In the <b>Probe Volumes</b> settings we simply set
+          the minimum spacing that we want (in this case <b>0.6m)</b> and the maximum
+          spacing <b>(5.4m).</b> Then the system attempts to automatically detect
+          areas where fewer probes are necessary and adjust the density. These areas
+          are called <b>Subdivision Levels.</b>
+
+
+          While it is quite useful
+          to limit the number of probes in order to reduce the bake time and disk
+          space, some seams can appear when sampling happens between two subdivision
+          levels. To fix this, we increased the amount of sampling noise in the Volume
+          settings which also works well with <b>Temporal Anti Aliasing</b>.
+
+
+          To
+          undo our fix and make the seam visible again follow these steps:
+
+
+          1.
+          Move the cube to <b>X:5 Y:5.5 Z:0</b>
+
+
+          2. Select the <b>Volume
+          Room 1</b> in the <i>Hierarchy</i> tab under <b>Lighting</b> > <b>Volumes</b>
+
+
+          3.
+          Under <b>Probe Volume Options,</b> change the <b>Sampling Noise</b> from
+          <b>0.45</b> to <b>0.1</b>(which is the default value). No need to rebake
+          this time.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -57,12 +90,12 @@ MonoBehaviour:
       m_InstructionText: 
       m_TutorialButtonText: 
   m_CameraSettings:
-    m_CameraMode: 0
+    m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0
-    m_Pivot: {x: 0, y: 0, z: 0}
-    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_Size: 10
+    m_Pivot: {x: 5.094, y: 12.54435, z: -17.047869}
+    m_Rotation: {x: -0, y: 0.9811074, z: 0.19346379, w: 0}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -71,7 +104,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 0
+    m_Enabled: 1
   NextButton:
     m_Untranslated: Next
   DoneButton:

@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: LightProbes_01
+  m_Name: LightProbes_04
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: What are Adaptive Probe Volumes?
+    m_Untranslated: 'Highlight: Local Probe Volumes'
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 760bba328d6642a4db16fc74f5651703, type: 3}
+      m_Image: {fileID: 2800000, guid: 60e822da8f263e843bba169100d97123, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,21 +39,18 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "<b>Adaptive Probe Volumes</b> is a system that allows dynamic
-          objects to receive indirect lighting. It shares the same goal as <b>Light
-          Probes,</b> but has major differences. Some of them are listed below:\n\n\u2022
-          The probe placement is automatic. Probes no longer need to be placed by
-          hand.\n\u2022 The indirect lighting is applied per-pixel instead of per-object.
-          This allows us to achieve much better quality and in some cases even replace
-          lightmaps.\n\u2022 Can be used by the <b>Reflection Probe</b> system to
-          reduce indirect specular leaking.\n\u2022 Includes streaming functionality
-          to support large open worlds.\n\nTo better understand what effect it has
-          on the scene. you could temporarily turn it off and explore the level.
-          Most notably the third room. Dynamic objects should look out of place.
-          \n\nTo turn it off\nEdit > Project Settings > HDRP Global Settings > Frame
-          Settings > Lighting > Probe Volumes\n\nTo display the probes\nWindow >
-          Analysis > Rendering Debugger > Probe Volume > Probe Visualization > Display
-          Probes"
+        m_Untranslated: "The problem here is actually the same as in the previous
+          step. However, adjusting <b>Sampling Noise</b> for indoor environments
+          could cause leaking artifacts thus we can't really apply the same fix.
+          \n\nWith the help of <b>Local Probe Volumes</b> we can override the <b>probe
+          spacing</b> to be <b>0.6 m</b> and make sure there are no gaps<b>(Fill
+          empty spaces.)</b> This way we essentially fill the room with probes evenly.
+          This will result in slightly more probes placed, but will get rid of the
+          seams without having to use additional noise.\n\nTo undo the fix:\n\n1.
+          Move the cube to <b>X:25.3 Y:2 Z:1.5</b>\n\n2. In the <i>Hierarchy</i>
+          window select the local volume under <b>Lighting</b> > <b>Adaptive Probe
+          Volumes</b> > <b>Probe Volume Local</b>\n\n3. Disable it and save the scene.\n\n4.
+          Rebake the lighting using <b>Generate Lighting</b> button"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -73,8 +70,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 58.169, y: 3.0333738, z: 19.70951}
-    m_Rotation: {x: 0.003490679, y: -0, z: -0, w: 0.9999939}
+    m_Pivot: {x: 15.663096, y: 0.61878896, z: -13.118892}
+    m_Rotation: {x: 0.010864795, y: -0.9570991, z: 0.03620843, w: 0.2872846}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

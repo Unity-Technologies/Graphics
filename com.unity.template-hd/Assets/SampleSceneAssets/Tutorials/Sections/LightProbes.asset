@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: LightProbes
   m_EditorClassIdentifier: 
   TutorialTitle:
-    m_Untranslated: Light Probes
-  m_TutorialTitle: 
+    m_Untranslated: Adaptive Probe Volume
+  m_ProgressTrackingEnabled: 1
   m_LessonId: 1013
   m_Version: 0
-  m_Scene: {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
+  m_SceneManagementBehavior: 0
+  m_Scenes:
+  - {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
   m_DefaultSceneCameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0
@@ -34,14 +36,33 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_ExitBehavior: 1
-  m_SkipTutorialBehavior: 0
-  m_AssetSelectedOnExit: {fileID: 0}
-  m_WelcomePage: {fileID: 0}
-  m_CompletedPage: {fileID: 0}
   m_WindowLayout: {fileID: 0}
   m_Pages:
     m_Items:
     - {fileID: 11400000, guid: 0b631ad599d16a6408af83e4f6750f99, type: 2}
     - {fileID: 11400000, guid: 89d28ae18bc19ee4d9183de6564e65ef, type: 2}
     - {fileID: 11400000, guid: 6e537e16477423041ab2a5f983f6f406, type: 2}
+    - {fileID: 11400000, guid: 5bf6d03d0aa300a4fb1d93cce103a2ac, type: 2}
+    - {fileID: 11400000, guid: c069f1629fa866047ae9bac7ce0e2710, type: 2}
+    - {fileID: 11400000, guid: 9f91089e47498b447bcb35736bbc45cb, type: 2}
+  CompletionDialog: {fileID: 0}
+  Modified:
+    m_PersistentCalls:
+      m_Calls: []
+  Initiated:
+    m_PersistentCalls:
+      m_Calls: []
+  PageInitiated:
+    m_PersistentCalls:
+      m_Calls: []
+  GoingBack:
+    m_PersistentCalls:
+      m_Calls: []
+  Completed:
+    m_PersistentCalls:
+      m_Calls: []
+  Quit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Scene: {fileID: 0}
+  m_TutorialTitle: 

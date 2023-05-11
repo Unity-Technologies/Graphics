@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: LightProbes_01
+  m_Name: LightProbes_05
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: What are Adaptive Probe Volumes?
+    m_Untranslated: 'Highlight: Layer Mask'
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 760bba328d6642a4db16fc74f5651703, type: 3}
+      m_Image: {fileID: 2800000, guid: 0cd9fd45ee4df7d408cbeb3b6c796fcb, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,21 +39,36 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "<b>Adaptive Probe Volumes</b> is a system that allows dynamic
-          objects to receive indirect lighting. It shares the same goal as <b>Light
-          Probes,</b> but has major differences. Some of them are listed below:\n\n\u2022
-          The probe placement is automatic. Probes no longer need to be placed by
-          hand.\n\u2022 The indirect lighting is applied per-pixel instead of per-object.
-          This allows us to achieve much better quality and in some cases even replace
-          lightmaps.\n\u2022 Can be used by the <b>Reflection Probe</b> system to
-          reduce indirect specular leaking.\n\u2022 Includes streaming functionality
-          to support large open worlds.\n\nTo better understand what effect it has
-          on the scene. you could temporarily turn it off and explore the level.
-          Most notably the third room. Dynamic objects should look out of place.
-          \n\nTo turn it off\nEdit > Project Settings > HDRP Global Settings > Frame
-          Settings > Lighting > Probe Volumes\n\nTo display the probes\nWindow >
-          Analysis > Rendering Debugger > Probe Volume > Probe Visualization > Display
-          Probes"
+        m_Untranslated: 'This last one is to simply improve the baking performance
+          and save some space. We have an object called <b>ShadowProxy</b> that needs
+          to participate in the lighting calculations, however we do not need probes
+          around it, as they would be outside the playable area.
+
+
+          Using
+          the <b>Layer Mask,</b> under <b>Lighting > Probe Volumes,</b> we can control
+          which objects do not need probes generated around them.
+
+
+          If
+          you would like to see the difference, follow these steps:
+
+
+          1.
+          Take a look at the probe count currently visible on the screen.
+
+
+          2.
+          In the <i>Hierarchy</i> tab select the <b>Lighting</b> > <b>ShadowProxy.</b>
+
+
+          3.
+          In top right of the <i>Inspector</i> tab, change the <b>Layer</b> to <b>Default.</b>
+
+
+          4.
+          Rebake the lighting using the <b>Generate Lighting</b> button as in previous
+          steps. Notice there will be a lot more probes visible.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -73,8 +88,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 58.169, y: 3.0333738, z: 19.70951}
-    m_Rotation: {x: 0.003490679, y: -0, z: -0, w: 0.9999939}
+    m_Pivot: {x: 36.22716, y: 2.8278656, z: 6.8633847}
+    m_Rotation: {x: 0.014302389, y: -0.74125624, z: 0.015794965, w: 0.6708839}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
