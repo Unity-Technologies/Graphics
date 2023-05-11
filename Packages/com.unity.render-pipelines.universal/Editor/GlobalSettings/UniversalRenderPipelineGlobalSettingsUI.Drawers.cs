@@ -96,9 +96,16 @@ namespace UnityEditor.Rendering.Universal
 
                 if (defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
                 {
-                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<UniversalRenderPipeline>(defaultVolumeProfileAsset);
-                    if (!confirmed)
-                        serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
+                    if (previousDefaultVolumeProfileAsset == null)
+                    {
+                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(defaultVolumeProfileAsset);
+                    }
+                    else
+                    {
+                        bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<UniversalRenderPipeline>(defaultVolumeProfileAsset);
+                        if (!confirmed)
+                            serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
+                    }
                 }
 
                 if (defaultVolumeProfileAsset != null && s_DefaultVolumeProfileFoldoutExpanded)

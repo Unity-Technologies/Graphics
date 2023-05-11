@@ -156,9 +156,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
                 {
                     var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
-                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
-                    if (!confirmed)
-                        serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
+                    if (previousDefaultVolumeProfileAsset == null)
+                    {
+                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
+                    }
+                    else
+                    {
+                        bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
+                        if (!confirmed)
+                            serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
+                    }
                 }
 
                 if (defaultVolumeProfileAsset != null && s_DefaultVolumeProfileFoldoutExpanded)
