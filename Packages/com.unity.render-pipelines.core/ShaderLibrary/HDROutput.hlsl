@@ -239,6 +239,22 @@ float3 RotateXYZToRec709(float3 XYZ)
     return mul(XYZ_2_REC709_MAT, XYZ);
 }
 
+float3 RotateXYZToOutputSpace(float3 xyz)
+{
+    if (_HDRColorspace == HDRCOLORSPACE_REC2020)
+    {
+        return RotateXYZToRec2020(xyz);
+    }
+//    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+//    {
+//        return RotateXYZToP3D65(xyz);
+//    }
+    else // HDRCOLORSPACE_REC709
+    {
+        return RotateXYZToRec709(xyz);
+    }
+}
+
 float3 RotateRec709ToXYZ(float3 rgb)
 {
     static const float3x3 Rec709ToXYZMat = float3x3(
@@ -258,6 +274,22 @@ float3 RotateRec2020ToXYZ(float3 rgb)
         );
 
     return mul(Rec2020ToXYZMat, rgb);
+}
+
+float3 RotateOutputSpaceToXYZ(float3 rgb)
+{
+    if (_HDRColorspace == HDRCOLORSPACE_REC2020)
+    {
+        return RotateRec2020ToXYZ(rgb);
+    }
+    //    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+    //    {
+    //        return RotateP3D65ToXYZ(rgb);
+    //    }
+    else // HDRCOLORSPACE_REC709
+    {
+        return RotateRec709ToXYZ(rgb);
+    }
 }
 
 float3 RotateICtCpToPQLMS(float3 ICtCp)
