@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1627.2043, g: 1808.6643, b: 2258.8127, a: 1}
+  m_IndirectSpecularColor: {r: 1480.7355, g: 1834.6038, b: 2428.7659, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -151,11 +151,9 @@ Transform:
   - {fileID: 2035111235}
   - {fileID: 1924871439}
   - {fileID: 594250630}
-  - {fileID: 7258386062516984221}
   - {fileID: 1491292262}
   - {fileID: 720476594}
-  - {fileID: 1424191366}
-  - {fileID: 89374758}
+  - {fileID: 990475328}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -492,6 +490,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -636,12 +638,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 89374757}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 30.646463, y: 4.44027, z: 0.5164013}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1377783}
+  m_Father: {fileID: 990475328}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &89374759
@@ -665,7 +667,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   lowestSubdivLevelOverride: 2
   highestSubdivLevelOverride: 2
-  overridesSubdivLevels: 1
+  overridesSubdivLevels: 0
   mightNeedRebaking: 0
   cachedTransform:
     e00: 1
@@ -854,6 +856,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -1560,6 +1566,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -1618,6 +1628,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -1754,6 +1768,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -1909,6 +1927,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 2.986844}
@@ -1967,6 +1989,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.7423954}
@@ -2025,6 +2051,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -2188,6 +2218,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -2675,6 +2709,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -2772,6 +2810,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -2972,6 +3014,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
@@ -4758,6 +4804,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -4816,6 +4866,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -4873,6 +4927,8 @@ VFXRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_StaticBatchInfo:
@@ -5593,6 +5649,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -6690,6 +6750,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 2.5}
@@ -6862,6 +6926,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -7017,6 +7085,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 2.986844}
@@ -7075,6 +7147,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -7372,6 +7448,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -7430,6 +7510,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -7632,6 +7716,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -7690,6 +7778,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -8403,6 +8495,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 2.986844}
@@ -8461,6 +8557,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -8519,6 +8619,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -8577,6 +8681,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -9507,6 +9615,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 4}
@@ -10454,6 +10566,8 @@ VFXRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_StaticBatchInfo:
@@ -10778,6 +10892,8 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
@@ -11136,6 +11252,8 @@ VFXRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_StaticBatchInfo:
@@ -11470,6 +11588,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -11743,6 +11865,8 @@ VFXRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_StaticBatchInfo:
@@ -12271,6 +12395,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -12364,6 +12492,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -12422,6 +12554,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -13055,6 +13191,8 @@ VFXRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_StaticBatchInfo:
@@ -13172,6 +13310,39 @@ Transform:
   - {fileID: 1296980972}
   m_Father: {fileID: 189424937}
   m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &990475327
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 990475328}
+  m_Layer: 0
+  m_Name: Adaptive Probe Volumes
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &990475328
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 990475327}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1424191366}
+  - {fileID: 89374758}
+  m_Father: {fileID: 1377783}
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &993848290
 PrefabInstance:
@@ -15596,6 +15767,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -15698,6 +15873,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.5}
@@ -16746,6 +16925,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -16849,6 +17032,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -16958,6 +17145,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -17338,6 +17529,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -17745,6 +17940,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
@@ -17990,6 +18189,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -18166,6 +18369,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -18362,6 +18569,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
@@ -18420,6 +18631,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -18478,6 +18693,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -18795,6 +19014,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -18853,6 +19076,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -19377,6 +19604,8 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
@@ -19449,12 +19678,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1424191365}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 24.030823, y: 7.747295, z: -0.1302166}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1377783}
+  m_Father: {fileID: 990475328}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1424191367
@@ -19800,6 +20029,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
@@ -19878,6 +20111,8 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
@@ -20198,6 +20433,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -20256,6 +20495,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.5}
@@ -20647,7 +20890,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -0, z: -0}
+    textureOffset: {x: 0, y: 0, z: 0}
     falloffMode: 0
     maskMode: 0
     materialMask: {fileID: 0}
@@ -21310,6 +21553,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -21456,6 +21703,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -22389,6 +22640,8 @@ VFXRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_StaticBatchInfo:
@@ -23845,6 +24098,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -23903,6 +24160,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.5}
@@ -23961,6 +24222,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -24678,6 +24943,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -25307,6 +25576,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -25365,6 +25638,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -25722,6 +25999,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -25818,6 +26099,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -26181,6 +26466,8 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
@@ -26506,6 +26793,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -26848,6 +27139,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
@@ -26906,6 +27201,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -26997,6 +27296,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -28500,6 +28803,8 @@ VFXRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_StaticBatchInfo:
@@ -28615,6 +28920,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 3.738666}
@@ -28825,6 +29134,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -30507,6 +30820,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -31834,6 +32151,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -31942,6 +32263,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.5}
@@ -32213,6 +32538,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -32271,6 +32600,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -32349,6 +32682,8 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
@@ -32548,6 +32883,14 @@ MonoBehaviour:
   m_BlockerSampleCount: 24
   m_FilterSampleCount: 16
   m_MinFilterSize: 0.1
+  m_DirLightPCSSBlockerSampleCount: 24
+  m_DirLightPCSSFilterSampleCount: 16
+  m_DirLightPCSSMaxBlockerDistance: 64
+  m_DirLightPCSSMaxSamplingDistance: 0.5
+  m_DirLightPCSSMinFilterSizeTexels: 1.5
+  m_DirLightPCSSMinFilterMaxAngularDiameter: 10
+  m_DirLightPCSSBlockerSearchAngularDiameter: 12
+  m_DirLightPCSSBlockerSamplingClumpExponent: 2
   m_KernelSize: 5
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
@@ -32842,6 +33185,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -33511,6 +33858,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -33569,6 +33920,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -33627,6 +33982,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1}
@@ -33685,6 +34044,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -33743,6 +34106,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 0.25}
@@ -33887,6 +34254,10 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
+  m_TransparentTextureResolution:
+    m_Override: 256
+    m_UseOverride: 1
+    m_Level: 0
   m_DecalLayerMask: 256
   m_ScaleMode: 0
   m_Offset: {x: 0, y: 0, z: 1.5}
@@ -35949,768 +36320,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4221141389044974158, guid: b31afbf48d7a11249b84d842fad98e9c, type: 3}
   m_PrefabInstance: {fileID: 6810675360476704166}
   m_PrefabAsset: {fileID: 0}
---- !u!220 &7258386062516984218
-LightProbeGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7258386062516984219}
-  m_Enabled: 1
-  m_SourcePositions:
-  - {x: -9.462085, y: 3.5346699, z: -12.495264}
-  - {x: -9.462085, y: 2.1913438, z: -12.495264}
-  - {x: -12.953048, y: 3.5346699, z: -8.379787}
-  - {x: -9.462085, y: 3.5346699, z: -8.379787}
-  - {x: -12.953048, y: 2.1913438, z: -8.379787}
-  - {x: -12.953048, y: 3.5346699, z: -4.3795843}
-  - {x: -9.462085, y: 3.5346699, z: -4.3795843}
-  - {x: 24.834267, y: 5.9131155, z: -5.116431}
-  - {x: 24.834267, y: 4.5238466, z: -5.145372}
-  - {x: 22.834267, y: 5.9131155, z: -5.116431}
-  - {x: -15.742525, y: 4.5238466, z: -4.3795843}
-  - {x: -12.953048, y: 2.1913438, z: -4.3795843}
-  - {x: 24.834267, y: 2.1913438, z: -5.145372}
-  - {x: 24.834267, y: 0.19134378, z: -5.145372}
-  - {x: -15.742525, y: 2.1913438, z: -4.3795843}
-  - {x: 37.872322, y: 5.9131155, z: -5.116431}
-  - {x: 37.872322, y: 4.5238466, z: -5.145372}
-  - {x: 35.872322, y: 5.9131155, z: -5.116431}
-  - {x: 35.872322, y: 4.5238466, z: -5.145372}
-  - {x: 29.197403, y: 5.9131155, z: -5.116431}
-  - {x: 29.197403, y: 4.5238466, z: -5.145372}
-  - {x: 26.620739, y: 5.9131155, z: -5.116431}
-  - {x: 26.620739, y: 4.5238466, z: -5.145372}
-  - {x: 33.608448, y: 5.9131155, z: -5.116431}
-  - {x: 33.608448, y: 4.5238466, z: -5.145372}
-  - {x: 31.808578, y: 5.9131155, z: -5.116431}
-  - {x: 31.808578, y: 4.5238466, z: -5.145372}
-  - {x: 39.652077, y: 5.9131155, z: -5.116431}
-  - {x: 37.872322, y: 2.1913438, z: -5.145372}
-  - {x: 37.872322, y: 0.19134378, z: -5.145372}
-  - {x: 35.872322, y: 2.1913438, z: -5.145372}
-  - {x: 35.872322, y: 0.19134378, z: -5.145372}
-  - {x: 29.197403, y: 2.1913438, z: -5.145372}
-  - {x: 29.197403, y: 0.19134378, z: -5.145372}
-  - {x: 26.620739, y: 2.1913438, z: -5.145372}
-  - {x: 26.620739, y: 0.19134378, z: -5.145372}
-  - {x: 33.608448, y: 2.1913438, z: -5.145372}
-  - {x: 33.608448, y: 0.19134378, z: -5.145372}
-  - {x: 31.808578, y: 2.1913438, z: -5.145372}
-  - {x: 31.808578, y: 0.19134378, z: -5.145372}
-  - {x: -9.462085, y: 15.016385, z: -4.3795843}
-  - {x: -15.742525, y: 8.290916, z: -4.3795843}
-  - {x: 62.464695, y: 6.523846, z: -0.24144268}
-  - {x: 62.464695, y: 6.523846, z: -2.2414494}
-  - {x: 60.801445, y: 4.968234, z: -0.24144268}
-  - {x: 60.801445, y: 4.968234, z: -3.2928767}
-  - {x: 54.473007, y: 4.968234, z: -0.24144268}
-  - {x: 54.473007, y: 4.968234, z: -2.3437095}
-  - {x: 52.473007, y: 4.7213516, z: -0.24144268}
-  - {x: 52.473007, y: 4.7213516, z: -2.2414494}
-  - {x: 58.7377, y: 4.968234, z: -0.24144268}
-  - {x: 58.7377, y: 4.968234, z: -3.2878985}
-  - {x: 56.7377, y: 4.968234, z: -0.24144268}
-  - {x: 56.7377, y: 4.968234, z: -3.0432801}
-  - {x: 64.70848, y: 6.523846, z: -0.24144268}
-  - {x: 64.70848, y: 6.523846, z: -2.2414494}
-  - {x: 64.70848, y: 4.968234, z: -0.24144268}
-  - {x: 64.70848, y: 4.968234, z: -2.3437095}
-  - {x: 62.464695, y: 2.1913438, z: -0.24144268}
-  - {x: 62.464695, y: 2.1913438, z: -2.605862}
-  - {x: 60.801445, y: 2.1913438, z: -0.24144268}
-  - {x: 60.801445, y: 2.1913438, z: -2.8609505}
-  - {x: 54.473007, y: 2.1913438, z: -0.24144268}
-  - {x: 54.473007, y: 2.1913438, z: -1.6590893}
-  - {x: 52.473007, y: 1.9444613, z: 0.016095519}
-  - {x: 52.473007, y: 1.9444613, z: -1.6590893}
-  - {x: 58.7377, y: 2.1913438, z: -0.24144268}
-  - {x: 58.7377, y: 2.1913438, z: -2.8245091}
-  - {x: 56.7377, y: 2.1913438, z: -0.24144268}
-  - {x: 56.7377, y: 2.1913438, z: -2.5512}
-  - {x: 64.70848, y: 2.1913438, z: -0.24144268}
-  - {x: 64.70848, y: 2.1913438, z: -2.2414494}
-  - {x: -12.953048, y: 3.5346699, z: -0.24144268}
-  - {x: -9.462085, y: 3.5346699, z: -0.24144268}
-  - {x: 24.834267, y: 6.523846, z: -0.24144268}
-  - {x: 24.834267, y: 6.523846, z: -1.9913515}
-  - {x: 24.834267, y: 4.5238466, z: -0.24144268}
-  - {x: 24.834267, y: 4.5238466, z: -1.9913515}
-  - {x: 22.834267, y: 6.523846, z: -0.24144268}
-  - {x: 22.834267, y: 6.523846, z: -1.9913515}
-  - {x: 22.834267, y: 4.5238466, z: -0.24144268}
-  - {x: 22.834267, y: 4.5238466, z: -1.9913515}
-  - {x: 14.534889, y: 4.5238466, z: -0.24144268}
-  - {x: 14.534889, y: 4.5238466, z: -1.9913515}
-  - {x: -15.742525, y: 4.5238466, z: -0.24144268}
-  - {x: 20.770515, y: 6.523846, z: -0.24144268}
-  - {x: 20.770515, y: 4.5238466, z: -0.24144268}
-  - {x: 18.770506, y: 6.523846, z: -0.24144268}
-  - {x: 18.770506, y: 4.5238466, z: -0.24144268}
-  - {x: -12.953048, y: 2.1913438, z: -0.24144268}
-  - {x: 24.834267, y: 2.1913438, z: -0.24144268}
-  - {x: 24.834267, y: 2.1913438, z: -1.9913515}
-  - {x: 24.834267, y: 0.19134378, z: -0.24144268}
-  - {x: 24.834267, y: 0.19134378, z: -1.9913515}
-  - {x: 22.834267, y: 2.1913438, z: -0.24144268}
-  - {x: 22.834267, y: 2.1913438, z: -1.9913515}
-  - {x: 22.834267, y: 0.19134378, z: -0.24144268}
-  - {x: 22.834267, y: 0.19134378, z: -1.9913515}
-  - {x: 14.534889, y: 2.1913438, z: -0.24144268}
-  - {x: 14.534889, y: 2.1913438, z: -1.9913515}
-  - {x: -15.742525, y: 2.1913438, z: -0.24144268}
-  - {x: 20.770515, y: 2.1913438, z: -0.24144268}
-  - {x: 20.770515, y: 0.19134378, z: -0.24144268}
-  - {x: 18.770506, y: 2.1913438, z: -1.1519517}
-  - {x: 18.770506, y: 1.0076503, z: -1.2016163}
-  - {x: 37.872322, y: 6.523846, z: -0.24144268}
-  - {x: 37.872322, y: 6.523846, z: -1.9913515}
-  - {x: 37.872322, y: 4.5238466, z: -0.24144268}
-  - {x: 37.872322, y: 4.5238466, z: -1.9913515}
-  - {x: 35.872322, y: 6.523846, z: -0.24144268}
-  - {x: 35.872322, y: 6.523846, z: -1.9913515}
-  - {x: 35.872322, y: 4.5238466, z: -0.24144268}
-  - {x: 35.872322, y: 4.5238466, z: -1.9913515}
-  - {x: 29.197403, y: 6.523846, z: -0.24144268}
-  - {x: 29.197403, y: 6.523846, z: -1.9913515}
-  - {x: 29.197403, y: 4.5238466, z: -0.24144268}
-  - {x: 29.197403, y: 4.5238466, z: -1.9913515}
-  - {x: 26.620739, y: 6.523846, z: -0.24144268}
-  - {x: 26.620739, y: 6.523846, z: -1.9913515}
-  - {x: 26.620739, y: 4.5238466, z: -0.24144268}
-  - {x: 26.620739, y: 4.5238466, z: -1.9913515}
-  - {x: 33.608448, y: 6.523846, z: -0.24144268}
-  - {x: 33.608448, y: 6.523846, z: -1.9913515}
-  - {x: 31.808578, y: 6.523846, z: -0.24144268}
-  - {x: 31.808578, y: 6.523846, z: -1.9913515}
-  - {x: 41.583447, y: 6.523846, z: -0.24144268}
-  - {x: 41.583447, y: 6.523846, z: -1.9913515}
-  - {x: 41.583447, y: 4.5238466, z: -0.24144268}
-  - {x: 41.583447, y: 4.5238466, z: -1.9913515}
-  - {x: 39.652077, y: 6.523846, z: -0.24144268}
-  - {x: 39.652077, y: 6.523846, z: -1.9913515}
-  - {x: 39.652077, y: 4.5238466, z: -0.24144268}
-  - {x: 39.652077, y: 4.5238466, z: -1.9913515}
-  - {x: 37.872322, y: 2.1913438, z: -0.24144268}
-  - {x: 37.872322, y: 2.1913438, z: -1.9913515}
-  - {x: 37.872322, y: 0.19134378, z: -0.24144268}
-  - {x: 37.872322, y: 0.19134378, z: -1.9913515}
-  - {x: 35.872322, y: 2.1913438, z: -0.24144268}
-  - {x: 35.872322, y: 2.1913438, z: -1.9913515}
-  - {x: 35.872322, y: 0.19134378, z: -0.24144268}
-  - {x: 35.872322, y: 0.19134378, z: -1.9913515}
-  - {x: 29.197403, y: 2.1913438, z: -0.24144268}
-  - {x: 29.197403, y: 2.1913438, z: -1.9913515}
-  - {x: 30.314497, y: 4.787731, z: -0.24144268}
-  - {x: 30.314497, y: 4.787731, z: -3.7013316}
-  - {x: 26.620739, y: 2.1913438, z: -0.24144268}
-  - {x: 26.620739, y: 2.1913438, z: -1.9913515}
-  - {x: 26.620739, y: 0.19134378, z: -0.24144268}
-  - {x: 26.620739, y: 0.19134378, z: -1.9913515}
-  - {x: 41.583447, y: 2.1913438, z: -0.24144268}
-  - {x: 41.583447, y: 2.1913438, z: -1.9913515}
-  - {x: 41.583447, y: 0.19134378, z: -0.24144268}
-  - {x: 41.583447, y: 0.19134378, z: -1.9913515}
-  - {x: 39.652077, y: 2.1913438, z: -0.24144268}
-  - {x: 39.652077, y: 2.1913438, z: -1.9913515}
-  - {x: 39.652077, y: 0.19134378, z: -0.24144268}
-  - {x: 39.652077, y: 0.19134378, z: -1.9913515}
-  - {x: -9.462085, y: 15.016385, z: -0.24144268}
-  - {x: 14.534889, y: 8.290916, z: -0.24144268}
-  - {x: 14.534889, y: 8.290916, z: -1.9913515}
-  - {x: -15.742525, y: 8.290916, z: -0.24144268}
-  - {x: 18.770506, y: 8.290916, z: -0.24144268}
-  - {x: 62.464695, y: 6.523846, z: 2.5717416}
-  - {x: 60.801445, y: 4.729711, z: 1.8966908}
-  - {x: 54.473007, y: 4.729711, z: 1.8966908}
-  - {x: 52.473007, y: 4.7213516, z: 1.8966908}
-  - {x: 58.7377, y: 4.729711, z: 1.8966908}
-  - {x: 56.7377, y: 4.729711, z: 1.8966908}
-  - {x: 64.70848, y: 6.523846, z: 2.5717416}
-  - {x: 64.70848, y: 4.729711, z: 2.569934}
-  - {x: 62.464695, y: 2.1913438, z: 2.5788655}
-  - {x: 60.801445, y: 2.8267703, z: 2.7517624}
-  - {x: 54.473007, y: 2.8267703, z: 2.7517624}
-  - {x: 52.473007, y: 1.9444613, z: 1.5871155}
-  - {x: 58.7377, y: 2.8267703, z: 2.7517624}
-  - {x: 56.7377, y: 2.8267703, z: 2.7517624}
-  - {x: 64.70848, y: 2.1913438, z: 2.5788655}
-  - {x: -12.953048, y: 3.5346699, z: 3.8966975}
-  - {x: -9.462085, y: 3.5346699, z: 3.8966975}
-  - {x: 24.834267, y: 6.523846, z: 1.8966908}
-  - {x: 24.834267, y: 4.5238466, z: 1.8966908}
-  - {x: 22.834267, y: 6.523846, z: 1.8966908}
-  - {x: 24.402624, y: 4.5238466, z: 3.8966975}
-  - {x: 22.834267, y: 4.5238466, z: 1.8966908}
-  - {x: 14.534889, y: 4.5238466, z: 1.8966908}
-  - {x: -15.742525, y: 4.5238466, z: 3.8966975}
-  - {x: 20.770515, y: 6.523846, z: 1.8966908}
-  - {x: 20.770515, y: 4.5238466, z: 1.8966908}
-  - {x: 18.770506, y: 6.523846, z: 1.8966908}
-  - {x: 18.770506, y: 4.5238466, z: 1.8966908}
-  - {x: -12.953048, y: 2.1913438, z: 3.8966975}
-  - {x: 24.834267, y: 2.1913438, z: 1.8966908}
-  - {x: 24.834267, y: 0.19134378, z: 1.8966908}
-  - {x: 24.402624, y: 2.1913438, z: 3.8966975}
-  - {x: 22.834267, y: 2.1913438, z: 1.8966908}
-  - {x: 24.402624, y: 0.19134378, z: 3.8966975}
-  - {x: 22.834267, y: 0.19134378, z: 1.8966908}
-  - {x: 14.534889, y: 2.1913438, z: 1.8966908}
-  - {x: -15.742525, y: 2.1913438, z: 3.8966975}
-  - {x: 20.770515, y: 2.1913438, z: 1.8966908}
-  - {x: 20.770515, y: 0.19134378, z: 1.8966908}
-  - {x: 18.770506, y: 2.1913438, z: 1.8966908}
-  - {x: 18.770506, y: 1.0076503, z: 1.8966908}
-  - {x: 37.872322, y: 6.523846, z: 1.8966908}
-  - {x: 37.872322, y: 4.5238466, z: 3.8966975}
-  - {x: 37.872322, y: 4.5238466, z: 1.8966908}
-  - {x: 35.872322, y: 6.523846, z: 1.8966908}
-  - {x: 35.872322, y: 4.5238466, z: 3.8966975}
-  - {x: 35.872322, y: 4.5238466, z: 1.8966908}
-  - {x: 29.197403, y: 6.523846, z: 1.8966908}
-  - {x: 29.197403, y: 4.5238466, z: 3.8966975}
-  - {x: 29.197403, y: 4.5238466, z: 1.8966908}
-  - {x: 26.620739, y: 6.523846, z: 1.8966908}
-  - {x: 26.620739, y: 4.5238466, z: 3.8966975}
-  - {x: 26.620739, y: 4.5238466, z: 1.8966908}
-  - {x: 33.608448, y: 6.523846, z: 1.8966908}
-  - {x: 33.608448, y: 4.5238466, z: 3.8966975}
-  - {x: 33.608448, y: 4.5238466, z: 1.8966908}
-  - {x: 31.808578, y: 6.523846, z: 1.8966908}
-  - {x: 31.808578, y: 4.5238466, z: 3.8966975}
-  - {x: 31.808578, y: 4.5238466, z: 1.8966908}
-  - {x: 41.583447, y: 6.523846, z: 1.8966908}
-  - {x: 41.583447, y: 4.5238466, z: 3.8966975}
-  - {x: 41.583447, y: 4.5238466, z: 1.8966908}
-  - {x: 39.652077, y: 6.523846, z: 1.8966908}
-  - {x: 39.652077, y: 4.5238466, z: 3.8966975}
-  - {x: 39.652077, y: 4.5238466, z: 1.8966908}
-  - {x: 37.872322, y: 2.1913438, z: 3.8966975}
-  - {x: 37.872322, y: 2.1913438, z: 1.8966908}
-  - {x: 37.872322, y: 0.19134378, z: 3.8966975}
-  - {x: 37.872322, y: 0.19134378, z: 1.8966908}
-  - {x: 35.872322, y: 2.1913438, z: 3.8966975}
-  - {x: 35.872322, y: 2.1913438, z: 1.8966908}
-  - {x: 35.872322, y: 0.19134378, z: 3.8966975}
-  - {x: 35.872322, y: 0.19134378, z: 1.8966908}
-  - {x: 29.197403, y: 2.1913438, z: 3.8966975}
-  - {x: 29.197403, y: 2.1913438, z: 1.8966908}
-  - {x: 29.197403, y: 0.19134378, z: 3.8966975}
-  - {x: 29.197403, y: 0.19134378, z: 1.8966908}
-  - {x: 26.620739, y: 2.1913438, z: 3.8966975}
-  - {x: 26.620739, y: 2.1913438, z: 1.8966908}
-  - {x: 26.620739, y: 0.19134378, z: 3.8966975}
-  - {x: 26.620739, y: 0.19134378, z: 1.8966908}
-  - {x: 33.608448, y: 2.1913438, z: 3.8966975}
-  - {x: 33.608448, y: 2.1913438, z: 1.8966908}
-  - {x: 33.608448, y: 0.19134378, z: 3.8966975}
-  - {x: 33.608448, y: 0.19134378, z: 1.8966908}
-  - {x: 31.808578, y: 2.1913438, z: 3.8966975}
-  - {x: 31.808578, y: 2.1913438, z: 1.8966908}
-  - {x: 31.808578, y: 0.19134378, z: 3.8966975}
-  - {x: 31.808578, y: 0.19134378, z: 1.8966908}
-  - {x: 41.583447, y: 2.1913438, z: 3.8966975}
-  - {x: 41.583447, y: 2.1913438, z: 1.8966908}
-  - {x: 41.583447, y: 0.19134378, z: 3.8966975}
-  - {x: 41.583447, y: 0.19134378, z: 1.8966908}
-  - {x: 39.652077, y: 2.1913438, z: 3.8966975}
-  - {x: 39.652077, y: 2.1913438, z: 1.8966908}
-  - {x: 39.652077, y: 0.19134378, z: 3.8966975}
-  - {x: 39.652077, y: 0.19134378, z: 1.8966908}
-  - {x: -9.462085, y: 15.016385, z: 3.8966975}
-  - {x: 24.834267, y: 8.290916, z: 1.8966908}
-  - {x: 22.834267, y: 8.290916, z: 1.8966908}
-  - {x: 14.534889, y: 8.290916, z: 1.8966908}
-  - {x: -15.742525, y: 8.290916, z: 3.8966975}
-  - {x: 20.770515, y: 8.290916, z: 1.8966908}
-  - {x: 18.770506, y: 8.290916, z: 1.8966908}
-  - {x: 37.872322, y: 8.290916, z: 1.8966908}
-  - {x: 35.872322, y: 8.290916, z: 1.8966908}
-  - {x: 29.197403, y: 8.290916, z: 1.8966908}
-  - {x: 26.620739, y: 8.290916, z: 1.8966908}
-  - {x: 33.608448, y: 8.290916, z: 1.8966908}
-  - {x: 31.808578, y: 8.290916, z: 1.8966908}
-  - {x: 41.583447, y: 8.290916, z: 1.8966908}
-  - {x: 39.652077, y: 8.290916, z: 1.8966908}
-  - {x: 24.834267, y: 5.0740776, z: 8.764793}
-  - {x: 23.859558, y: 5.0740776, z: 8.764793}
-  - {x: 24.402624, y: 4.5238466, z: 5.8968935}
-  - {x: 24.402624, y: 2.1913438, z: 7.109497}
-  - {x: 24.402624, y: 2.1913438, z: 5.8968935}
-  - {x: 24.402624, y: 0.19134378, z: 5.8968935}
-  - {x: 37.872322, y: 5.0740776, z: 8.764793}
-  - {x: 37.872322, y: 4.5238466, z: 5.8968935}
-  - {x: 35.872322, y: 5.0740776, z: 8.764793}
-  - {x: 35.872322, y: 4.5238466, z: 5.8968935}
-  - {x: 29.197403, y: 5.0740776, z: 8.764793}
-  - {x: 29.197403, y: 4.5238466, z: 5.8968935}
-  - {x: 26.620739, y: 5.0740776, z: 8.764793}
-  - {x: 26.620739, y: 4.5238466, z: 5.8968935}
-  - {x: 33.608448, y: 5.0740776, z: 8.764793}
-  - {x: 33.608448, y: 4.5238466, z: 5.8968935}
-  - {x: 31.808578, y: 5.0740776, z: 8.764793}
-  - {x: 31.808578, y: 4.5238466, z: 5.8968935}
-  - {x: 41.583447, y: 5.0740776, z: 8.764793}
-  - {x: 41.583447, y: 4.5238466, z: 5.8968935}
-  - {x: 39.652077, y: 5.0740776, z: 8.764793}
-  - {x: 39.652077, y: 4.5238466, z: 5.8968935}
-  - {x: 37.872322, y: 2.1913438, z: 7.109497}
-  - {x: 37.872322, y: 2.1913438, z: 5.8968935}
-  - {x: 37.872322, y: 0.19134378, z: 5.8968935}
-  - {x: 35.872322, y: 2.1913438, z: 7.109497}
-  - {x: 35.872322, y: 2.1913438, z: 5.8968935}
-  - {x: 35.872322, y: 0.19134378, z: 5.8968935}
-  - {x: 29.197403, y: 2.1913438, z: 7.109497}
-  - {x: 29.197403, y: 2.1913438, z: 5.8968935}
-  - {x: 29.197403, y: 0.19134378, z: 5.8968935}
-  - {x: 26.620739, y: 2.1913438, z: 7.109497}
-  - {x: 26.620739, y: 2.1913438, z: 5.8968935}
-  - {x: 26.620739, y: 0.19134378, z: 5.8968935}
-  - {x: 33.608448, y: 2.1913438, z: 7.109497}
-  - {x: 33.608448, y: 2.1913438, z: 5.8968935}
-  - {x: 33.608448, y: 0.19134378, z: 5.8968935}
-  - {x: 31.808578, y: 2.1913438, z: 7.109497}
-  - {x: 31.808578, y: 2.1913438, z: 5.8968935}
-  - {x: 31.808578, y: 0.19134378, z: 5.8968935}
-  - {x: 41.583447, y: 2.1913438, z: 7.109497}
-  - {x: 41.583447, y: 2.1913438, z: 5.8968935}
-  - {x: 41.583447, y: 0.19134378, z: 5.8968935}
-  - {x: 39.652077, y: 2.1913438, z: 7.109497}
-  - {x: 39.652077, y: 2.1913438, z: 5.8968935}
-  - {x: 39.652077, y: 0.19134378, z: 5.8968935}
-  - {x: -12.953048, y: 3.5346699, z: 8.545126}
-  - {x: -9.462085, y: 3.5346699, z: 8.545126}
-  - {x: -12.953048, y: 2.1913438, z: 8.545126}
-  - {x: -9.462085, y: 3.5346699, z: 12.438052}
-  - {x: -9.462085, y: 2.1913438, z: 12.438052}
-  - {x: 62.464695, y: 3.4375653, z: -0.24144268}
-  - {x: 62.464695, y: 3.4375653, z: -2.605862}
-  - {x: 60.801445, y: 3.4375653, z: -0.24144268}
-  - {x: 60.801445, y: 3.4375653, z: -2.8609505}
-  - {x: 54.473007, y: 3.4375653, z: -0.24144268}
-  - {x: 54.473007, y: 3.4375653, z: -1.6590893}
-  - {x: 52.473007, y: 3.190683, z: 0.016095519}
-  - {x: 52.473007, y: 3.190683, z: -1.6590893}
-  - {x: 58.7377, y: 3.4375653, z: -0.24144268}
-  - {x: 58.7377, y: 3.4375653, z: -2.8245091}
-  - {x: 56.7377, y: 3.4375653, z: -0.24144268}
-  - {x: 56.7377, y: 3.4375653, z: -2.5512}
-  - {x: 64.70848, y: 3.4375653, z: -0.24144268}
-  - {x: 64.70848, y: 3.4375653, z: -2.2414494}
-  - {x: 52.473007, y: 3.190683, z: 1.5871155}
-  - {x: 50.317375, y: 4.276964, z: -0.24144268}
-  - {x: 50.317375, y: 4.276964, z: -2.2414494}
-  - {x: 50.317375, y: 1.5000739, z: 0.016095519}
-  - {x: 50.317375, y: 1.5000739, z: -1.6590893}
-  - {x: 50.317375, y: 4.276964, z: 1.8966908}
-  - {x: 50.317375, y: 1.5000739, z: 1.5871155}
-  - {x: 50.317375, y: 2.7462955, z: 0.016095519}
-  - {x: 50.317375, y: 2.7462955, z: -1.6590893}
-  - {x: 50.317375, y: 2.7462955, z: 1.5871155}
-  - {x: 48.292942, y: 3.807888, z: -0.24144268}
-  - {x: 48.292942, y: 3.807888, z: -1.585507}
-  - {x: 48.292942, y: 1.0309978, z: 0.016095519}
-  - {x: 48.292942, y: 1.0309978, z: -1.6590893}
-  - {x: 48.292942, y: 3.807888, z: 1.5687199}
-  - {x: 48.292942, y: 1.0309978, z: 1.5871155}
-  - {x: 48.292942, y: 2.2772193, z: 0.016095519}
-  - {x: 48.292942, y: 2.2772193, z: -1.6590893}
-  - {x: 48.292942, y: 2.2772193, z: 1.5871155}
-  - {x: 45.393814, y: 3.1221418, z: 0.016095519}
-  - {x: 45.393814, y: 3.1221418, z: -1.6590893}
-  - {x: 45.393814, y: 0.34525156, z: 0.016095519}
-  - {x: 45.393814, y: 0.34525156, z: -1.6590893}
-  - {x: 45.393814, y: 3.1221418, z: 1.5871155}
-  - {x: 45.393814, y: 0.34525156, z: 1.5871155}
-  - {x: 45.393814, y: 1.5914731, z: 0.016095519}
-  - {x: 45.393814, y: 1.5914731, z: -1.6590893}
-  - {x: 45.393814, y: 1.5914731, z: 1.5871155}
-  - {x: 62.464695, y: 3.4375653, z: 2.5983217}
-  - {x: 60.801445, y: 3.4375653, z: 2.5983217}
-  - {x: 54.473007, y: 3.4375653, z: 2.5983217}
-  - {x: 58.7377, y: 3.4375653, z: 2.5983217}
-  - {x: 56.7377, y: 3.4375653, z: 2.5983217}
-  - {x: 64.70848, y: 3.4375653, z: 2.5983217}
-  - {x: 43.53056, y: 6.523846, z: -0.24144268}
-  - {x: 43.53056, y: 6.523846, z: -1.9913515}
-  - {x: 43.53056, y: 4.5238466, z: -0.24144268}
-  - {x: 43.53056, y: 4.5238466, z: -1.9913515}
-  - {x: 43.53056, y: 2.1913438, z: -0.24144268}
-  - {x: 43.53056, y: 2.1913438, z: -1.9913515}
-  - {x: 43.53056, y: 0.19134378, z: -0.24144268}
-  - {x: 43.53056, y: 0.19134378, z: -1.9913515}
-  - {x: 43.53056, y: 6.523846, z: 1.8966908}
-  - {x: 43.53056, y: 4.5238466, z: 3.8966975}
-  - {x: 43.53056, y: 4.5238466, z: 1.8966908}
-  - {x: 43.53056, y: 2.1913438, z: 3.8966975}
-  - {x: 43.53056, y: 2.1913438, z: 1.8966908}
-  - {x: 43.53056, y: 0.19134378, z: 3.8966975}
-  - {x: 43.53056, y: 0.19134378, z: 1.8966908}
-  - {x: 43.53056, y: 8.290916, z: 1.8966908}
-  - {x: 43.53056, y: 5.0740776, z: 8.343647}
-  - {x: 43.53056, y: 4.5238466, z: 5.8968935}
-  - {x: 43.53056, y: 2.1913438, z: 7.109497}
-  - {x: 43.53056, y: 2.1913438, z: 5.8968935}
-  - {x: 43.53056, y: 0.19134378, z: 5.8968935}
-  - {x: -9.462085, y: 8.290916, z: -12.495264}
-  - {x: -12.953048, y: 8.290916, z: -8.379787}
-  - {x: -9.462085, y: 8.290916, z: -8.379787}
-  - {x: -12.953048, y: 8.290916, z: -4.3795843}
-  - {x: -9.462085, y: 8.290916, z: -4.3795843}
-  - {x: -12.953048, y: 8.290916, z: -0.24144268}
-  - {x: -9.462085, y: 8.290916, z: -0.24144268}
-  - {x: -12.953048, y: 8.290916, z: 3.8966975}
-  - {x: -9.462085, y: 8.290916, z: 3.8966975}
-  - {x: -12.953048, y: 8.290916, z: 8.545126}
-  - {x: -9.462085, y: 8.290916, z: 8.545126}
-  - {x: -9.462085, y: 8.290916, z: 12.438052}
-  - {x: -9.462085, y: 11.723707, z: -8.379787}
-  - {x: -12.953048, y: 11.723707, z: -4.3795843}
-  - {x: -9.462085, y: 11.723707, z: -4.3795843}
-  - {x: -12.953048, y: 11.723707, z: 3.8100748}
-  - {x: -9.462085, y: 11.723707, z: 3.8100748}
-  - {x: -9.462085, y: 11.723707, z: 8.545126}
-  - {x: -1.9490829, y: 3.5346699, z: -15.258817}
-  - {x: -1.9490829, y: 2.1913438, z: -15.258817}
-  - {x: -1.9490829, y: 3.5346699, z: -12.495264}
-  - {x: -1.9490829, y: 2.1913438, z: -12.495264}
-  - {x: -1.9490829, y: 3.5346699, z: -8.379787}
-  - {x: -1.9490829, y: 15.016385, z: -8.379787}
-  - {x: -1.9490829, y: 3.5346699, z: -4.3795843}
-  - {x: -1.9490829, y: 15.016385, z: -4.3795843}
-  - {x: -1.9490829, y: 3.5346699, z: -0.24144268}
-  - {x: -1.9490829, y: 15.016385, z: -0.24144268}
-  - {x: -1.9490829, y: 3.5346699, z: 3.8966975}
-  - {x: -1.9490829, y: 15.016385, z: 3.8966975}
-  - {x: -1.9490829, y: 3.5346699, z: 8.545126}
-  - {x: -1.9490829, y: 15.016385, z: 8.545126}
-  - {x: -1.9490829, y: 3.5346699, z: 15.065263}
-  - {x: -1.9490829, y: 3.5346699, z: 12.438052}
-  - {x: -1.9490829, y: 2.1913438, z: 15.065263}
-  - {x: -1.9490829, y: 2.1913438, z: 12.438052}
-  - {x: -1.9490829, y: 8.290916, z: -12.495264}
-  - {x: -1.9490829, y: 8.290916, z: -8.379787}
-  - {x: -1.9490829, y: 8.290916, z: -4.3795843}
-  - {x: -1.9490829, y: 8.290916, z: -0.24144268}
-  - {x: -1.9490829, y: 8.290916, z: 3.8966975}
-  - {x: -1.9490829, y: 8.290916, z: 8.545126}
-  - {x: -1.9490829, y: 8.290916, z: 12.438052}
-  - {x: -1.9490829, y: 11.723707, z: 12.425598}
-  - {x: -1.9490829, y: 11.723707, z: -8.379787}
-  - {x: -1.9490829, y: 11.723707, z: -4.3795843}
-  - {x: -1.9490829, y: 11.723707, z: 3.8100748}
-  - {x: -1.9490829, y: 11.723707, z: 8.545126}
-  - {x: -1.9490829, y: 11.723707, z: -12.495264}
-  - {x: -5.655315, y: 3.5346699, z: -15.258817}
-  - {x: -5.655315, y: 2.1913438, z: -15.258817}
-  - {x: -5.655315, y: 3.5346699, z: -12.495264}
-  - {x: -5.655315, y: 2.1913438, z: -12.495264}
-  - {x: -5.655315, y: 3.5346699, z: -8.379787}
-  - {x: -5.655315, y: 15.016385, z: -8.379787}
-  - {x: -5.655315, y: 3.5346699, z: -4.3795843}
-  - {x: -5.655315, y: 15.016385, z: -4.3795843}
-  - {x: -5.655315, y: 3.5346699, z: -0.24144268}
-  - {x: -5.655315, y: 15.016385, z: -0.24144268}
-  - {x: -5.655315, y: 3.5346699, z: 3.8966975}
-  - {x: -5.655315, y: 15.016385, z: 3.8966975}
-  - {x: -5.655315, y: 3.5346699, z: 8.545126}
-  - {x: -5.655315, y: 15.016385, z: 8.545126}
-  - {x: -5.655315, y: 3.5346699, z: 15.065263}
-  - {x: -5.655315, y: 3.5346699, z: 12.438052}
-  - {x: -5.655315, y: 2.1913438, z: 15.065263}
-  - {x: -5.655315, y: 2.1913438, z: 12.438052}
-  - {x: -5.655315, y: 8.290916, z: -12.495264}
-  - {x: -5.655315, y: 8.290916, z: -8.379787}
-  - {x: -5.655315, y: 8.290916, z: -4.3795843}
-  - {x: -5.655315, y: 8.290916, z: -0.24144268}
-  - {x: -5.655315, y: 8.290916, z: 3.8966975}
-  - {x: -5.655315, y: 8.290916, z: 8.545126}
-  - {x: -5.655315, y: 8.290916, z: 12.438052}
-  - {x: -5.655315, y: 11.723707, z: 12.425598}
-  - {x: -5.655315, y: 11.723707, z: -8.379787}
-  - {x: -5.655315, y: 11.723707, z: -4.3795843}
-  - {x: -5.655315, y: 11.723707, z: 3.8100748}
-  - {x: -5.655315, y: 11.723707, z: 8.545126}
-  - {x: -5.655315, y: 11.723707, z: -12.495264}
-  - {x: 2.0040827, y: 3.5346699, z: -15.258817}
-  - {x: 2.0040827, y: 2.1913438, z: -15.258817}
-  - {x: 2.0040827, y: 3.5346699, z: -12.495264}
-  - {x: 2.0040827, y: 2.1913438, z: -12.495264}
-  - {x: 2.0040827, y: 3.5346699, z: -8.379787}
-  - {x: 2.0040827, y: 15.016385, z: -8.379787}
-  - {x: 2.0040827, y: 3.5346699, z: -4.3795843}
-  - {x: 2.0040827, y: 15.016385, z: -4.3795843}
-  - {x: 2.0040827, y: 3.5346699, z: -0.24144268}
-  - {x: 2.0040827, y: 15.016385, z: -0.24144268}
-  - {x: 2.0040827, y: 3.5346699, z: 3.8966975}
-  - {x: 2.0040827, y: 15.016385, z: 3.8966975}
-  - {x: 2.0040827, y: 3.5346699, z: 8.545126}
-  - {x: 2.0040827, y: 15.016385, z: 8.545126}
-  - {x: 2.0040827, y: 3.5346699, z: 15.065263}
-  - {x: 2.0040827, y: 3.5346699, z: 12.438052}
-  - {x: 2.0040827, y: 2.1913438, z: 15.065263}
-  - {x: 2.0040827, y: 2.1913438, z: 12.438052}
-  - {x: 2.0040827, y: 8.290916, z: -12.495264}
-  - {x: 2.0040827, y: 8.290916, z: -8.379787}
-  - {x: 2.0040827, y: 8.290916, z: -4.3795843}
-  - {x: 2.0040827, y: 8.290916, z: -0.24144268}
-  - {x: 2.0040827, y: 8.290916, z: 3.8966975}
-  - {x: 2.0040827, y: 8.290916, z: 8.545126}
-  - {x: 2.0040827, y: 8.290916, z: 12.438052}
-  - {x: 2.0040827, y: 11.723707, z: 12.425598}
-  - {x: 2.0040827, y: 11.723707, z: -8.379787}
-  - {x: 2.0040827, y: 11.723707, z: -4.3795843}
-  - {x: 2.0040827, y: 11.723707, z: 3.8100748}
-  - {x: 2.0040827, y: 11.723707, z: 8.545126}
-  - {x: 2.0040827, y: 11.723707, z: -12.495264}
-  - {x: 5.039278, y: 3.5346699, z: -15.258817}
-  - {x: 5.039278, y: 2.1913438, z: -15.258817}
-  - {x: 5.039278, y: 3.5346699, z: -12.495264}
-  - {x: 5.039278, y: 2.1913438, z: -12.495264}
-  - {x: 5.039278, y: 3.5346699, z: -8.379787}
-  - {x: 5.039278, y: 15.016385, z: -8.379787}
-  - {x: 5.039278, y: 3.5346699, z: -4.3795843}
-  - {x: 5.039278, y: 15.016385, z: -4.3795843}
-  - {x: 5.039278, y: 3.5346699, z: -0.24144268}
-  - {x: 5.039278, y: 15.016385, z: -0.24144268}
-  - {x: 5.039278, y: 3.5346699, z: 3.8966975}
-  - {x: 5.039278, y: 15.016385, z: 3.8966975}
-  - {x: 5.039278, y: 3.5346699, z: 8.545126}
-  - {x: 5.039278, y: 15.016385, z: 8.545126}
-  - {x: 5.039278, y: 3.5346699, z: 15.065263}
-  - {x: 5.039278, y: 3.5346699, z: 12.438052}
-  - {x: 5.039278, y: 2.1913438, z: 15.065263}
-  - {x: 5.039278, y: 2.1913438, z: 12.438052}
-  - {x: 5.039278, y: 8.290916, z: -12.495264}
-  - {x: 5.039278, y: 8.290916, z: -8.379787}
-  - {x: 5.039278, y: 8.290916, z: -4.3795843}
-  - {x: 5.039278, y: 8.290916, z: -0.24144268}
-  - {x: 5.039278, y: 8.290916, z: 3.8966975}
-  - {x: 5.039278, y: 8.290916, z: 8.545126}
-  - {x: 5.039278, y: 8.290916, z: 12.438052}
-  - {x: 5.039278, y: 11.723707, z: 12.425598}
-  - {x: 5.039278, y: 11.723707, z: -8.379787}
-  - {x: 5.039278, y: 11.723707, z: -4.3795843}
-  - {x: 5.039278, y: 11.723707, z: 3.8100748}
-  - {x: 5.039278, y: 11.723707, z: 8.545126}
-  - {x: 5.039278, y: 11.723707, z: -12.495264}
-  - {x: 8.503372, y: 3.5346699, z: -12.495264}
-  - {x: 8.503372, y: 2.1913438, z: -12.495264}
-  - {x: 8.503372, y: 3.5346699, z: -8.379787}
-  - {x: 8.503372, y: 3.5346699, z: -4.3795843}
-  - {x: 8.503372, y: 15.016385, z: -4.3795843}
-  - {x: 8.503372, y: 3.5346699, z: -0.24144268}
-  - {x: 8.503372, y: 15.016385, z: -0.24144268}
-  - {x: 8.503372, y: 3.5346699, z: 3.8966975}
-  - {x: 8.503372, y: 15.016385, z: 3.8966975}
-  - {x: 8.503372, y: 3.5346699, z: 8.545126}
-  - {x: 8.503372, y: 3.5346699, z: 12.438052}
-  - {x: 8.503372, y: 2.1913438, z: 12.438052}
-  - {x: 8.503372, y: 8.290916, z: -12.495264}
-  - {x: 8.503372, y: 8.290916, z: -8.379787}
-  - {x: 8.503372, y: 8.290916, z: -4.3795843}
-  - {x: 8.503372, y: 8.290916, z: -0.24144268}
-  - {x: 8.503372, y: 8.290916, z: 3.8966975}
-  - {x: 8.503372, y: 8.290916, z: 8.545126}
-  - {x: 8.503372, y: 8.290916, z: 12.438052}
-  - {x: 8.503372, y: 11.723707, z: -8.379787}
-  - {x: 8.503372, y: 11.723707, z: -4.3795843}
-  - {x: 8.503372, y: 11.723707, z: 3.8100748}
-  - {x: 8.503372, y: 11.723707, z: 8.545126}
-  - {x: 12.389214, y: 3.5346699, z: -8.379787}
-  - {x: 12.389214, y: 2.1913438, z: -8.379787}
-  - {x: 12.389214, y: 3.5346699, z: -4.3795843}
-  - {x: 12.389214, y: 2.1913438, z: -4.3795843}
-  - {x: 12.389214, y: 3.5346699, z: -0.24144268}
-  - {x: 12.389214, y: 2.1913438, z: -0.24144268}
-  - {x: 12.389214, y: 3.5346699, z: 3.8966975}
-  - {x: 12.389214, y: 2.1913438, z: 3.8966975}
-  - {x: 12.389214, y: 3.5346699, z: 8.545126}
-  - {x: 12.389214, y: 2.1913438, z: 8.545126}
-  - {x: 12.389214, y: 8.290916, z: -8.379787}
-  - {x: 12.389214, y: 8.290916, z: -4.3795843}
-  - {x: 12.389214, y: 8.290916, z: -0.24144268}
-  - {x: 12.389214, y: 8.290916, z: 3.8966975}
-  - {x: 12.389214, y: 8.290916, z: 8.545126}
-  - {x: 12.389214, y: 11.723707, z: -4.3795843}
-  - {x: 12.389214, y: 11.723707, z: 3.8100748}
-  - {x: 14.505812, y: 4.5238466, z: -4.3795843}
-  - {x: 14.505812, y: 2.1913438, z: -4.3795843}
-  - {x: 14.505812, y: 8.290916, z: -4.3795843}
-  - {x: 14.505812, y: 4.5238466, z: 3.8966975}
-  - {x: 14.505812, y: 2.1913438, z: 3.8966975}
-  - {x: 14.505812, y: 8.290916, z: 3.8966975}
-  - {x: -12.953048, y: 11.723707, z: -0.24144268}
-  - {x: -9.462085, y: 11.723707, z: -0.24144268}
-  - {x: -1.9490829, y: 11.723707, z: -0.24144268}
-  - {x: -5.655315, y: 11.723707, z: -0.24144268}
-  - {x: 2.0040827, y: 11.723707, z: -0.24144268}
-  - {x: 5.039278, y: 11.723707, z: -0.24144268}
-  - {x: 8.503372, y: 11.723707, z: -0.24144268}
-  - {x: 12.389214, y: 11.723707, z: -0.24144268}
-  - {x: 63.713028, y: 3.9258604, z: -0.24144268}
-  - {x: 62.464695, y: 4.968234, z: -2.3437095}
-  - {x: 62.464695, y: 4.729711, z: 2.569934}
-  - {x: 62.464695, y: 4.968234, z: -0.24144268}
-  - {x: 29.197403, y: 0.19134378, z: -0.24144268}
-  - {x: 29.197403, y: 0.19134378, z: -1.9913515}
-  - {x: 30.314497, y: 4.787731, z: -1.9913515}
-  - {x: 31.895302, y: 4.787731, z: -0.24144268}
-  - {x: 31.895302, y: 4.787731, z: -1.9913515}
-  - {x: 31.895302, y: 4.787731, z: -3.7013316}
-  - {x: 33.53587, y: 4.787731, z: -0.24144268}
-  - {x: 33.53587, y: 4.787731, z: -1.9913515}
-  - {x: 33.53587, y: 4.787731, z: -3.7013316}
-  - {x: 30.314497, y: 2.8659146, z: -0.24144268}
-  - {x: 30.314497, y: 2.8659146, z: -1.9913515}
-  - {x: 30.314497, y: 2.8659146, z: -3.7013316}
-  - {x: 31.895302, y: 2.8659146, z: -3.7013316}
-  - {x: 31.895302, y: 2.8659146, z: -1.9913515}
-  - {x: 33.53587, y: 2.8659146, z: -1.9913515}
-  - {x: 33.53587, y: 2.8659146, z: -0.24144268}
-  - {x: 33.53587, y: 2.8659146, z: -3.7013316}
-  - {x: 31.895302, y: 2.8659146, z: -0.24144268}
-  - {x: 30.314497, y: 0.65802395, z: -0.24144268}
-  - {x: 30.314497, y: 0.65802395, z: -1.9913515}
-  - {x: 30.314497, y: 0.65802395, z: -3.7013316}
-  - {x: 31.895302, y: 0.65802395, z: -3.7013316}
-  - {x: 31.895302, y: 0.65802395, z: -1.9913515}
-  - {x: 33.53587, y: 0.65802395, z: -1.9913515}
-  - {x: 33.53587, y: 0.65802395, z: -0.24144268}
-  - {x: 33.53587, y: 0.65802395, z: -3.7013316}
-  - {x: 31.895302, y: 0.65802395, z: -0.24144268}
-  - {x: 62.464695, y: 2.1913438, z: 1.4229608}
-  - {x: 60.801445, y: 2.1913438, z: 1.4229608}
-  - {x: 54.473007, y: 2.1913438, z: 1.4229608}
-  - {x: 58.7377, y: 2.1913438, z: 1.4229608}
-  - {x: 56.7377, y: 2.1913438, z: 1.4229608}
-  - {x: 64.70848, y: 2.1913438, z: 1.4229608}
-  - {x: 60.801445, y: 2.1913438, z: 2.5788655}
-  - {x: 54.473007, y: 2.1913438, z: 2.5788655}
-  - {x: 58.7377, y: 2.1913438, z: 2.5788655}
-  - {x: 56.7377, y: 2.1913438, z: 2.5788655}
-  - {x: 18.770506, y: 1.0076503, z: -0.24144268}
-  - {x: 18.770506, y: 2.1913438, z: -0.24144268}
-  - {x: 14.534889, y: 8.290916, z: -0.24144268}
-  - {x: 14.534889, y: 8.290916, z: -1.9913515}
-  - {x: 14.534889, y: 8.290916, z: 1.8966908}
-  - {x: 14.534889, y: 4.5238466, z: -0.24144268}
-  - {x: 14.534889, y: 4.5238466, z: -1.9913515}
-  - {x: 14.534889, y: 2.1913438, z: -0.24144268}
-  - {x: 14.534889, y: 4.5238466, z: 1.8966908}
-  - {x: 14.534889, y: 2.1913438, z: 1.8966908}
-  - {x: 14.534889, y: 2.1913438, z: -1.9913515}
-  - {x: 16.505812, y: 4.5238466, z: -0.24144268}
-  - {x: 16.505812, y: 4.5238466, z: -1.9913515}
-  - {x: 16.505812, y: 2.1913438, z: -0.24144268}
-  - {x: 16.505812, y: 2.1913438, z: -1.9913515}
-  - {x: 16.505812, y: 8.290916, z: -0.24144268}
-  - {x: 16.505812, y: 8.290916, z: -1.9913515}
-  - {x: 16.505812, y: 4.5238466, z: 1.8966908}
-  - {x: 16.505812, y: 2.1913438, z: 1.8966908}
-  - {x: 16.505812, y: 8.290916, z: 1.8966908}
-  - {x: 16.505812, y: 8.290916, z: -0.24144268}
-  - {x: 16.505812, y: 8.290916, z: -1.9913515}
-  - {x: 16.505812, y: 8.290916, z: 1.8966908}
-  - {x: 16.505812, y: 4.5238466, z: -0.24144268}
-  - {x: 16.505812, y: 4.5238466, z: -1.9913515}
-  - {x: 16.505812, y: 2.1913438, z: -0.24144268}
-  - {x: 16.505812, y: 4.5238466, z: 1.8966908}
-  - {x: 16.505812, y: 2.1913438, z: 1.8966908}
-  - {x: 16.505812, y: 2.1913438, z: -1.9913515}
-  - {x: -9.462085, y: 5.6778865, z: -12.495264}
-  - {x: -12.953048, y: 5.6778865, z: -8.379787}
-  - {x: -9.462085, y: 5.6778865, z: -8.379787}
-  - {x: -12.953048, y: 5.6778865, z: -4.3795843}
-  - {x: -9.462085, y: 5.6778865, z: -4.3795843}
-  - {x: -12.953048, y: 5.6778865, z: -0.24144268}
-  - {x: -9.462085, y: 5.6778865, z: -0.24144268}
-  - {x: -12.953048, y: 5.6778865, z: 3.8966975}
-  - {x: -9.462085, y: 5.6778865, z: 3.8966975}
-  - {x: -12.953048, y: 5.6778865, z: 8.545126}
-  - {x: -9.462085, y: 5.6778865, z: 8.545126}
-  - {x: -9.462085, y: 5.6778865, z: 12.438052}
-  - {x: -1.9490829, y: 5.6778865, z: -15.258817}
-  - {x: -1.9490829, y: 5.6778865, z: -12.495264}
-  - {x: -1.9490829, y: 5.6778865, z: -8.379787}
-  - {x: -1.9490829, y: 5.6778865, z: -4.3795843}
-  - {x: -1.9490829, y: 5.6778865, z: -0.24144268}
-  - {x: -1.9490829, y: 5.6778865, z: 3.8966975}
-  - {x: -1.9490829, y: 5.6778865, z: 8.545126}
-  - {x: -1.9490829, y: 5.6778865, z: 15.065263}
-  - {x: -1.9490829, y: 5.6778865, z: 12.438052}
-  - {x: -5.655315, y: 5.6778865, z: -15.258817}
-  - {x: -5.655315, y: 5.6778865, z: -12.495264}
-  - {x: -5.655315, y: 5.6778865, z: -8.379787}
-  - {x: -5.655315, y: 5.6778865, z: -4.3795843}
-  - {x: -5.655315, y: 5.6778865, z: -0.24144268}
-  - {x: -5.655315, y: 5.6778865, z: 3.8966975}
-  - {x: -5.655315, y: 5.6778865, z: 8.545126}
-  - {x: -5.655315, y: 5.6778865, z: 15.065263}
-  - {x: -5.655315, y: 5.6778865, z: 12.438052}
-  - {x: 2.0040827, y: 5.6778865, z: -15.258817}
-  - {x: 2.0040827, y: 5.6778865, z: -12.495264}
-  - {x: 2.0040827, y: 5.6778865, z: -8.379787}
-  - {x: 2.0040827, y: 5.6778865, z: -4.3795843}
-  - {x: 2.0040827, y: 5.6778865, z: -0.24144268}
-  - {x: 2.0040827, y: 5.6778865, z: 3.8966975}
-  - {x: 2.0040827, y: 5.6778865, z: 8.545126}
-  - {x: 2.0040827, y: 5.6778865, z: 15.065263}
-  - {x: 2.0040827, y: 5.6778865, z: 12.438052}
-  - {x: 5.039278, y: 5.6778865, z: -15.258817}
-  - {x: 5.039278, y: 5.6778865, z: -12.495264}
-  - {x: 5.039278, y: 5.6778865, z: -8.379787}
-  - {x: 5.039278, y: 5.6778865, z: -4.3795843}
-  - {x: 5.039278, y: 5.6778865, z: -0.24144268}
-  - {x: 5.039278, y: 5.6778865, z: 3.8966975}
-  - {x: 5.039278, y: 5.6778865, z: 8.545126}
-  - {x: 5.039278, y: 5.6778865, z: 15.065263}
-  - {x: 5.039278, y: 5.6778865, z: 12.438052}
-  - {x: 8.503372, y: 5.6778865, z: -12.495264}
-  - {x: 8.503372, y: 5.6778865, z: -8.379787}
-  - {x: 8.503372, y: 5.6778865, z: -4.3795843}
-  - {x: 8.503372, y: 5.6778865, z: -0.24144268}
-  - {x: 8.503372, y: 5.6778865, z: 3.8966975}
-  - {x: 8.503372, y: 5.6778865, z: 8.545126}
-  - {x: 8.503372, y: 5.6778865, z: 12.438052}
-  - {x: 12.389214, y: 5.6778865, z: -8.379787}
-  - {x: 12.389214, y: 5.6778865, z: -4.3795843}
-  - {x: 12.389214, y: 5.6778865, z: -0.24144268}
-  - {x: 12.389214, y: 5.6778865, z: 3.8966975}
-  - {x: 12.389214, y: 5.6778865, z: 8.545126}
-  m_Dering: 1
---- !u!1 &7258386062516984219
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7258386062516984221}
-  - component: {fileID: 7258386062516984218}
-  m_Layer: 0
-  m_Name: Light Probe Group
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7258386062516984221
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7258386062516984219}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1377783}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &8285608693600406297
 Transform:
   m_ObjectHideFlags: 0
