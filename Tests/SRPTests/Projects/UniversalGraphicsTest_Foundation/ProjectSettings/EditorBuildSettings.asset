@@ -177,15 +177,6 @@ EditorBuildSettings:
     path: Assets/Scenes/119_CameraToRTWithViewportRect.unity
     guid: c7b61419ee9382545afe530714fda0c2
   - enabled: 1
-    path: Assets/Scenes/120_RenderUICustomRendererNoPP.unity
-    guid: 40c4ce99a7711204d978b31395d890b4
-  - enabled: 1
-    path: Assets/Scenes/121_RenderUICustomRendererNoAA.unity
-    guid: 74cb351d2fc32de4d812e3f2f08744e7
-  - enabled: 1
-    path: Assets/Scenes/122_RenderUICustomRendererFXAA.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
     path: Assets/Scenes/123_CameraStackingClear.unity
     guid: 9aa9851df0da149c9a83a0f26072e234
   - enabled: 1
