@@ -32,9 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty rendererListCulling;
 
-        public SerializedProperty DLSSProjectId;
-        public SerializedProperty useDLSSCustomProjectId;
-
         public SerializedProperty apvScenesData;
 
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
@@ -131,10 +128,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             analyticDerivativeEmulation = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.analyticDerivativeEmulation);
             analyticDerivativeDebugOutput = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.analyticDerivativeDebugOutput);
-
-
-            DLSSProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.DLSSProjectId);
-            useDLSSCustomProjectId = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.useDLSSCustomProjectId);
 
             apvScenesData = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.apvScenesData);
         }

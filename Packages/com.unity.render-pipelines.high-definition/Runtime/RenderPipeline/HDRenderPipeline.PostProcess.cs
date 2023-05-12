@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             resGroup = ResolutionGroup.BeforeDynamicResUpscale;
 
-            m_DLSSPass = DLSSPass.Create(m_GlobalSettings);
+            m_DLSSPass = DLSSPass.Create();
         }
 
         GraphicsFormat GetPostprocessTextureFormat(HDCamera camera)
@@ -2232,7 +2232,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
-                
+
                 // PBR dof has special resolution requirements. Either half or full.
                 // The max here will constrain it to just quarter or half.
                 parameters.resolution = (DepthOfFieldResolution)Math.Max((int)parameters.resolution, (int)DepthOfFieldResolution.Half);

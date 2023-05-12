@@ -705,22 +705,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Reset();
+            SetupDLSSFeature();
 #endif
-            HDRenderPipeline.SetupDLSSFeature(m_GlobalSettings);
         }
 
-        internal static void SetupDLSSFeature(HDRenderPipelineGlobalSettings globalSettings)
+        internal static void SetupDLSSFeature()
         {
-            if (globalSettings == null)
-            {
-                Debug.LogError("Tried to setup DLSS with a null globalSettings object.");
-                return;
-            }
-
-            if (DLSSPass.SetupFeature(globalSettings))
-            {
+            if (DLSSPass.SetupFeature())
                 HDDynamicResolutionPlatformCapabilities.ActivateDLSS();
-            }
         }
 
         bool CheckAPIValidity()
@@ -2330,7 +2322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 //restore original target
-                camera.targetTexture = originalTarget;    
+                camera.targetTexture = originalTarget;
                 Graphics.SetRenderTarget(originalTarget);
                 RenderTexture.ReleaseTemporary(temporaryRT);
             }
