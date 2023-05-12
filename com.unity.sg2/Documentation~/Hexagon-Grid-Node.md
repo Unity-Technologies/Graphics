@@ -11,10 +11,10 @@ Because aliasing can be a concern, the Hexagon Grid node provides three levels o
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
 | Scale      | Input | Vector 2    | None | Grid scale |
-| Line Width | Input      |    Float    | None | Width of grid lines |
-| Grid | Output | Float | None | grid lines |
+| Line Width | Input      |    Float    | None | Specify the width of grid lines as a fraction of the distance from the edge to the center of the hexagon tiles. Range (0.0 to 1.0) |
+| Grid | Output | Float | None | Hexagonal grid lines. |
 | Edge Distance | Output | Float | None | black on tile edges and white at tile centers |
-| Tile ID | Output | Float | None | random value between 0 and 1 for each tile |
+| Tile ID | Output | Float | None | A random value, between 0.0 and 1.0, used to identify each tile. |
 
 ## Controls
 
