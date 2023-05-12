@@ -180,10 +180,23 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 360050555, guid: 3578ff4ceebe63543ac9cffee0e59a0b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106946621, guid: 3578ff4ceebe63543ac9cffee0e59a0b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1111798830418961620, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
         type: 3}
       propertyPath: ImageComparisonSettings.ActivePixelTests
       value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1111798830418961620, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
+        type: 3}
+      propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
+      value: 0.001
       objectReference: {fileID: 0}
     - target: {fileID: 5125957881180236915, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
         type: 3}
@@ -245,6 +258,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8866405354498036075, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8866405354573332708, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8866405354606421296, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
         type: 3}
       propertyPath: m_RendererIndex
@@ -265,6 +288,11 @@ PrefabInstance:
       propertyPath: m_RenderPostProcessing
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8866405355051264432, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8866405355125639774, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
         type: 3}
       propertyPath: m_RendererIndex
@@ -273,6 +301,21 @@ PrefabInstance:
     - target: {fileID: 8866405355125639774, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
         type: 3}
       propertyPath: m_RenderPostProcessing
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8866405355494001568, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8866405355495262933, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8866405355780065778, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
+        type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8866405355971333549, guid: 3578ff4ceebe63543ac9cffee0e59a0b,
