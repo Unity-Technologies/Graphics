@@ -805,7 +805,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // but we may actually render to an intermediate texture if debug views are enabled.
                 // In that case, DebugHandler will eventually blit DebugScreenTexture into AfterPostProcessColor.
-                if (resolveToDebugScreen && !applyFinalPostProcessing)
+                if (resolveToDebugScreen && isTargetBackbuffer)
                 {
                     debugHandlerColorTarget = target;
                     target = resources.GetTexture(UniversalResource.DebugScreenTexture);
@@ -820,6 +820,8 @@ namespace UnityEngine.Rendering.Universal
                     m_ActiveDepthID = UniversalResource.BackBufferDepth;
                 }
             }
+            
+            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingPostProcessing);
 
             if (applyFinalPostProcessing)
             {
@@ -846,9 +848,9 @@ namespace UnityEngine.Rendering.Universal
                 applyFinalPostProcessing ||
                 // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                 (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions);
-
+            
             // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.AfterRendering injected passes should only be called after the last camera in the stack
-            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRenderingPostProcessing, RenderPassEvent.AfterRendering);
+            RecordCustomRenderGraphPasses(renderGraph, ref renderingData, RenderPassEvent.AfterRendering);
 
             if (!isActiveTargetBackBuffer && renderingData.cameraData.resolveFinalTarget && !cameraTargetResolved)
             {
