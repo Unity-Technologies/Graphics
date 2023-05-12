@@ -8,14 +8,14 @@ namespace UnityEditor.Rendering
         /// <summary>Convert to 8bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <returns>A SerializedBitArray8</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> ToSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static SerializedBitArray8 ToSerializeBitArray8(this SerializedProperty serializedProperty) => null;
 
         /// <summary>Try convert to 8bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <param name="serializedBitArray">Out SerializedBitArray8</param>
         /// <returns>True if convertion was a success</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> TryGetSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static bool TryGetSerializeBitArray8(this SerializedProperty serializedProperty, out SerializedBitArray8 serializedBitArray)
         {
             serializedBitArray = null;
@@ -25,14 +25,14 @@ namespace UnityEditor.Rendering
         /// <summary>Convert to 16bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <returns>A SerializedBitArray16</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> ToSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static SerializedBitArray16 ToSerializeBitArray16(this SerializedProperty serializedProperty) => null;
 
         /// <summary>Try convert to 16bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <param name="serializedBitArray">Out SerializedBitArray16</param>
         /// <returns>True if convertion was a success</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> TryGetSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static bool TryGetSerializeBitArray16(this SerializedProperty serializedProperty, out SerializedBitArray16 serializedBitArray)
         {
             serializedBitArray = null;
@@ -42,14 +42,14 @@ namespace UnityEditor.Rendering
         /// <summary>Convert to 32bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <returns>A SerializedBitArray32</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> ToSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static SerializedBitArray32 ToSerializeBitArray32(this SerializedProperty serializedProperty) => null;
 
         /// <summary>Try convert to 32bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <param name="serializedBitArray">Out SerializedBitArray32</param>
         /// <returns>True if convertion was a success</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> TryGetSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static bool TryGetSerializeBitArray32(this SerializedProperty serializedProperty, out SerializedBitArray32 serializedBitArray)
         {
             serializedBitArray = null;
@@ -59,14 +59,14 @@ namespace UnityEditor.Rendering
         /// <summary>Convert to 64bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <returns>A SerializedBitArray64</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> ToSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static SerializedBitArray64 ToSerializeBitArray64(this SerializedProperty serializedProperty) => null;
 
         /// <summary>Try convert to 64bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <param name="serializedBitArray">Out SerializedBitArray64</param>
         /// <returns>True if convertion was a success</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> TryGetSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static bool TryGetSerializeBitArray64(this SerializedProperty serializedProperty, out SerializedBitArray64 serializedBitArray)
         {
             serializedBitArray = null;
@@ -76,14 +76,14 @@ namespace UnityEditor.Rendering
         /// <summary>Convert to 128bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <returns>A SerializedBitArray128</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> ToSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static SerializedBitArray128 ToSerializeBitArray128(this SerializedProperty serializedProperty) => null;
 
         /// <summary>Try convert to 128bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <param name="serializedBitArray">Out SerializedBitArray128</param>
         /// <returns>True if convertion was a success</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> TryGetSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static bool TryGetSerializeBitArray128(this SerializedProperty serializedProperty, out SerializedBitArray128 serializedBitArray)
         {
             serializedBitArray = null;
@@ -93,14 +93,14 @@ namespace UnityEditor.Rendering
         /// <summary>Convert to 256bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <returns>A SerializedBitArray256</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> ToSerializedBitArray")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static SerializedBitArray256 ToSerializeBitArray256(this SerializedProperty serializedProperty) => null;
 
         /// <summary>Try convert to 256bit</summary>
         /// <param name="serializedProperty">The SerializedProperty</param>
         /// <param name="serializedBitArray">Out SerializedBitArray256</param>
         /// <returns>True if convertion was a success</returns>
-        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> TryGetSerializedBitArray(*)")]
+        [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
         public static bool TryGetSerializeBitArray256(this SerializedProperty serializedProperty, out SerializedBitArray256 serializedBitArray)
         {
             serializedBitArray = null;
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>Abstract base classe of all SerializedBitArray</summary>
-    [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2) (UnityUpgradable) -> SerializedBitArrayAny")]
+    [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public abstract class SerializedBitArray : ISerializedBitArray
     {
         /// <summary>Capacity of the bitarray</summary>
@@ -198,7 +198,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>SerializedBitArray spetialized for 8bit capacity</summary>
-    [Obsolete("Replaced by HasBitMultipleDifferentValue that now works for all IBitArray implementations. #from(23.2) (UnityUpgradable) -> SerializedBitArrayAny")]
+    [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray8 : SerializedBitArray
     {
         /// <inheritdoc/>
@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>SerializedBitArray spetialized for 8bit capacity</summary>
-    [Obsolete("Replaced by HasBitMultipleDifferentValue that now works for all IBitArray implementations. #from(23.2) (UnityUpgradable) -> SerializedBitArrayAny")]
+    [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray16 : SerializedBitArray
     {
         /// <inheritdoc/>
@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>SerializedBitArray spetialized for 8bit capacity</summary>
-    [Obsolete("Replaced by HasBitMultipleDifferentValue that now works for all IBitArray implementations. #from(23.2) (UnityUpgradable) -> SerializedBitArrayAny")]
+    [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray32 : SerializedBitArray
     {
         /// <inheritdoc/>
@@ -258,7 +258,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>SerializedBitArray spetialized for 8bit capacity</summary>
-    [Obsolete("Replaced by HasBitMultipleDifferentValue that now works for all IBitArray implementations. #from(23.2) (UnityUpgradable) -> SerializedBitArrayAny")]
+    [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray64 : SerializedBitArray
     {
         /// <inheritdoc/>
@@ -278,7 +278,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>SerializedBitArray spetialized for 8bit capacity</summary>
-    [Obsolete("Replaced by HasBitMultipleDifferentValue that now works for all IBitArray implementations. #from(23.2) (UnityUpgradable) -> SerializedBitArrayAny")]
+    [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray128 : SerializedBitArray
     {
         /// <inheritdoc/>
@@ -298,7 +298,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>SerializedBitArray spetialized for 8bit capacity</summary>
-    [Obsolete("Replaced by HasBitMultipleDifferentValue that now works for all IBitArray implementations. #from(23.2) (UnityUpgradable) -> SerializedBitArrayAny")]
+    [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray256 : SerializedBitArray
     {
         /// <inheritdoc/>
