@@ -68,14 +68,22 @@ namespace UnityEngine.Rendering
         {
         }
 
+        private static readonly bool s_SupportsLensFlareTexFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RFloat);
+
         /// <summary>
         /// Check if we can use an OcclusionRT
         /// </summary>
         /// <returns>return true if we can have the OcclusionRT</returns>
         static public bool IsOcclusionRTCompatible()
         {
+#if UNITY_SERVER
+            return false;
+#else
             return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore;
+                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
+                    s_SupportsLensFlareTexFormat; //Caching this, because SupportsRenderTextureFormat allocates memory. Go figure.
+#endif
         }
 
         /// <summary>
