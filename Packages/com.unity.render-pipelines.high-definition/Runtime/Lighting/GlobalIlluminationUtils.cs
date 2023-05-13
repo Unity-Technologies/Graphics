@@ -50,6 +50,22 @@ namespace UnityEngine.Rendering.HighDefinition
             lightDataGI.color = directColor;
             lightDataGI.indirectColor = indirectColor;
 
+            if (add.interactsWithSky)
+            {
+                var staticSkySettings = SkyManager.GetStaticLightingSky()?.skySettings;
+                if (staticSkySettings != null)
+                {
+                    Vector3 atmosphericAttenuation = staticSkySettings.EvaluateAtmosphericAttenuation(-light.transform.forward, Vector3.zero);
+                    lightDataGI.color.red = lightDataGI.color.red * atmosphericAttenuation.x;
+                    lightDataGI.color.green = lightDataGI.color.green * atmosphericAttenuation.y;
+                    lightDataGI.color.blue = lightDataGI.color.blue * atmosphericAttenuation.z;
+
+                    lightDataGI.indirectColor.red = lightDataGI.indirectColor.red * atmosphericAttenuation.x;
+                    lightDataGI.indirectColor.green = lightDataGI.indirectColor.green * atmosphericAttenuation.y;
+                    lightDataGI.indirectColor.blue = lightDataGI.indirectColor.blue * atmosphericAttenuation.z;
+                }
+            }
+
             // Note that the HDRI is correctly integrated in the GlobalIllumination system, we don't need to do anything regarding it.
 
             // The difference is that `l.lightmapBakeType` is the intent, e.g.you want a mixed light with shadowmask. But then the overlap test might detect more than 4 overlapping volumes and force a light to fallback to baked.
