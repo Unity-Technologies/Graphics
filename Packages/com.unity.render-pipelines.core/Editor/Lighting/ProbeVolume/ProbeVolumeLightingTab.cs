@@ -116,8 +116,8 @@ namespace UnityEngine.Rendering
                 if (m_TempBakingSet) Object.DestroyImmediate(m_ActiveSet);
                 m_ActiveSet = value;
                 m_TempBakingSet = false;
-                m_SingleSceneMode = m_ActiveSet.singleSceneMode;
                 if (m_ActiveSet == null) return;
+                m_SingleSceneMode = m_ActiveSet.singleSceneMode;
                 InitializeSceneList();
             }
         }
@@ -357,8 +357,8 @@ namespace UnityEngine.Rendering
                     }
                 }
 
-                if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.lightingScenarios.Contains(activeSet.lightingScenario))
-                    activeSet.SetActiveScenario(activeSet.lightingScenarios[0], false);
+                if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario))
+                    activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
 
                 Lightmapping.BakeAsync();
             }
@@ -445,7 +445,6 @@ namespace UnityEngine.Rendering
                         var tmpSet = activeSceneSet.Clone();
                         activeSceneSet.RemoveScene(activeSceneGUID);
                         UseTemporaryBakingSet(activeSceneGUID, tmpSet);
-                        EditorUtility.SetDirty(activeSceneSet);
                     }
                     else
                         m_SingleSceneMode = false;
@@ -577,6 +576,7 @@ namespace UnityEngine.Rendering
             newSet.name = "New Baking Set";
             newSet.singleSceneMode = false;
             newSet.settings.SetDefaults();
+            newSet.m_LightingScenarios = new List<string> { ProbeReferenceVolume.defaultLightingScenario };
             ProjectWindowUtil.CreateAsset(newSet, System.IO.Path.Combine(path, "New Baking Set.asset").Replace('\\', '/'));
             return newSet;
         }
@@ -605,10 +605,8 @@ namespace UnityEngine.Rendering
                 AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(oldSet));
             else
             {
-                EditorUtility.SetDirty(oldSet);
                 oldSet.RemoveScene(sceneGUID);
             }
-            EditorUtility.SetDirty(activeSet);
             if (index == -1)
                 activeSet.AddScene(sceneGUID);
             else
@@ -629,7 +627,6 @@ namespace UnityEngine.Rendering
             else
             {
                 Undo.RegisterCompleteObjectUndo(new Object[] { activeSet, sceneData.parentAsset }, "Updated scene in baking set");
-                EditorUtility.SetDirty(activeSet);
                 activeSet.SetScene(scene.guid, index);
             }
 
@@ -653,7 +650,6 @@ namespace UnityEngine.Rendering
             else
             {
                 Undo.RegisterCompleteObjectUndo(new Object[] { activeSet, sceneData.parentAsset }, "Added scene in baking set");
-                EditorUtility.SetDirty(activeSet);
                 activeSet.AddScene(sceneGUID);
             }
 
@@ -808,7 +804,7 @@ namespace UnityEngine.Rendering
             long scenarioCost = activeSet.GetDiskSizeOfScenarioData(ProbeReferenceVolume.instance.lightingScenario);
 
             long sharedCost = activeSet.GetDiskSizeOfSharedData();
-            foreach (var scenario in activeSet.lightingScenarios)
+            foreach (var scenario in activeSet.m_LightingScenarios)
                 sharedCost += activeSet.GetDiskSizeOfScenarioData(scenario);
 
             GUILayout.BeginHorizontal();
@@ -853,8 +849,8 @@ namespace UnityEngine.Rendering
                     activeSet = set;
 
                     // If we load a new scene that doesn't have the current scenario, change it
-                    if (!set.lightingScenarios.Contains(ProbeReferenceVolume.instance.lightingScenario))
-                        ProbeReferenceVolume.instance.SetActiveScenario(set.lightingScenarios[0], false);
+                    if (!set.m_LightingScenarios.Contains(ProbeReferenceVolume.instance.lightingScenario))
+                        ProbeReferenceVolume.instance.SetActiveScenario(set.m_LightingScenarios[0], false);
                 }
             }
 

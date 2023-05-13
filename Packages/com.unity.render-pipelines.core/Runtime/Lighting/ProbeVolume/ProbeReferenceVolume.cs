@@ -648,6 +648,9 @@ namespace UnityEngine.Rendering
 
         internal bool clearAssetsOnVolumeClear = false;
 
+        /// <summary>The active baking set.</summary>
+        public ProbeVolumeBakingSet currentBakingSet => m_CurrentBakingSet;
+
         /// <summary>The active lighting scenario.</summary>
         public string lightingScenario
         {
