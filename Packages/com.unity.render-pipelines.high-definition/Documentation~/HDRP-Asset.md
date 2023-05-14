@@ -112,7 +112,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **Screen Space Global Illumination** | Enable the checkbox to make HDRP support screen space global illumination (SSGI). SSGI is a technique for approximating global illumination efficiently in real time. |
 | **Volumetrics**                      | Enable the checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.md). |
 | **Light Layers**                     | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers or Terrain with a matching rendering Layer. <a name="lightlayers"></a>|
-| **Rendering Layer Mask Buffer**      | Enable the checkbox to make HDRP write the Rendering Layer Mask of GameObjects in a fullscreen buffer target. This comes with a performance and memory cost.<br/>The [HD Sample Buffer node](HD-Sample-Buffer-Node.md) in ShaderGraph can sample this target. |
+| **Rendering Layer Mask Buffer**      | Enable the checkbox to make HDRP write the Rendering Layer Mask of GameObjects in a fullscreen buffer target. This comes with a performance and memory cost.<br/>The [HD Sample Buffer node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Sample-Buffer-Node.html) in ShaderGraph can sample this target. |
 
 ### Light Probe Lighting
 Use these settings in the **Quality** > **HDRP** menu to configure [Probe Volumes](probevolumes.md).

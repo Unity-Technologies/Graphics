@@ -50,6 +50,7 @@
             * [Blend](Blend-Node)
         * Filter
             * [Dither](Dither-Node)
+            * [Fade Transition](Fade-Transition-Node)
         * Mask
             * [Channel Mask](Channel-Mask-Node)
             * [Color Mask](Color-Mask-Node)
