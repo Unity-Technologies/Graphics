@@ -1,16 +1,17 @@
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using System;
+using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
     /// Custom Pass that draws Object IDs
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class ObjectIDCustomPass : DrawRenderersCustomPass
     {
+        static readonly int k_ObjectColor = Shader.PropertyToID("ObjectColor");
+
         /// <summary>
         /// Called before the first execution of the pass occurs.
         /// Allow you to allocate custom buffers.
@@ -34,16 +35,28 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public virtual void AssignObjectIDs()
         {
-            var rendererList = Resources.FindObjectsOfTypeAll(typeof(Renderer));
-
-            int index = 0;
-            foreach (Renderer renderer in rendererList)
+            var sceneCount = SceneManager.sceneCount;
+            var rendererList = new List<Renderer>();
+            for (var i = 0; i < sceneCount; i++)
             {
-                MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
-                float hue = (float)index / rendererList.Length;
-                propertyBlock.SetColor("ObjectColor", Color.HSVToRGB(hue, 0.7f, 1.0f));
+                var scene = SceneManager.GetSceneAt(i);
+                if (!scene.IsValid() || !scene.isLoaded) continue;
+                var rootGameObjects = scene.GetRootGameObjects();
+                foreach (var rootGameObject in rootGameObjects)
+                {
+                    rendererList.AddRange(rootGameObject.GetComponentsInChildren<Renderer>());
+                }
+            }
+
+            var renderListCount = rendererList.Count;
+            for (var i = 0; i < renderListCount; i++)
+            {
+                var renderer = rendererList[i];
+                var propertyBlock = new MaterialPropertyBlock();
+                //it could be just i / renderListCount but I wanted to have more separation between colors
+                var hue = (float) ( i * 3 % renderListCount) / renderListCount;
+                propertyBlock.SetColor(k_ObjectColor, Color.HSVToRGB(hue, 0.7f, 1.0f));
                 renderer.SetPropertyBlock(propertyBlock);
-                index++;
             }
         }
     }
