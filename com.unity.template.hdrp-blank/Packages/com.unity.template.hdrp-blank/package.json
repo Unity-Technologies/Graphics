@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.hdrp-blank",
   "displayName":"3D HDRP",
-  "version": "14.0.1",
+  "version": "14.0.3",
   "type": "template",
   "host": "hub",
   "unity": "2022.2",
