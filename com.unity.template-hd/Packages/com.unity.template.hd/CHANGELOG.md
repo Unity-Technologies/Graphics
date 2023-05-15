@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Set D3D12 as a default for UWP platforms
 - Check incremental GC in player settings
+- Enable occlusion for all lens flares
 
 ### Fixed
 - Fixed vfx diffusion profile reference
