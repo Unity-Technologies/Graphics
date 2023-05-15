@@ -71,6 +71,11 @@ namespace UnityEngine.Rendering
                 && (chunkSizeInBricks == otherAsset.chunkSizeInBricks);
         }
 
+        internal bool IsInvalid()
+        {
+            return maxCellPosition.x < minCellPosition.x || maxCellPosition.y < minCellPosition.y || maxCellPosition.z < minCellPosition.z;
+        }
+
         public string GetSerializedFullPath()
         {
             return m_AssetFullPath;
