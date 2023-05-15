@@ -4,6 +4,11 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.0.1] - 2023-05-15
+
+### Changed
+- Enable occlusion for all lens flares
+
 ## [16.0.0] - 2023-05-10
 
 ### Changed
@@ -19,7 +24,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Set D3D12 as a default for UWP platforms
 - Check incremental GC in player settings
-- Enable occlusion for all lens flares
 
 ### Fixed
 - Fixed vfx diffusion profile reference
