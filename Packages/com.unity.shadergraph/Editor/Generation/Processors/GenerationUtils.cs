@@ -79,131 +79,321 @@ namespace UnityEditor.ShaderGraph
             structBuilder.AppendLine($"struct {shaderStruct.name}");
             using (structBuilder.BlockSemicolonScope())
             {
-                foreach (FieldDescriptor subscript in shaderStruct.fields)
+                foreach (var activeField in GetActiveFieldsAndKeyword(shaderStruct, activeFields))
+                {
+                    var subscript = activeField.field;
+                    var keywordIfDefs = activeField.keywordIfDefs;
+
+                    //if field is active:
+                    if (subscript.HasPreprocessor())
+                        structBuilder.AppendLine($"#if {subscript.preprocessor}");
+
+                    //if in permutation, add permutation ifdef
+                    if (!string.IsNullOrEmpty(keywordIfDefs))
+                        structBuilder.AppendLine(keywordIfDefs);
+
+                    //check for a semantic, build string if valid
+                    string semantic = subscript.HasSemantic() ? $" : {subscript.semantic}" : string.Empty;
+                    structBuilder.AppendLine($"{subscript.interpolation} {subscript.type} {subscript.name}{semantic};");
+
+                    //if in permutation, add permutation endif
+                    if (!string.IsNullOrEmpty(keywordIfDefs))
+                        structBuilder.AppendLine("#endif"); //TODO: add debug collector
+
+                    if (subscript.HasPreprocessor())
+                        structBuilder.AppendLine("#endif");
+                }
+            }
+        }
+
+        struct PackedEntry
+        {
+            public struct Input
+            {
+                public FieldDescriptor field;
+                public int startChannel;
+                public int channelCount;
+            }
+
+            public Input[] inputFields;
+            public FieldDescriptor packedField;
+        }
+
+        static IEnumerable<(FieldDescriptor field, string keywordIfDefs)> GetActiveFieldsAndKeyword(StructDescriptor shaderStruct, ActiveFields activeFields)
+        {
+            var activeFieldList = shaderStruct.fields
+                .Select(currentField =>
                 {
                     bool fieldIsActive;
-                    var keywordIfDefs = string.Empty;
+                    var currentKeywordIfDefs = string.Empty;
 
                     if (activeFields.permutationCount > 0)
                     {
                         //find all active fields per permutation
                         var instances = activeFields.allPermutations.instances
-                            .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
+                            .Where(i => IsFieldActive(currentField, i, currentField.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
                         fieldIsActive = instances.Count > 0;
                         if (fieldIsActive)
-                            keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
+                            currentKeywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
                     }
                     else
-                        fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional));
+                        fieldIsActive = IsFieldActive(currentField, activeFields.baseInstance, currentField.subscriptOptions.HasFlag(StructFieldOptions.Optional));
                     //else just find active fields
 
                     if (fieldIsActive)
                     {
-                        //if field is active:
-                        if (subscript.HasPreprocessor())
-                            structBuilder.AppendLine($"#if {subscript.preprocessor}");
+                        return
+                        (
+                            field: currentField,
+                            keywordIfDefs: currentKeywordIfDefs
+                        );
+                    }
 
-                        //if in permutation, add permutation ifdef
-                        if (!string.IsNullOrEmpty(keywordIfDefs))
-                            structBuilder.AppendLine(keywordIfDefs);
+                    return
+                    (
+                        field: null,
+                        keywordIfDefs: null
+                    );
+                }).Where(o => o.field != null);
+            return activeFieldList;
+        }
 
-                        //check for a semantic, build string if valid
-                        string semantic = subscript.HasSemantic() ? $" : {subscript.semantic}" : string.Empty;
-                        structBuilder.AppendLine($"{subscript.interpolation} {subscript.type} {subscript.name}{semantic};");
+        static IEnumerable<FieldDescriptor> GetActiveFields(StructDescriptor shaderStruct, ActiveFields activeFields)
+        {
+            return GetActiveFieldsAndKeyword(shaderStruct, activeFields).Select(o => o.field);
+        }
 
-                        //if in permutation, add permutation endif
-                        if (!string.IsNullOrEmpty(keywordIfDefs))
-                            structBuilder.AppendLine("#endif"); //TODO: add debug collector
+        static IEnumerable<FieldDescriptor> GetActiveFields(StructDescriptor shaderStruct, IActiveFields activeFields)
+        {
+            var activeFieldList = shaderStruct.fields
+                .Where(field => IsFieldActive(field, activeFields, field.subscriptOptions.HasFlag(StructFieldOptions.Optional)));
+            return activeFieldList;
+        }
 
-                        if (subscript.HasPreprocessor())
-                            structBuilder.AppendLine("#endif");
+        static PackedEntry[] GeneratePackingLayout(StructDescriptor shaderStruct, ActiveFields activeFields)
+        {
+            var activeFieldList = GetActiveFields(shaderStruct, activeFields);
+            return GeneratePackingLayout(shaderStruct.name, activeFieldList);
+        }
+
+        static PackedEntry[] GeneratePackingLayout(StructDescriptor shaderStruct, IActiveFields activeFields)
+        {
+            var activeFieldList = GetActiveFields(shaderStruct, activeFields);
+            return GeneratePackingLayout(shaderStruct.name, activeFieldList);
+        }
+
+        static PackedEntry[] GeneratePackingLayout(string baseStructName, IEnumerable<FieldDescriptor> activeFields)
+        {
+            const int kPreUnpackable = 0;
+            const int kPackable = 1;
+            const int kPostUnpackable = 2;
+
+            var fieldCategorized = activeFields
+                .GroupBy(subscript =>
+                {
+                    if (subscript.HasPreprocessor())
+                    {
+                        //special case, "UNITY_STEREO_INSTANCING_ENABLED" fields must be packed at the end of the struct because they are system generated semantics
+                        if (subscript.preprocessor.Contains("INSTANCING"))
+                            return kPostUnpackable;
+
+                        //special case, "SHADER_STAGE_FRAGMENT" fields must be packed at the end of the struct,
+                        //otherwise the vertex output struct will have different semantic ordering than the fragment input struct.
+                        if (subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT"))
+                            return kPostUnpackable;
+
+                        return kPreUnpackable;
+                    }
+
+                    if (subscript.HasSemantic() || subscript.vectorCount == 0)
+                        return kPreUnpackable;
+
+                    return kPackable;
+                }).OrderBy(o => o.Key);
+
+            var packStructName = "Packed" + baseStructName;
+            int currentInterpolatorIndex = 0;
+            var packedEntries = new List<PackedEntry>();
+            foreach (var collection in fieldCategorized)
+            {
+                var packingEnabled = collection.Key == kPackable;
+                if (packingEnabled)
+                {
+                    var groupByInterpolator = collection.GroupBy(field => string.IsNullOrEmpty(field.interpolation) ? string.Empty : field.interpolation);
+                    foreach (var collectionInterpolator in groupByInterpolator)
+                    {
+                        //OrderByDescending is stable sort
+                        var elementToPack = collectionInterpolator.OrderByDescending(o => o.vectorCount).ToList();
+                        var totalVectorCount = elementToPack.Sum(o => o.vectorCount);
+
+                        const bool allowSplitting = true;
+#pragma warning disable 162
+                        int maxInterpolatorCount;
+                        if (allowSplitting)
+                            maxInterpolatorCount = ((totalVectorCount + 3) & ~0x03) >> 2;
+                        else
+                            maxInterpolatorCount = elementToPack.Count;
+#pragma warning restore 162
+
+                        var intermediateInterpolator = Enumerable.Range(0, maxInterpolatorCount).Select(_ =>
+                            (
+                                fields : new List<PackedEntry.Input>(),
+                                vectorCount : 0
+                            )
+                        ).ToList();
+
+                        const int kMaxVectorCount = 4;
+                        //First Pass *without* channel splitting
+                        int itElement = 0;
+                        while (itElement < elementToPack.Count)
+                        {
+                            var currentElement = elementToPack[itElement];
+
+                            var availableSlotIndex = intermediateInterpolator.FindIndex(o =>
+                                o.vectorCount + currentElement.vectorCount <= kMaxVectorCount);
+
+                            if (availableSlotIndex != -1)
+                            {
+                                elementToPack.RemoveAt(itElement);
+                                var slot = intermediateInterpolator[availableSlotIndex];
+                                slot.vectorCount += currentElement.vectorCount;
+                                slot.fields.Add(new PackedEntry.Input()
+                                {
+                                    field = currentElement,
+                                    startChannel = 0,
+                                    channelCount = currentElement.vectorCount,
+                                });
+                                intermediateInterpolator[availableSlotIndex] = slot;
+                            }
+                            else
+                            {
+                                itElement++;
+                            }
+                        }
+
+                        if (!allowSplitting && elementToPack.Count > 0)
+                            throw new InvalidOperationException("Unexpected failure in interpolator packing algorithm.");
+
+                        //Second Pass *with* channel splitting
+                        foreach (var remainingElement in elementToPack)
+                        {
+                            int currentStartChannel = 0;
+                            while (currentStartChannel < remainingElement.vectorCount)
+                            {
+                                var availableSlotIndex = intermediateInterpolator.FindIndex(o => o.vectorCount < kMaxVectorCount);
+                                if (availableSlotIndex == -1)
+                                    throw new InvalidOperationException("Unexpected failure in interpolator packing algorithm.");
+
+                                var slot = intermediateInterpolator[availableSlotIndex];
+                                var currentChannelCount = Math.Min(kMaxVectorCount - slot.vectorCount, kMaxVectorCount - (remainingElement.vectorCount - currentStartChannel));
+                                slot.vectorCount += currentChannelCount;
+                                slot.fields.Add(new PackedEntry.Input()
+                                {
+                                    field = remainingElement,
+                                    startChannel = currentStartChannel,
+                                    channelCount = currentChannelCount,
+                                });
+                                intermediateInterpolator[availableSlotIndex] = slot;
+                                currentStartChannel += currentChannelCount;
+                            }
+                        }
+
+                        packedEntries.AddRange(intermediateInterpolator
+                            .Where(o => o.vectorCount > 0)
+                            .Select(o =>
+                            {
+                                var allName = o.fields.Select(f =>
+                                    f.channelCount == f.field.vectorCount
+                                    ? f.field.name
+                                    : f.field.name + ShaderSpliceUtil.GetChannelSwizzle(f.startChannel, f.channelCount));
+                                var name = o.fields.Count == 1
+                                    ? allName.First()
+                                    : "packed_" + allName.Aggregate((a, b) => $"{a}_{b}");
+                                return new PackedEntry()
+                                {
+                                    inputFields = o.fields.ToArray(),
+                                    packedField = new FieldDescriptor
+                                    (
+                                        tag: packStructName,
+                                        name: name,
+                                        define: string.Empty,
+                                        type: $"float{o.vectorCount}",
+                                        semantic: $"INTERP{currentInterpolatorIndex++}",
+                                        preprocessor: string.Empty,
+                                        subscriptOptions: StructFieldOptions.Static,
+                                        interpolation: collectionInterpolator.Key
+                                    )
+                                };
+                            }));
+                    }
+                }
+                else
+                {
+                    foreach (var field in collection)
+                    {
+                        var inputFields = new[]
+                        {
+                            new PackedEntry.Input()
+                            {
+                                field = field,
+                                channelCount = 0,
+                                startChannel = 0
+                            }
+                        };
+
+                        //Auto add semantic if needed
+                        if (!field.HasSemantic())
+                        {
+                            var newField = new FieldDescriptor
+                            (
+                                tag: packStructName,
+                                name: field.name,
+                                define: field.define,
+                                type: field.type,
+                                semantic: $"INTERP{currentInterpolatorIndex++}",
+                                preprocessor: field.preprocessor,
+                                subscriptOptions: StructFieldOptions.Static,
+                                interpolation: field.interpolation
+                            );
+                            packedEntries.Add(new()
+                            {
+                                inputFields = inputFields,
+                                packedField = newField
+                            });
+                        }
+                        else
+                        {
+                            packedEntries.Add(new PackedEntry()
+                            {
+                                inputFields = inputFields,
+                                packedField = field
+                            });
+                        }
                     }
                 }
             }
+
+            return packedEntries.ToArray();
         }
 
         internal static void GeneratePackedStruct(StructDescriptor shaderStruct, ActiveFields activeFields, out StructDescriptor packStruct)
         {
+            var packingLayout = GeneratePackingLayout(shaderStruct, activeFields);
+            var packStructName = "Packed" + shaderStruct.name;
             packStruct = new StructDescriptor()
             {
-                name = "Packed" + shaderStruct.name,
+                name = packStructName,
                 packFields = true,
-                fields = new FieldDescriptor[] { }
+                fields = packingLayout.Select(o => o.packedField).ToArray()
             };
-            List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
-            List<FieldDescriptor> postUnpackedSubscripts = new List<FieldDescriptor>();
-            List<int> packedCounts = new List<int>();
-            foreach (FieldDescriptor subscript in shaderStruct.fields)
-            {
-                var fieldIsActive = false;
-                var keywordIfDefs = string.Empty;
-
-                if (activeFields.permutationCount > 0)
-                {
-                    //find all active fields per permutation
-                    var instances = activeFields.allPermutations.instances
-                        .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
-                    fieldIsActive = instances.Count > 0;
-                    if (fieldIsActive)
-                        keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
-                }
-                else
-                    fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional));
-                //else just find active fields
-
-                if (fieldIsActive)
-                {
-                    // special case, "UNITY_STEREO_INSTANCING_ENABLED" fields must be packed at the end of the struct because they are system generated semantics
-                    //
-                    if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("INSTANCING")))
-                        postUnpackedSubscripts.Add(subscript);
-                    // special case, "SHADER_STAGE_FRAGMENT" fields must be packed at the end of the struct,
-                    // otherwise the vertex output struct will have different semantic ordering than the fragment input struct.
-                    //
-                    else if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT")))
-                        postUnpackedSubscripts.Add(subscript);
-                    else if (subscript.HasSemantic() || subscript.vectorCount == 0)
-                        packedSubscripts.Add(subscript);
-                    else
-                    {
-                        // pack float field
-                        int vectorCount = subscript.vectorCount;
-                        // super simple packing: use the first interpolator that has room for the whole value
-                        int interpIndex = packedCounts.FindIndex(x => (x + vectorCount <= 4));
-                        int firstChannel;
-                        if (interpIndex < 0 || subscript.HasPreprocessor())
-                        {
-                            // allocate a new interpolator
-                            interpIndex = packedCounts.Count;
-                            firstChannel = 0;
-                            packedCounts.Add(vectorCount);
-                        }
-                        else
-                        {
-                            // pack into existing interpolator
-                            firstChannel = packedCounts[interpIndex];
-                            packedCounts[interpIndex] += vectorCount;
-                        }
-                    }
-                }
-            }
-            for (int i = 0; i < packedCounts.Count(); ++i)
-            {
-                // todo: ensure this packing adjustment doesn't waste interpolators when many preprocessors are in use.
-                var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + i, "", "float" + packedCounts[i], "INTERP" + i, "", StructFieldOptions.Static);
-                packedSubscripts.Add(packedSubscript);
-            }
-            packStruct.fields = packedSubscripts.Concat(postUnpackedSubscripts).ToArray();
         }
 
         internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, bool humanReadable, out ShaderStringBuilder interpolatorBuilder)
         {
             //set up function string builders and struct builder
-            List<int> packedCounts = new List<int>();
             var packBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
             var unpackBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
-            interpolatorBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
-            string packedStruct = "Packed" + shaderStruct.name;
+            interpolatorBuilder = new ShaderStringBuilder(humanReadable: humanReadable);            string packedStruct = "Packed" + shaderStruct.name;
 
             //declare function headers
             packBuilder.AppendLine($"{packedStruct} Pack{shaderStruct.name} ({shaderStruct.name} input)");
@@ -217,58 +407,43 @@ namespace UnityEditor.ShaderGraph
             unpackBuilder.IncreaseIndent();
             unpackBuilder.AppendLine($"{shaderStruct.name} output;");
 
-            foreach (FieldDescriptor subscript in shaderStruct.fields)
+            var packingLayout = GeneratePackingLayout(shaderStruct, activeFields);
+            foreach (var packEntry in packingLayout)
             {
-                if (IsFieldActive(subscript, activeFields, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional)))
+                int firstPackedChannel = 0;
+                foreach (var input in packEntry.inputFields)
                 {
-                    int vectorCount = subscript.vectorCount;
-                    if (subscript.HasPreprocessor())
+                    if (input.field.HasPreprocessor())
                     {
-                        packBuilder.AppendLine($"#if {subscript.preprocessor}");
-                        unpackBuilder.AppendLine($"#if {subscript.preprocessor}");
-                    }
-                    if (subscript.HasSemantic() || vectorCount == 0)
-                    {
-                        packBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
-                        unpackBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
-                    }
-                    else
-                    {
-                        // pack float field
-                        // super simple packing: use the first interpolator that has room for the whole value
-                        int interpIndex = packedCounts.FindIndex(x => (x + vectorCount <= 4));
-                        int firstChannel;
-                        if (interpIndex < 0 || subscript.HasPreprocessor())
-                        {
-                            // allocate a new interpolator
-                            interpIndex = packedCounts.Count;
-                            firstChannel = 0;
-                            packedCounts.Add(vectorCount);
-                        }
-                        else
-                        {
-                            // pack into existing interpolator
-                            firstChannel = packedCounts[interpIndex];
-                            packedCounts[interpIndex] += vectorCount;
-                        }
-                        // add code to packer and unpacker -- add subscript to packedstruct
-                        string packedChannels = ShaderSpliceUtil.GetChannelSwizzle(firstChannel, vectorCount);
-                        string index = interpIndex.ToString();
-                        packBuilder.AppendLine($"output.interp{index}.{packedChannels} =  input.{subscript.name};");
-                        unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{index}.{packedChannels};");
+                        packBuilder.AppendLine($"#if {input.field.preprocessor}");
+                        unpackBuilder.AppendLine($"#if {input.field.preprocessor}");
                     }
 
-                    if (subscript.HasPreprocessor())
+                    var packedChannels = string.Empty;
+                    var unpackedChannel = string.Empty;
+                    if (input.channelCount != 0)
+                    {
+                        if (firstPackedChannel != 0 || input.channelCount != packEntry.packedField.vectorCount)
+                            packedChannels = $".{ShaderSpliceUtil.GetChannelSwizzle(firstPackedChannel, input.channelCount)}";
+                        if (input.startChannel != 0 || input.channelCount != input.field.vectorCount)
+                            unpackedChannel = $".{ShaderSpliceUtil.GetChannelSwizzle(input.startChannel, input.channelCount)}";
+                    }
+
+                    packBuilder.AppendLine($"output.{packEntry.packedField.name}{packedChannels} = input.{input.field.name}{unpackedChannel};");
+                    unpackBuilder.AppendLine($"output.{input.field.name}{unpackedChannel} = input.{packEntry.packedField.name}{packedChannels};");
+                    firstPackedChannel += input.field.vectorCount;
+
+                    if (input.field.HasPreprocessor())
                     {
                         packBuilder.AppendLine("#endif");
                         unpackBuilder.AppendLine("#endif");
                     }
                 }
             }
+
             //close function declarations
             packBuilder.AppendLine("return output;");
-            packBuilder.DecreaseIndent();
-            packBuilder.AppendLine("}");
+            packBuilder.DecreaseIndent();            packBuilder.AppendLine("}");
             packBuilder.AppendNewLine();
 
             unpackBuilder.AppendLine("return output;");

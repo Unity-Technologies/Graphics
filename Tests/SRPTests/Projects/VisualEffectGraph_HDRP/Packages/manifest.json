@@ -56,6 +56,7 @@
     "com.unity.testing.xr",
     "com.unity.render-pipelines.visualeffectgraph",
     "com.unity.testframework.graphics",
-    "com.unity.testing.graphics-performance"
+    "com.unity.testing.graphics-performance",
+    "com.unity.shadergraph"
   ]
 }

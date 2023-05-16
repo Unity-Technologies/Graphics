@@ -52,7 +52,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 receiveSSR = material.HasProperty(kReceivesSSRTransparent) ? material.GetFloat(kReceivesSSRTransparent) != 0 : false;
             else
                 receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetFloat(kReceivesSSR) != 0 : false;
-            bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0 : false;
+
+            bool useSplitLighting = false;
+            int index = material.shader.FindPropertyIndex(kUseSplitLighting);
+            if (index != -1)
+                useSplitLighting = material.shader.GetPropertyDefaultFloatValue(index) != 0;
+
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
         }
 

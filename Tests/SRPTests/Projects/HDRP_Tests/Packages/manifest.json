@@ -52,6 +52,7 @@
     "com.unity.render-pipelines.high-definition",
     "com.unity.testframework.graphics",
     "com.unity.testing.hdrp",
-    "com.unity.testing.xr"
+    "com.unity.testing.xr",
+	  "com.unity.shadergraph"
   ]
 }

@@ -568,6 +568,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected virtual void Dispose(bool disposing)
         {
+            DebugHandler?.Dispose();            
         }
 
         /// <summary>

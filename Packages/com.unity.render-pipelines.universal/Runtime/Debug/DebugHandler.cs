@@ -113,6 +113,11 @@ namespace UnityEngine.Rendering.Universal
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
 
+        public void Dispose()
+        {
+            CoreUtils.Destroy(m_ReplacementMaterial);
+        }
+
         internal bool IsActiveForCamera(ref CameraData cameraData)
         {
             return !cameraData.isPreviewCamera && AreAnySettingsActive;

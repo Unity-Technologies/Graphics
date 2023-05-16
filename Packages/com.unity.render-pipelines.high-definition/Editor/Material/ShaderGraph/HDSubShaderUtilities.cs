@@ -149,7 +149,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyCollector collector, SurfaceType surface, BlendMode blend, int sortingPriority,
             bool alphaToMask, bool transparentZWrite, TransparentCullMode transparentCullMode,
             OpaqueCullMode opaqueCullMode, CompareFunction zTest,
-            bool backThenFrontRendering, bool fogOnTransparent)
+            bool backThenFrontRendering, bool fogOnTransparent, HDRenderQueue.RenderQueueType renderQueueType)
         {
             collector.AddFloatProperty("_SurfaceType", (int)surface);
             collector.AddFloatProperty("_BlendMode", (int)blend, HLSLDeclaration.UnityPerMaterial);
@@ -190,8 +190,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             });
 
-            // Add ZTest properties:
-            collector.AddIntProperty("_ZTestDepthEqualForOpaque", (int)CompareFunction.LessEqual);
+            // Add ZTest properties (keep in sync with BaseUnlitAPI opaque ztest setup):
+            if (surface == SurfaceType.Opaque)
+            {
+                if (HDRenderQueue.GetOpaqueEquivalent(renderQueueType) == HDRenderQueue.RenderQueueType.AfterPostProcessOpaque)
+                    collector.AddIntProperty("_ZTestDepthEqualForOpaque", (int)CompareFunction.LessEqual);
+                else
+                    collector.AddIntProperty("_ZTestDepthEqualForOpaque", (int)CompareFunction.Equal);
+            }
+            else
+            {
+                collector.AddIntProperty("_ZTestDepthEqualForOpaque", (int)zTest);
+            }
+
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
                 overrideReferenceName = kZTestTransparent,

@@ -107,6 +107,7 @@
   * [Blit in XR](renderer-features/how-to-fullscreen-blit-in-xr-spi.md)
   * [Use Render Objects Renderer Feature](renderer-features/how-to-custom-effect-render-objects.md)
   * [Create custom Renderer Feature](containers/create-custom-renderer-feature-1.md)
+  * [Change Quality settings with code](quality/quality-settings-through-code.md)
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
   * [Create custom Renderer Feature](renderer-features/create-custom-renderer-feature.md)

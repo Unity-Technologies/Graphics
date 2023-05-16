@@ -139,9 +139,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
-            if (TargetsVFX())
-                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
-
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
 
@@ -204,6 +201,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             subShaderDescriptor.passes = finalPasses;
+
+            if (TargetsVFX())
+                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
 
             return subShaderDescriptor;
         }

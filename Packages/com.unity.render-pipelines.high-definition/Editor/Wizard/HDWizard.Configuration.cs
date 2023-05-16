@@ -148,7 +148,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [InitializeOnLoadMethod]
         static void InitializeEntryList()
         {
-            if (EditorWindow.HasOpenInstances<HDWizard>())
+            //Check for playmode has been added to ensure the editor window wont take focus when entering playmode
+            if (EditorWindow.HasOpenInstances<HDWizard>() && !EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 EditorApplication.update += DelayedRebuildEntryList;
 
