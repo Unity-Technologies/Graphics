@@ -600,7 +600,7 @@ namespace UnityEditor.VFX
                 }
                 if (!subOutput.supportsExcludeFromTAA)
                     yield return "excludeFromTAA";
-                if (sort == SortActivationMode.Off || HasStrips(true))
+                if (!HasSorting())
                 {
                     yield return "sortMode";
                     yield return "revertSorting";

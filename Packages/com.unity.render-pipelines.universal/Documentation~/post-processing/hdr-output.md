@@ -12,7 +12,7 @@ To activate HDR output, follow these steps.
 2. Navigate to **Quality** > **HDR** and enable the checkbox to enable **HDR**.
 3. Next, navigate to **Edit** > **Project Settings** > **Player** > **Other Settings** and enable **Allow HDR Display Output**.
 
-However, if you switch to a URP Asset that does not have HDR enabled, you have to re-enable HDR Output.
+However, if you switch to a URP Asset that does not have HDR enabled, URP disables HDR Output until you change to a URP Asset with HDR enabled.
 
 **Note**: If HDR Output is active, the grading mode falls back to HDR, even if there is a different Color Grading Mode active in the URP Asset.
 
@@ -109,9 +109,22 @@ This debug view uses a color coded gradient to indicate parts of the Scene that 
 
 ## Known Limitations
 
-HDR Output is only compatible with desktop and console devices. It does not work with mobile devices.
+HDR Output is not compatible with all platforms and features:
 
-HDR Output is not compatible with the following effects:
+- [Platform Compatibility](#platform-compatibility)
+- [Feature Compatibility](#feature-compatibility)
+
+### Platform Compatibility
+
+URP supports HDR Output on the following platforms:
+
+- Windows with DirectX 12 or Vulkan
+- MacOS with Metal
+- Consoles
+
+### Feature Compatibility
+
+HDR Output in URP is not compatible with the following effects:
 
 - [Fast Approximate Anti-aliasing](./../camera-component-reference.md#rendering)
 - [FidelityFX Super Resolution 1.0 Upscaling](./../universalrp-asset.md#quality)

@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System;
 using System.Linq;
+
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-CameraFade")]
     [VFXInfo(category = "Output")]
     class CameraFade : VFXBlock
     {

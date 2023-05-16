@@ -3,11 +3,14 @@
     "rootNamespace": "CrossPipeline",
     "references": [
         "UnityEditor.TestTools.Graphics",
+        "UnityEngine.TestTools.Graphics",
         "UnityEngine.TestTools.Graphics.Tests",
         "UnityEditor.TestRunner",
         "UnityEngine.TestRunner",
         "Common.Editor",
-        "Common.Runtime"
+        "Common.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
     ],
     "includePlatforms": [
         "Editor"

@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-ScreenSpaceSize")]
     [VFXInfo(category = "Size")]
     class ScreenSpaceSize : VFXBlock
     {

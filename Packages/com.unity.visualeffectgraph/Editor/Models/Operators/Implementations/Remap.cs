@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Remap")]
     [VFXInfo(category = "Math/Remap")]
     class Remap : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {

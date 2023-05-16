@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-BitwiseComplement")]
     [VFXInfo(category = "Bitwise")]
     class BitwiseComplement : VFXOperator
     {

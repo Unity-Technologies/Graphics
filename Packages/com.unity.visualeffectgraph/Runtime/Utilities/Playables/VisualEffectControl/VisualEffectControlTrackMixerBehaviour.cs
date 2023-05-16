@@ -684,7 +684,11 @@ namespace UnityEngine.VFX
                 m_ScrubbingCacheHelper.Init(playable, m_Target, parentTrack);
             }
 
-            var globalTime = playable.GetGraph().GetRootPlayable(0).GetTime();
+            var duration = playable.GetOutput(0).GetDuration();
+            var globalTime = playable.GetTime();
+            var numberOfFullLoops = (int)(globalTime / duration);
+            globalTime -= numberOfFullLoops * duration;
+
             var deltaTime = data.deltaTime;
             m_ScrubbingCacheHelper.Update(globalTime, deltaTime);
         }

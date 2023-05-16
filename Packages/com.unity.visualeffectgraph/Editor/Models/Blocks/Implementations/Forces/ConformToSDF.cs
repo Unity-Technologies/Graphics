@@ -1,10 +1,9 @@
-using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-ConformToSignedDistanceField")]
     [VFXInfo(category = "Force")]
     class ConformToSDF : VFXBlock
     {

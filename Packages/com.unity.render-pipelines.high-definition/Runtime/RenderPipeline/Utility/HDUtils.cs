@@ -15,15 +15,29 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public class HDUtils
     {
-        internal const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
-        internal const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
-
         /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>
         /// <returns></returns>
-        public static PerObjectData GetBakedLightingRenderConfig() => k_RendererConfigurationBakedLighting;
+        [Obsolete("Use GetRendererConfiguration() instead. #from(23.2).")]
+        public static PerObjectData GetBakedLightingRenderConfig() => PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
         /// <summary>Returns the render configuration for baked static lighting with shadow masks, this value can be used in a RendererListDesc call to render Lit objects when shadow masks are enabled.</summary>
         /// <returns></returns>
-        public static PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => k_RendererConfigurationBakedLightingWithShadowMask;
+        [Obsolete("Use GetRendererConfiguration() instead. #from(23.2).")]
+        public static PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => GetBakedLightingRenderConfig() | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
+
+        /// <summary>
+        /// Returns the render configuration that should be used in a RendererListDesc call to render Lit objects.
+        /// </summary>
+        /// <param name="apv">True if APV is enabled</param>
+        /// <param name="shadowMask">True if shadow mask is enabled</param>
+        /// <returns>Returns the render configuration that should be used in a RendererListDesc call to render Lit objects.</returns>
+        public static PerObjectData GetRendererConfiguration(bool apv, bool shadowMask)
+        {
+            PerObjectData   configuration = PerObjectData.Lightmaps;
+            if (!apv)       configuration |= PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume;
+            if (shadowMask) configuration |= PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
+
+            return configuration;
+        }
 
         /// <summary>Default HDAdditionalReflectionData</summary>
         static internal HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }

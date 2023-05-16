@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Transform(Vector4)")]
     [VFXInfo(category = "Math/Geometry")]
     class TransformVector4 : VFXOperator
     {

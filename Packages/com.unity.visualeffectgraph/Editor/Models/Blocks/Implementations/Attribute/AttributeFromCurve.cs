@@ -45,6 +45,7 @@ namespace UnityEditor.VFX.Block
         }
     }
 
+    [VFXHelpURL("Block-SetAttributeFromCurve")]
     [VFXInfo(category = "Attribute/{0}/Curve/{1}", variantProvider = typeof(AttributeFromCurveProvider))]
     class AttributeFromCurve : VFXBlock
     {

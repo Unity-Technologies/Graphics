@@ -28,8 +28,7 @@ Specular light can now completely be faded when using a specular color workflow 
 ### Screen Space Lens Flare
 ![](Images/ScreenSpaceLensFlare-header.png)
 
-To complete [Lens Flare Data Driven](shared/lens-flare/lens-flare-component.md), HDRP 15 introduces a new Screen Space Lens Flare post-process override.
-This effect allows you to use what is on screen to create multiple types of flares based on the [Bloom](Post-Processing-Bloom.md) texture. This is especially useful for view-dependent bright spots (specular reflection, overexposed areas) which doesn't have a defined position in world space.
+HDRP 15 includes a new [Screen Space Lens Flare](shared/lens-flare/Override-Screen-Space-Lens-Flare.md) post-processing override, in addition to the existing [Lens Flare (SRP)](shared/lens-flare/lens-flare-component.md) component. The override uses what's on the screen to create multiple types of lens flare, based on the texture from the [Bloom](Post-Processing-Bloom.md) override. Screen space lens flares are useful for bright spots in your scene that appear depending on the camera view, for example a bright specular reflection on a shiny metal object, or a bright outside area viewed from a dark indoor area.
 
 ### Material Type in ShaderGraph
 

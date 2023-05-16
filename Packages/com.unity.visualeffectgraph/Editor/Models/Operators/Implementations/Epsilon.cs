@@ -1,10 +1,11 @@
 using System.Collections.Generic;
-using UnityEngine;
+
 using UnityEngine.VFX;
 
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Epsilon")]
     [VFXInfo(category = "Math/Constants")]
     class Epsilon : VFXOperator
     {

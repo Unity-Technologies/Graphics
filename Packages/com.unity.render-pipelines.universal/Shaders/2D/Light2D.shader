@@ -169,7 +169,9 @@ Shader "Hidden/Light2D"
 #endif
                 }
 
+#if !USE_VOLUMETRIC
                 APPLY_NORMALS_LIGHTING(i, lightColor, light.Position.xyz, light.Position.w);
+#endif
                 APPLY_SHADOWS(i, lightColor, light.ShadowIntensity);
                 return ToFragmentOutput(lightColor);
             }
@@ -203,7 +205,9 @@ Shader "Hidden/Light2D"
                 lightColor.a = attenuation;
 #endif
 
+#if !USE_VOLUMETRIC
                 APPLY_NORMALS_LIGHTING(i, lightColor, light.Position.xyz, light.Position.w);
+#endif
                 APPLY_SHADOWS(i, lightColor, light.ShadowIntensity);
 
 #if USE_VOLUMETRIC

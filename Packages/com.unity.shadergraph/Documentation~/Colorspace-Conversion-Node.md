@@ -34,7 +34,7 @@ void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
 **RGB > Linear**
 
 ```
-void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_RGB_Linear_float(float3 In, out float3 Out)
 {
     float3 linearRGBLo = In / 12.92;;
     float3 linearRGBHi = pow(max(abs((In + 0.055) / 1.055), 1.192092896e-07), float3(2.4, 2.4, 2.4));
@@ -45,7 +45,7 @@ void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
 **RGB > HSV**
 
 ```
-void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_RGB_HSV_float(float3 In, out float3 Out)
 {
     float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
     float4 P = lerp(float4(In.bg, K.wz), float4(In.gb, K.xy), step(In.b, In.g));
@@ -59,7 +59,7 @@ void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
 **Linear > RGB**
 
 ```
-void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_Linear_RGB_float(float3 In, out float3 Out)
 {
     float3 sRGBLo = In * 12.92;
     float3 sRGBHi = (pow(max(abs(In), 1.192092896e-07), float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
@@ -70,7 +70,7 @@ void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
 **Linear > Linear**
 
 ```
-void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_Linear_Linear_float(float3 In, out float3 Out)
 {
     Out = In;
 }
@@ -79,7 +79,7 @@ void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
 **Linear > HSV**
 
 ```
-void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_Linear_HSV_float(float3 In, out float3 Out)
 {
     float3 sRGBLo = In * 12.92;
     float3 sRGBHi = (pow(max(abs(In), 1.192092896e-07), float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
@@ -96,7 +96,7 @@ void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
 **HSV > RGB**
 
 ```
-void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_HSV_RGB_float(float3 In, out float3 Out)
 {
     float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     float3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
@@ -107,7 +107,7 @@ void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
 **HSV > Linear**
 
 ```
-void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_HSV_Linear_float(float3 In, out float3 Out)
 {
     float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     float3 P = abs(frac(In.xxx + K.xyz) * 6.0 - K.www);
@@ -121,7 +121,7 @@ void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
 **HSV > HSV**
 
 ```
-void Unity_ColorspaceConversion_RGB_RGB_float(float3 In, out float3 Out)
+void Unity_ColorspaceConversion_HSV_HSV_float(float3 In, out float3 Out)
 {
     Out = In;
 }

@@ -1,7 +1,6 @@
-using System;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Ceiling")]
     [VFXInfo(category = "Math/Clamp")]
     class Ceiling : VFXOperatorNumericUniform
     {

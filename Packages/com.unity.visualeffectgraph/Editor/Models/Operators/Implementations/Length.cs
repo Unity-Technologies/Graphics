@@ -1,9 +1,8 @@
-using System;
-using UnityEditor.VFX;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Length")]
     [VFXInfo(category = "Math/Vector")]
     class Length : VFXOperatorNumericUniform
     {

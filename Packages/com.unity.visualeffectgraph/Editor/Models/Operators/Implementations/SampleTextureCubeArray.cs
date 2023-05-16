@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-SampleTextureCubeArray")]
     [VFXInfo(category = "Sampling")]
     class SampleTextureCubeArray : VFXOperator
     {

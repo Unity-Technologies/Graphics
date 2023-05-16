@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-TriangleWave")]
     [VFXInfo(category = "Math/Wave")]
     class TriangleWave : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
