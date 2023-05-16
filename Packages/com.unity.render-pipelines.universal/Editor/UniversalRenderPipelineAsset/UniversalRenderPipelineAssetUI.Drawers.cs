@@ -171,9 +171,6 @@ namespace UnityEditor.Rendering.Universal
                     serialized.fsrSharpness.floatValue = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
                 }
 
-                if (PlayerSettings.useHDRDisplay && serialized.hdr.boolValue)
-                    EditorGUILayout.HelpBox(Styles.unsupportedFsrWithHDROutputWarning, MessageType.Warning);
-
                 --EditorGUI.indentLevel;
             }
             EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);

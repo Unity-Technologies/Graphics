@@ -1324,7 +1324,7 @@ namespace UnityEngine.Rendering.Universal
         void SetupGrain(ref CameraData cameraData, Material material)
         {
             // TODO: Investigate how to make grain work with HDR output.
-            if (!m_HasFinalPass && m_FilmGrain.IsActive() && !cameraData.isHDROutputActive)
+            if (!m_HasFinalPass && m_FilmGrain.IsActive())
             {
                 material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
                 PostProcessUtils.ConfigureFilmGrain(
@@ -1343,7 +1343,7 @@ namespace UnityEngine.Rendering.Universal
         void SetupDithering(ref CameraData cameraData, Material material)
         {
             // TODO: Investigate how to make dithering work with HDR output.
-            if (!m_HasFinalPass && cameraData.isDitheringEnabled && !cameraData.isHDROutputActive)
+            if (!m_HasFinalPass && cameraData.isDitheringEnabled)
             {
                 material.EnableKeyword(ShaderKeywordStrings.Dithering);
                 m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
@@ -1383,12 +1383,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
-            
+
+            HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
             bool requireHDROutput = RequireHDROutput(ref cameraData);
             if (requireHDROutput)
             {
                 // If there is a final post process pass, it's always the final pass so do color encoding
-                HDROutputUtils.Operation hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
                 // If the color space conversion wasn't applied by the uber pass, do it here
                 if (!cameraData.postProcessEnabled)
                     hdrOperations |= HDROutputUtils.Operation.ColorConversion;
@@ -1406,9 +1407,8 @@ namespace UnityEngine.Rendering.Universal
             RTHandle sourceTex = m_Source;
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
-            
-            // TODO: Investigate how to make FXAA work with HDR output.
-            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) && !cameraData.isHDROutputActive;
+
+            bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
 
             // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
             bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
@@ -1435,12 +1435,18 @@ namespace UnityEngine.Rendering.Universal
 
                 // Select a UNORM format since we've already performed tonemapping. (Values are in 0-1 range)
                 // This improves precision and is required if we want to avoid excessive banding when FSR is in use.
-                tempRtDesc.graphicsFormat = UniversalRenderPipeline.MakeUnormRenderTextureGraphicsFormat();
+                if (!requireHDROutput)
+                    tempRtDesc.graphicsFormat = UniversalRenderPipeline.MakeUnormRenderTextureGraphicsFormat();
 
                 m_Materials.scalingSetup.shaderKeywords = null;
 
                 if (isSetupRequired)
                 {
+                    if (requireHDROutput)
+                    {
+                        SetupHDROutput(m_Materials.scalingSetup, hdrOperations);
+                    }
+
                     if (isFxaaEnabled)
                     {
                         m_Materials.scalingSetup.EnableKeyword(ShaderKeywordStrings.Fxaa);
@@ -1448,7 +1454,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if (isFsrEnabled)
                     {
-                        m_Materials.scalingSetup.EnableKeyword(ShaderKeywordStrings.Gamma20);
+                        m_Materials.scalingSetup.EnableKeyword(hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding) ? ShaderKeywordStrings.Gamma20AndHDRInput : ShaderKeywordStrings.Gamma20);
                     }
 
                     RenderingUtils.ReAllocateIfNeeded(ref m_ScalingSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScalingSetupTexture");
@@ -1505,7 +1511,7 @@ namespace UnityEngine.Rendering.Universal
                                 if (cameraData.fsrSharpness > 0.0f)
                                 {
                                     // RCAS is performed during the final post blit, but we set up the parameters here for better logical grouping.
-                                    material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                                    material.EnableKeyword(requireHDROutput ? ShaderKeywordStrings.EasuRcasAndHDRInput : ShaderKeywordStrings.Rcas);
                                     FSRUtils.SetRcasConstantsLinear(cmd, sharpness);
                                 }
 
@@ -1551,6 +1557,7 @@ namespace UnityEngine.Rendering.Universal
             if (resolveToDebugScreen)
             {
                 debugHandler.BlitTextureToDebugScreenTexture(cmd, sourceTex, material, 0);
+                cameraData.renderer.ConfigureCameraColorTarget(debugHandler.DebugScreenTextureHandle);
             }
             else
             {

@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Universal
 
         // HDR Output
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: new [] {
-            HDRKeywords.HDR_COLORSPACE_CONVERSION, HDRKeywords.HDR_ENCODING, HDRKeywords.HDR_COLORSPACE_CONVERSION_AND_ENCODING
+            HDRKeywords.HDR_INPUT, HDRKeywords.HDR_COLORSPACE_CONVERSION, HDRKeywords.HDR_ENCODING, HDRKeywords.HDR_COLORSPACE_CONVERSION_AND_ENCODING
         })]
         [SerializeField] private bool m_PrefilterHDROutput = false;
 

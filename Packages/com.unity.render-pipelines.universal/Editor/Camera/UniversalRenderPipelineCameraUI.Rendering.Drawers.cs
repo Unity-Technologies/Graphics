@@ -215,9 +215,6 @@ namespace UnityEditor.Rendering.Universal
                         p.antialiasing.intValue = selectedValue;
                 }
                 EditorGUI.EndProperty();
-
-                if (PlayerSettings.useHDRDisplay && (AntialiasingMode)p.antialiasing.intValue == AntialiasingMode.FastApproximateAntialiasing)
-                    EditorGUILayout.HelpBox(Styles.unsupportedFXAAWithHDROutputWarning, MessageType.Warning);
             }
 
             static void DrawerRenderingClearDepth(UniversalRenderPipelineSerializedCamera p, Editor owner)
