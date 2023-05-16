@@ -494,7 +494,7 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "813e11cf97064f93b08593da5534025d",
-    "m_Title": "IS Front Face Node",
+    "m_Title": "Is Front Face Node",
     "m_Content": "Returns true if the current rederring face is a front face, false if it's a back face.",
     "m_TextSize": 0,
     "m_Theme": 0,

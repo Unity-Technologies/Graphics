@@ -458,7 +458,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "7d5227a5477d4c8d9b4b98e1a01ba798",
     "m_Title": "Eye Index Node",
-    "m_Content": "Eye Indes node exposes unity_StereoEyeIndex.  \nThe value of unity_StereoEyeIndex is 0 for left-eye rendering, and 1 for right-eye rendering.\nThis node could be very useful for AR/VR development.",
+    "m_Content": "The Eye Index node exposes unity_StereoEyeIndex.  \nThe value of unity_StereoEyeIndex is 0 for left-eye rendering, and 1 for right-eye rendering.\nThis node could be very useful for AR/VR development.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

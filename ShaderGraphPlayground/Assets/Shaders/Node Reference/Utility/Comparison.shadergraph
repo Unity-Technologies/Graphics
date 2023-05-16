@@ -417,7 +417,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "e446921d3be246088accc9388cad953d",
     "m_Title": "Comparison",
-    "m_Content": "This node compares the inputs and returns true or flase bases on the selected condition.",
+    "m_Content": "This node compares the inputs and returns true or flase based on the selected condition.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

@@ -444,10 +444,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -814.0,
-            "y": 521.3333129882813,
-            "width": 209.3333740234375,
-            "height": 128.0
+            "x": -814.0000610351563,
+            "y": 506.00006103515627,
+            "width": 208.0,
+            "height": 125.0
         }
     },
     "m_Slots": [
@@ -870,15 +870,15 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "eaf10b588af74584971a91e776805cd5",
     "m_Title": "Branch node",
-    "m_Content": "If the Preficate input is true, output Out returns the value of the True input. If it's false, return the value of the input False.\n",
+    "m_Content": "If the Predicate input is true, output Out returns the value of the True input. If it's false, return the value of the input False.\n",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
         "serializedVersion": "2",
-        "x": -450.66668701171877,
-        "y": 75.33332824707031,
+        "x": -450.5000305175781,
+        "y": 75.0,
         "width": 200.00001525878907,
-        "height": 160.0
+        "height": 160.00003051757813
     },
     "m_Group": {
         "m_Id": ""
