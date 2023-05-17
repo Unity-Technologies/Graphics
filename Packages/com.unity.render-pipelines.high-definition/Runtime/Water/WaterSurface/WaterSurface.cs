@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Water surface component.
     /// </summary>
+    [HDRPHelpURL("WaterSystem")]
     [DisallowMultipleComponent]
     [ExecuteInEditMode]
     public partial class WaterSurface : MonoBehaviour
@@ -617,8 +618,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal float3 UpVector()
         {
-            float3 upDir = transform.up;
-            return IsInstancedQuads() ? float3(0, 1, 0) : upDir;
+            return IsInstancedQuads() ? float3(0, 1, 0) : transform.up;
         }
 
         internal void ReleaseResources()

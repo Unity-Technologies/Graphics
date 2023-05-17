@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A marker to adjust probes in an area of the scene.
     /// </summary>
+    [CoreRPHelpURL("probevolumes-settings#probe-adjustment-volume", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Probe Adjustment Volume")]
     public class ProbeTouchupVolume : MonoBehaviour, ISerializationCallbackReceiver

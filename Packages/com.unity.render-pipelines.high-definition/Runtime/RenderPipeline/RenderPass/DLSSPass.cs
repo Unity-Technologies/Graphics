@@ -276,8 +276,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static bool IsOptimalSettingsValid(in NVIDIA.OptimalDLSSSettingsData optimalSettings)
         {
-            return optimalSettings.maxHeight > optimalSettings.minHeight
-                && optimalSettings.maxWidth  > optimalSettings.minWidth
+            return optimalSettings.maxHeight >= optimalSettings.minHeight
+                && optimalSettings.maxWidth  >= optimalSettings.minWidth
                 && optimalSettings.maxWidth  != 0
                 && optimalSettings.maxHeight != 0
                 && optimalSettings.minWidth  != 0

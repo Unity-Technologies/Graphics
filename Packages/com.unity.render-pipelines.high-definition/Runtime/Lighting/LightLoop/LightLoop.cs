@@ -1130,13 +1130,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData,
-            out int fetchIndex, out Vector4 scaleOffset, out Matrix4x4 vp, out Vector3 capturedForwardWS)
+            out int fetchIndex, out Vector4 scaleOffset, out Matrix4x4 vp)
         {
             // Initialize the fetch index
             fetchIndex = -1;
             scaleOffset = Vector4.zero;
             vp = Matrix4x4.identity;
-            capturedForwardWS = Vector3.zero;
 
             // By default, rough reflections are enabled for both types of probes.
             envLightData.roughReflections = 1.0f;
@@ -1212,9 +1211,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Propagate the smoothness information to the env light data
                     envLightData.roughReflections = probe.settings.roughReflections ? 1.0f : 0.0f;
-
-                    capturedForwardWS = renderData.captureRotation * Vector3.forward;
-                    //capturedForwardWS.z *= -1; // Transform to RHS standard
 
                     //We must use the setting resolved from the probe, not from the frameSettings.
                     //Using the frmaeSettings from the probe is wrong because it can be disabled (not ticking on using custom frame settings in the probe reflection component)
@@ -1850,15 +1846,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     int fetchIndex;
                     Vector4 scaleOffset;
                     Matrix4x4 vp;
-                    Vector3 capturedForwardWS;
                     EnvLightData envLightData = new EnvLightData();
 
-                    if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, out fetchIndex, out scaleOffset, out vp, out capturedForwardWS))
+                    if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, out fetchIndex, out scaleOffset, out vp))
                     {
                         switch (processedProbe.hdProbe)
                         {
                             case PlanarReflectionProbe planarProbe:
-                                SetPlanarReflectionData(fetchIndex, ref vp, ref scaleOffset, ref capturedForwardWS);
+                                SetPlanarReflectionData(fetchIndex, ref vp, ref scaleOffset);
                             break;
                             case HDAdditionalReflectionData reflectionData:
                                 SetCubeReflectionData(fetchIndex, ref scaleOffset);
@@ -2232,7 +2227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 rayTracingShadowFlag = 1.0f;
         }
 
-        unsafe void SetPlanarReflectionData(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset, ref Vector3 capturedForwardWS)
+        unsafe void SetPlanarReflectionData(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset)
         {
             Debug.Assert(index < k_MaxPlanarReflectionsOnScreen);
 
@@ -2241,9 +2236,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int j = 0; j < 4; ++j)
                 m_EnvLightReflectionData._PlanarScaleOffset[index * 4 + j] = scaleOffset[j];
-
-            for (int j = 0; j < 3; ++j)
-                m_EnvLightReflectionData._PlanarCaptureForward[index * 4 + j] = capturedForwardWS[j];
         }
 
         unsafe void SetCubeReflectionData(int index, ref Vector4 scaleOffset)

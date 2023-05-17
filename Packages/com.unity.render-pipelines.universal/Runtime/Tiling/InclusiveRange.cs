@@ -41,5 +41,10 @@ namespace UnityEngine.Rendering.Universal
         public static InclusiveRange Merge(InclusiveRange a, InclusiveRange b) => new(Math.Min(a.start, b.start), Math.Max(a.end, b.end));
 
         public static InclusiveRange empty => new InclusiveRange(short.MaxValue, short.MinValue);
+
+        public override string ToString()
+        {
+            return $"[{start}, {end}]";
+        }
     }
 }

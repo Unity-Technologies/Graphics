@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-CollideWithAABox")]
     [VFXInfo(category = "Collision")]
     class CollisionAABox : CollisionBase
     {

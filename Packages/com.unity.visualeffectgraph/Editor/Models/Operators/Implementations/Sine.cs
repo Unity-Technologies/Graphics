@@ -1,7 +1,6 @@
-using System;
-
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Sine")]
     [VFXInfo(category = "Math/Trigonometry")]
     class Sine : VFXOperatorNumericUniform
     {

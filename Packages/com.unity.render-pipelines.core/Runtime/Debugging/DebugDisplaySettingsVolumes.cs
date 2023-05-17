@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering
                         row = new DebugUI.Table.Row()
                         {
                             displayName = fieldName,
-                            children = { CreateVolumeParameterWidget(Strings.interpolatedValue, stackComponent.parameters[currentParam]) },
+                            children = { CreateVolumeParameterWidget(Strings.interpolatedValue, stackComponent.parameterList[currentParam]) },
                         };
 
                         foreach (var volume in volumes)
@@ -272,11 +272,11 @@ namespace UnityEngine.Rendering
                             VolumeParameter param = null;
                             var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
                             if (profile.TryGet(selectedType, out VolumeComponent component))
-                                param = component.parameters[currentParam];
-                            row.children.Add(CreateVolumeParameterWidget(volume.name + " (" + profile.name + ")", param, () => !component.parameters[currentParam].overrideState));
+                                param = component.parameterList[currentParam];
+                            row.children.Add(CreateVolumeParameterWidget(volume.name + " (" + profile.name + ")", param, () => !component.parameterList[currentParam].overrideState));
                         }
 
-                        row.children.Add(CreateVolumeParameterWidget(Strings.defaultValue, inst.parameters[currentParam]));
+                        row.children.Add(CreateVolumeParameterWidget(Strings.defaultValue, inst.parameterList[currentParam]));
                         rows.Add(row);
                     }
 

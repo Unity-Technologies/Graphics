@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Smoothstep")]
     [VFXInfo(category = "Math/Arithmetic")]
     class Smoothstep : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {

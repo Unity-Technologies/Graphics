@@ -331,6 +331,7 @@ namespace UnityEditor.VFX.UI
                     + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
                 titleContent.image = icon;
             }
+            graphView?.OnFocus();
         }
 
         protected void OnDestroy()

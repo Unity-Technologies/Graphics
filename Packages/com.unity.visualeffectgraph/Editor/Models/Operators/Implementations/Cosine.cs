@@ -1,5 +1,6 @@
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Cosine")]
     [VFXInfo(category = "Math/Trigonometry")]
     class Cosine : VFXOperatorNumericUniform
     {

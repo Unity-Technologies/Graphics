@@ -13,7 +13,9 @@ Shader "Hidden/Universal/CoreBlit"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
         // Color.hlsl for color space conversion
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
         // Specialized blit with URP debug draw support and color space conversion support
+        // Keep in sync with BlitHDROverlay.shader
         half4 FragmentURPBlit(Varyings input, SamplerState blitsampler)
         {
             half4 color = FragBlit(input, blitsampler);
@@ -282,6 +284,7 @@ Shader "Hidden/Universal/CoreBlit"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
+                #pragma multi_compile_local _ BLIT_DECODE_HDR
                 #pragma vertex VertQuadPadding
                 #pragma fragment FragOctahedralProjectNearestRepeat
             ENDHLSL
@@ -293,6 +296,7 @@ Shader "Hidden/Universal/CoreBlit"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
+                #pragma multi_compile_local _ BLIT_DECODE_HDR
                 #pragma vertex VertQuadPadding
                 #pragma fragment FragOctahedralProjectBilinearRepeat
             ENDHLSL
@@ -301,6 +305,7 @@ Shader "Hidden/Universal/CoreBlit"
         // 23: Bilinear blit with debug draw and color space conversion support
         Pass
         {
+            Name "BilinearDebugDraw"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
@@ -319,6 +324,7 @@ Shader "Hidden/Universal/CoreBlit"
         // 24: Nearest blit with debug draw and color space conversion support
         Pass
         {
+            Name "NearestDebugDraw"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM

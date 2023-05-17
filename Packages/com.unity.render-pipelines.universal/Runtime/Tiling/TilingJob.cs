@@ -18,32 +18,45 @@ namespace UnityEngine.Rendering.Universal
         [NativeDisableParallelForRestriction]
         public NativeArray<InclusiveRange> tileRanges;
 
-        public int itemsPerLight;
+        public int itemsPerTile;
+        public int rangesPerItem;
 
-        public float4x4 worldToViewMatrix;
+        public Fixed2<float4x4> worldToViews;
+        public float4 centerOffset;
 
         public float2 tileScale;
         public float2 tileScaleInv;
-        public float2 viewPlaneHalfSize;
-        public float2 viewPlaneHalfSizeInv;
+        public Fixed2<float2> viewPlaneHalfSizes;
+        public Fixed2<float2> viewPlaneHalfSizeInvs;
         public int2 tileCount;
         public float near;
+        public bool isOrthographic;
 
         InclusiveRange m_TileYRange;
         int m_Offset;
+        int m_ViewIndex;
+        float2 m_CenterOffset;
 
-        public void Execute(int index)
+        public void Execute(int jobIndex)
         {
-            m_Offset = index * itemsPerLight;
+            var index = jobIndex % itemsPerTile;
+            m_ViewIndex = jobIndex / itemsPerTile;
+            m_CenterOffset = m_ViewIndex == 0 ? centerOffset.xy : centerOffset.zw;
+            m_Offset = jobIndex * rangesPerItem;
 
             m_TileYRange = new InclusiveRange(short.MaxValue, short.MinValue);
 
-            for (var i = 0; i < itemsPerLight; i++)
+            for (var i = 0; i < rangesPerItem; i++)
             {
                 tileRanges[m_Offset + i] = new InclusiveRange(short.MaxValue, short.MinValue);
             }
 
-            if (index < lights.Length) { TileLight(index); }
+
+            if (index < lights.Length)
+            {
+                if (isOrthographic) { TileLightOrthographic(index); }
+                else { TileLight(index); }
+            }
             else { TileReflectionProbe(index); }
         }
 
@@ -51,10 +64,10 @@ namespace UnityEngine.Rendering.Universal
         {
             var light = lights[lightIndex];
             var lightToWorld = (float4x4)light.localToWorldMatrix;
-            var lightPositionVS = math.mul(worldToViewMatrix, math.float4(lightToWorld.c3.xyz, 1)).xyz;
+            var lightPositionVS = math.mul(worldToViews[m_ViewIndex], math.float4(lightToWorld.c3.xyz, 1)).xyz;
             lightPositionVS.z *= -1;
             if (lightPositionVS.z >= near) ExpandY(lightPositionVS);
-            var lightDirectionVS = math.normalize(math.mul(worldToViewMatrix, math.float4(lightToWorld.c2.xyz, 0)).xyz);
+            var lightDirectionVS = math.normalize(math.mul(worldToViews[m_ViewIndex], math.float4(lightToWorld.c2.xyz, 0)).xyz);
             lightDirectionVS.z *= -1;
 
             var halfAngle = math.radians(light.spotAngle * 0.5f);
@@ -72,8 +85,8 @@ namespace UnityEngine.Rendering.Universal
             // Thus the hypotenuse is formed by (a) and (c) with length `range`, and the known side is formed
             // by (a) and (b) with length equal to the distance between the near plane and the light position.
             // The remaining unknown side is formed by (b) and (c) with length equal to the radius of the circle.
-            // m_ClipCircleRadius = sqrt(pow2(light.range) - pow2(abs(m_Near - m_LightPosition.z)));
-            var sphereClipRadius = math.sqrt(rangesq - square(math.abs(near - lightPositionVS.z)));
+            // m_ClipCircleRadius = sqrt(sq(light.range) - sq(m_Near - m_LightPosition.z));
+            var sphereClipRadius = math.sqrt(rangesq - square(near - lightPositionVS.z));
 
             // Assumes a point on the sphere, i.e. at distance `range` from the light position.
             // If spot light, we check the angle between the direction vector from the light position and the light direction vector.
@@ -174,13 +187,13 @@ namespace UnityEngine.Rendering.Universal
                 GetConeSideTangentPoints(lightPositionVS, lightDirectionVS, cosHalfAngle, baseRadius, coneHeight, range, coneU, coneV, out var l1, out var l2);
 
                 {
-                    var planeNormal = math.float3(0, 1, -viewPlaneHalfSize.y);
+                    var planeNormal = math.float3(0, 1, -viewPlaneHalfSizes[m_ViewIndex].y);
                     var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
                     var l1x = lightPositionVS + l1 * l1t;
                     if (l1t >= 0 && l1t <= 1 && l1x.z >= near) ExpandY(l1x);
                 }
                 {
-                    var planeNormal = math.float3(0, 1, viewPlaneHalfSize.y);
+                    var planeNormal = math.float3(0, 1, viewPlaneHalfSizes[m_ViewIndex].y);
                     var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
                     var l1x = lightPositionVS + l1 * l1t;
                     if (l1t >= 0 && l1t <= 1 && l1x.z >= near) ExpandY(l1x);
@@ -194,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
                     var planeRange = InclusiveRange.empty;
 
                     // Y-position on the view plane (Z=1)
-                    var planeY = math.lerp(-viewPlaneHalfSize.y, viewPlaneHalfSize.y, planeIndex * tileScaleInv.y);
+                    var planeY = math.lerp(-viewPlaneHalfSizes[m_ViewIndex].y, viewPlaneHalfSizes[m_ViewIndex].y, planeIndex * tileScaleInv.y);
 
                     var planeNormal = math.float3(0, 1, -planeY);
 
@@ -238,10 +251,127 @@ namespace UnityEngine.Rendering.Universal
             {
                 var planeRange = InclusiveRange.empty;
 
-                var planeY = math.lerp(-viewPlaneHalfSize.y, viewPlaneHalfSize.y, planeIndex * tileScaleInv.y);
+                var planeY = math.lerp(-viewPlaneHalfSizes[m_ViewIndex].y, viewPlaneHalfSizes[m_ViewIndex].y, planeIndex * tileScaleInv.y);
                 GetSphereYPlaneHorizon(lightPositionVS, range, near, sphereClipRadius, planeY, out var sphereTile0, out var sphereTile1);
                 if (SpherePointIsValid(sphereTile0)) planeRange.Expand((short)math.clamp(ViewToTileSpace(sphereTile0).x, 0, tileCount.x - 1));
                 if (SpherePointIsValid(sphereTile1)) planeRange.Expand((short)math.clamp(ViewToTileSpace(sphereTile1).x, 0, tileCount.x - 1));
+
+                var tileIndex = m_Offset + 1 + planeIndex;
+                tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
+                tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
+            }
+
+            tileRanges[m_Offset] = m_TileYRange;
+        }
+
+        void TileLightOrthographic(int lightIndex)
+        {
+            var light = lights[lightIndex];
+            var lightToWorld = (float4x4)light.localToWorldMatrix;
+            var lightPosVS = math.mul(worldToViews[m_ViewIndex], math.float4(lightToWorld.c3.xyz, 1)).xyz;
+            lightPosVS.z *= -1;
+            ExpandOrthographic(lightPosVS);
+            var lightDirVS = math.mul(worldToViews[m_ViewIndex], math.float4(lightToWorld.c2.xyz, 0)).xyz;
+            lightDirVS.z *= -1;
+            lightDirVS = math.normalize(lightDirVS);
+
+            var halfAngle = math.radians(light.spotAngle * 0.5f);
+            var range = light.range;
+            var rangeSq = square(range);
+            var cosHalfAngle = math.cos(halfAngle);
+            var coneHeight = cosHalfAngle * range;
+            var coneHeightSq = square(coneHeight);
+            var coneHeightInv = 1f / coneHeight;
+            var coneHeightInvSq = square(coneHeightInv);
+
+            bool SpherePointIsValid(float3 p) => light.lightType == LightType.Point ||
+                math.dot(math.normalize(p - lightPosVS), lightDirVS) >= cosHalfAngle;
+
+            var sphereBoundY0 = lightPosVS - math.float3(0, range, 0);
+            var sphereBoundY1 = lightPosVS + math.float3(0, range, 0);
+            var sphereBoundX0 = lightPosVS - math.float3(range, 0, 0);
+            var sphereBoundX1 = lightPosVS + math.float3(range, 0, 0);
+
+            if (SpherePointIsValid(sphereBoundY0)) ExpandOrthographic(sphereBoundY0);
+            if (SpherePointIsValid(sphereBoundY1)) ExpandOrthographic(sphereBoundY1);
+            if (SpherePointIsValid(sphereBoundX0)) ExpandOrthographic(sphereBoundX0);
+            if (SpherePointIsValid(sphereBoundX1)) ExpandOrthographic(sphereBoundX1);
+
+            var circleCenter = lightPosVS + lightDirVS * coneHeight;
+            var circleRadius = math.sqrt(rangeSq - coneHeightSq);
+            var circleRadiusSq = square(circleRadius);
+            var circleUp = math.normalize(math.float3(0, 1, 0) - lightDirVS * lightDirVS.y);
+            var circleRight = math.normalize(math.float3(1, 0, 0) - lightDirVS * lightDirVS.x);
+            var circleBoundY0 = circleCenter - circleUp * circleRadius;
+            var circleBoundY1 = circleCenter + circleUp * circleRadius;
+
+            if (light.lightType == LightType.Spot)
+            {
+                var circleBoundX0 = circleCenter - circleRight * circleRadius;
+                var circleBoundX1 = circleCenter + circleRight * circleRadius;
+                ExpandOrthographic(circleBoundY0);
+                ExpandOrthographic(circleBoundY1);
+                ExpandOrthographic(circleBoundX0);
+                ExpandOrthographic(circleBoundX1);
+            }
+
+            m_TileYRange.Clamp(0, (short)(tileCount.y - 1));
+
+            // Find two lines in screen-space for the cone if the light is a spot.
+            float coneDir0X = 0, coneDir0YInv = 0, coneDir1X = 0, coneDir1YInv = 0;
+            if (light.lightType == LightType.Spot)
+            {
+                // Distance from light position to and radius of sphere fitted to the end of the cone.
+                var sphereDistance = coneHeight + circleRadiusSq * coneHeightInv;
+                var sphereRadius = math.sqrt(square(circleRadiusSq) * coneHeightInvSq + circleRadiusSq);
+                var directionXYSqInv = math.rcp(math.lengthsq(lightDirVS.xy));
+                var polarIntersection = -circleRadiusSq * coneHeightInv * directionXYSqInv * lightDirVS.xy;
+                var polarDir = math.sqrt((square(sphereRadius) - math.lengthsq(polarIntersection)) * directionXYSqInv) * math.float2(lightDirVS.y, -lightDirVS.x);
+                var conePBase = lightPosVS.xy + sphereDistance * lightDirVS.xy + polarIntersection;
+                var coneP0 = conePBase - polarDir;
+                var coneP1 = conePBase + polarDir;
+
+                coneDir0X = coneP0.x - lightPosVS.x;
+                coneDir0YInv = math.rcp(coneP0.y - lightPosVS.y);
+                coneDir1X = coneP1.x - lightPosVS.x;
+                coneDir1YInv = math.rcp(coneP1.y - lightPosVS.y);
+            }
+
+            // Tile plane ranges
+            for (var planeIndex = m_TileYRange.start + 1; planeIndex <= m_TileYRange.end; planeIndex++)
+            {
+                var planeRange = InclusiveRange.empty;
+
+                // Sphere
+                var planeY = math.lerp(-viewPlaneHalfSizes[m_ViewIndex].y, viewPlaneHalfSizes[m_ViewIndex].y, planeIndex * tileScaleInv.y);
+                var sphereX = math.sqrt(rangeSq - square(planeY - lightPosVS.y));
+                var sphereX0 = math.float3(lightPosVS.x - sphereX, planeY, lightPosVS.z);
+                var sphereX1 = math.float3(lightPosVS.x + sphereX, planeY, lightPosVS.z);
+                if (SpherePointIsValid(sphereX0)) { ExpandRangeOrthographic(ref planeRange, sphereX0.x); }
+                if (SpherePointIsValid(sphereX1)) { ExpandRangeOrthographic(ref planeRange, sphereX1.x); }
+
+                if (light.lightType == LightType.Spot)
+                {
+                    // Circle
+                    if (planeY >= circleBoundY0.y && planeY <= circleBoundY1.y)
+                    {
+                        var intersectionDistance = (planeY - circleCenter.y) / circleUp.y;
+                        var closestPointX = circleCenter.x + intersectionDistance * circleUp.x;
+                        var intersectionDirX = -lightDirVS.z / math.length(math.float3(-lightDirVS.z, 0, lightDirVS.x));
+                        var sideDistance = math.sqrt(square(circleRadius) - square(intersectionDistance));
+                        var circleX0 = closestPointX - sideDistance * intersectionDirX;
+                        var circleX1 = closestPointX + sideDistance * intersectionDirX;
+                        ExpandRangeOrthographic(ref planeRange, circleX0);
+                        ExpandRangeOrthographic(ref planeRange, circleX1);
+                    }
+
+                    // Cone
+                    var deltaY = planeY - lightPosVS.y;
+                    var coneT0 = deltaY * coneDir0YInv;
+                    var coneT1 = deltaY * coneDir1YInv;
+                    if (coneT0 >= 0 && coneT0 <= 1) { ExpandRangeOrthographic(ref planeRange, lightPosVS.x + coneT0 * coneDir0X); }
+                    if (coneT1 >= 0 && coneT1 <= 1) { ExpandRangeOrthographic(ref planeRange, lightPosVS.x + coneT1 * coneDir1X); }
+                }
 
                 var tileIndex = m_Offset + 1 + planeIndex;
                 tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
@@ -286,7 +416,6 @@ namespace UnityEngine.Rendering.Universal
             // hull, which we can iterate linearly to get the lines on screen making up the cube.
 
             var reflectionProbe = reflectionProbes[index - lights.Length];
-            var localToWorld = (float4x4)reflectionProbe.localToWorldMatrix;
             var centerWS = (float3)reflectionProbe.bounds.center;
             var extentsWS = (float3)reflectionProbe.bounds.extents;
 
@@ -298,12 +427,12 @@ namespace UnityEngine.Rendering.Universal
             var leftmostIndex = 0;
             for (var i = 0; i < k_CubePoints.Length; i++)
             {
-                var point = math.mul(worldToViewMatrix, math.float4(centerWS + extentsWS * k_CubePoints[i], 1)).xyz;
+                var point = math.mul(worldToViews[m_ViewIndex], math.float4(centerWS + extentsWS * k_CubePoints[i], 1)).xyz;
                 point.z *= -1;
                 points[i] = point;
                 if (point.z >= near)
                 {
-                    var clippedPoint = point.xy/point.z;
+                    var clippedPoint = isOrthographic ? point.xy : point.xy/point.z;
                     var clippedIndex = clippedPointsCount++;
                     clippedPoints[clippedIndex] = clippedPoint;
                     if (clippedPoint.x < clippedPoints[leftmostIndex].x) leftmostIndex = clippedIndex;
@@ -326,7 +455,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         var d = (near - p0.z) / (p1.z - p0.z);
                         var p = math.lerp(p0, p1, d);
-                        var clippedPoint = p.xy/p.z;
+                        var clippedPoint = isOrthographic ? p.xy : p.xy/p.z;
                         var clippedIndex = clippedPointsCount++;
                         clippedPoints[clippedIndex] = clippedPoint;
                         if (clippedPoint.x < clippedPoints[leftmostIndex].x) leftmostIndex = clippedIndex;
@@ -375,7 +504,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var planeRange = InclusiveRange.empty;
 
-                    var planeY = math.lerp(-viewPlaneHalfSize.y, viewPlaneHalfSize.y, planeIndex * tileScaleInv.y);
+                    var planeY = math.lerp(-viewPlaneHalfSizes[m_ViewIndex].y, viewPlaneHalfSizes[m_ViewIndex].y, planeIndex * tileScaleInv.y);
 
                     for (var i = 0; i < hullPointsCount; i++)
                     {
@@ -387,7 +516,9 @@ namespace UnityEngine.Rendering.Universal
                         if (t < 0 || t > 1) continue;
                         var x = math.lerp(hp0.x, hp1.x, t);
 
-                        planeRange.Expand((short)math.clamp(ViewToTileSpace(math.float3(x, planeY, 1)).x, 0, tileCount.x - 1));
+                        var p = math.float3(x, planeY, 1);
+                        var pTS = isOrthographic ? ViewToTileSpaceOrthographic(p) : ViewToTileSpace(p);
+                        planeRange.Expand((short)math.clamp(pTS.x, 0, tileCount.x - 1));
                     }
 
                     var tileIndex = m_Offset + 1 + planeIndex;
@@ -408,7 +539,17 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         float2 ViewToTileSpace(float3 positionVS)
         {
-            return (positionVS.xy / positionVS.z * viewPlaneHalfSizeInv * 0.5f + 0.5f) * tileScale;
+            var positionCS = m_CenterOffset + positionVS.xy / positionVS.z * viewPlaneHalfSizeInvs[m_ViewIndex];
+            return (positionCS * 0.5f + 0.5f) * tileScale;
+        }
+
+        /// <summary>
+        /// Project onto Z=1, scale and offset into [0, tileCount]
+        /// </summary>
+        float2 ViewToTileSpaceOrthographic(float3 positionVS)
+        {
+            var positionCS = m_CenterOffset + positionVS.xy * viewPlaneHalfSizeInvs[m_ViewIndex];
+            return (positionCS * 0.5f + 0.5f) * tileScale;
         }
 
         /// <summary>
@@ -430,19 +571,26 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Expands the X range in the row containing the position.
+        /// Expands the tile Y range and the X range in the row containing the position.
         /// </summary>
-        void ExpandX(float3 positionVS)
+        void ExpandOrthographic(float3 positionVS)
         {
-            var positionTS = math.clamp(ViewToTileSpace(positionVS), 0, tileCount - 1);
-            var tileY = (short)positionTS.y;
-            if (tileY >= 0 && tileY < tileCount.y)
+            // var positionTS = math.clamp(ViewToTileSpace(positionVS), 0, tileCount - 1);
+            var positionTS = ViewToTileSpaceOrthographic(positionVS);
+            var tileY = (int)positionTS.y;
+            var tileX = (int)positionTS.x;
+            m_TileYRange.Expand((short)math.clamp(tileY, 0, tileCount.y - 1));
+            if (tileY >= 0 && tileY < tileCount.y && tileX >= 0 && tileX < tileCount.x)
             {
-                var rangeIndex = m_Offset + 1 + tileY;
-                var rowXRange = tileRanges[rangeIndex];
-                rowXRange.Expand((short)positionTS.x);
-                tileRanges[rangeIndex] = rowXRange;
+                var rowXRange = tileRanges[m_Offset + 1 + tileY];
+                rowXRange.Expand((short)tileX);
+                tileRanges[m_Offset + 1 + tileY] = rowXRange;
             }
+        }
+
+        void ExpandRangeOrthographic(ref InclusiveRange range, float xVS)
+        {
+            range.Expand((short)math.clamp(ViewToTileSpaceOrthographic(xVS).x, 0, tileCount.x - 1));
         }
 
         static float square(float x) => x * x;
@@ -466,13 +614,30 @@ namespace UnityEngine.Rendering.Universal
             // Center of circle horizon
             var c = direction * (l * h / radius);
 
-            // Circle horizon points
-            p0 = c + math.float2(-direction.y, direction.x) * h;
-            p1 = c + math.float2(direction.y, -direction.x) * h;
+            p0 = math.float2(float.MinValue, 1f);
+            p1 = math.float2(float.MaxValue, 1f);
 
             // Handle clipping
-            if (square(d) < square(radius) || p0.y < near) p0 = math.float2(center.x + clipRadius, near);
-            if (square(d) < square(radius) || p1.y < near) p1 = math.float2(center.x - clipRadius, near);
+            if (center.y - radius < near)
+            {
+                p0 = math.float2(center.x + clipRadius, near);
+                p1 = math.float2(center.x - clipRadius, near);
+            }
+
+            // Circle horizon points
+            var c0 = c + math.float2(-direction.y, direction.x) * h;
+            if (square(d) >= square(radius) && c0.y >= near)
+            {
+                if (c0.x > p0.x) { p0 = c0; }
+                if (c0.x < p1.x) { p1 = c0; }
+            }
+
+            var c1 = c + math.float2(direction.y, -direction.x) * h;
+            if (square(d) >= square(radius) && c1.y >= near)
+            {
+                if (c1.x > p0.x) { p0 = c1; }
+                if (c1.x < p1.x) { p1 = c1; }
+            }
         }
 
         static void GetSphereYPlaneHorizon(float3 center, float sphereRadius, float near, float clipRadius, float y, out float3 left, out float3 right)

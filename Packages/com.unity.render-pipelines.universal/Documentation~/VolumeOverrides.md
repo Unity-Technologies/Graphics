@@ -1,6 +1,6 @@
 # Volume Overrides
 
-__Volume Overrides__ let you change or extend the default properties in a [Volume Profile](VolumeProfile.md).
+__Volume Overrides__ let you change or extend the default properties in a [Volume Profile](Volume-Profile.md).
 
 URP implements post-processing effects as Volume Overrides. For example, the following image shows the Vignette post-processing effect in the URP Template SampleScene.
 

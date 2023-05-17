@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-VectorForceField")]
     [VFXInfo(category = "Force")]
     class VectorFieldForce : VFXBlock
     {

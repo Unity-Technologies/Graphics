@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-BitwiseLeftShift")]
     [VFXInfo(category = "Bitwise")]
     class BitwiseLeftShift : VFXOperator
     {

@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-SetPosition(Cone)")]
     [VFXInfo(category = "Attribute/position/Composition/Set", variantProvider = typeof(PositionBaseProvider))]
     class PositionCone : PositionBase
     {

@@ -1,11 +1,10 @@
-using System;
-using System.Linq;
 using System.Collections.Generic;
+
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
+    [VFXHelpURL("Block-CollideWithSignedDistanceField")]
     [VFXInfo(category = "Collision")]
     class CollisionSDF : CollisionBase
     {

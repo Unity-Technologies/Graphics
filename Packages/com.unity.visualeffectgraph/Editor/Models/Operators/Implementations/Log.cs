@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Log")]
     [VFXInfo(category = "Math/Log", variantProvider = typeof(MathBaseVariantProvider))]
     class Log : VFXOperatorNumericUniform
     {

@@ -1,8 +1,8 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-Distance")]
     [VFXInfo(category = "Math/Vector")]
     class Distance : VFXOperatorNumericUniform
     {

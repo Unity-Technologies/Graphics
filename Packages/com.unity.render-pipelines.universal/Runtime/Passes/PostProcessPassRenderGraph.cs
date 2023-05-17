@@ -1398,6 +1398,7 @@ namespace UnityEngine.Rendering.Universal
         {
             var stack = VolumeManager.instance.stack;
             m_FilmGrain = stack.GetComponent<FilmGrain>();
+            m_Tonemapping = stack.GetComponent<Tonemapping>();
 
             ref var cameraData = ref renderingData.cameraData;
             var material = m_Materials.finalPass;

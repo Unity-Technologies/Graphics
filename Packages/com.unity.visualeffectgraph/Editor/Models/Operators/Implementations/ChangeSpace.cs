@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
+
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXHelpURL("Operator-ChangeSpace")]
     [VFXInfo(category = "Math/Geometry")]
     class ChangeSpace : VFXOperatorNumericUniform
     {

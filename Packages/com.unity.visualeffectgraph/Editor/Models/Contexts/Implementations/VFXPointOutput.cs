@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXHelpURL("Context-OutputPoint")]
     [VFXInfo]
     class VFXPointOutput : VFXAbstractParticleOutput
     {
