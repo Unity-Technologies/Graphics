@@ -339,6 +339,11 @@ namespace UnityEditor.VFX
             (new KeywordDescriptor() {referenceName = Rendering.BuiltIn.ShaderGraph.BuiltInFields.VelocityPrecomputed.define}, VFXSRPBinder.ShaderGraphBinder.kKeywordDescriptorNone)
         };
 
+        static readonly (KeywordDescriptor oldDesc, KeywordDescriptor newDesc)[] k_CommonDefineReplacement =
+        {
+            (new KeywordDescriptor() {referenceName = Rendering.BuiltIn.ShaderGraph.BuiltInFields.VelocityPrecomputed.define}, VFXSRPBinder.ShaderGraphBinder.kKeywordDescriptorNone)
+        };
+
         static KeywordCollection ApplyKeywordModifier(KeywordCollection keywords, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo)
         {
             if (keywords != null)
@@ -364,6 +369,32 @@ namespace UnityEditor.VFX
                 return overridenKeywords;
             }
             return keywords;
+        }
+
+        static DefineCollection ApplyDefineModifier(DefineCollection defines, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo)
+        {
+            if (defines != null)
+            {
+                var defineReplacement = k_CommonDefineReplacement;
+                //So far, no SRP custom define replacement
+
+                var overridenDefines = new DefineCollection();
+                foreach (var define in defines)
+                {
+                    var currentDefine = define;
+
+                    var replacement = defineReplacement.FirstOrDefault(o => o.oldDesc.referenceName == define.descriptor.referenceName);
+                    if (replacement.newDesc.referenceName == VFXSRPBinder.ShaderGraphBinder.kPragmaDescriptorNone.value)
+                        continue; //Skip this irrelevant pragmas, kPragmaDescriptorNone shouldn't be null/empty
+
+                    if (!string.IsNullOrEmpty(replacement.newDesc.referenceName))
+                        currentDefine = new DefineCollection.Item(replacement.newDesc, currentDefine.index, currentDefine.fieldConditions);
+
+                    overridenDefines.Add(currentDefine.descriptor, currentDefine.index, currentDefine.fieldConditions);
+                }
+                return overridenDefines;
+            }
+            return defines;
         }
 
         internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXTaskCompiledData data)
@@ -426,6 +457,7 @@ namespace UnityEditor.VFX
 
                 passDescriptor.pragmas = ApplyPragmaModifier(passDescriptor.pragmas, shaderGraphSRPInfo, addPragmaRequireCubeArray);
                 passDescriptor.keywords = ApplyKeywordModifier(passDescriptor.keywords, shaderGraphSRPInfo);
+                passDescriptor.defines = ApplyDefineModifier(passDescriptor.defines, shaderGraphSRPInfo);
 
                 // Warning: We are replacing the struct provided in the regular pass. It is ok as for now the VFX editor don't support
                 // tessellation or raytracing

@@ -12,9 +12,8 @@
 
 #if defined(FEATURES_GRAPH_VERTEX)
 #if defined(HAVE_VFX_MODIFICATION)
-VertexDescription BuildVertexDescription(Attributes input, AttributesElement element)
+VertexDescription BuildVertexDescription(Attributes input, AttributesElement element, out GraphProperties properties)
 {
-    GraphProperties properties;
     ZERO_INITIALIZE(GraphProperties, properties);
     // Fetch the vertex graph properties for the particle instance.
     GetElementVertexProperties(element, properties);
@@ -45,6 +44,12 @@ struct MotionVectorPassOutput
 #if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT)
     float3 motionVector;
 #endif
+#if defined(HAVE_VFX_MODIFICATION)
+    float3 vfxParticlePositionOS;
+    AttributesElement vfxElementAttributes;
+    GraphProperties vfxGraphProperties;
+#endif
+
 };
 #endif
 
@@ -69,6 +74,11 @@ Varyings BuildVaryings(Attributes input
         return output; // Dead particle.
 
     SetupVFXMatrices(element, output);
+
+    #if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
+        motionVectorOutput.vfxParticlePositionOS = input.positionOS;
+    #endif
+
 #endif
 
     UNITY_TRANSFER_INSTANCE_ID(input, output);
@@ -76,7 +86,8 @@ Varyings BuildVaryings(Attributes input
 
 #if defined(FEATURES_GRAPH_VERTEX)
     #if defined(HAVE_VFX_MODIFICATION)
-        VertexDescription vertexDescription = BuildVertexDescription(input, element);
+        GraphProperties properties;
+        VertexDescription vertexDescription = BuildVertexDescription(input, element, properties);
     #else
         VertexDescription vertexDescription = BuildVertexDescription(input);
     #endif
@@ -106,6 +117,10 @@ Varyings BuildVaryings(Attributes input
     motionVectorOutput.positionWS = positionWS;
     #if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT)
         motionVectorOutput.motionVector = vertexDescription.MotionVector;
+    #endif
+    #if defined(HAVE_VFX_MODIFICATION)
+        motionVectorOutput.vfxElementAttributes = element;
+        motionVectorOutput.vfxGraphProperties = properties;
     #endif
 #endif
 

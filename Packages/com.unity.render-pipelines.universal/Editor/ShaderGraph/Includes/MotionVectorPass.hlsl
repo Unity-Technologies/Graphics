@@ -40,6 +40,32 @@ MotionVectorPassVaryings UnpackMotionVectorVaryings(PackedMotionVectorPassVaryin
     return regularVaryings;
 }
 
+float3 GetLastFrameDeformedPosition(Attributes input, MotionVectorPassOutput currentFrameMvData, float3 previousPositionOS)
+{
+    Attributes lastFrameInputAttributes = input;
+    lastFrameInputAttributes.positionOS = previousPositionOS;
+
+    VertexDescriptionInputs lastFrameVertexDescriptionInputs = BuildVertexDescriptionInputs(lastFrameInputAttributes);
+#if defined(AUTOMATIC_TIME_BASED_MOTION_VECTORS) && defined(GRAPH_VERTEX_USES_TIME_PARAMETERS_INPUT)
+    lastFrameVertexDescriptionInputs.TimeParameters = _LastTimeParameters.xyz;
+#endif
+
+    VertexDescription lastFrameVertexDescription = VertexDescriptionFunction(lastFrameVertexDescriptionInputs
+#if defined(HAVE_VFX_MODIFICATION)
+        , currentFrameMvData.vfxGraphProperties
+#endif
+    );
+
+#if defined(HAVE_VFX_MODIFICATION)
+    lastFrameInputAttributes.positionOS = lastFrameVertexDescription.Position.xyz;
+    lastFrameInputAttributes = VFXTransformMeshToPreviousElement(lastFrameInputAttributes, currentFrameMvData.vfxElementAttributes);
+    previousPositionOS = lastFrameInputAttributes.positionOS;
+#else
+    previousPositionOS = lastFrameVertexDescription.Position.xyz;
+#endif
+    return previousPositionOS;
+}
+
 // -------------------------------------
 // Vertex
 void vert(
@@ -55,34 +81,38 @@ void vert(
     ApplyMotionVectorZBias(output.positionCS);
     packedOutput = PackVaryings(output);
 
+#if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS
+    //Motion vector is enabled in SG but not active in VFX
+    const bool forceNoMotion = true;
+#else
     const bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
-    if(!forceNoMotion)
+#endif
+
+    if (!forceNoMotion)
     {
-        const bool hasDeformation = unity_MotionVectorsParams.x == 1; // Mesh has skinned deformation
-        float3 previousPositionOS = hasDeformation ? passInput.previousPositionOS : input.positionOS;
+#if defined(HAVE_VFX_MODIFICATION)
+    float3 previousPositionOS = currentFrameMvData.vfxParticlePositionOS;
+    #if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+        const bool applyDeformation = false;
+    #else
+        const bool applyDeformation = true;
+    #endif
+#else
+    const bool hasDeformation = unity_MotionVectorsParams.x == 1; // Mesh has skinned deformation
+    float3 previousPositionOS = hasDeformation ? passInput.previousPositionOS : input.positionOS;
+
+    #if defined(AUTOMATIC_TIME_BASED_MOTION_VECTORS) && defined(GRAPH_VERTEX_USES_TIME_PARAMETERS_INPUT)
+        const bool applyDeformation = true;
+    #else
+        const bool applyDeformation = hasDeformation;
+    #endif
+#endif
 
 #if defined(FEATURES_GRAPH_VERTEX)
-    #if defined(AUTOMATIC_TIME_BASED_MOTION_VECTORS) && defined(GRAPH_VERTEX_USES_TIME_PARAMETERS_INPUT)
-        if(true)
-    #else
-        if(hasDeformation)
-    #endif
-        {
-            Attributes lastFrameInputAttributes = input;
-            lastFrameInputAttributes.positionOS = previousPositionOS;
-
-            VertexDescriptionInputs lastFrameVertexDescriptionInputs = BuildVertexDescriptionInputs(lastFrameInputAttributes);
-    #if defined(AUTOMATIC_TIME_BASED_MOTION_VECTORS) && defined(GRAPH_VERTEX_USES_TIME_PARAMETERS_INPUT)
-            lastFrameVertexDescriptionInputs.TimeParameters = _LastTimeParameters.xyz;
-    #endif
-
-            VertexDescription lastFrameVertexDescription = VertexDescriptionFunction(lastFrameVertexDescriptionInputs);
-            previousPositionOS = lastFrameVertexDescription.Position.xyz;
-        }
-        else
-        {
-            previousPositionOS = currentFrameMvData.positionOS;
-        }
+    if (applyDeformation)
+        previousPositionOS = GetLastFrameDeformedPosition(input, currentFrameMvData, previousPositionOS);
+    else
+        previousPositionOS = currentFrameMvData.positionOS;
 
     #if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT)
         previousPositionOS -= currentFrameMvData.motionVector;
@@ -94,7 +124,25 @@ void vert(
 #endif
 
         mvOutput.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, float4(currentFrameMvData.positionWS, 1.0f));
+
+#if defined(HAVE_VFX_MODIFICATION)
+    #if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+        #if defined(FEATURES_GRAPH_VERTEX_MOTION_VECTOR_OUTPUT) || defined(_ADD_PRECOMPUTED_VELOCITY)
+            #error Unexpected fast path rendering VFX motion vector while there are vertex modification afterwards.
+        #endif
+        mvOutput.previousPositionCSNoJitter = VFXGetPreviousClipPosition(input, currentFrameMvData.vfxElementAttributes, mvOutput.positionCSNoJitter);
+    #else
+        #if VFX_WORLD_SPACE
+            //previousPositionOS is already in world space
+            const float3 previousPositionWS = previousPositionOS;
+        #else
+            const float3 previousPositionWS = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOS, 1.0f)).xyz;
+        #endif
+        mvOutput.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, float4(previousPositionWS, 1.0f));
+    #endif
+#else
         mvOutput.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPositionOS, 1.0f)));
+#endif
     }
 
     packedMvOutput = PackMotionVectorVaryings(mvOutput);
