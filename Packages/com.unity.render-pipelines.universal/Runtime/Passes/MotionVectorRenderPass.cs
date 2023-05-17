@@ -19,17 +19,15 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_Color;
         RTHandle m_Depth;
         readonly Material m_CameraMaterial;
-        readonly Material m_ObjectMaterial;
 
         private PassData m_PassData;
         #endregion
 
         #region Constructors
-        internal MotionVectorRenderPass(Material cameraMaterial, Material objectMaterial)
+        internal MotionVectorRenderPass(Material cameraMaterial)
         {
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
             m_CameraMaterial = cameraMaterial;
-            m_ObjectMaterial = objectMaterial;
             m_PassData = new PassData();
             base.profilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);
 
@@ -64,9 +62,8 @@ namespace UnityEngine.Rendering.Universal
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
         {
             var cameraMaterial = passData.cameraMaterial;
-            var objectMaterial = passData.objectMaterial;
 
-            if (cameraMaterial == null || objectMaterial == null)
+            if (cameraMaterial == null)
                 return;
 
             // Get data
@@ -98,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_PassData.rendererList, ref renderingData);
         }
 
-        private static DrawingSettings GetDrawingSettings(ref RenderingData renderingData, Material objectMaterial)
+        private static DrawingSettings GetDrawingSettings(ref RenderingData renderingData)
         {
             var camera = renderingData.cameraData.camera;
             var sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonOpaque };
@@ -113,9 +110,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 drawingSettings.SetShaderPassName(i, new ShaderTagId(s_ShaderTags[i]));
             }
-
-            // Material that will be used if shader tags cannot be found
-            drawingSettings.fallbackMaterial = objectMaterial;
 
             return drawingSettings;
         }
@@ -171,7 +165,6 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle cameraDepth;
             internal RenderingData renderingData;
             internal Material cameraMaterial;
-            internal Material objectMaterial;
             internal RendererListHandle rendererListHdl;
 
             // Required for code sharing purpose between RG and non-RG.
@@ -184,13 +177,12 @@ namespace UnityEngine.Rendering.Universal
         private void InitPassData(ref RenderingData renderingData, ref PassData passData)
         {
             passData.cameraMaterial = m_CameraMaterial;
-            passData.objectMaterial = m_ObjectMaterial;            
         }
 
         private void InitRendererLists(ref RenderingData renderingData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
         {
             var camera = renderingData.cameraData.camera;
-            var drawingSettings = GetDrawingSettings(ref renderingData, m_ObjectMaterial);
+            var drawingSettings = GetDrawingSettings(ref renderingData);
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             if(useRenderGraph)

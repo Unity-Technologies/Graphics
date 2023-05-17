@@ -39,5 +39,7 @@ Shader "Unlit/custom_shader_for_mv_override_testing"
             }
             ENDHLSL
         }
+
+        UsePass "Hidden/Universal Render Pipeline/ObjectMotionVectorFallback/MOTIONVECTORS"
     }
 }
