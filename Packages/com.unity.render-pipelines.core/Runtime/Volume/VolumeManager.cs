@@ -46,18 +46,17 @@ namespace UnityEngine.Rendering
 
         internal List<(string, Type)> GetVolumeComponentsForDisplay(Type currentPipelineType)
         {
-            if (currentPipelineType != null && s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
-                out var supportedVolumeComponents))
+            if (currentPipelineType != null && s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType, out var supportedVolumeComponents))
                 return supportedVolumeComponents;
 
-            supportedVolumeComponents = BuildVolumeComponentDisplayList(baseComponentTypeArray, currentPipelineType);
+            supportedVolumeComponents = BuildVolumeComponentDisplayList(baseComponentTypeArray);
             if (currentPipelineType != null)
                 s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
 
             return supportedVolumeComponents;
         }
 
-        List<(string, Type)> BuildVolumeComponentDisplayList(Type[] types, Type currentPipelineType)
+        List<(string, Type)> BuildVolumeComponentDisplayList(Type[] types)
         {
             var volumes = new List<(string, Type)>();
             foreach (var t in types)
@@ -74,10 +73,6 @@ namespace UnityEngine.Rendering
                         case VolumeComponentMenu attrMenu:
                         {
                             path = attrMenu.menu;
-#pragma warning disable CS0618
-                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
-                                skipComponent = !supportedOn.pipelineTypes.Contains(currentPipelineType);
-#pragma warning restore CS0618
                             break;
                         }
                         case HideInInspector:
@@ -352,16 +347,37 @@ namespace UnityEngine.Rendering
         internal void LoadBaseTypes(Type pipelineAssetType)
         {
             // Grab all the component types we can find that are compatible with current pipeline
-            baseComponentTypeArray = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
-                .Where(t =>
+            var list = new List<Type>();
+            foreach (var t in CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>())
+            {
+                if(t.IsAbstract)
+                    continue;
+
+                var isSupported = SupportedOnRenderPipelineAttribute.IsTypeSupportedOnRenderPipeline(t, pipelineAssetType);
+
+#pragma warning disable CS0618
+                var legacyPipelineAttribute = t.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
+                if (legacyPipelineAttribute != null && GraphicsSettings.isScriptableRenderPipelineEnabled)
                 {
-                    var supportedOnAttribute = t.GetCustomAttribute<SupportedOnRenderPipelineAttribute>();
-                    bool isSupported = supportedOnAttribute == null ||
-                                       supportedOnAttribute.GetSupportedMode(pipelineAssetType) !=
-                                       SupportedOnRenderPipelineAttribute.SupportedMode.Unsupported;
-                    return !t.IsAbstract && isSupported;
-                })
-                .ToArray();
+                    var renderPipelineType = GraphicsSettings.currentRenderPipeline.pipelineType;
+                    var legacySupported = false;
+                    for (int i = 0; i < legacyPipelineAttribute.pipelineTypes.Length; i++)
+                    {
+                        if (legacyPipelineAttribute.pipelineTypes[i] == renderPipelineType)
+                        {
+                            legacySupported = true;
+                            break;
+                        }
+                    }
+                    isSupported |= legacySupported;
+                }
+#pragma warning restore CS0618
+
+                if(!isSupported)
+                    continue;
+                list.Add(t);
+            }
+            baseComponentTypeArray = list.ToArray();
 
             // Call custom static Init method if present
             var flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;

@@ -98,11 +98,6 @@ namespace UnityEngine.Rendering.Tests
 
         #endregion
 
-        class TestAnimationCurveVolumeComponent : VolumeComponent
-        {
-            public AnimationCurveParameter testParameter = new (AnimationCurve.Linear(0.5f, 10.0f, 1.0f, 15.0f), true);
-        }
-
         static TestCaseData[] s_AnimationCurveKeysNotSharedTestDatas =
         {
             new TestCaseData(null)
@@ -189,18 +184,19 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    public class VolumeComponentEditorTests
+    public class VolumeComponentEditorTests : RenderPipelineTests
     {
 #pragma warning disable CS0618
+
         [HideInInspector]
-        [VolumeComponentMenuForRenderPipeline("Tests/No Additional", typeof(RenderPipeline))]
-        class VolumeComponentNoAdditionalAttributes : VolumeComponent
+        [VolumeComponentMenuForRenderPipeline("Tests/No Additional", typeof(CustomRenderPipeline))]
+        public class VolumeComponentNoAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter = new MinFloatParameter(0f, 0f);
         }
 
         [HideInInspector]
-        [VolumeComponentMenuForRenderPipeline("Tests/All Additional", typeof(RenderPipeline))]
+        [VolumeComponentMenuForRenderPipeline("Tests/All Additional", typeof(CustomRenderPipeline))]
         class VolumeComponentAllAdditionalAttributes : VolumeComponent
         {
             [AdditionalProperty]
@@ -211,7 +207,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [HideInInspector]
-        [VolumeComponentMenuForRenderPipeline("Tests/Mixed Additional", typeof(RenderPipeline))]
+        [VolumeComponentMenuForRenderPipeline("Tests/Mixed Additional", typeof(CustomRenderPipeline))]
         class VolumeComponentMixedAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter1 = new MinFloatParameter(0f, 0f);
@@ -359,6 +355,8 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void TestSupportedOnAvoidedIfHideInInspector()
         {
+            SetupRenderPipeline<CustomRenderPipelineAsset>();
+
             Type[] componentTypesWithHideInInspectorAttribute =
             {
                 typeof(VolumeComponentNoAdditionalAttributes),

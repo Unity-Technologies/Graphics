@@ -7,52 +7,6 @@ namespace UnityEngine.Rendering.Tests
 {
     public class VolumeComponentVisibilityTests : RenderPipelineTests
     {
-        [HideInInspector]
-        [VolumeComponentMenu("Supported On Tests/No supported on")]
-        public class VolumeComponentNoSupportedOn : VolumeComponent
-        {
-        }
-
-        [HideInInspector]
-        [VolumeComponentMenu("Supported On Tests/Not Specified Pipeline Supported On")]
-        [SupportedOnRenderPipeline]
-        public class VolumeComponentNotSpecifiedSupportedOn : VolumeComponent
-        {
-        }
-
-        [HideInInspector]
-        [VolumeComponentMenu("Supported On Tests/Not Specified Pipeline Supported On")]
-        [SupportedOnRenderPipeline(typeof(CustomRenderPipelineAsset))]
-        public class VolumeComponentCustomRenderPipelineAsset : VolumeComponent
-        {
-        }
-
-        class CustomRenderPipelineAsset : RenderPipelineAsset
-        {
-            protected override RenderPipeline CreatePipeline()
-                => new CustomRenderPipeline();
-        }
-
-        class CustomRenderPipeline : RenderPipeline
-        {
-            protected override void Render(ScriptableRenderContext context, Camera[] cameras)
-            {
-            }
-        }
-
-        class SecondCustomRenderPipelineAsset : RenderPipelineAsset
-        {
-            protected override RenderPipeline CreatePipeline()
-                => new SecondCustomRenderPipeline();
-        }
-
-        class SecondCustomRenderPipeline : RenderPipeline
-        {
-            protected override void Render(ScriptableRenderContext context, Camera[] cameras)
-            {
-            }
-        }
-
         static TestCaseData[] s_TestCaseDataGetItem =
         {
             new TestCaseData(typeof(VolumeComponentNoSupportedOn), null)
