@@ -1394,12 +1394,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!visibleProbe.reflectionProbe.TryGetComponent<HDAdditionalReflectionData>(out additionalReflectionData))
                     additionalReflectionData = visibleProbe.reflectionProbe.gameObject.AddComponent<HDAdditionalReflectionData>();
 
+                //Excluding any probes that are set to off
+                if (additionalReflectionData.IsTurnedOff())
+                    continue;
+
                 AddVisibleProbeVisibleIndexIfUpdateIsRequired(additionalReflectionData, request, renderRequestIndicesWhereTheProbeIsVisible);
             }
 
             // Planar probes
             for (var i = 0; i < cullingResults.hdProbeCullingResults.visibleProbes.Count; ++i)
             {
+                if (cullingResults.hdProbeCullingResults.visibleProbes[i].IsTurnedOff())
+                    continue;
+
                 AddVisibleProbeVisibleIndexIfUpdateIsRequired(cullingResults.hdProbeCullingResults.visibleProbes[i], request, renderRequestIndicesWhereTheProbeIsVisible);
             }
         }
@@ -1409,6 +1416,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Don't add it if it has already been updated this frame or not a real time probe
             // TODO: discard probes that are baked once per frame and already baked this frame
             if (!probe.requiresRealtimeUpdate)
+                return;
+
+            if (probe.IsTurnedOff())
                 return;
 
             var viewerTransform = request.hdCamera.camera.transform;
@@ -1447,8 +1457,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext
         )
         {
-            var renderSteps = visibleProbe.NextRenderSteps();
-
             var position = ProbeCapturePositionSettings.ComputeFrom(
                 visibleProbe,
                 viewerTransform
@@ -1456,6 +1464,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraSettings.Clear();
             cameraPositionSettings.Clear();
             cameraCubemapFaces.Clear();
+
+            if (visibleProbe.IsTurnedOff())
+                return;
+
+            var renderSteps = visibleProbe.NextRenderSteps();
+
             HDRenderUtilities.GenerateRenderingSettingsFor(
                 visibleProbe.settings, position,
                 cameraSettings, cameraPositionSettings, cameraCubemapFaces, overrideSceneCullingMask, renderSteps,
@@ -1463,12 +1477,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 referenceAspect: referenceAspect
             );
 
+
             var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
 
             switch (visibleProbe.type)
             {
                 case ProbeSettings.ProbeType.ReflectionProbe:
                     int desiredProbeSize = (int)visibleProbe.cubeResolution;
+
                     var desiredProbeFormat = ((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
 
                     if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredProbeSize ||
@@ -1478,25 +1494,52 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     break;
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    int desiredPlanarProbeSize = (int)visibleProbe.resolution;
-                    if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize || visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
+
+                    if (visibleProbe.IsTurnedOff())
                     {
-                        visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize, probeFormat));
-                    }
-                    if (visibleProbe.realtimeDepthTextureRTH == null || visibleProbe.realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
-                    {
-                        visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
-                    }
-                    // Set the viewer's camera as the default camera anchor
-                    for (var i = 0; i < cameraSettings.Count; ++i)
-                    {
-                        var v = cameraSettings[i];
-                        if (v.volumes.anchorOverride == null)
+                        RenderTexture rt = new RenderTexture(1, 1, 1, probeFormat)
                         {
-                            v.volumes.anchorOverride = viewerTransform;
-                            cameraSettings[i] = v;
+                            dimension = TextureDimension.Tex2D,
+                            enableRandomWrite = false,
+                            useMipMap = true,
+                            autoGenerateMips = false,
+                            depth = 0
+                        };
+                        rt.Create();
+                        visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, rt);
+                    }
+                    else
+                    {
+
+                        int desiredPlanarProbeSize = (int) visibleProbe.resolution;
+
+                        if (visibleProbe.realtimeTextureRTH == null ||
+                            visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize ||
+                            visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
+                        {
+                            visibleProbe.SetTexture(ProbeSettings.Mode.Realtime,
+                                HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize, probeFormat));
+                        }
+
+                        if (visibleProbe.realtimeDepthTextureRTH == null ||
+                            visibleProbe.realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
+                        {
+                            visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime,
+                                HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
+                        }
+
+                        // Set the viewer's camera as the default camera anchor
+                        for (var i = 0; i < cameraSettings.Count; ++i)
+                        {
+                            var v = cameraSettings[i];
+                            if (v.volumes.anchorOverride == null)
+                            {
+                                v.volumes.anchorOverride = viewerTransform;
+                                cameraSettings[i] = v;
+                            }
                         }
                     }
+
                     break;
             }
 
@@ -1708,6 +1751,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var visibleProbe = probeToRenderAndDependencies.Key;
                 var visibilities = probeToRenderAndDependencies.Value;
+
+                if (visibleProbe.IsTurnedOff())
+                    continue;
 
                 // Two cases:
                 //   - If the probe is view independent, we add only one render request per face that is
@@ -2203,7 +2249,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var originalTarget = camera.targetTexture;
 
                 RenderTexture destination = standardRequest.destination;
-                
+
                 //don't go further if no destination texture
                 if(destination == null)
                 {
@@ -2294,7 +2340,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case TextureDimension.Tex3D:
                             if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
-                            {    
+                            {
                                 isCopySupported = true;
                                 Graphics.CopyTexture(temporaryRT, 0, 0, destination, slice, mipLevel);
                             }
@@ -2305,7 +2351,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 isCopySupported = true;
                                 Graphics.CopyTexture(temporaryRT, 0, 0, destination, face, mipLevel);
                             }
-                            break;                        
+                            break;
                         case TextureDimension.CubeArray:
                             if((SystemInfo.copyTextureSupport & CopyTextureSupport.DifferentTypes) != 0)
                             {

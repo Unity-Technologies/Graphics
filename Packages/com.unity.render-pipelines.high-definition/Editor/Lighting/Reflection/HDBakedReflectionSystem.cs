@@ -157,6 +157,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var instanceId = states[i].instanceID;
                 var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
+
+                if (probe.IsTurnedOff())
+                    continue;
+
                 if (probe.bakedTexture != null && !probe.bakedTexture.Equals(null)) continue;
 
                 probeForcedToBakeIndicesList.TryAdd(i);
@@ -248,6 +252,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     var index = toBakeIndicesList.GetUnchecked(i);
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
+
+                    if(probe.IsTurnedOff())
+                        continue;
+
                     var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
 
                     // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
@@ -275,6 +283,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     var index = toBakeIndicesList.GetUnchecked(i);
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
+
+                    if(probe.IsTurnedOff())
+                        continue;
+
                     var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
 
                     if (string.IsNullOrEmpty(probe.gameObject.scene.path))
@@ -405,6 +417,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (string.IsNullOrEmpty(probe.gameObject.scene.path))
                     continue;
 
+                if (probe.IsTurnedOff())
+                {
+                    probe.bakedTexture = null;
+                    continue;
+                }
+
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
 
                 RenderTexture probeRT;
@@ -431,6 +449,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (string.IsNullOrEmpty(probe.gameObject.scene.path))
                         continue;
 
+                    if (probe.IsTurnedOff())
+                        continue;
+
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     AssetDatabase.ImportAsset(bakedTexturePath);
                     ImportAssetAt(probe, bakedTexturePath);
@@ -442,6 +463,9 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var probe in bakedProbes)
             {
                 if (string.IsNullOrEmpty(probe.gameObject.scene.path))
+                    continue;
+
+                if (probe.IsTurnedOff())
                     continue;
 
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
@@ -469,6 +493,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 UnityEngine.Random.InitState((int)(1000 * EditorApplication.timeSinceStartup));
                 foreach (var probe in bakedProbes)
                 {
+                    if (probe.IsTurnedOff())
+                        continue;
+
                     var c = UnityEngine.Random.Range(2, 10);
                     while (probe.texture.updateCount < c) probe.texture.IncrementUpdateCount();
                 }

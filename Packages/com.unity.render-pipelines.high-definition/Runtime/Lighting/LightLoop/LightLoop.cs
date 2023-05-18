@@ -854,12 +854,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Surface gradient decal blending
             if (asset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
-            { 
+            {
                 Shader.EnableKeyword("DECAL_SURFACE_GRADIENT");
                 Shader.EnableKeyword("PATH_TRACING_ADDITIVE_NORMAL_BLENDING");
             }
             else
-            { 
+            {
                 Shader.DisableKeyword("DECAL_SURFACE_GRADIENT");
                 Shader.DisableKeyword("PATH_TRACING_ADDITIVE_NORMAL_BLENDING");
             }
@@ -1018,7 +1018,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProbe probe = processedProbe.hdProbe;
 
             // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
-            if (!probe.HasValidRenderedData()) return false;
+            if (!probe.HasValidRenderedData() || probe.IsTurnedOff()) return false;
 
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
@@ -1029,8 +1029,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case PlanarReflectionProbe planarProbe:
                 {
-                    if (probe.mode == ProbeSettings.Mode.Realtime
-                        && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
+                    if ((probe.mode == ProbeSettings.Mode.Realtime
+                        && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe)))
                         break;
 
                     // Grab the render data that was used to render the probe

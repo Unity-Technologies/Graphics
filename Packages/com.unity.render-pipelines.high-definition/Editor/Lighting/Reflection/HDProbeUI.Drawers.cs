@@ -295,6 +295,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!doesModeSupportBaking)
                     return;
 
+                var probeType = (ProbeSettings.ProbeType)serialized.probeSettings.type.intValue;
+
                 // Check if all scene are saved to a file (requirement to bake probes)
                 foreach (var target in serialized.serializedObject.targetObjects)
                 {
@@ -316,23 +318,32 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     case ProbeSettings.Mode.Custom:
                     {
-                        if (ButtonWithDropdownList(
-                            EditorGUIUtility.TrTextContent(
-                                "Bake", "Bakes Probe's texture, overwriting the existing texture asset (if any)."
-                                ),
-                            k_BakeCustomOptionText,
-                            data =>
-                            {
-                                switch ((int)data)
-                                {
-                                    case 0:
-                                        RenderInCustomAsset(serialized.target, false);
-                                        break;
-                                }
-                            }))
+                        if (serialized.target.IsTurnedOff())
                         {
-                            RenderInCustomAsset(serialized.target, true);
+                            EditorGUILayout.HelpBox("The Resolution of this Probe has been set to Off, it therefore cannot be baked", MessageType.Info);
                         }
+                        else
+                        {
+                            if (ButtonWithDropdownList(
+                                    EditorGUIUtility.TrTextContent(
+                                        "Bake",
+                                        "Bakes Probe's texture, overwriting the existing texture asset (if any)."
+                                    ),
+                                    k_BakeCustomOptionText,
+                                    data =>
+                                    {
+                                        switch ((int)data)
+                                        {
+                                            case 0:
+                                                RenderInCustomAsset(serialized.target, false);
+                                                break;
+                                        }
+                                    }))
+                            {
+                                RenderInCustomAsset(serialized.target, true);
+                            }
+                        }
+
                         break;
                     }
                     case ProbeSettings.Mode.Baked:
@@ -347,33 +358,51 @@ namespace UnityEditor.Rendering.HighDefinition
 #pragma warning restore 618
                         GUI.enabled = serialized.target.enabled;
 
-                        // Bake button in non-continous mode
-                        if (ButtonWithDropdownList(
-                            EditorGUIUtility.TrTextContent("Bake"),
-                            k_BakeButtonsText,
-                            data =>
+                        if (serialized.target.IsTurnedOff())
+                        {
+                            EditorGUILayout.HelpBox("The Resolution of this Probe has been set to Off, it therefore cannot be baked", MessageType.Info);
+                        }
+                        else
+                        {
+
+                            // Bake button in non-continous mode
+                            if (ButtonWithDropdownList(
+                                    EditorGUIUtility.TrTextContent("Bake"),
+                                    k_BakeButtonsText,
+                                    data =>
+                                    {
+                                        if ((int)data == 0)
+                                        {
+                                            var system = ScriptableBakedReflectionSystemSettings.system;
+                                            system.BakeAllReflectionProbes();
+                                        }
+                                    },
+                                    GUILayout.ExpandWidth(true)))
                             {
-                                if ((int)data == 0)
-                                {
-                                    var system = ScriptableBakedReflectionSystemSettings.system;
-                                    system.BakeAllReflectionProbes();
-                                }
-                            },
-                            GUILayout.ExpandWidth(true)))
-                        {
-                            HDBakedReflectionSystem.BakeProbes(serialized.serializedObject.targetObjects.OfType<HDProbe>().ToArray());
-                            GUIUtility.ExitGUI();
+                                HDBakedReflectionSystem.BakeProbes(serialized.serializedObject.targetObjects
+                                    .OfType<HDProbe>().ToArray());
+                                GUIUtility.ExitGUI();
+                            }
+
+                            GUI.enabled = true;
+
+                            var staticLightingSky = SkyManager.GetStaticLightingSky();
+                            if (staticLightingSky != null && staticLightingSky.profile != null)
+                            {
+                                var skyType = staticLightingSky.staticLightingSkyUniqueID == 0
+                                    ? "no Sky"
+                                    : SkyManager.skyTypesDict[staticLightingSky.staticLightingSkyUniqueID].Name
+                                        .ToString();
+                                var cloudType = staticLightingSky.staticLightingCloudsUniqueID == 0
+                                    ? "no Clouds"
+                                    : SkyManager.cloudTypesDict[staticLightingSky.staticLightingCloudsUniqueID].Name
+                                        .ToString();
+                                EditorGUILayout.HelpBox(
+                                    $"Static Lighting Sky uses {skyType} and {cloudType} of profile {staticLightingSky.profile.name}.",
+                                    MessageType.Info);
+                            }
                         }
 
-                        GUI.enabled = true;
-
-                        var staticLightingSky = SkyManager.GetStaticLightingSky();
-                        if (staticLightingSky != null && staticLightingSky.profile != null)
-                        {
-                            var skyType = staticLightingSky.staticLightingSkyUniqueID == 0 ? "no Sky" : SkyManager.skyTypesDict[staticLightingSky.staticLightingSkyUniqueID].Name.ToString();
-                            var cloudType = staticLightingSky.staticLightingCloudsUniqueID == 0 ? "no Clouds" : SkyManager.cloudTypesDict[staticLightingSky.staticLightingCloudsUniqueID].Name.ToString();
-                            EditorGUILayout.HelpBox($"Static Lighting Sky uses {skyType} and {cloudType} of profile {staticLightingSky.profile.name}.", MessageType.Info);
-                        }
                         break;
                     }
                     case ProbeSettings.Mode.Realtime:

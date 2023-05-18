@@ -216,9 +216,10 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderData m_CustomRenderData;
 
 #if UNITY_EDITOR
-        // Maintain the GUID of the custom texture so that we can switch back to it in editor mode, but still release
-        // the resource if the probe is set back to baked or realtime mode.
+        // Maintain the GUID of the custom and the baked texture so that we can switch back to it in editor mode, but still release
+        // the resource if the probe is turned off or set back to baked/cutom or realtime mode.
         private string m_CustomTextureGUID;
+        private string m_BakedTextureGUID;
 
         // Need to keep track of the previous selected mode in editor to handle the case if a user selects no custom texture.
         private ProbeSettings.Mode m_PreviousMode = ProbeSettings.Mode.Baked;
@@ -274,6 +275,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_HasPendingRenderRequest = true;
         }
 
+        /// <summary>
+        /// Checks weather the current probe is set to off.
+        /// </summary>
+        /// <returns>Returns true if the the selected probe has its resolution set to off.</returns>
+        public bool IsTurnedOff()
+        {
+            return (type == ProbeSettings.ProbeType.PlanarProbe && resolution == PlanarReflectionAtlasResolution.Off) ||(type == ProbeSettings.ProbeType.ReflectionProbe && cubeResolution == CubeReflectionResolution.Off);
+        }
+
         internal ProbeRenderSteps NextRenderSteps()
         {
             if (m_RemainingRenderSteps.IsNone() && m_HasPendingRenderRequest)
@@ -281,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RemainingRenderSteps = ProbeRenderStepsExt.FromProbeType(type);
                 m_HasPendingRenderRequest = false;
             }
-
+            
             if (type == ProbeSettings.ProbeType.ReflectionProbe)
             {
                 // pick one bit or all remaining bits
@@ -339,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_WasRenderedDuringAsyncCompilation && !ShaderUtil.anythingCompiling)
                     return true;
 #endif
-                if (mode != ProbeSettings.Mode.Realtime)
+                if (mode != ProbeSettings.Mode.Realtime || IsTurnedOff())
                     return false;
                 switch (realtimeMode)
                 {
@@ -968,6 +978,36 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        void SetOrReleaseBakedTextureReference()
+        {
+#if UNITY_EDITOR
+            if (type == ProbeSettings.ProbeType.ReflectionProbe)
+            {
+                if (cubeResolution == CubeReflectionResolution.Off)
+                {
+                    if (m_BakedTexture != null)
+                    {
+                        // Try to fetch the asset GUID before we release the reference to it.
+                        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_BakedTexture, out m_BakedTextureGUID,
+                            out long unused);
+
+                        // Release the asset reference.
+                        m_BakedTexture = null;
+                    }
+                }
+                else
+                {
+                    if (m_BakedTextureGUID != null)
+                    {
+                        // Try to reset the asset reference.
+                        var bakedTexturePath = AssetDatabase.GUIDToAssetPath(m_BakedTextureGUID);
+                        m_BakedTexture = AssetDatabase.LoadAssetAtPath<Texture>(bakedTexturePath);
+                    }
+                }
+            }
+#endif
+        }
+
         void OnEnable()
         {
             wasRenderedAfterOnEnable = false;
@@ -978,6 +1018,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             // Ensure that the custom texture is set.
             SetOrReleaseCustomTextureReference();
+            SetOrReleaseBakedTextureReference();
 
             // Moving the garbage outside of the render loop:
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
@@ -1017,6 +1058,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProbeSystem.UnregisterProbe(this);
 
             SetOrReleaseCustomTextureReference();
+            SetOrReleaseBakedTextureReference();
 
             if (isActiveAndEnabled)
             {
