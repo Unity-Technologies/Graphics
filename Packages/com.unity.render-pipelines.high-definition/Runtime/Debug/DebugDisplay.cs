@@ -117,6 +117,8 @@ namespace UnityEngine.Rendering.HighDefinition
         MinRenderingFullScreenDebug,
         /// <summary>Display Motion Vectors.</summary>
         MotionVectors,
+        /// <summary>Display the world space positions.</summary>
+        WorldSpacePosition,
         /// <summary>Display NaNs.</summary>
         NanTracker,
         /// <summary>Display Log of the color buffer.</summary>
@@ -147,9 +149,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ValidateSpecularColor,
         /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
         MaxMaterialFullScreenDebug,
-
-        /// <summary>Display the world space position.</summary>
-        WorldSpacePosition,
     }
 
     /// <summary>
@@ -1302,7 +1301,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         children =
                         {
                             new DebugUI.BoolField { nameAndTooltip = LightingStrings.ShadowDebugUseSelection, getter = () => data.lightingDebugSettings.shadowDebugUseSelection, setter = value => data.lightingDebugSettings.shadowDebugUseSelection = value, flags = DebugUI.Flags.EditorOnly },
-                            new DebugUI.UIntField { nameAndTooltip = LightingStrings.ShadowDebugShadowMapIndex, getter = () => data.lightingDebugSettings.shadowMapIndex, setter = value => data.lightingDebugSettings.shadowMapIndex = value, min = () => 0u, max = () => (uint)(Math.Max(0, (RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCurrentShadowCount() - 1u)), isHiddenCallback = () => !data.lightingDebugSettings.shadowDebugUseSelection }
+                            new DebugUI.UIntField { nameAndTooltip = LightingStrings.ShadowDebugShadowMapIndex, getter = () => data.lightingDebugSettings.shadowMapIndex, setter = value => data.lightingDebugSettings.shadowMapIndex = value, min = () => 0u, max = () => (uint)(Math.Max(0, (RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCurrentShadowCount() - 1u)), isHiddenCallback = () => data.lightingDebugSettings.shadowDebugUseSelection }
                         }
                     });
                 }
