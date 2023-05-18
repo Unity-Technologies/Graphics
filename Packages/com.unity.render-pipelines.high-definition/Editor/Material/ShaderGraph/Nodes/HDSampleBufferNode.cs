@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Sample-Buffer");
+        public override string documentationURL => NodeUtils.GetDocumentationString("HD-Sample-Buffer");
 
 
         public static List<HDSampleBufferNode> nodeList = new();
