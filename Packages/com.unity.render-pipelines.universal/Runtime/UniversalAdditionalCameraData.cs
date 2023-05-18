@@ -293,6 +293,7 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
+    [ExecuteAlways] // NOTE: This is required to get calls to OnDestroy() always. Graphics resources are released in OnDestroy().
     [URPHelpURL("universal-additional-camera-data")]
     public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
@@ -813,6 +814,7 @@ namespace UnityEngine.Rendering.Universal
         {
             scriptableRenderer?.ReleaseRenderTargets();
             m_Camera.DestroyVolumeStack(this);
+            m_TaaPersistentData?.DeallocateTargets();
         }
     }
 }
