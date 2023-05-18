@@ -158,7 +158,8 @@ namespace UnityEditor.Rendering
         {
             // It's possible that the volume profile is assigned to the default asset inside the HDRP package. In
             // this case it cannot be modified. User is expected to use HDRP Wizard "Fix" to create a local profile.
-            if (!AssetDatabase.IsOpenForEdit(profile))
+            var path = AssetDatabase.GetAssetPath(profile);
+            if (CoreEditorUtils.IsAssetInReadOnlyPackage(path))
                 return;
 
             bool changed = false;
