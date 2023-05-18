@@ -8,7 +8,6 @@ using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
 using UnityEngine.Rendering;
 using UnityEngine.Assertions;
-using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -2673,9 +2672,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // If the current light unit is not supported by the new light type, we change it
-                    var supportedUnits = GetSupportedLightUnits(lightData.legacyLight.type);
-                    if (!supportedUnits.Any(u => u == lightData.lightUnit))
-                        lightData.lightUnit = supportedUnits.First();
+                    UInt64 supportedUnitsMask = GetSupportedLightUnitsBitMask(lightData.legacyLight.type);
+                    if ((supportedUnitsMask & (1UL << (int)lightData.lightUnit)) == 0) 
+                        lightData.lightUnit = GetSupportedLightUnits(lightData.legacyLight.type)[0];
                 }
 
                 // TODO: The rest of this loop only handles animation. Iterate over a separate list in builds,
