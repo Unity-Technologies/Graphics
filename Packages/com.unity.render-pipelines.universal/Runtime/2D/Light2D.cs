@@ -271,7 +271,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls the visibility of the light's volume
         /// </summary>
-        public float volumeIntensity => m_LightVolumeIntensity;
+        public float volumeIntensity { get => m_LightVolumeIntensity; set => m_LightVolumeIntensity = value; }
 
 
         /// <summary>
