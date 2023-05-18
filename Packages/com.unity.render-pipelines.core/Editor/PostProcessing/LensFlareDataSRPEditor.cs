@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering
 {
@@ -113,7 +114,7 @@ namespace UnityEditor.Rendering
             MethodInfo FillPropertyContextMenuInfo = typeof(EditorGUI).GetMethod("FillPropertyContextMenu", BindingFlags.Static | BindingFlags.NonPublic);
             var propertyParam = Expression.Parameter(typeof(SerializedProperty), "property");
             var FillPropertyContextMenuBlock = Expression.Block(
-                Expression.Call(null, FillPropertyContextMenuInfo, propertyParam, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(null, typeof(GenericMenu)))
+                Expression.Call(null, FillPropertyContextMenuInfo, propertyParam, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(null, typeof(GenericMenu)), Expression.Constant(null, typeof(VisualElement)))
             );
             var FillPropertyContextMenuLambda = Expression.Lambda<Func<SerializedProperty, GenericMenu>>(FillPropertyContextMenuBlock, propertyParam);
             FillPropertyContextMenu = FillPropertyContextMenuLambda.Compile();
