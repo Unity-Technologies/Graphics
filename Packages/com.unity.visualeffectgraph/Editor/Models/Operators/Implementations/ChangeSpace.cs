@@ -43,6 +43,15 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            if ((int)m_targetSpace == int.MaxValue)
+            {
+                m_targetSpace = VFXSpace.None;
+            }
+        }
+
         public sealed override VFXSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return m_targetSpace;

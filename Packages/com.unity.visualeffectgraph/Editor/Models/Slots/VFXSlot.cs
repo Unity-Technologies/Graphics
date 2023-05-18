@@ -533,6 +533,11 @@ namespace UnityEditor.VFX
 
             if (!IsMasterSlot())
                 m_MasterData = null; // Non master slot will always have a null master data
+
+            if (m_MasterData != null && (int)m_MasterData.m_Space == int.MaxValue)
+            {
+                m_MasterData.m_Space = VFXSpace.None;
+            }
         }
 
         public override void Sanitize(int version)
