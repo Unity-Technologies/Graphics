@@ -70,6 +70,12 @@
     float3 FunctionName(float3 Parameter1) { FunctionBody; } \
     float4 FunctionName(float4 Parameter1) { FunctionBody; }
 
+#define TEMPLATE_1_ONLY_HALF(FunctionName, Parameter1, FunctionBody) \
+    half  FunctionName(half  Parameter1) { FunctionBody; } \
+    half2 FunctionName(half2 Parameter1) { FunctionBody; } \
+    half3 FunctionName(half3 Parameter1) { FunctionBody; } \
+    half4 FunctionName(half4 Parameter1) { FunctionBody; }
+
 #define TEMPLATE_1_INT(FunctionName, Parameter1, FunctionBody) \
     int    FunctionName(int    Parameter1) { FunctionBody; } \
     int2   FunctionName(int2   Parameter1) { FunctionBody; } \
@@ -96,6 +102,12 @@
     float3 FunctionName(float3 Parameter1, float3 Parameter2) { FunctionBody; } \
     float4 FunctionName(float4 Parameter1, float4 Parameter2) { FunctionBody; }
 
+#define TEMPLATE_2_ONLY_HALF(FunctionName, Parameter1, Parameter2, FunctionBody) \
+    half  FunctionName(half  Parameter1, half  Parameter2) { FunctionBody; } \
+    half2 FunctionName(half2 Parameter1, half2 Parameter2) { FunctionBody; } \
+    half3 FunctionName(half3 Parameter1, half3 Parameter2) { FunctionBody; } \
+    half4 FunctionName(half4 Parameter1, half4 Parameter2) { FunctionBody; }
+
 #define TEMPLATE_2_INT(FunctionName, Parameter1, Parameter2, FunctionBody) \
     int    FunctionName(int    Parameter1, int    Parameter2) { FunctionBody; } \
     int2   FunctionName(int2   Parameter1, int2   Parameter2) { FunctionBody; } \
@@ -121,6 +133,12 @@
     float2 FunctionName(float2 Parameter1, float2 Parameter2, float2 Parameter3) { FunctionBody; } \
     float3 FunctionName(float3 Parameter1, float3 Parameter2, float3 Parameter3) { FunctionBody; } \
     float4 FunctionName(float4 Parameter1, float4 Parameter2, float4 Parameter3) { FunctionBody; }
+
+#define TEMPLATE_3_ONLY_HALF(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
+    half  FunctionName(half  Parameter1, half  Parameter2, half  Parameter3) { FunctionBody; } \
+    half2 FunctionName(half2 Parameter1, half2 Parameter2, half2 Parameter3) { FunctionBody; } \
+    half3 FunctionName(half3 Parameter1, half3 Parameter2, half3 Parameter3) { FunctionBody; } \
+    half4 FunctionName(half4 Parameter1, half4 Parameter2, half4 Parameter3) { FunctionBody; }
 
 #define TEMPLATE_3_INT(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
     int    FunctionName(int    Parameter1, int    Parameter2, int    Parameter3) { FunctionBody; } \

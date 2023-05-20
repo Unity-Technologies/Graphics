@@ -330,7 +330,7 @@ half rgb_2_yc(half3 rgb)
     half g = rgb.y;
     half b = rgb.z;
     half k = b * (b - g) + g * (g - r) + r * (r - b);
-    k = max(k, 0.0h); // Clamp to avoid precision issue causing k < 0, making sqrt(k) undefined
+    k = max(k, 0.0); // Clamp to avoid precision issue causing k < 0, making sqrt(k) undefined
 #if defined(SHADER_API_SWITCH)
     half chroma = k == 0.0 ? 0.0 : sqrt(k); // Avoid Nan
 #else
@@ -367,7 +367,7 @@ half sigmoid_shaper(half x)
     // Sigmoid function in the range 0 to 1 spanning -2 to +2.
 
     half t = max(1.0 - abs(x / 2.0), 0.0);
-    half y = 1.0 + FastSign(x) * (1.0 - t * t);
+    half y = 1.0 + half(FastSign(x)) * (1.0 - t * t);
 
     return y / 2.0;
 }
@@ -469,8 +469,8 @@ half segmented_spline_c5_fwd(half x)
 
     // Check for negatives or zero before taking the log. If negative or zero,
     // set to ACESMIN.1
-    float xCheck = x;
-    if (xCheck <= 0.0) xCheck = 0.00006103515; // = pow(2.0, -14.0);
+    half xCheck = x;
+    if (xCheck <= 0.0) xCheck = HALF_MIN;
 
     half logx = log10(xCheck);
     half logy;
@@ -481,9 +481,9 @@ half segmented_spline_c5_fwd(half x)
     }
     else if ((logx > log10(minPoint.x)) && (logx < log10(midPoint.x)))
     {
-        half knot_coord = (N_KNOTS_LOW - 1) * (logx - log10(minPoint.x)) / (log10(midPoint.x) - log10(minPoint.x));
+        half knot_coord = half(N_KNOTS_LOW - 1) * (logx - log10(minPoint.x)) / (log10(midPoint.x) - log10(minPoint.x));
         int j = knot_coord;
-        half t = knot_coord - j;
+        half t = knot_coord - half(j);
 
         half3 cf = half3(coefsLow[j], coefsLow[j + 1], coefsLow[j + 2]);
         half3 monomials = half3(t * t, t, 1.0);
@@ -491,9 +491,9 @@ half segmented_spline_c5_fwd(half x)
     }
     else if ((logx >= log10(midPoint.x)) && (logx < log10(maxPoint.x)))
     {
-        half knot_coord = (N_KNOTS_HIGH - 1) * (logx - log10(midPoint.x)) / (log10(maxPoint.x) - log10(midPoint.x));
+        half knot_coord = half(N_KNOTS_HIGH - 1) * (logx - log10(midPoint.x)) / (log10(maxPoint.x) - log10(midPoint.x));
         int j = knot_coord;
-        half t = knot_coord - j;
+        half t = knot_coord - half(j);
 
         half3 cf = half3(coefsHigh[j], coefsHigh[j + 1], coefsHigh[j + 2]);
         half3 monomials = half3(t * t, t, 1.0);
@@ -533,13 +533,13 @@ half segmented_spline_c9_fwd(half x, SegmentedSplineParams_c9 params)
 
     if (logx <= log10(params.minPoint.x))
     {
-        logy = logx * params.slopeLow + (log10(params.minPoint.y) - params.slopeLow * log10(params.minPoint.x));
+        logy = logx * half(params.slopeLow) + (log10(params.minPoint.y) - half(params.slopeLow) * log10(params.minPoint.x));
     }
     else if ((logx > log10(params.minPoint.x)) && (logx < log10(params.midPoint.x)))
     {
-        half knot_coord = (N_KNOTS_LOW - 1) * (logx - log10(params.minPoint.x)) / (log10(params.midPoint.x) - log10(params.minPoint.x));
+        half knot_coord = half(N_KNOTS_LOW - 1) * (logx - log10(params.minPoint.x)) / (log10(params.midPoint.x) - log10(params.minPoint.x));
         int j = knot_coord;
-        half t = knot_coord - j;
+        half t = knot_coord - half(j);
 
         half3 cf = half3(params.coefsLow[j], params.coefsLow[j + 1], params.coefsLow[j + 2]);
         half3 monomials = half3(t * t, t, 1.0);
@@ -547,9 +547,9 @@ half segmented_spline_c9_fwd(half x, SegmentedSplineParams_c9 params)
     }
     else if ((logx >= log10(params.midPoint.x)) && (logx < log10(params.maxPoint.x)))
     {
-        half knot_coord = (N_KNOTS_HIGH - 1) * (logx - log10(params.midPoint.x)) / (log10(params.maxPoint.x) - log10(params.midPoint.x));
+        half knot_coord = half(N_KNOTS_HIGH - 1) * (logx - log10(params.midPoint.x)) / (log10(params.maxPoint.x) - log10(params.midPoint.x));
         int j = knot_coord;
-        half t = knot_coord - j;
+        half t = knot_coord - half(j);
 
         half3 cf = half3(params.coefsHigh[j], params.coefsHigh[j + 1], params.coefsHigh[j + 2]);
         half3 monomials = half3(t * t, t, 1.0);
@@ -557,7 +557,7 @@ half segmented_spline_c9_fwd(half x, SegmentedSplineParams_c9 params)
     }
     else
     { //if (logIn >= log10(maxPoint.x)) {
-        logy = logx * params.slopeHigh + (log10(params.maxPoint.y) - params.slopeHigh * log10(params.maxPoint.x));
+        logy = logx * half(params.slopeHigh) + (log10(params.maxPoint.y) - half(params.slopeHigh) * log10(params.maxPoint.x));
     }
 
     return pow(10.0, logy);
@@ -715,7 +715,7 @@ half3 xyY_2_XYZ(half3 xyY)
 
 static const half DIM_SURROUND_GAMMA = 0.9811;
 
-float3 darkSurround_to_dimSurround(float3 linearCV)
+half3 darkSurround_to_dimSurround(half3 linearCV)
 {
     half3 XYZ = mul(AP1_2_XYZ_MAT, linearCV);
 
@@ -797,7 +797,7 @@ half3 linear_to_bt1886(half3 x, half gamma, half Lw, half Lb)
     return V;
 }
 
-static const half CINEMA_WHITE = 48.0f;
+static const half CINEMA_WHITE = 48.0;
 static const half CINEMA_BLACK = CINEMA_WHITE / 2400.0;
 static const half ODT_SAT_FACTOR = 0.93;
 

@@ -781,7 +781,8 @@ TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
 //        for behavior depending on pow(0, y) giving always 0, especially for 0 < y < 1.
 //
 // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx
-TEMPLATE_2_REAL(SafePositivePow, base, power, return pow(max(abs(base), real(REAL_EPS)), power))
+TEMPLATE_2_FLT(SafePositivePow, base, power, return pow(max(abs(base), float(FLT_EPS)), power))
+TEMPLATE_2_ONLY_HALF(SafePositivePow, base, power, return pow(max(abs(base), half(HALF_EPS)), power))
 
 // Helpers for making shadergraph functions consider precision spec through the same $precision token used for variable types
 TEMPLATE_2_FLT(SafePositivePow_float, base, power, return pow(max(abs(base), float(FLT_EPS)), power))
