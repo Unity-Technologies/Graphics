@@ -2,13 +2,13 @@
 
 Install the following Editor and package versions to begin working with the **2D Renderer**:
 
-- **Unity 2021.2.0b1** or later
+* **Unity 2021.2.0b1** or later
 
-- **Universal Render Pipeline** version 10 or higher (available via the Package Manager)
+* **Universal Render Pipeline** version 10 or higher (available via the Package Manager)
 
 ## 2D Renderer Setup
-1. Create a new Project using the [2D template](https://docs.unity3d.com/Manual/ProjectTemplates.html).![](Images/2D/New_Project_With_Template.png)
 
+1. Create a new Project using the [2D template](https://docs.unity3d.com/Manual/ProjectTemplates.html).![](Images/2D/New_Project_With_Template.png)
 
 2. Create a new **Pipeline Asset** and **Renderer Asset** by going to the **Assets** menu and selecting **Create > Rendering > URP Asset (with 2D Renderer)**.
    ![](Images/2D/2d-urp12-create-renderer-asset.png)
@@ -43,4 +43,4 @@ Install the following Editor and package versions to begin working with the **2D
 
 The **2D Renderer** is now set up for your Project.
 
-**Note:** If you use the **2D Renderer** in your Project, some of the options related to 3D rendering in the **Universal Render Pipeline Asset** will not affect or impact on your final app or game.
+> **Note**: If you use the **2D Renderer** in your Project, some of the options related to 3D rendering in the **Universal Render Pipeline Asset** will not affect or impact on your final app or game.

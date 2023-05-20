@@ -13,7 +13,7 @@ Use the Unity shader source file from section [URP unlit shader with color input
     }
     ```
 
-    When you declare a texture property in the Properties block, Unity adds the `_BaseMap` property with the label __Base Map__ to the Material, and adds the Tiling and the Offset controls.
+    When you declare a texture property in the Properties block, Unity adds the `_BaseMap` property with the label **Base Map** to the Material, and adds the Tiling and the Offset controls.
 
     !["Texture property with Tiling and Offset controls"](Images/shader-examples/unlit-shader-tutorial-texture-property-in-inspector.png)
 
@@ -38,7 +38,7 @@ Use the Unity shader source file from section [URP unlit shader with color input
 
 4. For tiling and offset to work, it's necessary to declare the texture property with the `_ST` suffix in the 'CBUFFER' block. The `_ST` suffix is necessary because some macros (for example, `TRANSFORM_TEX`) use it.
 
-    > __NOTE__: To ensure that the Unity shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`. For more information on the SRP Batcher, see the page [Scriptable Render Pipeline (SRP) Batcher](https://docs.unity3d.com/Manual/SRPBatcher.html).
+    > **Note**: To ensure that the Unity shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`. For more information on the SRP Batcher, see the page [Scriptable Render Pipeline (SRP) Batcher](https://docs.unity3d.com/Manual/SRPBatcher.html).
 
     ```c++
     CBUFFER_START(UnityPerMaterial)
@@ -64,7 +64,7 @@ Use the Unity shader source file from section [URP unlit shader with color input
     }
     ```
 
-Now you can select a texture in the __Base Map__ field in the Inspector window. The shader draws that texture on the mesh.
+Now you can select a texture in the **Base Map** field in the Inspector window. The shader draws that texture on the mesh.
 
 ![Base Map texture on a Material](Images/shader-examples/unlit-shader-tutorial-texture-with-scene.png)
 

@@ -24,7 +24,7 @@ The `URP Package Samples/Decals` folder contains examples for [decals](renderer-
 | ------------------ | ------------------------------------------------------------ |
 | **Blob shadows**   | The example in `Decals/BlobShadow` uses the [Decal Projector component](renderer-feature-decal.md#decal-projector-component) to cast a shadow under a character. This method of shadow rendering is less resource-intensive than shadow maps and is suitable for use on low-end devices. |
 | **Paint splat**    | The example in `Decals/PaintSplat` uses a WorldSpaceUV Sub Graph and the [Simple Noise](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Simple-Noise-Node.html) Shader Graph node to create procedural decals. The noise in each paint splat uses the world position of the Decal Projector component. |
-| **Proxy lighting** | The example in `Decals/ProxyLighting` builds on the **Blob shadows** example and uses Decal Projectors to add proxy spotlights. These decals modify the emission of surfaces inside the projector's volume. Note: To demonstrate the extent of its lighting simulation, this example disables normal real-time lighting. |
+| **Proxy lighting** | The example in `Decals/ProxyLighting` builds on the **Blob shadows** example and uses Decal Projectors to add proxy spotlights. These decals modify the emission of surfaces inside the projector's volume.<br/><br/>**Note**: To demonstrate the extent of its lighting simulation, this example disables normal real-time lighting. |
 
 <a name="lens-flares"></a>
 ## Lens Flares
@@ -34,7 +34,7 @@ The `URP Package Samples/LensFlares` folder contains lens flare examples. The fo
 | **Example**             | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
 | **Sun flare**           | The `LensFlares/SunFlare` example demonstrates how to use the [Lens Flare component](shared/lens-flare/lens-flare-component.md) to add a lens flare effect to the main directional light in the scene. |
-| **Lens flare showroom** | The `LensFlares/LensFlareShowroom` example helps you to author lens flares. To use it:</br>1. In the Hierarchy window, select the **Lens Flare** GameObject.</br>2. In the Lens Flare component, assign a [LensFlareDataSRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@12.0/api/UnityEngine.Rendering.LensFlareDataSRP.html) asset to the **Lens Flare Data** property.</br>3. Change the Lens Flare component and data properties and view the lens flare in the Game View.<br/>**Note**: If the text box is in the way, disable the Canvas in the scene. |
+| **Lens flare showroom** | The `LensFlares/LensFlareShowroom` example helps you to author lens flares. To use it:<br/>1. In the Hierarchy window, select the **Lens Flare** GameObject.<br/>2. In the Lens Flare component, assign a [LensFlareDataSRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@12.0/api/UnityEngine.Rendering.LensFlareDataSRP.html) asset to the **Lens Flare Data** property.<br/>3. Change the Lens Flare component and data properties and view the lens flare in the Game View.<br/>**Note**: If the text box is in the way, disable the Canvas in the scene. |
 
 <a name="lighting"></a>
 ## Lighting

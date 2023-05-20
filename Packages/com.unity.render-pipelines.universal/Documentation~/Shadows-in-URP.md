@@ -1,6 +1,6 @@
 # Shadows in the Universal Render Pipeline
 
-The Universal Render Pipeline’s [Lights](light-component.md) can cast shadows from one GameObject onto another. They emphasize the position and scale of GameObjects, which adds a degree of depth and realism to a Scene that could otherwise look flat.
+The Universal Render Pipeline’s [Lights](light-component.md) can cast shadows from one GameObject onto another. They emphasize the position and scale of GameObjects, which adds a degree of depth and realism to a scene that could otherwise look flat.
 
 ## Shadow map resolution
 
@@ -8,9 +8,9 @@ The resolution of a Light’s shadow map determines the size of its shadow maps.
 
 The number of shadow maps Universal RP renders per Light depends on the **Type** of the Light:
 
-- A Spot Light renders one shadow map.
-- A Point Light renders six shadow maps (the number of faces in a cubemap).
-- A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [Universal Render Pipeline Asset](universalrp-asset.md) of your project.
+* A Spot Light renders one shadow map.
+* A Point Light renders six shadow maps (the number of faces in a cubemap).
+* A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [Universal Render Pipeline Asset](universalrp-asset.md) of your project.
 
 Universal RP will try to use the best resolution according to the number of shadow maps that are needed in the scene, and the size of the shadow atlases.
 
@@ -18,12 +18,12 @@ Universal RP will try to use the best resolution according to the number of shad
 
 Universal RP renders all real-time shadows for a frame using one common shadow map atlas for all punctual light shadows (i.e shadows for Spot Lights and Point Lights), and an other shadow map atlas for Directional Light shadows.
 
-Set the size of these atlases in your Unity Project’s [Universal Render Pipeline Asset](universalrp-asset.md). The atlas size determines the maximum resolution of shadows in your Scene.
+Set the size of these atlases in your Unity Project’s [Universal Render Pipeline Asset](universalrp-asset.md). The atlas size determines the maximum resolution of shadows in your scene.
 
 For example, an atlas of size 1024 x 1024 can fit:
 
-- Four shadow maps of 512 x 512 pixels.
-- Sixteen shadow maps of 256 x 256 pixels.
+* Four shadow maps of 512 x 512 pixels.
+* Sixteen shadow maps of 256 x 256 pixels.
 
 ### Matching shadow atlas resolution to Built-In RP settings
 
@@ -48,9 +48,9 @@ Shadow maps are essentially textures projected from the point of view of the Lig
 
 In Universal RP, each individual Light component controls its own shadow biasing using the following parameters:
 
-- **Depth Bias**
-- **Normal Bias**
-- **Near Plane**
+* **Depth Bias**
+* **Normal Bias**
+* **Near Plane**
 
 Find these settings under the **Shadows** section. If properties are not visible, change the Bias setting from "Use Pipeline Settings" to "Custom" to expose them.
 

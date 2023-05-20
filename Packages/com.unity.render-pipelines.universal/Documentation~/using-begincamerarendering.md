@@ -4,7 +4,7 @@ The example on this page shows how to use the [beginCameraRendering](https://doc
 
 ## beginCameraRendering event overview
 
-Unity raises a `beginCameraRendering` event before it renders each active Camera in every frame. If a Camera is inactive (for example, if the __Camera__ component checkbox is cleared on a Camera GameObject), Unity does not raise a `beginCameraRendering` event for this Camera.
+Unity raises a `beginCameraRendering` event before it renders each active Camera in every frame. If a Camera is inactive (for example, if the **Camera** component checkbox is cleared on a Camera GameObject), Unity does not raise a `beginCameraRendering` event for this Camera.
 
 When you subscribe a method to this event, you can execute custom logic before Unity renders the Camera. Examples of custom logic include rendering extra Cameras to Render Textures, and using those Textures for effects like planar reflections or surveillance camera views.
 
@@ -13,9 +13,9 @@ Other events in the [RenderPipelineManager](https://docs.unity3d.com/ScriptRefer
 ## beginCameraRendering event example
 
 This example demonstrates how to subscribe a method to the `beginCameraRendering` event.
-To follow the steps in this example, create a [new Unity project using the __Universal Project Template__](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@8.0/manual/creating-a-new-project-with-urp.html).
+To follow the steps in this example, create a [new Unity project using the **Universal Project Template**](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@8.0/manual/creating-a-new-project-with-urp.html).
 
-1. In the Scene, create a Cube. Name it Example Cube.
+1. In the scene, create a Cube. Name it Example Cube.
 2. In your Project, create a C# script. Call it `URPCallbackExample`.
 3. Copy and paste the following code into the script.
     ```C#
@@ -46,11 +46,11 @@ To follow the steps in this example, create a [new Unity project using the __Uni
         }
     }
     ```
-    > **NOTE**: When you subscribe to an event, your handler method (in this example, `WriteLogMessage`) must accept the parameters defined in the event delegate. In this example, the event delegate is `RenderPipeline.BeginCameraRendering`, which expects the following parameters: `<ScriptableRenderContext, Camera>`.
+    > **Note**: When you subscribe to an event, your handler method (in this example, `WriteLogMessage`) must accept the parameters defined in the event delegate. In this example, the event delegate is `RenderPipeline.BeginCameraRendering`, which expects the following parameters: `<ScriptableRenderContext, Camera>`.
 
 4. Attach the `URPCallbackExample` script to Example Cube.
 
-5. Select __Play__. Unity prints the message from the script in the Console window each time Unity raises the `beginCameraRendering` event.
+5. Select **Play**. Unity prints the message from the script in the Console window each time Unity raises the `beginCameraRendering` event.
 
     ![Unity prints log message in console.](Images/customizing-urp/log-message-in-console.png)
 

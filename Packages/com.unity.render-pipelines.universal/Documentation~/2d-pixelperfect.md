@@ -65,14 +65,15 @@ The component's Inspector window
 
 ### Reference Resolution
 
-This is the original resolution your Assets are designed for. Scaling up Scenes and Assets from this resolution preserves your pixel art cleanly at higher resolutions.
+This is the original resolution your Assets are designed for. Scaling up scenes and assets from this resolution preserves your pixel art cleanly at higher resolutions.
 
 ### Grid Snapping options
+
 #### Upscale Render Texture
 
-By default, the Scene is rendered at the pixel perfect resolution closest to the full screen resolution.
+By default, the scene is rendered at the pixel perfect resolution closest to the full screen resolution.
 
-Enable this option to have the Scene rendered to a temporary texture set as close as possible to the **Reference Resolution**, while maintaining the full screen aspect ratio. This temporary texture is then upscaled to fit the entire screen.
+Enable this option to have the scene rendered to a temporary texture set as close as possible to the **Reference Resolution**, while maintaining the full screen aspect ratio. This temporary texture is then upscaled to fit the entire screen.
 
 ![Box examples](Images/2D/2D_Pix_image_8.png)
 

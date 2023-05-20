@@ -10,7 +10,7 @@ For information on differences between the rendering paths, see section [Renderi
 
 This section describes the Deferred Rendering Path.
 
-![Scene rendered with the Deferred Rendering Path](../Images/rendering-deferred/deferred-intro-image.png)<br/>*Sample Scene rendered with the Deferred Rendering Path.*
+![Scene rendered with the Deferred Rendering Path](../Images/rendering-deferred/deferred-intro-image.png)<br/>*Sample scene rendered with the Deferred Rendering Path.*
 
 This section contains the following topics:
 
@@ -401,7 +401,7 @@ In the Deferred Rendering Path, Unity combines Terrain layers in the G-buffer pa
 
 Unity combines the Material properties in the G-buffer using hardware blending (four layers at a time), which limits how correct the combination of property values is. For example, pixel normals cannot be correctly combined using the alpha blend equation alone, because one Terrain layer might contain coarse Terrain detail while another layer might contain fine detail. Averaging or summing normals results in loss of accuracy.
 
-> **NOTE:** Turning the setting [Accurate G-buffer normals](#accurate-g-buffer-normals) on breaks Terrain blending. With this setting turned on, Unity encodes normals using octahedron encoding. Normals in different layers encoded this way cannot be blended together because of the bitwise nature of the encoding (2 x 12 bits). If your application requires more than four Terrain layers, turn the **Accurate G-buffer normals** setting off.
+> **Note**: Turning the setting [Accurate G-buffer normals](#accurate-g-buffer-normals) on breaks Terrain blending. With this setting turned on, Unity encodes normals using octahedron encoding. Normals in different layers encoded this way cannot be blended together because of the bitwise nature of the encoding (2 x 12 bits). If your application requires more than four Terrain layers, turn the **Accurate G-buffer normals** setting off.
 
 <a name="terrain-visual-diff"></a>The following illustration shows the visual difference when rendering Terrain layers with different Rendering Paths.
 
@@ -419,7 +419,7 @@ In the Deferred Rendering Path, the Baked Indirect Lighting mode provides better
 
 ### Rendering layers
 
-URP implements the Rendering Layers feature that lets you configure which Lights in a Scene affect specific meshes. Lights assigned to a specific Rendering Layer only affect the meshes assigned to the same Rendering Layer.
+URP implements the Rendering Layers feature that lets you configure which Lights in a scene affect specific meshes. Lights assigned to a specific Rendering Layer only affect the meshes assigned to the same Rendering Layer.
 
 For more information on Rendering Layers, see the page [Rendering Layers](../features/rendering-layers.md).
 

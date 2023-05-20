@@ -1,10 +1,10 @@
 # Motion Blur
 
 ![Motion Blur off](Images/post-proc/motion-blur-off.png)
-<br/>_Scene with Motion Blur effect turned off._
+<br/>*Scene with Motion Blur effect turned off.*
 
 ![Motion Blur on](Images/post-proc/motion-blur.png)
-<br/>_Scene with Motion Blur effect turned on._
+<br/>*Scene with Motion Blur effect turned on.*
 
 The Motion Blur effect simulates the blur that occurs in an image when a real-world camera films objects moving faster than the camera’s exposure time. This is usually due to rapidly moving objects, or a long exposure time.
 
@@ -12,7 +12,7 @@ Universal Render Pipeline (URP) only blurs camera motions.
 
 ## Using Motion Blur
 
-**Motion Blur** uses the [Volume](Volumes.md) system, so to enable and modify **Motion Blur** properties, you must add a **Motion Blur** override to a [Volume](Volumes.md) in your Scene. To add **Motion Blur** to a Volume:
+**Motion Blur** uses the [Volume](Volumes.md) system, so to enable and modify **Motion Blur** properties, you must add a **Motion Blur** override to a [Volume](Volumes.md) in your scene. To add **Motion Blur** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing**, and click on **Motion Blur**. URP now applies **Motion Blur** to any Camera this Volume affects.

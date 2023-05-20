@@ -18,17 +18,17 @@ You _should not_ swap pipeline Assets from one pipeline to another at run time, 
 
 ## How do I update the Universal Render Pipeline package?
 
-You should update via the Package Manager. In the Unity Editor, go to __Unity__ > __Window__ > __Package Manager__, and find the __Universal RP__ package.
+You should update via the Package Manager. In the Unity Editor, go to **Unity** > **Window** > **Package Manager**, and find the **Universal RP** package.
 
 If you’ve added SRP code or Shader Graph manually via Github, make sure to upgrade them to the same package version as URP in your manifest file.
 
 ## Where has Dynamic Batching gone?
 
-The Dynamic Batching checkbox has moved from the __Player Settings__ to the [__URP Asset__](universalrp-asset.md).
+The Dynamic Batching checkbox has moved from the **Player Settings** to the [**URP Asset**](universalrp-asset.md).
 
 ## How do I enable Double Sided Global Illumination in the Editor?
 
-In the Material Inspector, find __Render Face__, and select __Both__. This means that both sides of your geometry contribute to global illumination, because URP doesn’t cull either side.
+In the Material Inspector, find **Render Face**, and select **Both**. This means that both sides of your geometry contribute to global illumination, because URP doesn’t cull either side.
 
 ## Is this render pipeline usable for desktop apps and games?
 

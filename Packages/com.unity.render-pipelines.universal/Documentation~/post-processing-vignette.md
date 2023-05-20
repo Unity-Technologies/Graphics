@@ -4,7 +4,7 @@ In photography, vignetting is the term for the darkening and/or desaturating tow
 
 ## Using Vignette
 
-**Vignette** uses the [Volume](Volumes.md) system, so to enable and modify **Vignette** properties, you must add a **Vignette** override to a [Volume](Volumes.md) in your Scene.
+**Vignette** uses the [Volume](Volumes.md) system, so to enable and modify **Vignette** properties, you must add a **Vignette** override to a [Volume](Volumes.md) in your scene.
 
 To add **Vignette** to a Volume:
 

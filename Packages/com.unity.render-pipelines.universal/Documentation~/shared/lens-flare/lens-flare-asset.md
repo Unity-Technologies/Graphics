@@ -10,18 +10,18 @@ To create a Lens Flare Data asset, select **Assets > Create > Lens Flare (SRP)**
 
 The Lens Flare Element asset has the following properties:
 
-- [Type](#type)
-  - [Image](#image)
-  - [Circle](#circle)
-  - [Polygon](#polygon)
-- [Color](#color)
-- [Transform](#transform)
-- [AxisTransform](#axistransform)
-- [Distortion](#Distortion)
-- [Multiple Elements](#Multiple-Elements)
-  - [Uniform](#uniform)
-  - [Curve](#Curve)
-  - [Random](#random)
+* [Type](#type)
+  * [Image](#image)
+  * [Circle](#circle)
+  * [Polygon](#polygon)
+* [Color](#color)
+* [Transform](#transform)
+* [AxisTransform](#axistransform)
+* [Distortion](#Distortion)
+* [Multiple Elements](#Multiple-Elements)
+  * [Uniform](#uniform)
+  * [Curve](#Curve)
+  * [Random](#random)
 
 ### <a name="type"></a>Type
 

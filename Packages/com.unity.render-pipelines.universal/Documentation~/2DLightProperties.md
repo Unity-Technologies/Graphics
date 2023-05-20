@@ -1,10 +1,10 @@
 # Common 2D Light Type properties
 Each 2D **Light Type** has various properties and options to customize their appearance and behavior. This page documents the properties that are common to all 2D **Light Types**. Select from the list below to refer to the specific properties of each of the available **Light Types**:
 
-- [Freeform](LightTypes.md#freeform)
-- [Sprite](LightTypes.md#sprite)
-- [Spot](LightTypes.md#spot) (**Note:** The **Point Light 2D** has been renamed to the **Spot Light 2D** from URP 11 onwards.)
-- [Global](LightTypes.md#global)
+* [Freeform](LightTypes.md#freeform)
+* [Sprite](LightTypes.md#sprite)
+* [Spot](LightTypes.md#spot) (**Note**: The **Point Light 2D** has been renamed to the **Spot Light 2D** from URP 11 onwards.)
+* [Global](LightTypes.md#global)
 
 
 ## Creating a Light
@@ -13,10 +13,10 @@ Each 2D **Light Type** has various properties and options to customize their app
 
 Create a **2D Light** GameObject by going to **GameObject > Light** and selecting one of the four available types:
 
-- **Freeform**: You can edit the shape of this Light type with a spline editor.
-- **Sprite**: You can select a Sprite to create this Light type.
-- **Spot**: You can control the inner and outer radius, direction and angle of this Light type.
-- **Global**: This 2D Light affects all rendered Sprites on all targeted sorting layers.
+* **Freeform**: You can edit the shape of this Light type with a spline editor.
+* **Sprite**: You can select a Sprite to create this Light type.
+* **Spot**: You can control the inner and outer radius, direction and angle of this Light type.
+* **Global**: This 2D Light affects all rendered Sprites on all targeted sorting layers.
 
 The following are the common properties used by the different Light types.
 
@@ -28,14 +28,14 @@ The following are the common properties used by the different Light types.
 | **Color**                                                    | Use the color picker to set the color of the emitted light.  |
 | **[Intensity](#intensity)**                                  | Enter the desired brightness value of the Light. The default value is 1. |
 | **Target Sorting Layers**                                    | Select the sorting layers that this Light targets and affects. |
-| **[Blend Style](LightBlendStyles.md)**                       | Select the blend style used by this Light. Different blend styles can be customized in the [2D Renderer Asset](2DRendererData-overview.md). |
+| **[Blend Style](LightBlendStyles.md)**                       | Select the blend style used by this Light. You can customize different blend styles in the [2D Renderer Asset](2DRendererData-overview.md). |
 | **[Light Order](#light-order)** (unavailable for **Global Lights**) | Enter a value here to specify the rendering order of this Light relative to other Lights on the same sorting layer(s). Lights with lower values are rendered first, and negative values are valid. |
 | **[Overlap Operation](#overlap-operation)**        | Select the overlap operation used by this light The operations available are **Additive**, and **Alpha Blend**. |
 | **Shadow Strength**                                         | Use the slider to control the amount of light that **Shadow Caster 2Ds** block when they obscure this Light. The value scales from 0 (no light is blocked) to 1 (all light is blocked). |
 | **Volumtric Intensity**                                           | Use the slider to select the opacity of the volumetric lighting. The value scales from 0 (transparent) to 1 (opaque). |
 | **Volumetric Shadow Strength**                                  | Use the slider to control the amount of volumetric light that **Shadow Caster 2Ds** block when they obscure this Light. The value scales from 0 (no light is blocked) to 1 (all light is blocked). |
-| **[Normal Map Quality](#quality)**                                      | Select either **Disabled** (degfault)m **Accurate** or **Fast** to adjust the accuracy of the lighting calculations used. |
-| **[Normal Map Distance](#distance)**  (available when **Use Normal Map** quality is enabled) | Enter the desired distance (in Unity units) between the Light and the lit Sprite. This does not Transform the position of the Light in the Scene. |
+| **[Normal Map Quality](#quality)**                                      | Select either **Disabled** (default), **Accurate** or **Fast** to adjust the accuracy of the lighting calculations used. |
+| **[Normal Map Distance](#distance)**  (available when **Use Normal Map** quality is enabled) | Enter the desired distance (in Unity units) between the Light and the lit Sprite. This does not Transform the position of the Light in the scene. |
 
 ## Intensity
 
@@ -67,7 +67,7 @@ All lights except for global lights can be toggled to use the normal maps in the
 
 ## Distance
 
-Distance controls the distance between the light and the surface of the Sprite, changing the resulting lighting effect. This distance does not affect intensity, or transform the position of the Light in the Scene. The following examples show the effects of changing the Distance values.
+Distance controls the distance between the light and the surface of the Sprite, changing the resulting lighting effect. This distance does not affect intensity, or transform the position of the Light in the scene. The following examples show the effects of changing the Distance values.
 
 | ![Distance: 0.5](Images/2D/image_13.png) | ![Distance: 2](Images/2D/image_14.png) | ![Distance: 8](Images/2D/image_15.png) |
 | ------------------------------------- | ----------------------------------- | ----------------------------------- |
@@ -75,7 +75,7 @@ Distance controls the distance between the light and the surface of the Sprite, 
 
 ## Quality
 
-Light quality allows the developer to choose between performance and accuracy. When choosing performance, artefacts may occur.  Smaller lights and larger distance values will reduce the difference between fast and accurate.
+Light quality allows the developer to choose between performance and accuracy. When choosing performance, artefacts may occur. Smaller lights and larger distance values will reduce the difference between fast and accurate.
 
 ## Volume Opacity
 

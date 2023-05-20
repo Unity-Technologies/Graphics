@@ -8,17 +8,17 @@ If you have a Camera that is rendering to a Render Texture, you must have a seco
 ![Rendering to a Render Texture in URP](Images/camera-inspector-output-target.png)
 
 Create a Render Texture Asset in your Project using **Assets** > **Create** > **Render Texture**.
-Create a Quad in your Scene.
+Create a Quad in your scene.
 Create a Material in your Project, and select it. In the Inspector, drag the Render Texture to the Material's **Base Map** field.
 In the Scene view, drag the Material on to the Quad.
-Create a Camera in your Scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
+Create a Camera in your scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
 Select the Base Camera.
 In the Inspector, scroll to the Output section.
 Set the Camera’s  **Output Target** to **Texture**, and drag the Render Texture on to the **Texture** field.
-Create another Camera in your Scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
+Create another Camera in your scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
 Place the Quad within the view of the new Base Camera.
 
-The first Camera renders its view to the Render Texture. The second Camera renders the Scene including the Render Texture to the screen.
+The first Camera renders its view to the Render Texture. The second Camera renders the scene including the Render Texture to the screen.
 
 You can set the Output Target for a Camera in a script by setting the `cameraOutput` property of the Camera's  [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 

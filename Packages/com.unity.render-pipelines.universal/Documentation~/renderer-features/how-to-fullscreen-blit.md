@@ -18,19 +18,19 @@ This example requires the following:
 
 * The **Scriptable Render Pipeline Settings** property refers to a URP asset (**Project Settings** > **Graphics** > **Scriptable Render Pipeline Settings**).
 
-## <a name="example-objects"></a>Create example Scene and GameObjects
+## <a name="example-objects"></a>Create example scene and GameObjects
 
-To follow the steps in this example, create a new Scene with the following GameObjects:
+To follow the steps in this example, create a new scene with the following GameObjects:
 
 1. Create a Cube. Ensure that the Cube is clearly visible from the main Camera.
 
     ![](../Images/how-to/blit/example-scene.png)
 
-Now you have the Scene necessary to follow the steps in this example.
+Now you have the scene necessary to follow the steps in this example.
 
 ## Example implementation
 
-This section assumes that you created a Scene as described in section [Create example Scene and GameObjects](#example-objects).
+This section assumes that you created a scene as described in section [Create example scene and GameObjects](#example-objects).
 
 Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/api/UnityEngine.Rendering.Universal.ScriptableRendererFeature.html) with a custom [Render Pass](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/api/UnityEngine.Rendering.Universal.ScriptableRenderPass.html).
 
@@ -86,7 +86,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
     This Render Pass uses the `Blitter.BlitCameraTexture` method to draw a full-screen quad and perform the blit operation.
 
-    > **NOTE:** Do not use the `cmd.Blit` method in URP XR projects because that method has compatibility issues with the URP XR integration. Using `cmd.Blit` might implicitly enable or disable XR shader keywords, which breaks XR SPI rendering.
+    > **Note**: Do not use the `cmd.Blit` method in URP XR projects because that method has compatibility issues with the URP XR integration. Using `cmd.Blit` might implicitly enable or disable XR shader keywords, which breaks XR SPI rendering.
 
     ```C#
     using UnityEngine;
@@ -190,8 +190,8 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
 5. Unity shows the following views:
 
-    ![Final Scene and Game views](../Images/how-to/blit/final-scene-and-game-view.png)
+    ![Final scene and Game views](../Images/how-to/blit/final-scene-and-game-view.png)
 
-    > **NOTE:** To visualize the example in XR, configure the project to use XR SDK. [Add the MockHMD XR Plugin to the project](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/index.html). Set the **Render Mode** property to **Single Pass Instanced**.
+    > **Note**: To visualize the example in XR, configure the project to use XR SDK. [Add the MockHMD XR Plugin to the project](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/index.html). Set the **Render Mode** property to **Single Pass Instanced**.
 
 The example is complete.

@@ -18,7 +18,7 @@ This page contains the following sections:
 
 Create the sample scene to follow the steps in this section:
 
-1. Install URP into an existing Unity project, or create a new project using the [__Universal Project Template__](creating-a-new-project-with-urp.md).
+1. Install URP into an existing Unity project, or create a new project using the [**Universal Project Template**](creating-a-new-project-with-urp.md).
 
 2. In the sample Scene, create a plane GameObject and place it so that it occludes some of the GameObjects.
 
@@ -28,7 +28,7 @@ Create the sample scene to follow the steps in this section:
 
 4. Create a new shader and assign it to the material. Copy and paste the Unity shader source code from the page [URP unlit basic shader](writing-shaders-urp-basic-unlit-structure.md).
 
-5. Select the URP Asset. If you created the project using the Universal Render Pipeline template, the URP Asset path is `Assets/Settings/UniversalRP-HighQuality`.
+5. Select the URP Asset.
 
 6. In the URP Asset, in the General section, enable `Depth Texture`.
 

@@ -8,7 +8,7 @@ The example on this page describes how to create a custom rendering effect with 
 
 The example on this page demonstrates how to implement the following effect:
 
-* There is a character in the Scene.
+* There is a character in the scene.
 
     ![Character](../Images/how-to-render-objects/character.png)
 
@@ -26,7 +26,7 @@ This example requires the following:
 
 ## Create example Scene and GameObjects<a name="example-objects"></a>
 
-To follow the steps in this example, create a new Scene with the following GameObjects:
+To follow the steps in this example, create a new scene with the following GameObjects:
 
 1. Create a Cube. Set its **Scale** values so that it looks like a wall.
 
@@ -38,7 +38,7 @@ To follow the steps in this example, create a new Scene with the following GameO
 
     ![The character consisting of three capsules](../Images/how-to-render-objects/character-views-side-top-persp.png)
 
-    To make it easier to manipulate the character in the Scene, add the three Capsules as child GameObjects under the Character GameObject.
+    To make it easier to manipulate the character in the scene, add the three Capsules as child GameObjects under the Character GameObject.
 
     ![Character objects in Hierarchy](../Images/how-to-render-objects/character-in-hierarchy.png)
 
@@ -48,7 +48,7 @@ Now you have the setup necessary to follow the steps in this example.
 
 ## Example implementation
 
-This section assumes that you created a Scene as described in section [Example Scene and GameObjects](#example-objects).
+This section assumes that you created a scene as described in section [Example scene and GameObjects](#example-objects).
 
 The example implementation uses two Render Objects Renderer Features: one to draw parts of the character that are behind other GameObjects, and another one to draw the parts of the character that are in front of other GameObjects.
 
@@ -139,4 +139,4 @@ With the extra `Character` Renderer Feature, Unity renders GameObjects as follow
 
 3. The `Character` Renderer Feature draws parts of the character that are in front of other GameObjects. This happens in the **AfterRenderingOpaques** event, and after executing the `DrawCharacterBehind` Renderer Feature.
 
-To see another use case of the Render Objects Renderer Feature, refer to the **Object Occlusion** Scene in the [Universal Rendering Examples](https://github.com/Unity-Technologies/UniversalRenderingExamples) project.
+To see another use case of the Render Objects Renderer Feature, refer to the **Object Occlusion** scene in the [Universal Rendering Examples](https://github.com/Unity-Technologies/UniversalRenderingExamples) project.

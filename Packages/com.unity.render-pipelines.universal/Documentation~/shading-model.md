@@ -2,10 +2,10 @@
 
 A shading model defines how a Material’s color varies depending on factors such as surface orientation, viewer direction, and lighting. Your choice of a shading model depends on the artistic direction and performance budget of your application. Universal Render Pipeline (URP) provides Shaders with the following shading models:
 
-- [Physically Based Shading](#physically-based-shading)
-- [Simple Shading](#simple-shading)
-- [Baked Lit Shading](#baked-lit-shading)
-- [No lighting](#shaders-with-no-lighting)
+* [Physically Based Shading](#physically-based-shading)
+* [Simple Shading](#simple-shading)
+* [Baked Lit Shading](#baked-lit-shading)
+* [No lighting](#shaders-with-no-lighting)
 
 ## Physically Based Shading
 
@@ -24,10 +24,10 @@ Light attenuation is only affected by the light intensity. This means that you d
 
 The following URP Shaders use Physically Based Shading:
 
-- [Lit](lit-shader.md)
-- [Particles Lit](particles-lit-shader.md)
+* [Lit](lit-shader.md)
+* [Particles Lit](particles-lit-shader.md)
 
-**Note:** This shading model is not suitable for low-end mobile hardware. If you’re targeting this hardware, use Shaders with a [Simple Shading](#simple-shading) model.
+> **Note**: This shading model is not suitable for low-end mobile hardware. If you’re targeting this hardware, use Shaders with a [Simple Shading](#simple-shading) model.
 
 To read more about Physically Based Rendering, see [this walkthrough by Joe Wilson on Marmoset](https://marmoset.co/posts/physically-based-rendering-and-you-can-too/).
 ## Simple shading
@@ -40,12 +40,12 @@ Light attenuation is only affected by the light intensity.
 
 The following URP Shaders use Simple Shading:
 
-- [Simple Lit](simple-lit-shader.md)
-- [Particles Simple Lit](particles-simple-lit-shader.md)
+* [Simple Lit](simple-lit-shader.md)
+* [Particles Simple Lit](particles-simple-lit-shader.md)
 
 ## Baked Lit shading
 
-The Baked Lit shading model doesn’t have real-time lighting. Materials can receive [baked lighting](https://docs.unity3d.com/Manual/LightMode-Baked.html) from either [lightmaps](https://docs.unity3d.com/Manual/Lightmapping.html) or [Light Probes](<https://docs.unity3d.com/Manual/LightProbes.html>). This adds some depth to your Scenes at a small performance cost. Games with this shading model can run on less powerful platforms.
+The Baked Lit shading model doesn’t have real-time lighting. Materials can receive [baked lighting](https://docs.unity3d.com/Manual/LightMode-Baked.html) from either [lightmaps](https://docs.unity3d.com/Manual/Lightmapping.html) or [Light Probes](<https://docs.unity3d.com/Manual/LightProbes.html>). This adds some depth to your scenes at a small performance cost. Games with this shading model can run on less powerful platforms.
 
 The URP Baked Lit shader is the only shader that uses the Baked Lit shading model.
 
@@ -54,5 +54,5 @@ The URP Baked Lit shader is the only shader that uses the Baked Lit shading mode
 URP comes with some Shaders that are Unlit. This means that they have no directional lights and no baked lighting. Because there are no light calculations, these shaders compile faster than Shaders with lighting. If you know in advance that your GameObject or visual doesn’t need lighting, choose an Unlit shader to save calculation and build time in your final product.
 
 The following URP Shaders have no lighting:
-- [Unlit](unlit-shader.md)
-- [Particles Unlit](particles-unlit-shader.md)
+* [Unlit](unlit-shader.md)
+* [Particles Unlit](particles-unlit-shader.md)

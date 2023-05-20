@@ -2,16 +2,16 @@
 
 Aliasing is a side effect that happens when a digital sampler samples real-world information and attempts to digitize it. For example, when you sample audio or video, aliasing means that the shape of the digital signal doesn't match the shape of the original signal. This means when Unity renders a line, it may appear jagged as the pixels don't align perfectly with the line's intended path across the screen.
 
-![An example of the rasterization process creating some aliasing.](Images/aliasing-example.png)</br>*An example of the rasterization process creating aliasing.*
+![An example of the rasterization process creating some aliasing.](Images/aliasing-example.png)<br/>*An example of the rasterization process creating aliasing.*
 
 To prevent aliasing, the Universal Render Pipeline (URP) has multiple methods of anti-aliasing, each with their own effectiveness and resource intensity.
 
 The anti-aliasing methods available are:
 
-- [Fast Approximate Anti-aliasing (FXAA)](#fxaa)
-- [Subpixel Morphological Anti-aliasing (SMAA)](smaa)
-- [Temporal Anti-aliasing (TAA)](#taa)
-- [Multisample Anti-aliasing (MSAA)](#msaa)
+* [Fast Approximate Anti-aliasing (FXAA)](#fxaa)
+* [Subpixel Morphological Anti-aliasing (SMAA)](smaa)
+* [Temporal Anti-aliasing (TAA)](#taa)
+* [Multisample Anti-aliasing (MSAA)](#msaa)
 
 ## Fast Approximate Anti-aliasing (FXAA)<a name="fxaa"></a>
 
@@ -42,9 +42,9 @@ To select TAA for a Camera:
 
 The following features cannot be used with TAA:
 
-- Multisample anti-aliasing (MSAA)
-- [Camera Stacking](camera-stacking.md)
-- [Dynamic Resolution](https://docs.unity3d.com/Manual/DynamicResolution.html)
+* Multisample anti-aliasing (MSAA)
+* [Camera Stacking](camera-stacking.md)
+* [Dynamic Resolution](https://docs.unity3d.com/Manual/DynamicResolution.html)
 
 ## Multisample Anti-aliasing (MSAA)<a name="msaa"></a>
 
@@ -61,4 +61,4 @@ To enable MSAA:
 
 For more information on the available settings, see the [MSAA setings in the URP Asset](universalrp-asset.md#quality).
 
-**Note**: On mobile platforms that don't support the [StoreAndResolve](https://docs.unity3d.com/ScriptReference/Rendering.RenderBufferStoreAction.StoreAndResolve.html) store action, if **Opaque Texture** is selected in the **URP Asset**, Unity ignores the **MSAA** property at runtime (as if **MSAA** is set to **Disabled**).
+> **Note**: On mobile platforms that don't support the [StoreAndResolve](https://docs.unity3d.com/ScriptReference/Rendering.RenderBufferStoreAction.StoreAndResolve.html) store action, if **Opaque Texture** is selected in the **URP Asset**, Unity ignores the **MSAA** property at runtime (as if **MSAA** is set to **Disabled**).

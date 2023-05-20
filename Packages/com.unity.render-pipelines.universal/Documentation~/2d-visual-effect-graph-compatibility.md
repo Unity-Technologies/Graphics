@@ -12,11 +12,11 @@ To create a Visual Effect Graph asset (VFX asset):
 
 1. Create a new VFX asset by selecting **Assets > Create > Visual Effects > Visual Effect Graph**. The VFX asset is then created in the `Asset` folder of the Project window.
    ![](Images/2D/visual-effect-asset-1.png)
-   </br>
+   <br/>
 
 2. Double-click the asset to open the **Visual Effect Graph**. To choose a Shader Graph asset, go to the **Output Particle Quad** pane and locate **Shader Graph** and select the asset picker (circle).
    ![](Images/2D/visual-effect-asset-2.png)
-   </br>
+   <br/>
 
 3. In the **Select VFX Shader Graph** window, open the context menu (right-click) and enable **Show Packages results**.
    ![](Images/2D/visual-effect-asset-3.png)
@@ -28,16 +28,16 @@ To light a Visual Effect:
 
 1. Create a Visual Effect GameObject in the **Hierarchy** window.
    ![](Images/2D/visual-effect-1.png)
-   </br>
+   <br/>
 
 2. In the **Visual Effect** properties, locate **Asset Template** and select the asset picker (circle). In the **Select VisualEffectAsset** window, select the VFX asset [created earlier](#create-a-visual-effect-graph-asset).
    ![](Images/2D/visual-effect-2.png)
-   </br>
+   <br/>
 
 3. To light the Visual Effect, add [2D light(s)](Lights-2D-intro.md) to the scene.
    ![](Images/2D/visual-effect-3.png)
-   </br>
+   <br/>
 
 ## Additional resources
 
-- [Using a Shader Graph in a visual effect](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest?subfolder=/manual/sg-working-with.html#using-a-shader-graph-in-a-visual-effect)
+* [Using a Shader Graph in a visual effect](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest?subfolder=/manual/sg-working-with.html#using-a-shader-graph-in-a-visual-effect)

@@ -9,7 +9,7 @@ Use a Camera’s **Render Type** property to make it a Base Camera or an Overlay
 
 To change the type of a Camera in the Unity Editor:
 
-1. Create or select a Camera in your Scene.
+1. Create or select a Camera in your scene.
 
 2. In the Camera Inspector, use the **Render Type** drop-down menu to select a different type of Camera. Select either:
 
@@ -30,9 +30,9 @@ cameraData.renderType = CameraRenderType.Base;
 
 Base Camera is the default type of Camera in URP. A Base Camera is a general purpose Camera that renders to a given render target.
 
-To render anything in URP, you must have at least one Base Camera in your Scene. You can have multiple Base Cameras in a Scene. You can use a Base Camera on its own, or you can use it in a [Camera stack](camera-stacking.md). For more information on working with multiple Cameras in URP, see [Working with multiple cameras](cameras-multiple.md).
+To render anything in URP, you must have at least one Base Camera in your scene. You can have multiple Base Cameras in a scene. You can use a Base Camera on its own, or you can use it in a [Camera stack](camera-stacking.md). For more information on working with multiple Cameras in URP, see [Working with multiple cameras](cameras-multiple.md).
 
-When you have an active Base Camera in your Scene, this icon appears next to the Camera Gizmo in the Scene view:
+When you have an active Base Camera in your scene, this icon appears next to the Camera Gizmo in the Scene view:
 
 ![Overlay Camera icon](Images/camera-icon-base.png)
 
@@ -46,13 +46,13 @@ An Overlay Camera is a Camera that renders its view on top of another Camera's o
 
 You must use Overlay Cameras in conjunction with one or more Base Cameras using the [Camera Stacking](camera-stacking.md) system. You cannot use Overlay Cameras on their own. An Overlay Camera that is not part of a Camera Stack does not perform any steps of its render loop, and is known as an orphan Camera.
 
-__Important note:__ In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer.
+> **Note**: In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer.
 
-When you have an active Overlay Camera in your Scene, this icon appears next to the Camera Gizmo in the Scene view:
+When you have an active Overlay Camera in your scene, this icon appears next to the Camera Gizmo in the Scene view:
 
 ![Overlay Camera icon](Images/camera-icon-overlay.png)
 
-The Base Camera in a Camera Stack determines most of the properties of the Camera Stack. Because you can only use Overlay Cameras in a Camera Stack, URP uses only the following properties of an Overlay Camera when rendering the Scene:
+The Base Camera in a Camera Stack determines most of the properties of the Camera Stack. Because you can only use Overlay Cameras in a Camera Stack, URP uses only the following properties of an Overlay Camera when rendering the scene:
 
 * Projection
 * FOV Axis

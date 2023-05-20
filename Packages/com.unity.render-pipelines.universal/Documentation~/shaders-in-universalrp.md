@@ -2,20 +2,20 @@
 
 URP provides the following Shaders for the most common use case scenarios:
 
-- [Complex Lit](shader-complex-lit.md)
-- [Lit](lit-shader.md)
-- [Simple Lit](simple-lit-shader.md)
-- [Baked Lit](baked-lit-shader.md)
-- [Unlit](unlit-shader.md)
-- [Terrain Lit](shader-terrain-lit.md)
-- [Particles Lit](particles-lit-shader.md)
-- [Particles Simple Lit](particles-simple-lit-shader.md)
-- [Particles Unlit](particles-unlit-shader.md)
-- [SpeedTree](speedtree.md)
-- [Decal](decal-shader.md)
-- Autodesk Interactive
-- Autodesk Interactive Transparent
-- Autodesk Interactive Masked
+* [Complex Lit](shader-complex-lit.md)
+* [Lit](lit-shader.md)
+* [Simple Lit](simple-lit-shader.md)
+* [Baked Lit](baked-lit-shader.md)
+* [Unlit](unlit-shader.md)
+* [Terrain Lit](shader-terrain-lit.md)
+* [Particles Lit](particles-lit-shader.md)
+* [Particles Simple Lit](particles-simple-lit-shader.md)
+* [Particles Unlit](particles-unlit-shader.md)
+* [SpeedTree](speedtree.md)
+* [Decal](decal-shader.md)
+* Autodesk Interactive
+* Autodesk Interactive Transparent
+* Autodesk Interactive Masked
 
 ## Shader compatibility
 

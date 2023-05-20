@@ -1,6 +1,6 @@
 # URP unlit shader with color input
 
-The Unity shader in this example adds the __Base Color__ property to the Material. You can select the color using that property and the shader fills the mesh shape with the color.
+The Unity shader in this example adds the **Base Color** property to the Material. You can select the color using that property and the shader fills the mesh shape with the color.
 
 Use the Unity shader source file from section [URP unlit basic shader](writing-shaders-urp-basic-unlit-structure.md) and make the following changes to the ShaderLab code:
 
@@ -13,7 +13,7 @@ Use the Unity shader source file from section [URP unlit basic shader](writing-s
     }
     ```
 
-    This declaration adds the `_BaseColor` property with the label __Base Color__ to the Material:
+    This declaration adds the `_BaseColor` property with the label **Base Color** to the Material:
 
     ![Base Color property on a Material](Images/shader-examples/urp-material-prop-base-color.png)
 
@@ -23,7 +23,7 @@ Use the Unity shader source file from section [URP unlit basic shader](writing-s
 
 2. When you declare a property in the Properties block, you also need to declare it in the HLSL code.
 
-    > __NOTE__: To ensure that the Unity shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`. For more information on the SRP Batcher, see the page [Scriptable Render Pipeline (SRP) Batcher](https://docs.unity3d.com/Manual/SRPBatcher.html).
+    > **Note**: To ensure that the Unity shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`. For more information on the SRP Batcher, see the page [Scriptable Render Pipeline (SRP) Batcher](https://docs.unity3d.com/Manual/SRPBatcher.html).
 
     Add the following code before the vertex shader:
 

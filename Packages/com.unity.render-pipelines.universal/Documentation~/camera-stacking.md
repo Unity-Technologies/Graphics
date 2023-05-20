@@ -14,8 +14,8 @@ For examples of how to use Camera Stacking, see the [Camera Stacking samples in 
 
 ![Adding a Camera to a Camera Stack](Images/camera-stack-add-camera.png)
 
-1. Create a Camera in your Scene. Its **Render Type** defaults to **Base**, making it a Base Camera.
-2. Create another Camera in your Scene, and select it.
+1. Create a Camera in your scene. Its **Render Type** defaults to **Base**, making it a Base Camera.
+2. Create another Camera in your scene, and select it.
 3. In the Camera Inspector, change the Camera’s  **Render Type** to **Overlay**.
 4. Select the Base Camera again. In the Camera Inspector, scroll to the Stack section, click the **plus (+)** button, and click the name of the Overlay Camera.
 
@@ -36,7 +36,7 @@ cameraData.cameraStack.Add(myOverlayCamera);
 2. Select the Camera Stack's Base Camera.
 3. In the Camera Inspector, scroll to the Stack section, click the name of the Overlay Camera you want to remove, and then click the **minus (-)** button.
 
-The Overlay Camera remains in the Scene, but is no longer part of the Camera Stack.
+The Overlay Camera remains in the scene, but is no longer part of the Camera Stack.
 
 You can remove a Camera from a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 
@@ -63,7 +63,7 @@ You can reorder a Camera Stack in a script by directly manipulating the `cameraS
 To add an Overlay Camera to multiple Camera Stacks:
 
 1. Create a Camera Stack that contains at least one Overlay Camera. For instructions, see [Adding a Camera to a Camera Stack](#adding-a-camera-to-a-camera-stack).
-2. Create a Camera in your Scene. Its **Render Type** defaults to **Base**, making it a Base Camera.
+2. Create a Camera in your scene. Its **Render Type** defaults to **Base**, making it a Base Camera.
 3. Select the new Base Camera.
 4. In the Camera Inspector, scroll to the Stack section, click the *plus (+)* button, and click the name of the Overlay Camera that you want to use in both Camera Stacks.
 
