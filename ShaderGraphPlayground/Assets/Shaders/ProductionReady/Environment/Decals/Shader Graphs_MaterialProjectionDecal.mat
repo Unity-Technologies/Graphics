@@ -66,6 +66,6 @@ Material:
     - _DecalMeshDepthBias: 0
     - _DecalMeshViewBias: 0
     - _DrawOrder: 0
-    - _TilesPerMeter: 1
+    - _TilesPerMeter: 0.3
     m_Colors: []
   m_BuildTextureStacks: []
