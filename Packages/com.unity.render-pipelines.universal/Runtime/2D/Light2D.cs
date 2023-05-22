@@ -373,13 +373,23 @@ namespace UnityEngine.Rendering.Universal
                 m_Vertices = new LightUtility.LightMeshVertex[1];
                 m_Triangles = new ushort[1];
             }
-            return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite, LightBatch.GetBatchColor(batchSlotIndex));
+            return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite, LightBatch.GetBatchColor());
         }
 
         internal void UpdateBatchSlotIndex()
         {
             if (lightMesh && lightMesh.colors != null && lightMesh.colors.Length != 0)
                 m_BatchSlotIndex = LightBatch.GetBatchSlotIndex(lightMesh.colors[0].b);
+        }
+
+        internal bool NeedsColorIndexBaking()
+        {
+            if (lightMesh)
+            {
+                if (lightMesh.colors.Length != 0)
+                    return lightMesh.colors[0].b == 0;
+            }
+            return true;
         }
 
         internal void UpdateMesh(bool forceUpdate = false)
@@ -393,12 +403,12 @@ namespace UnityEngine.Rendering.Universal
             var shapePathHashChanged = LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash);
             var lightTypeChanged = LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
             var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
-                parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged;
+                parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged || NeedsColorIndexBaking();
 
             // Mesh Rebuilding
             if (hashChanged || forceUpdate)
             {
-                var batchChannelColor = LightBatch.GetBatchColor(batchSlotIndex);
+                var batchChannelColor = LightBatch.GetBatchColor();
 
                 switch (m_LightType)
                 {
