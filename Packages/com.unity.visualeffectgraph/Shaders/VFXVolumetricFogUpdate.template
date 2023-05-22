@@ -170,7 +170,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
     // Fill indirect buffer
     if (attributes.alive && maxSliceCount[instanceActiveIndex] > 0 && hitSliceCount > 0)
     {
-        AppendOutputBuffer(outputBuffer, index, instanceActiveIndex, maxSliceCount[0]);
+        AppendOutputBuffer(outputBuffer, index, instanceActiveIndex, maxSliceCount[instanceActiveIndex]);
     }
 
 #endif

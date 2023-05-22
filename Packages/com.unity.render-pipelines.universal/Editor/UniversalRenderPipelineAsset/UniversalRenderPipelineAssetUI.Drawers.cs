@@ -574,7 +574,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(serialized.volumeProfileProp, Styles.volumeProfileLabel);
             var profile = serialized.volumeProfileProp.objectReferenceValue as VolumeProfile;
-            if (EditorGUI.EndChangeCheck() && UniversalRenderPipeline.asset == serialized.serializedObject.targetObject)
+            if (EditorGUI.EndChangeCheck() && UniversalRenderPipeline.asset == serialized.serializedObject.targetObject && RenderPipelineManager.currentPipeline is UniversalRenderPipeline)
                 VolumeManager.instance.SetQualityDefaultProfile(serialized.volumeProfileProp.objectReferenceValue as VolumeProfile);
 
             var contextMenuButtonRect = GUILayoutUtility.GetRect(CoreEditorStyles.contextMenuIcon,

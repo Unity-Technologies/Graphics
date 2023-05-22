@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal ViewResources tmpView1;
         }
 
-        public static bool SetupFeature(HDRenderPipelineGlobalSettings pipelineSettings = null)
+        public static bool SetupFeature()
         {
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             if (!NVIDIA.NVUnityPlugin.IsLoaded())
@@ -143,34 +143,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
-            if (!SystemInfo.graphicsDeviceVendor.ToLower().Contains("nvidia"))
+            if (!SystemInfo.graphicsDeviceVendor.Contains("nvidia", StringComparison.OrdinalIgnoreCase))
                 return false;
 
-            NVIDIA.GraphicsDevice device = null;
-            if (pipelineSettings != null && pipelineSettings.useDLSSCustomProjectId)
-            {
-                device = NVIDIA.GraphicsDevice.CreateGraphicsDevice(pipelineSettings.DLSSProjectId);
-            }
-            else
-            {
-                device = NVIDIA.GraphicsDevice.CreateGraphicsDevice();
-            }
-
-            if (device == null)
-                return false;
-
-            return device.IsFeatureAvailable(NVIDIA.GraphicsDeviceFeature.DLSS);
+            var device = NVIDIA.GraphicsDevice.CreateGraphicsDevice();
+            return device != null && device.IsFeatureAvailable(NVIDIA.GraphicsDeviceFeature.DLSS);
 #else
             return false;
 #endif
         }
 
-        public static DLSSPass Create(HDRenderPipelineGlobalSettings pipelineSettings = null)
+        public static DLSSPass Create()
         {
             DLSSPass dlssPass = null;
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-            if (!SetupFeature(pipelineSettings))
+            if (!SetupFeature())
                 return null;
 
             dlssPass = new DLSSPass(NVIDIA.GraphicsDevice.device);
@@ -636,7 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (IsOptimalSettingsValid(optimalSettings) && enableAutomaticSettings)
                 {
                     dynamicResolutionSettings.maxPercentage = Mathf.Min((float)optimalSettings.maxWidth / finalViewport.width, (float)optimalSettings.maxHeight / finalViewport.height) * 100.0f;
-                    dynamicResolutionSettings.minPercentage = Mathf.Max((float)optimalSettings.minWidth / finalViewport.width, (float)optimalSettings.minHeight / finalViewport.height) * 100.0f;                    
+                    dynamicResolutionSettings.minPercentage = Mathf.Max((float)optimalSettings.minWidth / finalViewport.width, (float)optimalSettings.minHeight / finalViewport.height) * 100.0f;
                     DynamicResolutionHandler.SetSystemDynamicResScaler(cameraState.ScaleDelegate, DynamicResScalePolicyType.ReturnsPercentage);
                     DynamicResolutionHandler.SetActiveDynamicScalerSlot(DynamicResScalerSlot.System);
                 }

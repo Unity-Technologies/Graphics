@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering
             m_RenderersLayerMask = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.renderersLayerMask));
             m_FreezePlacement = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.freezePlacement));
             m_ProbeVolumeBakingSettings = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.settings));
-            m_LightingScenarios = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.lightingScenarios));
+            m_LightingScenarios = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.m_LightingScenarios));
 
             if (ProbeReferenceVolume.instance.enableScenarioBlending)
             {
@@ -302,7 +302,7 @@ namespace UnityEditor.Rendering
             m_Scenarios.drawElementCallback = (rect, index, active, focused) =>
             {
                 ProbeVolumeLightingTab.SplitRectInThree(rect, out var left, out var middle, out var right, 70);
-                var scenarioName = bakingSet.lightingScenarios[index];
+                var scenarioName = bakingSet.m_LightingScenarios[index];
 
                 // Status
                 if (index < scenariosStatuses.Length && scenariosStatuses[index] != ScenariosStatus.Valid)
@@ -359,14 +359,14 @@ namespace UnityEditor.Rendering
                             {
                                 AssetDatabase.StartAssetEditing();
                                 Undo.RegisterCompleteObjectUndo(bakingSet, s_RenameScenarioUndoName);
-                                bakingSet.RenameScenario(scenarioName, name);
+                                name = bakingSet.RenameScenario(scenarioName, name);
                             }
                             finally
                             {
+                                AssetDatabase.StopAssetEditing();
                                 m_LightingScenarios.GetArrayElementAtIndex(index).stringValue = name;
                                 serializedObject.Update();
                                 serializedObject.ApplyModifiedProperties();
-                                AssetDatabase.StopAssetEditing();
 
                                 SetActiveScenario(name);
                                 UpdateScenarioStatuses();
@@ -378,7 +378,7 @@ namespace UnityEditor.Rendering
 
             m_Scenarios.onSelectCallback = (ReorderableList list) =>
             {
-                SetActiveScenario(bakingSet.lightingScenarios[list.index]);
+                SetActiveScenario(bakingSet.m_LightingScenarios[list.index]);
                 SceneView.RepaintAll();
                 Repaint();
             };
@@ -388,7 +388,6 @@ namespace UnityEditor.Rendering
                 serializedObject.ApplyModifiedProperties();
                 Undo.RegisterCompleteObjectUndo(bakingSet, "Added new lighting scenario");
                 var scenario = bakingSet.CreateScenario("New Lighting Scenario");
-                EditorUtility.SetDirty(bakingSet);
                 serializedObject.Update();
 
                 UpdateScenarioStatuses();
@@ -401,7 +400,7 @@ namespace UnityEditor.Rendering
                     EditorUtility.DisplayDialog("Can't delete scenario", "You can't delete the last scenario. You need to have at least one.", "Ok");
                     return;
                 }
-                var scenario = bakingSet.lightingScenarios[list.index];
+                var scenario = bakingSet.m_LightingScenarios[list.index];
                 if (!EditorUtility.DisplayDialog("Delete the selected scenario?", $"Deleting the scenario will also delete corresponding baked data on disk.\nDo you really want to delete the scenario '{scenario}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
                     return;
                 serializedObject.ApplyModifiedProperties();
@@ -417,7 +416,7 @@ namespace UnityEditor.Rendering
                 finally
                 {
                     AssetDatabase.StopAssetEditing();
-                    SetActiveScenario(bakingSet.lightingScenarios[0]);
+                    SetActiveScenario(bakingSet.m_LightingScenarios[0]);
                     UpdateScenarioStatuses();
                 }
             };
@@ -435,11 +434,13 @@ namespace UnityEditor.Rendering
             DateTime? refTime = null;
             string mostRecentState = null;
 
-            foreach (var state in bakingSet.lightingScenarios)
+            foreach (var state in bakingSet.m_LightingScenarios)
             {
                 if (bakingSet.scenarios.TryGetValue(state, out var stateData) && stateData.cellDataAsset != null)
                 {
                     var dataPath = stateData.cellDataAsset.GetAssetPath();
+                    if (string.IsNullOrEmpty(dataPath))
+                        continue;
                     var time = System.IO.File.GetLastWriteTime(dataPath);
                     if (refTime == null || time > refTime)
                     {
@@ -449,7 +450,8 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            UpdateScenarioStatuses(mostRecentState);
+            if (mostRecentState != null)
+                UpdateScenarioStatuses(mostRecentState);
         }
 
         internal void UpdateScenarioStatuses(string mostRecentState)
@@ -458,7 +460,7 @@ namespace UnityEditor.Rendering
 
             var initialStatus = ProbeVolumeLightingTab.AllSetScenesAreLoaded(bakingSet) ? ScenariosStatus.Valid : ScenariosStatus.NotLoaded;
 
-            scenariosStatuses = new ScenariosStatus[bakingSet.lightingScenarios.Count];
+            scenariosStatuses = new ScenariosStatus[bakingSet.m_LightingScenarios.Count];
 
             for (int i = 0; i < scenariosStatuses.Length; i++)
             {
@@ -466,7 +468,7 @@ namespace UnityEditor.Rendering
                 if (initialStatus == ScenariosStatus.NotLoaded)
                     continue;
 
-                if (!bakingSet.scenarios.TryGetValue(bakingSet.lightingScenarios[i], out var stateData) || stateData.cellDataAsset == null)
+                if (!bakingSet.scenarios.TryGetValue(bakingSet.m_LightingScenarios[i], out var stateData) || stateData.cellDataAsset == null)
                 {
                     scenariosStatuses[i] = ScenariosStatus.NotBaked;
                     continue;

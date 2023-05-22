@@ -163,10 +163,10 @@ namespace UnityEngine.Rendering.Universal
 
         Mesh m_Mesh;
 
-        [SerializeField]
+        [NonSerialized]
         private LightUtility.LightMeshVertex[] m_Vertices = new LightUtility.LightMeshVertex[1];
 
-        [SerializeField]
+        [NonSerialized]
         private ushort[] m_Triangles = new ushort[1];
 
         internal LightUtility.LightMeshVertex[] vertices { get { return m_Vertices; } set { m_Vertices = value; } }
@@ -489,20 +489,6 @@ namespace UnityEngine.Rendering.Universal
             if (m_ApplyToSortingLayers == null)
                 m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToArray();
 #endif
-
-            if (m_LightCookieSprite != null)
-            {
-                bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
-                UpdateMesh(updateMesh);
-                if (hasCachedMesh)
-                {
-                    lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
-                    lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
-                    lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
-                }
-            }
-
-            UpdateBatchSlotIndex();
         }
 
         void OnEnable()

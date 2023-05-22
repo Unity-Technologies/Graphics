@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
                 asset.m_URPShaderStrippingSetting.stripUnusedVariants = asset.m_StripUnusedVariants;
 #pragma warning restore 618
             }
-            
+
             if (asset.m_AssetVersion < 5)
             {
                 asset.GetOrCreateDefaultVolumeProfile();
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.Universal
 
                 volumeProfile = assetCreated;
 
-                if (VolumeManager.instance.isInitialized)
+                if (VolumeManager.instance.isInitialized && RenderPipelineManager.currentPipeline is UniversalRenderPipeline)
                     VolumeManager.instance.SetGlobalDefaultProfile(volumeProfile);
             }
 #endif

@@ -163,6 +163,14 @@ If there is any noise that affects the exposure in the final converged frame, ad
 
 * **Limit Max**
 
+## Path tracing and Decals 
+
+In order to efficiently support the path tracing of decals, Decal Projectors are added to the [Ray Tracing Light Cluster](Ray-Tracing-Light-Cluster.md). In the case of many decals in a small volume, it might be necessary to increase the maximum number of lights per cell.
+
+Additionally, the path tracer treats all decals as clustered decals. This might require increasing the "Maximum Lights per Cell (Ray Tracing)" (in the HDRP Quality settings, under lighting) and the size of the decal atlas (in the HDRP Quality settings, under Rendering), as more decals will be added to these data-structures.
+
+Finally, emission from decals is currently not supported.
+
 ## Limitations
 
 This section contains information on the limitations of HDRP's path tracing implementation. Mainly, this is a list of features that HDRP supports in its rasterized render pipeline, but not in its path-traced render pipeline.
@@ -171,14 +179,13 @@ This section contains information on the limitations of HDRP's path tracing impl
 
 Currently, you can only use HDR path tracing on platforms that use DX12.
 
-HDRP path tracing in Unity 2020.2 has the following limitations:
+HDRP path tracing in Unity currently has the following limitations:
 
 - If a Mesh in your scene has a Material assigned that does not have the `HDRenderPipeline` tag, the mesh will not appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
 - Path tracing in HDRP doesn't support the following:
   - 3D Text and TextMeshPro.
   - Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
   - Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
-  - Decals.
   - Local Volumetric Fog.
   - Tessellation.
   - Tube and Disc-shaped Area Lights.
@@ -186,6 +193,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
   - Several of HDRP's Materials. This includes Eye, Hair, and Decal.
   - Per-pixel displacement (parallax occlusion mapping, height map, depth offset).
   - MSAA.
+  - Emissive Decals.
   - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
   - [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
 

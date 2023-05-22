@@ -307,6 +307,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowCastingMode = ShadowCastingMode.Off,
                 receiveShadows = false,
                 lightProbeUsage = LightProbeUsage.Off,
+#if UNITY_EDITOR
+                overrideSceneCullingMask = true,
+                sceneCullingMask = gameObject.sceneCullingMask,
+#endif
             };
 
             Graphics.RenderPrimitivesIndexedIndirect(renderParams, MeshTopology.Triangles, LocalVolumetricFogManager.manager.volumetricMaterialIndexBuffer, LocalVolumetricFogManager.manager.globalIndirectBuffer, 1, m_GlobalIndex);

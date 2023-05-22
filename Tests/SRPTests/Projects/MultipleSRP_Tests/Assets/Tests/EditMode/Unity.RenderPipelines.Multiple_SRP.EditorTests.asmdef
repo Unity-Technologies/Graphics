@@ -3,6 +3,7 @@
     "rootNamespace": "CrossPipeline",
     "references": [
         "UnityEditor.TestTools.Graphics",
+        "UnityEngine.TestTools.Graphics",
         "UnityEngine.TestTools.Graphics.Tests",
         "UnityEditor.TestRunner",
         "UnityEngine.TestRunner",

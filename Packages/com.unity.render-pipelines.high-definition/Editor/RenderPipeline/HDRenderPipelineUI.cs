@@ -814,7 +814,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(serialized.volumeProfile, Styles.volumeProfileLabel);
             var profile = serialized.volumeProfile.objectReferenceValue as VolumeProfile;
-            if (EditorGUI.EndChangeCheck() && HDRenderPipeline.currentAsset == serialized.serializedObject.targetObject)
+            if (EditorGUI.EndChangeCheck() && HDRenderPipeline.currentAsset == serialized.serializedObject.targetObject && RenderPipelineManager.currentPipeline is HDRenderPipeline)
                 VolumeManager.instance.SetQualityDefaultProfile(profile);
 
             Editor.CreateCachedEditor(profile, typeof(VolumeProfileEditor), ref s_VolumeProfileEditor);

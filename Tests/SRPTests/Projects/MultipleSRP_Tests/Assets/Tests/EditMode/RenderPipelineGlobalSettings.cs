@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System;
 using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -67,7 +68,7 @@ namespace MultipleSRP.EditMode
 
             Undo.IncrementCurrentGroup();
 
-            GraphicsSettings.UnregisterRenderPipelineSettings(m_RenderPipelineType);
+            EditorGraphicsSettings.UnregisterRenderPipelineSettings(m_RenderPipelineType);
 
             Assert.IsFalse(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var _));
 
@@ -85,19 +86,19 @@ namespace MultipleSRP.EditMode
 
             Assert.IsTrue(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings));
 
-            GraphicsSettings.UnregisterRenderPipelineSettings(m_RenderPipelineType);
+            EditorGraphicsSettings.UnregisterRenderPipelineSettings(m_RenderPipelineType);
 
             Assert.IsFalse(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var _));
 
             Undo.IncrementCurrentGroup();
 
-            GraphicsSettings.RegisterRenderPipelineSettings(m_RenderPipelineType, settings);
+            EditorGraphicsSettings.RegisterRenderPipelineSettings(m_RenderPipelineType, settings);
 
             Undo.PerformUndo();
 
             Assert.IsFalse(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var _));
 
-            GraphicsSettings.RegisterRenderPipelineSettings(m_RenderPipelineType, settings);
+            EditorGraphicsSettings.RegisterRenderPipelineSettings(m_RenderPipelineType, settings);
 
             Assert.IsTrue(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var newSettings));
             Assert.IsTrue(ReferenceEquals(settings, newSettings));
@@ -108,7 +109,7 @@ namespace MultipleSRP.EditMode
         {
             GraphicsSettings.defaultRenderPipeline = LoadAsset();
 
-            GraphicsSettings.UnregisterRenderPipelineSettings(m_RenderPipelineType);
+            EditorGraphicsSettings.UnregisterRenderPipelineSettings(m_RenderPipelineType);
             Assert.IsFalse(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var _));
 
             Camera.main.Render();

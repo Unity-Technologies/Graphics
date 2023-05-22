@@ -108,6 +108,13 @@
 
         return uv * _ScreenSize.xy;
     }
+    
+    // Adapt old remap functions to their new name
+    float2 RemapFoveatedRenderingResolve(float2 uv) { return RemapFoveatedRenderingLinearToNonUniform(uv); }
+    float2 RemapFoveatedRenderingPrevFrameResolve(float2 uv) {return RemapFoveatedRenderingPrevFrameLinearToNonUniform(uv); }
+    float2 RemapFoveatedRenderingDistort(float2 uv) { return RemapFoveatedRenderingNonUniformToLinear(uv); }
+    float2 RemapFoveatedRenderingPrevFrameDistort(float2 uv) { return RemapFoveatedRenderingPrevFrameNonUniformToLinear(uv); }
+    int2 RemapFoveatedRenderingDistortCS(int2 positionCS, bool yflip) { return RemapFoveatedRenderingNonUniformToLinearCS(positionCS, yflip); }
 
 #endif // SHADER_API_METAL && _FOVEATED_RENDERING_NON_UNIFORM_RASTER && !UNITY_COMPILER_DXC
 

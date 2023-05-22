@@ -74,4 +74,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/063_Lighting_BasicVertexPosition.unity
     guid: e2daf39e5a0f09744a2a6851d38e7081
+  - enabled: 1
+    path: Assets/Scenes/051_Shader_Graphs_canvas.unity
+    guid: 6fbea5cb60d394329b2ac2b4a3788d12
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

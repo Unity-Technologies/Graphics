@@ -190,11 +190,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         bool m_SupportVFX;
 
-        internal override bool ignoreCustomInterpolators => false;
+        internal override bool ignoreCustomInterpolators => m_ActiveSubTarget.value is UniversalCanvasSubTarget;
         internal override int padCustomInterpolatorLimit => 4;
         internal override bool prefersSpritePreview =>
             activeSubTarget is UniversalSpriteUnlitSubTarget or UniversalSpriteLitSubTarget or
-                               UniversalSpriteCustomLitSubTarget;
+                               UniversalSpriteCustomLitSubTarget or UniversalCanvasSubTarget;
 
         public UniversalTarget()
         {
@@ -418,7 +418,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             // Core blocks
-            if (!(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>))
+            bool useCoreBlocks = !(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget> | m_ActiveSubTarget.value is UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<UniversalTarget>);
+
+            // Core blocks
+            if (useCoreBlocks)
             {
                 context.AddBlock(BlockFields.VertexDescription.Position);
                 context.AddBlock(BlockFields.VertexDescription.Normal);

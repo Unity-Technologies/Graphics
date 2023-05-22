@@ -35,8 +35,11 @@ namespace UnityEditor.ShaderGraph
     internal struct SubShaderDescriptor
     {
         public string pipelineTag;
+        public string IgnoreProjector;
         public string customTags;
         public string renderType;
+        public string PreviewType;
+        public string CanUseSpriteAtlas;
         public string renderQueue;
         public string disableBatchingTag;
         public bool generatesPreview;

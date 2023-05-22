@@ -859,6 +859,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int maxLocalVolumetricFogOnScreen = asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen;
                 var fog = hdCamera.volumeStack.GetComponent<Fog>();
 
+                ulong cameraSceneCullingMask =  HDUtils.GetSceneCullingMaskFromCamera(hdCamera.camera);
                 foreach (var volume in volumes)
                 {
                     Vector3 center = volume.transform.position;
@@ -869,6 +870,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (minObbDistance > volume.parameters.distanceFadeEnd || minObbDistance > fog.depthExtent.value)
                         continue;
 
+#if UNITY_EDITOR
+                    if ((volume.gameObject.sceneCullingMask & cameraSceneCullingMask) == 0)
+                        continue;
+#endif
                     // Handle camera-relative rendering.
                     center -= camOffset;
 

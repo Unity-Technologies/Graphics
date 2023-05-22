@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="obj">Bit array to compare to.</param>
         /// <returns>True if the provided bit array is equal to this..</returns>
-        public override bool Equals(object obj) => obj is BitArray8 && ((BitArray8)obj).data == data;
+        public override bool Equals(object obj) => obj is BitArray8 ba8 && ba8.data == data;
         /// <summary>
         /// Get the hashcode of the bit array.
         /// </summary>
@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="obj">Bit array to compare to.</param>
         /// <returns>True if the provided bit array is equal to this..</returns>
-        public override bool Equals(object obj) => obj is BitArray16 && ((BitArray16)obj).data == data;
+        public override bool Equals(object obj) => obj is BitArray16 ba16 && ba16.data == data;
         /// <summary>
         /// Get the hashcode of the bit array.
         /// </summary>
@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="obj">Bit array to compare to.</param>
         /// <returns>True if the provided bit array is equal to this..</returns>
-        public override bool Equals(object obj) => obj is BitArray32 && ((BitArray32)obj).data == data;
+        public override bool Equals(object obj) => obj is BitArray32 ba32 && ba32.data == data;
         /// <summary>
         /// Get the hashcode of the bit array.
         /// </summary>
@@ -515,7 +515,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="obj">Bit array to compare to.</param>
         /// <returns>True if the provided bit array is equal to this..</returns>
-        public override bool Equals(object obj) => obj is BitArray64 && ((BitArray64)obj).data == data;
+        public override bool Equals(object obj) => obj is BitArray64 ba64 && ba64.data == data;
         /// <summary>
         /// Get the hashcode of the bit array.
         /// </summary>
@@ -646,7 +646,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="obj">Bit array to compare to.</param>
         /// <returns>True if the provided bit array is equal to this..</returns>
-        public override bool Equals(object obj) => (obj is BitArray128) && data1.Equals(((BitArray128)obj).data1) && data2.Equals(((BitArray128)obj).data2);
+        public override bool Equals(object obj) => obj is BitArray128 ba128 && data1.Equals(ba128.data1) && data2.Equals(ba128.data2);
         /// <summary>
         /// Get the hashcode of the bit array.
         /// </summary>
@@ -796,12 +796,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="obj">Bit array to compare to.</param>
         /// <returns>True if the provided bit array is equal to this..</returns>
-        public override bool Equals(object obj) =>
-            (obj is BitArray256)
-            && data1.Equals(((BitArray256)obj).data1)
-            && data2.Equals(((BitArray256)obj).data2)
-            && data3.Equals(((BitArray256)obj).data3)
-            && data4.Equals(((BitArray256)obj).data4);
+        public override bool Equals(object obj)
+            => obj is BitArray256 ba256
+            && data1.Equals(ba256.data1)
+            && data2.Equals(ba256.data2)
+            && data3.Equals(ba256.data3)
+            && data4.Equals(ba256.data4);
         /// <summary>
         /// Get the hashcode of the bit array.
         /// </summary>

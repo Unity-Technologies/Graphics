@@ -697,14 +697,13 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-#if UNITY_EDITOR
-                // Emit scene view UI
-                if (isSceneViewCamera)
-                    ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
-                else
-#endif
-                if (cameraData.camera.targetTexture != null && cameraData.cameraType != CameraType.Preview)
+                // Emit scene/game view UI. The main game camera UI is always rendered, so this needs to be handled only for different camera types
+                if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
                     ScriptableRenderContext.EmitGeometryForCamera(camera);
+#if UNITY_EDITOR
+                 else if (isSceneViewCamera)
+                    ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+#endif
 
                 // do AdaptiveProbeVolume stuff
                 if (apvIsEnabled)

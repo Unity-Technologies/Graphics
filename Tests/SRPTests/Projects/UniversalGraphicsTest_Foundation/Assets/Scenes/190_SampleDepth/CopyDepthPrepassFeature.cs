@@ -149,9 +149,9 @@ internal class ThreeCopyDepths : ScriptableRenderPass
         TextureHandle copiedDepth1 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "CopiedDepth1", false);
         TextureHandle copiedDepth2 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "CopiedDepth2", false);
 
-        m_CopyDepthPass1.Render(renderGraph, copiedDepth1, activeDepth, ref renderingData, "First Copy");
-        m_CopyDepthPass1.Render(renderGraph, copiedDepth2, copiedDepth1, ref renderingData, "Second Copy");
-        m_CopyDepthPass1.Render(renderGraph, activeDepth, copiedDepth2,  ref renderingData, "Third Copy");
+        m_CopyDepthPass1.Render(renderGraph, copiedDepth1, activeDepth, ref renderingData, false, "First Copy");
+        m_CopyDepthPass1.Render(renderGraph, copiedDepth2, copiedDepth1, ref renderingData, false, "Second Copy");
+        m_CopyDepthPass1.Render(renderGraph, activeDepth, copiedDepth2,  ref renderingData, false, "Third Copy");
     }
 
     public void Dispose()

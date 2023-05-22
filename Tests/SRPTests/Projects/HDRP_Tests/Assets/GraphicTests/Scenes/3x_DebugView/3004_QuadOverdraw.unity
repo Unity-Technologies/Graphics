@@ -67,9 +67,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 0
     m_MixedBakeMode: 0
     m_BakeBackend: 1
@@ -360,11 +357,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   settingType: 2
   gBuffer: 0
-  fullScreenDebugMode: 30
+  fullScreenDebugMode: 31
   lightlayers: 1
   lightingFullScreenDebugMode: 0
   lightingFullScreenDebugRTASView: 0
   lightingFullScreenDebugRTASMode: 0
+  lightingTileClusterDebugMode: 0
+  lightingTileClusterCategory: 0
+  lightingClusterDebugMode: 0
+  lightingClusterDistance: 0
+  lightingShadowDebugMode: 0
 --- !u!4 &1288479930
 Transform:
   m_ObjectHideFlags: 0

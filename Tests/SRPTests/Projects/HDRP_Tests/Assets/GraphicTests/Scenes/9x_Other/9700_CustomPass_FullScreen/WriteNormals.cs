@@ -6,6 +6,7 @@ using UnityEngine.Experimental.Rendering;
 class WriteNormals : CustomPass
 {
     public Material material = null;
+    public RenderTexture rt;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
@@ -13,7 +14,8 @@ class WriteNormals : CustomPass
 
     protected override void Execute(CustomPassContext ctx)
     {
-        HDUtils.DrawFullScreen(ctx.cmd, material, ctx.cameraNormalBuffer);
+        CoreUtils.SetRenderTarget(ctx.cmd, rt, ClearFlag.All, Color.clear);
+        ctx.cmd.Blit(ctx.cameraNormalBuffer, rt, material);
     }
 
     protected override void Cleanup()

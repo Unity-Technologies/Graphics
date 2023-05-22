@@ -61,7 +61,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
-    supportDecalLayers: 0
+    supportDecalLayers: 1
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
     supportHighQualityLineRendering: 0
@@ -106,7 +106,7 @@ MonoBehaviour:
       maxCubeReflectionOnScreen: 32
       maxPlanarReflectionOnScreen: 16
       maxDecalsOnScreen: 512
-      maxLightsPerClusterCell: 8
+      maxLightsPerClusterCell: 10
       maxLocalVolumetricFogSize: 32
       maxLocalVolumetricFogOnScreen: 64
     hdShadowInitParams:
@@ -147,7 +147,7 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 4096
       atlasHeight: 4096
-      perChannelMask: 0
+      perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48

@@ -68,6 +68,18 @@ namespace UnityEditor.ShaderGraph
 
                 if (target is IHasMetadata metadata)
                     builder.AppendLine($"\"ShaderGraphTargetId\"=\"{metadata.identifier}\"");
+
+                // IgnoreProjector
+                if(!string.IsNullOrEmpty(descriptor.IgnoreProjector))
+                    builder.AppendLine($"\"IgnoreProjector\"=\"{descriptor.IgnoreProjector}\"");
+
+                // PreviewType
+                if(!string.IsNullOrEmpty(descriptor.PreviewType))
+                    builder.AppendLine($"\"PreviewType\"=\"{descriptor.PreviewType}\"");
+
+                // CanUseSpriteAtlas
+                if(!string.IsNullOrEmpty(descriptor.CanUseSpriteAtlas))
+                    builder.AppendLine($"\"CanUseSpriteAtlas\"=\"{descriptor.CanUseSpriteAtlas}\"");
             }
         }
 

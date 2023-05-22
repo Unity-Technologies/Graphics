@@ -78,13 +78,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Mirror of the value in the CustomPassVolume where this custom pass is listed
         /// </summary>
         /// <value>The blend value that should be applied to the custom pass effect</value>
-        protected float fadeValue => owner.fadeValue;
+        protected float fadeValue => owner == null ? 0 : owner.fadeValue;
 
         /// <summary>
         /// Get the injection point in HDRP where this pass will be executed
         /// </summary>
         /// <value></value>
-        protected CustomPassInjectionPoint injectionPoint => owner.injectionPoint;
+        protected CustomPassInjectionPoint injectionPoint => owner == null ? CustomPassVolume.currentGlobalInjectionPoint : owner.injectionPoint;
 
         /// <summary>
         /// True if you want your custom pass to be executed in the scene view. False for game cameras only.

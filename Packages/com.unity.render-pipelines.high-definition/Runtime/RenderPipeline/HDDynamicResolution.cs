@@ -21,36 +21,36 @@ public class HDDynamicResolution : MonoBehaviour
     public float DefaultTargetFrameRate = 60.0f;
 
     /// <summary>
-    /// We evaluate GPU performance every [EvaluationFrameCount] frames. The evaluation is comparison between the averaged GPU frame time over [EvaluationFrameCount] frames and 1 / [DefaultTargetFrameRate].
+    /// The number of frames HDRP takes into account to calculate GPU's average performance. HDRP uses these frames to determine if the frame time is short enough to meet the target frame rate.
     /// </summary>
     [Min(1)]
-    [Tooltip("Per how many frames we evaluate GPU performance against the target frame rate, using the averaged GPU frame time over frames.")]
+    [Tooltip("The number of frames HDRP takes into account to calculate GPU's average performance. HDRP uses these frames to determine if the frame time is short enough to meet the target frame rate.")]
     public int EvaluationFrameCount = 15;
 
     /// <summary>
-    /// If averaged GPU framerate exceeds the target framerate [ScaleUpDuration] times consecutively, we request increased scale to DRH. 
+    /// The number of groups of evaluated frames above the target frame time that HDRP requires to increase dynamic resolution by one step. To control how many frames HDRP evaluates in each group, change the Evaluation Frame Count value.
     /// </summary>
-    [Tooltip("Sets the number of consecutive times where the GPU performance is above the target to increase dynamic resolution by one step.")]
+    [Tooltip("The number of groups of evaluated frames above the target frame time that HDRP requires to increase dynamic resolution by one step. To control how many frames HDRP evaluates in each group, change the Evaluation Frame Count value.")]
     public uint ScaleUpDuration = 8;
 
     /// <summary>
-    /// If averaged GPU framerate falls behind the target framerate [ScaleDownDuration] times consecutively, we request decreased scale to DRH.
+    /// The number of groups of evaluated frames below the target frame time that HDRP requires to reduce dynamic resolution by one step. To control how many frames HDRP evaluates in each group, change the Evaluation Frame Count value.
     /// </summary>
-    [Tooltip("Sets the number of consecutive times where the GPU performance is below the target to decrease dynamic resolution by one step.")]
+    [Tooltip("The number of groups of evaluated frames below the target frame time that HDRP requires to reduce dynamic resolution by one step. To control how many frames HDRP evaluates in each group, change the Evaluation Frame Count value.")]
     public uint ScaleDownDuration = 4;
 
     /// <summary>
-    /// The number of steps to upscale from minimum screen percentage to maximum screen percentage.
+    /// The number of downscale steps between the minimum screen percentage to the maximum screen percentage. For example, a value of 5 means that each step upscales 20% of the difference between the maximum and minimum screen resolutions. You can set the minimum and maximum screen percentage in the current HDRP Asset.
     /// </summary>
     [Min(1)]
-    [Tooltip("Sets the number of steps to upscale from minimum screen percentage to maximum screen percentage set in the current HDRP Asset.")]
+    [Tooltip("The number of downscale steps between the minimum screen percentage to the maximum screen percentage. For example, a value of 5 means that each step upscales 20% of the difference between the maximum and minimum screen resolutions. You can set the minimum and maximum screen percentage in the current HDRP Asset.")]
     public int ScaleUpStepCount = 5;
 
     /// <summary>
-    /// The number of steps to downscale from maximum screen percentage to minimum screen percentage.
+    /// The number of downscale steps between the maximum screen percentage to the minimum screen percentage. For example, a value of 5 means that each step downscales 20% of the difference between the maximum and minimum screen resolutions. You can set the minimum and maximum screen percentage in the current HDRP Asset.
     /// </summary>
     [Min(1)]
-    [Tooltip("Sets the number of steps to downscale from maximum screen percentage to minimum screen percentage set in the current HDRP Asset.")]
+    [Tooltip("The number of downscale steps between the maximum screen percentage to the minimum screen percentage. For example, a value of 5 means that each step downscales 20% of the difference between the maximum and minimum screen resolutions. You can set the minimum and maximum screen percentage in the current HDRP Asset.")]
     public int ScaleDownStepCount = 2;
 
     /// <summary>

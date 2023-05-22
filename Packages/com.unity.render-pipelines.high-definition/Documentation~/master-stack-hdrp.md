@@ -16,3 +16,4 @@ It then describes the HDRP-specific material types you can create with Shader Gr
 * [Lit Master Stack](master-stack-lit.md)
 * [StackLit Master Stack](master-stack-stacklit.md)
 * [Unlit Master Stack](master-stack-unlit.md)
+* [Canvas Master Stack](master-stack-canvas.md)

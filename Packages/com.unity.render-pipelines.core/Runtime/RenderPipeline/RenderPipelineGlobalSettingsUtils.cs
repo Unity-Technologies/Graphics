@@ -1,8 +1,9 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -129,12 +130,12 @@ namespace UnityEngine.Rendering
             if (instance == null || instance.Equals(null))
             {
                 error = new Exception($"Unable to find or create a {globalSettingsName}. The configured Render Pipeline may not work correctly. Go to Project Settings > Graphics > {globalSettingsName} for additional help.");
-                GraphicsSettings.UnregisterRenderPipelineSettings<TRenderPipeline>();
+                EditorGraphicsSettings.UnregisterRenderPipelineSettings<TRenderPipeline>();
                 return false;
             }
 
             error = null;
-            GraphicsSettings.RegisterRenderPipelineSettings<TRenderPipeline>(instance);
+            EditorGraphicsSettings.RegisterRenderPipelineSettings<TRenderPipeline>(instance);
             return true;
         }
     }

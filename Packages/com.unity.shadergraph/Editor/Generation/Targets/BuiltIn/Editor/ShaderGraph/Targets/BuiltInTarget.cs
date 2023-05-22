@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
-        internal override bool ignoreCustomInterpolators => false;
+        internal override bool ignoreCustomInterpolators => m_ActiveSubTarget.value is BuiltInCanvasSubTarget;
         internal override int padCustomInterpolatorLimit => 4;
 
         public BuiltInTarget()
@@ -274,11 +274,17 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            bool useCoreBlocks = !(m_ActiveSubTarget.value is UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<BuiltInTarget>);
+
             // Core blocks
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            if (useCoreBlocks)
+            {
+                // Core blocks
+                context.AddBlock(BlockFields.VertexDescription.Position);
+                context.AddBlock(BlockFields.VertexDescription.Normal);
+                context.AddBlock(BlockFields.VertexDescription.Tangent);
+                context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            }
 
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
@@ -288,9 +294,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             base.CollectShaderProperties(collector, generationMode);
             activeSubTarget.CollectShaderProperties(collector, generationMode);
-            // collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
-            // collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
-            // collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
         }
 
         public override void ProcessPreviewMaterial(Material material)

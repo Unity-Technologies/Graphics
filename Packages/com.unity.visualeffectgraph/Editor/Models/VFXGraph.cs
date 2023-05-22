@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-
+using Unity.Profiling;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -570,10 +570,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        static readonly ProfilerMarker k_ProfilerMarkerSanitizeGraph = new("VFXEditor.SanitizeGraph");
         public void SanitizeGraph()
         {
             if (m_GraphSanitized)
                 return;
+
+            using var profilerScope = k_ProfilerMarkerSanitizeGraph.Auto();
 
             var objs = new HashSet<ScriptableObject>();
             CollectDependencies(objs);

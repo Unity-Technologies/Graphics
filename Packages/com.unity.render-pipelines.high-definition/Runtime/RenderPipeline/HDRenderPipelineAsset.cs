@@ -37,12 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
             ///////////////////////////
 
-#if UNITY_EDITOR
-            var hdrpGlobalSettings = HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: true);
-#else
-            var hdrpGlobalSettings = HDRenderPipelineGlobalSettings.instance;
-#endif
-            HDRenderPipeline.SetupDLSSFeature(hdrpGlobalSettings);
+            HDRenderPipeline.SetupDLSSFeature();
         }
 
         void Reset()
@@ -118,8 +113,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("renderPipelineSettings")]
         RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.NewDefault();
 
-        /// <summary>Return the current use RenderPipelineSettings (i.e for the current platform)</summary>
-        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+        /// <summary>
+        /// Settings currently used by HDRP.
+        /// Note that setting this property has a significant cost as it will cause the whole pipeline to be rebuilt from scratch.
+        /// </summary>
+        public RenderPipelineSettings currentPlatformRenderPipelineSettings { get => m_RenderPipelineSettings ; set { m_RenderPipelineSettings = value; OnValidate(); } }
 
         internal void TurnOffRayTracing()
         {
