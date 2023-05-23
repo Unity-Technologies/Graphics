@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// </summary>
     [ExcludeFromPreset]
     [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
-    [URPHelpURL("urp-renderer-feature", "#render-objects-renderer-featurea-namerender-objects-renderer-featurea")]
+    [URPHelpURL("renderer-features/renderer-feature-render-objects")]
     public class RenderObjects : ScriptableRendererFeature
     {
         /// <summary>

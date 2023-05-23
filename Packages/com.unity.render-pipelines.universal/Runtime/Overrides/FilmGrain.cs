@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.Universal
     /// A volume component that holds settings for the Film Grain effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Film Grain", typeof(UniversalRenderPipeline))]
+    [URPHelpURL("Post-Processing-Film-Grain")]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

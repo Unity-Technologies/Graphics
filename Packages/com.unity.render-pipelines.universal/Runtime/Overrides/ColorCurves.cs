@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// A volume component that holds settings for the Color Adjustments effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Curves", typeof(UniversalRenderPipeline))]
+    [URPHelpURL("Post-Processing-Color-Curves")]
     public sealed class ColorCurves : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

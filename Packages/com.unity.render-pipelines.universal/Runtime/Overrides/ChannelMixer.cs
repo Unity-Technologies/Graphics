@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// A volume component that holds settings for the Channel Mixer effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Channel Mixer", typeof(UniversalRenderPipeline))]
+    [URPHelpURL("Post-Processing-Channel-Mixer")]
     public sealed class ChannelMixer : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

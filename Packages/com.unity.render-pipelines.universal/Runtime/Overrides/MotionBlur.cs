@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.Universal
     /// A volume component that holds settings for the motion blur effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Motion Blur", typeof(UniversalRenderPipeline))]
+    [URPHelpURL("Post-Processing-Motion-Blur")]
     public sealed class MotionBlur : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

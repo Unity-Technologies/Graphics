@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// A volume component that holds settings for the White Balance effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/White Balance", typeof(UniversalRenderPipeline))]
+    [URPHelpURL("Post-Processing-White-Balance")]
     public sealed class WhiteBalance : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
