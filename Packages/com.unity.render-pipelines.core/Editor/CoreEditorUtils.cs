@@ -231,7 +231,7 @@ namespace UnityEditor.Rendering
             if (Event.current.type == EventType.Repaint)
                 EditorStyles.helpBox.Draw(boxRect, false, false, false, false);
 
-            Rect labelRect = new Rect(boxRect.x + 4, boxRect.y + 3, rect.width - 8, rect.height);
+            Rect labelRect = new Rect(boxRect.x + 4, boxRect.y, rect.width - 8, rect.height);
             EditorGUI.LabelField(labelRect, message, CoreEditorStyles.helpBox);
 
             var buttonRect = leftRect;
