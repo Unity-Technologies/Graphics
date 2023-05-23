@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Color Lookup")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [URPHelpURL("integration-with-post-processing")]
     public sealed class ColorLookup : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
