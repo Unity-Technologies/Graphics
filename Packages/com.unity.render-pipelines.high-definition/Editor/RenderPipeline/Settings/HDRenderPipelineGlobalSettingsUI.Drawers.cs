@@ -188,13 +188,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var editor = hdGlobalSettingsEditor.GetDefaultVolumeProfileEditor(
                 serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile) as VolumeProfileEditor;
+            var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
 
-            VolumeProfileUtils.OnVolumeProfileContextClick(pos, editor,
+            VolumeProfileUtils.OnVolumeProfileContextClick(pos, globalSettings.volumeProfile, editor.componentList.editors,
+                overrideStateOnReset: true,
                 defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/VolumeProfile_Default.asset",
                 onNewVolumeProfileCreated: volumeProfile =>
                 {
-                    var globalSettings =
-                        serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
 
                     Undo.RecordObject(globalSettings, "Set Global Settings Volume Profile");
                     globalSettings.volumeProfile = volumeProfile;
@@ -251,13 +251,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var editor = hdGlobalSettingsEditor.GetLookDevDefaultVolumeProfileEditor(
                 serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile) as VolumeProfileEditor;
+            var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
 
-            VolumeProfileUtils.OnVolumeProfileContextClick(pos, editor,
+            VolumeProfileUtils.OnVolumeProfileContextClick(pos, globalSettings.lookDevVolumeProfile, editor.componentList.editors,
+                overrideStateOnReset: false,
                 defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/LookDevProfile_Default.asset",
                 onNewVolumeProfileCreated: volumeProfile =>
                 {
-                    var globalSettings =
-                        serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
 
                     Undo.RecordObject(globalSettings, "Set Global Settings LookDev Profile");
                     globalSettings.lookDevVolumeProfile = volumeProfile;

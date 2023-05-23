@@ -25,6 +25,8 @@ namespace UnityEditor.Rendering
             public static readonly GUILayoutOption[] buttonOptions = new GUILayoutOption[] { GUILayout.Width(45), GUILayout.Height(18) };
         }
 
+        private const string k_TemplatePath = "Packages/com.unity.render-pipelines.core/Editor/UXML/RenderPipelineGlobalSettings.uxml";
+
         Editor m_Editor;
         SupportedOnRenderPipelineAttribute m_SupportedOnRenderPipeline;
         RenderPipelineGlobalSettings renderPipelineSettings => GraphicsSettings.GetSettingsForRenderPipeline<TRenderPipeline>();
@@ -50,11 +52,15 @@ namespace UnityEditor.Rendering
 
         void DestroyEditor()
         {
-            if (m_Editor == null)
-                return;
-
-            UnityEngine.Object.DestroyImmediate(m_Editor);
+            CoreUtils.Destroy(m_Editor);
             m_Editor = null;
+        }
+
+        VisualElement CreateEditor()
+        {
+            m_Editor = Editor.CreateEditor(renderPipelineSettings);
+            var editorRoot = m_Editor != null ? m_Editor.CreateInspectorGUI() : null;
+            return editorRoot;
         }
 
         /// <summary>
@@ -66,6 +72,31 @@ namespace UnityEditor.Rendering
         {
             DestroyEditor();
             base.OnActivate(searchContext, rootElement);
+
+            var srpSettingsEditor = CreateEditor();
+            if (srpSettingsEditor != null)
+            {
+                // CreateEditor returned a VisualElement, we are using UITK and not IMGUI.
+                var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_TemplatePath);
+                var settingsRoot = template.Instantiate();
+
+                settingsRoot.Q<Label>("srp-global-settings__header-label").text = label;
+                settingsRoot.Q<Image>("srp-global-settings__help-button-image").image = CoreEditorStyles.iconHelp;
+                settingsRoot.Q<Button>("srp-global-settings__help-button").clicked += () => Help.BrowseURL(Help.GetHelpURLForObject(renderPipelineSettings));
+
+                var contentContainer = settingsRoot.Q("srp-global-settings__content-container");
+                contentContainer.Add(new IMGUIContainer(() =>
+                {
+                    using (new SettingsProviderGUIScope())
+                    {
+                        bool shouldDrawEditor = DrawImguiContent();
+                        srpSettingsEditor.style.display = shouldDrawEditor ? DisplayStyle.Flex : DisplayStyle.None;
+                    }
+                }));
+                contentContainer.Add(srpSettingsEditor);
+
+                rootElement.Add(settingsRoot);
+            }
         }
 
         /// <summary>
@@ -102,41 +133,48 @@ namespace UnityEditor.Rendering
             RenderPipelineGlobalSettingsEndNameEditAction.CloneFrom<TRenderPipeline, TGlobalSettings>(source, activateAsset);
         }
 
+        bool DrawImguiContent()
+        {
+            if (m_SupportedOnRenderPipeline is { isSupportedOnCurrentPipeline: false })
+            {
+                EditorGUILayout.HelpBox("These settings are currently not available due to the active Render Pipeline.", MessageType.Warning);
+                return false;
+            }
+
+            if (renderPipelineSettings == null)
+            {
+                CoreEditorUtils.DrawFixMeBox(string.Format(Styles.warningGlobalSettingsMissing, ObjectNames.NicifyVariableName(typeof(TGlobalSettings).Name)), () => Ensure());
+                return false;
+            }
+
+            DrawAssetSelection();
+
+            if (RenderPipelineManager.currentPipeline != null && !(RenderPipelineManager.currentPipeline is TRenderPipeline))
+            {
+                EditorGUILayout.HelpBox(string.Format(Styles.warningSRPNotActive, ObjectNames.NicifyVariableName(RenderPipelineManager.currentPipeline.GetType().Name)), MessageType.Warning);
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// Method called to render the IMGUI of the settings provider
         /// </summary>
         /// <param name="searchContext">The search content</param>
         public override void OnGUI(string searchContext)
         {
-            if (m_SupportedOnRenderPipeline is { isSupportedOnCurrentPipeline: false })
-            {
-                EditorGUILayout.HelpBox("These settings are currently not available due to the active Render Pipeline.", MessageType.Warning);
-                return;
-            }
-
             using (new SettingsProviderGUIScope())
             {
-                if (renderPipelineSettings == null)
+                if (DrawImguiContent())
                 {
-                    CoreEditorUtils.DrawFixMeBox(string.Format(Styles.warningGlobalSettingsMissing, ObjectNames.NicifyVariableName(typeof(TGlobalSettings).Name)), () => Ensure());
-                    DestroyEditor();
-                }
-                else
-                {
-                    DrawAssetSelection();
-
-                    if (RenderPipelineManager.currentPipeline != null && !(RenderPipelineManager.currentPipeline is TRenderPipeline))
-                    {
-                        EditorGUILayout.HelpBox(string.Format(Styles.warningSRPNotActive, ObjectNames.NicifyVariableName(RenderPipelineManager.currentPipeline.GetType().Name)), MessageType.Warning);
-                    }
-
                     if (m_Editor != null && (m_Editor.target == null || m_Editor.target != renderPipelineSettings))
                         DestroyEditor();
 
                     if (m_Editor == null)
-                        m_Editor = Editor.CreateEditor(renderPipelineSettings);
+                        CreateEditor();
 
-                    m_Editor?.OnInspectorGUI();
+                    if (m_Editor != null)
+                        m_Editor.OnInspectorGUI();
                 }
             }
 

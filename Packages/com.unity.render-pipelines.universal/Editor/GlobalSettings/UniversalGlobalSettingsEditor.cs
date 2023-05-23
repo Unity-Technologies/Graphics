@@ -1,6 +1,8 @@
 using System;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -16,16 +18,9 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedUniversalRenderPipelineGlobalSettings m_SerializedGlobalSettings;
 
-        Editor m_DefaultVolumeProfileEditor;
-        Editor m_LookDevVolumeProfileEditor;
-
-        internal Editor GetDefaultVolumeProfileEditor(VolumeProfile asset)
-        {
-            CreateCachedEditor(asset, typeof(VolumeProfileEditor), ref m_DefaultVolumeProfileEditor);
-            var editor = m_DefaultVolumeProfileEditor as VolumeProfileEditor;
-            editor.componentList.SetIsGlobalDefaultVolumeProfile(true);
-            return m_DefaultVolumeProfileEditor;
-        }
+        DefaultVolumeProfileEditor m_DefaultVolumeProfileEditor;
+        VisualElement m_DefaultVolumeProfileEditorRoot;
+        bool m_DefaultVolumeProfileFoldoutExpanded = true;
 
         void OnEnable()
         {
@@ -36,30 +31,167 @@ namespace UnityEditor.Rendering.Universal
 
         void OnDisable()
         {
-            CoreUtils.Destroy(m_DefaultVolumeProfileEditor);
+            m_SerializedGlobalSettings = null;
+            DestroyDefaultVolumeProfileEditor();
 
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
 
         void OnUndoRedoPerformed()
         {
-            if (target is UniversalRenderPipelineGlobalSettings settings &&
-                settings.volumeProfile != VolumeManager.instance.globalDefaultProfile)
+            if (target is UniversalRenderPipelineGlobalSettings settings)
             {
-                VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(settings.volumeProfile);
+                if (settings.volumeProfile != VolumeManager.instance.globalDefaultProfile)
+                {
+                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(settings.volumeProfile);
+                    DestroyDefaultVolumeProfileEditor();
+                }
+                else
+                {
+                    VolumeManager.instance.OnVolumeProfileChanged(settings.volumeProfile);
+                }
             }
         }
 
-        public override void OnInspectorGUI()
+        void DestroyDefaultVolumeProfileEditor()
         {
-            var serialized = m_SerializedGlobalSettings;
-
-            serialized.serializedObject.Update();
-
-            // In the quality window use more space for the labels
-            UniversalRenderPipelineGlobalSettingsUI.Inspector.Draw(serialized, this);
-
-            serialized.serializedObject.ApplyModifiedProperties();
+            m_DefaultVolumeProfileEditor?.Destroy();
+            m_DefaultVolumeProfileEditor = null;
+            m_DefaultVolumeProfileEditorRoot?.Clear();
         }
+
+        public override VisualElement CreateInspectorGUI()
+        {
+            var root = new VisualElement();
+
+            root.Add(new IMGUIContainer(() => m_SerializedGlobalSettings.serializedObject.Update()));
+
+            root.Add(CreateVolumeProfileSection());
+            root.Add(UniversalRenderPipelineGlobalSettingsUI.CreateRenderingLayerNamesSection(m_SerializedGlobalSettings, this));
+            root.Add(UniversalRenderPipelineGlobalSettingsUI.CreateMiscSection(m_SerializedGlobalSettings, this));
+
+            return root;
+        }
+
+        #region Default Volume Profile
+        void CreateDefaultVolumeProfileEditor()
+        {
+            Debug.Assert(VolumeManager.instance.isInitialized);
+            Debug.Assert(m_DefaultVolumeProfileEditor == null);
+            Debug.Assert(m_DefaultVolumeProfileEditorRoot.childCount == 0);
+
+            var volumeProfile = m_SerializedGlobalSettings.defaultVolumeProfile.objectReferenceValue as VolumeProfile;
+            if (volumeProfile == null)
+                return;
+
+            if (volumeProfile == VolumeManager.instance.globalDefaultProfile)
+                VolumeProfileUtils.EnsureAllOverridesForDefaultProfile(volumeProfile);
+
+            m_DefaultVolumeProfileEditor = new DefaultVolumeProfileEditor(this, volumeProfile);
+            m_DefaultVolumeProfileEditorRoot.Add(m_DefaultVolumeProfileEditor.Create());
+        }
+
+        public VisualElement CreateVolumeProfileSection()
+        {
+            var section = new VisualElement();
+            m_DefaultVolumeProfileEditorRoot = new VisualElement();
+
+            if (VolumeManager.instance.isInitialized)
+                CreateDefaultVolumeProfileEditor();
+
+            section.Add(new IMGUIContainer(() =>
+            {
+                using var changedScope = new EditorGUI.ChangeCheckScope();
+
+                CoreEditorUtils.DrawSectionHeader(
+                    UniversalRenderPipelineGlobalSettingsUI.Styles.defaultVolumeProfileHeaderLabel,
+                    Documentation.GetPageLink(UniversalRenderPipelineGlobalSettingsUI.DocumentationUrls.k_Volumes),
+                    pos => OnVolumeProfileSectionContextClick(pos, m_SerializedGlobalSettings, m_DefaultVolumeProfileEditor));
+                EditorGUILayout.Space();
+                DrawVolumeSection(m_SerializedGlobalSettings);
+
+                // Propagate foldout expander state from IMGUI to UITK
+                m_DefaultVolumeProfileEditorRoot.style.display =
+                    m_DefaultVolumeProfileFoldoutExpanded ? DisplayStyle.Flex : DisplayStyle.None;
+
+                if (changedScope.changed)
+                    m_SerializedGlobalSettings.serializedObject.ApplyModifiedProperties();
+
+                // HACK: Due to RP initialization, it's possible VolumeManager was not ready when the UI was created.
+                // Since there is no OnRPCreated event, we create the UI lazily here if needed.
+                if (m_DefaultVolumeProfileEditor == null &&
+                    VolumeManager.instance.isInitialized &&
+                    Event.current.type != EventType.Layout) // Cannot change visual hierarchy during layout event
+                    CreateDefaultVolumeProfileEditor();
+            }));
+
+            section.Add(m_DefaultVolumeProfileEditorRoot);
+
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
+
+            return section;
+        }
+
+        void DrawVolumeSection(SerializedUniversalRenderPipelineGlobalSettings serialized)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
+                using var changeScope = new EditorGUI.ChangeCheckScope();
+
+                var oldWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = UniversalRenderPipelineGlobalSettingsUI.Styles.defaultVolumeLabelWidth;
+
+                var globalSettings = serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings;
+
+                var previousDefaultVolumeProfileAsset = serialized.defaultVolumeProfile.objectReferenceValue;
+                VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
+                    serialized.defaultVolumeProfile,
+                    UniversalRenderPipelineGlobalSettingsUI.Styles.defaultVolumeProfileLabel,
+                    getOrCreateVolumeProfile: () => globalSettings.GetOrCreateDefaultVolumeProfile(),
+                    ref m_DefaultVolumeProfileFoldoutExpanded
+                );
+
+                EditorGUIUtility.labelWidth = oldWidth;
+
+                if (changeScope.changed && defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
+                {
+                    if (previousDefaultVolumeProfileAsset == null)
+                    {
+                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(defaultVolumeProfileAsset);
+                    }
+                    else
+                    {
+                        bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<UniversalRenderPipeline>(defaultVolumeProfileAsset);
+                        if (!confirmed)
+                            serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
+                    }
+
+                    DestroyDefaultVolumeProfileEditor();
+                    CreateDefaultVolumeProfileEditor();
+                }
+            }
+        }
+
+        static void OnVolumeProfileSectionContextClick(
+            Vector2 position,
+            SerializedUniversalRenderPipelineGlobalSettings serialized,
+            DefaultVolumeProfileEditor defaultVolumeProfileEditor)
+        {
+            var globalSettings = serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings;
+
+            VolumeProfileUtils.OnVolumeProfileContextClick(position, globalSettings.volumeProfile, defaultVolumeProfileEditor.allEditors,
+                overrideStateOnReset: true,
+                defaultVolumeProfilePath: "Assets/VolumeProfile_Default.asset",
+                onNewVolumeProfileCreated: volumeProfile =>
+                {
+                    Undo.RecordObject(globalSettings, "Set Global Settings Volume Profile");
+                    globalSettings.volumeProfile = volumeProfile;
+                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(volumeProfile);
+                    EditorUtility.SetDirty(globalSettings);
+                },
+                onComponentEditorsExpandedCollapsed: defaultVolumeProfileEditor.RebuildListViews);
+        }
+
+        #endregion
     }
 }

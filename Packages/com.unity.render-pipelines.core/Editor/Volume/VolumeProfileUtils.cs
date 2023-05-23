@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -11,9 +10,25 @@ namespace UnityEditor.Rendering
     /// </summary>
     public static class VolumeProfileUtils
     {
+        internal static class Styles
+        {
+            public static readonly GUIContent newVolumeProfile = EditorGUIUtility.TrTextContent("New Volume Profile...");
+            public static readonly GUIContent clone = EditorGUIUtility.TrTextContent("Clone");
+            public static readonly GUIContent collapseAll = EditorGUIUtility.TrTextContent("Collapse All");
+            public static readonly GUIContent expandAll = EditorGUIUtility.TrTextContent("Expand All");
+            public static readonly GUIContent reset = EditorGUIUtility.TrTextContent("Reset");
+            public static readonly GUIContent resetAll = EditorGUIUtility.TrTextContent("Reset All");
+            public static readonly GUIContent showAdditionalProperties = EditorGUIUtility.TrTextContent("Show Additional Properties");
+            public static readonly GUIContent showAllAdditionalProperties = EditorGUIUtility.TrTextContent("Show All Additional Properties...");
+            public static readonly GUIContent openInRenderingDebugger = EditorGUIUtility.TrTextContent("Open In Rendering Debugger");
+            public static readonly GUIContent copySettings = EditorGUIUtility.TrTextContent("Copy Settings");
+            public static readonly GUIContent copyAllSettings = EditorGUIUtility.TrTextContent("Copy All Settings");
+            public static readonly GUIContent pasteSettings = EditorGUIUtility.TrTextContent("Paste Settings");
+        }
+
         internal static void CopyValuesToProfile(VolumeComponent component, VolumeProfile profile)
         {
-            var profileComponent = GetVolumeComponentInProfile(profile, component.GetType());
+            var profileComponent = profile.GetVolumeComponentOfType(component.GetType());
             Undo.RecordObject(profileComponent, "Copy component to profile");
             CopyValuesToComponent(component, profileComponent, true);
             VolumeManager.instance.OnVolumeProfileChanged(profile);
@@ -36,7 +51,7 @@ namespace UnityEditor.Rendering
 
         internal static void AssignValuesToProfile(VolumeProfile targetProfile, VolumeComponent component, SerializedProperty newPropertyValue)
         {
-            var defaultComponent = GetVolumeComponentInProfile(targetProfile, component.GetType());
+            var defaultComponent = targetProfile.GetVolumeComponentOfType(component.GetType());
             if (defaultComponent != null)
             {
                 var defaultObject = new SerializedObject(defaultComponent);
@@ -48,15 +63,6 @@ namespace UnityEditor.Rendering
                     VolumeManager.instance.OnVolumeProfileChanged(targetProfile);
                 }
             }
-        }
-
-        static VolumeComponent GetVolumeComponentInProfile(VolumeProfile profile, Type componentType)
-        {
-            if (profile != null)
-            {
-                return profile.components.FirstOrDefault(c => c.GetType() == componentType);
-            }
-            return null;
         }
 
         /// <summary>
@@ -117,9 +123,13 @@ namespace UnityEditor.Rendering
         // Helper extension method: Returns the VolumeComponent of given type from the profile if present, or null
         static VolumeComponent GetVolumeComponentOfType(this VolumeProfile profile, Type type)
         {
-            if (profile == null)
-                return null;
-            return profile.components.FirstOrDefault(c => c.GetType() == type);
+            if (profile != null)
+            {
+                foreach (var component in profile.components)
+                    if (component.GetType() == type)
+                        return component;
+            }
+            return null;
         }
 
         // Helper extension method: Returns the VolumeComponent of given type from the profile if present, or a default-constructed one
@@ -240,26 +250,28 @@ namespace UnityEditor.Rendering
         /// Draws the context menu dropdown for a Volume Profile.
         /// </summary>
         /// <param name="position">Context menu position</param>
-        /// <param name="editor">VolumeProfileEditor associated with the context menu</param>
+        /// <param name="volumeProfile">VolumeProfile associated with the context menu</param>
+        /// <param name="componentEditors">List of VolumeComponentEditors associated with the profile</param>
         /// <param name="defaultVolumeProfilePath">Default path for the new volume profile</param>
+        /// <param name="overrideStateOnReset">Default override state for components when they are reset</param>
         /// <param name="onNewVolumeProfileCreated">Callback when new volume profile has been created</param>
+        /// <param name="onComponentEditorsExpandedCollapsed">Callback when all editors are collapsed or expanded</param>
         public static void OnVolumeProfileContextClick(
             Vector2 position,
-            VolumeProfileEditor editor,
+            VolumeProfile volumeProfile,
+            List<VolumeComponentEditor> componentEditors,
+            bool overrideStateOnReset,
             string defaultVolumeProfilePath,
-            Action<VolumeProfile> onNewVolumeProfileCreated)
+            Action<VolumeProfile> onNewVolumeProfileCreated,
+            Action onComponentEditorsExpandedCollapsed = null)
         {
-            var volumeProfile = editor.target as VolumeProfile;
-            if (volumeProfile == null)
-                return;
-
             var menu = new GenericMenu();
-            menu.AddItem(EditorGUIUtility.TrTextContent("New Volume Profile..."), false, () =>
+            menu.AddItem(Styles.newVolumeProfile, false, () =>
             {
                 VolumeProfileFactory.CreateVolumeProfileWithCallback(defaultVolumeProfilePath,
                     onNewVolumeProfileCreated);
             });
-            menu.AddItem(EditorGUIUtility.TrTextContent("Clone"), false, () =>
+            menu.AddItem(Styles.clone, false, () =>
             {
                 var pathName = AssetDatabase.GenerateUniqueAssetPath(AssetDatabase.GetAssetPath(volumeProfile));
                 var clone = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName, volumeProfile);
@@ -268,38 +280,92 @@ namespace UnityEditor.Rendering
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, editor.componentList.CollapseComponents);
-            menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, editor.componentList.ExpandComponents);
+            menu.AddItem(Styles.collapseAll, false, () =>
+            {
+                SetComponentEditorsExpanded(componentEditors, false);
+                onComponentEditorsExpandedCollapsed?.Invoke();
+            });
+            menu.AddItem(Styles.expandAll, false, () =>
+            {
+                SetComponentEditorsExpanded(componentEditors, true);
+                onComponentEditorsExpandedCollapsed?.Invoke();
+            });
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Reset All"), false, editor.componentList.ResetComponents);
+            menu.AddItem(Styles.resetAll, false, () =>
+            {
+                VolumeComponent[] components = new VolumeComponent[componentEditors.Count];
+                for (int i = 0; i < componentEditors.Count; i++)
+                    components[i] = componentEditors[i].volumeComponent;
+
+                ResetComponentsInternal(new SerializedObject(volumeProfile), volumeProfile, components, overrideStateOnReset);
+            });
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false,
+            menu.AddItem(Styles.showAllAdditionalProperties, false,
                 CoreRenderPipelinePreferences.Open);
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Open In Rendering Debugger"), false,
-                DebugDisplaySettingsVolume.OpenInRenderingDebugger);
+            menu.AddItem(Styles.openInRenderingDebugger, false, DebugDisplaySettingsVolume.OpenInRenderingDebugger);
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Copy All Settings"), false,
+            menu.AddItem(Styles.copyAllSettings, false,
                 () => VolumeComponentCopyPaste.CopySettings(volumeProfile.components));
 
             if (VolumeComponentCopyPaste.CanPaste(volumeProfile.components))
-                menu.AddItem(EditorGUIUtility.TrTextContent("Paste Settings"), false, () =>
+                menu.AddItem(Styles.pasteSettings, false, () =>
                 {
                     VolumeComponentCopyPaste.PasteSettings(volumeProfile.components);
                     VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
                 });
             else
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Paste Settings"));
+                menu.AddDisabledItem(Styles.pasteSettings);
 
             menu.DropDown(new Rect(new Vector2(position.x, position.y), Vector2.zero));
+        }
+
+        internal static VolumeComponent CreateNewComponent(Type type)
+        {
+            var volumeComponent = (VolumeComponent) ScriptableObject.CreateInstance(type);
+            volumeComponent.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
+            volumeComponent.name = type.Name;
+            return volumeComponent;
+        }
+
+        internal static void ResetComponentsInternal(
+            SerializedObject serializedObject,
+            VolumeProfile asset,
+            VolumeComponent[] components,
+            bool newComponentDefaultOverrideState)
+        {
+            Undo.RecordObjects(components, "Reset All Volume Overrides");
+
+            foreach (var targetComponent in components)
+            {
+                var newComponent = CreateNewComponent(targetComponent.GetType());
+                CopyValuesToComponent(newComponent, targetComponent, false);
+                targetComponent.SetAllOverridesTo(newComponentDefaultOverrideState);
+            }
+
+            serializedObject.ApplyModifiedProperties();
+
+            VolumeManager.instance.OnVolumeProfileChanged(asset);
+
+            // Force save / refresh
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
+        }
+
+        internal static void SetComponentEditorsExpanded(List<VolumeComponentEditor> editors, bool expanded)
+        {
+            foreach (var editor in editors)
+            {
+                editor.expanded = expanded;
+            }
         }
     }
 }

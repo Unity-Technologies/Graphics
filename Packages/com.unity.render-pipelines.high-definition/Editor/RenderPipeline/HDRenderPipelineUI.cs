@@ -824,9 +824,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (GUI.Button(contextMenuButtonRect, CoreEditorStyles.contextMenuIcon,
                     Styles.volumeProfileContextMenuStyle.Value))
             {
+                var profileEditor = s_VolumeProfileEditor as VolumeProfileEditor;
                 var srpAsset = serialized.serializedObject.targetObject as HDRenderPipelineAsset;
                 var pos = new Vector2(contextMenuButtonRect.x, contextMenuButtonRect.yMax);
-                VolumeProfileUtils.OnVolumeProfileContextClick(pos, s_VolumeProfileEditor as VolumeProfileEditor,
+                VolumeProfileUtils.OnVolumeProfileContextClick(pos, srpAsset.volumeProfile, profileEditor.componentList.editors,
+                    overrideStateOnReset: false,
                     defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{srpAsset.name}_VolumeProfile.asset",
                     onNewVolumeProfileCreated: volumeProfile =>
                     {

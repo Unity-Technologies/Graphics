@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uib="Unity.UI.Builder">
+    <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/StyleSheets/RenderPipelineGlobalSettings.uss"/>
+    <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/StyleSheets/HelpButton.uss"/>
+    <ui:ScrollView horizontal-scroller-visibility="Hidden">
+        <ui:VisualElement class="srp-global-settings__container">
+            <ui:VisualElement class="srp-global-settings__header-container">
+                <ui:Label name="srp-global-settings__header-label" text="SRP Global Settings"/>
+                <ui:VisualElement class="srp-global-settings__help-button-container">
+                    <ui:Button name="srp-global-settings__help-button" class="iconButton unity-icon-button help-button">
+                        <ui:Image name="srp-global-settings__help-button-image" class="unity-icon-button help-button__image"/>
+                    </ui:Button>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="srp-global-settings__content-container"/>
+        </ui:VisualElement>
+    </ui:ScrollView>
+</ui:UXML>

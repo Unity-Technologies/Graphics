@@ -72,6 +72,9 @@ namespace UnityEditor.Rendering
 
         bool m_IsDefaultVolumeProfile;
 
+        /// <summary>List of all VolumeComponentEditors</summary>
+        public List<VolumeComponentEditor> editors => m_Editors;
+
         /// <summary>
         /// Set whether the editor behaves as a default volume profile.
         /// </summary>
@@ -151,7 +154,9 @@ namespace UnityEditor.Rendering
             else
                 m_Editors[index] = editor;
 
-            m_VolumeComponentHelpUrls[editor] = Help.GetHelpURLForObject(component);
+            DocumentationUtils.TryGetHelpURL(component.GetType(), out string helpUrl);
+            helpUrl ??= string.Empty;
+            m_VolumeComponentHelpUrls[editor] = helpUrl;
         }
 
         void DetermineEditorsVisibility()
@@ -430,11 +435,11 @@ namespace UnityEditor.Rendering
                 menu.AddSeparator(string.Empty);
             }
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => CollapseComponents());
-            menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, () => ExpandComponents());
+            menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => SetComponentEditorsExpanded(false));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, () => SetComponentEditorsExpanded(true));
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponents(new []{ targetComponent }));
             if (!m_IsDefaultVolumeProfile)
                 menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
 
@@ -481,19 +486,11 @@ namespace UnityEditor.Rendering
             menu.DropDown(new Rect(position, Vector2.zero));
         }
 
-        VolumeComponent CreateNewComponent(Type type)
-        {
-            var effect = (VolumeComponent) ScriptableObject.CreateInstance(type);
-            effect.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
-            effect.name = type.Name;
-            return effect;
-        }
-
         internal void AddComponent(Type type)
         {
             m_SerializedObject.Update();
 
-            var component = CreateNewComponent(type);
+            var component = VolumeProfileUtils.CreateNewComponent(type);
             Undo.RegisterCreatedObjectUndo(component, "Add Volume Override");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
@@ -548,37 +545,16 @@ namespace UnityEditor.Rendering
             AssetDatabase.SaveAssets();
         }
 
-        internal void ResetComponent(VolumeComponent component)
+        void SetComponentEditorsExpanded(bool expanded)
         {
-            ResetComponentsInternal(new []{ component });
+            VolumeProfileUtils.SetComponentEditorsExpanded(m_Editors, expanded);
         }
 
-        internal void ResetComponents()
+        void ResetComponents(VolumeComponent[] components)
         {
-            var components = m_Editors.Select(e => e.volumeComponent).ToArray();
-            ResetComponentsInternal(components);
-        }
-
-        void ResetComponentsInternal(VolumeComponent[] components)
-        {
-            Undo.RecordObjects(components, "Reset All Volume Overrides");
-
-            foreach (var targetComponent in components)
-            {
-                var newComponent = CreateNewComponent(targetComponent.GetType());
-                VolumeProfileUtils.CopyValuesToComponent(newComponent, targetComponent, false);
-
-                bool overrideState = m_IsDefaultVolumeProfile;
-                targetComponent.SetAllOverridesTo(overrideState); // For default volume components are on by default, otherwise off
-            }
-
-            m_SerializedObject.ApplyModifiedProperties();
-
-            VolumeManager.instance.OnVolumeProfileChanged(asset);
-
-            // Force save / refresh
-            EditorUtility.SetDirty(asset);
-            AssetDatabase.SaveAssets();
+            // For default volume components are on by default, otherwise off
+            bool defaultOverrideState = m_IsDefaultVolumeProfile;
+            VolumeProfileUtils.ResetComponentsInternal(m_SerializedObject, asset, components, defaultOverrideState);
         }
 
         internal enum Move
@@ -629,32 +605,6 @@ namespace UnityEditor.Rendering
 
             if (!m_Editors.TrySwap(id, newIndex, out var error))
                 Debug.LogException(error);
-        }
-
-        internal void CollapseComponents()
-        {
-            // Move components
-            m_SerializedObject.Update();
-            int numEditors = m_Editors.Count;
-            for (int i = 0; i < numEditors; ++i)
-            {
-                m_Editors[i].expanded = false;
-            }
-
-            m_SerializedObject.ApplyModifiedProperties();
-        }
-
-        internal void ExpandComponents()
-        {
-            // Move components
-            m_SerializedObject.Update();
-            int numEditors = m_Editors.Count;
-            for (int i = 0; i < numEditors; ++i)
-            {
-                m_Editors[i].expanded = true;
-            }
-
-            m_SerializedObject.ApplyModifiedProperties();
         }
     }
 }
