@@ -86,6 +86,10 @@ namespace UnityEngine.Rendering.Universal
             m_Renderer2DData.lightCullResult = m_LightCullResult;
             // the fall back here because 2D Renderer is in another unreferenced DLL.
             Blitter.Initialize(data.coreBlitPS, data.coreBlitColorAndDepthPS);
+
+            LensFlareCommonSRP.mergeNeeded = 0;
+            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
+            LensFlareCommonSRP.Initialize();
         }
 
         protected override void Dispose(bool disposing)
