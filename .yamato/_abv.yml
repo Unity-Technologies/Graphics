@@ -35,11 +35,6 @@ all_project_ci_nightly_2020.3:
         CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         TEST_FILTER: .*
         UTR_VERSION: "current"
-    triggers:
-        recurring:
-          -  branch: 10.x.x/release
-             frequency: weekly
-
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2020.3
          rerun: on_new_revision
