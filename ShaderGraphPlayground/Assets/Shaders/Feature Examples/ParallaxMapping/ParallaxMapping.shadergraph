@@ -5065,7 +5065,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Amplitude",
     "m_StageCapability": 2,
-    "m_Value": 8.0,
+    "m_Value": 16.0,
     "m_DefaultValue": 1.0,
     "m_Labels": []
 }

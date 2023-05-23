@@ -1,6 +1,6 @@
 # UV Flow Map Node
 
-Given a flow map directional input, the UV Flow Map node generates UV coordinates that can be used to create a flowing effect. This effect creates the illusion of directional movement in an otherwise static image and can be used for flowing water or to make static images appear to be alive with movement.  The effect is achieved by sampling an image two times.  The first sample uses the UV0 output of the UV Flow Map node and the second sample uses the UV1 output of the UV Flow Map node.  The two samples are then blended together using a Lerp node where the Lerp node's T input port is connected from the Lerp output of the UV Flow Map node.
+Uses **Flow Map** directional input to generate UV coordinates that you can use to create a flowing effect. This flowing effect creates the illusion of directional movement in an otherwise static image. You can use it to create the effect of flowing water or to make static images appear to be alive with movement. The effect is achieved by sampling an image two times. The first sample uses the UV0 output of the UV Flow Map node and the second sample uses the UV1 output of the UV Flow Map node. The two samples are then blended together using a Lerp node where the Lerp node's T input port is connected from the Lerp output of the UV Flow Map node.
 
 ![](images/)
 
@@ -21,11 +21,11 @@ The UV Flow Map Node is under the **UV** category in the Create Node menu.
 [!include[nodes-inputs](./snippets/nodes-inputs.md)] <!-- MULTIPLE INPUT PORTS INCLUDE -->
 | **Name** | **Type** | **Description** |
 | :------  | :------- | :-------------  |
-|  **Flow Map**  | Vector 2 | x and y values that define a direction in which the flow should occur.  This data is generally stored in a flow map texture and should be expanded to the -1 to 1 range before passing it into the UV Flow Map node's Flow Map input port. |
-|  **Strength**  | Float | a multiplier for the flow map data that controls how far the UVs are pushed in the flow direction. |
-|  **Flow Time**  | Float | the timing phase for the flow effect.  By default, this uses an internal Flow Map Time node to generate a spatially-varying phase offset for time.  For a more efficient effect, you could simply connect a time node to a frac node and pass that into Flow Time. Using the Flow Map Time node breaks up the uniform pulsing artifacts that can otherwise occur without it. |
-|  **UV**  | Vector 2 | the UV coordinates to be used for the flow map effect. |
-|  **Offset**  | Float | when this value is set to 0.5 (the default) it reduces UV stretching my placing the non-stretched portion of the phase, right in the middle where it's most visible. Using values outside of the 0-0.5 range will probably result in undesired unwanted UV stretching.
+|  **Flow Map**  | Vector 2 | x and y values that define the direction in which the flow should occur.  This data is generally stored in a flow map texture and you should expand it to the -1 to 1 range before you pass it into the UV Flow Map node's Flow Map input port. |
+|  **Strength**  | Float | A multiplier for the flow map data that controls how far the UVs are pushed in the flow direction. |
+|  **Flow Time**  | Float | The timing phase for the flow effect.  By default, this uses an internal Flow Map Time node to generate a spatially-varying phase offset for time.  For a more efficient effect, you could simply connect a time node to a frac node and pass that into Flow Time. Using the Flow Map Time node breaks up the uniform pulsing artifacts that can otherwise occur without it. |
+|  **UV**  | Vector 2 | The UV coordinates to use for the flow map effect. |
+|  **Offset**  | Float | Specify where to place the non-stretched portion of the phase. If you set this value to 0.5 (the default) it places the non-stretched portion of the phase right in the middle where it's most visible and reduces UV stretching. If you use values outside of the 0-0.5 range, it will probably result in undesired UV stretching.
 
 
 ## Outputs
