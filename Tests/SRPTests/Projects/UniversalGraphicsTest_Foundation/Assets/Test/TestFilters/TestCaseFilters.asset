@@ -495,7 +495,7 @@ MonoBehaviour:
     GraphicsDevice: 4
     XrSdk: 
     StereoModes: 0
-    Reason: Alembic package is desktop only	
+    Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
@@ -565,6 +565,15 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 13
     GraphicsDevice: 21
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Unstable for OpenGLES3 on Quest
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6fbea5cb60d394329b2ac2b4a3788d12, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
     XrSdk: OculusLoader
     StereoModes: 0
     Reason: Unstable for OpenGLES3 on Quest
