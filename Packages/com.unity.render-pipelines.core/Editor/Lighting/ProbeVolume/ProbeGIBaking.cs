@@ -1247,10 +1247,6 @@ namespace UnityEngine.Rendering
             // Need to restore the original sh bands
             ProbeReferenceVolume.instance.ForceSHBand(prevSHBands);
 
-            // ForceSHBand will unload all data so we need to reload it for up to date context after bake.
-            foreach (var data in fullSceneDataList)
-                data.QueueSceneLoading();
-
             // Mark old bakes as out of date if needed
             ProbeVolumeLightingTab.instance?.UpdateScenarioStatuses(ProbeReferenceVolume.instance.lightingScenario);
 

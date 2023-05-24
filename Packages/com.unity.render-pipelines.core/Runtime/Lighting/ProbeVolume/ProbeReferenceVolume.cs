@@ -862,6 +862,11 @@ namespace UnityEngine.Rendering
 
             DeinitProbeReferenceVolume();
             InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget, shBands);
+
+            foreach (var data in perSceneDataList)
+                data.QueueSceneLoading();
+
+            PerformPendingOperations();
         }
 
         /// <summary>
