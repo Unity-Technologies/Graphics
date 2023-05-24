@@ -604,7 +604,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                 // We return whatever value is in resolution if there is no hdrp pipeline (nothing will work anyway)
                 return hdrp != null ? m_ProbeSettings.resolutionScalable.Value(hdrp.asset.currentPlatformRenderPipelineSettings.planarReflectionResolution) : m_ProbeSettings.resolution;
             }
@@ -616,7 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                 return hdrp != null ? m_ProbeSettings.cubeResolution.Value(hdrp.asset.currentPlatformRenderPipelineSettings.cubeReflectionResolution) : ProbeSettings.k_DefaultCubeResolution;
             }
         }
