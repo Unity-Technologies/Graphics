@@ -21,7 +21,7 @@
 
 #pragma multi_compile _ HALF_RESOLUTION
 
-#pragma enable_d3d11_debug_symbols
+//#pragma enable_d3d11_debug_symbols
 
 // Constants
 #define PREPASS_BLUR_RADIUS 20.0
