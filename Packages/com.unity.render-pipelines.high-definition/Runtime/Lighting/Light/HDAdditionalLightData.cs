@@ -2478,6 +2478,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Reserve wanted resolution in the shadow atlas
             int resolution = GetResolutionFromSettings(shadowType, initParameters);
+
+            //Exit out early if we dont want to render the shadow anyways
+            if (resolution == 0)
+                return;
+
             Vector2 viewportSize = new Vector2(resolution, resolution);
 
             bool viewPortRescaling = false;
@@ -2561,10 +2566,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return -offset;
         }
-
-
-
-
 
         // We need these old states to make timeline and the animator record the intensity value and the emissive mesh changes
         [System.NonSerialized]
@@ -3488,7 +3489,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Set the shadow resolution.
         /// </summary>
-        /// <param name="resolution">Must be between 16 and 16384</param>
+        /// <param name="resolution">Must be between 16 and 16384 but we will allow 0 to turn off the shadow</param>
         public void SetShadowResolution(int resolution)
         {
             if (shadowResolution.@override != resolution)

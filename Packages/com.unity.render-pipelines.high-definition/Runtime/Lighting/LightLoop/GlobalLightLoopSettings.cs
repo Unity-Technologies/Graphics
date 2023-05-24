@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum CubeReflectionResolution
     {
         /// <summary>Turns off Probes if selected</summary>
-        Off = 0,
+        CubeReflectionResolution0 = 0,
         /// <summary>Size 128</summary>
         CubeReflectionResolution128 = 128,
         /// <summary>Size 256</summary>
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum PlanarReflectionAtlasResolution
     {
         /// <summary>Turns off Probes if selected</summary>
-        Off = 0,
+        Resolution0 = 0,
         /// <summary>Size 64</summary>
         Resolution64 = 64,
         /// <summary>Size 128</summary>

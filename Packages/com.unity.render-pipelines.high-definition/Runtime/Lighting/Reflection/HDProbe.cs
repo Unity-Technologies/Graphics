@@ -281,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Returns true if the the selected probe has its resolution set to off.</returns>
         public bool IsTurnedOff()
         {
-            return (type == ProbeSettings.ProbeType.PlanarProbe && resolution == PlanarReflectionAtlasResolution.Off) ||(type == ProbeSettings.ProbeType.ReflectionProbe && cubeResolution == CubeReflectionResolution.Off);
+            return (type == ProbeSettings.ProbeType.PlanarProbe && resolution == PlanarReflectionAtlasResolution.Resolution0) ||(type == ProbeSettings.ProbeType.ReflectionProbe && cubeResolution == CubeReflectionResolution.CubeReflectionResolution0);
         }
 
         internal ProbeRenderSteps NextRenderSteps()
@@ -983,7 +983,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             if (type == ProbeSettings.ProbeType.ReflectionProbe)
             {
-                if (cubeResolution == CubeReflectionResolution.Off)
+                if (cubeResolution == CubeReflectionResolution.CubeReflectionResolution0)
                 {
                     if (m_BakedTexture != null)
                     {

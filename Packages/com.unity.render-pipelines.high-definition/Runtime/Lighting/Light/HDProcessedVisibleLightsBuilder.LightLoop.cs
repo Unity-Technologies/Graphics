@@ -147,6 +147,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 
                     VisibleLight visibleLight = visibleLights[lightIndex];
+
+                    if (additionalLightData.GetResolutionFromSettings(additionalLightData.GetShadowMapType(visibleLight.lightType), inShadowInitParameters) == 0)
+                        continue;
+
                     additionalLightData.ReserveShadowMap(hdCamera.camera, shadowManager, hdShadowSettings, inShadowInitParameters, visibleLight, entity->lightType);
                 }
 
@@ -167,6 +171,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     HDAdditionalLightData additionalLightData = HDLightRenderDatabase.instance.hdAdditionalLightData[entity->dataIndex];
                     if (additionalLightData == null)
+                        continue;
+
+                    VisibleLight visibleLight = visibleLights[lightIndex];
+
+                    if (additionalLightData.GetResolutionFromSettings(additionalLightData.GetShadowMapType(visibleLight.lightType), inShadowInitParameters) == 0)
                         continue;
 
                     if (additionalLightData.HasShadowAtlasPlacement())
