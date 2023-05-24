@@ -110,7 +110,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (pass.IsForward())
             {
-                pass.keywords.Add(CoreKeywordDescriptors.Shadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
+                pass.keywords.Add(CoreKeywordDescriptors.PunctualShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
+                pass.keywords.Add(CoreKeywordDescriptors.DirectionalShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
                 pass.keywords.Add(CoreKeywordDescriptors.AreaShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
                 pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
             }

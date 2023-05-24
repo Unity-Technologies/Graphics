@@ -1401,13 +1401,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static class Defines
         {
             // Shadows
-            public static DefineCollection shadowLow = new DefineCollection { { CoreKeywordDescriptors.Shadow, 0 } };
-            public static DefineCollection shadowMedium = new DefineCollection { { CoreKeywordDescriptors.Shadow, 1 } };
-            public static DefineCollection shadowHigh = new DefineCollection { { CoreKeywordDescriptors.Shadow, 2 } };
-
-            // Area Shadows
-            public static DefineCollection areaShadowMedium = new DefineCollection { { CoreKeywordDescriptors.AreaShadow, 0 } };
-            public static DefineCollection areaShadowHigh = new DefineCollection { { CoreKeywordDescriptors.AreaShadow, 1 } };
+            public static DefineCollection shadowLow = new DefineCollection { { CoreKeywordDescriptors.PunctualShadow, 0 }, { CoreKeywordDescriptors.DirectionalShadow, 0 } };
 
             // Raytracing Quality
             public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };

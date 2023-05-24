@@ -223,23 +223,39 @@ namespace UnityEngine.Rendering.HighDefinition
             // Directional shadow material
             s_ScreenSpaceShadowsMat = CoreUtils.CreateEngineMaterial(screenSpaceShadowsShader);
 
-            switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
+            switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.punctualShadowFilteringQuality)
             {
                 case HDShadowFilteringQuality.Low:
-                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_LOW");
+                    s_ScreenSpaceShadowsMat.EnableKeyword("PUNCTUAL_SHADOW_LOW");
                     break;
                 case HDShadowFilteringQuality.Medium:
-                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_MEDIUM");
+                    s_ScreenSpaceShadowsMat.EnableKeyword("PUNCTUAL_SHADOW_MEDIUM");
                     break;
                 case HDShadowFilteringQuality.High:
-                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_HIGH");
+                    s_ScreenSpaceShadowsMat.EnableKeyword("PUNCTUAL_SHADOW_HIGH");
                     break;
                 default:
-                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_MEDIUM");
+                    s_ScreenSpaceShadowsMat.EnableKeyword("PUNCTUAL_SHADOW_MEDIUM");
                     break;
             }
 
-            switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality)
+             switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.directionalShadowFilteringQuality)
+            {
+                case HDShadowFilteringQuality.Low:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("DIRECTIONAL_SHADOW_LOW");
+                    break;
+                case HDShadowFilteringQuality.Medium:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("DIRECTIONAL_SHADOW_MEDIUM");
+                    break;
+                case HDShadowFilteringQuality.High:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("DIRECTIONAL_SHADOW_HIGH");
+                    break;
+                default:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("DIRECTIONAL_SHADOW_MEDIUM");
+                    break;
+            }
+
+           switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality)
             {
                 case HDAreaShadowFilteringQuality.Medium:
                     s_ScreenSpaceShadowsMat.EnableKeyword("AREA_SHADOW_MEDIUM");

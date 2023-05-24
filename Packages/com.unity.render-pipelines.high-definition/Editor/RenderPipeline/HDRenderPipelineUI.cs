@@ -368,7 +368,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.punctualShadowFilteringQuality, Styles.punctualFilteringQuality);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowFilteringQuality, Styles.directionalFilteringQuality);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.areaShadowFilteringQuality, Styles.areaFilteringQuality);
             }
             else

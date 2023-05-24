@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdShadowRequestIndicesStorage = shadowRequestDatabase.hdShadowRequestIndicesStorage.AsArray(),
                 cascadeShadowSplits = GetCascadeRatiosAsVector3(shadowSettings.cascadeShadowSplits),
                 cascadeShadowSplitCount = shadowSettings.cascadeShadowSplitCount.value,
-                shadowFilteringQuality = hdShadowInitParams.shadowFilteringQuality,
+                punctualShadowFilteringQuality = hdShadowInitParams.punctualShadowFilteringQuality,
                 usesReversedZBuffer = SystemInfo.usesReversedZBuffer,
                 shadowNearPlaneOffset = QualitySettings.shadowNearPlaneOffset,
                 shadowManagerRequestCount = shadowManager.GetShadowRequestCount(),
@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly] public NativeArray<int> hdShadowRequestIndicesStorage;
             [ReadOnly] public Vector3 cascadeShadowSplits;
             [ReadOnly] public int cascadeShadowSplitCount;
-            [ReadOnly] public HDShadowFilteringQuality shadowFilteringQuality;
+            [ReadOnly] public HDShadowFilteringQuality punctualShadowFilteringQuality;
             [ReadOnly] public bool usesReversedZBuffer;
             [ReadOnly] public float shadowNearPlaneOffset;
             [ReadOnly] public int shadowManagerRequestCount;
@@ -521,7 +521,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector4 deviceProjection;
 
                     HDShadowUtils.ExtractSpotLightData(spotAngleForShadows, light.shadowNearPlane, light.aspectRatio, light.shapeWidth,
-                        light.shapeHeight, visibleLight, viewportSize, light.normalBias, shadowFilteringQuality, usesReversedZBuffer,
+                        light.shapeHeight, visibleLight, viewportSize, light.normalBias, punctualShadowFilteringQuality, usesReversedZBuffer,
                         out view, out invViewProjection, out projection,
                         out deviceProjection, out deviceProjectionYFlip,
                         out splitData);
@@ -588,7 +588,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector4 deviceProjection;
 
                         HDShadowUtils.ExtractPointLightData(cubeMapFaces, visibleLight, viewportSize, light.shadowNearPlane,
-                            light.normalBias, (uint)splitIndex, shadowFilteringQuality, usesReversedZBuffer,
+                            light.normalBias, (uint)splitIndex, punctualShadowFilteringQuality, usesReversedZBuffer,
                             out view, out invViewProjection, out projection,
                             out deviceProjection, out deviceProjectionYFlip,
                             out splitData);

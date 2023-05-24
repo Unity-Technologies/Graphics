@@ -100,9 +100,18 @@ namespace UnityEditor.Rendering.HighDefinition
             // Strip every useless shadow configs
             var shadowInitParams = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
 
-            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
+            foreach (var shadowVariant in m_ShadowKeywords.PunctualShadowVariants)
             {
-                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                if (shadowVariant.Key != shadowInitParams.punctualShadowFilteringQuality)
+                {
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+                }
+            }
+
+            foreach (var shadowVariant in m_ShadowKeywords.DirectionalShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.directionalShadowFilteringQuality)
                 {
                     if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
                         return true;

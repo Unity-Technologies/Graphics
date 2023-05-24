@@ -256,7 +256,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent atlasWidthContent = EditorGUIUtility.TrTextContent("Atlas Width", "Sets the width of the Decal Atlas.");
             public static readonly GUIContent atlasHeightContent = EditorGUIUtility.TrTextContent("Atlas Height", "Sets the height of the Decal Atlas.");
             public static readonly GUIContent metalAndAOContent = EditorGUIUtility.TrTextContent("Metal and Ambient Occlusion Properties", "When enabled, Decals affect metal and ambient occlusion properties.");
-            public static readonly GUIContent filteringQuality = EditorGUIUtility.TrTextContent("Shadow Filtering Quality", "Specifies the quality of shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
+            public static readonly GUIContent punctualFilteringQuality = EditorGUIUtility.TrTextContent("Punctual Shadow Filtering Quality", "Specifies the quality of punctual shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
+            public static readonly GUIContent directionalFilteringQuality = EditorGUIUtility.TrTextContent("Directional Shadow Filtering Quality", "Specifies the quality of directional shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
             public static readonly GUIContent areaFilteringQuality = EditorGUIUtility.TrTextContent("Area Shadow Filtering Quality", "Specifies the quality of area shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
 
             public static readonly GUIContent enabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP dynamically lowers the resolution of render targets to reduce the workload on the GPU.");

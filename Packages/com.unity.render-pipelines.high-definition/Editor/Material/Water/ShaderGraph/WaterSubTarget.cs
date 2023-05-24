@@ -188,7 +188,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { WaterSurfaceGBuffer, 1},
             { DecalSurfaceGradient, 1},
             { UseClusturedLightList, 1},
-            { CoreKeywordDescriptors.Shadow, 0 },
+            { CoreKeywordDescriptors.PunctualShadow, 0 },
+            { CoreKeywordDescriptors.DirectionalShadow, 0 },
             { CoreKeywordDescriptors.AreaShadow, 0 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };

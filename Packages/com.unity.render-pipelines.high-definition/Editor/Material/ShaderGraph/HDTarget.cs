@@ -1503,10 +1503,26 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor Shadow = new KeywordDescriptor()
+        public static KeywordDescriptor PunctualShadow = new KeywordDescriptor()
         {
-            displayName = "Shadow",
-            referenceName = "SHADOW",
+            displayName = "PunctualShadow",
+            referenceName = "PUNCTUAL_SHADOW",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Low", referenceName = "LOW" },
+                new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
+                new KeywordEntry() { displayName = "High", referenceName = "HIGH" }
+            },
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static KeywordDescriptor DirectionalShadow = new KeywordDescriptor()
+        {
+            displayName = "DirectionalShadow",
+            referenceName = "DIRECTIONAL_SHADOW",
             type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

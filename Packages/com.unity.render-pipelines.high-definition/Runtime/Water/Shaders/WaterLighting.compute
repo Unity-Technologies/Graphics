@@ -28,7 +28,8 @@
 #endif
 
 // Shadow qualities are supported
-#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
+#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
 #pragma multi_compile AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
 #pragma multi_compile _ RENDERING_LAYERS
 

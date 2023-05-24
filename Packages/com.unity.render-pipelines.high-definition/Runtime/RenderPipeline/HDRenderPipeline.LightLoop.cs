@@ -774,19 +774,35 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 data.deferredComputeShader.shaderKeywords = null;
 
-                switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
+                switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.punctualShadowFilteringQuality)
                 {
                     case HDShadowFilteringQuality.Low:
-                        data.deferredComputeShader.EnableKeyword("SHADOW_LOW");
+                        data.deferredComputeShader.EnableKeyword("PUNCTUAL_SHADOW_LOW");
                         break;
                     case HDShadowFilteringQuality.Medium:
-                        data.deferredComputeShader.EnableKeyword("SHADOW_MEDIUM");
+                        data.deferredComputeShader.EnableKeyword("PUNCTUAL_SHADOW_MEDIUM");
                         break;
                     case HDShadowFilteringQuality.High:
-                        data.deferredComputeShader.EnableKeyword("SHADOW_HIGH");
+                        data.deferredComputeShader.EnableKeyword("PUNCTUAL_SHADOW_HIGH");
                         break;
                     default:
-                        data.deferredComputeShader.EnableKeyword("SHADOW_MEDIUM");
+                        data.deferredComputeShader.EnableKeyword("PUNCTUAL_SHADOW_MEDIUM");
+                        break;
+                }
+
+                switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.directionalShadowFilteringQuality)
+                {
+                    case HDShadowFilteringQuality.Low:
+                        data.deferredComputeShader.EnableKeyword("DIRECTIONAL_SHADOW_LOW");
+                        break;
+                    case HDShadowFilteringQuality.Medium:
+                        data.deferredComputeShader.EnableKeyword("DIRECTIONAL_SHADOW_MEDIUM");
+                        break;
+                    case HDShadowFilteringQuality.High:
+                        data.deferredComputeShader.EnableKeyword("DIRECTIONAL_SHADOW_HIGH");
+                        break;
+                    default:
+                        data.deferredComputeShader.EnableKeyword("DIRECTIONAL_SHADOW_MEDIUM");
                         break;
                 }
 
