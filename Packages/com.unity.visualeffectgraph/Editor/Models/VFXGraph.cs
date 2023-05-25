@@ -457,7 +457,8 @@ namespace UnityEditor.VFX
         // 11: Instancing
         // 12: Change space value of VFXSpace.None from 'int.MaxValue' to '-1'
         // 13: Unexpected incorrect synchronization of output with ShaderGraph
-        public static readonly int CurrentVersion = 13;
+        // 14: ShaderGraph integration uses the material variant workflow
+        public static readonly int CurrentVersion = 14;
 
         [NonSerialized]
         internal static bool compilingInEditMode = false;

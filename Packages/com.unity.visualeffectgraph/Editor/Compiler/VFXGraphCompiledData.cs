@@ -1259,6 +1259,7 @@ namespace UnityEditor.VFX
                     }
 
                     data.FillDescs(VFXGraph.compileReporter,
+                        compilationMode,
                         bufferDescs,
                         temporaryBufferDescs,
                         systemDescs,

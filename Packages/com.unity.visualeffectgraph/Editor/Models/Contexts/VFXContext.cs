@@ -142,6 +142,7 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
         public virtual IEnumerable<string> fragmentParameters { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<string> vertexParameters { get { return Enumerable.Empty<string>(); } }
+        public virtual bool usesMaterialVariantInEditMode { get { return false; } }
 
         public virtual VFXContextCompiledData PrepareCompiledData()
         {

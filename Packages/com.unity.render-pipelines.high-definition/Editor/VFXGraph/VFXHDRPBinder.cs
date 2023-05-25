@@ -51,35 +51,39 @@ namespace UnityEditor.VFX.HDRP
 
         public override bool TryGetQueueOffset(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out int queueOffset)
         {
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+
             queueOffset = 0;
-            if (materialSettings.HasProperty(HDMaterialProperties.kTransparentSortPriority))
-            {
-                queueOffset = (int)materialSettings.GetFloat(HDMaterialProperties.kTransparentSortPriority);
-                return true;
-            }
-            return false;
+            if (!materialSettings.TryGetFloat(HDMaterialProperties.kTransparentSortPriority, material, out var queueOffsetFloat))
+                return false;
+
+            queueOffset = (int)queueOffsetFloat;
+            return true;
         }
 
-        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shader, VFXMaterialSerializedSettings materialSettings)
+        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
         {
             var blendMode = VFXAbstractRenderedOutput.BlendMode.Opaque;
 
-            if (!materialSettings.HasProperty(HDMaterialProperties.kSurfaceType) ||
-                !materialSettings.HasProperty(HDMaterialProperties.kBlendMode))
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+            if (!materialSettings.TryGetFloat(HDMaterialProperties.kSurfaceType, material, out var surfaceType)
+                || !materialSettings.TryGetFloat(HDMaterialProperties.kBlendMode, material, out var blendModeFloat))
             {
                 return blendMode;
             }
 
-            var surfaceType = materialSettings.GetFloat(HDMaterialProperties.kSurfaceType);
             if (surfaceType == (int)SurfaceType.Transparent)
             {
-                switch (materialSettings.GetFloat(HDMaterialProperties.kBlendMode))
+                switch (blendModeFloat)
                 {
-                    case (int)BlendMode.Additive:
-                        blendMode = VFXAbstractRenderedOutput.BlendMode.Additive;
-                        break;
                     case (int)BlendMode.Alpha:
                         blendMode = VFXAbstractRenderedOutput.BlendMode.Alpha;
+                        break;
+                    case (int)BlendMode.Additive:
+                        blendMode = VFXAbstractRenderedOutput.BlendMode.Additive;
                         break;
                     case (int)BlendMode.Premultiply:
                         blendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied;

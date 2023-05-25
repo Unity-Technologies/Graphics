@@ -757,6 +757,7 @@ namespace UnityEditor.VFX
 
         public override void FillDescs(
             VFXCompileErrorReporter reporter,
+            VFXCompilationMode compilationMode,
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
@@ -1394,6 +1395,7 @@ namespace UnityEditor.VFX
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).Concat(additionalParameters).ToArray();
                 taskDesc.shaderSourceIndex = compiledData.taskToCompiledData[task].indexInShaderSource;
                 taskDesc.model = context;
+                taskDesc.usesMaterialVariant = compilationMode == VFXCompilationMode.Edition && context.usesMaterialVariantInEditMode;
 
                 if (context is IVFXMultiMeshOutput) // If the context is a multi mesh output, split and patch task desc into several tasks
                 {

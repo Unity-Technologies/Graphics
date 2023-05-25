@@ -46,12 +46,13 @@ namespace UnityEditor.VFX.URP
         {
             //N.B.: Queue offset is always overridable in URP
             queueOffset = 0;
-            if (materialSettings.HasProperty(Rendering.Universal.Property.QueueOffset))
-            {
-                queueOffset = (int)materialSettings.GetFloat(Rendering.Universal.Property.QueueOffset);
-                return true;
-            }
-            return false;
+
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (!materialSettings.TryGetFloat(Rendering.Universal.Property.QueueOffset, material, out float queueOffsetFloat))
+                return false;
+            queueOffset = (int)queueOffsetFloat;
+            return true;
         }
 
         public override bool TryGetCastShadowFromMaterial(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out bool castShadow)
@@ -67,9 +68,10 @@ namespace UnityEditor.VFX.URP
             }
             else
             {
-                if (materialSettings.HasProperty(Property.CastShadows))
+                var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (materialSettings.TryGetFloat(Property.CastShadows, material, out float castShadowFloat))
                 {
-                    castShadow = materialSettings.GetFloat(Property.CastShadows) != 0.0f;
+                    castShadow = castShadowFloat != 0.0f;
                     return true;
                 }
             }
@@ -80,7 +82,6 @@ namespace UnityEditor.VFX.URP
         {
             //N.B: About BlendMode multiply, it isn't officially supported by the VFX
             //but when using generatesWithShaderGraph, the shaderGraph generates the appropriate blendState.
-
             var vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Opaque;
             var path = AssetDatabase.GetAssetPath(shaderGraph);
             var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
@@ -99,12 +100,13 @@ namespace UnityEditor.VFX.URP
             }
             else
             {
-                if (materialSettings.HasProperty(Property.SurfaceType))
+                var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (materialSettings.TryGetFloat(Property.SurfaceType, material, out var surfaceTypeFloat))
                 {
-                    var surfaceType = (BaseShaderGUI.SurfaceType)materialSettings.GetFloat(Property.SurfaceType);
-                    if (surfaceType == BaseShaderGUI.SurfaceType.Transparent)
+                    var surfaceType = (BaseShaderGUI.SurfaceType)surfaceTypeFloat;
+                    if (surfaceType == BaseShaderGUI.SurfaceType.Transparent && materialSettings.TryGetFloat(Property.BlendMode, material, out var blendModeTypeFloat))
                     {
-                        var blendMode = (BaseShaderGUI.BlendMode)materialSettings.GetFloat(Property.BlendMode);
+                        var blendMode = (BaseShaderGUI.BlendMode)blendModeTypeFloat;
                         switch (blendMode)
                         {
                             case BaseShaderGUI.BlendMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;

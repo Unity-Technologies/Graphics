@@ -66,6 +66,9 @@ namespace UnityEditor.VFX
             {
                 var shaderGraphParticleOutput = (VFXShaderGraphParticleOutput)target;
                 var shaderGraph = shaderGraphParticleOutput.GetOrRefreshShaderGraphObject();
+                if (shaderGraph == null)
+                    return;
+
                 var materialShadowOverride = VFXLibrary.currentSRPBinder.TryGetCastShadowFromMaterial(shaderGraph, shaderGraphParticleOutput.materialSettings, out var castShadow);
                 var materialSortingPriorityOverride = VFXLibrary.currentSRPBinder.TryGetQueueOffset(shaderGraph, shaderGraphParticleOutput.materialSettings, out var queueOffset) && shaderGraphParticleOutput.subOutput.supportsSortingPriority;
 
@@ -87,6 +90,47 @@ namespace UnityEditor.VFX
                 {
                     EditorGUILayout.HelpBox("Transparent Motion Vectors pass is disabled. Consider disabling Generate Motion Vector to improve performance.", MessageType.Warning);
                 }
+            }
+        }
+
+        private List<string> m_OverridenPropertiesCache = null;
+
+        private static SerializedProperty GetWatchedProperties(SerializedObject material)
+        {
+            var propertyBase = material.FindProperty("m_SavedProperties");
+            propertyBase = propertyBase.FindPropertyRelative("m_Floats");
+            return propertyBase;
+        }
+
+        private static string GetPropertyName(SerializedProperty properties, int index)
+        {
+            var currentEntry = properties.GetArrayElementAtIndex(index);
+            return currentEntry.FindPropertyRelative("first").stringValue;
+        }
+
+        private static bool HasOverridenPropertiesChanged(SerializedObject material, List<string> overridenProperties)
+        {
+            var properties = GetWatchedProperties(material);
+            if (properties.arraySize != overridenProperties.Count)
+                return true;
+
+            for (int index = 0; index < properties.arraySize; ++index)
+            {
+                var name = GetPropertyName(properties, index);
+                if (overridenProperties[index] != name)
+                    return true;
+            }
+            return false;
+        }
+
+        private static void GetOverridenProperties(SerializedObject material, List<string> overridenProperties)
+        {
+            overridenProperties.Clear();
+            var properties = GetWatchedProperties(material);
+            for (int index = 0; index < properties.arraySize; ++index)
+            {
+                var name = GetPropertyName(properties, index);
+                overridenProperties.Add(name);
             }
         }
 
@@ -124,12 +168,35 @@ namespace UnityEditor.VFX
                         m_MaterialEditor.DrawHeader();
                     }
 
-                    EditorGUI.BeginChangeCheck();
+                    bool isVariant = (m_MaterialEditor.target as Material).isVariant;
+                    if (!isVariant)
+                    {
+                        EditorGUILayout.HelpBox("Unable to modify VFX Material during Runtime Mode to prevent loss of material override settings.\nTo adjust material settings, please toggle off Runtime Mode in Compile dropdown and return to Edit mode.", MessageType.Warning);
+                    }
 
-                    // This will correctly handle the configuration of keyword and pass setup.
-                    m_MaterialEditor.OnInspectorGUI();
+                    using (new EditorGUI.DisabledScope(!isVariant))
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        // This will correctly handle the configuration of keyword and pass setup.
+                        m_MaterialEditor.OnInspectorGUI();
+                        materialChanged = EditorGUI.EndChangeCheck();
+                    }
 
-                    materialChanged = EditorGUI.EndChangeCheck();
+                    if (isVariant)
+                    {
+                        //Automatically detect Revert Override which can be applied outside inspector callback
+                        if (m_OverridenPropertiesCache == null)
+                        {
+                            m_OverridenPropertiesCache = new List<string>();
+                            GetOverridenProperties(m_MaterialEditor.serializedObject, m_OverridenPropertiesCache);
+                        }
+
+                        if (!materialChanged && HasOverridenPropertiesChanged(m_MaterialEditor.serializedObject, m_OverridenPropertiesCache))
+                        {
+                            GetOverridenProperties(m_MaterialEditor.serializedObject, m_OverridenPropertiesCache);
+                            materialChanged = true;
+                        }
+                    }
                 }
             }
 
@@ -165,7 +232,7 @@ namespace UnityEditor.VFX
         [SerializeField, VFXSetting]
         protected ShaderGraphVfxAsset shaderGraph;
 
-        [SerializeField]
+        [SerializeField, VFXSetting]
         internal VFXMaterialSerializedSettings materialSettings = new VFXMaterialSerializedSettings();
 
         public event Action OnMaterialChange;
@@ -201,7 +268,33 @@ namespace UnityEditor.VFX
             return shaderGraph;
         }
 
+        public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+            if (version < 14)
+            {
+                var shaderGraph = GetOrRefreshShaderGraphObject();
+                if (shaderGraph && shaderGraph.generatesWithShaderGraph)
+                {
+                    var path = AssetDatabase.GetAssetPath(shaderGraph);
+                    var referenceMaterial = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    materialSettings.UpgradeToMaterialWorkflowVersion(referenceMaterial);
+                }
+            }
+        }
+
         public override bool CanBeCompiled() => !m_IsShaderGraphMissing && base.CanBeCompiled();
+
+        public override bool usesMaterialVariantInEditMode
+        {
+            get
+            {
+                var shaderGraph = GetOrRefreshShaderGraphObject();
+                if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+                    return true;
+                return false;
+            }
+        }
 
         public override bool hasShadowCasting
         {
@@ -274,61 +367,10 @@ namespace UnityEditor.VFX
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
-                if (materialSettings.NeedsSync())
-                {
-                    var sgAssetPath = AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID());
-                    var vfxAssetPath = AssetDatabase.GetAssetPath(this);
-
-                    Debug.LogErrorFormat("Unexpected missing material settings on VFX '{0}' using ShaderGraph '{1}'.\nThis invalid state can lead to an incorrect sort mode.", vfxAssetPath, sgAssetPath);
-                }
-
                 materialSettings.ApplyToMaterial(material);
                 VFXLibrary.currentSRPBinder.SetupMaterial(material, hasMotionVector, hasShadowCasting, shaderGraph);
 
                 OnMaterialChange?.Invoke();
-            }
-        }
-        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
-        {
-            base.OnInvalidate(model, cause);
-            if (cause == InvalidationCause.kSettingChanged)
-            {
-                LazyUpdateMaterialSettingsFromShaderGraph();
-            }
-        }
-
-        public override void Sanitize(int version)
-        {
-            if (version < 13)
-            {
-                // Before move of NeedsSync in OnInvalidate, it was possible to miss an initial setup after assignment of shaderGraph
-                // It caused the exception with SetupMaterial 'Unexpected Setup Material called without invalidation.' during import.
-                LazyUpdateMaterialSettingsFromShaderGraph();
-            }
-            base.Sanitize(version);
-        }
-
-        private void LazyUpdateMaterialSettingsFromShaderGraph()
-        {
-            // In certain scenarios the context might not be configured with any serialized material information
-            // when assigned a shader graph for the first time. In this case we sync the settings to the incoming material,
-            // which will be pre-configured by shader graph with the render state & other properties (i.e. a SG with Transparent surface).
-            // Use default material reference to initial properties setup (provide the correct state for sorting)
-            if (materialSettings.NeedsSync())
-            {
-                var shaderGraph = GetOrRefreshShaderGraphObject();
-                if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
-                {
-                    var assetPath = AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID());
-                    var materialReference = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
-                    if (materialReference == null)
-                    {
-                        Debug.LogErrorFormat("Unable to retrieve the reference material at path: {0}", assetPath);
-                        return;
-                    }
-
-                    materialSettings.SyncFromMaterial(materialReference);
-                }
             }
         }
 
@@ -518,6 +560,8 @@ namespace UnityEditor.VFX
                 }
                 if (!VFXViewPreference.displayExperimentalOperator)
                     yield return "shaderGraph";
+
+                yield return nameof(materialSettings);
             }
         }
 
