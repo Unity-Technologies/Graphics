@@ -650,15 +650,15 @@ float3 AcesTonemap(float3 aces)
 #else
 
     // --- Glow module --- //
-    float saturation = rgb_2_saturation(aces);
-    float ycIn = rgb_2_yc(aces);
-    float s = sigmoid_shaper((saturation - 0.4) / 0.2);
+    half saturation = rgb_2_saturation(half3(aces));
+    half ycIn = rgb_2_yc(half3(aces));
+    half s = sigmoid_shaper((saturation - 0.4) / 0.2);
     float addedGlow = 1.0 + glow_fwd(ycIn, RRT_GLOW_GAIN * s, RRT_GLOW_MID);
     aces *= addedGlow;
 
     // --- Red modifier --- //
-    float hue = rgb_2_hue(aces);
-    float centeredHue = center_hue(hue, RRT_RED_HUE);
+    half hue = rgb_2_hue(half3(aces));
+    half centeredHue = center_hue(hue, RRT_RED_HUE);
     float hueWeight;
     {
         //hueWeight = cubic_basis_shaper(centeredHue, RRT_RED_WIDTH);

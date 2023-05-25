@@ -734,7 +734,7 @@ real FastATan(real x)
 
 real FastAtan2(real y, real x)
 {
-    return FastATan(y / x) + (y >= 0.0 ? PI : -PI) * (x < 0.0);
+    return FastATan(y / x) + real(y >= 0.0 ? PI : -PI) * (x < 0.0);
 }
 
 #if (SHADER_TARGET >= 45)
@@ -1484,23 +1484,28 @@ bool HasFlag(uint bitfield, uint flag)
 }
 
 // Normalize that account for vectors with zero length
-real3 SafeNormalize(float3 inVec)
+float3 SafeNormalize(float3 inVec)
 {
     float dp3 = max(FLT_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 
-real3 SafeNormalize(half3 inVec)
+half3 SafeNormalize(half3 inVec)
 {
     half dp3 = max(HALF_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 
-// Checks if a vector is normalized
 bool IsNormalized(float3 inVec)
 {
-    real l = length(inVec);
-    return length(l) < 1.0001 && length(l) > 0.9999;
+    float squaredLength = dot(inVec, inVec);
+    return 0.9998 < squaredLength && squaredLength < 1.0002001;
+}
+
+bool IsNormalized(half3 inVec)
+{
+    half squaredLength = dot(inVec, inVec);
+    return 0.998 < squaredLength && squaredLength < 1.002;
 }
 
 // Division which returns 1 for (inf/inf) and (0/0).
