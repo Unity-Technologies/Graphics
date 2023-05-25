@@ -9,6 +9,45 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.11] - 2023-05-23
+
+This version is compatible with Unity 2021.3.27f1.
+
+### Changed
+- Enabled Extend Shadow Culling in Raytracing by default.
+
+### Fixed
+- Fixed hard eges on volumetric clouds.
+- Fixed an issue with ray tracing initialization when switching between render pipeline assets.
+- Added error when MSAA and non-MSAA buffers are bound simultaneously in custom passes.
+- Fixed the label and improved documentation for After Post Process depth test flag to give more detail about "Depth Test" being automatically disabled in some cases.
+- Fixed the albedo and specular color override so it is now considered as sRGB.
+- Fixed the exposure for SSR debug rendering.
+- Fixed the raytraced reflections for box lights so they are no longer cut off if the range is too small.
+- Fixed a glitch in one frame in the Editor when using path tracing.
+- Fixed HDSceneDepth triggering errors for uninitialized values.
+- Enabled path tracing to now produce correct results when dynamic resolution is enabled.
+- Fixed emissive mesh viewer of Area light missing from standalone player.
+- Fixed usage of FindObjectsOfType to use FindObjectsByType(FindObjectsSortMode.None).
+- Fixed the init order that could cause DXR setup to fail after using the HDRP wizard to enable DXR on an existing HDRP project.
+- Fixed an issue occuring on TAAU when the camera rect is adjusted.
+- Enabled the correct light position when changing distance on a Light Anchor.
+- Fixed material upgrader when executing tests.
+- Improved the console warning message when the maximum number of shadows is reached in the view.
+- Fixed an issue where LOD-related frame render settings UI on the camera component would not reflect the current global default settings.
+- Fixed swapped tooltips on decal materials for ambient occlusion and smoothness.
+- Fixed issue with Light Probe Proxy Volume not rendering correctly when Bounding Box Mode is Automatic World.
+- Fixed transparent decal textures being added into atlas even if the material properties have disabled them.
+- Fixed Volumetric Clouds jittering when the sun was not casting shadow.
+- Fixed memory leak in HDLightRenderDatabase when switching between editor and play and no lights are in the scene.
+- Fixed DLSS Ultra performance setting which was not calculating the correct resolution. The setting was not pushing the correct resolution due to a typo in the code.
+- Fixed a shader compilation issue on fog volumes when Turkish language is installed as locale.
+- Fixed an issue where the quality settings tags were displayed cut-off.
+- Fixed the default value of _ZTestDepthEqualForOpaque in unlit ShaderGraphs.
+- Fixed free CullingGroups still being used during culling.
+- Fixed ShaderGraph materials using SSS.
+- Fixed HDRP Decal Emisive Map is drawn incorrectly when Decal is at a certain distance from Camera and specific "Clipping Planes" property values are set under the "Camera" component.
+
 ## [12.1.10] - 2023-03-24
 
 This version is compatible with Unity 2021.3.22f1.

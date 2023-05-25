@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.11] - 2023-05-23
+
+This version is compatible with Unity 2021.3.27f1.
+
+### Changed
+- Greatly reduced the import cost of VFX Graph objects, especially when importing many at once.
+
+### Fixed
+- Exposure weight slider was not hidden when a shadergraph was assigned to an output context.
+- Fixed an error raised in the console when undoing shader assignment in the Mesh output node.
+- Fixed errors in the console when undoing changes from gizmo in some specific conditions.
+- The VFX component inspector had an unpaired `EditorGUI.BeginChangeCheck` that was breaking the state of `GUI.changed`
+- Fixed an issue that read alive from source attribute was always returning true.
+- Fixed a crash when logging an error messages for unexpected buffers.
+- Corrected apply nointerpolation specifier when using new ShaderGraph integration.
+- Unexpected motion vector when add precompute velocity was enabled in Shader Graph.
+- Unexpected Motion Vector in HDRP when effect is in World and uses Custom Velocity or Mesh Output.
+- First frame of spawned particles outputs wrong motion vectors.
+- Fixed broken borders.
+- Unexpected warning on Metal while rendering thumbnail preview for material.
+
 ## [12.1.10] - 2023-03-24
 
 This version is compatible with Unity 2021.3.22f1.
