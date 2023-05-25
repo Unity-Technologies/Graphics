@@ -52,7 +52,7 @@ Material:
     - _AlphaToMask: 0
     - _Blend: 0
     - _CastShadows: 0
-    - _ConstantFlow: 0.893
+    - _ConstantFlow: 1
     - _Cull: 2
     - _DebugTime: 0
     - _DstBlend: 10
@@ -64,9 +64,9 @@ Material:
     - _Opacity: 3
     - _ParticleEndSize: 5
     - _ParticleSpeed: 2
-    - _ParticleSpread: 0
+    - _ParticleSpread: 90
     - _ParticleStartSize: 0
-    - _ParticleVelocityEnd: 0
+    - _ParticleVelocityEnd: 2
     - _ParticleVelocityStart: 4
     - _QueueControl: 0
     - _QueueOffset: 0
@@ -81,7 +81,7 @@ Material:
     - _ZWrite: 0
     - _ZWriteControl: 0
     m_Colors:
-    - _EmitterDimensions: {r: 5, g: 1, b: 5, a: 0}
+    - _EmitterDimensions: {r: 3, g: 0, b: 3, a: 0}
     - _EndColor: {r: 0.8915095, g: 1, b: 0.9907861, a: 1}
     - _FlipbookDimensions: {r: 8, g: 4, b: 0, a: 0}
     - _Gravity: {r: 0, g: -2, b: 0, a: 0}
