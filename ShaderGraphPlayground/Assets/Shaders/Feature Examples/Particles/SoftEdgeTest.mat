@@ -57,17 +57,17 @@ Material:
     - _DebugTime: 0
     - _DstBlend: 10
     - _FadeInPower: 0.5
-    - _FadeOutPower: 2
+    - _FadeOutPower: 0.5
     - _FlipbookSpeed: 1
     - _ManualTime: 0
     - _MatchParticlePhase: 0
     - _Opacity: 4
-    - _ParticleEndSize: 6
-    - _ParticleSpeed: 0.3
+    - _ParticleEndSize: 2
+    - _ParticleSpeed: 0.1
     - _ParticleSpread: 0
-    - _ParticleStartSize: 1
-    - _ParticleVelocityEnd: 12
-    - _ParticleVelocityStart: 12
+    - _ParticleStartSize: 2
+    - _ParticleVelocityEnd: 1
+    - _ParticleVelocityStart: 1
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RandomizeRotationDirection: 0
@@ -84,8 +84,8 @@ Material:
     - _EmitterDimensions: {r: 1, g: 1, b: 1, a: 0}
     - _EndColor: {r: 1, g: 1, b: 1, a: 1}
     - _FlipbookDimensions: {r: 8, g: 8, b: 0, a: 0}
-    - _Gravity: {r: 0, g: -9.8, b: 0, a: 0}
-    - _ParticleDirection: {r: 0, g: 2, b: 1, a: 0}
+    - _Gravity: {r: 0, g: 0, b: 0, a: 0}
+    - _ParticleDirection: {r: 0, g: 1, b: 0, a: 0}
     - _StartColor: {r: 0.7169812, g: 0.7169812, b: 0.7169812, a: 1}
     - _Wind: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
