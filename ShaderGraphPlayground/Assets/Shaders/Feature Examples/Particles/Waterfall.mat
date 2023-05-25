@@ -74,7 +74,7 @@ Material:
     - _Rotation: 0
     - _RotationRandomOffset: 1
     - _RotationSpeed: -30
-    - _SoftEdges: 1
+    - _SoftEdges: 0
     - _SrcBlend: 5
     - _Surface: 1
     - _ZTest: 4

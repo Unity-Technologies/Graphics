@@ -48,7 +48,11 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: -50
-    m_Colors: []
+    - _RefractionStrength: 0.015
+    m_Colors:
+    - _Color: {r: 0.9019608, g: 0.9960783, b: 1, a: 1}
+    - _RippleScale: {r: 0.45, g: 0.35, b: 0.17, a: 0.4}
+    - _RippleSpeed: {r: -0.4, g: 0.02, b: -0.1, a: -0.4}
   m_BuildTextureStacks: []
 --- !u!114 &1596086379957803595
 MonoBehaviour:
