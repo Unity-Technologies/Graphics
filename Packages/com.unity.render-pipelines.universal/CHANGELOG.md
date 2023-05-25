@@ -9,6 +9,48 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.1] - 2023-05-23
+
+This version is compatible with Unity 2023.2.0a17.
+
+### Added
+- Added XR occlusionMesh scaling, occlusionMesh enable/disable, mirroView mode setter for SRP XR.
+
+### Changed
+- Enabled deferred renderer to now use Framebuffer Fetch for Shadowmask.
+- Added HDR Output override per camera.
+
+### Fixed
+- Fixed errors caused by Camera's Preview window.
+- Fixed the Screen flicker in Scene view.
+- Fixed the broken links to documentation for volume components.
+- Fixed Native RenderPass errors when using RendererFeature which is executed in between GBuffer and Deferred Lighting passes.
+- Disabled MSAA on devices without MSAA store support (Apple GPUs A8 and lower).
+- Fixed URP and core package leaking materials when entering and exiting Play Mode.
+- Fixed removal of missing renderer feature.
+- Fixed error message in filtered view when decals are enabled.
+- Fixed missing y-flip for preview cameras.
+- Increased lighting BRDF specular max for half float math (mobile) to match the visual look of full float math (desktop) better.
+- Fixed rendering on HDR displays with the 2D renderer or the Universal renderer and no post processing.
+- Fixed redundant blit is used due to postFX, although it is disabled in rendererData.
+- Fixed volume and volume profile help URLs.
+- Fixed HDR output so it is no longer too saturated when HDR rendering is disabled on the camera.
+- Fixed incorrect MSAA sample count when using Deferred renderer and rendering to a target texture.
+- Fixed ShaderGraph preview window displaying a blank window when using DepthNormals pass.
+- Fixed HDR output from being too saturated by default when a camera doesn't have the additional camera data yet.
+- Fixed an issue where the `ShadowShape2DProvider_Collider` would improperly track a collider using a Rigidbody2D.
+- Enabled passes injected in `RenderPassEvent.AfterRenderingPostProcessing` to now execute before final blit and post-processing anti-aliasing effects rather than after, when using the Render Graph.
+- Fixed HDR Debug Views without antialiasing, with Render Graph and with passes injected in `RenderPassEvent.AfterRenderingPostProcessing`.
+- Enabled stripping BlitHDROverlay from build if HDR output is not allowed and stripping unused shader is allowed.
+- Fixed an issue with reference images for Decal tests and lowered the threshold to catch issues better.
+- Fixed an issue where using the Reflection Probe Node with the Forward+ rendering path would result in flickering on the object.
+- Removed serialization and cache vertices and indices for sprite lights causing bloat in prefabs for 2D.
+- Fixed TAA resource leak on entering or exiting the playmode.
+- Changed the ScreenSpace Decals sorting criteria to **None** to fix flickering issues.
+- Remove URP motion vector fallback shader. This fixes major TAA jittering and blurring artefacts with decals. Custom shader writers can still add ' UsePass "Hidden/Universal Render Pipeline/ObjectMotionVectorFallback/MOTIONVECTORS" ' to their shaders to use the fallback pass
+- Remove URP motion vector fallback shader. This fixes major TAA jittering and blurring artefacts with terrain meshes (when they're offset from the origin). Custom shader writers can still add ' UsePass "Hidden/Universal Render Pipeline/ObjectMotionVectorFallback/MOTIONVECTORS" ' to their shaders to use the fallback pass
+- Remove URP motion vector fallback shader. This fixes major TAA jittering and blurring artefacts on and around opaque shuriken particles when the emitter is moving. Custom shader writers can still add ' UsePass "Hidden/Universal Render Pipeline/ObjectMotionVectorFallback/MOTIONVECTORS" ' to their shaders to use the fallback pass
+
 ## [16.0.0] - 2023-03-22
 
 This version is compatible with Unity 2023.2.0a9.

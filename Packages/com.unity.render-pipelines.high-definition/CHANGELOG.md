@@ -9,6 +9,68 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.1] - 2023-05-23
+
+This version is compatible with Unity 2023.2.0a17.
+
+### Changed
+- Improved the slider for the inner angle control of spotlight.
+- Improved the performance of entering and leaving playmode for scenes containing large numbers of decal projectors.
+- Added functionality to lock the sun for HDRI Sky.
+- Added a script which drives dynamic resolution scaling in HDRP.
+- Improved Directional Lights PCSS Shadows.
+- Improved the ray traced reflection denoiser.
+- Removed Custom DLSSProjectId from Global Settings.
+- Added **WorldSpacePosition** to fullscreen debug modes.
+- Added Off Setting to Reflection and Planar Probes
+- Updated HDProbes to support custom resolutions for all rendering modes
+
+### Fixed
+- Improved the console warning message when the maximum number of shadows is reached in the view.
+- Fixed an issue where the mouse pixel coordinates in the tile debug view were not clamped.
+- Fixed an issue where LOD-related frame render settings UI on the camera component would not reflect the current global default settings.
+- Fixed ray-traced emissive reflections.
+- Fixed swapped tooltips on decal materials for ambient occlusion and smoothness.
+- Fixed issue with Light Probe Proxy Volume not rendering correctly when Bounding Box Mode is Automatic World.
+- Fixed transparent decal textures being added into atlas even if the material properties have disabled them.
+- Fixed Volumetric Clouds jittering when the sun was not casting shadow.
+- Fixed the init order that could cause DXR setup to fail after using the HDRP wizard to enable DXR on an existing HDRP project.
+- Fixed an issue occuring on TAAU when the camera rect is adjusted.
+- Enabled the volumetric clouds to be synced per camera. Previously, the clouds were synced through a global time, leading to discrepencies with cameras that update at different rates.
+- Fixed the PrefabStage with Lensflare not included in the object, include the lensflare only if it was included on the prefab (children included).
+- Enabled the correct light position when changing distance on a Light Anchor.
+- Fixed material upgrader when executing tests.
+- Fixed some colliders being disabled when cancelling an APV bake.
+- Fixed UI allowing to freeze probe placement when no data have been baked.
+- Updated missing HDRP component documentation URLs.
+- Enabled `CustomPassUtils.RenderDepthFromCamera` to now use depth shader tag IDs instead of forward shader tags.
+- Fixed the return type of `CustomPassVolume.AddPassOfType<T>` not returning a type T.
+- Changed the local volumetric fog prepare to before script updates to fix use case where rendering is done inside the script update.
+- Fixed exceptions if area light is disabled in HDRP config.
+- Fixed DLSS Ultra performance setting which was not calculating the correct resolution. The setting was not pushing the correct resolution due to a typo in the code.
+- Fixed a shader compilation issue on fog volumes when Turkish language is installed as locale.
+- Fixed an issue where the quality settings tags were displayed cut-off.
+- Fixed the default value of _ZTestDepthEqualForOpaque in unlit ShaderGraphs.
+- Fixed free CullingGroups still being used during culling.
+- Fixed APV brick placement when multiple probe volumes with different object layer mask and subdivision levels overlaps.
+- Fixed ShaderGraph materials using SSS.
+- Fixed HDRP Decal Emisive Map is drawn incorrectly when Decal is at a certain distance from Camera and specific "Clipping Planes" property values are set under the "Camera" component.
+- Fixed rendering cubemaps when underwater is enabled.
+- Fixed static batching when using APV.
+- Fixing square artifacts on 1/4 res pbr dof and warning during player builds.
+- Fixed a memory leak error when entering Play Mode in asset demo.
+- Fixed an issue so that enabling raytracing no longer disables screen space lighting effect (SSAO, SSR) async compute.
+- Changed HDRP RenderPIpelineSettings to become public to enable customizing the HDRP asset.
+- Enabled properly taking sky attentuation into account for baking.
+- Fixed documentation links of HDRP nodes in ShaderGraph
+- Removing linq and complexity on light units validation
+Light units validation was using Linq, which is full of memory allocations and very expensive in the CPU.
+Instead, opting to use a simple bitmask to check wether light unit is valid or not for a certain light type.
+Caching also managed arrays to avoid in frame allocations.
+
+### Removed
+- Marked RenderPipelineSettings.supportDitheringCrossFade as obsolete.
+
 ## [16.0.0] - 2023-03-22
 
 This version is compatible with Unity 2023.2.0a9.
