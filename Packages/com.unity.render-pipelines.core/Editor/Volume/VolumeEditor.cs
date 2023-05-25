@@ -140,6 +140,8 @@ namespace UnityEditor.Rendering
                     CoreEditorUtils.DrawFixMeBox(Styles.addColliderFixMessage, AddOverride);
                 }
 
+                using var indentScope = new EditorGUI.IndentLevelScope();
+
                 EditorGUILayout.PropertyField(m_BlendRadius);
                 m_BlendRadius.floatValue = Mathf.Max(m_BlendRadius.floatValue, 0f);
             }
