@@ -9,6 +9,21 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class HDSpeedTree8MaterialUpgrader : SpeedTree8MaterialUpgrader
     {
+        static class HDUniforms
+        {
+            
+            internal static int _WINDQUALITY = Shader.PropertyToID("_WINDQUALITY");
+            internal static int EFFECT_BILLBOARD = Shader.PropertyToID("EFFECT_BILLBOARD");
+            internal static int EFFECT_EXTRA_TEX = Shader.PropertyToID("EFFECT_EXTRA_TEX");
+            internal static int _TwoSided = Shader.PropertyToID("_TwoSided");
+            internal static int _WindQuality = Shader.PropertyToID("_WindQuality");
+            internal static int _DoubleSidedEnable = Shader.PropertyToID("_DoubleSidedEnable");
+            internal static int _CullMode = Shader.PropertyToID("_CullMode");
+            internal static int _CullModeForward = Shader.PropertyToID("_CullModeForward");
+            internal static int Diffusion_Profile_Asset = Shader.PropertyToID("Diffusion_Profile_Asset");
+            internal static int Diffusion_Profile = Shader.PropertyToID("Diffusion_Profile");
+        }
+
         /// <summary>
         /// Creates a SpeedTree 8 material upgrader for HDRP.
         /// </summary>
@@ -69,28 +84,28 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Since _DoubleSidedEnable controls _CullMode in HD,
             // disable it for billboard LOD.
-            if (mat.GetFloat("EFFECT_BILLBOARD") > 0)
+            float doubleSided = mat.GetFloat(HDUniforms.EFFECT_BILLBOARD) > 0 ? 0.0f : 1.0f;
+            mat.SetFloat(HDUniforms._DoubleSidedEnable, doubleSided);
+
+            if (mat.HasFloat(HDUniforms._TwoSided))
             {
-                mat.SetFloat("_DoubleSidedEnable", 0.0f);
-            }
-            else
-            {
-                mat.SetFloat("_DoubleSidedEnable", 1.0f);
+                mat.SetFloat(HDUniforms._CullMode, mat.GetFloat(HDUniforms._TwoSided));
+                mat.SetFloat(HDUniforms._CullModeForward, mat.GetFloat(HDUniforms._TwoSided));
             }
 
-            if (mat.HasFloat("_TwoSided"))
-            {
-                mat.SetFloat("_CullMode", mat.GetFloat("_TwoSided"));
-                mat.SetFloat("_CullModeForward", mat.GetFloat("_TwoSided"));
-            }
+            // motion vectors
+            bool supportsWind = mat.GetFloat(HDUniforms._WINDQUALITY) > 0.0f; // preprocessor define
+            bool windEnabled = mat.GetFloat(HDUniforms._WindQuality) > 0.0f; // cbuffer value (= Wind Enabled checkbox in shader GUI)
+            bool enableMotionVectorPass = supportsWind && windEnabled; // Trees render motion vectors only when wind enabled on the model
+            mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enableMotionVectorPass);
         }
 
         private static void SetDefaultDiffusionProfile(Material mat)
         {
-            if (!mat.HasVector("Diffusion_Profile_Asset"))
+            if (!mat.HasVector(HDUniforms.Diffusion_Profile_Asset))
                 return;
 
-            string matDiffProfile = HDUtils.ConvertVector4ToGUID(mat.GetVector("Diffusion_Profile_Asset"));
+            string matDiffProfile = HDUtils.ConvertVector4ToGUID(mat.GetVector(HDUniforms.Diffusion_Profile_Asset));
             string guid = "";
             long localID;
             uint diffusionProfileHash = 0;
@@ -121,8 +136,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (diffusionProfileHash != 0)
             {
-                mat.SetVector("Diffusion_Profile_Asset", HDUtils.ConvertGUIDToVector4(guid));
-                mat.SetFloat("Diffusion_Profile", HDShadowUtils.Asfloat(diffusionProfileHash));
+                mat.SetVector(HDUniforms.Diffusion_Profile_Asset, HDUtils.ConvertGUIDToVector4(guid));
+                mat.SetFloat(HDUniforms.Diffusion_Profile, HDShadowUtils.Asfloat(diffusionProfileHash));
             }
         }
     }
