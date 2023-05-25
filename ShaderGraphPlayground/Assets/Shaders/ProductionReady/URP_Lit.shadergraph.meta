@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+<<<<<<<< HEAD:ShaderGraphPlayground/Assets/Shaders/ProductionReady/URP_Lit.shadergraph.meta
+guid: 21c36a892bad3604b8da38a09bdbfed2
+========
+guid: c120edf385b46ab4298e68d60382aeff
+>>>>>>>> sg2/main:ShaderGraphPlayground/Assets/Shaders/ProductionReady/Environment/Water/SimpleWater.shadergraph.meta
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
