@@ -345,7 +345,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void TriggerReset()
         {
-            debug = sanitazed;
+            // Fix UUM-36594 "Exiting PlayMode after RenderingDebugger reset makes scene overexposed"
+            // Overwriting of debug settings is conditioned on hasDebug because it's possible that AggregateFrameSettings
+            // has never been called for that frameSettingsContainer, in which case the sanitized settings was never
+            // initialized and contains all zeros (can happen with a layout where SceneView is not visible in Play Mode).
+            if (hasDebug)
+                debug = sanitazed;
             hasDebug = false;
         }
     }
