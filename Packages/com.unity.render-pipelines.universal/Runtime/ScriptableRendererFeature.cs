@@ -65,10 +65,11 @@ namespace UnityEngine.Rendering.Universal
         /// Override this method and return true that renderer would produce rendering layers texture.
         /// </summary>
         /// <param name="isDeferred">True if renderer is using deferred rendering mode</param>
+        /// <param name="isDeferred">True if renderer has Accurate G-Buffer Normals enabled</param>
         /// <param name="atEvent">Requeted event at which rendering layers texture will be produced</param>
         /// <param name="maskSize">Requested bit size of rendering layers texture</param>
         /// <returns></returns>
-        internal virtual bool RequireRenderingLayers(bool isDeferred, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
+        internal virtual bool RequireRenderingLayers(bool isDeferred, bool needsGBufferAccurateNormals, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
         {
             atEvent = RenderingLayerUtils.Event.DepthNormalPrePass;
             maskSize = RenderingLayerUtils.MaskSize.Bits8;

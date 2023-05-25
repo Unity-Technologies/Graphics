@@ -38,7 +38,7 @@ The **Accurate G-buffer normals** property lets you configure how Unity encodes 
 
 * **Accurate G-buffer normals** off: This option increases performance, especially on mobile GPUs, but might lead to color banding artifacts on smooth surfaces.
 
-* **Accurate G-buffer normals** on: Unity uses the octahedron encoding to store values of normal vectors in the RGB channel of a normal texture. With this encoding, values of normal vectors are more accurate, but the encoding and decoding operations put extra load on the GPU.
+* **Accurate G-buffer normals** on: Unity uses the octahedron encoding to store values of normal vectors in the RGB channel of a normal texture. With this encoding, values of normal vectors are more accurate, but the encoding and decoding operations put extra load on the GPU. This option does not support decal normal blending when used with the [Screen Space decal technique](../renderer-feature-decal.md#screen-space-technique).
 
 For more information about this setting, see the section [Encoding of normals in G-buffer](#accurate-g-buffer-normals).
 
@@ -162,7 +162,7 @@ The **Accurate G-buffer normals** property lets you configure how Unity encodes 
 
 * **Accurate G-buffer normals** off: Unity stores values of normal vectors in the G-buffer in the RGB channel of a normal texture, 8 bit per value (x, y, z). The values are quantized with the loss of accuracy. This option increases performance, especially on mobile GPUs, but might lead to color banding artifacts on smooth surfaces.
 
-* **Accurate G-buffer normals** on: Unity uses the octahedron encoding to store values of normal vectors in the RGB channel of a normal texture. With this encoding, values of normal vectors are more accurate, but the encoding and decoding operations put extra load on the GPU.<br/>The precision of the encoded normal vectors is similar to the precision of the sampled values in the Forward Rendering Path.
+* **Accurate G-buffer normals** on: Unity uses the octahedron encoding to store values of normal vectors in the RGB channel of a normal texture. With this encoding, values of normal vectors are more accurate, but the encoding and decoding operations put extra load on the GPU. This option does not support decal normal blending when used with the [Screen Space decal technique](../renderer-feature-decal.md#screen-space-technique).<br/>The precision of the encoded normal vectors is similar to the precision of the sampled values in the Forward Rendering Path.
 
 The following illustration shows the visual difference between the two options when the Camera is very close to the GameObject:
 

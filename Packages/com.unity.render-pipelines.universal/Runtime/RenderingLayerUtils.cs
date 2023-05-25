@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (rendererFeature.isActive)
                 {
-                    result |= rendererFeature.RequireRenderingLayers(isDeferred, out Event rendererEvent, out MaskSize rendererMaskSize);
+                    result |= rendererFeature.RequireRenderingLayers(isDeferred, universalRendererData.accurateGbufferNormals, out Event rendererEvent, out MaskSize rendererMaskSize);
                     combinedEvent = Combine(combinedEvent, rendererEvent);
                     combinedMaskSize = Combine(combinedMaskSize, rendererMaskSize);
                 }
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (rendererFeature.isActive)
                 {
-                    result |= rendererFeature.RequireRenderingLayers(isDeferred, out Event rendererEvent, out MaskSize rendererMaskSize);
+                    result |= rendererFeature.RequireRenderingLayers(isDeferred, universalRenderer.accurateGbufferNormals, out Event rendererEvent, out MaskSize rendererMaskSize);
                     combinedEvent = Combine(combinedEvent, rendererEvent);
                     combinedMaskSize = Combine(combinedMaskSize, rendererMaskSize);
                 }
