@@ -1329,7 +1329,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     var resourceRead = passInfo.pass.resourceReadLists[type];
                     foreach (var resource in resourceRead)
                     {
-                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource];
+                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource.index];
                         info.imported = m_Resources.IsRenderGraphResourceImported(resource);
                         info.consumers.Add(passIndex);
                         info.refCount++;
@@ -1342,7 +1342,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     var resourceWrite = passInfo.pass.resourceWriteLists[type];
                     foreach (var resource in resourceWrite)
                     {
-                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource];
+                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource.index];
                         info.imported = m_Resources.IsRenderGraphResourceImported(resource);
                         info.producers.Add(passIndex);
 
@@ -1355,9 +1355,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
                     }
 
-                    foreach (int resourceIndex in passInfo.pass.transientResourceList[type])
+                    foreach (var resource in passInfo.pass.transientResourceList[type])
                     {
-                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resourceIndex];
+                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource.index];
                         info.refCount++;
                         info.consumers.Add(passIndex);
                         info.producers.Add(passIndex);
@@ -1405,13 +1405,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                             // Cull it and decrement refCount of all the textures it reads.
                             producerInfo.culled = true;
 
-                            foreach (var resourceIndex in producerInfo.pass.resourceReadLists[type])
+                            foreach (var resource in producerInfo.pass.resourceReadLists[type])
                             {
-                                ref CompiledResourceInfo resourceInfo = ref resourceUsageList[resourceIndex];
+                                ref CompiledResourceInfo resourceInfo = ref resourceUsageList[resource.index];
                                 resourceInfo.refCount--;
                                 // If a resource is not used anymore, add it to the stack to be processed in subsequent iteration.
                                 if (resourceInfo.refCount == 0)
-                                    m_CullingStack.Push(resourceIndex);
+                                    m_CullingStack.Push(resource.index);
                             }
                         }
                     }
@@ -1619,7 +1619,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 var resourcesInfo = m_CompiledResourcesInfos[type];
                 foreach (var resourceHandle in passInfo.pass.resourceWriteLists[type])
                 {
-                    ref var compiledResource = ref resourcesInfo[resourceHandle];
+                    ref var compiledResource = ref resourcesInfo[resourceHandle.index];
 
                     // Check if there is a valid consumer and no other valid producer
                     int consumerPass = GetFirstValidConsumerIndex(passIndex, compiledResource);
@@ -1676,14 +1676,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {
                     var resourcesInfo = m_CompiledResourcesInfos[type];
-                    foreach (int resource in passInfo.pass.resourceReadLists[type])
+                    foreach (var resource in passInfo.pass.resourceReadLists[type])
                     {
-                        UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, resourcesInfo[resource]);
+                        UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, resourcesInfo[resource.index]);
                     }
 
-                    foreach (int resource in passInfo.pass.resourceWriteLists[type])
+                    foreach (var resource in passInfo.pass.resourceWriteLists[type])
                     {
-                        UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, resourcesInfo[resource]);
+                        UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, resourcesInfo[resource.index]);
                     }
                 }
             }
@@ -1891,8 +1891,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 foreach (var res in pass.transientResourceList[iType])
                 {
-                    passInfo.resourceCreateList[iType].Add(res);
-                    passInfo.resourceReleaseList[iType].Add(res);
+                    passInfo.resourceCreateList[iType].Add(res.index);
+                    passInfo.resourceReleaseList[iType].Add(res.index);
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                     passInfo.debugResourceWrites[iType].Add(m_Resources.GetRenderGraphResourceName(res));
@@ -1907,8 +1907,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                     if (!m_Resources.IsGraphicsResourceCreated(res))
                     {
-                        passInfo.resourceCreateList[iType].Add(res);
-                        m_ImmediateModeResourceList[iType].Add(res);
+                        passInfo.resourceCreateList[iType].Add(res.index);
+                        m_ImmediateModeResourceList[iType].Add(res.index);
                     }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -2284,9 +2284,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     newPass.resourceWriteLists[type] = new List<int>();
 
                     foreach (var resourceRead in passInfo.pass.resourceReadLists[type])
-                        newPass.resourceReadLists[type].Add(resourceRead);
+                        newPass.resourceReadLists[type].Add(resourceRead.index);
                     foreach (var resourceWrite in passInfo.pass.resourceWriteLists[type])
-                        newPass.resourceWriteLists[type].Add(resourceWrite);
+                        newPass.resourceWriteLists[type].Add(resourceWrite.index);
 
                     foreach (var resourceCreate in passInfo.resourceCreateList[type])
                     {

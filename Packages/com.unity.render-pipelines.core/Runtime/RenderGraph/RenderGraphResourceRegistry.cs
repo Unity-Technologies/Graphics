@@ -383,7 +383,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void RefreshSharedTextureDesc(TextureHandle texture, in TextureDesc desc)
         {
-            if (!IsRenderGraphResourceShared(RenderGraphResourceType.Texture, texture.handle))
+            if (!IsRenderGraphResourceShared(RenderGraphResourceType.Texture, texture.handle.index))
             {
                 throw new InvalidOperationException($"Trying to refresh texture {texture} that is not a shared resource.");
             }
@@ -396,11 +396,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal void ReleaseSharedTexture(TextureHandle texture)
         {
             var texResources = m_RenderGraphResources[(int)RenderGraphResourceType.Texture];
-            if (texture.handle == 0 || texture.handle >= texResources.sharedResourcesCount+1)
+            if (texture.handle.index == 0 || texture.handle.index >= texResources.sharedResourcesCount+1)
                 throw new InvalidOperationException("Tried to release a non shared texture.");
 
             // Decrement if we release the last one.
-            if (texture.handle == (texResources.sharedResourcesCount))
+            if (texture.handle.index == (texResources.sharedResourcesCount))
                 texResources.sharedResourcesCount--;
 
             var texResource = GetTextureResource(texture.handle);
@@ -445,12 +445,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal TextureResource GetTextureResource(in ResourceHandle handle)
         {
-            return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle] as TextureResource;
+            Debug.Assert(handle.type == RenderGraphResourceType.Texture);
+            return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle.index] as TextureResource;
         }
 
         internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle)
         {
-            return (m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle] as TextureResource).desc;
+            Debug.Assert(handle.type == RenderGraphResourceType.Texture);
+            return (m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle.index] as TextureResource).desc;
         }
 
         internal RendererListHandle CreateRendererList(in CoreRendererListDesc desc)
@@ -522,7 +524,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal BufferDesc GetBufferResourceDesc(in ResourceHandle handle)
         {
-            return (m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle] as BufferResource).desc;
+            Debug.Assert(handle.type == RenderGraphResourceType.Buffer);
+            return (m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle.index] as BufferResource).desc;
         }
 
         internal int GetBufferResourceCount()
@@ -532,12 +535,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         BufferResource GetBufferResource(in ResourceHandle handle)
         {
-            return m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle] as BufferResource;
+            Debug.Assert(handle.type == RenderGraphResourceType.Buffer);
+            return m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle.index] as BufferResource;
         }
 
         RayTracingAccelerationStructureResource GetRayTracingAccelerationStructureResource(in ResourceHandle handle)
         {
-            return m_RenderGraphResources[(int)RenderGraphResourceType.AccelerationStructure].resourceArray[handle] as RayTracingAccelerationStructureResource;
+            return m_RenderGraphResources[(int)RenderGraphResourceType.AccelerationStructure].resourceArray[handle.index] as RayTracingAccelerationStructureResource;
         }
 
         internal int GetRayTracingAccelerationStructureResourceCount()

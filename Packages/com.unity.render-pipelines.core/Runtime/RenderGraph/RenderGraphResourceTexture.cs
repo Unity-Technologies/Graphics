@@ -22,6 +22,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         private bool builtin;
 
+        internal TextureHandle(ResourceHandle h)
+        {
+            handle = h;
+            builtin = false;
+        }
+
         internal TextureHandle(int handle, bool shared = false, bool builtin = false)
         {
             this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared);
