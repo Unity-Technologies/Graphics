@@ -9,6 +9,66 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.7] - 2023-05-23
+
+This version is compatible with Unity 2022.2.22f1.
+
+### Changed
+- Changed references of Diffusion Profile in the HDRP Wizard check by the ones in the HDRP Package.
+- Enabled Extend Shadow Culling in Raytracing by default.
+- Fixed usage of FindObjectsOfType to use FindObjectsByType(FindObjectsSortMode.None).
+- Added a script to drive dynamic resolution scaling in HDRP.
+- Added "WorldSpacePosition" to fullscreen debug modes.
+
+### Fixed
+- Fixed water simulation time in playmode.
+- Fixed emissive decals not working on shaders based on LayeredLit, LayeredLitTesselation, LitTesselation, TerrainLit, TerrainLit_Basemap.
+- Fixed UI issues in Render Graph Viewer.
+- Fixed the volumetric clouds presets so it now propagates their values if changed by script.
+- Fixed an issue with ray tracing initialization when switching between render pipeline assets.
+- Added error when MSAA and non-MSAA buffers are bound simultaneously in custom passes.
+- Fixed the label and improved documentation for After Post Process depth test flag to give more detail about "Depth Test" being automatically disabled in some cases.
+- Fixed the low resolution transparents using Shader Graph.
+- Fixed the albedo and specular color override so it is now considered as sRGB.
+- Fixed the exposure for SSR debug rendering.
+- Fixed the raytraced reflections for box lights so they are no longer cut off if the range is too small.
+- Better Reflection Probe Debug_"Icon".
+- Fixed an issue with Mac and HDR so it now shows correct results when HDR is enabled.
+- Fixed a glitch in one frame in the Editor when using path tracing.
+- Fixed HDSceneDepth triggering errors for uninitialized values.
+- Enabled path tracing to now produce correct results when dynamic resolution is enabled.
+- Fixed some colliders being disabled when cancelling an APV bake.
+- Fixed the init order that could cause DXR setup to fail after using the HDRP wizard to enable DXR on an existing HDRP project.
+- Fixed an issue occuring on TAAU when the camera rect is adjusted.
+- Enabled the volumetric clouds to be synced per camera. Previously, the clouds were synced through a global time, leading to discrepencies with cameras that update at different rates.
+- Fixed the PrefabStage with Lensflare not included in the object, include the lensflare only if it was included on the prefab (children included).
+- Enabled the correct light position when changing distance on a Light Anchor.
+- Fixed material upgrader when executing tests.
+- Improved the console warning message when the maximum number of shadows is reached in the view.
+- Clamp mouse pixel coords in tile debug view.
+- Fixed an issue where LOD-related frame render settings UI on the camera component would not reflect the current global default settings.
+- Fixed ray-traced emissive reflections.
+- Fixed swapped tooltips on decal materials for ambient occlusion and smoothness.
+- Fixed issue with Light Probe Proxy Volume not rendering correctly when Bounding Box Mode is Automatic World.
+- Fixed transparent decal textures being added into atlas even if the material properties have disabled them.
+- Fixed Volumetric Clouds jittering when the sun was not casting shadow.
+- Fixed memory leak in HDLightRenderDatabase when switching between editor and play and no lights are in the scene.
+- Fixed DLSS Ultra performance setting which was not calculating the correct resolution. The setting was not pushing the correct resolution due to a typo in the code.
+- Fixed keyword clear when creating shadergraph material.
+- Fixed a shader compilation issue on fog volumes when Turkish language is installed as locale.
+- Fixed an issue where the quality settings tags were displayed cut-off.
+- Fixed the default value of _ZTestDepthEqualForOpaque in unlit ShaderGraphs.
+- Fixed free CullingGroups still being used during culling.
+- Fixed APV brick placement when multiple probe volumes with different object layer mask and subdivision levels overlaps.
+- Fixed ShaderGraph materials using SSS.
+- Fixed HDRP Decal Emisive Map is drawn incorrectly when Decal is at a certain distance from Camera and specific "Clipping Planes" property values are set under the "Camera" component.
+- Updated some missing HDRP component documentation URLs.
+- Fixed the shadow culling planes for box-shaped spot lights.
+- Fixed square artifacts on 1/4 res pbr dof and warning during player builds.
+- Enabling raytracing no longer disable screen space lighting effect (SSAO, SSR) async compute
+- Made HDRP RenderPIpelineSettings public to enable customizing the HDRP asset.
+- Properly take into account sky attenuation for baking.
+
 ## [14.0.6] - 2023-03-24
 
 This version is compatible with Unity 2022.2.13f1.

@@ -9,6 +9,47 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.7] - 2023-05-23
+
+This version is compatible with Unity 2022.2.22f1.
+
+### Changed
+- Greatly reduced the import cost of VFX Graph objects, especially when importing many at once.
+- Optimize VFX.Update per component overhead.
+
+### Fixed
+- Exposure weight slider was not hidden when a shadergraph was assigned to an output context.
+- The VFX component inspector had an unpaired `EditorGUI.BeginChangeCheck` that was breaking the state of `GUI.changed`
+- Fixed errors in the console when undoing changes from gizmo in some specific conditions.
+- Improved handling of infinite values with Gizmo.
+- Fixed a crash when removing VFXRenderer from a disabled GameObject.
+- Removed exception when more than 5 flow inputs are exposed in subgraph.
+- Fixed minor issues with Cube and Sphere particle outputs.
+- Fixed shader errors when building with sphere or cube outputs.
+- Fixed unexpected per frame garbage while using Timeline.
+- Fixed a crash while rendering with indirect using a null index buffer.
+- Fixed an issue that read alive from source attribute was always returning true.
+- Fixed Motion Vector so it is now correct when transform isn't changed every frame.
+- Fixed an unexpected motion vector when adding precompute velocity that was enabled in Shader Graph.
+- Unexpected Motion Vector in HDRP when effect is in World and uses Custom Velocity or Mesh Output.
+- First frame of spawned particles outputs wrong motion vectors.
+- Improved error feedback in case of missing reference in custom spawner.
+- Removed Loop And Delay block listing in favor of Spawn Context Settings (which can be accessed through the Inspector).
+- Fixed a crash when logging an error messages for unexpected buffers.
+- Replaced default mesh output shader to be SRP compatible.
+- Filtered out META pass from SG generated shaders.
+- Forces positive color values in graph.
+- Allow particle sorting with HDRP decals.
+- Fixed mesh LOD flickering when using TAA.
+- Fixed mismatching LOD between eyes in multi-pass VR.
+- Fixed some tooltips that were lost.
+- Prevent overflow on baked curve and gradient.
+- Hide "Sorting mode" and "Revert sorting" when blend mode is set to Opaque.
+- Hide log message asking to check out the asset for version control in empty VFX window, when reseting Editor Layout.
+- Keep some bottom margin on blocks when collapsed.
+- Fixed Wrong evaluation of time in VFX Control Track while using Playables API.
+- Unexpected warning on Metal while rendering thumbnail preview for material
+
 ## [14.0.6] - 2023-03-24
 
 This version is compatible with Unity 2022.2.13f1.
