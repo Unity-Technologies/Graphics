@@ -222,7 +222,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_TempConvertedReflectionProbeTexture != null)
                     RenderTexture.ReleaseTemporary(m_TempConvertedReflectionProbeTexture);
 
-                Debug.Log("Recreating");
                 RenderTexture convertedTextureTemp = RenderTexture.GetTemporary(cubeSize, cubeSize, 0, m_AtlasFormat);
                 convertedTextureTemp.dimension = TextureDimension.Cube;
                 convertedTextureTemp.filterMode = texture.filterMode;
@@ -294,7 +293,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_TempConvolvedReflectionProbeTexture != null)
                     RenderTexture.ReleaseTemporary(m_TempConvolvedReflectionProbeTexture);
 
-                Debug.Log("Recreating2");
                 RenderTexture convolvedTextureTemp = RenderTexture.GetTemporary(texture.width, texture.height, 0, m_AtlasFormat);
                 convolvedTextureTemp.dimension = TextureDimension.Cube;
                 convolvedTextureTemp.filterMode = texture.filterMode;
