@@ -51,10 +51,6 @@
     float2  shadowUV    : TEXCOORDA;
 
 #define SHADOW_VARIABLES\
-    float  _ShadowIntensity;\
-    float  _ShadowVolumeIntensity;\
-    half4  _ShadowColor = 1;\
-    half4  _UnshadowColor = 1;\
     TEXTURE2D(_ShadowTex);\
     SAMPLER(sampler_ShadowTex);
 

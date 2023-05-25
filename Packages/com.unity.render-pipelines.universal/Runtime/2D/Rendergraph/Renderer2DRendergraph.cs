@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle intermediateDepth; // intermediate depth for usage with render texture scale
             internal TextureHandle normalTexture;
             internal TextureHandle[] lightTextures = new TextureHandle[4];
+            internal TextureHandle shadowTexture;
 
             internal TextureHandle internalColorLut;
             internal TextureHandle afterPostProcessColor;
@@ -32,6 +33,7 @@ namespace UnityEngine.Rendering.Universal
 
         private DrawNormal2DPass m_NormalPass = new DrawNormal2DPass();
         private DrawLight2DPass m_LightPass = new DrawLight2DPass();
+        private DrawShadow2DPass m_ShadowPass = new DrawShadow2DPass();
         private DrawRenderer2DPass m_RendererPass = new DrawRenderer2DPass();
 
         bool ppcUpscaleRT = false;
@@ -118,6 +120,19 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            // Shadow desc
+            {
+                var desc = new RenderTextureDescriptor(width, height);
+                desc.graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                desc.useMipMap = false;
+                desc.autoGenerateMips = false;
+                desc.depthBufferBits = 0;
+                desc.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
+                desc.dimension = TextureDimension.Tex2D;
+
+                m_Attachments.shadowTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowTex", false, FilterMode.Bilinear);
+            }
+
             // Camera Sorting Layer desc
             if (m_Renderer2DData.useCameraSortingLayerTexture)
             {
@@ -194,16 +209,27 @@ namespace UnityEngine.Rendering.Universal
             CreateResources(renderGraph, ref renderingData);
             SetupRenderGraphCameraProperties(renderGraph, ref renderingData, false);
 
-            OnBeforeRendering(renderGraph);
+            OnBeforeRendering(renderGraph, ref renderingData);
 
             OnMainRendering(renderGraph, ref renderingData);
 
             OnAfterRendering(renderGraph, ref renderingData);
         }
 
-        private void OnBeforeRendering(RenderGraph renderGraph)
+        private void OnBeforeRendering(RenderGraph renderGraph, ref RenderingData renderingData)
         {
             m_LightPass.Setup(renderGraph, ref m_Renderer2DData);
+
+            // Before rendering the lights cache some values that are expensive to get/calculate
+            var culledLights = m_Renderer2DData.lightCullResult.visibleLights;
+            for (var i = 0; i < culledLights.Count; i++)
+            {
+                culledLights[i].CacheValues();
+            }
+
+            ShadowCasterGroup2DManager.CacheValues();
+
+            ShadowRendering.CallOnBeforeRender(renderingData.cameraData.camera, m_Renderer2DData.lightCullResult);
         }
 
         private void OnMainRendering(RenderGraph renderGraph, ref RenderingData renderingData)
@@ -235,12 +261,30 @@ namespace UnityEngine.Rendering.Universal
                 // Normal Pass
                 m_NormalPass.Render(renderGraph, ref renderingData, ref layerBatch, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
 
+                bool doClear = true;
+
+                for (int j = 0; j < layerBatch.shadowLights.Count; ++j)
+                {
+                    // Shadow Pass
+                    m_ShadowPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, m_Attachments.shadowTexture, m_Attachments.intermediateDepth, j);
+
+                    if(doClear)
+                    {
+                        ClearLightTextures(renderGraph, ref m_Renderer2DData, ref layerBatch);
+                        doClear = false;
+                    }
+
+                    // Shadow Light Pass
+                    m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.lightTextures, m_Attachments.normalTexture, m_Attachments.intermediateDepth, m_Attachments.shadowTexture, j);
+                }
+
                 // TODO: replace with clear mrt in light pass
                 // Clear Light Textures
-                ClearLightTextures(renderGraph, ref m_Renderer2DData, ref layerBatch);
+                if (doClear)
+                    ClearLightTextures(renderGraph, ref m_Renderer2DData, ref layerBatch);
 
                 // Light Pass
-                m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.lightTextures, m_Attachments.normalTexture, m_Attachments.intermediateDepth);
+                m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.lightTextures, m_Attachments.normalTexture, m_Attachments.intermediateDepth, m_Attachments.shadowTexture);
 
                 // Clear camera targets
                 if (i == 0 && clearFlags != RTClearFlags.None)
@@ -268,8 +312,20 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
+                for (int j = 0; j < layerBatch.shadowLights.Count; ++j)
+                {
+                    if (!layerBatch.shadowLights[j].volumetricEnabled)
+                        continue;
+
+                    // Shadow Pass
+                    m_ShadowPass.Render(renderGraph, ref renderingData, ref m_Renderer2DData, ref layerBatch, m_Attachments.shadowTexture, m_Attachments.intermediateDepth, j);
+
+                    // Shadow Light Volume Pass
+                    m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.colorAttachment, m_Attachments.normalTexture, m_Attachments.depthAttachment, m_Attachments.shadowTexture, j, true);
+                }
+
                 // Light Volume Pass
-                m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.colorAttachment, m_Attachments.normalTexture, m_Attachments.depthAttachment, true);
+                m_LightPass.Render(renderGraph, ref m_Renderer2DData, ref layerBatch, m_Attachments.colorAttachment, m_Attachments.normalTexture, m_Attachments.depthAttachment, m_Attachments.shadowTexture, isVolumetric: true);
             }
 
             bool shouldRenderUI = cameraData.rendersOverlayUI;

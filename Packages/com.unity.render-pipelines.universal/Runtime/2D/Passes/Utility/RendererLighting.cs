@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private static void RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        private static void RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, ref LayerBatch layer, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             var maxShadowLightCount = ShadowRendering.maxTextureCount;
             var requiresRTInit = true;
@@ -258,10 +258,10 @@ namespace UnityEngine.Rendering.Universal
                 {
                     int curLightIndex = lightIndex + batchedLights;
                     var light = lights[curLightIndex];
-                    if (CanCastShadows(light, layerToRender))
+                    if (CanCastShadows(light, layer.startLayerID))
                     {
                         doesLightAtIndexHaveShadows[curLightIndex] = false;
-                        if (ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowIntensity))
+                        if (ShadowRendering.PrerenderShadows(pass, renderingData, cmd, ref layer, light, shadowLightCount, light.shadowIntensity))
                         {
                             doesLightAtIndexHaveShadows[curLightIndex] = true;
                             shadowLightCount++;
@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering.Universal
                 for (var lightIndexOffset = 0; lightIndexOffset < batchedLights; lightIndexOffset++)
                 {
                     var arrayIndex = (int)(lightIndex + lightIndexOffset);
-                    RenderLight(pass, cmd, lights[arrayIndex], false, blendStyleIndex, layerToRender, doesLightAtIndexHaveShadows[arrayIndex], LightBatch.isBatchingSupported, ref shadowLightCount);
+                    RenderLight(pass, cmd, lights[arrayIndex], false, blendStyleIndex, layer.startLayerID, doesLightAtIndexHaveShadows[arrayIndex], LightBatch.isBatchingSupported, ref shadowLightCount);
                 }
                 lightBatch.Flush(CommandBufferHelpers.GetRasterCommandBuffer(cmd));
 
@@ -297,7 +297,7 @@ namespace UnityEngine.Rendering.Universal
             doesLightAtIndexHaveShadows.Dispose();
         }
 
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue,
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, ref LayerBatch layer,
             RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, RenderBufferStoreAction intermediateStoreAction,
             RenderBufferStoreAction finalStoreAction, bool requiresRTInit, List<Light2D> lights)
         {
@@ -340,10 +340,10 @@ namespace UnityEngine.Rendering.Universal
                     int curLightIndex = lightIndex + batchedLights;
                     var light = lights[curLightIndex];
 
-                    if (CanCastVolumetricShadows(light, endLayerValue))
+                    if (CanCastVolumetricShadows(light, layer.endLayerValue))
                     {
                         doesLightAtIndexHaveShadows[curLightIndex] = false;
-                        if (ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowVolumeIntensity))
+                        if (ShadowRendering.PrerenderShadows(pass, renderingData, cmd, ref layer, light, shadowLightCount, light.shadowVolumeIntensity))
                         {
                             doesLightAtIndexHaveShadows[curLightIndex] = true;
                             shadowLightCount++;
@@ -370,8 +370,8 @@ namespace UnityEngine.Rendering.Universal
                     if (light.volumeIntensity <= 0.0f || !light.volumetricEnabled)
                         continue;
 
-                    if (endLayerValue == light.GetTopMostLitLayer()) // this implies the layer is correct
-                        RenderLight(pass, cmd, light, true, light.blendStyleIndex, layerToRender, doesLightAtIndexHaveShadows[arrayIndex], LightBatch.isBatchingSupported, ref shadowLightCount);
+                    if (layer.endLayerValue == light.GetTopMostLitLayer()) // this implies the layer is correct
+                        RenderLight(pass, cmd, light, true, light.blendStyleIndex, layer.startLayerID, doesLightAtIndexHaveShadows[arrayIndex], LightBatch.isBatchingSupported, ref shadowLightCount);
                 }
                 lightBatch.Flush(CommandBufferHelpers.GetRasterCommandBuffer(cmd));
 
@@ -569,7 +569,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, ref LayerBatch layerBatch, ref RenderTextureDescriptor rtDesc)
+        public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, ref LayerBatch layerBatch, ref RenderTextureDescriptor rtDesc)
         {
             // Before rendering the lights cache some values that are expensive to get/calculate
             var culledLights = pass.rendererData.lightCullResult.visibleLights;
@@ -590,7 +590,7 @@ namespace UnityEngine.Rendering.Universal
                 var sampleName = blendStyles[i].name;
                 cmd.BeginSample(sampleName);
 
-                if (!Light2DManager.GetGlobalColor(layerToRender, i, out var clearColor))
+                if (!Light2DManager.GetGlobalColor(layerBatch.startLayerID, i, out var clearColor))
                     clearColor = Color.black;
 
                 var anyLights = (layerBatch.lightStats.blendStylesWithLights & (uint)(1 << i)) != 0;
@@ -613,7 +613,7 @@ namespace UnityEngine.Rendering.Universal
                         pass, renderingData,
                         i,
                         cmd,
-                        layerToRender,
+                        ref layerBatch,
                         identifier,
                         pass.rendererData.lightCullResult.visibleLights
                     );
