@@ -244,7 +244,7 @@ namespace UnityEditor
             /// The text and tooltip for the alpha clipping GUI.
             /// </summary>
             public static readonly GUIContent alphaClipText = EditorGUIUtility.TrTextContent("Alpha Clipping",
-                "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
+                "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas. Avoid using when Alpha is constant for the entire material as enabling in this case could introduce visual artifacts and will add an unnecessary performance cost when used with MSAA (due to AlphaToMask).");
 
             /// <summary>
             /// The text and tooltip for the alpha clipping threshold GUI.

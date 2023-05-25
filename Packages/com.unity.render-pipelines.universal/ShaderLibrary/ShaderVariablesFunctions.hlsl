@@ -184,6 +184,11 @@ bool IsAlphaToMaskAvailable()
 // When AlphaToMask is not available: Terminates the current invocation if the alpha value is below the cutoff and returns the input alpha value otherwise
 half AlphaClip(half alpha, half cutoff)
 {
+    // If the user has specified zero as the cutoff threshold, the expectation is that the shader will function as if alpha-clipping was disabled.
+    // Ideally, the user should just turn off the alpha-clipping feature in this case, but in order to make this case work as expected, we force alpha
+    // to 1.0 here to ensure that alpha-to-coverage never throws away samples when its active. (This would cause opaque objects to appear transparent)
+    alpha = (cutoff <= 0.0) ? 1.0 : alpha;
+
     // Produce 0.0 if the input value would be clipped by traditional alpha clipping and produce the original input value otherwise.
     // WORKAROUND: The alpha parameter in this ternary expression MUST be converted to a float in order to work around a known HLSL compiler bug.
     //             See Fogbugz 934464 for more information
