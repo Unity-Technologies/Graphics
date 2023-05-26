@@ -965,7 +965,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (mode == ProbeSettings.Mode.Custom)
                 {
-                    if (m_CustomTextureGUID != null)
+                    if (!string.IsNullOrEmpty(m_CustomTextureGUID))
                     {
                         // Try to reset the asset reference.
                         var customTexturePath = AssetDatabase.GUIDToAssetPath(m_CustomTextureGUID);
@@ -997,7 +997,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    if (m_BakedTextureGUID != null)
+                    if (!string.IsNullOrEmpty(m_BakedTextureGUID))
                     {
                         // Try to reset the asset reference.
                         var bakedTexturePath = AssetDatabase.GUIDToAssetPath(m_BakedTextureGUID);
