@@ -225,9 +225,9 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
         GetLightCountAndStartCluster(posInput.positionWS, LIGHTCATEGORY_DECAL, decalStart, decalEnd, cellIndex);
         
         decalCount = decalEnd - decalStart;
-        // fast path can be checked based on cell index. 
-        uint decalStartLane0;
-        bool fastPath = IsFastPath(cellIndex, decalStartLane0);
+        // we disable fast path scalarization in the path tracer due to PS5 compilation issues
+        uint decalStartLane0 = cellIndex;
+        bool fastPath = false;
 #elif !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
         GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
 
