@@ -95,10 +95,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_Source = colorHandle;
         }
 
-        static void SetupHDROutput(Material material, HDROutputUtils.Operation hdrOperation, Vector4 hdrOutputParameters)
+        static void SetupHDROutput(ColorGamut hdrDisplayColorGamut, Material material, HDROutputUtils.Operation hdrOperation, Vector4 hdrOutputParameters)
         {
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputParameters);
-            HDROutputUtils.ConfigureHDROutput(material, HDROutputSettings.main.displayColorGamut, hdrOperation);
+            HDROutputUtils.ConfigureHDROutput(material, hdrDisplayColorGamut, hdrOperation);
             // Blit material does not reference HDR_INPUT, so we don't need to enable the keyword.
             //material.EnableKeyword(ShaderKeywordStrings.HDRInput);
         }
@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Tonemapping tonemapping = stack.GetComponent<Tonemapping>();
 
                     Vector4 hdrOutputLuminanceParams;
-                    UniversalRenderPipeline.GetHDROutputLuminanceParameters(tonemapping, out hdrOutputLuminanceParams);
+                    UniversalRenderPipeline.GetHDROutputLuminanceParameters(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, tonemapping, out hdrOutputLuminanceParams);
 
                     HDROutputUtils.Operation hdrOperation = HDROutputUtils.Operation.None;
                     // If the HDRDebugView is on, we don't want the encoding
@@ -164,9 +164,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!cameraData.postProcessEnabled)
                         hdrOperation |= HDROutputUtils.Operation.ColorConversion;
 
-                    SetupHDROutput(m_PassData.blitMaterialData.material, hdrOperation, hdrOutputLuminanceParams);
+                    SetupHDROutput(cameraData.hdrDisplayColorGamut, m_PassData.blitMaterialData.material, hdrOperation, hdrOutputLuminanceParams);
                 }
-                
+
                 if (resolveToDebugScreen)
                 {
                     int shaderPassIndex = m_Source.rt?.filterMode == FilterMode.Bilinear ? m_PassData.blitMaterialData.bilinearSamplerPass : m_PassData.blitMaterialData.nearestSamplerPass;
@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
             if (isRenderToBackBufferTarget)
                 cmd.SetViewport(cameraData.pixelRect);
-            
+
             int shaderPassIndex = source.rt?.filterMode == FilterMode.Bilinear ? data.blitMaterialData.bilinearSamplerPass : data.blitMaterialData.nearestSamplerPass;
             Blitter.BlitTexture(cmd, source, scaleBias, data.blitMaterialData.material, shaderPassIndex);
         }
@@ -264,7 +264,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     VolumeStack stack = VolumeManager.instance.stack;
                     Tonemapping tonemapping = stack.GetComponent<Tonemapping>();
-                    UniversalRenderPipeline.GetHDROutputLuminanceParameters(tonemapping, out passData.hdrOutputLuminanceParams);
+                    ref CameraData cameraData = ref renderingData.cameraData;
+                    UniversalRenderPipeline.GetHDROutputLuminanceParameters(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, tonemapping, out passData.hdrOutputLuminanceParams);
 
                     builder.UseTexture(overlayUITexture, IBaseRenderGraphBuilder.AccessFlags.Read);
                 }
@@ -297,7 +298,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         if (!data.renderingData.cameraData.postProcessEnabled)
                             hdrOperation |= HDROutputUtils.Operation.ColorConversion;
 
-                        SetupHDROutput(data.blitMaterialData.material, hdrOperation, data.hdrOutputLuminanceParams);
+                        SetupHDROutput(data.renderingData.cameraData.hdrDisplayColorGamut, data.blitMaterialData.material, hdrOperation, data.hdrOutputLuminanceParams);
                     }
 
                     if (resolveToDebugScreen)

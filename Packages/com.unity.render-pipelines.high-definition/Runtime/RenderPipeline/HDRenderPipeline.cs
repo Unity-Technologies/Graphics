@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Material m_ApplyDistortionMaterial;
         Material m_FinalBlitWithOETF;
+        Material m_FinalBlitWithOETFTexArraySingleSlice;
 
         Material m_ClearStencilBufferMaterial;
 
@@ -232,15 +233,97 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
-        static bool HDROutputActiveForCameraType(CameraType cameraType)
-        {
-            return HDROutputIsActive() && cameraType == CameraType.Game;
-        }
-
-        internal static bool HDROutputIsActive()
+        /// <summary>
+        /// Checks the hardware (main display and platform) is HDR capable and the pipeline supports it
+        /// </summary>
+        /// <returns>Return true if the main display and platform is HDR capable and has enabled HDR output</returns>
+        internal static bool HDROutputForMainDisplayIsActive()
         {
             // TODO: Until we can test it, disable on Mac.
-            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal && SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) && HDROutputSettings.main.active;
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal &&
+                   SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.Supported) &&
+                   HDROutputSettings.main.active;
+        }
+
+        /// <summary>
+        /// Checks if any of the display devices we can output to are HDR capable and enabled.
+        /// </summary>
+        /// <returns>Return true if any of the display devices we can output HDR to have enabled HDR output</returns>
+        internal static bool HDROutputForAnyDisplayIsActive()
+        {
+            bool hdrDisplayOutputActive = HDROutputForMainDisplayIsActive();
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+            if (XRSystem.displayActive)
+            {
+                hdrDisplayOutputActive |= XRSystem.isHDRDisplayOutputActive;
+            }
+#endif
+            return hdrDisplayOutputActive;
+        }
+
+        static bool HDROutputActiveForCameraType(HDCamera camera)
+        {
+            return HDROutputIsActive(camera) && camera.camera.cameraType == CameraType.Game;
+        }
+
+        static bool HDROutputIsActive(HDCamera camera)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (camera.xr.enabled)
+            {
+                return camera.xr.isHDRDisplayOutputActive;
+            }
+            else
+#endif
+            {
+                return HDROutputForMainDisplayIsActive();
+            }
+        }
+
+        /// <summary>
+        /// Returns a subset of the HDROutputSettings information that can be passed around.
+        /// </summary>
+        /// <returns>HDRDisplayInformation for the display associated with the camera.</returns>
+        static HDROutputUtils.HDRDisplayInformation HDRDisplayInformationForCamera(HDCamera camera)
+        {
+            HDROutputUtils.HDRDisplayInformation displayInformation;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+            if (camera.xr.enabled)
+            {
+                displayInformation = camera.xr.hdrDisplayOutputInformation;
+            }
+            else
+#endif
+            {
+                HDROutputSettings displaySettings = HDROutputSettings.main;
+                displayInformation = new HDROutputUtils.HDRDisplayInformation(displaySettings.maxFullFrameToneMapLuminance,
+                    displaySettings.maxToneMapLuminance,
+                    displaySettings.minToneMapLuminance,
+                    displaySettings.paperWhiteNits);
+            }
+
+            return displayInformation;
+        }
+
+        /// <summary>
+        /// Returns the current color gamut that the display associated with camera uses.
+        /// </summary>
+        /// <returns>The color gamut used.</returns>
+        static ColorGamut HDRDisplayColorGamutForCamera(HDCamera camera)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // If we are rendering to xr then we need to look at the XR Display rather than the main non-xr display.
+            if (camera.xr.enabled)
+            {
+                return camera.xr.hdrDisplayOutputColorGamut;
+            }
+            else
+#endif
+            {
+                return HDROutputSettings.main.displayColorGamut;
+            }
         }
 
         void SetHDRState(HDCamera camera)
@@ -461,8 +544,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
+
             m_FinalBlitWithOETF = CoreUtils.CreateEngineMaterial(defaultResources.shaders.compositeUIAndOETFApplyPS);
 
+            if (TextureXR.useTexArray)
+            {
+                m_FinalBlitWithOETFTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.compositeUIAndOETFApplyPS);
+                m_FinalBlitWithOETFTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
+            }
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
 
@@ -896,6 +985,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
             CoreUtils.Destroy(m_FinalBlitWithOETF);
+            CoreUtils.Destroy(m_FinalBlitWithOETFTexArraySingleSlice);
 
             XRSystem.Dispose();
             m_SkyManager.Cleanup();
@@ -1901,7 +1991,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
             // for performance reasons otherwise we render UI overlay after all camera
-            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputForAnyDisplayIsActive();
 
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)

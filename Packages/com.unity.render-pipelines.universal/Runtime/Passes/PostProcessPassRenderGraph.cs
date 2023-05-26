@@ -1262,7 +1262,7 @@ namespace UnityEngine.Rendering.Universal
                     material.EnableKeyword(hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding) ? ShaderKeywordStrings.Gamma20AndHDRInput : ShaderKeywordStrings.Gamma20);
 
                 if (hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding))
-                    SetupHDROutput(material, hdrOperations);
+                    SetupHDROutput(renderingData.cameraData.hdrDisplayInformation, renderingData.cameraData.hdrDisplayColorGamut, material, hdrOperations);
 
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
@@ -1473,7 +1473,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!cameraData.postProcessEnabled)
                     hdrOperations |= HDROutputUtils.Operation.ColorConversion;
 
-                SetupHDROutput(material, hdrOperations);
+                SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
             }
             DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
@@ -1826,7 +1826,7 @@ namespace UnityEngine.Rendering.Universal
                     // Otherwise encoding will happen in the final post process pass or the final blit pass
                     HDROutputUtils.Operation hdrOperations = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
 
-                    SetupHDROutput(m_Materials.uber, hdrOperations);
+                    SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperations);
                 }
 
                 DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);

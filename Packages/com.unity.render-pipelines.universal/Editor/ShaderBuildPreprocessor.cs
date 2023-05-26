@@ -335,7 +335,7 @@ namespace UnityEditor.Rendering.Universal
                     containsForwardRenderer,
                     everyRendererHasSSAO,
                     s_StripXRVariants,
-                    !PlayerSettings.useHDRDisplay || !urpAsset.supportsHDR,
+                    !PlayerSettings.allowHDRDisplaySupport || !urpAsset.supportsHDR,
                     s_StripDebugDisplayShaders,
                     s_StripScreenCoordOverrideVariants,
                     s_StripUnusedVariants,
@@ -403,13 +403,13 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.supportsLightCookies)
                 urpAssetShaderFeatures |= ShaderFeatures.LightCookies;
 
-            bool hasHDROutput = PlayerSettings.useHDRDisplay && urpAsset.supportsHDR;
+            bool hasHDROutput = PlayerSettings.allowHDRDisplaySupport && urpAsset.supportsHDR;
             if (urpAsset.colorGradingMode == ColorGradingMode.HighDynamicRange || hasHDROutput)
                 urpAssetShaderFeatures |= ShaderFeatures.HdrGrading;
-            
+
             if (urpAsset.enableLODCrossFade)
                 urpAssetShaderFeatures |= ShaderFeatures.LODCrossFade;
-                
+
             if (urpAsset.shEvalMode == ShEvalMode.Auto)
                 urpAssetShaderFeatures |= ShaderFeatures.AutoSHMode;
 

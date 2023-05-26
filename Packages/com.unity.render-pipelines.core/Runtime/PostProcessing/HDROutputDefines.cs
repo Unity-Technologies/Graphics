@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         ACES4000Nits
     }
-    
+
     /// <summary>
     /// The available options for colorspace when outputting to an HDR device.
     /// </summary>
@@ -47,9 +47,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Rec2020 color primaries with D65 white point.
         /// </summary>
-        Rec2020
+        Rec2020,
+        /// <summary>
+        /// P3 color primaries with D65 white point.
+        /// </summary>
+        P3D65
     }
-    
+
     /// <summary>
     /// The available options for color encoding when outputting to an HDR device.
     /// </summary>
@@ -63,6 +67,14 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// ST 2084 PQ OETF
         /// </summary>
-        PQ = TransferFunction.PQ
+        PQ = TransferFunction.PQ,
+        /// <summary>
+        /// Gamma 2.2 OETF.
+        /// </summary>
+        Gamma22 = TransferFunction.Gamma22,
+        /// <summary>
+        /// sRGB curve OETF.
+        /// </summary>
+        sRGB = TransferFunction.sRGB
     }
 }

@@ -18,6 +18,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMirrorView"
                 #pragma vertex VertQuad
                 #pragma fragment FragBilinear
                 #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+                #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION_AND_ENCODING
 
                 #define SRC_TEXTURE2D_X_ARRAY 0
                 #include "Packages/com.unity.render-pipelines.universal/Shaders/XR/XRMirrorView.hlsl"
@@ -33,6 +34,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMirrorView"
                 #pragma vertex VertQuad
                 #pragma fragment FragBilinear
                 #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+                #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION_AND_ENCODING
 
                 #define SRC_TEXTURE2D_X_ARRAY 1
                 #include "Packages/com.unity.render-pipelines.universal/Shaders/XR/XRMirrorView.hlsl"

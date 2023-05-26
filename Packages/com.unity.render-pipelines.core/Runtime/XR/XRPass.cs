@@ -134,6 +134,38 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public IntPtr foveatedRenderingInfo { get; private set; }
 
+        public bool isHDRDisplayOutputActive
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            get => XRSystem.GetActiveDisplay().hdrOutputSettings?.active ?? false;
+#else
+            get => false;
+#endif
+        }
+
+        public ColorGamut hdrDisplayOutputColorGamut
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            get => XRSystem.GetActiveDisplay().hdrOutputSettings?.displayColorGamut ?? ColorGamut.sRGB;
+#else
+            get => ColorGamut.sRGB;
+#endif
+        }
+
+        public HDROutputUtils.HDRDisplayInformation hdrDisplayOutputInformation
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            get => new HDROutputUtils.HDRDisplayInformation(
+                XRSystem.GetActiveDisplay().hdrOutputSettings?.maxFullFrameToneMapLuminance ?? -1,
+                XRSystem.GetActiveDisplay().hdrOutputSettings?.maxToneMapLuminance ?? -1,
+                XRSystem.GetActiveDisplay().hdrOutputSettings?.minToneMapLuminance ?? -1,
+                XRSystem.GetActiveDisplay().hdrOutputSettings?.paperWhiteNits ?? 160.0f
+                );
+#else
+            get => new HDROutputUtils.HDRDisplayInformation(-1, -1, -1, 160.0f);
+#endif
+        }
+
         /// <summary>
         /// Scaling factor used when drawing the occlusion mesh.
         /// </summary>

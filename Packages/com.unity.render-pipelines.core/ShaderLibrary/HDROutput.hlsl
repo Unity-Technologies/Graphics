@@ -26,6 +26,7 @@ int _HDREncoding;
 // EETF (Eelectro-Electro Transfer Function): This is generally just a remapping function, we use the BT2390 EETF to perform range reduction based on the actual display.
 // PQ (Perceptual Quantizer): the EOTF used for HDR10 TVs. It works in the range [0, 10000] nits. Important to keep in mind that this represents an absolute intensity and not relative as for SDR. Sometimes this can be referenced as ST2084. As OETF we'll use the inverse of the PQ curve.
 // scRGB: a wide color gamut that uses same color space and white point as sRGB, but with much wider coordinates. Used on windows when 16 bit depth is selected. Most of the color space is imaginary colors. Works differently than with PQ (encoding is linear).
+// G22 (Gamma 2.2): the EOTF used for exact gamma 2.2 curve.
 
 // --------------------------------
 //  Perceptual Quantizer (PQ) / ST 2084
@@ -105,6 +106,7 @@ float3 PQToLinear(float3 value)
 // --------------------------------
 // As any other space transform, changing color space involves a change of basis and therefore a matrix multiplication.
 // Note that Rec2020 and Rec2100 share the same color space.
+// This section should be kept in sync with Runtime\Utilities\ColorSpaceUtils.cs
 
 float3 RotateRec709ToRec2020(float3 Rec709Input)
 {
@@ -118,6 +120,17 @@ float3 RotateRec709ToRec2020(float3 Rec709Input)
     return mul(Rec709ToRec2020Mat, Rec709Input);
 }
 
+float3 RotateRec709ToP3D65(float3 Rec709Input)
+{
+    static const float3x3 Rec709ToP3D65Mat = float3x3(
+        0.822462, 0.177538, 0.000000,
+        0.033194, 0.966806, 0.000000,
+        0.017083, 0.072397, 0.910520
+    );
+
+    return mul(Rec709ToP3D65Mat, Rec709Input);
+}
+
 float3 RotateRec2020ToRec709(float3 Rec2020Input)
 {
     static const float3x3 Rec2020ToRec709Mat = float3x3(
@@ -128,11 +141,36 @@ float3 RotateRec2020ToRec709(float3 Rec2020Input)
     return mul(Rec2020ToRec709Mat, Rec2020Input);
 }
 
+float3 RotateRec2020ToP3D65(float3 Rec2020Input)
+{
+    static const float3x3 Rec2020ToP3D65Mat = float3x3(
+        1.343578, -0.28218,  -0.0613986,
+       -0.065298,  1.075788, -0.010491,
+        0.002822, -0.019599,  1.016777
+    );
+    return mul(Rec2020ToP3D65Mat, Rec2020Input);
+}
+
+float3 RotateP3D65ToRec2020(float3 P3D65Input)
+{
+    static const float3x3 P3D65ToRec2020Mat = float3x3(
+        0.753833, 0.198597, 0.04757,
+        0.045744, 0.941777, 0.012479,
+       -0.001210, 0.017602, 0.983609
+    );
+
+    return mul(P3D65ToRec2020Mat, P3D65Input);
+}
+
 float3 RotateRec709ToOutputSpace(float3 Rec709Input)
 {
     if (_HDRColorspace == HDRCOLORSPACE_REC2020)
     {
         return RotateRec709ToRec2020(Rec709Input);
+    }
+    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+    {
+        return RotateRec709ToP3D65(Rec709Input);
     }
     else // HDRCOLORSPACE_REC709
     {
@@ -140,17 +178,23 @@ float3 RotateRec709ToOutputSpace(float3 Rec709Input)
     }
 }
 
+
 float3 RotateRec2020ToOutputSpace(float3 Rec2020Input)
 {
     if (_HDRColorspace == HDRCOLORSPACE_REC2020)
     {
         return Rec2020Input;
     }
+    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+    {
+        return RotateRec2020ToP3D65(Rec2020Input);
+    }
     else // HDRCOLORSPACE_REC709
     {
         return RotateRec2020ToRec709(Rec2020Input);
     }
 }
+
 
 float3 RotateRec2020ToLMS(float3 Rec2020Input)
 {
@@ -209,6 +253,10 @@ float3 RotateOutputSpaceToICtCp(float3 inputColor)
     {
         inputColor = RotateRec709ToRec2020(inputColor);
     }
+    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+    {
+        inputColor = RotateP3D65ToRec2020(inputColor);
+    }
 
     return RotateRec2020ToICtCp(inputColor);
 }
@@ -239,16 +287,21 @@ float3 RotateXYZToRec709(float3 XYZ)
     return mul(XYZ_2_REC709_MAT, XYZ);
 }
 
+float3 RotateXYZToP3D65(float3 XYZ)
+{
+    return mul(XYZ_2_P3D65_MAT, XYZ);
+}
+
 float3 RotateXYZToOutputSpace(float3 xyz)
 {
     if (_HDRColorspace == HDRCOLORSPACE_REC2020)
     {
         return RotateXYZToRec2020(xyz);
     }
-//    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
-//    {
-//        return RotateXYZToP3D65(xyz);
-//    }
+    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+    {
+        return RotateXYZToP3D65(xyz);
+    }
     else // HDRCOLORSPACE_REC709
     {
         return RotateXYZToRec709(xyz);
@@ -276,21 +329,33 @@ float3 RotateRec2020ToXYZ(float3 rgb)
     return mul(Rec2020ToXYZMat, rgb);
 }
 
+float3 RotateP3D65ToXYZ(float3 rgb)
+{
+    static const float3x3 P3D65ToXYZMat = float3x3(
+        0.486571, 0.265668, 0.198217,
+        0.228975, 0.691739, 0.079287,
+        0, 0.045113, 1.043944
+    );
+
+    return mul(P3D65ToXYZMat, rgb);
+}
+
 float3 RotateOutputSpaceToXYZ(float3 rgb)
 {
     if (_HDRColorspace == HDRCOLORSPACE_REC2020)
     {
         return RotateRec2020ToXYZ(rgb);
     }
-//    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
-//    {
-//        return RotateP3D65ToXYZ(rgb);
-//    }
+    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+    {
+        return RotateP3D65ToXYZ(rgb);
+    }
     else // HDRCOLORSPACE_REC709
     {
         return RotateRec709ToXYZ(rgb);
     }
 }
+
 
 float3 RotateICtCpToPQLMS(float3 ICtCp)
 {
@@ -320,17 +385,27 @@ float3 RotateICtCpToRec709(float3 ICtCp)
     return RotateXYZToRec709(RotateICtCpToXYZ(ICtCp));
 }
 
+float3 RotateICtCpToP3D65(float3 ICtCp)
+{
+    return RotateXYZToP3D65(RotateICtCpToXYZ(ICtCp));
+}
+
 float3 RotateICtCpToOutputSpace(float3 ICtCp)
 {
     if (_HDRColorspace == HDRCOLORSPACE_REC2020)
     {
         return RotateICtCpToRec2020(ICtCp);
     }
+    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+    {
+        return RotateICtCpToP3D65(ICtCp);
+    }
     else // HDRCOLORSPACE_REC709
     {
         return RotateICtCpToRec709(ICtCp);
     }
 }
+
 
 // --------------------------------------------------------------------------------------------
 
@@ -373,9 +448,9 @@ float3 GTSApproxLinToPQ(float3 inputCol)
 }
 
 // IMPORTANT! This wants the input in [0...10000] range, if the method requires scaling, it is done inside this function.
-float3 OETF(float3 inputCol)
+float3 OETF(float3 inputCol, float maxNits)
 {
-    if (_HDREncoding == HDRENCODING_LINEAR)
+    if (_HDREncoding == HDRENCODING_LINEAR || _HDREncoding == HDRENCODING_S_RGB)
     {
         // IMPORTANT! This assumes that the maximum nits is always higher or same as the reference white. Seems like a sensible choice, but revisit if we find weird use cases (just min with the the max nits).
         // We need to map the value 1 to [reference white] nits.
@@ -390,6 +465,10 @@ float3 OETF(float3 inputCol)
         #elif OETF_CHOICE == GTS_APPROX_PQ
         return GTSApproxLinToPQ(inputCol * 0.01f);
         #endif
+    }
+    else if (_HDREncoding == HDRENCODING_GAMMA22)
+    {
+        return LinearToGamma22(inputCol / (float3)maxNits); // Usually used to encode into UNORM output 0->1 where 1 is the max display brightness, this will be very device specific so use our maxNits.
     }
     else
     {
@@ -409,6 +488,38 @@ float3 LinearToPQForLUT(float3 inputCol)
 #endif
 }
 
+// --------------------------------------------------------------------------------------------
+
+// --------------------------------
+//  Inverse OETFs
+// --------------------------------
+// The functions here are the inverse of our OETF, to allow reading in data we have processed through our OETF.
+// This is not the same as the EOTF as that is not always a direct inverse of the OETF so that an end to end transfer may not be linear.
+// We pass the HDR Encoding value manually into this function rather than reading from _HDREncoding as that is the currnet destination encoding
+// and we may be reading from a different encoding as part of translating between encodings.
+
+float3 InverseOETF(float3 inputCol, float maxNits, int hdrEncoding)
+{
+    if (hdrEncoding == HDRENCODING_LINEAR || hdrEncoding == HDRENCODING_S_RGB)
+    {
+        // IMPORTANT! This assumes that the maximum nits is always higher or same as the reference white. Seems like a sensible choice, but revisit if we find weird use cases (just min with the the max nits).
+        // We need to map the value 1 to [reference white] nits.
+        return inputCol * SDR_REF_WHITE;
+    }
+    else if (hdrEncoding == HDRENCODING_PQ)
+    {
+        // For the time being always use the reference spec for computing the inverse. For the optimized version of LinearToPQ we would need to fit our own PQToLinear version.
+        return PQToLinear(inputCol);
+    }
+    else if (hdrEncoding == HDRENCODING_GAMMA22)
+    {
+        return Gamma22ToLinear(inputCol) * maxNits;
+    }
+    else
+    {
+        return inputCol;
+    }
+}
 
 // --------------------------------------------------------------------------------------------
 
@@ -635,7 +746,7 @@ float3 HDRMappingFromRec2020(float3 Rec2020Input, float paperWhite, float minNit
 
     if (skipOETF) return reducedHDR;
 
-    return OETF(reducedHDR);
+    return OETF(reducedHDR, maxNits);
 }
 
 float3 HDRMappingFromRec709(float3 Rec709Input, float paperWhite, float minNits, float maxNits, int reductionMode, float hueShift, bool skipOETF = false)
@@ -645,11 +756,11 @@ float3 HDRMappingFromRec709(float3 Rec709Input, float paperWhite, float minNits,
 
     if (skipOETF) return reducedHDR;
 
-    return OETF(reducedHDR);
+    return OETF(reducedHDR, maxNits);
 }
 
 
-float3 HDRMappingACES(float3 aces, float hdrBoost, int reductionMode, bool skipOETF = false)
+float3 HDRMappingACES(float3 aces, float hdrBoost, float minNits, float maxNits, int reductionMode, bool skipOETF = false)
 {
     aces = (aces * hdrBoost * 0.01f);
     float3 oces = RRT(aces);
@@ -676,6 +787,11 @@ float3 HDRMappingACES(float3 aces, float hdrBoost, int reductionMode, bool skipO
         const float3x3 AP1_2_Rec2020 = mul(XYZ_2_REC2020_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
         linearODT = mul(AP1_2_Rec2020, AP1ODT);
     }
+    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+    {
+        const float3x3 API1_2_P3D65 = mul(XYZ_2_P3D65_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
+        linearODT = mul(API1_2_P3D65, AP1ODT);
+    }
     else // HDRCOLORSPACE_REC709
     {
         const float3x3 AP1_2_Rec709 = mul(XYZ_2_REC709_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
@@ -684,7 +800,7 @@ float3 HDRMappingACES(float3 aces, float hdrBoost, int reductionMode, bool skipO
 
     if (skipOETF) return linearODT;
 
-    return OETF(linearODT);
+    return OETF(linearODT, maxNits);
 }
 
 // --------------------------------------------------------------------------------------------
@@ -697,7 +813,7 @@ float3 ProcessUIForHDR(float3 uiSample, float paperWhite, float maxNits)
 {
     uiSample.rgb = RotateRec709ToOutputSpace(uiSample.rgb);
     uiSample.rgb *= paperWhite;
-    
+
     return uiSample.rgb;
 }
 

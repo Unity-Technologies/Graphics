@@ -15,22 +15,12 @@ RW_TEXTURE2D_X(float, _xyBuffer);
 
 float4 _HDRxyBufferDebugParams;
 #define _SizePerDim _HDRxyBufferDebugParams.xy
-#define _IsRec709 (int)(_HDRxyBufferDebugParams.w == 0)
 
 float2 RGBtoxy(float3 rgb)
 {
-    float3 XYZ = 0;
-    if (_IsRec709)
-    {
-        XYZ = RotateRec709ToXYZ(rgb);
-    }
-    else
-    {
-        XYZ = RotateRec2020ToXYZ(rgb);
-    }
+    float3 XYZ = RotateOutputSpaceToXYZ(rgb);
     return XYZ.xy / (dot(XYZ, 1));
 }
-
 
 [numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
 void KCIExyGen(uint groupIndex : SV_GroupIndex,

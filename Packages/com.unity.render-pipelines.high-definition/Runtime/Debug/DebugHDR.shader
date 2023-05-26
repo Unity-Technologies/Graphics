@@ -28,7 +28,6 @@ Shader "Hidden/HDRP/DebugHDR"
     #define _MaxNits    _HDROutputParams.y
     #define _PaperWhite _HDROutputParams.z
     #define _RangeReductionMode    (int)_HDROutputParams2.x
-    #define _IsRec709 (int)(_HDROutputParams2.w == 0)
 
     #define _TonemapType _HDRDebugParams.w
 
@@ -82,26 +81,14 @@ Shader "Hidden/HDRP/DebugHDR"
 
     float2 RGBtoxy(float3 rgb)
     {
-        float3 XYZ = 0;
-        if (_IsRec709)
-        {
-            XYZ = RotateRec709ToXYZ(rgb);
-        }
-        else
-        {
-            XYZ = RotateRec2020ToXYZ(rgb);
-        }
+        float3 XYZ = RotateOutputSpaceToXYZ(rgb);
         return XYZtoxy(XYZ);
     }
 
     float3 uvToGamut(float2 uv)
     {
         float3 xyzColor = xyYtoXYZ(float3(uv.x, uv.y, 1.0f));
-        float3 linearRGB = RotateXYZToRec2020(xyzColor);
-        if (_IsRec709)
-        {
-            linearRGB = RotateXYZToRec709(xyzColor);
-        }
+        float3 linearRGB = RotateXYZToOutputSpace(xyzColor);
 
         float scale = 1.0f / length(linearRGB);
 
@@ -135,6 +122,10 @@ Shader "Hidden/HDRP/DebugHDR"
         float2 g_709 = float2(0.3, 0.6);
         float2 b_709 = float2(0.15, 0.06);
 
+        float2 r_p3 = float2(0.68, 0.32);
+        float2 g_p3 = float2(0.265, 0.69);
+        float2 b_p3 = float2(0.15, 0.06);
+
         float2 pos = input.positionCS.xy;
         float lineThickness = 0.002;
 
@@ -144,7 +135,8 @@ Shader "Hidden/HDRP/DebugHDR"
         float3 rec2020ColorDesat = float3(3.0, 0.5, 0.5);
         float3 rec709Color = float3(0, _PaperWhite, 0);
         float3 rec709ColorDesat = float3(0.4, 0.6, 0.4);
-
+        float3 p3Color = float3(0, 0, _PaperWhite);
+        float3 p3ColorDesat = float3(0.4, 0.4, 0.6);
 
         if (displayClip)
         {
@@ -152,6 +144,10 @@ Shader "Hidden/HDRP/DebugHDR"
             if (IsPointInTriangle(xy, r_709, g_709, b_709))
             {
                 color.rgb = (color.rgb * (1 - clipAlpha) + clipAlpha * rec709Color);
+            }
+            else if (IsPointInTriangle(xy, r_p3, g_p3, b_p3))
+            {
+                color.rgb = (color.rgb * (1 - clipAlpha) + clipAlpha * p3Color);
             }
             else if (IsPointInTriangle(xy, r_2020, g_2020, b_2020))
             {
@@ -166,23 +162,31 @@ Shader "Hidden/HDRP/DebugHDR"
             float4 lineColor = DrawSegment(uv, g_709, b_709, lineThickness, float3(0, 0, 0)) + DrawSegment(uv, b_709, r_709, lineThickness, float3(0, 0, 0)) +
                 DrawSegment(uv, r_709, g_709, lineThickness, float3(0, 0, 0)) +
                 DrawSegment(uv, g_2020, b_2020, lineThickness, float3(0, 0, 0)) + DrawSegment(uv, b_2020, r_2020, lineThickness, float3(0, 0, 0)) +
-                DrawSegment(uv, r_2020, g_2020, lineThickness, float3(0, 0, 0));
+                DrawSegment(uv, r_2020, g_2020, lineThickness, float3(0, 0, 0)) +
+                DrawSegment(uv, g_p3, b_p3, lineThickness, float3(0, 0, 0)) + DrawSegment(uv, b_p3, r_p3, lineThickness, float3(0, 0, 0)) +
+                DrawSegment(uv, r_p3, g_p3, lineThickness, float3(0, 0, 0));
 
             float3 linearRGB = 0;
-            bool pointInRec709 = true;
             if (IsPointInTriangle(uv, r_2020, g_2020, b_2020))
             {
+                float3 colorSpaceColor = rec709Color;
                 linearRGB = uvToGamut(uv);
 
                 if (displayClip)
                 {
                     if (IsPointInTriangle(uv, r_709, g_709, b_709))
                     {
+                        colorSpaceColor = rec709Color;
                         linearRGB.rgb = rec709ColorDesat;
+                    }
+                    else if (IsPointInTriangle(uv, r_p3, g_p3, b_p3))
+                    {
+                        colorSpaceColor = p3Color;
+                        linearRGB.rgb = p3ColorDesat;
                     }
                     else
                     {
-                        pointInRec709 = false;
+                        colorSpaceColor = rec2020Color;
                         linearRGB.rgb = rec2020ColorDesat;
                     }
                 }
@@ -194,7 +198,7 @@ Shader "Hidden/HDRP/DebugHDR"
                 {
                     gamutColor.a = 1;
                     if (displayClip)
-                        gamutColor.rgb = pointInRec709 ? rec709Color : rec2020Color;
+                        gamutColor.rgb = colorSpaceColor;
                 }
             }
 

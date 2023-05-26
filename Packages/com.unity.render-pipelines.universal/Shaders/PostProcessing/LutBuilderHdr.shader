@@ -208,7 +208,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             #ifdef HDR_COLORSPACE_CONVERSION
                 #ifdef _TONEMAP_ACES
                 float3 aces = ACEScg_to_ACES(colorLinear);
-                return HDRMappingACES(aces.rgb, PaperWhite, RangeReductionMode, true);
+                return HDRMappingACES(aces.rgb, PaperWhite, MinNits, MaxNits, RangeReductionMode, true);
                 #elif _TONEMAP_NEUTRAL
                 return HDRMappingFromRec2020(colorLinear.rgb, PaperWhite, MinNits, MaxNits, RangeReductionMode, HueShift, true);
                 #else
