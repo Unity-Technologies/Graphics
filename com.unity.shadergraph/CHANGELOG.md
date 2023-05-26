@@ -25,6 +25,9 @@ The version number for this package has increased due to a version update of a r
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+- Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
+
 ## [10.8.0] - 2021-09-20
 
 ### Fixed
