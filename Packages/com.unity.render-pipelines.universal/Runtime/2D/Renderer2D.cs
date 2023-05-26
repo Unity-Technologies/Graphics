@@ -84,8 +84,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_LightCullResult = new Light2DCullResult();
             m_Renderer2DData.lightCullResult = m_LightCullResult;
-            // the fall back here because 2D Renderer is in another unreferenced DLL.
-            Blitter.Initialize(data.coreBlitPS, data.coreBlitColorAndDepthPS);
+
+            // No need to initialize blitter the ScriptableRenderer already does this
 
             LensFlareCommonSRP.mergeNeeded = 0;
             LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
@@ -105,6 +105,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
+
+            base.Dispose(disposing);
         }
 
         public Renderer2DData GetRenderer2DData()

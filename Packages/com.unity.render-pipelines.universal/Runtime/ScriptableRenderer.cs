@@ -683,6 +683,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
+            DebugHandler?.Dispose();
         }
 
         internal virtual void ReleaseRenderTargets()
