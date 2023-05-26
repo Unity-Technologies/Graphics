@@ -2,31 +2,44 @@
 
 ## Description
 
-Triplanar is a method of generating UVs and sampling a texture by projecting in world space. The input **Texture** is sampled 3 times, once in each of the world x, y and z axes, and the resulting information is planar projected onto the model, blended by the normal, or surface angle. The generated UVs can be scaled with the input **Tile** and the final blending strength can be controlled with the input **Blend**. **Blend** controls the way the normal affects the blending of each plane sample and should be greater or equal to 0. The larger **blend** is, the more contribution will be given to the sample from the plane towards which the normal is most oriented. (The maximum blend exponent is between 17 and 158 depending on platform and the precision of the node.) A blend of 0 makes each plane get equal weight regardless of normal orientation. The projection can be modified by overriding the inputs **Position** and **Normal**. This is commonly used to texture large models such as terrain, where hand authoring UV coordinates would be problematic or not performant.
+Generates UVs and samples a texture by projecting in world space. This method is commonly used to texture large models such as terrain, where hand authoring UV coordinates would either be problematic or not performant. Samples the input **Texture** 3 times, once in each of the world x, y, and z axes. The resulting information is planar projected onto the model, blended by the normal, or surface angle. You can scale the generated UVs with the input **Tile** and you can control the final blending strength with the input **Blend**.
 
-The expected type of the input **Texture** can be switched with the dropdown **Type**. If set to **Normal** the normals will be converted into world space so new tangents can be constructed then converted back to tangent space before output.
+**Blend** controls the way the normal affects the blending of each plane sample and should be greater than or equal to 0. The larger **Blend** is, the more contribution will be given to the sample from the plane towards which the normal is most oriented. (The maximum blend exponent is between 17 and 158 depending on the platform and the precision of the node.) A **Blend** of 0 makes each plane get equal weight regardless of normal orientation. 
 
-If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later.
+To choose the projection, change the **Input Space**. You can also modify the projection via the inputs **Position** and **Normal**. 
 
-NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
+Use the **Type** dropdown to change the expected type of the input **Texture**. If set to **Normal**, the **Out** port returns the blended normals in **Normal Output Space**.
+
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, upgrade to version 10.3 or later.
+
+NOTE: You can only use the Triplanar Node in the **Fragment** shader stage.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Texture      | Input | Texture | None | Input texture value |
-| Sampler      | Input | Sampler State | None | Sampler for input **Texture** |
-| Position      | Input | Vector 3 | World Space Position | Fragment position |
-| Normal      | Input | Vector 3 | World Space Normal | Fragment normal |
-| Tile      | Input | Float    | None | Tiling amount for generated UVs |
-| Blend      | Input | Float    | None | Blend factor between different samples |
-| Out | Output      |    Vector 4 | None | Output value |
+| Name     | Direction | Type          | Binding              | Description |
+|:---------|:----------|:--------------|:---------------------|:------------|
+| Texture  | Input     | Texture       | None                 | Input texture value |
+| Sampler  | Input     | Sampler State | None                 | Sampler for input **Texture** |
+| Position | Input     | Vector 3      | Input Space Position | Fragment position |
+| Normal   | Input     | Vector 3      | Input Space Normal   | Fragment normal |
+| Tile     | Input     | Float         | None                 | Tiling amount for generated UVs |
+| Blend    | Input     | Float         | None                 | Blend factor between different samples |
+| Out      | Output    | Vector 4      | None                 | Output value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| Type      | Dropdown | Default, Normal | Type of input **Texture** |
+| Name      | Type        | Options         | Description |
+|:--------- |:------------|:----------------|:------------|
+| Type      | Dropdown    | Default, Normal | Type of input **Texture** |
+
+## Node Settings Controls
+
+The following controls appear on the Node Settings tab of the Graph Inspector, when you select the Triplanar Node.
+
+| Name        | Type     | Options                                     | Description |
+|:------------|:---------|:--------------------------------------------|:------------|
+| Input Space | Dropdown | Object, View, World, Tangent, AbsoluteWorld | Controls the coordinate space used by the input ports **Position** and **Normal**.  When you change the **Input Space** value, it changes the bindings on the  **Position** and **Normal** ports to use the specified space. The default value is **AbsoluteWorld**. |
+| Normal Output Space | Dropdown | Object, View, World, Tangent, AbsoluteWorld | Controls the coordinate space used for the **Out** port. The Normal Output Space control is only available when **Type** is set to **Normal**. The default value is **Tangent**. |
 
 ## Generated Code Example
 
