@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Configure render state
-            BaseLitAPI.ComputeStencilProperties(receivesLighting, forwardOnly, ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
+            BaseLitAPI.ComputeStencilProperties(receivesLighting, forwardOnly, ssrStencil, splitLighting, false, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
@@ -158,6 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // All these properties values will be patched with the material keyword update
             collector.AddFloatProperty("_SrcBlend", 1.0f);
             collector.AddFloatProperty("_DstBlend", 0.0f);
+            collector.AddFloatProperty("_DstBlend2", 0.0f);
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
             collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? transparentZWrite : true);

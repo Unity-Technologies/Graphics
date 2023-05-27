@@ -1206,6 +1206,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderSSR(RenderGraph renderGraph,
             HDCamera hdCamera,
             ref PrepassOutput prepassOutput,
+            in TransparentPrepassOutput transparentPrepass,
             TextureHandle clearCoatMask,
             TextureHandle rayCountTexture,
             TextureHandle historyValidationTexture,

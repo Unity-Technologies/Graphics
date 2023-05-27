@@ -17,8 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static class Styles
         {
-            public static string empty = "";
-            public static string refractionModelText = "Refraction Model";
+            public static GUIContent refractionModelText = new GUIContent("Refraction Model", "Controls which shape most closely matches the internal shape of the object. HDRP uses this shape to calculate how light bends and how far it travels inside the object to the rear surface.\nWhen a refraction model is set, the Transparent Depth Prepass is forced.");
             public static GUIContent refractionIorText = new GUIContent("Index Of Refraction", "Controls the index of refraction for this Material.");
             public static GUIContent refractionThicknessText = new GUIContent("Thickness", "Thickness is the distance inside the model along the inverse normal, in meters. Used in Refraction approximation as the diameter for the Sphere Model, and as the planar projection distance for Box Model. Remapping options available if a texture is used.");
             public static GUIContent refractionThicknessMapText = new GUIContent("Thickness Map", "Specifies the Refraction Thickness Map (R) for this Material - This acts as a thickness multiplier map.");

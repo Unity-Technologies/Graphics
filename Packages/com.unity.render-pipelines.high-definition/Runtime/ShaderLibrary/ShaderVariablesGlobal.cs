@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _FogColorMode;
         public float _GlobalMipBias;
         public float _GlobalMipBiasPow2;
-        public float _Pad0;
+        public uint _RayTracingCheckerIndex;
         public Vector4 _MipFogParameters;
         public Vector4 _HeightFogBaseScattering;
         public float _HeightFogBaseExtinction;
@@ -157,17 +157,27 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _CachedShadowAtlasSize;
         public Vector4 _CachedAreaShadowAtlasSize;
 
-        // Water Line
+        // Water
         public Vector4 _BoundsSS;
         public float _UpDirectionX;
         public float _UpDirectionY;
         public float _BufferStride;
-        public int _EnableUnderwater;
+        public int _EnableWater;
 
+        public float _UnderWaterAmbientProbeLuminance;
+        public int _UnderWaterSurfaceIndex;
+        public float _UnderWaterCausticsIntensity;
+        public float _UnderWaterCausticsPlaneBlendDistance;
+        public Matrix4x4 _UnderWaterSurfaceTransform_Inverse;
+        public int _UnderWaterProceduralGeometry;
+        public float _UnderWaterCausticsTilingFactor;
+        public float _UnderWaterCausticsMaxLOD;
+        public float _UnderWaterCausticsShadowIntensity;
+
+        public float _UnderWaterCausticsRegionSize;
         public int _SpecularFade;
         public uint _EnableRenderingLayers;
         public int _ReflectionsMode;
-        public uint _RayTracingCheckerIndex;
 
         public uint _DirectionalLightCount;
         public uint _PunctualLightCount;

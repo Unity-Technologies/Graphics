@@ -167,7 +167,7 @@ Pass
     #endif
 
     // Translate transparent motion vector define
-    #if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
+    #if (defined(_TRANSPARENT_WRITES_MOTION_VEC) || defined(_TRANSPARENT_REFRACTIVE_SORT)) && defined(_SURFACE_TYPE_TRANSPARENT)
         #define _WRITE_TRANSPARENT_MOTION_VECTOR
     #endif
 

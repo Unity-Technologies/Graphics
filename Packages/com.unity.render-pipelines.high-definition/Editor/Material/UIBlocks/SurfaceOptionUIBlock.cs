@@ -91,6 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Transparent Depth Prepass", "When enabled, HDRP renders a depth prepass for transparent GameObjects. This improves sorting.");
             public static GUIContent transparentBackfaceEnableText = new GUIContent("Back Then Front Rendering", "When enabled, HDRP renders the back face and then the front face, in two separate draw calls, to better sort transparent meshes.");
             public static GUIContent transparentWritingMotionVecText = new GUIContent("Transparent Writes Motion Vectors", "When enabled, transparent objects write motion vectors, these replace what was previously rendered in the buffer.");
+            public static GUIContent perPixelSortingText = new GUIContent("Sort with Refractive", "When enabled, transparent objects in Rendering Pass Before Refraction will be depth sorted per pixel with Refractive objects.\nThis is useful when a Before Refraction transparent object is both behind and in front of a refractive object, for example when crossing a water surface.");
 
             public static GUIContent zWriteEnableText = new GUIContent("Depth Write", "When enabled, transparent objects write to the depth buffer.");
             public static GUIContent transparentZTestText = new GUIContent("Depth Test", "Set the comparison function to use during the Z Testing.");
@@ -98,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent rayTracingTextInfo = new GUIContent("When enabled, if you enabled ray tracing in your project and a recursive rendering volume override is active, Unity uses recursive rendering to render the GameObject.");
 
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
-            public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog.");
+            public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog and absorption from underwater.");
             public static GUIContent transparentCullModeText = new GUIContent("Cull Mode", "For transparent objects, change the cull mode of the object.");
             public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Preserve specular lighting", "When enabled, blending only affects diffuse lighting, allowing for correct specular lighting on transparent meshes that use this Material. This parameter is only supported when the material's refraction model is set to None.");
 
@@ -166,11 +167,13 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty transparentBackfaceEnable = null;
         MaterialProperty transparentSortPriority = null;
         const string kTransparentSortPriority = HDMaterialProperties.kTransparentSortPriority;
+        MaterialProperty perPixelSorting = null;
         MaterialProperty transparentWritingMotionVec = null;
         MaterialProperty doubleSidedEnable = null;
         MaterialProperty blendMode = null;
         MaterialProperty enableBlendModePreserveSpecularLighting = null;
         MaterialProperty enableFogOnTransparent = null;
+        MaterialProperty refractionModel = null;
         private const string kRenderQueueTypeShaderGraph = "_RenderQueueType";
 
         // Lit properties
@@ -300,6 +303,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             transparentSortPriority = FindProperty(kTransparentSortPriority);
 
+            refractionModel = FindProperty(kRefractionModel);
+            perPixelSorting = FindProperty(kPerPixelSorting);
             transparentWritingMotionVec = FindProperty(kTransparentWritingMotionVec);
 
             if ((m_Features & Features.PreserveSpecularLighting) != 0)
@@ -486,6 +491,17 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        void TogglePropertyOrDisable(bool disabled, MaterialProperty property, GUIContent style, bool forceValue)
+        {
+            using (new EditorGUI.DisabledScope(disabled))
+            {
+                if (!disabled)
+                    materialEditor.ShaderProperty(property, style);
+                else
+                    EditorGUILayout.Toggle(style, forceValue);
+            }
+        }
+
         /// <summary>
         /// Draws the Surface GUI.
         /// </summary>
@@ -532,6 +548,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
 
+                bool forceMotionVec = false;
+                bool preRefraction = HDRenderQueue.k_RenderQueue_PreRefraction.Contains(renderQueue);
+                if (perPixelSorting != null)
+                {
+                    bool recursiveRendering = (RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null && rayTracing.floatValue == 1.0f;
+                    TogglePropertyOrDisable(!preRefraction || recursiveRendering, perPixelSorting, Styles.perPixelSortingText, false);
+                    forceMotionVec = preRefraction && !recursiveRendering && perPixelSorting.floatValue > 0.0f;
+                }
+
                 bool shaderHasBackThenFrontPass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentBackfaceStr) != -1);
                 if (shaderHasBackThenFrontPass && transparentBackfaceEnable != null)
                     materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
@@ -540,7 +565,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     bool shaderHasDepthPrePass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentDepthPrepassStr) != -1);
                     if (shaderHasDepthPrePass && transparentDepthPrepassEnable != null)
-                        materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
+                    {
+                        bool ssrTransparent = receivesSSRTransparent != null && receivesSSRTransparent.floatValue > 0.0f;
+                        bool isRefractive = !preRefraction && refractionModel != null && refractionModel.floatValue != (float)(int)ScreenSpaceRefraction.RefractionModel.None;
+                        TogglePropertyOrDisable(ssrTransparent || isRefractive, transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText, true);
+                    }
 
                     bool shaderHasDepthPostPass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentDepthPostpassStr) != -1);
                     if (shaderHasDepthPostPass && transparentDepthPostpassEnable != null)
@@ -548,7 +577,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (transparentWritingMotionVec != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
-                    materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
+                    TogglePropertyOrDisable(forceMotionVec, transparentWritingMotionVec, Styles.transparentWritingMotionVecText, true);
 
                 if (transparentZWrite != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                     materialEditor.ShaderProperty(transparentZWrite, Styles.zWriteEnableText);

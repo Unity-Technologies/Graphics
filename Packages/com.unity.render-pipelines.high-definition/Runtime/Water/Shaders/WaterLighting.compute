@@ -52,7 +52,6 @@
 
 // Input textures of the kernels
 TEXTURE2D_X(_DepthTexture);
-TEXTURE2D_X_UINT2(_StencilTexture);
 TEXTURE2D_X(_CameraColorTexture);
 
 // Output textures of the kernels
@@ -282,13 +281,40 @@ void WaterFogIndirect(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_
     // Compute the posInput
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
-    // Compute the view vector
-    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+    // Read the color value
+    float3 result = LOAD_TEXTURE2D_X(_CameraColorTexture, currentCoord).xyz;
 
-    float3 volColor, volOpacity;
-    EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
+    // Atmospheric fog on front faces, absorption on back faces
+    float3 volColor = 0, volOpacity = 0;
+    if (DecodeWaterFrontFaceFromGBuffer(currentCoord))
+    {
+        // Compute the view vector
+        float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+        EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
+    }
+    else if (_UnderWaterSurfaceIndex != -1)
+    {
+        WaterSurfaceProfile prof = _WaterSurfaceProfiles[_UnderWaterSurfaceIndex];
+
+        float distanceToSurface = GetWaterCameraHeight();
+        float depth = max(-dot(posInput.positionWS, prof.upDirection) - distanceToSurface, 0);
+
+        float cameraDistance = distance(posInput.positionWS, GetCurrentViewPosition());
+        float absorptionDistance = (cameraDistance + depth) * prof.absorptionDistanceMultiplier;
+
+        float3 absorptionTint = exp(-absorptionDistance * prof.outScatteringCoefficient * (1.f - prof.transparencyColor));
+
+        float ambient = _UnderWaterAmbientProbeLuminance * GetCurrentExposureMultiplier();
+        float3 farColor = prof.scatteringColor * lerp(1.0, ambient, prof.underWaterAmbientProbeContribution);
+
+        volColor = farColor * (1 - absorptionTint);
+        volOpacity = 1 - absorptionTint;
+    }
+
+    result.rgb = result * (1 - volOpacity) + volColor;
 
     // Output to the color buffer
-    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(LOAD_TEXTURE2D_X(_CameraColorTexture, currentCoord).xyz * (1 - volOpacity) + volColor, 1.0);
+    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(result, 1.0);
 }
 #endif

@@ -855,7 +855,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static readonly string stencilWriteMaskDistortionVec = "[_StencilWriteMaskDistortionVec]";
         }
 
-        public static readonly string vtFeedbackBlendState = "Blend 1 SrcAlpha OneMinusSrcAlpha";
+        public static string PremultipliedTransparency(int target) => $"Blend {target} One OneMinusSrcAlpha";
 
         public static RenderStateCollection Meta = new RenderStateCollection
         {
@@ -920,7 +920,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection TransparentBackface = new RenderStateCollection
         {
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
-            { RenderState.Blend(vtFeedbackBlendState) },
+            { RenderState.Blend(PremultipliedTransparency(1)) },
+            { RenderState.Blend(PremultipliedTransparency(2)) },
+            { RenderState.Blend(PremultipliedTransparency(3)) },
+            { RenderState.Blend(PremultipliedTransparency(4)) },
             { RenderState.Cull(Cull.Front) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestTransparent) },
@@ -954,7 +957,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection Forward = new RenderStateCollection
         {
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
-            { RenderState.Blend(vtFeedbackBlendState) },
+            { RenderState.Blend(PremultipliedTransparency(1)) },
+            { RenderState.Blend("Blend 2 One [_DstBlend2]") },
+            { RenderState.Blend("Blend 3 One [_DstBlend2]") },
+            { RenderState.Blend(PremultipliedTransparency(4)) },
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
@@ -1759,10 +1765,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static KeywordDescriptor TransparentWritesMotionVector = new KeywordDescriptor
         {
             displayName = "Transparent Writes Motion Vector",
-            referenceName = "_TRANSPARENT_WRITES_MOTION_VEC",
-            type = KeywordType.Boolean,
+            referenceName = "_TRANSPARENT",
+            type = KeywordType.Enum,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "Writes Motion Vector", referenceName = "WRITES_MOTION_VEC" },
+                new KeywordEntry() { displayName = "Per Pixel Sorting", referenceName = "REFRACTIVE_SORT" },
+            }
         };
 
         public static KeywordDescriptor DepthOffset = new KeywordDescriptor

@@ -198,8 +198,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumetricCloudMapGeneratorCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]
             public Shader volumetricCloudsCombinePS;
-            [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.compute")]
-            public ComputeShader volumetricCloudsCombineCS;
 
             // Water
             [Reload("Runtime/Water/Shaders/WaterSimulation.compute")]
@@ -212,8 +210,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader waterPS;
             [Reload("Runtime/Water/Shaders/WaterLighting.compute")]
             public ComputeShader waterLightingCS;
-            [Reload("Runtime/Water/Shaders/UnderWaterRendering.compute")]
-            public ComputeShader underWaterRenderingCS;
+            [Reload("Runtime/Water/Shaders/WaterLine.compute")]
+            public ComputeShader waterLineCS;
             [Reload("Runtime/Water/Shaders/WaterCaustics.shader")]
             public Shader waterCausticsPS;
             [Reload("Runtime/Water/Shaders/WaterDeformation.shader")]

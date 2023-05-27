@@ -71,17 +71,11 @@ float4 ApplyBlendMode(float3 color, float opacity)
 // Fog sampling function for materials
 //-----------------------------------------------------------------------------
 
-// Used for transparent object. input color is color + alpha of the original transparent pixel.
-// This must be call after ApplyBlendMode to work correctly
-// Caution: Must stay in sync with VFXApplyFog in VFXCommon.hlsl
-float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 inputColor)
+float4 ApplyFogOnTransparent(float4 inputColor, float3 volColor, float3 volOpacity)
 {
     float4 result = inputColor;
 
 #ifdef _ENABLE_FOG_ON_TRANSPARENT
-    float3 volColor, volOpacity;
-    EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
-
     if (_BlendMode == BLENDMODE_ALPHA)
     {
         // Regular alpha blend need to multiply fog color by opacity (as we do src * src_a inside the shader)
@@ -104,13 +98,22 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 i
         // (see the appendix in the Deep Compositing paper). But do we?
         // Additionally, we do not modify the alpha here, which is most certainly WRONG.
     }
-
 #else
     // Evaluation of fog for opaque objects is currently done in a full screen pass independent from any material parameters.
     // but this funtction is called in generic forward shader code so we need it to be neutral in this case.
 #endif
 
     return result;
+}
+
+// Used for transparent object. input color is color + alpha of the original transparent pixel.
+// This must be call after ApplyBlendMode to work correctly
+// Caution: Must stay in sync with VFXApplyFog in VFXCommon.hlsl
+float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 inputColor)
+{
+    float3 volColor, volOpacity;
+    EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
+    return ApplyFogOnTransparent(inputColor, volColor, volOpacity);
 }
 
 // Used for sky reflection. The sky reflection cubemap doesn't contain fog.

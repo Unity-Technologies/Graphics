@@ -799,7 +799,7 @@ float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
 void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals,
     float2 screenUV, float3 viewWS, bool aboveWater, bool disableUnderWaterIOR,
     float maxRefractionDistance, float3 transparencyColor, float outScatteringCoeff,
-    out float3 refractedWaterPosRWS, out float2 distortedWaterNDC, out float refractedWaterDistance, out float3 absorptionTint)
+    out float3 refractedWaterPosRWS, out float2 distortedWaterNDC, out float3 absorptionTint)
 {
     // Compute the position of the surface behind the water surface
     float  directWaterDepth = SampleCameraDepth(screenUV);
@@ -833,7 +833,7 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     // Compute the position of the surface behind the water surface
     float refractedWaterDepth = SampleCameraDepth(distortedWaterNDC);
     refractedWaterPosRWS = ComputeWorldSpacePosition(distortedWaterNDC, refractedWaterDepth, UNITY_MATRIX_I_VP);
-    refractedWaterDistance = refractedWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(refractedWaterPosRWS - waterPosRWS);
+    float refractedWaterDistance = refractedWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(refractedWaterPosRWS - waterPosRWS);
 
     // If the point that we are reading is closer than the water surface
     if (dot(refractedWaterPosRWS - waterPosRWS, viewWS) > 0.0)

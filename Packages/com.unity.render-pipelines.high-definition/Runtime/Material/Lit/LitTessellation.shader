@@ -112,6 +112,7 @@ Shader "HDRP/LitTessellation"
         _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
         _ATDistance("Transmittance Absorption Distance", Float) = 1.0
         [ToggleUI] _TransparentWritingMotionVec("_TransparentWritingMotionVec", Float) = 0.0
+        [ToggleUI] _PerPixelSorting("_PerPixelSorting", Float) = 0.0
 
         // Stencil state
 
@@ -133,6 +134,7 @@ Shader "HDRP/LitTessellation"
         _BlendMode("__blendmode", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _DstBlend2("__dst2", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
@@ -311,7 +313,7 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
 
     #pragma shader_feature_local_fragment _ENABLE_FOG_ON_TRANSPARENT
-    #pragma shader_feature_local _TRANSPARENT_WRITES_MOTION_VEC
+    #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC _TRANSPARENT_REFRACTIVE_SORT
 
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
     #pragma shader_feature_local_fragment _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
@@ -359,7 +361,7 @@ Shader "HDRP/LitTessellation"
     #define _CONSERVATIVE_DEPTH_OFFSET
     #endif
 
-    #if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
+    #if (defined(_TRANSPARENT_WRITES_MOTION_VEC) || defined(_TRANSPARENT_REFRACTIVE_SORT)) && defined(_SURFACE_TYPE_TRANSPARENT)
     #define _WRITE_TRANSPARENT_MOTION_VECTOR
     #endif
 
@@ -796,7 +798,10 @@ Shader "HDRP/LitTessellation"
             Tags { "LightMode" = "TransparentBackface" }
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
-            Blend 1 SrcAlpha OneMinusSrcAlpha // target 1 alpha blend required for VT feedback
+            Blend 1 One OneMinusSrcAlpha // target 1 alpha blend required for VT feedback
+            Blend 2 One OneMinusSrcAlpha // before refraction
+            Blend 3 One OneMinusSrcAlpha // before refraction alpha
+            Blend 4 One OneMinusSrcAlpha // all targets are shifted by 1 when using VT
 
             ZWrite [_ZWrite]
             Cull Front
@@ -883,6 +888,12 @@ Shader "HDRP/LitTessellation"
             }
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+                                         // ForwardOpaque      | ForwardTransparent
+            Blend 1 One OneMinusSrcAlpha //  VT feedback       |  VT feedback        <- if VT is off, all targets below are shifted by 1
+            Blend 2 One [_DstBlend2]     //  diffuse lighting  |  motion vector
+            Blend 3 One [_DstBlend2]     //  SSS buffer        |  before refraction  <- This target (or the one above if VT off) needs blending in transparent but not in opaque
+            Blend 4 One OneMinusSrcAlpha //                    |  before refraction alpha
+
             // In case of forward we want to have depth equal for opaque mesh
             ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]

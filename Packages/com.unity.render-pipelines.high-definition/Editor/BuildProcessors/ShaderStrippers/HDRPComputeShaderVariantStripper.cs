@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     shader == hdAsset.renderPipelineResources.shaders.fourierTransformCS ||
                     shader == hdAsset.renderPipelineResources.shaders.waterEvaluationCS ||
                     shader == hdAsset.renderPipelineResources.shaders.waterLightingCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.underWaterRenderingCS ||
+                    shader == hdAsset.renderPipelineResources.shaders.waterLineCS ||
                     shader == hdAsset.renderPipelineResources.shaders.waterDeformationCS ||
                     shader == hdAsset.renderPipelineResources.shaders.waterFoamCS)
                     return true;
@@ -49,8 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (shader == hdAsset.renderPipelineResources.shaders.volumetricCloudsCS ||
                     shader == hdAsset.renderPipelineResources.shaders.volumetricCloudsTraceCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.volumetricCloudMapGeneratorCS ||
-                    shader == hdAsset.renderPipelineResources.shaders.volumetricCloudsCombineCS)
+                    shader == hdAsset.renderPipelineResources.shaders.volumetricCloudMapGeneratorCS)
                     return true;
             }
 

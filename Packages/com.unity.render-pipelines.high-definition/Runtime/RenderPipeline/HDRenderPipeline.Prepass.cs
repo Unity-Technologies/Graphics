@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        Material m_DepthResolveMaterial;
+        Material m_MSAAResolveMaterial, m_MSAAResolveMaterialDepthOnly;
         Material m_CameraMotionVectorsMaterial;
         Material m_DecalNormalBufferMaterial;
         Material m_DownsampleDepthMaterialHalfresCheckerboard;
@@ -29,7 +29,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializePrepass(HDRenderPipelineAsset hdAsset)
         {
-            m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
+            m_MSAAResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
+            m_MSAAResolveMaterialDepthOnly = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
+            m_MSAAResolveMaterialDepthOnly.EnableKeyword("_DEPTH_ONLY");
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cameraMotionVectorsPS);
             m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.decalNormalBufferPS);
             m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
@@ -57,7 +59,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CleanupPrepass()
         {
-            CoreUtils.Destroy(m_DepthResolveMaterial);
+            CoreUtils.Destroy(m_MSAAResolveMaterial);
+            CoreUtils.Destroy(m_MSAAResolveMaterialDepthOnly);
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
             CoreUtils.Destroy(m_DecalNormalBufferMaterial);
             CoreUtils.Destroy(m_DownsampleDepthMaterialHalfresCheckerboard);
@@ -112,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle waterLine;
         }
 
-        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples)
+        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples, string name = null, bool disableFallback = true)
         {
             bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
@@ -128,8 +131,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 bindTextureMS = msaa,
                 msaaSamples = msaaSamples,
                 clearBuffer = clear,
-                name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil",
-                disableFallBackToImportedTexture = true,
+                name = name ?? (msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"),
+                disableFallBackToImportedTexture = disableFallback,
                 fallBackToBlackTexture = true,
 #if UNITY_2020_2_OR_NEWER
                 fastMemoryDesc = fastMemDesc,
@@ -976,7 +979,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.needMotionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
 
-                passData.depthResolveMaterial = m_DepthResolveMaterial;
+                passData.depthResolveMaterial = m_MSAAResolveMaterial;
                 passData.depthResolvePassIndex = SampleCountToPassIndex(hdCamera.msaaSamples);
 
                 output.resolvedDepthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, MSAASamples.None), DepthAccess.Write);

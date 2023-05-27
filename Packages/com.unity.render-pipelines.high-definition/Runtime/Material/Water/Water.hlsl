@@ -19,15 +19,6 @@
 #define USE_DIFFUSE_LAMBERT_BRDF
 
 //-----------------------------------------------------------------------------
-// Texture and constant buffer declaration
-//-----------------------------------------------------------------------------
-TEXTURE2D_X(_WaterGBufferTexture0);
-TEXTURE2D_X(_WaterGBufferTexture1);
-TEXTURE2D_X(_WaterGBufferTexture2);
-TEXTURE2D_X(_WaterGBufferTexture3);
-StructuredBuffer<WaterSurfaceProfile> _WaterSurfaceProfiles;
-
-//-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 #define WATER_FRESNEL_ZERO 0.02037318784 // IorToFresnel0(1.333f)
@@ -318,11 +309,11 @@ void DecodeWaterSurfaceIndexFromGBuffer(uint2 positionSS, out uint surfaceIndex)
     surfaceIndex = lower16Bits & 0xf;
 }
 
-void DecodeWaterFrontFaceFromGBuffer(uint2 positionSS, out bool frontFace)
+bool DecodeWaterFrontFaceFromGBuffer(uint2 positionSS)
 {
     float4 inGBuffer3 = LOAD_TEXTURE2D_X(_WaterGBufferTexture3, positionSS);
     uint lower16Bits = ((uint)(inGBuffer3.z * 255.0f)) << 8 | ((uint)(inGBuffer3.w * 255.0f));
-    frontFace = ((lower16Bits >> 4) & 0xfff) != 0xfff;
+    return ((lower16Bits >> 4) & 0xfff) != 0xfff;
 }
 
 void DecompressWaterSSRData(uint2 positionSS, out uint surfaceIndex, out bool frontFace)
@@ -838,12 +829,11 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     // Re-evaluate the refraction
     float3 refractedWaterPosRWS;
     float2 distortedWaterNDC;
-    float refractedWaterDistance;
-    float3 absorptionTint;
+    float3 absorptionTint; // not used - applied during opaque atmospheric scattering
     ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
-        posInput.positionSS * _ScreenSize.zw, V, bsdfData.frontFace, preLightData.disableIOR,
+        posInput.positionNDC, V, bsdfData.frontFace, preLightData.disableIOR,
         preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
-        refractedWaterPosRWS, distortedWaterNDC, refractedWaterDistance, absorptionTint);
+        refractedWaterPosRWS, distortedWaterNDC, absorptionTint);
 
     // Apply a mip offset for the underwater data (if needed)
     float2 pixelCoordinates = distortedWaterNDC * _ScreenSize.xy;
@@ -859,9 +849,14 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float3 cameraColor = LoadCameraColor(pixelCoordinates, lod);
 
     if (bsdfData.frontFace)
-        lighting.specularTransmitted = absorptionTint * cameraColor * absorptionTint * bsdfData.caustics * (1 - saturate(bsdfData.foam));
+    {
+        lighting.specularTransmitted = cameraColor * bsdfData.caustics * (1 - saturate(bsdfData.foam));
+        uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, distortedWaterNDC * _ScreenSize.xy));
+        if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
+            lighting.specularTransmitted *= absorptionTint * absorptionTint;
+    }
     else
-        lighting.specularTransmitted = absorptionTint == 0.0 ? preLightData.scatteringColor : cameraColor;
+        lighting.specularTransmitted = lerp(preLightData.scatteringColor, cameraColor, absorptionTint.x);
 
     // Apply the additional attenuation, the fresnel and the exposure
     lighting.specularTransmitted *= (1.f - preLightData.specularFGD) * GetInverseCurrentExposureMultiplier();

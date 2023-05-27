@@ -391,6 +391,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
             HDSubShaderUtilities.AddPrePostPassProperties(collector, builtinData.transparentDepthPrepass, builtinData.transparentDepthPostpass);
 
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.transparentPerPixelSorting,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kPerPixelSorting,
+            });
+
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,

@@ -45,6 +45,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1205_Lit_Transparent_Refraction_ProxyVolumeSelection.unity
     guid: ca5023b5e3a7da54caaec34c3fd1010f
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1205_Lit_Transparent_Refraction_Water.unity
+    guid: 7294af4913e717143a1c49a346c4abb8
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1207_Lit_Displacement.unity
     guid: ac4701d765fa26b4f83d2fb9ed6b3c08
   - enabled: 1

@@ -368,7 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int disableIOR;
         public float tipScatteringHeight;
         public float underWaterAmbientProbeContribution;
-        public float padding;
+        public float absorptionDistanceMultiplier;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -484,38 +484,36 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _GridSize;
         // Maximum fade distance
         public uint _MaxLOD;
-        // Padding
-        public float _PaddingWR0;
+        public float _MaxWaterDeformation;
 
-        // Intensity of the water caustics in shadow
-        public float _CausticsShadowIntensity;
-        // Intensity of the water caustics
-        public float _CausticsIntensity;
         // Current Map Influence
         public Vector2 _CurrentMapInfluence;
+        // Intensity of the water caustics
+        public float _CausticsIntensity;
+        // Blend distance
+        public float _CausticsPlaneBlendDistance;
+        // Tiling factor
+        public float _CausticsTilingFactor;
+        // Flag that defines if the geometry used is procedural or not
+        public int _WaterProceduralGeometry;
+        // Offset applied to the caustics LOD
+        public float _CausticsMaxLOD;
+        // Intensity of the water caustics in sun shadow
+        public float _CausticsShadowIntensity;
 
         // Scale & offset of the large
         public Vector4 _Group0CurrentRegionScaleOffset;
         // Scale & offset of the ripples
         public Vector4 _Group1CurrentRegionScaleOffset;
 
-        // Blend distance
-        public float _CausticsPlaneBlendDistance;
-        // Type of caustics that are rendered
-        public int _WaterCausticsEnabled;
         // Which rendering layers should affect this surface - for decals
         public uint _WaterRenderingLayer;
-        // Flag that defines if the geometry used is procedural or not
-        public int _WaterProceduralGeometry;
-
         // Max tessellation factor
         public float _WaterMaxTessellationFactor;
         // Distance at which the fade of the tessellation starts
         public float _WaterTessellationFadeStart;
         // Size of the range of the tessellation
         public float _WaterTessellationFadeRange;
-        // Padding
-        public int _PaddingWR2;
 
         // This is only used for the instanced quad (non-infinite)
         // Center of the quad in world space
@@ -526,35 +524,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ambient probe of the water system
         public Vector4 _WaterAmbientProbe;
 
-        // Offset applied to the caustics LOD
-        public float _CausticsMaxLOD;
-        public float _MaxWaterDeformation;
-        public float _CausticsTilingFactor;
-        public float _PaddingWR3;
-
         // Transform of the water surface
         public Matrix4x4 _WaterSurfaceTransformRWS;
         public Matrix4x4 _WaterSurfaceTransform_Inverse;
         public Matrix4x4 _WaterCustomMeshTransform;
         public Matrix4x4 _WaterCustomMeshTransform_Inverse;
-    }
-
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
-    unsafe struct ShaderVariablesUnderWater
-    {
-        // Refraction color of the water surface
-        public Vector4 _WaterRefractionColor;
-        // Scattering color of the water surface
-        public Vector4 _WaterScatteringColor;
-
-        // Multiplier of the view distance when under water
-        public float _MaxViewDistanceMultiplier;
-        // Scattering coefficient for the absorption
-        public float _OutScatteringCoeff;
-        // Vertical transition size of the water
-        public float _WaterTransitionSize;
-        // Under water ambient probe contribution
-        public float _UnderWaterAmbientProbeContribution;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]

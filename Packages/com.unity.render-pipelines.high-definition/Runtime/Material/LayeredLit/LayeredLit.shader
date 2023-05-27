@@ -933,7 +933,7 @@ Shader "HDRP/LayeredLit"
             }
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
-            Blend 1 SrcAlpha OneMinusSrcAlpha // target 1 alpha blend required for VT feedback
+            Blend 1 One OneMinusSrcAlpha // target 1 alpha blend required for VT feedback
 
             // In case of forward we want to have depth equal for opaque mesh
             ZTest [_ZTestDepthEqualForOpaque]

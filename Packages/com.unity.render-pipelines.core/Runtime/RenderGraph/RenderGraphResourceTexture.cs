@@ -161,8 +161,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Determines whether the texture will fallback to a black texture if it is read without ever writing to it.</summary>
         public bool fallBackToBlackTexture;
         ///<summary>
-        ///If all passes writing to a texture are culled by Dynamic Render Pass Culling, it will automatically fallback to a similar preallocated texture.\n
-        ///Set this to false to force the allocation.
+        ///If all passes writing to a texture are culled by Dynamic Render Pass Culling, it will automatically fallback to a similar preallocated texture.
+        ///Set this to true to force the allocation.
         ///</summary>
         public bool disableFallBackToImportedTexture;
 

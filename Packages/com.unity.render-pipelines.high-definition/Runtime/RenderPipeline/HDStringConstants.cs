@@ -263,6 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ClearColor = Shader.PropertyToID("_ClearColor");
         public static readonly int _SrcBlend = Shader.PropertyToID("_SrcBlend");
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
+        public static readonly int _DstBlend2 = Shader.PropertyToID("_DstBlend2");
 
         public static readonly int _ColorMaskTransparentVelOne = Shader.PropertyToID("_ColorMaskTransparentVelOne");
         public static readonly int _ColorMaskTransparentVelTwo = Shader.PropertyToID("_ColorMaskTransparentVelTwo");
@@ -615,6 +616,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WaterCameraHeightBufferRW = Shader.PropertyToID("_WaterCameraHeightBufferRW");
         public static readonly int _WaterLineBuffer = Shader.PropertyToID("_WaterLine");
         public static readonly int _WaterLineBufferRW = Shader.PropertyToID("_WaterLineRW");
+        public static readonly int _CullWaterMask = Shader.PropertyToID("_CullWaterMask");
+        public static readonly int _StencilWaterReadMaskGBuffer = Shader.PropertyToID("_StencilWaterReadMaskGBuffer");
+        public static readonly int _StencilWaterWriteMaskGBuffer = Shader.PropertyToID("_StencilWaterWriteMaskGBuffer");
+        public static readonly int _StencilWaterRefGBuffer = Shader.PropertyToID("_StencilWaterRefGBuffer");
+        public static readonly int _StencilWriteMaskStencilTag = Shader.PropertyToID("_StencilWriteMaskStencilTag");
+        public static readonly int _StencilRefMaskStencilTag = Shader.PropertyToID("_StencilRefMaskStencilTag");
 
         // Water Deferred Lighting
         public static readonly int _WaterDispatchIndirectBuffer = Shader.PropertyToID("_WaterDispatchIndirectBuffer");
@@ -1160,6 +1167,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SMAABlendTex = Shader.PropertyToID("_BlendTex");
         public static readonly int _SMAARTMetrics = Shader.PropertyToID("_SMAARTMetrics");
 
+        public static readonly int _BeforeRefraction = Shader.PropertyToID("_BeforeRefraction");
+        public static readonly int _BeforeRefractionAlpha = Shader.PropertyToID("_BeforeRefractionAlpha");
+        public static readonly int _RefractiveDepthBuffer = Shader.PropertyToID("_RefractiveDepthBuffer");
+
         public static readonly int _LowResDepthTexture = Shader.PropertyToID("_LowResDepthTexture");
         public static readonly int _LowResTransparent = Shader.PropertyToID("_LowResTransparent");
 
@@ -1266,6 +1277,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kDistortionBlendMode = "_DistortionBlendMode";
         /// <summary>Transparent Material Writes Motion Vectors.</summary>
         public const string kTransparentWritingMotionVec = "_TransparentWritingMotionVec";
+        /// <summary>Transparent Before Refraction Material is sorted per pixel with Refractive Objects.</summary>
+        public const string kPerPixelSorting = "_PerPixelSorting";
         /// <summary>Enable Preserve Specular Lighting.</summary>
         public const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
         /// <summary>Enable Back then Front rendering.</summary>
