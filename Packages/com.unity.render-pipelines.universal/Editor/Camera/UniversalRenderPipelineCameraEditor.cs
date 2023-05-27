@@ -23,9 +23,6 @@ namespace UnityEditor.Rendering.Universal
         CameraEditor.Settings m_Settings;
         protected CameraEditor.Settings settings => m_Settings ??= new CameraEditor.Settings(serializedObject);
         
-        static readonly Type k_SceneViewCameraOverlay = Type.GetType("UnityEditor.SceneViewCameraOverlay,UnityEditor");
-        static readonly FieldInfo k_SceneViewCameraOverlay_ForceDisable = k_SceneViewCameraOverlay.GetField("forceDisable", BindingFlags.Static | BindingFlags.NonPublic);
-
         public Camera camera => target as Camera;
         static Camera selectedCameraInStack;
 
@@ -34,7 +31,6 @@ namespace UnityEditor.Rendering.Universal
         List<Camera> m_NotSupportedOverlayCameras = new List<Camera>();
         List<Camera> m_IncompatibleCameras = new List<Camera>();
         List<(Camera, UniversalRenderPipelineSerializedCamera)> m_OutputWarningCameras = new();
-        Overlay m_PreviewOverlay;
 
         UniversalRenderPipelineSerializedCamera m_SerializedCamera;
 
@@ -52,13 +48,8 @@ namespace UnityEditor.Rendering.Universal
 
             UpdateCameras();
 
-            if (!(bool)k_SceneViewCameraOverlay_ForceDisable.GetValue(null))
-                SceneView.AddOverlayToActiveView(m_PreviewOverlay = CreatePreviewOverlay(camera));
-
             Undo.undoRedoPerformed += ReconstructReferenceToAdditionalDataSO;
         }
-
-        public virtual Overlay CreatePreviewOverlay(Camera overlayCamera) => Activator.CreateInstance(k_SceneViewCameraOverlay, new[] { overlayCamera }) as Overlay;
 
         void ReconstructReferenceToAdditionalDataSO()
         {
@@ -335,7 +326,6 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnDisable()
         {
-            SceneView.RemoveOverlayFromActiveView(m_PreviewOverlay);
             Undo.undoRedoPerformed -= ReconstructReferenceToAdditionalDataSO;
         }
 
