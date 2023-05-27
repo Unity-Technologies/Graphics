@@ -992,7 +992,7 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsFormat result = GraphicsFormat.None;
                 foreach (var format in s_LightCookieFormatList[(int)m_AdditionalLightsCookieFormat])
                 {
-                    if (SystemInfo.IsFormatSupported(format, FormatUsage.Render))
+                    if (SystemInfo.IsFormatSupported(format, GraphicsFormatUsage.Render))
                     {
                         result = format;
                         break;

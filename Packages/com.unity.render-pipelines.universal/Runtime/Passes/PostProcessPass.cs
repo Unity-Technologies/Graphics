@@ -118,14 +118,14 @@ namespace UnityEngine.Rendering.Universal
             m_Materials = new MaterialLibrary(data);
 
             // Only two components are needed for edge render texture, but on some vendors four components may be faster.
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, FormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, GraphicsFormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
                 m_SMAAEdgeFormat = GraphicsFormat.R8G8_UNorm;
             else
                 m_SMAAEdgeFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear | FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_UNorm;
-            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_SFloat;
             else // Expect CoC banding
                 m_GaussianCoCFormat = GraphicsFormat.R8_UNorm;
@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = postProcessParams.blitMaterial;
 
             // Texture format pre-lookup
-            const FormatUsage usage = FormatUsage.Linear | FormatUsage.Render;
+            const GraphicsFormatUsage usage = GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render;
             if (SystemInfo.IsFormatSupported(postProcessParams.requestHDRFormat, usage))
             {
                 m_DefaultHDRFormat = postProcessParams.requestHDRFormat;

@@ -1333,9 +1333,9 @@ namespace UnityEngine.Rendering.Universal
             if (isHdrEnabled)
             {
                 // TODO: we need a proper format scoring system. Score formats, sort, pick first or pick first supported (if not in score).
-                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                if (!needsAlpha && requestHDRColorBufferPrecision != HDRColorBufferPrecision._64Bits && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                     return GraphicsFormat.B10G11R11_UFloatPack32;
-                if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                     return GraphicsFormat.R16G16B16A16_SFloat;
                 return SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
             }
@@ -1348,7 +1348,7 @@ namespace UnityEngine.Rendering.Universal
         // NOTE: This function does not guarantee that the returned format will contain an alpha channel.
         internal static GraphicsFormat MakeUnormRenderTextureGraphicsFormat()
         {
-            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.A2B10G10R10_UNormPack32, FormatUsage.Linear | FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
                 return GraphicsFormat.A2B10G10R10_UNormPack32;
             else
                 return GraphicsFormat.R8G8B8A8_UNorm;

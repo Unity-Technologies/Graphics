@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LutBuilderHdr = Load(data.shaders.lutBuilderHdrPS);
 
             // Warm up lut format as IsFormatSupported adds GC pressure...
-            const FormatUsage kFlags = FormatUsage.Linear | FormatUsage.Render;
+            const GraphicsFormatUsage kFlags = GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render;
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, kFlags))
                 m_HdrLutFormat = GraphicsFormat.R16G16B16A16_SFloat;
             else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, kFlags))

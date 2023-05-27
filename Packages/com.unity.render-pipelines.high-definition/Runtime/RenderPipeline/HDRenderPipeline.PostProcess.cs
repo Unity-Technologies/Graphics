@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Grading specific
             m_HableCurve = new HableCurve();
 
-            m_MotionBlurSupportsScattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, FormatUsage.LoadStore);
+            m_MotionBlurSupportsScattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, GraphicsFormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, GraphicsFormatUsage.LoadStore);
             // TODO: Remove this line when atomic bug in HLSLcc is fixed.
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan);
             // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.

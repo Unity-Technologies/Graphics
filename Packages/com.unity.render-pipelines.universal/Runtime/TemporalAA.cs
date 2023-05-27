@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderTextureDescriptor desc = new RenderTextureDescriptor();
 
                 const bool enableRandomWrite = false; // aka UAV, Load/Store
-                FormatUsage usage = enableRandomWrite ? FormatUsage.LoadStore : FormatUsage.Render;
+                GraphicsFormatUsage usage = enableRandomWrite ? GraphicsFormatUsage.LoadStore : GraphicsFormatUsage.Render;
 
                 desc.width = sizeX;
                 desc.height = sizeY;
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
                 DeallocateTargets();
             }
 
-            GraphicsFormat CheckFormat(GraphicsFormat format, FormatUsage usage)
+            GraphicsFormat CheckFormat(GraphicsFormat format, GraphicsFormatUsage usage)
             {
                 // Should do query per usage, but we rely on the fact that "LoadStore" implies "Render" in the code.
                 bool success = SystemInfo.IsFormatSupported(format, usage);
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
                 return format;
             }
 
-            GraphicsFormat FindFormat( FormatUsage usage )
+            GraphicsFormat FindFormat( GraphicsFormatUsage usage )
             {
                 for (int i = 0; i < formatList.Length; i++)
                     if (SystemInfo.IsFormatSupported(formatList[i], usage))

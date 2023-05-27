@@ -114,9 +114,9 @@ namespace UnityEngine.Rendering
 
         static GraphicsFormat GetTextureFormat()
         {
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Sample | FormatUsage.SetPixels))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Sample | GraphicsFormatUsage.SetPixels))
                 return GraphicsFormat.R16_SFloat;
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Sample | FormatUsage.SetPixels))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, GraphicsFormatUsage.Sample | GraphicsFormatUsage.SetPixels))
                 return GraphicsFormat.R8_UNorm;
 
             return GraphicsFormat.R8G8B8A8_UNorm;
