@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering
         /// </summary>
 #if UNITY_EDITOR
         public static TGlobalRenderPipelineSettings instance =>
-            EditorGraphicsSettings.GetSettingsForRenderPipeline<TRenderPipeline>() as TGlobalRenderPipelineSettings;
+            EditorGraphicsSettings.GetRenderPipelineGlobalSettingsAsset<TRenderPipeline>() as TGlobalRenderPipelineSettings;
 #else
         public static TGlobalRenderPipelineSettings instance => s_Instance.Value;
         private static Lazy<TGlobalRenderPipelineSettings> s_Instance = new (() => GraphicsSettings.GetSettingsForRenderPipeline<TRenderPipeline>() as TGlobalRenderPipelineSettings);

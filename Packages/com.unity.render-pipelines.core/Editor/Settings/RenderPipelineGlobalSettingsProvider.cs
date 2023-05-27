@@ -191,14 +191,13 @@ namespace UnityEditor.Rendering
 
                 if (renderPipelineSettings != newSettings)
                 {
-                    if (newSettings != null)
-                        EditorGraphicsSettings.RegisterRenderPipelineSettings<TRenderPipeline>(newSettings);
-                    else
-                    {
-                        if (EditorUtility.DisplayDialog($"Invalid {ObjectNames.NicifyVariableName(typeof(TGlobalSettings).Name)}", Styles.settingNullRPSettings, "Yes", "No"))
-                            EditorGraphicsSettings.UnregisterRenderPipelineSettings<TRenderPipeline>();
-                    }
+                    if (newSettings == null && !EditorUtility.DisplayDialog(
+                            $"Invalid {ObjectNames.NicifyVariableName(typeof(TGlobalSettings).Name)}",
+                            Styles.settingNullRPSettings, "Yes", "No"))
+                        newSettings = renderPipelineSettings as TGlobalSettings;
 
+                    EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<TRenderPipeline>(newSettings);
+                    
                     if (renderPipelineSettings != null && !renderPipelineSettings.Equals(null))
                         EditorUtility.SetDirty(renderPipelineSettings);
                 }

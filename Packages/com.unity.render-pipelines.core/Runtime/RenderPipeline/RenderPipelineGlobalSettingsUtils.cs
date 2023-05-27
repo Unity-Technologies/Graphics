@@ -127,16 +127,14 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            if (instance == null || instance.Equals(null))
-            {
-                error = new Exception($"Unable to find or create a {globalSettingsName}. The configured Render Pipeline may not work correctly. Go to Project Settings > Graphics > {globalSettingsName} for additional help.");
-                EditorGraphicsSettings.UnregisterRenderPipelineSettings<TRenderPipeline>();
-                return false;
-            }
+            error = instance == null || instance.Equals(null)
+                ? new Exception(
+                    $"Unable to find or create a {globalSettingsName}. The configured Render Pipeline may not work correctly. Go to Project Settings > Graphics > {globalSettingsName} for additional help.")
+                : null;
 
-            error = null;
-            EditorGraphicsSettings.RegisterRenderPipelineSettings<TRenderPipeline>(instance);
-            return true;
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<TRenderPipeline>(instance);
+
+            return error == null;
         }
     }
 }

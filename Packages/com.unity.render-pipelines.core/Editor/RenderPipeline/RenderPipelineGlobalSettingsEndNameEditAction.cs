@@ -19,12 +19,7 @@ namespace UnityEditor.Rendering
             RenderPipelineGlobalSettings assetCreated = RenderPipelineGlobalSettingsUtils.Create(renderPipelineGlobalSettingsType, pathName, source) as RenderPipelineGlobalSettings;
 
             if (renderPipelineType != null)
-            {
-                if (assetCreated != null)
-                    EditorGraphicsSettings.RegisterRenderPipelineSettings(renderPipelineType, assetCreated);
-                else
-                    EditorGraphicsSettings.UnregisterRenderPipelineSettings(renderPipelineType);
-            }
+                EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset(renderPipelineType, assetCreated);
 
             ProjectWindowUtil.ShowCreatedAsset(assetCreated);
         }
