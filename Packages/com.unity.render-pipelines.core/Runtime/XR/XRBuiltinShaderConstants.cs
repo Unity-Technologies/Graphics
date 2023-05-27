@@ -73,14 +73,17 @@ namespace UnityEngine.Experimental.Rendering
         public static void UpdateBuiltinShaderConstants(Matrix4x4 viewMatrix, Matrix4x4 projMatrix, bool renderIntoTexture, int viewIndex)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
+            var gpuProjMatrix = GL.GetGPUProjectionMatrix(projMatrix, renderIntoTexture);
+            var gpuViewProjMatrix = gpuProjMatrix * viewMatrix;
+
             s_cameraProjMatrix[viewIndex] = projMatrix;
+            s_projMatrix[viewIndex] = gpuProjMatrix;
             s_viewMatrix[viewIndex] = viewMatrix;
-            s_projMatrix[viewIndex] = GL.GetGPUProjectionMatrix(s_cameraProjMatrix[viewIndex], renderIntoTexture);
-            s_viewProjMatrix[viewIndex] = s_projMatrix[viewIndex] * s_viewMatrix[viewIndex];
-            s_invCameraProjMatrix[viewIndex] = Matrix4x4.Inverse(s_cameraProjMatrix[viewIndex]);
-            s_invViewMatrix[viewIndex] = Matrix4x4.Inverse(s_viewMatrix[viewIndex]);
-            s_invProjMatrix[viewIndex] = Matrix4x4.Inverse(s_projMatrix[viewIndex]);
-            s_invViewProjMatrix[viewIndex] = Matrix4x4.Inverse(s_viewProjMatrix[viewIndex]);
+            Matrix4x4.Inverse3DAffine(viewMatrix, ref s_invViewMatrix[viewIndex]);
+            s_viewProjMatrix[viewIndex] = gpuViewProjMatrix;
+            s_invCameraProjMatrix[viewIndex] = Matrix4x4.Inverse(projMatrix);
+            s_invProjMatrix[viewIndex] = Matrix4x4.Inverse(gpuProjMatrix);
+            s_invViewProjMatrix[viewIndex] = Matrix4x4.Inverse(gpuViewProjMatrix);
             s_worldSpaceCameraPos[viewIndex] = s_invViewMatrix[viewIndex].GetColumn(3);
 #endif
         }
@@ -140,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering
                         s_viewProjMatrix[viewIndex]       = s_projMatrix[viewIndex] * s_viewMatrix[viewIndex];
 
                         s_invCameraProjMatrix[viewIndex]  = Matrix4x4.Inverse(s_cameraProjMatrix[viewIndex]);
-                        s_invViewMatrix[viewIndex]        = Matrix4x4.Inverse(s_viewMatrix[viewIndex]);
+                        Matrix4x4.Inverse3DAffine(s_viewMatrix[viewIndex], ref s_invViewMatrix[viewIndex]);
                         s_invProjMatrix[viewIndex]        = Matrix4x4.Inverse(s_projMatrix[viewIndex]);
                         s_invViewProjMatrix[viewIndex]    = Matrix4x4.Inverse(s_viewProjMatrix[viewIndex]);
 

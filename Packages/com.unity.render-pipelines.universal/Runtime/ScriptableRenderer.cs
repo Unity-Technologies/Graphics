@@ -1810,9 +1810,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // As alternative we would need a way to check if rts are not going to be used as shader resource
                     bool colorAttachmentChanged = false;
-                    for (int i = 0; i < m_ActiveColorAttachments.Length; i++)
+
+                    // Special handling for the first attachment to support `renderPass.overrideCameraTarget`.
+                    if (passColorAttachment.nameID != m_ActiveColorAttachments[0])
+                        colorAttachmentChanged = true;
+                    // Check the rest of attachments (1-8)
+                    for (int i = 1; i < m_ActiveColorAttachments.Length; i++)
                     {
-                        if (renderPass.colorAttachmentHandles[i]?.nameID != m_ActiveColorAttachments[i])
+                        if (renderPass.colorAttachmentHandles[i] != m_ActiveColorAttachments[i])
                         {
                             colorAttachmentChanged = true;
                             break;
@@ -1820,7 +1825,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     // Only setup render target if current render pass attachments are different from the active ones
-                    if (colorAttachmentChanged || passColorAttachment.nameID != m_ActiveColorAttachments[0] || passDepthAttachment.nameID != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
+                    if (colorAttachmentChanged || passDepthAttachment.nameID != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
                         renderPass.colorStoreActions[0] != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
                     {
                         SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, renderPass.colorStoreActions[0], renderPass.depthStoreAction);

@@ -221,19 +221,26 @@ namespace UnityEngine.Rendering.Universal
             m_JitterMatrix = jitterMatrix;
         }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        private bool m_CachedRenderIntoTextureXR;
+        private bool m_InitBuiltinXRConstants;
+#endif
         // Helper function to populate builtin stereo matricies as well as URP stereo matricies
         internal void PushBuiltinShaderConstantsXR(RasterCommandBuffer cmd, bool renderIntoTexture)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (xr.enabled)
+            bool needsUpdate = !m_InitBuiltinXRConstants || m_CachedRenderIntoTextureXR != renderIntoTexture;
+            if (needsUpdate && xr.enabled )
             {
-                cmd.SetViewProjectionMatrices(GetViewMatrix(), GetProjectionMatrix());
+                var projection0 = GetProjectionMatrix();
+                var view0 = GetViewMatrix();
+                cmd.SetViewProjectionMatrices(view0, projection0);
                 if (xr.singlePassEnabled)
                 {
-                    for (int viewId = 0; viewId < xr.viewCount; viewId++)
-                    {
-                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(GetViewMatrix(viewId), GetProjectionMatrix(viewId), renderIntoTexture, viewId);
-                    }
+                    var projection1 = GetProjectionMatrix(1);
+                    var view1 = GetViewMatrix(1);
+                    XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(view0, projection0, renderIntoTexture, 0);
+                    XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(view1, projection1, renderIntoTexture, 1);
                     XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
                 }
                 else
@@ -242,6 +249,8 @@ namespace UnityEngine.Rendering.Universal
                     Vector3 worldSpaceCameraPos = Matrix4x4.Inverse(GetViewMatrix(0)).GetColumn(3);
                     cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
                 }
+                m_CachedRenderIntoTextureXR = renderIntoTexture;
+                m_InitBuiltinXRConstants = true;
             }
 #endif
         }

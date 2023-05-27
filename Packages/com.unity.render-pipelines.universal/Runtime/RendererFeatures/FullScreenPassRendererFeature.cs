@@ -126,6 +126,12 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
             m_CopiedColor?.Release();
         }
 
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            // FullScreenPass manages its own RenderTarget.
+            // ResetTarget here so that ScriptableRenderer's active attachement can be invalidated when processing this ScriptableRenderPass.
+            ResetTarget();
+        }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

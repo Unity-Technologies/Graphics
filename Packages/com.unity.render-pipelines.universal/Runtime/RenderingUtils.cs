@@ -481,7 +481,7 @@ namespace UnityEngine.Rendering.Universal
         {
             for (int i = 0; i < source.Length; ++i)
             {
-                if (source[i].nameID == value)
+                if (source[i] == value)
                     return i;
             }
             return -1;

@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         const int k_ShadowmapBufferBits = 16;
         private int m_AdditionalLightsShadowmapID;
         internal RTHandle m_AdditionalLightsShadowmapHandle;
-
+        internal RTHandle m_EmptyAdditionalLightShadowmapTexture;
 
         float m_MaxShadowDistanceSq;
         float m_CascadeBorder;
@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Matrix4x4[] m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = null;       // per-shadow-slice info passed to the lighting shader
 
         bool m_CreateEmptyShadowmap;
+        bool m_EmptyShadowmapNeedsClear = false;
 
         int renderTargetWidth;
         int renderTargetHeight;
@@ -99,6 +100,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[UniversalRenderPipeline.maxVisibleAdditionalLights];
             }
+
+            m_EmptyAdditionalLightShadowmapTexture = ShadowUtils.AllocShadowRT(1, 1, k_ShadowmapBufferBits, 1, 0, name: "_EmptyAdditionalLightShadowmapTexture");
+            m_EmptyShadowmapNeedsClear = true;
         }
 
         /// <summary>
@@ -107,6 +111,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Dispose()
         {
             m_AdditionalLightsShadowmapHandle?.Release();
+            m_EmptyAdditionalLightShadowmapTexture?.Release();
         }
 
         // Magic numbers used to identify light type when rendering shadow receiver.
@@ -559,9 +564,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return false;
 
             renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled = true;
-            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapHandle, 1, 1, k_ShadowmapBufferBits, name: "_AdditionalLightsShadowmapTexture");
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
+
+            // Required for scene view camera(URP renderer not initialized)
+            if(ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyAdditionalLightShadowmapTexture, 1, 1, k_ShadowmapBufferBits, name: "_EmptyAdditionalLightShadowmapTexture"))
+                m_EmptyShadowmapNeedsClear = true;
 
             // initialize _AdditionalShadowParams
             for (int i = 0; i < m_AdditionalLightIndexToShadowParams.Length; ++i)
@@ -573,7 +581,21 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(m_AdditionalLightsShadowmapHandle);
+            if (m_CreateEmptyShadowmap && !m_EmptyShadowmapNeedsClear)
+            {
+                // Reset pass RTs to null
+                ResetTarget();
+                return;
+            }
+
+            if (m_CreateEmptyShadowmap)
+            {
+                ConfigureTarget(m_EmptyAdditionalLightShadowmapTexture);
+                m_EmptyShadowmapNeedsClear = false;
+            }
+            else
+                ConfigureTarget(m_AdditionalLightsShadowmapHandle);
+
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -583,7 +605,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_CreateEmptyShadowmap)
             {
                 SetEmptyAdditionalShadowmapAtlas(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer));
-                renderingData.commandBuffer.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapHandle.nameID);
+                renderingData.commandBuffer.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_EmptyAdditionalLightShadowmapTexture);
 
                 return;
             }

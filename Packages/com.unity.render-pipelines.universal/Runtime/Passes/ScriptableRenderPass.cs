@@ -436,8 +436,14 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment)
         {
+            overrideCameraTarget = true;
+
             m_DepthAttachment = depthAttachment;
-            ConfigureTarget(colorAttachment);
+            m_ColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+            {
+                m_ColorAttachments[i] = null;
+            }
         }
 
         /// <summary>
@@ -468,7 +474,19 @@ namespace UnityEngine.Rendering.Universal
             if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
 
-            m_ColorAttachments = colorAttachments;
+            if (colorAttachments.Length > m_ColorAttachments.Length)
+                Debug.LogError("Trying to set " + colorAttachments.Length + " color attachments, which is more than the maximum supported:" + m_ColorAttachments.Length);
+
+            for (int i = 0; i < colorAttachments.Length; ++i)
+            {
+                m_ColorAttachments[i] = colorAttachments[i];
+            }
+
+            for (int i = colorAttachments.Length; i < m_ColorAttachments.Length; ++i)
+            {
+                m_ColorAttachments[i] = null;
+            }
+
             m_DepthAttachment = depthAttachment;
         }
 
@@ -499,13 +517,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RTHandle colorAttachment)
         {
-            overrideCameraTarget = true;
-
-            m_ColorAttachments[0] = colorAttachment;
-            for (int i = 1; i < m_ColorAttachments.Length; ++i)
-            {
-                m_ColorAttachments[i] = null;
-            }
+            ConfigureTarget(colorAttachment, k_CameraTarget);
         }
 
         /// <summary>
