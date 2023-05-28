@@ -9,6 +9,7 @@ using UnityEditorInternal;
 using UnityEditor.Overlays;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
+using Button = UnityEngine.UIElements.Button;
 
 namespace UnityEngine.Rendering
 {
