@@ -244,16 +244,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            // This whole editor has nothing to display if the SSR feature is not supported
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSR ?? false)
+            bool notSupported = currentAsset != null && !currentAsset.currentPlatformRenderPipelineSettings.supportSSR;
+            if (notSupported)
             {
                 EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Reflection.", MessageType.Error,
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Reflection.", MessageType.Warning,
                     HDRenderPipelineUI.ExpandableGroup.Lighting,
                     HDRenderPipelineUI.ExpandableLighting.Reflection, "m_RenderPipelineSettings.supportSSR");
-                return;
             }
+            using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
             PropertyField(m_Enable, k_EnabledOpaque);
 

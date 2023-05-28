@@ -509,14 +509,15 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // This whole editor has nothing to display if the SSR feature is not supported
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportVolumetricClouds ?? false)
+            bool notSupported = currentAsset != null && !currentAsset.currentPlatformRenderPipelineSettings.supportVolumetricClouds;
+            if (notSupported)
             {
                 EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Error,
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Warning,
                     HDRenderPipelineUI.ExpandableGroup.Lighting,
                     HDRenderPipelineUI.ExpandableLighting.Volumetric, "m_RenderPipelineSettings.supportVolumetricClouds");
-                return;
             }
+            using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));

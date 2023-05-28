@@ -29,14 +29,15 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportHighQualityLineRendering ?? false)
+            bool notSupported = currentAsset != null && !currentAsset.currentPlatformRenderPipelineSettings.supportHighQualityLineRendering;
+            if (notSupported)
             {
                 EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support High Quality Line Rendering.", MessageType.Error,
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support High Quality Line Rendering.", MessageType.Warning,
                     HDRenderPipelineUI.ExpandableGroup.Rendering,
                     HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportHighQualityLineRendering");
-                return;
             }
+            using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);

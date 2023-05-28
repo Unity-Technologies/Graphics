@@ -168,14 +168,15 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false)
+            bool notSupported = !currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false;
+            if (notSupported)
             {
                 EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error,
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Warning,
                     HDRenderPipelineUI.ExpandableGroup.Lighting,
                     HDRenderPipelineUI.ExpandableLighting.Reflection, "m_RenderPipelineSettings.supportSSGI");
-                return;
             }
+            using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
             EditorGUILayout.Space();

@@ -34,14 +34,15 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportWater ?? false)
+            bool notSupported = currentAsset != null && !currentAsset.currentPlatformRenderPipelineSettings.supportWater;
+            if (notSupported)
             {
                 EditorGUILayout.Space();
-                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Error,
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Water Surfaces.", MessageType.Warning,
                     HDRenderPipelineUI.ExpandableGroup.Rendering,
                     HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.supportWater");
-                return;
             }
+            using var disableScope = new EditorGUI.DisabledScope(notSupported);
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
