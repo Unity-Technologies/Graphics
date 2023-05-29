@@ -549,7 +549,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "GetBatchCounts",
     "m_FunctionSource": "",
-    "m_FunctionBody": "uint instanceIndex, instanceActiveIndex;\nVFXInitInstancing(0, instanceIndex, instanceActiveIndex);\n\nColor.x = instancingCurrentCount / 7.0f;\nColor.y = instancingActiveCount / 7.0f;\nColor.z = instancingBatchSize / 7.0f;\nColor.a = 1.0f;"
+    "m_FunctionBody": "uint instanceIndex, activeInstanceIndex, currentInstanceIndex;\nVFXInitInstancing(0, instanceIndex, activeInstanceIndex, currentInstanceIndex);\n\nColor.x = instancingCurrentCount / 7.0f;\nColor.y = instancingActiveCount / 7.0f;\nColor.z = instancingBatchSize / 7.0f;\nColor.a = 1.0f;"
 }
 
 {

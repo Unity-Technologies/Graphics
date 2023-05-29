@@ -30,8 +30,8 @@ void UpdateParticleStrip(uint3 groupId          : SV_GroupID,
 
     if (stripIndex < stripCount * (uint)instancingActiveCount)
     {
-        uint instanceIndex, instanceActiveIndex;
-        stripIndex = VFXInitInstancing(stripIndex, instanceIndex, instanceActiveIndex);
+        uint instanceIndex, instanceActiveIndex, instanceCurrentIndex;
+        stripIndex = VFXInitInstancing(stripIndex, instanceIndex, instanceActiveIndex, instanceCurrentIndex);
         stripIndex += instanceIndex * stripCount;
 
         bool isEmpty = (STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) & ~1) == ~1;

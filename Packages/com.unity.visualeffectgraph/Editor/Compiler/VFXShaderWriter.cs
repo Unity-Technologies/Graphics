@@ -340,8 +340,8 @@ namespace UnityEditor.VFX
             {
                 var names = mapper.GetNames(texture);
                 // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
-                // TODO : Investigate why we need Distinct in the first place
-                foreach (var name in names.Distinct())
+                Debug.Assert(names.Distinct().Count() == names.Count);
+                foreach (var name in names)
                 {
                     if (skipNames != null && skipNames.Contains(name))
                         continue;

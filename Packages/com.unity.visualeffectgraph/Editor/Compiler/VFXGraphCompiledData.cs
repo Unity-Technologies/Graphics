@@ -1405,16 +1405,6 @@ namespace UnityEditor.VFX
                 }
             }
 
-            foreach (var exposed in expressionSheet.exposed)
-            {
-                VFXExpression expression = m_ExpressionGraph.FlattenedExpressions[exposed.mapping.index];
-                if (expression is VFXObjectValue)
-                {
-                    reason |= VFXInstancingDisabledReason.ExposedObject;
-                    break;
-                }
-            }
-
             return reason;
         }
 

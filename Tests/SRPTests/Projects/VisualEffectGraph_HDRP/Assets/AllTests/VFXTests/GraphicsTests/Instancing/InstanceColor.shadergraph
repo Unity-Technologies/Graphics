@@ -552,7 +552,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "GetInstanceColor",
     "m_FunctionSource": "",
-    "m_FunctionBody": "uint instanceIndex, instanceActiveIndex;\nVFXInitInstancing(0, instanceIndex, instanceActiveIndex);\n\nColor.x = ((instanceIndex >> 0) & 0x7) / 7.0f;\nColor.y = ((instanceIndex >> 3) & 0x7) / 7.0f;\nColor.z = ((instanceIndex >> 6) & 0x7) / 7.0f;\nColor.a = 1.0f;"
+    "m_FunctionBody": "uint instanceIndex, activeInstanceIndex, currentInstanceIndex;\nVFXInitInstancing(0, instanceIndex, activeInstanceIndex, currentInstanceIndex);\n\nColor.x = ((instanceIndex >> 0) & 0x7) / 7.0f;\nColor.y = ((instanceIndex >> 3) & 0x7) / 7.0f;\nColor.z = ((instanceIndex >> 6) & 0x7) / 7.0f;\nColor.a = 1.0f;"
 }
 
 {

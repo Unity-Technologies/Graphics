@@ -70,9 +70,9 @@ namespace UnityEditor.VFX
                     {
                         m_NameCounts.TryGetValue(data.name, out uint count);
                         m_NameCounts[data.name] = count + 1u;
-                        previousNames.Add(data.id == -1 &&
-                                           (!VFXExpression.IsUniform(exp.valueType)
-                                            || !m_NeedsNameSuffixes ) ? data.name : $"{data.name}_{VFXCodeGeneratorHelper.GeneratePrefix(count)}");
+                        string name = data.id == -1 && (!VFXExpression.IsUniform(exp.valueType) || !m_NeedsNameSuffixes) ? data.name : $"{data.name}_{VFXCodeGeneratorHelper.GeneratePrefix(count)}";
+                        if (!previousNames.Contains(name))
+                            previousNames.Add(name);
                     }
                 }
             }

@@ -1163,8 +1163,11 @@ namespace UnityEditor.VFX
             var bufferMappings = new List<VFXMapping>();
             var uniformMappings = new List<VFXMapping>();
             var additionalParameters = new List<VFXMapping>();
+            var instanceSplitDescs = new List<VFXInstanceSplitDesc>();
 
-            List<(VFXContext context, VFXTask task, VFXContextCompiledData contextCompiledData, long sortKey)> sortedTaskList = new();
+            AddInstanceSplitDesc(instanceSplitDescs, new List<uint>());
+
+			List<(VFXContext context, VFXTask task, VFXContextCompiledData contextCompiledData, long sortKey)> sortedTaskList = new();
 
             for (int i = 0; i < m_Contexts.Count; ++i)
             {
@@ -1190,6 +1193,7 @@ namespace UnityEditor.VFX
             foreach (var (context, task, contextCompiledData, contextIndex) in sortedTaskList)
             {
                 var temporaryBufferMappings = new List<VFXMappingTemporary>();
+                var instanceSplitDescValues = new List<uint>();
 
                 bufferMappings.Clear();
                 additionalParameters.Clear();
@@ -1275,7 +1279,9 @@ namespace UnityEditor.VFX
 
                 if (hasInstancing)
                 {
-                    if (instancesPrefixSumBufferIndex != -1 && (context.contextType == VFXContextType.Init || context.contextType == VFXContextType.Output))
+                    bool needsInstancePrefixSum = context.contextType == VFXContextType.Init;
+                    needsInstancePrefixSum |= !hasKill && task.doesGenerateShader && task.shaderType == VFXTaskShaderType.ComputeShader;
+                    if (instancesPrefixSumBufferIndex != -1 && needsInstancePrefixSum)
                         bufferMappings.Add(new VFXMapping("instancingPrefixSum", instancesPrefixSumBufferIndex));
 
                     bool mapIndirectBuffers = contextCompiledData.tasks.Any(t => (t.type & (VFXTaskType.Update | VFXTaskType.Initialize)) != 0);
@@ -1365,12 +1371,25 @@ namespace UnityEditor.VFX
 
                 uniformMappings.Clear();
                 foreach (var buffer in contextData.uniformMapper.buffers)
-                    uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(buffer), expressionGraph.GetFlattenedIndex(buffer)));
+                {
+                    int index = expressionGraph.GetFlattenedIndex(buffer);
+                    if (!buffer.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.Foldable))
+                    {
+                        instanceSplitDescValues.Add((uint)index);
+                    }
+                    var name = contextData.uniformMapper.GetName(buffer);
+                    uniformMappings.Add(new VFXMapping(name, index));
+                }
                 foreach (var texture in contextData.uniformMapper.textures)
                 {
+                    int index = expressionGraph.GetFlattenedIndex(texture);
+                    if (!texture.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.Foldable))
+                    {
+                        instanceSplitDescValues.Add((uint)index);
+                    }
                     // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
                     foreach (var name in contextData.uniformMapper.GetNames(texture))
-                        uniformMappings.Add(new VFXMapping(name, expressionGraph.GetFlattenedIndex(texture)));
+                        uniformMappings.Add(new VFXMapping(name, index));
                 }
 
                 // Retrieve all cpu mappings at context level (-1)
@@ -1391,8 +1410,9 @@ namespace UnityEditor.VFX
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.temporaryBuffers = temporaryBufferMappings.ToArray();
-                taskDesc.values = uniformMappings.ToArray();
+                taskDesc.values = uniformMappings.OrderBy(mapping => mapping.index).ToArray();
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).Concat(additionalParameters).ToArray();
+                taskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instanceSplitDescValues);
                 taskDesc.shaderSourceIndex = compiledData.taskToCompiledData[task].indexInShaderSource;
                 taskDesc.model = context;
                 taskDesc.usesMaterialVariant = compilationMode == VFXCompilationMode.Edition && context.usesMaterialVariantInEditMode;
@@ -1445,7 +1465,6 @@ namespace UnityEditor.VFX
                 }
             }
 
-
             string nativeName = string.Empty;
             if (systemNames != null)
                 nativeName = systemNames.GetUniqueSystemName(this);
@@ -1460,6 +1479,7 @@ namespace UnityEditor.VFX
                 name = nativeName,
                 buffers = systemBufferMappings.ToArray(),
                 values = systemValueMappings.ToArray(),
+                instanceSplitDescs = instanceSplitDescs.ToArray(),
                 type = VFXSystemType.Particle,
                 layer = m_Layer
             });
@@ -1515,6 +1535,30 @@ namespace UnityEditor.VFX
             {
                 m_Space = VFXSpace.None;
             }
+        }
+
+        private static uint AddInstanceSplitDesc(List<VFXInstanceSplitDesc> instanceSplitDescs, List<uint> instanceSplitDescValues)
+        {
+            int index = -1;
+
+            instanceSplitDescValues.Sort();
+
+            for (int i = 0; i < instanceSplitDescs.Count; ++i)
+            {
+                if (instanceSplitDescValues.SequenceEqual(instanceSplitDescs[i].values))
+                {
+                    index = i;
+                    break;
+                }
+            }
+            if (index < 0)
+            {
+                index = instanceSplitDescs.Count;
+                var newEntry = new VFXInstanceSplitDesc();
+                newEntry.values = instanceSplitDescValues.ToArray();
+                instanceSplitDescs.Add(newEntry);
+            }
+            return (uint)index;
         }
 
         public override void Sanitize(int version)
