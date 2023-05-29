@@ -32,6 +32,14 @@ public class AdditionalMenuItems : MonoBehaviour
 
                 if (!File.Exists(fullDestPath))
                     File.Copy(fullSrcPath, fullDestPath);
+                else
+                {
+                    System.DateTime srcTime = File.GetLastWriteTimeUtc(fullSrcPath);
+                    System.DateTime destTime = File.GetLastWriteTimeUtc(fullDestPath);
+
+                    if(destTime < srcTime)
+                        File.Copy(fullSrcPath, fullDestPath, true);
+                }
             }
         }
     }

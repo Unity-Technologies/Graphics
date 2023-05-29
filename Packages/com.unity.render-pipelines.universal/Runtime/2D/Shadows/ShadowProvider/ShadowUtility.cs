@@ -964,6 +964,8 @@ namespace UnityEngine.Rendering.Universal
 
                 closedPathSizes.Dispose();
                 closedPath.Dispose();
+                openPathSizes.Dispose();
+                openPath.Dispose();
 
                 clipperPathArguments.Dispose();
                 offsetPathArguments.Dispose();

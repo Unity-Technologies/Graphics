@@ -65,22 +65,22 @@ namespace UnityEngine.Rendering.Universal
 
         public override int Priority() { return 10; }  // give higher than default menu priority
 
-        public override void Enabled(in Component sourceComponent)
+        public override void Enabled(Component sourceComponent)
         {
             ((SpriteShapeController)sourceComponent).ForceShadowShapeUpdate(true);
         }
 
-        public override void Disabled(in Component sourceComponent)
+        public override void Disabled(Component sourceComponent)
         {
             ((SpriteShapeController)sourceComponent).ForceShadowShapeUpdate(false);
         }
 
-        public override bool IsShapeSource(in Component sourceComponent)
+        public override bool IsShapeSource(Component sourceComponent)
         {
             return sourceComponent as SpriteShapeController;
         }
 
-        public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShadowShape)
+        public override void OnPersistantDataCreated(Component sourceComponent, ShadowShape2D persistantShadowShape)
         {
             SpriteShapeController spriteShapeController = (SpriteShapeController)sourceComponent;
             SpriteShapeRenderer spriteShapeRenderer;
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.Universal
             UpdateShadows(spriteShapeController, persistantShadowShape);
         }
 
-        public override void OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
+        public override void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             UpdateShadows((SpriteShapeController)sourceComponent, persistantShadowShape);
         }

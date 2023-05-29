@@ -345,16 +345,16 @@ namespace UnityEngine.Rendering.Universal
         //============================================================================================================
         //                                                  Public
         //============================================================================================================
-        public override bool IsShapeSource(in Component sourceComponent) { return sourceComponent is Collider2D; }
+        public override bool IsShapeSource(Component sourceComponent) { return sourceComponent is Collider2D; }
 
-        public override void OnPersistantDataCreated(in Component sourceComponent, ShadowShape2D persistantShadowShapeData)
+        public override void OnPersistantDataCreated(Component sourceComponent, ShadowShape2D persistantShadowShapeData)
         {
             m_ShadowStateHash = default;
             m_ShadowCombinedShapeMinMaxBounds = default;
             m_LastColliderSpace = Matrix4x4.identity;
         }
 
-        public override void OnBeforeRender(in Component sourceComponent, in Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
+        public override void OnBeforeRender(Component sourceComponent, Bounds worldCullingBounds, ShadowShape2D persistantShadowShape)
         {
             Collider2D collider = (Collider2D)sourceComponent;
             CalculateShadows(collider, persistantShadowShape, worldCullingBounds);

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
@@ -6,6 +7,18 @@ namespace UnityEditor.Rendering.Universal
 {
     internal class CastingSourceDropDown
     {
+        public struct ShadowShapeProviderData
+        {
+            public Component component;
+            public ShadowShape2DProvider provider;
+
+            public ShadowShapeProviderData(Component inComponent, ShadowShape2DProvider inProvider)
+            {
+                component = inComponent;
+                provider = inProvider;
+            }
+        }
+
         class SelectionData
         {
             public SerializedObject         shadowCaster;
@@ -22,12 +35,44 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        struct ProviderComparer : IComparer<ShapeProviderEditorUtility.ShadowShapeProviderData>
+        struct ProviderComparer : IComparer<ShadowShapeProviderData>
         {
-            public int Compare(ShapeProviderEditorUtility.ShadowShapeProviderData a, ShapeProviderEditorUtility.ShadowShapeProviderData b)
+            public int Compare(ShadowShapeProviderData a, ShadowShapeProviderData b)
             {
                 return b.provider.Priority() - a.provider.Priority();
             }
+        }
+
+        static public List<ShadowShapeProviderData> GetShadowShapeProviders(GameObject go)
+        {
+            // Create some providers to check against.
+            var providerTypes = TypeCache.GetTypesDerivedFrom<ShadowShape2DProvider>();
+            var providers = new List<ShadowShape2DProvider>(providerTypes.Count);
+            foreach (Type providerType in providerTypes)
+            {
+                if (providerType.IsAbstract)
+                    continue;
+
+                providers.Add(Activator.CreateInstance(providerType) as ShadowShape2DProvider);
+            }
+
+            // Fetch the components to check.
+            var components = go.GetComponents<Component>();
+
+            var results = new List<ShadowShapeProviderData>();
+            foreach (var component in components)
+            {
+                // check each component to see if it is a valid provider
+                foreach (var provider in providers)
+                {
+                    if (provider.IsShapeSource(component))
+                    {
+                        results.Add(new ShadowShapeProviderData(component, Activator.CreateInstance(provider.GetType()) as ShadowShape2DProvider));
+                    }
+                }
+            }
+
+            return results;
         }
 
         void OnMenuOptionSelected(object layerSelectionDataObject)
@@ -40,7 +85,7 @@ namespace UnityEditor.Rendering.Universal
 
             selectionData.shadowCaster.Update();
             castingSource.intValue  = selectionData.newCastingSource;
-            shapeProvider.objectReferenceValue = selectionData.newShadowShapeProvider;
+            shapeProvider.managedReferenceValue = selectionData.newShadowShapeProvider;
             shapeComponent.objectReferenceValue = selectionData.newShadowShapeComponent;
             selectionData.shadowCaster.ApplyModifiedProperties();
         }
@@ -54,7 +99,7 @@ namespace UnityEditor.Rendering.Universal
             return ObjectNames.NicifyVariableName(compactTypeName);
         }
 
-        public void OnCastingSource(SerializedObject serializedObject, Object[] targets, GUIContent labelContent)
+        public void OnCastingSource(SerializedObject serializedObject, UnityEngine.Object[] targets, GUIContent labelContent)
         {
             Rect totalPosition = EditorGUILayout.GetControlRect();
             Rect position = EditorGUI.PrefixLabel(totalPosition, labelContent);
@@ -81,7 +126,7 @@ namespace UnityEditor.Rendering.Universal
                     menu.allowDuplicateNames = true;
 
                     ProviderComparer providerComparer = new ProviderComparer();
-                    List<ShapeProviderEditorUtility.ShadowShapeProviderData> castingSources = ShapeProviderEditorUtility.GetShadowShapeProviders(shadowCaster.gameObject);
+                    List<ShadowShapeProviderData> castingSources = GetShadowShapeProviders(shadowCaster.gameObject);
                     castingSources.Sort(providerComparer);
 
                     for (int i = 0; i < castingSources.Count; i++)
