@@ -124,3 +124,39 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: 
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e5246ff105a819940a71fba92909923c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 26
+    XrSdk: 
+    StereoModes: 0
+    Reason: PS5 instancing bug
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e5246ff105a819940a71fba92909923c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 13
+    XrSdk: 
+    StereoModes: 0
+    Reason: PS4 instancing bug
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e5246ff105a819940a71fba92909923c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 42
+    GraphicsDevice: 25
+    XrSdk: 
+    StereoModes: 0
+    Reason: Xbox instancing bug
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e5246ff105a819940a71fba92909923c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 43
+    GraphicsDevice: 24
+    XrSdk: 
+    StereoModes: 0
+    Reason: Xbox instancing bug

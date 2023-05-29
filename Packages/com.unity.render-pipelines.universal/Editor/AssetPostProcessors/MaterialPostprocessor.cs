@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7, UpgradeV8 };
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7, UpgradeV8, UpgradeV9 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -409,6 +409,22 @@ namespace UnityEditor.Rendering.Universal
         {
             if (HasMotionVectorLightModeTag(shaderID))
                 material.SetShaderPassEnabled(MotionVectorRenderPass.k_MotionVectorsLightModeTag, false);
+        }
+
+        // We want to disable the custom motion vector pass for SpeedTrees which won't have any
+        // vertex animation due to no wind. This is done to prevent performance regression from
+        // rendering trees with no motion vector output. 
+        static void UpgradeV9(Material material, ShaderID shaderID)
+        {
+            if(shaderID != ShaderID.SpeedTree8)
+                return;
+
+            // Check if the material is a SpeedTree material and whether it has wind turned on or off.
+            if(SpeedTree8MaterialUpgrader.DoesMaterialHaveSpeedTreeWindKeyword(material))
+            {
+                bool motionVectorPassEnabled = SpeedTree8MaterialUpgrader.IsWindEnabled(material);
+                material.SetShaderPassEnabled(MotionVectorRenderPass.k_MotionVectorsLightModeTag, motionVectorPassEnabled);
+            }
         }
     }
 

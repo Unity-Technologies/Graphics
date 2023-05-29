@@ -66,6 +66,12 @@ EditorBuildSettings:
     path: Assets/Scenes/230_Decal.unity
     guid: e04a7c287e4c08242a5511645a045ed4
   - enabled: 1
+    path: Assets/Scenes/300_Motion_Vectors_SpeedTree.unity
+    guid: e5246ff105a819940a71fba92909923c
+  - enabled: 1
+    path: Assets/Scenes/301_Motion_Vectors_SpeedTree_Terrain.unity
+    guid: ec7c1932ee8b54145af7ccf4c01f7c9f
+  - enabled: 1
     path: Assets/Scenes/302_Motion_Vectors_Terrain_DetailMesh.unity
     guid: 6586b4b69c8ab7d479a06f5fb3653066
   m_configObjects: {}

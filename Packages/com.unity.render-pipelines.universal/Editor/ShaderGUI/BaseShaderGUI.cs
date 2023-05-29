@@ -782,11 +782,12 @@ namespace UnityEditor
 
         internal static void UpdateMotionVectorKeywordsAndPass(Material material)
         {
+            ShaderID shaderId = GetShaderID(material.shader);
+
             // For shaders which don't have an MV pass we don't want to disable it to avoid needlessly dirtying their
             // materials (e.g. for our particle shaders)
             bool motionVectorPassEnabled = true;
-
-            if (HasMotionVectorLightModeTag(GetShaderID(material.shader)))
+            if (HasMotionVectorLightModeTag(shaderId))
             {
                 if(material.HasProperty(Property.AddPrecomputedVelocity))
                 {
@@ -802,6 +803,14 @@ namespace UnityEditor
                     // *Alembic motion vectors
                     motionVectorPassEnabled = false;
                 }
+            }
+
+            // Check if the material is a SpeedTree material and whether it has wind turned on or off.
+            // We want to disable the custom motion vector pass for SpeedTrees which won't have any
+            // vertex animation due to no wind.
+            if(shaderId == ShaderID.SpeedTree8 && SpeedTree8MaterialUpgrader.DoesMaterialHaveSpeedTreeWindKeyword(material))
+            {
+                motionVectorPassEnabled = SpeedTree8MaterialUpgrader.IsWindEnabled(material);
             }
 
             // Calling this always as we might be in a situation where the material's shader was just changed to one
