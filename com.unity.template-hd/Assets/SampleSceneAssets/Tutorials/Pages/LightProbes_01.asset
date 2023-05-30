@@ -45,9 +45,10 @@ MonoBehaviour:
           The probe placement is automatic. Probes no longer need to be placed by
           hand.\n\u2022 The indirect lighting is applied per-pixel instead of per-object.
           This allows us to achieve much better quality and in some cases even replace
-          lightmaps.\n\u2022 Can be used by the <b>Reflection Probe</b> system to
-          reduce indirect specular leaking.\n\u2022 Includes streaming functionality
-          to support large open worlds.\n\nTo better understand what effect it has
+          lightmaps.\n\u2022 Can be used by the reflection probe system to reduce
+          indirect specular leaking.\n\u2022 Includes streaming functionality to
+          support large open worlds.\n\u2022 Affects volumetric fog and screen space
+          global illumination (SSGI).\n\nTo better understand what effect it has
           on the scene. you could temporarily turn it off and explore the level.
           Most notably the third room. Dynamic objects should look out of place.
           \n\nTo turn it off\nEdit > Project Settings > HDRP Global Settings > Frame
