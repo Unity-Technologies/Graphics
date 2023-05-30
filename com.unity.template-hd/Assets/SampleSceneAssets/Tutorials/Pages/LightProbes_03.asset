@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_03
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Highlight: Probe Volumes Options'
+    m_Untranslated: 'Highlight: Virtual offset'
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 399229ca25d9e574583d583500a1afbe, type: 3}
+      m_Image: {fileID: 2800000, guid: ed2e02c92159cf94faa7db9caa5f0ae4, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,42 +39,41 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: 'This issue might be difficult to spot, but the cube in the
-          picture has a seam in the middle. The upper half of it is darker while
-          the bottom is lighter.
+        m_Untranslated: 'Unlike in the previous per-object lighting probe system,
+          individual probes can not be moved or deleted. This is a hard limitation
+          of the system. In cases where we would need to move a set of probes, we
+          could use virtual offset instead.
 
 
-          It''s because probes over the scene
-          are not placed evenly. In the <b>Probe Volumes</b> settings we simply set
-          the minimum spacing that we want (in this case <b>0.6m)</b> and the maximum
-          spacing <b>(5.4m).</b> Then the system attempts to automatically detect
-          areas where fewer probes are necessary and adjust the density. These areas
-          are called <b>Subdivision Levels.</b>
+          <b>Virtual offset</b> allows
+          us to move the capture position of light probes. It can be enabled globally
+          in the <b>Lighting</b> > <b>Probe Volumes</b> pannel, moving all probes
+          that are inside geometry over a specified distance. Or it can be applied
+          manually as we did for this project, by using Prode Adustment Volumes in
+          a specified location.
 
 
-          While it is quite useful
-          to limit the number of probes in order to reduce the bake time and disk
-          space, some seams can appear when sampling happens between two subdivision
-          levels. To fix this, we increased the amount of sampling noise in the Volume
-          settings which also works well with <b>Temporal Anti Aliasing</b>.
+          The bright line seen in the image is
+          caused by the overly bright probes below the floor. To fix it we added
+          a probe adjustment volume that would virtually lift the said probes up
+          by ~0.6 meters during the baking process.
 
 
-          To
-          undo our fix and make the seam visible again follow these steps:
+          To undo the fix and
+          explore the issue further, follow these steps:
 
 
-          1.
-          Move the cube to <b>X:5 Y:5.5 Z:0</b>
+          1. Move the
+          cube to  <b>X: 41 Y:0 Z:3</b>
 
 
-          2. Select the <b>Volume
-          Room 1</b> in the <i>Hierarchy</i> tab under <b>Lighting</b> > <b>Volumes</b>
+          2. Disable the <b>Probe Adustment
+          Volume</b> under <b>Lighting</b> > <b>Adaptive Probe Volumes</b> in the
+          <i>Hierarchy</i> window.
 
 
-          3.
-          Under <b>Probe Volume Options,</b> change the <b>Sampling Noise</b> from
-          <b>0.45</b> to <b>0.1</b>(which is the default value). No need to rebake
-          this time.'
+          3. Rebake the lighting by using the
+          <b>Generate Lighting.</b>'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -94,8 +93,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 5.094, y: 12.54435, z: -17.047869}
-    m_Rotation: {x: -0, y: 0.9811074, z: 0.19346379, w: 0}
+    m_Pivot: {x: 57.004322, y: -4.696989, z: -3.045011}
+    m_Rotation: {x: 0.07768114, y: 0.8142531, z: -0.11209687, w: 0.5642622}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

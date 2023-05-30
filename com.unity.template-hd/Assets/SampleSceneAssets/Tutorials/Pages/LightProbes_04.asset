@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LightProbes_04
   m_EditorClassIdentifier: 
   Title:
-    m_Untranslated: 'Highlight: Local Probe Volumes'
+    m_Untranslated: 'Highlight: Probe Volumes Options'
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -22,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 60e822da8f263e843bba169100d97123, type: 3}
+      m_Image: {fileID: 2800000, guid: 399229ca25d9e574583d583500a1afbe, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,18 +39,42 @@ MonoBehaviour:
       Title:
         m_Untranslated: 
       Text:
-        m_Untranslated: "The problem here is actually the same as in the previous
-          step. However, adjusting <b>Sampling Noise</b> for indoor environments
-          could cause leaking artifacts thus we can't really apply the same fix.
-          \n\nWith the help of <b>Local Probe Volumes</b> we can override the <b>probe
-          spacing</b> to be <b>0.6 m</b> and make sure there are no gaps<b>(Fill
-          empty spaces.)</b> This way we essentially fill the room with probes evenly.
-          This will result in slightly more probes placed, but will get rid of the
-          seams without having to use additional noise.\n\nTo undo the fix:\n\n1.
-          Move the cube to <b>X:25.3 Y:2 Z:1.5</b>\n\n2. In the <i>Hierarchy</i>
-          window select the local volume under <b>Lighting</b> > <b>Adaptive Probe
-          Volumes</b> > <b>Probe Volume Local</b>\n\n3. Disable it and save the scene.\n\n4.
-          Rebake the lighting using <b>Generate Lighting</b> button"
+        m_Untranslated: 'This issue might be difficult to spot, but the cube in the
+          picture has a seam in the middle. The upper half of it is darker while
+          the bottom is lighter.
+
+
+          It''s because probes over the scene
+          are not placed evenly. In the <b>Probe Volumes</b> settings we simply set
+          the minimum spacing that we want (in this case <b>0.6m)</b> and the maximum
+          spacing <b>(5.4m).</b> Then the system attempts to automatically detect
+          areas where fewer probes are necessary and adjust the density. These areas
+          are called <b>Subdivision Levels.</b>
+
+
+          While it is quite useful
+          to limit the number of probes in order to reduce the bake time and disk
+          space, some seams can appear when sampling happens between two subdivision
+          levels. To fix this, we increased the amount of sampling noise in the Volume
+          settings which also works well with <b>Temporal Anti Aliasing</b>.
+
+
+          To
+          undo our fix and make the seam visible again follow these steps:
+
+
+          1.
+          Move the cube to <b>X:5 Y:5.5 Z:0</b>
+
+
+          2. Select the <b>Volume
+          Room 1</b> in the <i>Hierarchy</i> tab under <b>Lighting</b> > <b>Volumes.</b>
+
+
+          3.
+          Under <b>Probe Volume Options,</b> change the <b>Sampling Noise</b> from
+          <b>0.45</b> to <b>0.1</b>(which is the default value). No need to rebake
+          this time.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -70,8 +94,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 15.663096, y: 0.61878896, z: -13.118892}
-    m_Rotation: {x: 0.010864795, y: -0.9570991, z: 0.03620843, w: 0.2872846}
+    m_Pivot: {x: 5.094, y: 12.54435, z: -17.047869}
+    m_Rotation: {x: -0, y: 0.9811074, z: 0.19346379, w: 0}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

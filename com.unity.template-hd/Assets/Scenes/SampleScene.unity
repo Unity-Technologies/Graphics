@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1480.7355, g: 1834.6038, b: 2428.7659, a: 1}
+  m_IndirectSpecularColor: {r: 1480.714, g: 1834.7288, b: 2429.1487, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -95,7 +95,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 112000000, guid: dbe9314eff1e82241952a874b63cf7c3, type: 2}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: 80aa856a29e92c64a95e7043ee007b3d, type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: ee2d11691bfc5384b89d821ffe96a394, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -667,7 +667,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   lowestSubdivLevelOverride: 2
   highestSubdivLevelOverride: 2
-  overridesSubdivLevels: 0
+  overridesSubdivLevels: 1
   mightNeedRebaking: 0
   cachedTransform:
     e00: 1
@@ -1174,33 +1174,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 7.709798
-    'sh[ 1]': -4.581577
-    'sh[ 2]': -2.4264479
-    'sh[ 3]': 0.7335774
-    'sh[ 4]': -0.3581077
-    'sh[ 5]': 0.74516577
-    'sh[ 6]': -0.27429113
-    'sh[ 7]': -0.109021395
-    'sh[ 8]': -0.50727475
-    'sh[ 9]': 3.8704545
-    'sh[10]': -1.8837991
-    'sh[11]': -1.7655475
-    'sh[12]': 0.29872814
-    'sh[13]': -0.11959019
-    'sh[14]': 0.47558954
-    'sh[15]': -0.017637165
-    'sh[16]': -0.072761245
-    'sh[17]': -0.22960599
-    'sh[18]': 2.0519419
-    'sh[19]': -0.6267081
-    'sh[20]': -1.2536826
-    'sh[21]': 0.08097185
-    'sh[22]': -0.036155216
-    'sh[23]': 0.20898676
-    'sh[24]': 0.080520235
-    'sh[25]': -0.0426194
-    'sh[26]': -0.08364349
+    'sh[ 0]': 7.4761624
+    'sh[ 1]': -4.1492877
+    'sh[ 2]': -2.1677034
+    'sh[ 3]': 0.8721422
+    'sh[ 4]': -0.23708597
+    'sh[ 5]': 0.57552034
+    'sh[ 6]': -0.20253551
+    'sh[ 7]': -0.0649078
+    'sh[ 8]': -0.41429153
+    'sh[ 9]': 3.819438
+    'sh[10]': -1.766886
+    'sh[11]': -1.5922949
+    'sh[12]': 0.31305537
+    'sh[13]': -0.05850422
+    'sh[14]': 0.37423006
+    'sh[15]': -0.021728225
+    'sh[16]': -0.019300211
+    'sh[17]': -0.18342407
+    'sh[18]': 2.041151
+    'sh[19]': -0.64132404
+    'sh[20]': -1.1369497
+    'sh[21]': 0.06815907
+    'sh[22]': 0.0005845541
+    'sh[23]': 0.17889428
+    'sh[24]': 0.048987705
+    'sh[25]': 0.0032820716
+    'sh[26]': -0.06925866
   m_SHValidForCapturePosition: {x: 57.385612, y: 4.015636, z: 2.559598}
   m_SHValidForSourcePosition: {x: 57.711205, y: 4.1310596, z: 2.215231}
   m_HDProbeVersion: 3
@@ -3162,6 +3162,63 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2884580647323923220, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
   m_PrefabInstance: {fileID: 291363433}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &297957668
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 297957669}
+  - component: {fileID: 297957670}
+  m_Layer: 0
+  m_Name: Probe Adjustment Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &297957669
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 297957668}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 32.32, y: -0.6, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 990475328}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &297957670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 297957668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55f90731af2ebc94fb7fdaebe2a9a409, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shape: 0
+  size: {x: 26, y: 0.2, z: 14}
+  radius: 1
+  mode: 2
+  intensityScale: 1
+  overriddenDilationThreshold: 0.75
+  virtualOffsetRotation: {x: -90, y: 0, z: 0}
+  virtualOffsetDistance: 0.62
+  geometryBias: 0.01
+  rayOriginBias: -0.001
+  version: 1
+  invalidateProbes: 0
+  overrideDilationThreshold: 0
 --- !u!1 &303614828
 GameObject:
   m_ObjectHideFlags: 0
@@ -3470,33 +3527,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 217.44197
-    'sh[ 1]': 107.78283
-    'sh[ 2]': 23.290228
-    'sh[ 3]': -62.88776
-    'sh[ 4]': -36.27341
-    'sh[ 5]': 5.4276896
-    'sh[ 6]': -3.622918
-    'sh[ 7]': -11.660612
-    'sh[ 8]': 6.584531
-    'sh[ 9]': 234.42636
-    'sh[10]': 129.0865
-    'sh[11]': 19.294865
-    'sh[12]': -88.95744
-    'sh[13]': -46.92505
-    'sh[14]': 3.9843516
-    'sh[15]': -4.3359876
-    'sh[16]': -10.158925
-    'sh[17]': 2.69816
-    'sh[18]': 316.92972
-    'sh[19]': 189.95573
-    'sh[20]': 17.509455
-    'sh[21]': -142.45113
-    'sh[22]': -73.90102
-    'sh[23]': 2.6072044
-    'sh[24]': -6.745829
-    'sh[25]': -9.744135
-    'sh[26]': -2.096261
+    'sh[ 0]': 213.93486
+    'sh[ 1]': 105.91044
+    'sh[ 2]': 22.508984
+    'sh[ 3]': -65.84813
+    'sh[ 4]': -35.411777
+    'sh[ 5]': 4.9793406
+    'sh[ 6]': -3.7102551
+    'sh[ 7]': -10.314274
+    'sh[ 8]': 5.852283
+    'sh[ 9]': 235.72768
+    'sh[10]': 128.99428
+    'sh[11]': 18.975794
+    'sh[12]': -91.83709
+    'sh[13]': -46.327385
+    'sh[14]': 3.6165407
+    'sh[15]': -4.3705325
+    'sh[16]': -9.159759
+    'sh[17]': 2.3252397
+    'sh[18]': 313.79535
+    'sh[19]': 187.43628
+    'sh[20]': 16.694422
+    'sh[21]': -142.41563
+    'sh[22]': -72.44689
+    'sh[23]': 2.1784005
+    'sh[24]': -6.7864666
+    'sh[25]': -8.432033
+    'sh[26]': -2.2451286
   m_SHValidForCapturePosition: {x: 13.337921, y: 3.3920114, z: 0.061256886}
   m_SHValidForSourcePosition: {x: 13.51, y: 3, z: 0}
   m_HDProbeVersion: 3
@@ -3992,33 +4049,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 142.26555
-    'sh[ 1]': 45.10997
-    'sh[ 2]': 8.756573
-    'sh[ 3]': 12.790232
-    'sh[ 4]': -21.884562
-    'sh[ 5]': 2.149584
-    'sh[ 6]': -6.5313864
-    'sh[ 7]': 0.8183355
-    'sh[ 8]': 15.194773
-    'sh[ 9]': 137.32312
-    'sh[10]': 55.091408
-    'sh[11]': 5.457084
-    'sh[12]': -17.029922
-    'sh[13]': -26.559666
-    'sh[14]': 1.7935528
-    'sh[15]': -6.3165646
-    'sh[16]': -1.3862672
-    'sh[17]': 12.7857895
-    'sh[18]': 170.7014
-    'sh[19]': 82.85987
-    'sh[20]': 2.9984798
-    'sh[21]': -56.19848
-    'sh[22]': -40.067177
-    'sh[23]': 1.8848008
-    'sh[24]': -7.8995214
-    'sh[25]': -3.8797174
-    'sh[26]': 13.221904
+    'sh[ 0]': 140.84589
+    'sh[ 1]': 44.65952
+    'sh[ 2]': 7.9142895
+    'sh[ 3]': 10.8650675
+    'sh[ 4]': -21.562876
+    'sh[ 5]': 2.2698255
+    'sh[ 6]': -6.536124
+    'sh[ 7]': 0.2092675
+    'sh[ 8]': 14.493369
+    'sh[ 9]': 138.5433
+    'sh[10]': 55.58529
+    'sh[11]': 4.9657235
+    'sh[12]': -18.729288
+    'sh[13]': -26.751158
+    'sh[14]': 1.9401222
+    'sh[15]': -6.3849616
+    'sh[16]': -1.9944776
+    'sh[17]': 12.521218
+    'sh[18]': 170.64078
+    'sh[19]': 82.72773
+    'sh[20]': 2.545616
+    'sh[21]': -56.998775
+    'sh[22]': -40.585064
+    'sh[23]': 2.0145035
+    'sh[24]': -8.041291
+    'sh[25]': -4.440109
+    'sh[26]': 13.042207
   m_SHValidForCapturePosition: {x: 17.781761, y: 2.4042897, z: -0.30428267}
   m_SHValidForSourcePosition: {x: 18.497435, y: 5.2739725, z: -0.5539999}
   m_HDProbeVersion: 3
@@ -4537,33 +4594,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 504.2953
-    'sh[ 1]': -179.93982
-    'sh[ 2]': 302.46445
-    'sh[ 3]': -87.29661
-    'sh[ 4]': 13.797894
-    'sh[ 5]': -61.834103
-    'sh[ 6]': 16.080044
-    'sh[ 7]': -17.710966
-    'sh[ 8]': 1.153465
-    'sh[ 9]': 371.0438
-    'sh[10]': -121.302216
-    'sh[11]': 202.48544
-    'sh[12]': -54.687157
-    'sh[13]': 7.5339327
-    'sh[14]': -41.349194
-    'sh[15]': 10.244977
-    'sh[16]': -12.598539
-    'sh[17]': -1.1492407
-    'sh[18]': 252.956
-    'sh[19]': -51.681015
-    'sh[20]': 133.619
-    'sh[21]': -39.440315
-    'sh[22]': 5.647366
-    'sh[23]': -26.157839
-    'sh[24]': 6.2298555
-    'sh[25]': -8.198709
-    'sh[26]': -2.6268778
+    'sh[ 0]': 504.95502
+    'sh[ 1]': -181.82721
+    'sh[ 2]': 305.84662
+    'sh[ 3]': -87.25939
+    'sh[ 4]': 13.956373
+    'sh[ 5]': -62.902714
+    'sh[ 6]': 16.21334
+    'sh[ 7]': -17.262262
+    'sh[ 8]': 1.3106478
+    'sh[ 9]': 372.66486
+    'sh[10]': -122.38887
+    'sh[11]': 206.48024
+    'sh[12]': -54.65338
+    'sh[13]': 7.644958
+    'sh[14]': -41.980465
+    'sh[15]': 10.376475
+    'sh[16]': -12.220985
+    'sh[17]': -1.0411267
+    'sh[18]': 252.72342
+    'sh[19]': -52.24815
+    'sh[20]': 135.8106
+    'sh[21]': -39.24167
+    'sh[22]': 5.7284474
+    'sh[23]': -26.65863
+    'sh[24]': 6.3074894
+    'sh[25]': -7.9915504
+    'sh[26]': -2.5899444
   m_SHValidForCapturePosition: {x: 31.786108, y: 1.4851315, z: -1.6713877}
   m_SHValidForSourcePosition: {x: 31.970001, y: 2.6825378, z: -2.08}
   m_HDProbeVersion: 3
@@ -5125,6 +5182,113 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3163352547752738580, guid: 045bfee370fc8c84ca955348ca9f3fd9, type: 3}
   m_PrefabInstance: {fileID: 409468208}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &414310028
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 414310029}
+  - component: {fileID: 414310032}
+  - component: {fileID: 414310031}
+  - component: {fileID: 414310030}
+  m_Layer: 0
+  m_Name: Cube (3)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &414310029
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414310028}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 39.287, y: 1.11, z: -0.8}
+  m_LocalScale: {x: 37.936886, y: 2.845921, z: 1.13505}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1402863372}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &414310030
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414310028}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &414310031
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414310028}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_RenderingLayerMask: 257
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &414310032
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414310028}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1001 &415960211
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6061,33 +6225,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 137.73428
-    'sh[ 1]': 46.649246
-    'sh[ 2]': 21.273638
-    'sh[ 3]': -27.22305
-    'sh[ 4]': -2.1044
-    'sh[ 5]': -6.31522
-    'sh[ 6]': 1.1750239
-    'sh[ 7]': -1.0201619
-    'sh[ 8]': -1.7052073
-    'sh[ 9]': 118.012825
-    'sh[10]': 51.152653
-    'sh[11]': 21.77489
-    'sh[12]': -15.583609
-    'sh[13]': 0.029359175
-    'sh[14]': -1.8686867
-    'sh[15]': 0.6930257
-    'sh[16]': 0.15672964
-    'sh[17]': -6.139818
-    'sh[18]': 115.35473
-    'sh[19]': 73.680756
-    'sh[20]': 14.858715
-    'sh[21]': -7.1964417
-    'sh[22]': 4.10073
-    'sh[23]': 8.04991
-    'sh[24]': -2.7725239
-    'sh[25]': 0.5869823
-    'sh[26]': -12.86539
+    'sh[ 0]': 142.62193
+    'sh[ 1]': 48.19917
+    'sh[ 2]': 21.69823
+    'sh[ 3]': -28.92978
+    'sh[ 4]': -4.195675
+    'sh[ 5]': -5.7775154
+    'sh[ 6]': 1.0284615
+    'sh[ 7]': -0.18542553
+    'sh[ 8]': -1.9603211
+    'sh[ 9]': 122.50937
+    'sh[10]': 53.303288
+    'sh[11]': 22.540918
+    'sh[12]': -16.757835
+    'sh[13]': -1.1796753
+    'sh[14]': -1.4553481
+    'sh[15]': 0.7513518
+    'sh[16]': 0.3572286
+    'sh[17]': -6.560549
+    'sh[18]': 116.82751
+    'sh[19]': 75.62108
+    'sh[20]': 16.18158
+    'sh[21]': -8.406199
+    'sh[22]': 3.7055042
+    'sh[23]': 9.502303
+    'sh[24]': -3.0808983
+    'sh[25]': 0.4820932
+    'sh[26]': -14.015425
   m_SHValidForCapturePosition: {x: 31.584293, y: 1.155014, z: -4.942467}
   m_SHValidForSourcePosition: {x: 28.675222, y: 3.0450335, z: -4.5544806}
   m_HDProbeVersion: 3
@@ -10102,6 +10266,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1159510705}
     m_Modifications:
+    - target: {fileID: 2711701545633919536, guid: 52d08675f56360346935de397874b4e2, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5285855693503793624, guid: 52d08675f56360346935de397874b4e2, type: 3}
       propertyPath: m_Enabled
       value: 1
@@ -10838,7 +11006,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &814746332
 Transform:
   m_ObjectHideFlags: 0
@@ -13341,6 +13509,7 @@ Transform:
   m_Children:
   - {fileID: 1424191366}
   - {fileID: 89374758}
+  - {fileID: 297957669}
   m_Father: {fileID: 1377783}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -13771,33 +13940,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 1206.6888
-    'sh[ 1]': -807.67523
-    'sh[ 2]': -329.62408
-    'sh[ 3]': -246.29813
-    'sh[ 4]': 143.0952
-    'sh[ 5]': 328.06577
-    'sh[ 6]': -119.79068
-    'sh[ 7]': -0.30296567
-    'sh[ 8]': -188.78284
-    'sh[ 9]': 1099.6957
-    'sh[10]': -586.52466
-    'sh[11]': -320.10226
-    'sh[12]': -205.2122
-    'sh[13]': 122.10156
-    'sh[14]': 199.86388
-    'sh[15]': -96.09536
-    'sh[16]': -3.018255
-    'sh[17]': -173.68033
-    'sh[18]': 1167.6853
-    'sh[19]': -362.29056
-    'sh[20]': -368.9467
-    'sh[21]': -184.6668
-    'sh[22]': 112.6518
-    'sh[23]': 48.018627
-    'sh[24]': -79.74907
-    'sh[25]': -7.2190347
-    'sh[26]': -185.50333
+    'sh[ 0]': 1208.011
+    'sh[ 1]': -811.57916
+    'sh[ 2]': -325.2473
+    'sh[ 3]': -245.27115
+    'sh[ 4]': 138.41382
+    'sh[ 5]': 321.61185
+    'sh[ 6]': -119.273254
+    'sh[ 7]': -2.399371
+    'sh[ 8]': -187.00789
+    'sh[ 9]': 1115.7042
+    'sh[10]': -594.8312
+    'sh[11]': -319.2378
+    'sh[12]': -207.02997
+    'sh[13]': 118.11355
+    'sh[14]': 202.24512
+    'sh[15]': -96.44506
+    'sh[16]': -4.5800757
+    'sh[17]': -172.37277
+    'sh[18]': 1164.2117
+    'sh[19]': -366.28134
+    'sh[20]': -362.3683
+    'sh[21]': -184.46832
+    'sh[22]': 108.277664
+    'sh[23]': 45.54278
+    'sh[24]': -79.793205
+    'sh[25]': -8.842797
+    'sh[26]': -182.73097
   m_SHValidForCapturePosition: {x: -0.48997402, y: 3.9496117, z: 14.368998}
   m_SHValidForSourcePosition: {x: 1.554327, y: 4, z: 14.478}
   m_HDProbeVersion: 3
@@ -14543,33 +14712,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 698.56757
-    'sh[ 1]': -123.348
-    'sh[ 2]': 199.34471
-    'sh[ 3]': 314.96884
-    'sh[ 4]': -146.0067
-    'sh[ 5]': -58.23176
-    'sh[ 6]': -6.306795
-    'sh[ 7]': 51.03954
-    'sh[ 8]': -4.4226227
-    'sh[ 9]': 661.146
-    'sh[10]': -48.959244
-    'sh[11]': 164.77539
-    'sh[12]': 292.07895
-    'sh[13]': -98.01437
-    'sh[14]': -50.728874
-    'sh[15]': -8.328286
-    'sh[16]': 40.429962
-    'sh[17]': -4.8045373
-    'sh[18]': 745.4937
-    'sh[19]': 57.95098
-    'sh[20]': 146.77393
-    'sh[21]': 313.87692
-    'sh[22]': -43.656788
-    'sh[23]': -49.676437
-    'sh[24]': -12.908869
-    'sh[25]': 32.30811
-    'sh[26]': -6.9480314
+    'sh[ 0]': 702.49036
+    'sh[ 1]': -129.33727
+    'sh[ 2]': 200.25546
+    'sh[ 3]': 319.1519
+    'sh[ 4]': -150.85426
+    'sh[ 5]': -61.03952
+    'sh[ 6]': -6.5988336
+    'sh[ 7]': 54.05604
+    'sh[ 8]': -4.9577255
+    'sh[ 9]': 675.03174
+    'sh[10]': -53.47063
+    'sh[11]': 167.72476
+    'sh[12]': 298.15045
+    'sh[13]': -103.28641
+    'sh[14]': -53.40395
+    'sh[15]': -8.565949
+    'sh[16]': 43.578945
+    'sh[17]': -5.1654906
+    'sh[18]': 746.264
+    'sh[19]': 53.869076
+    'sh[20]': 146.4469
+    'sh[21]': 316.12378
+    'sh[22]': -45.426956
+    'sh[23]': -51.693592
+    'sh[24]': -13.291128
+    'sh[25]': 34.742428
+    'sh[26]': -7.6241426
   m_SHValidForCapturePosition: {x: -14.795252, y: 3.9198482, z: 0.56717205}
   m_SHValidForSourcePosition: {x: -13.5056715, y: 4, z: 0.34537315}
   m_HDProbeVersion: 3
@@ -16975,6 +17144,231 @@ Transform:
   m_Father: {fileID: 906649024}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1160364522
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1160364523}
+  - component: {fileID: 1160364526}
+  - component: {fileID: 1160364525}
+  - component: {fileID: 1160364524}
+  m_Layer: 0
+  m_Name: Camera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1160364523
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160364522}
+  m_LocalRotation: {x: 0.07768114, y: 0.8142531, z: -0.11209687, w: 0.5642622}
+  m_LocalPosition: {x: 38.974545, y: 0.70732117, z: 3.7166872}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1402863372}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1160364524
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160364522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23c1ce4fb46143f46bc5cb5224c934f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clearColorMode: 0
+  backgroundColorHDR: {r: 0.025, g: 0.07, b: 0.19, a: 0}
+  clearDepth: 1
+  volumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  volumeAnchorOverride: {fileID: 0}
+  antialiasing: 2
+  SMAAQuality: 2
+  dithering: 0
+  stopNaNs: 0
+  taaSharpenStrength: 0.5
+  TAAQuality: 1
+  taaSharpenMode: 0
+  taaRingingReduction: 0
+  taaHistorySharpening: 0.35
+  taaAntiFlicker: 0.5
+  taaMotionVectorRejection: 0
+  taaAntiHistoryRinging: 0
+  taaBaseBlendFactor: 0.875
+  taaJitterScale: 1
+  physicalParameters:
+    m_Iso: 200
+    m_ShutterSpeed: 0.005
+    m_Aperture: 16
+    m_FocusDistance: 10
+    m_BladeCount: 5
+    m_Curvature: {x: 2, y: 11}
+    m_BarrelClipping: 0.25
+    m_Anamorphism: 0
+  flipYMode: 0
+  xrRendering: 1
+  fullscreenPassthrough: 0
+  allowDynamicResolution: 0
+  customRenderingSettings: 0
+  invertFaceCulling: 0
+  probeLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  hasPersistentHistory: 0
+  screenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  screenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  allowDeepLearningSuperSampling: 1
+  deepLearningSuperSamplingUseCustomQualitySettings: 0
+  deepLearningSuperSamplingQuality: 0
+  deepLearningSuperSamplingUseCustomAttributes: 0
+  deepLearningSuperSamplingUseOptimalSettings: 1
+  deepLearningSuperSamplingSharpening: 0
+  fsrOverrideSharpness: 0
+  fsrSharpness: 0.92
+  exposureTarget: {fileID: 0}
+  materialMipBias: 0
+  m_RenderingPathCustomFrameSettings:
+    bitDatas:
+      data1: 5770166122053453
+      data2: 13799030890350739480
+    lodBias: 1
+    lodBiasMode: 0
+    lodBiasQualityLevel: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
+    sssCustomDownsampleSteps: 0
+    msaaMode: 1
+    materialQuality: 0
+  renderingPathCustomFrameSettingsOverrideMask:
+    mask:
+      data1: 0
+      data2: 0
+  defaultFrameSettings: 0
+  m_Version: 9
+  m_ObsoleteRenderingPath: 0
+  m_ObsoleteFrameSettings:
+    overrides: 0
+    enableShadow: 0
+    enableContactShadows: 0
+    enableShadowMask: 0
+    enableSSR: 0
+    enableSSAO: 0
+    enableSubsurfaceScattering: 0
+    enableTransmission: 0
+    enableAtmosphericScattering: 0
+    enableVolumetrics: 0
+    enableReprojectionForVolumetrics: 0
+    enableLightLayers: 0
+    enableExposureControl: 1
+    diffuseGlobalDimmer: 0
+    specularGlobalDimmer: 0
+    shaderLitMode: 0
+    enableDepthPrepassWithDeferredRendering: 0
+    enableTransparentPrepass: 0
+    enableMotionVectors: 0
+    enableObjectMotionVectors: 0
+    enableDecals: 0
+    enableRoughRefraction: 0
+    enableTransparentPostpass: 0
+    enableDistortion: 0
+    enablePostprocess: 0
+    enableOpaqueObjects: 0
+    enableTransparentObjects: 0
+    enableRealtimePlanarReflection: 0
+    enableMSAA: 0
+    enableAsyncCompute: 0
+    runLightListAsync: 0
+    runSSRAsync: 0
+    runSSAOAsync: 0
+    runContactShadowsAsync: 0
+    runVolumeVoxelizationAsync: 0
+    lightLoopSettings:
+      overrides: 0
+      enableDeferredTileAndCluster: 0
+      enableComputeLightEvaluation: 0
+      enableComputeLightVariants: 0
+      enableComputeMaterialVariants: 0
+      enableFptlForForwardOpaque: 0
+      enableBigTilePrepass: 0
+      isFptlEnabled: 0
+--- !u!81 &1160364525
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160364522}
+  m_Enabled: 1
+--- !u!20 &1160364526
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160364522}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 1
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 0
+  m_AllowMSAA: 0
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
 --- !u!4 &1168581463 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6489513866886783320, guid: 573008edd81fd004a85a9b75a149b49f, type: 3}
@@ -19469,6 +19863,9 @@ Transform:
   - {fileID: 1451662993}
   - {fileID: 814746332}
   - {fileID: 2033667458}
+  - {fileID: 414310029}
+  - {fileID: 2145585223}
+  - {fileID: 1160364523}
   m_Father: {fileID: 0}
   m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -20057,7 +20454,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1451662993
 Transform:
   m_ObjectHideFlags: 0
@@ -22021,33 +22418,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 9.734358
-    'sh[ 1]': 2.9535196
-    'sh[ 2]': 4.6873975
-    'sh[ 3]': -1.0306312
-    'sh[ 4]': -0.48844874
-    'sh[ 5]': 0.88191354
-    'sh[ 6]': 0.058803782
-    'sh[ 7]': -0.3446285
-    'sh[ 8]': -0.28452894
-    'sh[ 9]': 7.0149217
-    'sh[10]': 2.2770967
-    'sh[11]': 4.2891684
-    'sh[12]': -0.95841265
-    'sh[13]': -0.3286867
-    'sh[14]': 0.74395674
-    'sh[15]': 0.11965021
-    'sh[16]': -0.4462776
-    'sh[17]': -0.20968576
-    'sh[18]': 5.4894066
-    'sh[19]': 1.8545808
-    'sh[20]': 3.7637117
-    'sh[21]': -0.90849453
-    'sh[22]': -0.2504618
-    'sh[23]': 0.6286836
-    'sh[24]': 0.13580379
-    'sh[25]': -0.42073765
-    'sh[26]': -0.15416192
+    'sh[ 0]': 11.76765
+    'sh[ 1]': 2.334452
+    'sh[ 2]': 4.126408
+    'sh[ 3]': -1.4137863
+    'sh[ 4]': -0.39485496
+    'sh[ 5]': 1.0280716
+    'sh[ 6]': 0.0787461
+    'sh[ 7]': -0.54772437
+    'sh[ 8]': -0.2841822
+    'sh[ 9]': 8.447805
+    'sh[10]': 1.9229616
+    'sh[11]': 4.704607
+    'sh[12]': -1.4253559
+    'sh[13]': -0.26808038
+    'sh[14]': 0.8856417
+    'sh[15]': 0.14484623
+    'sh[16]': -0.60893476
+    'sh[17]': -0.22296517
+    'sh[18]': 6.1798873
+    'sh[19]': 1.7485163
+    'sh[20]': 4.122932
+    'sh[21]': -1.187302
+    'sh[22]': -0.20514293
+    'sh[23]': 0.70887804
+    'sh[24]': 0.15529594
+    'sh[25]': -0.5137986
+    'sh[26]': -0.1582884
   m_SHValidForCapturePosition: {x: 41.349174, y: 0.85263014, z: -0.5740106}
   m_SHValidForSourcePosition: {x: 42.338097, y: 4.6271276, z: 0.46876335}
   m_HDProbeVersion: 3
@@ -23264,33 +23661,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 235.04231
-    'sh[ 1]': 128.26141
-    'sh[ 2]': 85.499344
-    'sh[ 3]': -8.882655
-    'sh[ 4]': -1.423383
-    'sh[ 5]': 33.559296
-    'sh[ 6]': 7.8357406
-    'sh[ 7]': -7.519461
-    'sh[ 8]': -3.4954035
-    'sh[ 9]': 263.76056
-    'sh[10]': 152.6092
-    'sh[11]': 95.61733
-    'sh[12]': -5.3133144
-    'sh[13]': 0.6902116
-    'sh[14]': 46.984997
-    'sh[15]': 7.590073
-    'sh[16]': -5.522358
-    'sh[17]': -7.0477295
-    'sh[18]': 365.86234
-    'sh[19]': 222.78601
-    'sh[20]': 130.06349
-    'sh[21]': -1.0875273
-    'sh[22]': 4.0247993
-    'sh[23]': 77.96604
-    'sh[24]': 8.711495
-    'sh[25]': -3.7155125
-    'sh[26]': -14.112819
+    'sh[ 0]': 234.8773
+    'sh[ 1]': 127.27645
+    'sh[ 2]': 84.66068
+    'sh[ 3]': -12.48204
+    'sh[ 4]': -1.2419229
+    'sh[ 5]': 32.762943
+    'sh[ 6]': 7.7866282
+    'sh[ 7]': -7.826317
+    'sh[ 8]': -3.2158165
+    'sh[ 9]': 268.47745
+    'sh[10]': 154.17131
+    'sh[11]': 95.55115
+    'sh[12]': -8.788104
+    'sh[13]': 0.6834889
+    'sh[14]': 46.421333
+    'sh[15]': 7.6101503
+    'sh[16]': -6.0347724
+    'sh[17]': -6.743807
+    'sh[18]': 364.03796
+    'sh[19]': 221.84953
+    'sh[20]': 128.50194
+    'sh[21]': -4.4024415
+    'sh[22]': 3.976757
+    'sh[23]': 77.10655
+    'sh[24]': 8.498009
+    'sh[25]': -4.183079
+    'sh[26]': -13.924832
   m_SHValidForCapturePosition: {x: -1.8986883, y: 3.9233816, z: -14.111639}
   m_SHValidForSourcePosition: {x: -1.2856727, y: 4, z: -13.694628}
   m_HDProbeVersion: 3
@@ -23738,33 +24135,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 163.6312
-    'sh[ 1]': 21.923725
-    'sh[ 2]': 50.85031
-    'sh[ 3]': -74.290924
-    'sh[ 4]': -0.6988195
-    'sh[ 5]': -0.64610565
-    'sh[ 6]': -0.5635683
-    'sh[ 7]': -15.656086
-    'sh[ 8]': 3.2658582
-    'sh[ 9]': 129.13991
-    'sh[10]': 28.063938
-    'sh[11]': 34.422512
-    'sh[12]': -70.30515
-    'sh[13]': -6.126127
-    'sh[14]': -0.8273812
-    'sh[15]': -1.1531723
-    'sh[16]': -11.113614
-    'sh[17]': 1.0004666
-    'sh[18]': 123.4193
-    'sh[19]': 49.372772
-    'sh[20]': 22.914291
-    'sh[21]': -65.30152
-    'sh[22]': -14.246023
-    'sh[23]': -0.8480031
-    'sh[24]': -2.171506
-    'sh[25]': -7.0468864
-    'sh[26]': -3.1802824
+    'sh[ 0]': 167.11157
+    'sh[ 1]': 21.912273
+    'sh[ 2]': 52.630302
+    'sh[ 3]': -75.460434
+    'sh[ 4]': -1.4021672
+    'sh[ 5]': -1.8909107
+    'sh[ 6]': -0.7425376
+    'sh[ 7]': -17.854826
+    'sh[ 8]': 2.9520452
+    'sh[ 9]': 130.3999
+    'sh[10]': 27.930765
+    'sh[11]': 35.529495
+    'sh[12]': -71.449295
+    'sh[13]': -6.496837
+    'sh[14]': -1.482626
+    'sh[15]': -1.2332329
+    'sh[16]': -12.301935
+    'sh[17]': 0.94064385
+    'sh[18]': 122.60293
+    'sh[19]': 49.202118
+    'sh[20]': 23.31089
+    'sh[21]': -65.42471
+    'sh[22]': -14.588335
+    'sh[23]': -1.1930451
+    'sh[24]': -2.2344422
+    'sh[25]': -7.6954193
+    'sh[26]': -3.3202894
   m_SHValidForCapturePosition: {x: 36.617508, y: 1.1994085, z: -2.3254933}
   m_SHValidForSourcePosition: {x: 35.55, y: 4.63, z: -2.256535}
   m_HDProbeVersion: 3
@@ -24578,33 +24975,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 8.876721
-    'sh[ 1]': -2.5473847
-    'sh[ 2]': -4.207187
-    'sh[ 3]': -0.058841664
-    'sh[ 4]': 0.052023206
-    'sh[ 5]': 0.8606954
-    'sh[ 6]': 0.043011744
-    'sh[ 7]': 0.017073588
-    'sh[ 8]': -0.096097775
-    'sh[ 9]': 5.091779
-    'sh[10]': -1.5871726
-    'sh[11]': -2.7199519
-    'sh[12]': -0.054049402
-    'sh[13]': 0.02983932
-    'sh[14]': 0.43180266
-    'sh[15]': 0.05906615
-    'sh[16]': 0.015664581
-    'sh[17]': -0.043136634
-    'sh[18]': 2.7779815
-    'sh[19]': -0.68044424
-    'sh[20]': -1.6385185
-    'sh[21]': -0.028390162
-    'sh[22]': 0.011697665
-    'sh[23]': 0.11535818
-    'sh[24]': 0.057674758
-    'sh[25]': 0.0069994987
-    'sh[26]': -0.018492293
+    'sh[ 0]': 8.632456
+    'sh[ 1]': -2.4590473
+    'sh[ 2]': -4.1124854
+    'sh[ 3]': -0.24245156
+    'sh[ 4]': 0.02845035
+    'sh[ 5]': 0.8488215
+    'sh[ 6]': 0.045863714
+    'sh[ 7]': 0.06248849
+    'sh[ 8]': -0.098713234
+    'sh[ 9]': 4.966718
+    'sh[10]': -1.5626259
+    'sh[11]': -2.616923
+    'sh[12]': -0.17084303
+    'sh[13]': 0.019112425
+    'sh[14]': 0.4333733
+    'sh[15]': 0.05812706
+    'sh[16]': 0.048635885
+    'sh[17]': -0.04759557
+    'sh[18]': 2.6922464
+    'sh[19]': -0.69738597
+    'sh[20]': -1.5401714
+    'sh[21]': -0.1064467
+    'sh[22]': 0.0075930385
+    'sh[23]': 0.12517662
+    'sh[24]': 0.05452693
+    'sh[25]': 0.03239781
+    'sh[26]': -0.02310086
   m_SHValidForCapturePosition: {x: 57.696465, y: 2.5544112, z: 2.596468}
   m_SHValidForSourcePosition: {x: 57.342613, y: 2.4917622, z: 2.215231}
   m_HDProbeVersion: 3
@@ -25261,33 +25658,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 3.784495
-    'sh[ 1]': -2.6313598
-    'sh[ 2]': 0.004605556
-    'sh[ 3]': -0.21150792
-    'sh[ 4]': 0.20479524
-    'sh[ 5]': -0.010624439
-    'sh[ 6]': -0.5066953
-    'sh[ 7]': -0.048421293
-    'sh[ 8]': -1.5145273
-    'sh[ 9]': 1.8181286
-    'sh[10]': -1.3067603
-    'sh[11]': -0.034945104
-    'sh[12]': -0.16521588
-    'sh[13]': 0.1866005
-    'sh[14]': 0.04985324
-    'sh[15]': -0.24297155
-    'sh[16]': -0.009117642
-    'sh[17]': -0.71128625
-    'sh[18]': 0.7566512
-    'sh[19]': -0.49819577
-    'sh[20]': -0.055802535
-    'sh[21]': -0.13181573
-    'sh[22]': 0.15423769
-    'sh[23]': 0.0776181
-    'sh[24]': -0.09328104
-    'sh[25]': 0.009164979
-    'sh[26]': -0.26159757
+    'sh[ 0]': 3.7836192
+    'sh[ 1]': -2.4109478
+    'sh[ 2]': 0.026381653
+    'sh[ 3]': -0.19599278
+    'sh[ 4]': 0.20821412
+    'sh[ 5]': 0.005010021
+    'sh[ 6]': -0.36519772
+    'sh[ 7]': 0.019259179
+    'sh[ 8]': -1.1136733
+    'sh[ 9]': 1.8094572
+    'sh[10]': -1.2248887
+    'sh[11]': -0.01839056
+    'sh[12]': -0.1356914
+    'sh[13]': 0.16779445
+    'sh[14]': 0.06547179
+    'sh[15]': -0.17628978
+    'sh[16]': 0.03492791
+    'sh[17]': -0.5202391
+    'sh[18]': 0.7306716
+    'sh[19]': -0.49603513
+    'sh[20]': -0.041624684
+    'sh[21]': -0.09683092
+    'sh[22]': 0.12958114
+    'sh[23]': 0.09421382
+    'sh[24]': -0.068747945
+    'sh[25]': 0.042817257
+    'sh[26]': -0.18560784
   m_SHValidForCapturePosition: {x: 63.38092, y: 6.6842666, z: -0.22000003}
   m_SHValidForSourcePosition: {x: 63.339996, y: 5.6865034, z: -0.22000003}
   m_HDProbeVersion: 3
@@ -27599,33 +27996,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 5.3995147
-    'sh[ 1]': -3.2148566
-    'sh[ 2]': 1.2726644
-    'sh[ 3]': -1.3671606
-    'sh[ 4]': 0.16652443
-    'sh[ 5]': -0.5889399
-    'sh[ 6]': -0.30401495
-    'sh[ 7]': -0.43308303
-    'sh[ 8]': -0.057071645
-    'sh[ 9]': 2.9245684
-    'sh[10]': -1.4315375
-    'sh[11]': 0.69291705
-    'sh[12]': -0.9409282
-    'sh[13]': 0.077614576
-    'sh[14]': -0.2615864
-    'sh[15]': -0.16948646
-    'sh[16]': -0.3465359
-    'sh[17]': 0.11046296
-    'sh[18]': 1.6960149
-    'sh[19]': -0.5631281
-    'sh[20]': 0.42039397
-    'sh[21]': -0.79497135
-    'sh[22]': 0.04646496
-    'sh[23]': -0.10494492
-    'sh[24]': -0.108013816
-    'sh[25]': -0.31252843
-    'sh[26]': 0.19588834
+    'sh[ 0]': 5.1353626
+    'sh[ 1]': -2.7120426
+    'sh[ 2]': 1.0639297
+    'sh[ 3]': -1.4281055
+    'sh[ 4]': 0.1803414
+    'sh[ 5]': -0.35430044
+    'sh[ 6]': -0.19053386
+    'sh[ 7]': -0.28887343
+    'sh[ 8]': -0.007824099
+    'sh[ 9]': 2.829685
+    'sh[10]': -1.203455
+    'sh[11]': 0.5864077
+    'sh[12]': -0.99235183
+    'sh[13]': 0.09726952
+    'sh[14]': -0.15084873
+    'sh[15]': -0.10888266
+    'sh[16]': -0.22939105
+    'sh[17]': 0.088922374
+    'sh[18]': 1.6167036
+    'sh[19]': -0.45440218
+    'sh[20]': 0.33827314
+    'sh[21]': -0.7751376
+    'sh[22]': 0.057287395
+    'sh[23]': -0.052940413
+    'sh[24]': -0.06931121
+    'sh[25]': -0.19788158
+    'sh[26]': 0.13508746
   m_SHValidForCapturePosition: {x: 49.978077, y: 2.9098535, z: -0.8799891}
   m_SHValidForSourcePosition: {x: 48.703957, y: 2.761774, z: 0.0028426647}
   m_HDProbeVersion: 3
@@ -29452,33 +29849,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 204.32832
-    'sh[ 1]': -75.52848
-    'sh[ 2]': -2.6657405
-    'sh[ 3]': 74.239494
-    'sh[ 4]': -59.55178
-    'sh[ 5]': -1.1356584
-    'sh[ 6]': -14.464114
-    'sh[ 7]': -2.4551303
-    'sh[ 8]': 21.563646
-    'sh[ 9]': 146.96637
-    'sh[10]': -53.936882
-    'sh[11]': -1.8783704
-    'sh[12]': 38.215824
-    'sh[13]': -37.304794
-    'sh[14]': -1.0858326
-    'sh[15]': -10.303618
-    'sh[16]': -0.9289007
-    'sh[17]': 16.93253
-    'sh[18]': 116.67836
-    'sh[19]': -40.07954
-    'sh[20]': -1.2404616
-    'sh[21]': 10.559126
-    'sh[22]': -20.893877
-    'sh[23]': -1.3591689
-    'sh[24]': -7.7971587
-    'sh[25]': 0.64114136
-    'sh[26]': 14.266263
+    'sh[ 0]': 199.85638
+    'sh[ 1]': -76.31651
+    'sh[ 2]': -1.4856195
+    'sh[ 3]': 72.93456
+    'sh[ 4]': -55.687153
+    'sh[ 5]': 0.41398212
+    'sh[ 6]': -13.344927
+    'sh[ 7]': 1.670579
+    'sh[ 8]': 19.94791
+    'sh[ 9]': 145.13332
+    'sh[10]': -54.68727
+    'sh[11]': -1.5384241
+    'sh[12]': 36.555256
+    'sh[13]': -34.409966
+    'sh[14]': -0.13375147
+    'sh[15]': -9.5362425
+    'sh[16]': 1.5218527
+    'sh[17]': 15.731127
+    'sh[18]': 113.69236
+    'sh[19]': -40.846592
+    'sh[20]': -1.1169623
+    'sh[21]': 10.949313
+    'sh[22]': -19.437668
+    'sh[23]': -0.8434168
+    'sh[24]': -7.2023597
+    'sh[25]': 1.907368
+    'sh[26]': 12.962667
   m_SHValidForCapturePosition: {x: 20.1278, y: 7.67794, z: 0.66314065}
   m_SHValidForSourcePosition: {x: 21.66, y: 7.75, z: -0.91}
   m_HDProbeVersion: 3
@@ -31874,33 +32271,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 68.00594
-    'sh[ 1]': 7.8462195
-    'sh[ 2]': -3.3037834
-    'sh[ 3]': -50.12995
-    'sh[ 4]': -2.7519763
-    'sh[ 5]': -0.014595961
-    'sh[ 6]': -2.465348
-    'sh[ 7]': 3.0552332
-    'sh[ 8]': 4.257936
-    'sh[ 9]': 52.482113
-    'sh[10]': 8.704241
-    'sh[11]': -1.5594921
-    'sh[12]': -38.85157
-    'sh[13]': -2.9882445
-    'sh[14]': -0.32432657
-    'sh[15]': -1.7365402
-    'sh[16]': 2.278697
-    'sh[17]': 3.1504688
-    'sh[18]': 47.491432
-    'sh[19]': 11.383816
-    'sh[20]': -2.0546715
-    'sh[21]': -35.021915
-    'sh[22]': -4.192857
-    'sh[23]': -1.2027297
-    'sh[24]': -1.4299636
-    'sh[25]': 2.4502108
-    'sh[26]': 2.4767919
+    'sh[ 0]': 69.91655
+    'sh[ 1]': 9.762496
+    'sh[ 2]': -4.05852
+    'sh[ 3]': -51.384346
+    'sh[ 4]': -2.8857422
+    'sh[ 5]': 0.051613912
+    'sh[ 6]': -2.4618871
+    'sh[ 7]': 3.0534737
+    'sh[ 8]': 4.188452
+    'sh[ 9]': 54.08339
+    'sh[10]': 9.652879
+    'sh[11]': -1.3617705
+    'sh[12]': -39.39318
+    'sh[13]': -3.0411856
+    'sh[14]': -0.2333684
+    'sh[15]': -1.7058296
+    'sh[16]': 2.3333635
+    'sh[17]': 3.0992143
+    'sh[18]': 48.22919
+    'sh[19]': 11.974474
+    'sh[20]': -1.9576257
+    'sh[21]': -35.13562
+    'sh[22]': -4.213119
+    'sh[23]': -1.1476592
+    'sh[24]': -1.4010643
+    'sh[25]': 2.4833272
+    'sh[26]': 2.4477043
   m_SHValidForCapturePosition: {x: 41.28018, y: 1.2773557, z: 3.4870224}
   m_SHValidForSourcePosition: {x: 37.984707, y: 4.7781773, z: 4.356434}
   m_HDProbeVersion: 3
@@ -32628,7 +33025,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2033667458
 Transform:
   m_ObjectHideFlags: 0
@@ -34264,6 +34661,113 @@ MonoBehaviour:
   m_Size: {x: 8, y: 8, z: 3}
   m_FadeFactor: 0.18
   m_Version: 3
+--- !u!1 &2145585222
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2145585223}
+  - component: {fileID: 2145585226}
+  - component: {fileID: 2145585225}
+  - component: {fileID: 2145585224}
+  m_Layer: 0
+  m_Name: Cube (4)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2145585223
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2145585222}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 41, y: 0, z: 3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1402863372}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &2145585224
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2145585222}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &2145585225
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2145585222}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_RenderingLayerMask: 257
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &2145585226
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2145585222}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1001 &2146498803
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -34627,33 +35131,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 353.9424
-    'sh[ 1]': -3.9109826
-    'sh[ 2]': -24.530325
-    'sh[ 3]': 255.36842
-    'sh[ 4]': -52.572186
-    'sh[ 5]': 0.23722617
-    'sh[ 6]': -19.15975
-    'sh[ 7]': -17.314363
-    'sh[ 8]': 47.03647
-    'sh[ 9]': 260.52866
-    'sh[10]': 16.724728
-    'sh[11]': -19.410614
-    'sh[12]': 173.88148
-    'sh[13]': -28.199005
-    'sh[14]': -3.5118144
-    'sh[15]': -13.606644
-    'sh[16]': -15.137764
-    'sh[17]': 32.89296
-    'sh[18]': 223.04219
-    'sh[19]': 45.226788
-    'sh[20]': -25.125378
-    'sh[21]': 124.40265
-    'sh[22]': -6.481501
-    'sh[23]': -10.760527
-    'sh[24]': -11.804738
-    'sh[25]': -18.112495
-    'sh[26]': 24.134296
+    'sh[ 0]': 354.733
+    'sh[ 1]': -5.874111
+    'sh[ 2]': -20.79783
+    'sh[ 3]': 251.23705
+    'sh[ 4]': -55.473663
+    'sh[ 5]': 2.462738
+    'sh[ 6]': -18.851707
+    'sh[ 7]': -16.50711
+    'sh[ 8]': 47.51155
+    'sh[ 9]': 260.8797
+    'sh[10]': 15.602575
+    'sh[11]': -17.935848
+    'sh[12]': 169.64014
+    'sh[13]': -29.945694
+    'sh[14]': -2.5687287
+    'sh[15]': -13.373581
+    'sh[16]': -14.955416
+    'sh[17]': 33.24889
+    'sh[18]': 222.84375
+    'sh[19]': 44.32159
+    'sh[20]': -24.424599
+    'sh[21]': 122.29408
+    'sh[22]': -7.424381
+    'sh[23]': -10.240617
+    'sh[24]': -11.6889105
+    'sh[25]': -18.22253
+    'sh[26]': 24.353613
   m_SHValidForCapturePosition: {x: 24.927107, y: 1.2945688, z: 1.4105322}
   m_SHValidForSourcePosition: {x: 28.941973, y: 4.7752485, z: 1.9656034}
   m_HDProbeVersion: 3
@@ -35506,33 +36010,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 1117.4252
-    'sh[ 1]': -669.7338
-    'sh[ 2]': 124.89066
-    'sh[ 3]': -85.762436
-    'sh[ 4]': -14.606298
-    'sh[ 5]': 10.084882
-    'sh[ 6]': -28.364725
-    'sh[ 7]': -18.919394
-    'sh[ 8]': -95.75563
-    'sh[ 9]': 1045.9928
-    'sh[10]': -432.08063
-    'sh[11]': 98.25594
-    'sh[12]': -74.44385
-    'sh[13]': -9.644794
-    'sh[14]': -5.044486
-    'sh[15]': -32.74733
-    'sh[16]': -18.591642
-    'sh[17]': -112.79524
-    'sh[18]': 1141.3466
-    'sh[19]': -124.21785
-    'sh[20]': 77.08402
-    'sh[21]': -70.375404
-    'sh[22]': -5.06068
-    'sh[23]': -29.681318
-    'sh[24]': -46.68775
-    'sh[25]': -22.854053
-    'sh[26]': -162.52509
+    'sh[ 0]': 1105.2473
+    'sh[ 1]': -657.9446
+    'sh[ 2]': 124.27179
+    'sh[ 3]': -85.2134
+    'sh[ 4]': -14.550461
+    'sh[ 5]': 10.166371
+    'sh[ 6]': -28.038998
+    'sh[ 7]': -19.299023
+    'sh[ 8]': -94.85667
+    'sh[ 9]': 1054.08
+    'sh[10]': -434.7189
+    'sh[11]': 100.07671
+    'sh[12]': -75.55309
+    'sh[13]': -9.833135
+    'sh[14]': -4.355947
+    'sh[15]': -32.56943
+    'sh[16]': -19.173405
+    'sh[17]': -112.5455
+    'sh[18]': 1118.6578
+    'sh[19]': -101.74711
+    'sh[20]': 75.508575
+    'sh[21]': -69.26622
+    'sh[22]': -5.1774287
+    'sh[23]': -29.454441
+    'sh[24]': -46.118202
+    'sh[25]': -23.288523
+    'sh[26]': -160.83691
   m_SHValidForCapturePosition: {x: 0, y: 5.26732, z: 0}
   m_SHValidForSourcePosition: {x: 0, y: 5.5, z: 0}
   m_HDProbeVersion: 3
@@ -35914,33 +36418,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 9.817691
-    'sh[ 1]': -2.0501423
-    'sh[ 2]': -0.13421145
-    'sh[ 3]': -1.0927
-    'sh[ 4]': 0.1532101
-    'sh[ 5]': -1.3693696
-    'sh[ 6]': -0.037001107
-    'sh[ 7]': -0.13250874
-    'sh[ 8]': -0.079295255
-    'sh[ 9]': 6.992742
-    'sh[10]': -1.1068951
-    'sh[11]': -1.1155597
-    'sh[12]': -0.8896927
-    'sh[13]': 0.08073664
-    'sh[14]': -1.0464464
-    'sh[15]': 0.008529075
-    'sh[16]': -0.081943646
-    'sh[17]': -0.08033314
-    'sh[18]': 5.144439
-    'sh[19]': -0.27884227
-    'sh[20]': -1.7558062
-    'sh[21]': -0.712752
-    'sh[22]': 0.021754215
-    'sh[23]': -0.8201792
-    'sh[24]': 0.040182088
-    'sh[25]': -0.040432718
-    'sh[26]': -0.059745863
+    'sh[ 0]': 9.238689
+    'sh[ 1]': -1.9715505
+    'sh[ 2]': -0.10641826
+    'sh[ 3]': -0.6440572
+    'sh[ 4]': 0.15593867
+    'sh[ 5]': -1.2917436
+    'sh[ 6]': -0.017449914
+    'sh[ 7]': -0.13020147
+    'sh[ 8]': -0.13663682
+    'sh[ 9]': 6.616377
+    'sh[10]': -1.0415784
+    'sh[11]': -1.0972306
+    'sh[12]': -0.61713314
+    'sh[13]': 0.08539461
+    'sh[14]': -0.994502
+    'sh[15]': 0.016629063
+    'sh[16]': -0.06994872
+    'sh[17]': -0.11499702
+    'sh[18]': 4.877465
+    'sh[19]': -0.24300526
+    'sh[20]': -1.7292314
+    'sh[21]': -0.5492293
+    'sh[22]': 0.027265051
+    'sh[23]': -0.7788328
+    'sh[24]': 0.040159665
+    'sh[25]': -0.027596502
+    'sh[26]': -0.08297836
   m_SHValidForCapturePosition: {x: 57.680187, y: 3.3250947, z: -0.30450857}
   m_SHValidForSourcePosition: {x: 58.600563, y: 3.69, z: -0.24048615}
   m_HDProbeVersion: 3

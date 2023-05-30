@@ -63,7 +63,7 @@ MonoBehaviour:
 
 
           1. Re-enable APV if you disabled it in
-          the last section and add a cube at this location <b>(X: 17 Y:2 Z:-2)</b>.
+          the last section and add a cube at this location <b>X: 17 Y:2 Z:-2</b>
 
 
           2.
@@ -77,11 +77,11 @@ MonoBehaviour:
 
           4. Optionally, reduce the baking quality
           to medium or draft, for faster bakes under <b>Scene</b> > <b>Lighting Settings</b>
-          > <b>Lighting Setting Asset</b>
+          > <b>Lighting Setting Asset.</b>
 
 
-          5. Rebake the lighting by hitting
-          the <b>Generate Lighting</b> button on the bottom'
+          5. Rebake the lighting by
+          hitting the <b>Generate Lighting</b> button on the bottom.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

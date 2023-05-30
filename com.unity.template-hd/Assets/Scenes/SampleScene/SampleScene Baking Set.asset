@@ -22,7 +22,7 @@ MonoBehaviour:
       dilationIterations: 1
       squaredDistWeighting: 0
     virtualOffsetSettings:
-      useVirtualOffset: 0
+      useVirtualOffset: 1
       outOfGeoOffset: 0
       searchMultiplier: 0
       rayOriginBias: -0.001
@@ -33,7 +33,7 @@ MonoBehaviour:
   m_SceneGUIDs:
   - 3db1837cc97a95e4c98610966fac2b0b
   scenesToNotBake: []
-  lightingScenarios:
+  m_LightingScenarios:
   - Default
   cellDescs:
     m_Keys: 180000002d0000001f00000034000000190000002e00000020000000350000001c00000031000000080000001d00000032000000470000002400000039000000090000001e0000003300000048000000250000003a00000021000000360000002200000037000000
@@ -631,57 +631,57 @@ MonoBehaviour:
       m_Values:
       - offset: 0
         elementCount: 1
-      - offset: 163840
+      - offset: 262144
         elementCount: 1
-      - offset: 327680
+      - offset: 524288
         elementCount: 2
-      - offset: 655360
+      - offset: 1048576
         elementCount: 3
-      - offset: 1146880
+      - offset: 1835008
         elementCount: 1
-      - offset: 1310720
+      - offset: 2097152
         elementCount: 1
-      - offset: 1474560
+      - offset: 2359296
         elementCount: 2
-      - offset: 1802240
+      - offset: 2883584
         elementCount: 2
-      - offset: 2129920
+      - offset: 3407872
         elementCount: 1
-      - offset: 2293760
-        elementCount: 1
-      - offset: 2457600
-        elementCount: 1
-      - offset: 2621440
-        elementCount: 3
-      - offset: 3112960
-        elementCount: 3
-      - offset: 3604480
-        elementCount: 1
-      - offset: 3768320
+      - offset: 3670016
         elementCount: 1
       - offset: 3932160
         elementCount: 1
-      - offset: 4096000
-        elementCount: 1
-      - offset: 4259840
+      - offset: 4194304
         elementCount: 3
-      - offset: 4751360
+      - offset: 4980736
         elementCount: 3
-      - offset: 5242880
+      - offset: 5767168
         elementCount: 1
-      - offset: 5406720
+      - offset: 6029312
         elementCount: 1
-      - offset: 5570560
+      - offset: 6291456
         elementCount: 1
-      - offset: 5734400
+      - offset: 6553600
         elementCount: 1
-      - offset: 5898240
+      - offset: 6815744
+        elementCount: 3
+      - offset: 7602176
+        elementCount: 3
+      - offset: 8388608
         elementCount: 1
-      - offset: 6062080
+      - offset: 8650752
         elementCount: 1
-      - offset: 6225920
+      - offset: 8912896
         elementCount: 1
-    elementSize: 163840
+      - offset: 9175040
+        elementCount: 1
+      - offset: 9437184
+        elementCount: 1
+      - offset: 9699328
+        elementCount: 1
+      - offset: 9961472
+        elementCount: 1
+    elementSize: 262144
   chunkSizeInBricks: 128
   maxCellPosition: {x: 4, y: 1, z: 1}
   minCellPosition: {x: -2, y: -1, z: -2}
@@ -697,8 +697,8 @@ MonoBehaviour:
   supportPositionChunkSize: 98304
   supportValidityChunkSize: 32768
   supportTouchupChunkSize: 32768
-  supportOffsetsChunkSize: 0
-  supportDataChunkSize: 163840
+  supportOffsetsChunkSize: 98304
+  supportDataChunkSize: 262144
   totalCellCounts:
     bricksCount: 3071
     chunksCount: 39
