@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
 using NUnit.Framework;
 
 using UnityEngine;
 using UnityEngine.TestTools;
+using Moq;
 using UnityEditor.VFX.UI;
 using UnityEditor.VFX.Block.Test;
 using UnityEngine.UIElements;
@@ -18,6 +18,7 @@ using UnityEditor.VFX.Block;
 using UnityEditor.VFX.Operator;
 
 using Debug = UnityEngine.Debug;
+using RangeAttribute = UnityEngine.RangeAttribute;
 
 namespace UnityEditor.VFX.Test
 {
@@ -932,6 +933,79 @@ namespace UnityEditor.VFX.Test
             window1.LoadResource(mainGraph);
             yield return null;
             Assert.AreEqual(DragAndDropVisualMode.Rejected, window1.graphView.GetDragAndDropModeForVisualEffectObject(subgraphResource.asset), "Should not be able to create a circular dependency");
+        }
+
+        public class TestEditor : EditorWindow
+        {
+
+        }
+
+        [Test]
+        public void Check_NumericPropertyRM_Float_MinAttribute()
+        {
+            CheckNumericPropertyRM(x => new FloatPropertyRM(x, 60f), new MinAttribute(0f), 0f, new List<(float, float)> { (-5f, 0f), (5f, 5f )});
+        }
+
+        [Test]
+        public void Check_NumericPropertyRM_Int_MinAttribute()
+        {
+            CheckNumericPropertyRM(x => new IntPropertyRM(x, 60f), new MinAttribute(0f), 0, new List<(int, int)> { (-1, 0), (1, 1 )});
+        }
+
+        [Test]
+        public void Check_NumericPropertyRM_UInt_MinAttribute()
+        {
+            CheckNumericPropertyRM<uint, long>(x => new UintPropertyRM(x, 60f), new MinAttribute(1f), 1U, new List<(uint, uint)> { (0, 1), (5, 5 )});
+        }
+
+        [Test]
+        public void Check_NumericPropertyRM_Float_RangeAttribute()
+        {
+            CheckNumericPropertyRM(x => new FloatPropertyRM(x, 60f), new RangeAttribute(1f, 100f), 1f, new List<(float, float)> { (-5f, 1f), (105f, 100f )});
+            CheckNumericPropertyRM(x => new FloatPropertyRM(x, 60f), new MinMaxAttribute(1f, 100f), 1f, new List<(float, float)> { (-5f, 1f), (105f, 100f )});
+        }
+
+        [Test]
+        public void Check_NumericPropertyRM_Int_RangeAttribute()
+        {
+            CheckNumericPropertyRM(x => new IntPropertyRM(x, 60f), new RangeAttribute(1f, 100f), 1, new List<(int, int)> { (-5, 1), (105, 100 )});
+            CheckNumericPropertyRM(x => new IntPropertyRM(x, 60f), new MinMaxAttribute(1f, 100f), 1, new List<(int, int)> { (-5, 1), (105, 100 )});
+        }
+
+        [Test]
+        public void Check_NumericPropertyRM_UInt_RangeAttribute()
+        {
+            CheckNumericPropertyRM(x => new UintPropertyRM(x, 60f), new RangeAttribute(1f, 100f), 1U, new List<(uint, uint)> { (0, 1), (105, 100 )});
+            CheckNumericPropertyRM(x => new UintPropertyRM(x, 60f), new MinMaxAttribute(1f, 100f), 1U, new List<(uint, uint)> { (0, 1), (105, 100 )});
+        }
+
+        private void CheckNumericPropertyRM<T,U>(Func<IPropertyRMProvider, NumericPropertyRM<T, U>> creator, UnityEngine.PropertyAttribute attribute, T initialValue, List<(T, T)> testCases)
+        {
+            // Arrange
+            var editor = EditorWindow.GetWindow<TestEditor>();
+            try
+            {
+                var propertyRMProviderMock = new Mock<IPropertyRMProvider>();
+                propertyRMProviderMock.SetupProperty(x => x.value, initialValue);
+                propertyRMProviderMock.SetupSet(x => x.value = It.IsAny<T>()).Verifiable();
+                propertyRMProviderMock.SetupGet(x => x.name).Returns("Mocked property");
+                propertyRMProviderMock.SetupGet(x => x.attributes).Returns(new VFXPropertyAttributes(attribute));
+                var numericPropertyRM = creator(propertyRMProviderMock.Object);
+                editor.rootVisualElement.Add(numericPropertyRM);
+                numericPropertyRM.SetValue(initialValue);
+
+                foreach (var testCase in testCases)
+                {
+                    // Act
+                    numericPropertyRM.Q<TextValueField<U>>().value = (U)Convert.ChangeType(testCase.Item1, typeof(U));
+                    // Assert
+                    propertyRMProviderMock.VerifySet(x => x.value = testCase.Item2);
+                }
+            }
+            finally
+            {
+                editor.Close();
+            }
         }
 
         private static VFXModelDescriptor<VFXBlock>[] GetAllBlocks(bool filterOut, Predicate<VFXModelDescriptor<VFXBlock>> predicate)

@@ -9,7 +9,8 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.Timeline",
-        "Unity.Timeline.Editor"
+        "Unity.Timeline.Editor",
+        "Unity.Nuget.Moq.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -17,7 +18,9 @@
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+      "Moq.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": []
 }
