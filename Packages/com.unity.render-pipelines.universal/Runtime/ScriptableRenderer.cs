@@ -1168,6 +1168,11 @@ namespace UnityEngine.Rendering.Universal
 
                     //Triggers dispatch per camera, all global parameters should have been setup at this stage.
                     VFX.VFXManager.ProcessCameraCommand(camera, cmd, new VFX.VFXCameraXRSettings(), renderingData.cullResults);
+
+                    // Force execution of the command buffer, to ensure that it is run before "BeforeRendering", (which renders shadow maps)
+                    // This is needed in 2022.2 because they are using different command buffers, but not in latest versions.
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
                 }
 #endif
 

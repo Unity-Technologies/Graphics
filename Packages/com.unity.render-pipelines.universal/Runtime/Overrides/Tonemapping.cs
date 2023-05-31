@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         ACES, // ACES Filmic reference tonemapper (custom approximation)
     }
-    
+
     /// <summary>
     /// Available options for when HDR Output is enabled and Tonemap is set to Neutral.
     /// </summary>
@@ -64,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
     /// A volume component that holds settings for the tonemapping effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Tonemapping", typeof(UniversalRenderPipeline))]
+    [URPHelpURL("post-processing-tonemapping")]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -71,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [Tooltip("Select a tonemapping algorithm to use for the color grading process.")]
         public TonemappingModeParameter mode = new TonemappingModeParameter(TonemappingMode.None);
-        
+
         // -- HDR Output options --
 
         /// <summary>
@@ -143,7 +144,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) { }
     }
-    
+
     /// <summary>
     /// A <see cref="VolumeParameter"/> that contains a <see cref="NeutralRangeReductionMode"/> value.
     /// </summary>

@@ -104,7 +104,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
     #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
         if (_WindEnabled > 0)
         {
-            float3 rotatedWindVector = mul(_ST_WindVector.xyz, (float3x3)unity_ObjectToWorld);
+            float3 rotatedWindVector = mul(_ST_WindVector.xyz, (float3x3)UNITY_MATRIX_M);
             float windLength = length(rotatedWindVector);
             if (windLength < 1e-5)
             {
@@ -113,7 +113,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             }
             rotatedWindVector /= windLength;
 
-            float3 treePos = float3(unity_ObjectToWorld[0].w, unity_ObjectToWorld[1].w, unity_ObjectToWorld[2].w);
+            float3 treePos = float3(UNITY_MATRIX_M[0].w, UNITY_MATRIX_M[1].w, UNITY_MATRIX_M[2].w);
             float3 windyPosition = input.vertex.xyz;
 
             #ifndef EFFECT_BILLBOARD
@@ -168,7 +168,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 
                 // branch wind (applies to all 3D geometry)
                 #if defined(_WINDQUALITY_BETTER) || defined(_WINDQUALITY_BEST) || defined(_WINDQUALITY_PALM)
-                    float3 rotatedBranchAnchor = normalize(mul(_ST_WindBranchAnchor.xyz, (float3x3)unity_ObjectToWorld)) * _ST_WindBranchAnchor.w;
+                    float3 rotatedBranchAnchor = normalize(mul(_ST_WindBranchAnchor.xyz, (float3x3)UNITY_MATRIX_M)) * _ST_WindBranchAnchor.w;
                     windyPosition = BranchWind(bPalmWind, windyPosition, treePos, float4(input.texcoord.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor);
                 #endif
 

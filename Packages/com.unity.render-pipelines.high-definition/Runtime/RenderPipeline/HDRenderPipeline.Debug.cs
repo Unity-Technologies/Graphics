@@ -881,6 +881,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.debugOverlay = m_DebugOverlay;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Write);
                 passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 passData.shadowTextures = HDShadowManager.ReadShadowResult(shadowResult, builder);
                 passData.shadowManager = m_ShadowManager;

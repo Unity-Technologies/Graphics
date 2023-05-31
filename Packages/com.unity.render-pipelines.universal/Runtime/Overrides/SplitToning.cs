@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// A volume component that holds settings for the Split Toning effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Split Toning", typeof(UniversalRenderPipeline))]
+    [URPHelpURL("Post-Processing-Split-Toning")]
     public sealed class SplitToning : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

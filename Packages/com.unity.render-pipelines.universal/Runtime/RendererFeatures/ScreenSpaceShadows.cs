@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
 
     [DisallowMultipleRendererFeature("Screen Space Shadows")]
     [Tooltip("Screen Space Shadows")]
+    [URPHelpURL("renderer-feature-screen-space-shadows")]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {
 #if UNITY_EDITOR

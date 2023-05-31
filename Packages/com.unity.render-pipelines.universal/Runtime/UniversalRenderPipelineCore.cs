@@ -1096,8 +1096,14 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for Robust Contrast-Adaptive Sharpening (RCAS) when doing upsampling. </summary>
         public const string Rcas = "_RCAS";
 
+        /// <summary> Keyword used for Robust Contrast-Adaptive Sharpening (RCAS) when doing upsampling, after EASU has ran and with HDR Dsiplay output. </summary>
+        public const string EasuRcasAndHDRInput = "_EASU_RCAS_AND_HDR_INPUT";
+
         /// <summary> Keyword used for Gamma 2.0. </summary>
         public const string Gamma20 = "_GAMMA_20";
+
+        /// <summary> Keyword used for Gamma 2.0 with HDR_INPUT. </summary>
+        public const string Gamma20AndHDRInput = "_GAMMA_20_AND_HDR_INPUT";
 
         /// <summary> Keyword used for high quality sampling for Depth Of Field. </summary>
         public const string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";

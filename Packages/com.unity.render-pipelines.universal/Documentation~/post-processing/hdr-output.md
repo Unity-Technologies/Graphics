@@ -107,26 +107,10 @@ This debug view indicates the relationship between scene values and specific col
 
 This debug view uses a color coded gradient to indicate parts of the Scene that exceed the Paper White value. The gradient ranges from yellow to red. Yellow corresponds to **Paper White** +1, and red corresponds to **Max Nits**.
 
-## Known Limitations
+## Platform Compatibility
 
-HDR Output is not compatible with all platforms and features:
-
-- [Platform Compatibility](#platform-compatibility)
-- [Feature Compatibility](#feature-compatibility)
-
-### Platform Compatibility
-
-URP supports HDR Output on the following platforms:
+URP only supports HDR Output on the following platforms:
 
 - Windows with DirectX 12 or Vulkan
 - MacOS with Metal
 - Consoles
-
-### Feature Compatibility
-
-HDR Output in URP is not compatible with the following effects:
-
-- [Fast Approximate Anti-aliasing](./../camera-component-reference.md#rendering)
-- [FidelityFX Super Resolution 1.0 Upscaling](./../universalrp-asset.md#quality)
-- [Film Grain](./../Post-Processing-Film-Grain.md)
-- [Dithering](./../camera-component-reference.md)

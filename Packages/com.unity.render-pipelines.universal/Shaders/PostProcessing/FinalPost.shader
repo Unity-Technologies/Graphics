@@ -1,19 +1,20 @@
 Shader "Hidden/Universal Render Pipeline/FinalPost"
 {
     HLSLINCLUDE
-        #pragma multi_compile_local_fragment _ _POINT_SAMPLING _RCAS
+        #pragma multi_compile_local_fragment _ _POINT_SAMPLING _RCAS _EASU_RCAS_AND_HDR_INPUT
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
-        #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION HDR_ENCODING HDR_COLORSPACE_CONVERSION_AND_ENCODING
+        #pragma multi_compile_local_fragment _ HDR_INPUT HDR_COLORSPACE_CONVERSION HDR_ENCODING HDR_COLORSPACE_CONVERSION_AND_ENCODING
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"
 #if defined(HDR_COLORSPACE_CONVERSION) || defined(HDR_ENCODING) || defined(HDR_COLORSPACE_CONVERSION_AND_ENCODING)
+        #define HDR_INPUT 1 // this should be defined when HDR_COLORSPACE_CONVERSION or HDR_ENCODING are defined
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/HDROutput.hlsl"
 #endif
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -30,13 +31,6 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         float4 _Dithering_Params;
         float4 _HDROutputLuminanceParams;
 
-        #if SHADER_TARGET >= 45
-            #define FSR_INPUT_TEXTURE _BlitTexture
-            #define FSR_INPUT_SAMPLER sampler_LinearClamp
-
-            #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
-        #endif
-
         #define GrainIntensity          _Grain_Params.x
         #define GrainResponse           _Grain_Params.y
         #define GrainScale              _Grain_TilingParams.xy
@@ -48,6 +42,17 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #define MinNits                 _HDROutputLuminanceParams.x
         #define MaxNits                 _HDROutputLuminanceParams.y
         #define PaperWhite              _HDROutputLuminanceParams.z
+        #define OneOverPaperWhite       _HDROutputLuminanceParams.w
+
+        #if SHADER_TARGET >= 45
+            #define FSR_INPUT_TEXTURE _BlitTexture
+            #define FSR_INPUT_SAMPLER sampler_LinearClamp
+
+            // If HDR_INPUT is defined, we must also define FSR_EASU_ONE_OVER_PAPER_WHITE before including the FSR common header.
+            // URP doesn't actually uses EASU from finalPost shader, only RCAS.
+            #define FSR_EASU_ONE_OVER_PAPER_WHITE  OneOverPaperWhite
+            #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
+        #endif
 
         half4 FragFinalPost(Varyings input) : SV_Target
         {
@@ -59,10 +64,14 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _POINT_SAMPLING
             half3 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv).xyz;
-            #elif _RCAS && SHADER_TARGET >= 45
+            #elif (_RCAS || _EASU_RCAS_AND_HDR_INPUT) && SHADER_TARGET >= 45
             half3 color = ApplyRCAS(positionSS);
             // When Unity is configured to use gamma color encoding, we must convert back from linear after RCAS is performed.
             // (The input color data for this shader variant is always linearly encoded because RCAS requires it)
+            #if _EASU_RCAS_AND_HDR_INPUT
+            // Revert operation from ScalingSetup.shader
+            color.rgb = FastTonemapInvert(color.rgb) * PaperWhite;
+            #endif
             #if UNITY_COLORSPACE_GAMMA
             color = GetLinearToSRGB(color);
             #endif
@@ -72,13 +81,13 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _FXAA
             {
-                color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _BlitTexture);
+                color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _BlitTexture, PaperWhite, OneOverPaperWhite);
             }
             #endif
 
             #if _FILM_GRAIN
             {
-                color = ApplyGrain(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
+                color = ApplyGrain(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset, OneOverPaperWhite);
             }
             #endif
 
@@ -90,7 +99,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _DITHERING
             {
-                color = ApplyDithering(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
+                color = ApplyDithering(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset, PaperWhite, OneOverPaperWhite);
             }
             #endif
 

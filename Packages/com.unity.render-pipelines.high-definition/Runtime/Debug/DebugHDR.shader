@@ -28,7 +28,7 @@ Shader "Hidden/HDRP/DebugHDR"
     #define _MaxNits    _HDROutputParams.y
     #define _PaperWhite _HDROutputParams.z
     #define _RangeReductionMode    (int)_HDROutputParams2.x
-    #define _IsRec709 (int)(_HDROutputParams.w == 0)
+    #define _IsRec709 (int)(_HDROutputParams2.w == 0)
 
     #define _TonemapType _HDRDebugParams.w
 

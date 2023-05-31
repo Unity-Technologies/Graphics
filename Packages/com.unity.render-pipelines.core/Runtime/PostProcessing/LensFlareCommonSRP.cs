@@ -57,6 +57,7 @@ namespace UnityEngine.Rendering
         /// Texture width is the max number of lens flares that have occlusion (x axis the lens flare index).
         /// y axis is the number of samples (maxLensFlareWithOcclusionTemporalSample) plus the number of merge results.
         /// Merge results must be done by the SRP and stored in the [(lens flareIndex), (maxLensFlareWithOcclusionTemporalSample + 1)] coordinate.
+        /// Note: It's not supported on OpenGL3 and OpenGLCore
         /// </summary>
         public static RTHandle occlusionRT = null;
 
@@ -66,13 +67,21 @@ namespace UnityEngine.Rendering
         {
         }
 
-        static bool IsOcclusionRTCompatible()
+        private static readonly bool s_SupportsLensFlareTexFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RFloat);
+
+        /// <summary>
+        /// Check if we can use an OcclusionRT
+        /// </summary>
+        /// <returns>return true if we can have the OcclusionRT</returns>
+        static public bool IsOcclusionRTCompatible()
         {
 #if UNITY_SERVER
             return false;
 #else
             return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore;
+                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
+                    s_SupportsLensFlareTexFormat; //Caching this, because SupportsRenderTextureFormat allocates memory. Go figure.
 #endif
         }
 

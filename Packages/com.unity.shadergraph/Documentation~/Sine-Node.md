@@ -6,10 +6,10 @@ Returns the sine of the value of input **In**.
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
-|:------------ |:-------------|:-----|:---|
-| In      | Input | Dynamic Vector | Input value |
-| Out | Output      |    Dynamic Vector | Output value |
+| Name  | Direction  | Type           | Description   |
+|:------|:-----------|:---------------|:--------------|
+| In    | Input      | Dynamic Vector | Input value in radians.  |
+| Out   | Output     | Dynamic Vector | Output value. Range (-1 to +1).  |
 
 ## Generated Code Example
 

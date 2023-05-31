@@ -169,8 +169,8 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
         LocalKeyword m_ScreenCoordOverride;
-        LocalKeyword m_ProbeVolumesL1;
-        LocalKeyword m_ProbeVolumesL2;
+        LocalKeyword m_EasuRcasAndHDRInput;
+        LocalKeyword m_Gamma20AndHDRInput;
         LocalKeyword m_SHPerVertex;
         LocalKeyword m_SHMixed;
 
@@ -224,6 +224,8 @@ namespace UnityEditor.Rendering.Universal
             m_LocalDetailScaled = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
             m_LocalClearCoat = TryGetLocalKeyword(shader, ShaderKeywordStrings._CLEARCOAT);
             m_LocalClearCoatMap = TryGetLocalKeyword(shader, ShaderKeywordStrings._CLEARCOATMAP);
+            m_EasuRcasAndHDRInput = TryGetLocalKeyword(shader, ShaderKeywordStrings.EasuRcasAndHDRInput);
+            m_Gamma20AndHDRInput = TryGetLocalKeyword(shader, ShaderKeywordStrings.Gamma20AndHDRInput);
 
             // Post processing
             m_LensDistortion = TryGetLocalKeyword(shader, ShaderKeywordStrings.Distortion);
@@ -830,7 +832,19 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripInvalidVariants_HDR(ref IShaderScriptableStrippingData strippingData)
         {
-            return !strippingData.IsHDRShaderVariantValid;
+            // We do not need to strip out HDR output variants if HDR display is enabled.
+            if (PlayerSettings.useHDRDisplay)
+                return false;
+
+            // Shared keywords between URP and HDRP.
+            if (!strippingData.IsHDRShaderVariantValid)
+                return true;
+
+            // HDR output shader variants specific to URP.
+            if (strippingData.IsKeywordEnabled(m_EasuRcasAndHDRInput) || strippingData.IsKeywordEnabled(m_Gamma20AndHDRInput))
+                return true;
+
+            return false;
         }
 
         internal bool StripInvalidVariants_TerrainHoles(ref IShaderScriptableStrippingData strippingData)
