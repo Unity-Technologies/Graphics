@@ -863,7 +863,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "_Sharpness",
     "m_StageCapability": 3,
-    "m_Value": 500000.0,
+    "m_Value": 100000.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
 }
@@ -1601,7 +1601,7 @@
     },
     "m_Name": "DecalEdgeMask",
     "m_DrawState": {
-        "m_Expanded": false,
+        "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
             "x": 769.5000610351563,

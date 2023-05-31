@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs_MaterialProjectionDecal
+  m_Name: DecalMaterialProjectionCobblestones
   m_Shader: {fileID: -6465566751694194690, guid: 1716ff8c1e51af14280cc97fbcba3b11, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
