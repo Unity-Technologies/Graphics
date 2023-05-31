@@ -702,7 +702,7 @@ namespace UnityEditor.VFX.UI
             m_IsRuntimeMode = !m_IsRuntimeMode;
             controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
         }
-                
+
         DropdownMenuAction.Status RuntimeModeStatus(DropdownMenuAction action)
         {
             if (controller.graph.GetResource()?.isSubgraph ?? true)
@@ -1677,7 +1677,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnSave()
+        internal void OnSave()
         {
             m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
 
@@ -2891,17 +2891,18 @@ namespace UnityEditor.VFX.UI
 
         private void DuplicateBlackBoardCategorySelection()
         {
-            foreach (var blackboardCategory in selection.OfType<VFXBlackboardCategory>())
             {
-                var newCategory = blackboard.AddCategory(blackboardCategory.title);
+                foreach (var blackboardCategory in selection.OfType<VFXBlackboardCategory>())
+                {
+                    var newCategoryName = blackboard.AddCategory(blackboardCategory.title);
 
-                var parameters = blackboardCategory
-                    .Children()
-                    .OfType<VFXBlackboardRow>()
-                    .Select(x => DuplicateBlackboardField(x.field))
-                    .ToList();
-                parameters.ForEach(x => x.model.category = newCategory.title);
-                newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
+                    var parameters = blackboardCategory
+                        .Children()
+                        .OfType<VFXBlackboardRow>()
+                        .Select(x => DuplicateBlackboardField(x.field))
+                        .ToList();
+                    parameters.ForEach(x => x.model.category = newCategoryName);
+                }
             }
         }
 

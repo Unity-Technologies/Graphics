@@ -541,6 +541,10 @@ The **Rendering** panel has tools that you can use to visualize various HDRP ren
 <td>Select this option to display motion vectors. Note that object motion vectors aren't visible in the Scene view.</td>
 </tr>
 <tr>
+<td><strong>World Space Position</strong></td>
+<td>Select this option to display world space positions.</td>
+</tr>
+<tr>
 <td><strong>NaN Tracker</strong></td>
 <td>Select this option to display an overlay that highlights <a href="https://en.wikipedia.org/wiki/NaN">NaN</a> values.</td>
 </tr>

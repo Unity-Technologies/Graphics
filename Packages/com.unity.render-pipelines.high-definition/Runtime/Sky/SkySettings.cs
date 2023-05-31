@@ -267,5 +267,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <returns>The class type of the SkyRenderer associated with this Sky Settings.</returns>
         public abstract Type GetSkyRendererType();
+
+        // Keeping this API internal for now.
+        // It's required for PBR sky to interact correctly with baking but we are not 100% set on the interface yet.
+        internal virtual Vector3 EvaluateAtmosphericAttenuation(Vector3 sunDirection, Vector3 cameraPosition)
+        {
+            return Vector3.one;
+        }
     }
 }
